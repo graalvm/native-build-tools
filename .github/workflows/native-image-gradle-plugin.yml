@@ -1,0 +1,65 @@
+name: native-image-gradle-plugin
+
+on:
+  push:
+    paths:
+      - 'native-image-gradle-plugin/**'
+      - 'examples/gradle/**'
+  pull_request:
+    paths:
+      - 'native-image-gradle-plugin/**'
+      - 'examples/gradle/**'
+  workflow_dispatch: [ ]
+
+jobs:
+  test-native-image-gradle-plugin:
+    name:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source .github/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Checkstyle
+        run: |
+          pushd native-image-gradle-plugin
+            ./gradlew checkstyleMain
+            ./gradlew checkstyleTest
+          popd
+      - name: Build and publish plugin
+        run: |
+          pushd native-image-gradle-plugin
+            ./gradlew publishToMavenLocal
+          popd
+      - uses: actions/checkout@v2
+        with:
+          repository: graalvm/native-image-configuration
+          ssh-key: ${{ secrets.SSH_KEY_NICFG }}
+          path: native-image-configuration
+      - name: Build and publish feature
+        run: |
+          pushd native-image-configuration/junit-platform-native/junit-platform-native-feature
+            ./gradlew publishToMavenLocal
+          popd
+      - name: Plugin test (build native)
+        run: |
+          pushd examples/gradle
+            echo "JVM run"
+            ./gradlew run
+            echo "Native run"
+            ./gradlew runNative
+          popd
+      - name: Plugin test (test native)
+        run: |
+          pushd examples/gradle
+            ./gradlew clean test
+            ./gradlew testNative
+          popd
+

@@ -1,0 +1,34 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        nativeImage {
+            id = 'native-image-gradle-plugin'
+            implementationClass = 'org.graalvm.nativeimage.gradle.NativeImagePlugin'
+        }
+    }
+}
+
+group = 'org.graalvm.nativeimage'
+version = org_graalvm_nativeimage_gradle
+
+publishing {
+     repositories {
+        mavenLocal()
+    }
+}

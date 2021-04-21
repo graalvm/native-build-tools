@@ -1,0 +1,42 @@
+name: native-image-maven-plugin
+
+on:
+  push:
+    paths:
+      - 'native-image-maven-plugin/**'
+      - 'examples/maven/**'
+  pull_request:
+    paths:
+      - 'native-image-maven-plugin/**'
+      - 'examples/maven/**'
+  workflow_dispatch: [ ]
+
+jobs:
+  test-native-image-maven-plugin:
+    name:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source .github/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Build and install plugin
+        run: |
+          pushd native-image-maven-plugin
+            mvn clean install
+          popd
+      - name: Plugin test (build native)
+        run: |
+          pushd examples/maven
+            echo "JVM run"
+            mvn compile exec:java@java
+            echo "Native run"
+            mvn package exec:exec@native
+          popd

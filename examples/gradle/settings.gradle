@@ -1,0 +1,8 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+rootProject.name = 'org.graalvm.nativeimage.examples.gradle'
+

@@ -1,0 +1,52 @@
+plugins {
+    // Apply the java plugin to add support for Java
+    id 'java'
+
+    // Apply the application plugin to add support for building a CLI application.
+    id 'application'
+
+    // Apply GraalVM Native Image plugin
+    id 'native-image-gradle-plugin' version "${org_graalvm_nativeimage_gradle}"
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    // Use JUnit Jupiter API for testing.
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:' + org_junit_jupiter
+
+    // Use JUnit Jupiter Engine for testing.
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + org_junit_jupiter
+}
+
+application {
+    // Define the main class for the application.
+    mainClassName = 'org.graalvm.nativeimage.example.App'
+}
+
+test {
+    // Use junit platform for unit tests
+    useJUnitPlatform()
+}
+
+nativeImage {
+  imageName = "example-app"
+  args("--no-server")
+  debug = false
+  verbose = true
+  fallback = false
+  enableServerBuild(false)
+  classpath("dir1", "dir2")
+  systemProperties = [name1: 'value1', name2: 'value2']
+}
+
+import org.graalvm.nativeimage.gradle.dsl.TestMode
+
+testNative {
+	mode = TestMode.TEST_LISTENER
+	agent = false
+	persistConfig = false
+}
