@@ -9,7 +9,7 @@ plugins {
     // ...
 
     // Apply GraalVM Native Image plugin
-    id 'org.graalvm.nativeimage.testnative' version "${insert_plugin_version}"
+    id 'native-image-gradle-plugin' version "${insert_plugin_version}"
 }
 ```
 ### DSL definition

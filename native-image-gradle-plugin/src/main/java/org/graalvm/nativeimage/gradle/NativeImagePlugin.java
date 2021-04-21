@@ -149,7 +149,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         task.doFirst((__) -> {
             try {
-                // Before JVM JUnit Platform test execution (during `test` task), we want to copy access-filter file
+                // Before JVM execution (during `run` or `test` task), we want to copy access-filter file
                 // so that native-image-agent run doesn't catch internal gradle classes.
                 Files.copy(Objects.requireNonNull(this.getClass().getResourceAsStream("/" + AGENT_FILTER)), accessFilter, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException | NullPointerException e) {
