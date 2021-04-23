@@ -59,7 +59,7 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> {
-    public static final String TASK_NAME = "buildNative";
+    public static final String TASK_NAME = "nativeBuild";
 
     protected NativeImageOptions options;
 
@@ -96,7 +96,13 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
     @Override
     @SuppressWarnings("ConstantConditions")
     public void exec() {
-        this.args(getArgs());
+        List<String> args = getArgs();
+        if (options.getVerbose().get()) {
+            System.out.println("Args are:");
+            System.out.println(args);
+        }
+        this.args(args);
+
         getServer().get();
         super.exec();
         System.out.println("Native Image written to: " + getOutputFile());

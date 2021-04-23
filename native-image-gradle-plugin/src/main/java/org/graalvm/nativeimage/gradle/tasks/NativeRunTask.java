@@ -49,7 +49,7 @@ import java.io.File;
 
 @SuppressWarnings("unused")
 public class NativeRunTask extends AbstractExecTask<NativeRunTask> {
-    public static final String TASK_NAME = "runNative";
+    public static final String TASK_NAME = "nativeRun";
     protected NativeImageOptions options;
 
     public NativeRunTask() {

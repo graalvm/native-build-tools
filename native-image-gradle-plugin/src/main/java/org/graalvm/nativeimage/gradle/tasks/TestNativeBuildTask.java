@@ -61,7 +61,7 @@ import java.util.List;
 import static org.graalvm.nativeimage.gradle.GradleUtils.log;
 
 public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBuildTask> {
-    public static final String TASK_NAME = "testNativeBuild";
+    public static final String TASK_NAME = "nativeTestBuild";
 
     protected JUnitPlatformOptions options;
 
@@ -106,7 +106,14 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
             log("There were no test classes in project " + project.getName() + ", so it was skipped.");
             return;
         }
-        this.args(getArgs());
+
+        List<String> args = getArgs();
+        if (options.getVerbose().get()) {
+            System.out.println("Args are:");
+            System.out.println(args);
+        }
+
+        this.args(args);
         getServer().get();
         super.exec();
         System.out.println("Native Image written to: " + getOutputFile());

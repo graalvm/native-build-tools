@@ -156,7 +156,8 @@ public class NativeImageOptions {
             Path agentOutput = GradleUtils.getTargetDir(project)
                     .resolve(Utils.AGENT_OUTPUT_FOLDER).toAbsolutePath();
 
-            if (!agentOutput.toFile().exists()) { // Maybe user chose to persist configuration into the codebase, so lets also check if that folder exists.
+            if (!agentOutput.toFile().exists()) {
+                // Maybe user chose to persist configuration into the codebase, so lets also check if that folder exists.
                 agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources", "META-INF", "native-image");
                 if (!agentOutput.toFile().exists()) {
                     throw new GradleException("Agent output missing while `agent` option is set.\n" +
@@ -181,11 +182,6 @@ public class NativeImageOptions {
 
         if (!mainClass.equals(".")) {
             args("-H:Class=" + mainClass);
-        }
-
-        if (verbose.get()) {
-            System.out.println("Args are:");
-            System.out.println(getArgs().get());
         }
     }
 

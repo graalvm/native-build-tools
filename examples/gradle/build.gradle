@@ -45,7 +45,7 @@ nativeImage {
 
 import org.graalvm.nativeimage.gradle.dsl.TestMode
 
-testNative {
+nativeTest {
 	mode = TestMode.TEST_LISTENER
 	agent = false
 	persistConfig = false

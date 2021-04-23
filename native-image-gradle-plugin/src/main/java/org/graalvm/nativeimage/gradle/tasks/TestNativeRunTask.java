@@ -53,7 +53,7 @@ import static org.graalvm.nativeimage.gradle.GradleUtils.log;
 
 @SuppressWarnings("unused")
 public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
-    public static final String TASK_NAME = "testNative";
+    public static final String TASK_NAME = "nativeTest";
 
     public TestNativeRunTask() {
         super(TestNativeRunTask.class);

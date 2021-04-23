@@ -46,6 +46,7 @@ import org.graalvm.nativeimage.gradle.tasks.NativeBuildTask;
 import org.graalvm.nativeimage.gradle.tasks.NativeRunTask;
 import org.graalvm.nativeimage.gradle.tasks.TestNativeBuildTask;
 import org.graalvm.nativeimage.gradle.tasks.TestNativeRunTask;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -73,14 +74,11 @@ import static org.graalvm.nativeimage.gradle.Utils.AGENT_OUTPUT_FOLDER;
  * Gradle plugin for GraalVM Native Image.
  */
 
-@SuppressWarnings("unused")
 public class NativeImagePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnstableApiUsage")
     public void apply(Project project) {
-        Provider<NativeImageService> nativeImageServiceProvider = project
-                .getGradle()
-                .getSharedServices()
+        Provider<NativeImageService> nativeImageServiceProvider = project.getGradle().getSharedServices()
                 .registerIfAbsent("nativeImage", NativeImageService.class,
                         spec -> spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16));
 
@@ -92,11 +90,11 @@ public class NativeImagePlugin implements Plugin<Project> {
             log("====================");
 
             // Add DSL extensions for building and testing
-            NativeImageOptions nativeExtension = project.getExtensions()
-                    .create(NativeImageOptions.EXTENSION_NAME, NativeImageOptions.class, project.getObjects());
+            NativeImageOptions nativeExtension = project.getExtensions().create(NativeImageOptions.EXTENSION_NAME,
+                    NativeImageOptions.class, project.getObjects());
 
-            JUnitPlatformOptions testExtension = project.getExtensions()
-                    .create(JUnitPlatformOptions.EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
+            JUnitPlatformOptions testExtension = project.getExtensions().create(JUnitPlatformOptions.EXTENSION_NAME,
+                    JUnitPlatformOptions.class, project.getObjects());
 
             // Register Native Image tasks
             project.getTasks().register(NativeBuildTask.TASK_NAME, NativeBuildTask.class, task -> {
@@ -104,15 +102,28 @@ public class NativeImagePlugin implements Plugin<Project> {
                 task.getServer().set(nativeImageServiceProvider);
             });
 
+            Task oldTask = project.getTasks().create("nativeImage");
+            oldTask.dependsOn(NativeBuildTask.TASK_NAME);
+            oldTask.doLast(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    GradleUtils.error("[WARNING] Task 'nativeImage' is deprecated. "
+                            + String.format("Use '%s' instead.", NativeBuildTask.TASK_NAME));
+                }
+            });
+
             project.getTasks().register(NativeRunTask.TASK_NAME, NativeRunTask.class);
 
             if (project.hasProperty(Utils.AGENT_PROPERTY) || nativeExtension.getAgent().get()) {
-                // We want to add agent invocation to "run" task, but it is only available when Application Plugin is initialized.
+                // We want to add agent invocation to "run" task, but it is only available when
+                // Application Plugin is initialized.
                 project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
-                    Task run = project.getTasksByName(ApplicationPlugin.TASK_RUN_NAME, false).stream().findFirst().orElse(null);
+                    Task run = project.getTasksByName(ApplicationPlugin.TASK_RUN_NAME, false).stream().findFirst()
+                            .orElse(null);
                     assert run != null : "Application plugin didn't register 'run' task";
 
-                    boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null || nativeExtension.getPersistConfig().get();
+                    boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null
+                            || nativeExtension.getPersistConfig().get();
                     setAgentArgs(project, SourceSet.MAIN_SOURCE_SET_NAME, run, persistConfig);
                 });
             }
@@ -123,7 +134,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                 // Following ensures that required feature jar is on classpath for every project
                 injectTestPluginDependencies(project);
 
-                // If `test` task was found we should add `testNativeBuild` and `testNative` tasks to this project as well.
+                // If `test` task was found we should add `nativeTestBuild` and `nativeTest`
+                // tasks to this project as well.
                 project.getTasks().register(TestNativeBuildTask.TASK_NAME, TestNativeBuildTask.class, task -> {
                     task.usesService(nativeImageServiceProvider);
                     task.getServer().set(nativeImageServiceProvider);
@@ -131,14 +143,17 @@ public class NativeImagePlugin implements Plugin<Project> {
 
                 project.getTasks().register(TestNativeRunTask.TASK_NAME, TestNativeRunTask.class);
 
-                if (project.hasProperty(Utils.AGENT_PROPERTY) || testExtension.getAgent().get()) { // Add agent invocation to test task.
-                    Boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null || testExtension.getPersistConfig().get();
+                if (project.hasProperty(Utils.AGENT_PROPERTY) || testExtension.getAgent().get()) {
+                    // Add agent invocation to test task.
+                    Boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null
+                            || testExtension.getPersistConfig().get();
                     setAgentArgs(project, SourceSet.TEST_SOURCE_SET_NAME, test, persistConfig);
                 }
             }
         });
         // Recursively apply plugin to all subprojects.
-        // If the subproject is incompatible that will be detected during its method call.
+        // If the subproject is incompatible that will be detected during its method
+        // call.
         project.getSubprojects().forEach(this::apply);
     }
 
@@ -149,28 +164,31 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         task.doFirst((__) -> {
             try {
-                // Before JVM execution (during `run` or `test` task), we want to copy access-filter file
-                // so that native-image-agent run doesn't catch internal gradle classes.
-                Files.copy(Objects.requireNonNull(this.getClass().getResourceAsStream("/" + AGENT_FILTER)), accessFilter, StandardCopyOption.REPLACE_EXISTING);
+                // Before JVM execution (during `run` or `test` task), we want to copy
+                // access-filter file so that native-image-agent run doesn't catch internal
+                // gradle classes.
+                Files.copy(Objects.requireNonNull(this.getClass().getResourceAsStream("/" + AGENT_FILTER)),
+                        accessFilter, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException | NullPointerException e) {
                 throw new GradleException("Error while copying access-filter file.", e);
             }
         });
 
-
         Path agentOutput;
-        if (persistConfig) { // If user chooses, we can persist native-image-agent generated configuration into the codebase.
-            agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources", "META-INF", "native-image");
+        if (persistConfig) { // If user chooses, we can persist native-image-agent generated configuration
+                             // into the codebase.
+            agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources",
+                    "META-INF", "native-image");
             log("Persist config option was set.");
         } else {
             agentOutput = buildFolder.resolve(AGENT_OUTPUT_FOLDER).resolve(sourceSetName).toAbsolutePath();
         }
 
-        ((JavaForkOptions) task).setJvmArgs(Arrays.asList(
-                "-agentlib:native-image-agent=experimental-class-loader-support,"
-                        + "config-output-dir=" + agentOutput + ","
-                        + "access-filter-file=" + accessFilter,
-                "-Dorg.graalvm.nativeimage.imagecode=agent"));
+        ((JavaForkOptions) task)
+                .setJvmArgs(Arrays.asList(
+                        "-agentlib:native-image-agent=experimental-class-loader-support," + "config-output-dir="
+                                + agentOutput + "," + "access-filter-file=" + accessFilter,
+                        "-Dorg.graalvm.nativeimage.imagecode=agent"));
     }
 
     private void injectTestPluginDependencies(Project project) {

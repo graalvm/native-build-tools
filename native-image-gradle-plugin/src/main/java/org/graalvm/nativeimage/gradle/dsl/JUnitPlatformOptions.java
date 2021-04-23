@@ -49,7 +49,7 @@ import org.gradle.api.tasks.SourceSet;
 import javax.annotation.Nullable;
 
 public class JUnitPlatformOptions extends NativeImageOptions {
-    public static final String EXTENSION_NAME = "testNative";
+    public static final String EXTENSION_NAME = "nativeTest";
 
     private final Property<TestMode> mode;
 

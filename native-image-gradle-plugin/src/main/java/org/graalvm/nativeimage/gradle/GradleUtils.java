@@ -88,6 +88,10 @@ public class GradleUtils {
         logger.info("[native-image-plugin] {}", s);
     }
 
+    public static void error(String s) {
+        logger.error("[native-image-plugin] {}", s);
+    }
+
     public static Path getTargetDir(Project project) {
         return project.getBuildDir().toPath().resolve("native-image");
     }

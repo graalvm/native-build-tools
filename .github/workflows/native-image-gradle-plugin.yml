@@ -54,12 +54,12 @@ jobs:
             echo "JVM run"
             ./gradlew run
             echo "Native run"
-            ./gradlew runNative
+            ./gradlew nativeRun
           popd
       - name: Plugin test (test native)
         run: |
           pushd examples/gradle
             ./gradlew clean test
-            ./gradlew testNative
+            ./gradlew nativeTest
           popd
 

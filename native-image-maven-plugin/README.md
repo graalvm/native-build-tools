@@ -1,4 +1,5 @@
 # Native Image Maven Plugin
+![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-image-maven-plugin.yml/badge.svg)
 
 To simplify the generation of native images, Native Image now works out
 of [Maven](https://maven.apache.org/what-is-maven.html) with the [Native Image Maven Plugin](https://search.maven.org/artifact/org.graalvm.nativeimage/native-image-maven-plugin).

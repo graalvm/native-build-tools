@@ -13,7 +13,7 @@ plugins {
 }
 ```
 ### DSL definition
-This plugin is primarily configured using Gradle DSL. This can be achieved by adding `nativeImage` and `testNative` sections to your `build.gradle` like:
+This plugin is primarily configured using Gradle DSL. This can be achieved by adding `nativeImage` and `nativeTest` sections to your `build.gradle` like:
 ```groovy
 nativeImage {
   imageName = "application"
@@ -27,9 +27,9 @@ nativeImage {
   systemProperties = [name1: 'value1', name2: 'value2'] // Sets a system property
 }
 
-import TestMode
+import org.graalvm.nativeimage.gradle.dsl.TestMode
 
-testNative {
+nativeTest {
   mode = TestMode.TEST_LISTENER // or TestMode.DISCOVERY ('-DtestDiscovery' on command line)
   agent = false // Can be also set on command line using '-Pagent'
   persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
@@ -53,29 +53,29 @@ testNative {
 ```
 Application tasks
 -----------------
-runNative - Runs this project as a native-image application
+nativeRun - Runs this project as a native-image application
 
 Build tasks
 -----------
-buildNative - Builds native-image from this project.
+nativeBuild - Builds native-image from this project.
 
 Verification tasks
 ------------------
-testNative - If necessary builds and runs native-image compiled tests.
-testNativeBuild - Builds native image with tests.
+nativeTest - If necessary builds and runs native-image compiled tests.
+nativeTestBuild - Builds native image with tests.
 
 ```
 
 ### Reflection support
 If your project requires reflection, then [`native-image-agent`](https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html) run might be necessary.
-This should be as easy as appending `-Pagent` to `run` and `buildNative`, or`test` and `testNative` task invocations:
+This should be as easy as appending `-Pagent` to `run` and `nativeBuild`, or`test` and `nativeTest` task invocations:
 ```bash
 ./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent buildNative # Builds image using configuration acquired by agent.
+./gradlew -Pagent nativeBuild # Builds image using configuration acquired by agent.
 
 # For testing
 ./gradlew -Pagent test # Runs on JVM with native-image-agent.
-./gradlew -Pagent testNative # Builds image using configuration acquired by agent.
+./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.
 ```
 Same can be achieved by setting corresponding DSL option.
 
@@ -86,14 +86,14 @@ In order for this feature to register required tests and run them, you either ne
     ```bash
     ./gradlew test
     ```
-    before running `testNative` target like
+    before running `nativeTest` target like
     ```bash
-    ./gradlew testNative
+    ./gradlew nativeTest
     ```
 OR
-* invoke `testNative` target using experimental flag
+* invoke `nativeTest` target using experimental flag
     ```bash
-    ./gradlew -DtestDiscovery testNative
+    ./gradlew -DtestDiscovery nativeTest
     ```
 ---
 
