@@ -50,20 +50,23 @@ import java.io.File;
 @SuppressWarnings("unused")
 public class NativeRunTask extends AbstractExecTask<NativeRunTask> {
     public static final String TASK_NAME = "nativeRun";
+
     protected NativeImageOptions options;
 
     public NativeRunTask() {
         super(NativeRunTask.class);
         dependsOn(NativeBuildTask.TASK_NAME);
-        options = getProject().getExtensions().findByType(NativeImageOptions.class);
         setWorkingDir(getProject().getBuildDir());
         setDescription("Runs this project as a native-image application");
         setGroup(ApplicationPlugin.APPLICATION_GROUP);
+
+        options = getProject().getExtensions().findByType(NativeImageOptions.class);
     }
 
     @Override
     public void exec() {
         setExecutable(new File(GradleUtils.getTargetDir(getProject()).toFile(), options.getImageName().get()));
+        args(options.getRuntimeArgs());
         super.exec();
     }
 }

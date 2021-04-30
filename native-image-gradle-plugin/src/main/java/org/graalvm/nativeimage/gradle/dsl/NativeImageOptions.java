@@ -74,14 +74,15 @@ import java.util.function.BooleanSupplier;
  */
 @SuppressWarnings({"UnstableApiUsage", "unused", "UnusedReturnValue"})
 public class NativeImageOptions {
-    public static final String EXTENSION_NAME = "nativeImage";
+    public static final List<String> EXTENSION_NAMES = Arrays.asList("nativeImage", "graal");
 
     private final Property<String> imageName;
-    private final Property<String> main;
-    private final ListProperty<String> args;
+    private final Property<String> mainClass;
+    private final ListProperty<String> buildArgs;
     private final MapProperty<String, Object> systemProperties;
     private @Nullable FileCollection classpath;
     private final ListProperty<String> jvmArgs;
+    private final ListProperty<String> runtimeArgs;
     private final Property<Boolean> debug;
     private final Property<Boolean> server;
     private final Property<Boolean> fallback;
@@ -93,13 +94,15 @@ public class NativeImageOptions {
     public NativeImageOptions(ObjectFactory objectFactory) {
         this.imageName = objectFactory.property(String.class)
                 .convention("application");
-        this.main = objectFactory.property(String.class);
-        this.args = objectFactory.listProperty(String.class)
+        this.mainClass = objectFactory.property(String.class);
+        this.buildArgs = objectFactory.listProperty(String.class)
                 .convention(new ArrayList<>(5));
         this.systemProperties = objectFactory.mapProperty(String.class, Object.class)
                 .convention(new LinkedHashMap<>(5));
         this.classpath = objectFactory.fileCollection();
         this.jvmArgs = objectFactory.listProperty(String.class)
+                .convention(new ArrayList<>(5));
+        this.runtimeArgs = objectFactory.listProperty(String.class)
                 .convention(new ArrayList<>(5));
         this.debug = objectFactory.property(Boolean.class).convention(false);
         this.server = objectFactory.property(Boolean.class).convention(false);
@@ -113,6 +116,14 @@ public class NativeImageOptions {
         this.booleanCmds.put(server::get, "-Dcom.oracle.graalvm.isaot=true");
         this.agent = objectFactory.property(Boolean.class).convention(false);
         this.persistConfig = objectFactory.property(Boolean.class).convention(false);
+    }
+
+    public static NativeImageOptions register(Project project) {
+        EXTENSION_NAMES.forEach(name -> {
+            project.getExtensions().create(name,
+                    NativeImageOptions.class, project.getObjects());
+        });
+        return project.getExtensions().findByType(NativeImageOptions.class);
     }
 
     public void configure(Project project) {
@@ -168,15 +179,13 @@ public class NativeImageOptions {
             args("--allow-incomplete-classpath");
         }
 
-        String mainClass;
+        String mainClass = ".";
         if (getMain().isPresent()) {
             mainClass = getMain().get();
         } else {
             JavaApplication app = project.getExtensions().findByType(JavaApplication.class);
             if (app != null && app.getMainClass().isPresent()) {
                 mainClass = app.getMainClass().get();
-            } else {
-                throw new IllegalStateException("Main class must be set");
             }
         }
 
@@ -204,30 +213,69 @@ public class NativeImageOptions {
     }
 
     /**
+     * Gets the name of the native executable to be generated.
+     */
+    public Property<String> getOutputName() {
+        return imageName;
+    }
+
+    /**
+     * Sets the name of the native executable to be generated.
+     *
+     * @param name The name.
+     * @return this
+     */
+    public NativeImageOptions setOutputName(@Nullable String name) {
+        imageName.set(name);
+        return this;
+    }
+
+    /**
      * Returns the fully qualified name of the Main class to be executed.
      * <p>
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * </p>
      */
     public Property<String> getMain() {
-        return main;
+        return mainClass;
+    }
+
+    /**
+     * Returns the fully qualified name of the Main class to be executed.
+     * <p>
+     * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
+     * </p>
+     */
+    public Property<String> getMainClass() {
+        return mainClass;
     }
 
     /**
      * Sets the fully qualified name of the main class to be executed.
      *
-     * @param main the fully qualified name of the main class to be executed.
+     * @param mainClass the fully qualified name of the main class to be executed.
      * @return this
      */
-    public NativeImageOptions setMain(@Nullable String main) {
-        this.main.set(main);
+    public NativeImageOptions setMain(@Nullable String mainClass) {
+        this.mainClass.set(mainClass);
         return this;
     }
 
     /**
-     * Adds args for the main class to be executed.
+     * Sets the fully qualified name of the main class to be executed.
      *
-     * @param args Args for the main class.
+     * @param mainClass the fully qualified name of the main class to be executed.
+     * @return this
+     */
+    public NativeImageOptions setMainClass(@Nullable String mainClass) {
+        this.mainClass.set(mainClass);
+        return this;
+    }
+
+    /**
+     * Adds args for the native-image invocation.
+     *
+     * @param args Args for native-image invocation.
      * @return this
      */
     public NativeImageOptions args(Object... args) {
@@ -236,9 +284,29 @@ public class NativeImageOptions {
     }
 
     /**
-     * Adds args for the main class to be executed.
+     * Adds args for the native-image invocation.
      *
-     * @param args Args for the main class.
+     * @param args Args for the native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions buildArgs(Object... args) {
+        return this.args(args);
+    }
+
+    /**
+     * Adds args for the native-image invocation.
+     *
+     * @param args Args for the native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions option(Object... args) {
+        return this.args(args);
+    }
+
+    /**
+     * Adds args for the native-image invocation.
+     *
+     * @param args Args for the native-image invocation.
      * @return this
      */
     public NativeImageOptions args(Iterable<?> args) {
@@ -247,46 +315,124 @@ public class NativeImageOptions {
     }
 
     /**
-     * Returns the args for the main class to be executed.
+     * Adds args for the native-image invocation.
      *
-     * @return Args for the main class.
+     * @param args Args for the native-image invocation.
+     * @return this
      */
-    public ListProperty<String> getArgs() {
-        return this.args;
+    public NativeImageOptions buildArgs(Iterable<?> args) {
+        return this.args(args);
     }
 
     /**
-     * Sets the args for the main class to be executed.
+     * Adds args for the native-image invocation.
      *
-     * @param args Args for the main class.
+     * @param args Args for the native-image invocation.
      * @return this
      */
-    public NativeImageOptions setArgs(@Nullable List<String> args) {
-        if (args == null) {
-            this.args.set(new ArrayList<>(5));
+    public NativeImageOptions option(Iterable<?> args) {
+        return this.args(args);
+    }
+
+    /**
+     * Returns the args for the native-image invocation.
+     *
+     * @return Args for native-image invocation.
+     */
+    public ListProperty<String> getArgs() {
+        return this.buildArgs;
+    }
+
+    /**
+     * Returns the args for the native-image invocation.
+     *
+     * @return Args for native-image invocation.
+     */
+    public ListProperty<String> getBuildArgs() {
+        return this.buildArgs;
+    }
+
+    /**
+     * Returns the args for the native-image invocation.
+     *
+     * @return Args for native-image invocation.
+     */
+    public ListProperty<String> getOption() {
+        return this.buildArgs;
+    }
+
+    /**
+     * Sets the args for the native-image invocation.
+     *
+     * @param buildArgs Args for native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions setArgs(@Nullable List<String> buildArgs) {
+        if (buildArgs == null) {
+            this.buildArgs.set(new ArrayList<>(5));
         } else {
-            this.args.addAll(args);
+            this.buildArgs.addAll(buildArgs);
         }
         return this;
     }
 
     /**
-     * Sets the args for the main class to be executed.
+     * Sets the args for the native-image invocation.
      *
-     * @param args Args for the main class.
+     * @param args Args for native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions setBuildArgs(@Nullable List<String> args) {
+        return this.setArgs(args);
+    }
+
+    /**
+     * Sets the args for the native-image invocation.
+     *
+     * @param args Args for native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions setOption(@Nullable List<String> args) {
+        return this.setArgs(args);
+    }
+
+    /**
+     * Sets the args for the native-image invocation.
+     *
+     * @param args Args for native-image invocation.
      * @return this
      */
     public NativeImageOptions setArgs(@Nullable Iterable<?> args) {
         if (args == null) {
-            this.args.set(Collections.emptyList());
+            this.buildArgs.set(Collections.emptyList());
         } else {
             for (Object argument : args) {
                 if (argument != null) {
-                    this.args.add(argument.toString());
+                    this.buildArgs.add(argument.toString());
                 }
             }
         }
         return this;
+    }
+
+    /**
+     * Sets the args for the native-image invocation.
+     *
+     * @param args Args for native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions setBuildArgs(@Nullable Iterable<?> args) {
+        return this.setArgs(args);
+    }
+
+    /**
+     * Sets the args for the native-image invocation.
+     *
+     * @param args Args for native-image invocation.
+     * @return this
+     */
+    public NativeImageOptions setOption(@Nullable Iterable<?> args) {
+        return this.setArgs(args);
     }
 
     /**
@@ -428,6 +574,67 @@ public class NativeImageOptions {
      */
     public NativeImageOptions jvmArgs(Object... arguments) {
         setJvmArgs(Arrays.asList(arguments));
+        return this;
+    }
+
+    /**
+     * Returns the arguments to use when launching built image.
+     *
+     * @return The arguments. Returns an empty list if there are no arguments.
+     */
+    public ListProperty<String> getRuntimeArgs() {
+        return this.runtimeArgs;
+    }
+
+    /**
+     * Sets the extra arguments to use when launching built image.
+     *
+     * @param arguments The arguments. Must not be null.
+     */
+    public void setRuntimeArgs(@Nullable List<String> arguments) {
+        if (arguments == null) {
+            this.runtimeArgs.set(new ArrayList<>(5));
+        } else {
+            this.runtimeArgs.addAll(arguments);
+        }
+    }
+
+    /**
+     * Sets the arguments to use when launching built image.
+     *
+     * @param arguments The arguments. Must not be null.
+     */
+    public void setRuntimeArgs(@Nullable Iterable<?> arguments) {
+        if (arguments == null) {
+            this.runtimeArgs.set(Collections.emptyList());
+        } else {
+            for (Object argument : arguments) {
+                if (argument != null) {
+                    this.runtimeArgs.add(argument.toString());
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds some arguments to use when launching built image.
+     *
+     * @param arguments The arguments. Must not be null.
+     * @return this
+     */
+    public NativeImageOptions runtimeArgs(Iterable<?> arguments) {
+        setRuntimeArgs(arguments);
+        return this;
+    }
+
+    /**
+     * Adds some arguments to use when launching built image.
+     *
+     * @param arguments The arguments.
+     * @return this
+     */
+    public NativeImageOptions runtimeArgs(Object... arguments) {
+        setRuntimeArgs(Arrays.asList(arguments));
         return this;
     }
 

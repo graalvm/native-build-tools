@@ -45,8 +45,10 @@ import org.graalvm.nativeimage.gradle.NativeImageService;
 import org.graalvm.nativeimage.gradle.Utils;
 import org.graalvm.nativeimage.gradle.dsl.JUnitPlatformOptions;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.AbstractExecTask;
 import org.gradle.api.tasks.Input;
@@ -54,10 +56,12 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.tasks.Jar;
 
 import java.io.File;
 import java.util.List;
 
+import static org.graalvm.nativeimage.gradle.GradleUtils.DEPENDENT_CONFIGURATIONS;
 import static org.graalvm.nativeimage.gradle.GradleUtils.log;
 
 public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBuildTask> {
@@ -68,11 +72,28 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
     public TestNativeBuildTask() {
         super(TestNativeBuildTask.class);
         dependsOn("testClasses");
-        options = getProject().getExtensions().findByType(JUnitPlatformOptions.class);
+        getProject().afterEvaluate(project -> project.getConfigurations().configureEach(
+                configuration -> {
+                    if (DEPENDENT_CONFIGURATIONS.contains(configuration.getName())) {
+                        configuration.getDependencies().stream()
+                                .filter(ProjectDependency.class::isInstance)
+                                .forEach(dependency -> {
+                                    final Project otherProject = ((ProjectDependency) dependency).getDependencyProject();
+                                    otherProject.getTasks().withType(Jar.class, jar -> {
+                                        if (jar.getName().equals(JavaPlugin.JAR_TASK_NAME)) {
+                                            dependsOn(jar);
+                                        }
+                                    });
+                                });
+                    }
+                }
+        ));
         setExecutable(Utils.getNativeImage());
         setWorkingDir(getProject().getBuildDir());
         setDescription("Builds native image with tests.");
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
+        options = getProject().getExtensions().findByType(JUnitPlatformOptions.class);
     }
 
     @InputFiles

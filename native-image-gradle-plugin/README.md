@@ -17,24 +17,25 @@ This plugin is primarily configured using Gradle DSL. This can be achieved by ad
 ```groovy
 nativeImage {
   imageName = "application"
-  main = "org.test.Main" // Main class
-  args("--no-server") // Arguments to be passed to native-image invocation
+  mainClass = "org.test.Main" // Main class
+  buildArgs("--no-server") // Arguments to be passed to native-image invocation
   debug = false
   verbose = false
   fallback = false
   classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
   jvmArgs("flag") // Passes 'flag' directly to the JVM running the native image builder
+  runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
   systemProperties = [name1: 'value1', name2: 'value2'] // Sets a system property
+  agent = false // Can be also set on command line using '-Pagent'
 }
 
 import org.graalvm.nativeimage.gradle.dsl.TestMode
 
 nativeTest {
   mode = TestMode.TEST_LISTENER // or TestMode.DISCOVERY ('-DtestDiscovery' on command line)
-  agent = false // Can be also set on command line using '-Pagent'
   persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
   //...
-  // all of the options from 'nativeImage' block are supported here except changing main class name
+  // all of the options from 'nativeImage' block are supported here except for changing main class name
 }
 ```
 
@@ -42,10 +43,13 @@ nativeTest {
 > ```kotlin
 > tasks {
 >     nativeImage {
->         args("--static")
+>         buildArgs("--static")
 >     }
 > }
 > ```
+
+> :information_source: Most of the plugin configuration syntax and tasks from `io.micronaut.application` and `com.palantir.graal` plugins is out of the box supported at the moment via aliasing.
+> However, this behaviour should be considered transitional and therefore deprecated.
 
 > :information_source: Also note that for options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
@@ -61,7 +65,7 @@ nativeBuild - Builds native-image from this project.
 
 Verification tasks
 ------------------
-nativeTest - If necessary builds and runs native-image compiled tests.
+nativeTest - Runs native-image compiled tests.
 nativeTestBuild - Builds native image with tests.
 
 ```

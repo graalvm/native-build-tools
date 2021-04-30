@@ -43,18 +43,26 @@ package org.graalvm.nativeimage.gradle;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Utility class containing various gradle related methods.
  */
 @SuppressWarnings("unused")
 public class GradleUtils {
+
+    public static final List<String> DEPENDENT_CONFIGURATIONS = Arrays.asList(
+            JavaPlugin.API_CONFIGURATION_NAME,
+            JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME,
+            JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
 
     static Logger logger;
 

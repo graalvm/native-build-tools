@@ -34,11 +34,10 @@ test {
 
 nativeImage {
   imageName = "example-app"
-  args("--no-server")
+  args('--no-fallback')
   debug = false
   verbose = true
   fallback = false
-  enableServerBuild(false)
   classpath("dir1", "dir2")
   systemProperties = [name1: 'value1', name2: 'value2']
 }
