@@ -73,7 +73,7 @@ import static org.graalvm.nativeimage.gradle.Utils.AGENT_OUTPUT_FOLDER;
 /**
  * Gradle plugin for GraalVM Native Image.
  */
-
+@SuppressWarnings("unused")
 public class NativeImagePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnstableApiUsage")
@@ -90,11 +90,9 @@ public class NativeImagePlugin implements Plugin<Project> {
             log("====================");
 
             // Add DSL extensions for building and testing
-            NativeImageOptions nativeExtension = project.getExtensions().create(NativeImageOptions.EXTENSION_NAME,
-                    NativeImageOptions.class, project.getObjects());
+            NativeImageOptions nativeExtension = NativeImageOptions.register(project);
 
-            JUnitPlatformOptions testExtension = project.getExtensions().create(JUnitPlatformOptions.EXTENSION_NAME,
-                    JUnitPlatformOptions.class, project.getObjects());
+            JUnitPlatformOptions testExtension = JUnitPlatformOptions.register(project);
 
             // Register Native Image tasks
             project.getTasks().register(NativeBuildTask.TASK_NAME, NativeBuildTask.class, task -> {
@@ -105,6 +103,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             Task oldTask = project.getTasks().create("nativeImage");
             oldTask.dependsOn(NativeBuildTask.TASK_NAME);
             oldTask.doLast(new Action<Task>() {
+                @SuppressWarnings("NullableProblems")
                 @Override
                 public void execute(Task task) {
                     GradleUtils.error("[WARNING] Task 'nativeImage' is deprecated. "
@@ -151,10 +150,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                 }
             }
         });
-        // Recursively apply plugin to all subprojects.
-        // If the subproject is incompatible that will be detected during its method
-        // call.
-        project.getSubprojects().forEach(this::apply);
     }
 
     private void setAgentArgs(Project project, String sourceSetName, Task task, Boolean persistConfig) {

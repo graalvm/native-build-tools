@@ -44,7 +44,10 @@ import org.graalvm.nativeimage.gradle.GradleUtils;
 import org.graalvm.nativeimage.gradle.NativeImageService;
 import org.graalvm.nativeimage.gradle.Utils;
 import org.graalvm.nativeimage.gradle.dsl.NativeImageOptions;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.AbstractExecTask;
 import org.gradle.api.tasks.Input;
@@ -52,10 +55,13 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import java.io.File;
 import java.util.List;
+
+import static org.graalvm.nativeimage.gradle.GradleUtils.DEPENDENT_CONFIGURATIONS;
 
 @SuppressWarnings("unused")
 public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> {
@@ -66,11 +72,28 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
     public NativeBuildTask() {
         super(NativeBuildTask.class);
         dependsOn("classes");
-        options = getProject().getExtensions().findByType(NativeImageOptions.class);
+        getProject().afterEvaluate(project -> project.getConfigurations().configureEach(
+                configuration -> {
+                    if (DEPENDENT_CONFIGURATIONS.contains(configuration.getName())) {
+                        configuration.getDependencies().stream()
+                                .filter(ProjectDependency.class::isInstance)
+                                .forEach(dependency -> {
+                                    final Project otherProject = ((ProjectDependency) dependency).getDependencyProject();
+                                    otherProject.getTasks().withType(Jar.class, jar -> {
+                                        if (jar.getName().equals(JavaPlugin.JAR_TASK_NAME)) {
+                                            dependsOn(jar);
+                                        }
+                                    });
+                                });
+                    }
+                }
+        ));
         setExecutable(Utils.getNativeImage());
         setWorkingDir(getProject().getBuildDir());
         setDescription("Builds native-image from this project.");
         setGroup(LifecycleBasePlugin.BUILD_GROUP);
+
+        options = getProject().getExtensions().findByType(NativeImageOptions.class);
     }
 
     @InputFiles

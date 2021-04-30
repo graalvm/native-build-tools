@@ -41,13 +41,12 @@
 package org.graalvm.nativeimage.gradle.tasks;
 
 import org.graalvm.nativeimage.gradle.GradleUtils;
-import org.graalvm.nativeimage.gradle.Utils;
+import org.graalvm.nativeimage.gradle.dsl.JUnitPlatformOptions;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.tasks.AbstractExecTask;
 
 import java.io.File;
-import java.nio.file.Path;
 
 import static org.graalvm.nativeimage.gradle.GradleUtils.log;
 
@@ -55,12 +54,16 @@ import static org.graalvm.nativeimage.gradle.GradleUtils.log;
 public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
     public static final String TASK_NAME = "nativeTest";
 
+    protected JUnitPlatformOptions options;
+
     public TestNativeRunTask() {
         super(TestNativeRunTask.class);
-        this.dependsOn(TestNativeBuildTask.TASK_NAME);
+        dependsOn(TestNativeBuildTask.TASK_NAME);
         setWorkingDir(getProject().getBuildDir());
-        setDescription("If necessary builds and runs native-image compiled tests.");
+        setDescription("Runs native-image compiled tests.");
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
+
+        options = getProject().getExtensions().findByType(JUnitPlatformOptions.class);
     }
 
     @Override
@@ -70,11 +73,8 @@ public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
             log("There were no test classes in project " + project.getName() + ", so it was skipped.");
             return;
         }
-
-        Path xmlLocation = project.getBuildDir().toPath().resolve("test-results").resolve("test-native");
-        args("--xml-output-dir", xmlLocation.toAbsolutePath());
-
-        setExecutable(new File(GradleUtils.getTargetDir(getProject()).toFile(), Utils.NATIVE_TESTS_EXE));
+        setExecutable(new File(GradleUtils.getTargetDir(getProject()).toFile(), options.getImageName().get()));
+        args(options.getRuntimeArgs().get());
         super.exec();
     }
 }
