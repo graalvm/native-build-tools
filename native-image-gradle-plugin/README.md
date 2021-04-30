@@ -53,7 +53,7 @@ nativeTest {
 
 > :information_source: Also note that for options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
-### Avalilable tasks:
+### Available tasks:
 ```
 Application tasks
 -----------------
