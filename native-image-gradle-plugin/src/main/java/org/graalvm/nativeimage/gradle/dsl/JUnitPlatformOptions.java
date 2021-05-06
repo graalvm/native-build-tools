@@ -43,7 +43,6 @@ package org.graalvm.nativeimage.gradle.dsl;
 import org.graalvm.nativeimage.gradle.Utils;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 
 import javax.annotation.Nullable;
@@ -52,7 +51,6 @@ import java.nio.file.Paths;
 public class JUnitPlatformOptions extends NativeImageOptions {
     public static final String EXTENSION_NAME = "nativeTest";
 
-    private final Property<TestMode> mode;
 
     @SuppressWarnings("UnstableApiUsage")
     public JUnitPlatformOptions(ObjectFactory objectFactory) {
@@ -60,16 +58,10 @@ public class JUnitPlatformOptions extends NativeImageOptions {
         super.setMain("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         super.setImageName(Utils.NATIVE_TESTS_EXE);
         super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
-
-        mode = objectFactory.property(TestMode.class).convention(TestMode.TEST_LISTENER);
     }
 
     public static JUnitPlatformOptions register(Project project) {
         return project.getExtensions().create(EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
-    }
-
-    public Property<TestMode> getMode() {
-        return this.mode;
     }
 
     @Override
@@ -84,9 +76,6 @@ public class JUnitPlatformOptions extends NativeImageOptions {
 
     @Override
     public void configure(Project project) {
-        if (System.getProperty("testDiscovery") != null || getMode().get().equals(TestMode.DISCOVERY)) {
-            systemProperty("testDiscovery", "1");
-        }
         args("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         super.configure(project, SourceSet.TEST_SOURCE_SET_NAME);
     }

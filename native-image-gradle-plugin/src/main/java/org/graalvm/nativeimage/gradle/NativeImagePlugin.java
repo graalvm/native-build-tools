@@ -139,6 +139,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                     task.usesService(nativeImageServiceProvider);
                     task.getServer().set(nativeImageServiceProvider);
                 });
+                Task nativeTest = project.getTasksByName(TestNativeBuildTask.TASK_NAME, false).stream().findFirst().orElse(null);
+                nativeTest.dependsOn(test);
 
                 project.getTasks().register(TestNativeRunTask.TASK_NAME, TestNativeRunTask.class);
 
@@ -187,6 +189,6 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void injectTestPluginDependencies(Project project) {
-        project.getDependencies().add("implementation", "org.graalvm.nativeimage.testnative:feature:+");
+        project.getDependencies().add("implementation", "org.graalvm.nativeimage:junit-platform-native:+");
     }
 }
