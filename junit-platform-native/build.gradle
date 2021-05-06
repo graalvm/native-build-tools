@@ -1,0 +1,52 @@
+plugins {
+    id 'java-library'
+    id 'checkstyle'
+    id 'maven-publish'
+}
+
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+dependencies {
+    compileOnly group: 'org.graalvm.nativeimage', name: 'svm', version: org_graalvm
+    implementation group: 'org.junit.platform', name: 'junit-platform-console', version: org_junit_platform
+    implementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: org_junit_platform
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: org_junit_jupiter
+    testImplementation(platform('org.junit:junit-bom:' + org_junit_jupiter))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
+
+apply from: "gradle/native-image-testing.gradle"
+
+clean.doLast {
+    delete "${buildDir}/*"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(Test) {
+    testLogging {
+        events "standardOut", "passed", "skipped", "failed"
+    }
+}
+
+group = 'org.graalvm.nativeimage'
+version = version
+
+publishing {
+    publications {
+        //noinspection GroovyAssignabilityCheck
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
