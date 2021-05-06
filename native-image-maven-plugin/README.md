@@ -17,31 +17,38 @@ Next, add `native-image-maven-plugin` into the `<plugins>` section of the `pom.x
     <version>${graalvm.version}</version>
     <executions>
         <execution>
+            <id>build</id>
             <goals>
-                <goal>native-image</goal>
+                <goal>build</goal>
             </goals>
             <phase>package</phase>
         </execution>
+        <execution>
+            <id>test</id>
+            <goals>
+                <goal>test</goal>
+            </goals>
+            <phase>test</phase>
+        </execution>
     </executions>
     <configuration>
-        <skip>false</skip>
-        <imageName>example</imageName>
-        <buildArgs>
-            --no-fallback
-        </buildArgs>
+        <!-- ... -->
     </configuration>
 </plugin>
 ```
 
-Last, add the `org.graalvm.sdk` library dependency in the `<dependencies>` list:
+For testing support, you need to add following dependency:
 
 ```xml
-<dependency>
-    <groupId>org.graalvm.sdk</groupId>
-    <artifactId>graal-sdk</artifactId>
-    <version>${graalvm.version}</version>
-    <scope>provided</scope>
-</dependency>
+<dependencies>
+   <!-- ... -->
+   <dependency>
+        <groupId>org.graalvm.nativeimage</groupId>
+        <artifactId>junit-platform-native</artifactId>
+        <version>${graalvm.version}</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
 ```
 
 The plugin figures out which JAR files it needs to pass to the native image and

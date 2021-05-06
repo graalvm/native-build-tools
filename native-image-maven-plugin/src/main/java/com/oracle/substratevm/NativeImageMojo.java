@@ -79,7 +79,7 @@ import org.apache.maven.toolchain.java.DefaultJavaToolChain;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 
-@Mojo(name = "native-image", defaultPhase = LifecyclePhase.PACKAGE)
+@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
 public class NativeImageMojo extends AbstractMojo {
 
     private static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
