@@ -37,7 +37,7 @@ Next, add `native-image-maven-plugin` into the `<plugins>` section of the `pom.x
 </plugin>
 ```
 
-For testing support, you need to add following dependency:
+For testing support, if you want to use the recommended test listener mode, you need to add following dependency:
 
 ```xml
 <dependencies>

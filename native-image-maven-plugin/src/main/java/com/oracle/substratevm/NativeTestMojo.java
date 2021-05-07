@@ -92,8 +92,14 @@ public class NativeTestMojo extends AbstractMojo {
         logger.info("====================");
 
         if (!hasTestIds()) {
-            logger.error("Test configuration file wasn't found. Make sure you un test in JVM mode before running them in native move.");
-            return;
+            logger.warn("Test configuration file wasn't found. Build will now fallback to test discovery mode.");
+            logger.warn("Add following dependency to use the test listener mode:");
+            logger.warn("<dependency>");
+            logger.warn("    <groupId>org.graalvm.nativeimage</groupId>");
+            logger.warn("    <artifactId>junit-platform-native</artifactId>");
+            logger.warn("    <version>${graalvm.version}</version>");
+            logger.warn("    <scope>test</scope>");
+            logger.warn("</dependency>");
         }
 
         logger.debug("Classpath: " + classpath);
@@ -140,7 +146,7 @@ public class NativeTestMojo extends AbstractMojo {
         try {
 
             List<Artifact> pluginDependencies = pluginArtifacts.stream()
-                    .filter(it -> it.getGroupId().startsWith("org.junit"))
+                    .filter(it -> it.getGroupId().startsWith("org.graalvm.nativeimage") || it.getGroupId().startsWith("org.junit"))
                     .collect(Collectors.toList());
 
             List<String> projectClassPath = new ArrayList<>(project

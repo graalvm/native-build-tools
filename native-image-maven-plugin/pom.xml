@@ -111,6 +111,11 @@
             <version>3.3</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>junit-platform-native</artifactId>
+            <version>21.2.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>

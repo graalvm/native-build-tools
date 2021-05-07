@@ -69,7 +69,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {
 
-    final boolean testDiscovery = System.getProperty("testDiscovery") != null;
     final boolean debug = System.getProperty("debug") != null;
 
     @Override
@@ -130,15 +129,10 @@ public final class JUnitPlatformFeature implements Feature {
         }
         try (BufferedReader br = new BufferedReader(new InputStreamReader(listenerStream))) {
             List<String> classes = br.lines().collect(Collectors.toList());
+            System.out.println("Test listener mode");
             return classes.stream().map(DiscoverySelectors::selectUniqueId).collect(Collectors.toList());
         } catch (IOException | NullPointerException e) {
-            if (testDiscovery) {
-                System.out.println("[Warning] Cannot read TestPlan info file. " +
-                        "Build will now fallback to test discovery mode.");
-            } else {
-                throw new RuntimeException("Test configuration file wasn't found. You should run test in JVM mode before native mode in order " +
-                        "to generate required configuration.", e);
-            }
+            System.out.println("Test discovery mode");
         }
 
         // Run a a junit launcher to discover tests and register classes for reflection
