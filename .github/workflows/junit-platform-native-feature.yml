@@ -1,0 +1,43 @@
+name: junit-platform-native-feature
+
+on:
+  push:
+    paths:
+      - 'common/junit-platform-native/**'
+  pull_request:
+    paths:
+      - 'common/junit-platform-native/**'
+  workflow_dispatch: [ ]
+
+jobs:
+  test-junit-platform-native-feature:
+    name:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source .github/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Checkstyle
+        run: |
+          pushd common/junit-platform-native
+            ./gradlew checkstyleMain
+            ./gradlew checkstyleTest
+          popd
+      - name: JVM test
+        run: |
+          pushd common/junit-platform-native
+            ./gradlew test
+          popd
+      - name: Feature test
+        run: |
+          pushd common/junit-platform-native
+            ./gradlew nativeTest
+          popd

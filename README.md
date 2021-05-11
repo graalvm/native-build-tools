@@ -4,6 +4,9 @@ Repository which contains build tool plugins for interoperability with GraalVM N
 ## Projects
  * [native-image-maven-plugin](native-image-maven-plugin/README.md)
  * [native-image-gradle-plugin](native-image-gradle-plugin/README.md)
+
+### Common subprojects
+ * [junit-platform-native](common/junit-platform-native/README.md)
  <hr>
 
 _Examples can be found in the [examples subdirectory](examples/README.md)._

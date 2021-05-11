@@ -27,6 +27,7 @@ nativeImage {
   runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
   systemProperties = [name1: 'value1', name2: 'value2'] // Sets a system property
   agent = false // Can be also set on command line using '-Pagent'
+  persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
 }
 
 nativeTest {
