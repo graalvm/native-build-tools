@@ -54,39 +54,31 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.function.BiFunction;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.ConfigurationContainer;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.toolchain.ToolchainManager;
 import org.apache.maven.toolchain.java.DefaultJavaToolChain;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
-public class NativeImageMojo extends AbstractMojo {
+public class NativeBuildMojo extends AbstractNativeMojo {
 
     private static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     private static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
-
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)//
-    private MavenProject project;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     private PluginDescriptor plugin;
@@ -94,34 +86,21 @@ public class NativeImageMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)//
     private File outputDirectory;
 
-    @Parameter(property = "mainClass")//
+    @Parameter(property = "mainClass")
     private String mainClass;
 
-    @Parameter(property = "imageName")//
+    @Parameter(property = "imageName")
     private String imageName;
 
-    @Parameter(property = "buildArgs")//
-    private List<String> buildArgs;
-
-    @Parameter(property = "skip", defaultValue = "false")//
+    @Parameter(property = "skip", defaultValue = "false")
     private boolean skip;
-
-    @Parameter(defaultValue = "${session}", readonly = true)//
-    private MavenSession session;
 
     @Parameter(defaultValue = "${mojoExecution}")
     private MojoExecution mojoExecution;
 
-    @Component
-    private ToolchainManager toolchainManager;
-
     private final List<Path> classpath = new ArrayList<>();
 
     private PluginParameterExpressionEvaluator evaluator;
-
-    private boolean isWindows() {
-        return System.getProperty("os.name").contains("Windows");
-    }
 
     private final Pattern majorMinorPattern = Pattern.compile("(\\d+\\.\\d+)\\.");
 
@@ -149,7 +128,7 @@ public class NativeImageMojo extends AbstractMojo {
         addClasspath(project.getArtifact());
         String classpathStr = classpath.stream().map(Path::toString).collect(Collectors.joining(File.pathSeparator));
 
-        Path nativeImageExecutableRelPath = Paths.get("lib", "svm", "bin", "native-image" + (isWindows() ? ".exe" : ""));
+        Path nativeImageExecutableRelPath = Paths.get("lib", "svm", "bin", "native-image" + (IS_WINDOWS ? ".exe" : ""));
         Path nativeImageExecutable = getMojoJavaHome().resolve(nativeImageExecutableRelPath);
         if (!Files.isExecutable(nativeImageExecutable)) {
             nativeImageExecutable = getMojoJavaHome().resolve("jre").resolve(nativeImageExecutableRelPath);

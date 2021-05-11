@@ -40,22 +40,41 @@
  */
 package com.oracle.substratevm;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-@SuppressWarnings("UnstableApiUsage")
-public class NativeImageService {
-    public void build(Path buildFolder, String[] args) {
-        String nativeImagePath = Utils.getNativeImage().toAbsolutePath().toString();
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.logging.Logger;
 
-        List<String> invocation = new ArrayList<>(Arrays.asList(args));
-        invocation.add(0, nativeImagePath);
+/**
+ * @author Sebastien Deleuze
+ */
+public abstract class AbstractNativeMojo extends AbstractMojo {
 
-        int result = Utils.startProcess(buildFolder, invocation.toArray(new String[0]));
-        if (result != 0) {
-            throw new RuntimeException("native-image build failed.");
-        }
-    }
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    protected MavenProject project;
+
+    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
+    protected List<Artifact> pluginArtifacts;
+
+    @Parameter(property = "buildArgs")
+    protected List<String> buildArgs;
+
+    protected static final boolean IS_WINDOWS = System.getProperty("os.name").contains("Windows");
+
+    protected static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
+
+    @Parameter(defaultValue = "${session}", readonly = true)
+    protected MavenSession session;
+
+    @Component
+    protected ToolchainManager toolchainManager;
+
+    @Component
+    protected Logger logger;
 }

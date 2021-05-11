@@ -41,25 +41,24 @@
 package com.oracle.substratevm;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.logging.Logger;
+import org.apache.maven.toolchain.java.DefaultJavaToolChain;
 
 /**
  * @author Sebastien Deleuze
@@ -67,19 +66,9 @@ import org.codehaus.plexus.logging.Logger;
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,
         requiresDependencyResolution = ResolutionScope.TEST,
         requiresDependencyCollection = ResolutionScope.TEST)
-public class NativeTestMojo extends AbstractMojo {
+public class NativeTestMojo extends AbstractNativeMojo {
 
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    protected MavenProject project;
-
-    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
-    private List<Artifact> pluginArtifacts;
-
-    @Parameter(property = "buildArgs")
-    private List<String> buildArgs;
-
-    @Component
-    private Logger logger;
+    public static final String NATIVE_TESTS_EXE = "native-image-tests" + EXECUTABLE_EXTENSION;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -108,24 +97,46 @@ public class NativeTestMojo extends AbstractMojo {
         runTests(targetFolder);
     }
 
-    private void buildImage(String classpath, Path buildFolder) {
+    private void buildImage(String classpath, Path buildFolder) throws MojoExecutionException {
 
-        List<String> args = new ArrayList<>(Arrays.asList(
+        Path nativeImageExecutableRelPath = Paths.get("lib", "svm", "bin", "native-image" + (IS_WINDOWS ? ".exe" : ""));
+        Path nativeImageExecutable = getMojoJavaHome().resolve(nativeImageExecutableRelPath);
+
+        List<String> command = new ArrayList<>(Arrays.asList(
+                nativeImageExecutable.toString(),
                 "-cp", classpath,
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
                 "-H:Path=" + buildFolder.toAbsolutePath(),
-                "-H:Name=" + Utils.NATIVE_TESTS_EXE));
+                "-H:Name=" + NATIVE_TESTS_EXE));
 
         if (buildArgs != null) {
-            args.addAll(buildArgs);
+            command.addAll(buildArgs);
         }
 
-        args.add("org.graalvm.junit.platform.NativeImageJUnitLauncher");
+        command.add("org.graalvm.junit.platform.NativeImageJUnitLauncher");
 
-        logger.debug("Commandline path: native-image " + String.join(" ", args));
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            processBuilder.directory(buildFolder.toFile());
+            processBuilder.inheritIO();
 
-        NativeImageService nis = new NativeImageService();
-        nis.build(buildFolder, args.toArray(new String[0]));
+            String commandString = String.join(" ", processBuilder.command());
+            getLog().info("Executing: " + commandString);
+            Process imageBuildProcess = processBuilder.start();
+            if (imageBuildProcess.waitFor() != 0) {
+                throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    private Path getMojoJavaHome() {
+        return Paths.get(Optional.ofNullable(toolchainManager)
+                .map(tm -> tm.getToolchainFromBuildContext("jdk", session))
+                .filter(DefaultJavaToolChain.class::isInstance).map(DefaultJavaToolChain.class::cast)
+                .map(DefaultJavaToolChain::getJavaHome)
+                .orElse(System.getProperty("java.home")));
     }
 
     private void runTests(Path buildFolder) throws MojoExecutionException {
@@ -133,10 +144,19 @@ public class NativeTestMojo extends AbstractMojo {
         Path xmlLocation = buildFolder.resolve("native-test-reports");
         xmlLocation.toFile().mkdirs();
 
-        int result = Utils.startProcess(buildFolder, "./" + Utils.NATIVE_TESTS_EXE,
-                "--xml-output-dir", xmlLocation.toString()
-        );
-        if (result != 0) {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("./" + NATIVE_TESTS_EXE,
+                    "--xml-output-dir", xmlLocation.toString());
+            processBuilder.directory(buildFolder.toFile());
+            processBuilder.inheritIO();
+
+            String commandString = String.join(" ", processBuilder.command());
+            getLog().info("Executing: " + commandString);
+            Process imageBuildProcess = processBuilder.start();
+            if (imageBuildProcess.waitFor() != 0) {
+                throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
+            }
+        } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("native-image test run failed");
         }
     }
@@ -144,7 +164,6 @@ public class NativeTestMojo extends AbstractMojo {
     private String getClassPath() throws MojoFailureException {
 
         try {
-
             List<Artifact> pluginDependencies = pluginArtifacts.stream()
                     .filter(it -> it.getGroupId().startsWith("org.graalvm.nativeimage") || it.getGroupId().startsWith("org.junit"))
                     .collect(Collectors.toList());
