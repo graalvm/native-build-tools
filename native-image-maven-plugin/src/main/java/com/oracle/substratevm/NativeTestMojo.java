@@ -57,6 +57,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.toolchain.java.DefaultJavaToolChain;
 
@@ -68,10 +69,18 @@ import org.apache.maven.toolchain.java.DefaultJavaToolChain;
         requiresDependencyCollection = ResolutionScope.TEST)
 public class NativeTestMojo extends AbstractNativeMojo {
 
+    @Parameter(property = "skipTests", defaultValue = "false")
+    private boolean skipTests;
+
     public static final String NATIVE_TESTS_EXE = "native-image-tests" + EXECUTABLE_EXTENSION;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+
+        if (skipTests) {
+            logger.info("Tests are skipped.");
+            return;
+        }
 
         String classpath = getClassPath();
         Path targetFolder = new File(project.getBuild().getDirectory()).toPath();
