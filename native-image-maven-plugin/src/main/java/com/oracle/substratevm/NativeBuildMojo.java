@@ -190,7 +190,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         File artifactFile = artifact.getFile();
         if (artifactFile == null) {
-            throw new MojoExecutionException("Missing jar-file for " + artifact + ". Ensure " + plugin.getArtifactId() + " runs in package phase.");
+            throw new MojoExecutionException("Missing jar-file for " + artifact + ". Ensure that" + plugin.getArtifactId() + " runs in package phase.");
         }
         Path jarFilePath = artifactFile.toPath();
         getLog().info("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");

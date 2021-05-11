@@ -7,7 +7,7 @@ There are two main modes of operation using this feature:
 1. Out of the box (for tests which do not use reflection internally).
 2. With the agent run (for tests with internal reflection).
 
-Either way, artifact produced by building this repository should be included on classpath (either by using build tool plugins - as was done in [examples subdirectory](../junit-platform-native-examples/), or by adding manual configuration).
+Either way, artifact produced by building this repository should be included on classpath (either by using build tool plugins - as was done in [examples subdirectory](../../examples), or by adding manual configuration).
 
 If support for your build system is missing at the moment, adding:
 ```bash
@@ -48,4 +48,3 @@ Following tasks are present in this project for testing this feature:
 ./gradlew testNative # builds native image using this feature for configuration
 ./gradlew -Pagent testNative # builds native image using additional configuration from agent run
 ```
-

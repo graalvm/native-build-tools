@@ -7,7 +7,7 @@ urldecode() {
 
 LATEST_GRAAL_URL=$(curl -s "https://api.github.com/repos/graalvm/graalvm-ce-dev-builds/releases" | \
   grep -Po "['\"]browser_download_url['\"]\s*:\s*['\"]\K(.*)(?=['\"])" | \
-  grep -m1 "graalvm-ce-java11-linux-amd64-.*-dev.tar.gz")
+  grep -m1 "graalvm-ce-java11-linux-amd64.*-dev.tar.gz")
 
 LATEST_GRAAL_FILENAME=$(urldecode "$(basename "$LATEST_GRAAL_URL")")
 

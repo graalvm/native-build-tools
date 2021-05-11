@@ -5,10 +5,12 @@ on:
     paths:
       - 'native-image-gradle-plugin/**'
       - 'examples/gradle/**'
+      - 'common/**'
   pull_request:
     paths:
       - 'native-image-gradle-plugin/**'
       - 'examples/gradle/**'
+      - 'common/**'
   workflow_dispatch: [ ]
 
 jobs:
@@ -38,14 +40,9 @@ jobs:
           pushd native-image-gradle-plugin
             ./gradlew publishToMavenLocal
           popd
-      - uses: actions/checkout@v2
-        with:
-          repository: graalvm/native-image-configuration
-          ssh-key: ${{ secrets.SSH_KEY_NICFG }}
-          path: native-image-configuration
-      - name: Build and publish feature
+      - name: Build and publish junit-platform-native feature
         run: |
-          pushd native-image-configuration/junit-platform-native/junit-platform-native-feature
+          pushd common/junit-platform-native/
             ./gradlew publishToMavenLocal
           popd
       - name: Plugin test (build native)

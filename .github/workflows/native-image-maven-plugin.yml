@@ -5,10 +5,12 @@ on:
     paths:
       - 'native-image-maven-plugin/**'
       - 'examples/maven/**'
+      - 'common/**'
   pull_request:
     paths:
       - 'native-image-maven-plugin/**'
       - 'examples/maven/**'
+      - 'common/**'
   workflow_dispatch: [ ]
 
 jobs:
@@ -27,6 +29,11 @@ jobs:
           echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Build and publish junit-platform-native feature
+        run: |
+          pushd common/junit-platform-native/
+            ./gradlew publishToMavenLocal
+          popd
       - name: Build and install plugin
         run: |
           pushd native-image-maven-plugin
@@ -38,5 +45,13 @@ jobs:
             echo "JVM run"
             mvn compile exec:java@java
             echo "Native run"
-            mvn package exec:exec@native
+            mvn -DskipTests package exec:exec@native
+          popd
+      - name: Plugin test (test native)
+        run: |
+          pushd examples/maven
+            echo "JVM run"
+            mvn test
+            echo "Native run"
+            mvn package
           popd
