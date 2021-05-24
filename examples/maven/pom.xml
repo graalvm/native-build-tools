@@ -3,14 +3,14 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.graalvm.nativeimage</groupId>
-    <artifactId>example</artifactId>
-    <version>1.0</version>
+    <groupId>org.graalvm.nativeimage.examples</groupId>
+    <artifactId>maven</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
 
     <properties>
         <java.version>1.8</java.version>
-        <graalvm.version>21.0.0.2</graalvm.version>
-        <junit-jupiter.version>5.8.0-M1</junit-jupiter.version>
+        <graalvm.version>21.1.0</graalvm.version>
+        <junit-jupiter.version>5.7.1</junit-jupiter.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.nativeimage.example.App</mainClass>
@@ -21,6 +21,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>junit-platform-native</artifactId>
+            <version>21.2.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -79,13 +85,21 @@
             <plugin>
                 <groupId>org.graalvm.nativeimage</groupId>
                 <artifactId>native-image-maven-plugin</artifactId>
-                <version>${graalvm.version}</version>
+                <version>21.2.0-SNAPSHOT</version>
                 <executions>
                     <execution>
+                        <id>build</id>
                         <goals>
-                            <goal>native-image</goal>
+                            <goal>build</goal>
                         </goals>
                         <phase>package</phase>
+                    </execution>
+                    <execution>
+                        <id>test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
                     </execution>
                 </executions>
                 <configuration>

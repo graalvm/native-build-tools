@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,45 +38,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.nativeimage.gradle.dsl;
+package org.graalvm.junit.platform;
 
-import org.graalvm.nativeimage.gradle.Utils;
-import org.gradle.api.Project;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.SourceSet;
+import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.TestIdentifier;
+import org.junit.platform.launcher.TestPlan;
+import org.junit.platform.reporting.legacy.LegacyReportingUtils;
 
-import javax.annotation.Nullable;
-import java.nio.file.Paths;
+import java.io.PrintWriter;
 
-public class JUnitPlatformOptions extends NativeImageOptions {
-    public static final String EXTENSION_NAME = "nativeTest";
+@SuppressWarnings("unused")
+public class PrintTestExecutionListener implements TestExecutionListener {
 
+    TestPlan testPlan;
+    final PrintWriter out;
 
-    @SuppressWarnings("UnstableApiUsage")
-    public JUnitPlatformOptions(ObjectFactory objectFactory) {
-        super(objectFactory);
-        super.setMain("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-        super.setImageName(Utils.NATIVE_TESTS_EXE);
-        super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
+    public PrintTestExecutionListener() {
+        out = new PrintWriter(System.out);
     }
 
-    public static JUnitPlatformOptions register(Project project) {
-        return project.getExtensions().create(EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
-    }
-
-    @Override
-    public NativeImageOptions setMain(@Nullable String main) {
-        throw new IllegalStateException("Main class for test task cannot be changed");
+    public PrintTestExecutionListener(PrintWriter out) {
+        this.out = out;
     }
 
     @Override
-    public NativeImageOptions setImageName(@Nullable String image) {
-        throw new IllegalStateException("Image name for test task cannot be changed");
+    public void testPlanExecutionStarted(TestPlan testPlan) {
+        this.testPlan = testPlan;
     }
 
     @Override
-    public void configure(Project project) {
-        args("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
-        super.configure(project, SourceSet.TEST_SOURCE_SET_NAME);
+    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        if (testIdentifier.getParentId().isPresent() && !testIdentifier.isContainer()) {
+            out.println(LegacyReportingUtils.getClassName(testPlan, testIdentifier) + " > " + testIdentifier.getDisplayName() + " " + testExecutionResult.getStatus().name() + "\n");
+        }
     }
 }

@@ -38,45 +38,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.nativeimage.gradle.dsl;
+package com.oracle.substratevm;
 
-import org.graalvm.nativeimage.gradle.Utils;
-import org.gradle.api.Project;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.SourceSet;
+import java.util.List;
 
-import javax.annotation.Nullable;
-import java.nio.file.Paths;
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.logging.Logger;
 
-public class JUnitPlatformOptions extends NativeImageOptions {
-    public static final String EXTENSION_NAME = "nativeTest";
+/**
+ * @author Sebastien Deleuze
+ */
+public abstract class AbstractNativeMojo extends AbstractMojo {
 
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    protected MavenProject project;
 
-    @SuppressWarnings("UnstableApiUsage")
-    public JUnitPlatformOptions(ObjectFactory objectFactory) {
-        super(objectFactory);
-        super.setMain("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-        super.setImageName(Utils.NATIVE_TESTS_EXE);
-        super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
-    }
+    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
+    protected List<Artifact> pluginArtifacts;
 
-    public static JUnitPlatformOptions register(Project project) {
-        return project.getExtensions().create(EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
-    }
+    @Parameter(property = "buildArgs")
+    protected List<String> buildArgs;
 
-    @Override
-    public NativeImageOptions setMain(@Nullable String main) {
-        throw new IllegalStateException("Main class for test task cannot be changed");
-    }
+    protected static final boolean IS_WINDOWS = System.getProperty("os.name").contains("Windows");
 
-    @Override
-    public NativeImageOptions setImageName(@Nullable String image) {
-        throw new IllegalStateException("Image name for test task cannot be changed");
-    }
+    protected static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
 
-    @Override
-    public void configure(Project project) {
-        args("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
-        super.configure(project, SourceSet.TEST_SOURCE_SET_NAME);
-    }
+    @Parameter(defaultValue = "${session}", readonly = true)
+    protected MavenSession session;
+
+    @Component
+    protected ToolchainManager toolchainManager;
+
+    @Component
+    protected Logger logger;
 }

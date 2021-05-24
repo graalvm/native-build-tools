@@ -6,7 +6,7 @@ plugins {
     id 'application'
 
     // Apply GraalVM Native Image plugin
-    id 'native-image-gradle-plugin' version "${org_graalvm_nativeimage_gradle}"
+    id 'org.graalvm.nativeimage' version "${org_graalvm_nativeimage_buildtools_version}"
 }
 
 repositories {
@@ -42,10 +42,7 @@ nativeImage {
   systemProperties = [name1: 'value1', name2: 'value2']
 }
 
-import org.graalvm.nativeimage.gradle.dsl.TestMode
-
 nativeTest {
-	mode = TestMode.TEST_LISTENER
 	agent = false
 	persistConfig = false
 }

@@ -37,7 +37,7 @@
 
     <groupId>org.graalvm.nativeimage</groupId>
     <artifactId>native-image-maven-plugin</artifactId>
-    <version>21.0.0.2</version>
+    <version>21.2.0-SNAPSHOT</version>
 
     <packaging>maven-plugin</packaging>
 
@@ -110,6 +110,11 @@
             <artifactId>plexus-archiver</artifactId>
             <version>3.3</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>junit-platform-native</artifactId>
+            <version>21.2.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

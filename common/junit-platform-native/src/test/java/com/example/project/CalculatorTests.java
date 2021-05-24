@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,45 +38,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.nativeimage.gradle.dsl;
+package com.example.project;
 
-import org.graalvm.nativeimage.gradle.Utils;
-import org.gradle.api.Project;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.SourceSet;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.annotation.Nullable;
-import java.nio.file.Paths;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
-public class JUnitPlatformOptions extends NativeImageOptions {
-    public static final String EXTENSION_NAME = "nativeTest";
+class CalculatorTests {
 
-
-    @SuppressWarnings("UnstableApiUsage")
-    public JUnitPlatformOptions(ObjectFactory objectFactory) {
-        super(objectFactory);
-        super.setMain("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-        super.setImageName(Utils.NATIVE_TESTS_EXE);
-        super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
+    @Test
+    @DisplayName("1 + 1 = 2")
+    void addsTwoNumbers() {
+        Calculator calculator = new Calculator();
+        assertEquals(2, calculator.add(1, 1), "1 + 1 should equal 2");
     }
 
-    public static JUnitPlatformOptions register(Project project) {
-        return project.getExtensions().create(EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
+   @Test
+    @DisplayName("1 + 2 = 3")
+    void addsTwoNumbers2() {
+        Calculator calculator = new Calculator();
+        assertEquals(3, calculator.add(1, 2), "1 + 2 should equal 3");
     }
 
-    @Override
-    public NativeImageOptions setMain(@Nullable String main) {
-        throw new IllegalStateException("Main class for test task cannot be changed");
-    }
-
-    @Override
-    public NativeImageOptions setImageName(@Nullable String image) {
-        throw new IllegalStateException("Image name for test task cannot be changed");
-    }
-
-    @Override
-    public void configure(Project project) {
-        args("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
-        super.configure(project, SourceSet.TEST_SOURCE_SET_NAME);
+    @ParameterizedTest(name = "{0} + {1} = {2}")
+    @CsvSource({
+            "0,    1,   1",
+            "1,    2,   3",
+            "49,  51, 100",
+            "1,  100, 101"
+    })
+    void add(int first, int second, int expectedResult) {
+        Calculator calculator = new Calculator();
+        assertEquals(expectedResult, calculator.add(first, second),
+                () -> first + " + " + second + " should equal " + expectedResult);
     }
 }

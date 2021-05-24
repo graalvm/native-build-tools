@@ -1,0 +1,63 @@
+tasks.register("testConsoleLauncher", JavaExec) {
+    classpath = test.classpath
+    if (project.hasProperty("agent")) {
+        mkdir "${buildDir}"
+        new File("${buildDir}", "agent-filter.json").text = """
+            {
+                "rules":[
+                    {
+                        "excludeClasses":"org.gradle.**"
+                    },
+                    {
+                        "excludeClasses":"java.**"
+                    }
+                ]
+            }
+        """
+        jvmArgs = [
+                "-agentlib:native-image-agent=access-filter-file=${buildDir}/agent-filter.json,experimental-class-loader-support,config-output-dir=${buildDir}/agentOutput",
+                "-Dorg.graalvm.nativeimage.imagecode=agent"
+        ]
+    }
+    main = "org.junit.platform.console.ConsoleLauncher"
+    args = ["--scan-class-path"]
+}
+
+tasks.register("nativeTestBuild", Exec) {
+    dependsOn testClasses
+    workingDir "${buildDir}"
+    executable = System.getenv("GRAALVM_HOME") + "/bin/native-image"
+    // args: set in afterEvaluate block due to lazy initialization of the test.classpath
+}
+
+afterEvaluate {
+    tasks.named("nativeTestBuild").configure {
+        def classpath = test.classpath.join(":")
+        args = [
+                "-cp", classpath,
+                "--no-fallback",
+                "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
+                "-H:Name=native-image-tests.bin",
+                "-H:Class=org.graalvm.junit.platform.NativeImageJUnitLauncher"
+        ]
+        if (project.hasProperty("agent")) {
+            if (!new File("${buildDir}/agentOutput/").exists()) {
+                throw new GradleException("Agent output missing when -Pagent is set.\n" +
+                        "You need to run `./gradlew -Pagent test` first.")
+            }
+
+            args << "-H:ConfigurationFileDirectories=${buildDir}/agentOutput"
+            args << "-H:+AllowIncompleteClasspath"
+        }
+
+        if (System.getProperty("testDiscovery")) {
+            args << "-DtestDiscovery"
+        }
+    }
+}
+
+tasks.register("nativeTest", Exec) {
+    dependsOn nativeTestBuild
+    workingDir = "${buildDir}"
+    executable = "./native-image-tests.bin"
+}

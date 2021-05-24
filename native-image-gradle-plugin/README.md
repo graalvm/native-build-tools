@@ -9,7 +9,7 @@ plugins {
     // ...
 
     // Apply GraalVM Native Image plugin
-    id 'native-image-gradle-plugin' version "${insert_plugin_version}"
+    id 'org.graalvm.nativeimage' version "${insert_plugin_version}"
 }
 ```
 ### DSL definition
@@ -27,12 +27,11 @@ nativeImage {
   runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
   systemProperties = [name1: 'value1', name2: 'value2'] // Sets a system property
   agent = false // Can be also set on command line using '-Pagent'
+  persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
 }
 
-import org.graalvm.nativeimage.gradle.dsl.TestMode
-
 nativeTest {
-  mode = TestMode.TEST_LISTENER // or TestMode.DISCOVERY ('-DtestDiscovery' on command line)
+  agent = false // Can be also set on command line using '-Pagent'
   persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
   //...
   // all of the options from 'nativeImage' block are supported here except for changing main class name
@@ -85,21 +84,12 @@ Same can be achieved by setting corresponding DSL option.
 
 ### Testing:
 This plugin supports running JUnit Platform tests using dedicated feature.
-In order for this feature to register required tests and run them, you either need to:
-* run:
-    ```bash
-    ./gradlew test
-    ```
-    before running `nativeTest` target like
-    ```bash
-    ./gradlew nativeTest
-    ```
-OR
-* invoke `nativeTest` target using experimental flag
-    ```bash
-    ./gradlew -DtestDiscovery nativeTest
-    ```
----
+In order for this feature to register required tests and run them, you need to run:
+```bash
+./gradlew nativeTest
+```
+
+This will run tests in JVM mode then in native mode.
 
 *You can also take a look at example project [here](../examples/gradle).*
 
@@ -109,7 +99,7 @@ Building of plugin itself should be as simple as:
 ./gradlew publishToMavenLocal
 ```
 
-In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-feature`. More information about it is available [here](https://github.com/graalvm/native-image-configuration/blob/main/junit-platform-native/junit-platform-native-feature/README.md#Building).
+In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-native` artifact.
 
 *You can also take a look at CI workflow [here](../.github/workflows/native-image-gradle-plugin.yml).*
 
