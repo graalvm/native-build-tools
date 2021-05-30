@@ -24,8 +24,8 @@ gradlePlugin {
     }
 }
 
-group = 'org.graalvm.nativeimage'
-version = version
+group = 'org.graalvm.buildtools'
+version = nativeimage_gradle_version
 
 publishing {
      repositories {

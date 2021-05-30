@@ -6,7 +6,7 @@ plugins {
     id 'application'
 
     // Apply GraalVM Native Image plugin
-    id 'org.graalvm.nativeimage' version "${org_graalvm_nativeimage_buildtools_version}"
+    id 'org.graalvm.nativeimage' version "${nativeimage_gradle_version}"
 }
 
 repositories {
@@ -16,10 +16,10 @@ repositories {
 
 dependencies {
     // Use JUnit Jupiter API for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:' + org_junit_jupiter
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:' + junit_jupiter_version
 
     // Use JUnit Jupiter Engine for testing.
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + org_junit_jupiter
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + junit_jupiter_version
 }
 
 application {

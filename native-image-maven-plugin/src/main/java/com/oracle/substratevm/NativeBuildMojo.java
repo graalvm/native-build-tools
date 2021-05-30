@@ -53,10 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.function.BiFunction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.maven.artifact.Artifact;
@@ -102,16 +99,6 @@ public class NativeBuildMojo extends AbstractNativeMojo {
 
     private PluginParameterExpressionEvaluator evaluator;
 
-    private final Pattern majorMinorPattern = Pattern.compile("(\\d+\\.\\d+)\\.");
-
-    private String attemptMajorMinor(String input) {
-        Matcher matcher = majorMinorPattern.matcher(input);
-        if (!matcher.find()) {
-            return input;
-        }
-        return matcher.group(1);
-    }
-
     public void execute() throws MojoExecutionException {
         if (skip) {
             getLog().info("Skipping native-image generation (parameter 'skip' is true).");
@@ -135,35 +122,6 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             if (!Files.isExecutable(nativeImageExecutable)) {
                 throw new MojoExecutionException("Could not find executable native-image in " + nativeImageExecutable);
             }
-        }
-
-        String nativeImageExecutableVersion = "Unknown";
-        Process versionCheckProcess;
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString(), "--version");
-            versionCheckProcess = processBuilder.start();
-            try (Scanner scanner = new Scanner(versionCheckProcess.getInputStream())) {
-                while (true) {
-                    if (scanner.findInLine("GraalVM Version ") != null) {
-                        nativeImageExecutableVersion = scanner.next();
-                        break;
-                    }
-                    if (!scanner.hasNextLine()) {
-                        break;
-                    }
-                    scanner.nextLine();
-                }
-
-                if (versionCheckProcess.waitFor() != 0) {
-                    throw new MojoExecutionException("Execution of " + String.join(" ", processBuilder.command()) + " returned non-zero result");
-                }
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new MojoExecutionException("Probing version info of native-image executable " + nativeImageExecutable + " failed", e);
-        }
-
-        if (!attemptMajorMinor(nativeImageExecutableVersion).equals(attemptMajorMinor(plugin.getVersion()))) {
-            getLog().warn("Major.Minor version mismatch between " + plugin.getArtifactId() + " (" + plugin.getVersion() + ") and native-image executable (" + nativeImageExecutableVersion + ")");
         }
 
         try {
@@ -226,7 +184,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             .map(tm -> tm.getToolchainFromBuildContext("jdk", session))
             .filter(DefaultJavaToolChain.class::isInstance).map(DefaultJavaToolChain.class::cast)
             .map(DefaultJavaToolChain::getJavaHome)
-            .orElse(System.getProperty("java.home")));
+            .orElse(Optional.ofNullable(System.getenv("GRAALVM_HOME")).orElse(System.getProperty("java.home"))));
     }
 
     private Path getWorkingDirectory() {
