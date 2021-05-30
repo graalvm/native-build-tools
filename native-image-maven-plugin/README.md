@@ -1,19 +1,20 @@
 # Native Image Maven Plugin
+Maven plugin for GraalVM Native Image building
 ![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-image-maven-plugin.yml/badge.svg)
 
-To simplify the generation of native images, Native Image now works out
-of [Maven](https://maven.apache.org/what-is-maven.html) with the [Native Image Maven Plugin](https://search.maven.org/artifact/org.graalvm.nativeimage/native-image-maven-plugin).
+## Usage
 
-You can build a native executable directly with Maven using the `mvn package` command without running the `native-image` command as a separate step.
-However, the Maven project that uses the plugin should be built on a JDK containing the `native-image` tool in `<java.home>/lib/svm/bin/native-image` (or `<java.home>/jre/lib/svm/bin/native-image` for a Java 8 JDK).
-GraalVM is such a JDK (if `native-image` has been previously installed with `gu`).
+> :information_source: Working GraalVM installation (with `native-image` installable and `GRAALVM_HOME` and/or `JAVA_HOME` environment variables set) is prequisite for successful *native-image* building.
+>
+> More information is available [here](../common/docs/GRAALVM_SETUP.md).
 
-Next, add `native-image-maven-plugin` into the `<plugins>` section of the `pom.xml` file:
+
+Add `native-image-maven-plugin` into the `<plugins>` section of the `pom.xml` file:
 
 ```xml
 <plugin>
-    <groupId>org.graalvm.nativeimage</groupId>
-    <artifactId>native-image-maven-plugin</artifactId>
+    <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>native-maven-plugin</artifactId>
     <version>${graalvm.version}</version>
     <executions>
         <execution>
@@ -36,8 +37,10 @@ Next, add `native-image-maven-plugin` into the `<plugins>` section of the `pom.x
     </configuration>
 </plugin>
 ```
+You can then build a native executable directly with Maven using the `mvn package` command without running the `native-image` command as a separate step.
 
-For testing support, if you want to use the recommended test listener mode, you need to add following dependency:
+### JUnit Testing support
+In order to use the recommended test listener mode, you need to add following dependency:
 
 ```xml
 <dependencies>
@@ -45,7 +48,7 @@ For testing support, if you want to use the recommended test listener mode, you 
    <dependency>
         <groupId>org.graalvm.nativeimage</groupId>
         <artifactId>junit-platform-native</artifactId>
-        <version>${graalvm.version}</version>
+        <version>${current-junit-platform-native-version}</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -55,9 +58,9 @@ The plugin figures out which JAR files it needs to pass to the native image and
 what the executable main class should be. If the heuristics fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
 specified in the `<configuration>` node of the plugin. When `mvn package` completes, an executable is ready for use, generated in the _target_ directory of the project.
 
-## Maven Plugin Customization
+### Maven Plugin Customization
 
-If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  _META-INF/native-image/_ resource location, as described in [Native Image Build Configuration](BuildConfiguration.md).
+If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  _META-INF/native-image/_ resource location, as described in [Native Image Build Configuration](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/).
 It is also possible to customize the plugin within a
 `<configuration>` node. The following configurations are available.
 
@@ -81,7 +84,7 @@ It is also possible to customize the plugin within a
 
 If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with Enterprise features enabled, e.g., an executable will automatically be built with [compressed references](https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e) and other optimizations enabled.
 
-### Reusing configuration from a parent POM
+#### Reusing configuration from a parent POM
 
 The `<buildArgs>` element can be combined between parent and children POM. Suppose the following parent POM definition:
 
@@ -117,4 +120,11 @@ Children projects have the ability to append `<buildArg>`s in the following way:
 In this case, the arguments that will be passed to the `native-image` executable will be:
 ```shell
 --no-fallback --verbose
+```
+
+## Building
+This plugin follows standard maven plugin conventions and as such can be built as:
+
+```shell
+mvn build install
 ```

@@ -15,11 +15,11 @@ repositories {
 }
 
 dependencies {
-    compileOnly group: 'org.graalvm.nativeimage', name: 'svm', version: org_graalvm
-    implementation group: 'org.junit.platform', name: 'junit-platform-console', version: org_junit_platform
-    implementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: org_junit_platform
-    implementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: org_junit_jupiter
-    testImplementation(platform('org.junit:junit-bom:' + org_junit_jupiter))
+    compileOnly group: 'org.graalvm.nativeimage', name: 'svm', version: org_graalvm_version
+    implementation group: 'org.junit.platform', name: 'junit-platform-console', version: junit_platform_version
+    implementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: junit_platform_version
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: junit_jupiter_version
+    testImplementation(platform('org.junit:junit-bom:' + junit_jupiter_version))
     testImplementation('org.junit.jupiter:junit-jupiter')
 }
 
@@ -40,7 +40,7 @@ tasks.withType(Test) {
 }
 
 group = 'org.graalvm.nativeimage'
-version = version
+version = junit_platform_native_version
 
 publishing {
     publications {

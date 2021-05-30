@@ -9,9 +9,10 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <graalvm.version>21.1.0</graalvm.version>
-        <junit-jupiter.version>5.7.1</junit-jupiter.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <junit.jupiter.version>5.7.2</junit.jupiter.version>
+        <nativeimage.maven.version>0.1.0-SNAPSHOT</nativeimage.maven.version>
+        <junit.platform.native>0.1.0-SNAPSHOT</junit.platform.native>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.nativeimage.example.App</mainClass>
     </properties>
@@ -20,18 +21,19 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit-jupiter.version}</version>
+            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.graalvm.nativeimage</groupId>
             <artifactId>junit-platform-native</artifactId>
-            <version>21.2.0-SNAPSHOT</version>
+            <version>${junit.platform.native}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -83,9 +85,9 @@
             </plugin>
 
             <plugin>
-                <groupId>org.graalvm.nativeimage</groupId>
-                <artifactId>native-image-maven-plugin</artifactId>
-                <version>21.2.0-SNAPSHOT</version>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>${nativeimage.maven.version}</version>
                 <executions>
                     <execution>
                         <id>build</id>

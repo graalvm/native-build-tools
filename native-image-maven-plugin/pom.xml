@@ -31,20 +31,27 @@
    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
    WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.graalvm.nativeimage</groupId>
-    <artifactId>native-image-maven-plugin</artifactId>
-    <version>21.2.0-SNAPSHOT</version>
+    <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>native-maven-plugin</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.version>3.3.9</maven.version>
+        <junit.platform.native>0.1.0-SNAPSHOT</junit.platform.native>
+    </properties>
 
     <packaging>maven-plugin</packaging>
 
-    <name>native-image-maven-plugin Maven Plugin</name>
+    <name>native-maven-plugin Maven Plugin</name>
     <description>Tool for generating an image that contains ahead-of-time compiled Java code.</description>
 
-    <url>https://github.com/oracle/graal/tree/master/substratevm</url>
+    <url>https://github.com/graalvm/native-image-build-tools</url>
 
     <developers>
         <developer>
@@ -65,13 +72,6 @@
     <prerequisites>
         <maven>${maven.version}</maven>
     </prerequisites>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.version>3.3.9</maven.version>
-    </properties>
 
     <dependencies>
 
@@ -114,12 +114,13 @@
         <dependency>
             <groupId>org.graalvm.nativeimage</groupId>
             <artifactId>junit-platform-native</artifactId>
-            <version>21.2.0-SNAPSHOT</version>
+            <version>${junit.platform.native}</version>
         </dependency>
     </dependencies>
 
     <build>
-        <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+        <pluginManagement>
+            <!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
             <plugins>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
@@ -161,6 +162,24 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-1</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${basedir}/../version.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
