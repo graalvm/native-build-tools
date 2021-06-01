@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.oracle.substratevm;
+package org.graalvm.nativeimage.maven;
 
 import java.util.List;
 
@@ -64,10 +64,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Parameter(property = "buildArgs")
     protected List<String> buildArgs;
-
-    protected static final boolean IS_WINDOWS = System.getProperty("os.name").contains("Windows");
-
-    protected static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
 
     @Parameter(defaultValue = "${session}", readonly = true)
     protected MavenSession session;

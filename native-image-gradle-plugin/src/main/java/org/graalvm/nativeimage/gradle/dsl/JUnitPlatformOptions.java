@@ -40,7 +40,7 @@
  */
 package org.graalvm.nativeimage.gradle.dsl;
 
-import org.graalvm.nativeimage.gradle.Utils;
+import org.graalvm.nativeimage.Utils;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
@@ -55,7 +55,7 @@ public class JUnitPlatformOptions extends NativeImageOptions {
     @SuppressWarnings("UnstableApiUsage")
     public JUnitPlatformOptions(ObjectFactory objectFactory) {
         super(objectFactory);
-        super.setMain("org.graalvm.junit.platform.NativeImageJUnitLauncher");
+        super.setMainClass("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         super.setImageName(Utils.NATIVE_TESTS_EXE);
         super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
     }
@@ -65,7 +65,7 @@ public class JUnitPlatformOptions extends NativeImageOptions {
     }
 
     @Override
-    public NativeImageOptions setMain(@Nullable String main) {
+    public NativeImageOptions setMainClass(@Nullable String main) {
         throw new IllegalStateException("Main class for test task cannot be changed");
     }
 

@@ -41,7 +41,7 @@
 package org.graalvm.nativeimage.gradle.dsl;
 
 import org.graalvm.nativeimage.gradle.GradleUtils;
-import org.graalvm.nativeimage.gradle.Utils;
+import org.graalvm.nativeimage.Utils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -74,7 +74,7 @@ import java.util.function.BooleanSupplier;
  */
 @SuppressWarnings({"UnstableApiUsage", "unused", "UnusedReturnValue"})
 public class NativeImageOptions {
-    public static final List<String> EXTENSION_NAMES = Arrays.asList("nativeImage", "graal");
+    public static final List<String> EXTENSION_NAMES = Arrays.asList("nativeBuild", "nativeImage", "graal");
 
     private final Property<String> imageName;
     private final Property<String> mainClass;
@@ -90,10 +90,10 @@ public class NativeImageOptions {
     private final Map<BooleanSupplier, String> booleanCmds;
     private final Property<Boolean> agent;
     private final Property<Boolean> persistConfig;
+    private boolean configured;
 
     public NativeImageOptions(ObjectFactory objectFactory) {
-        this.imageName = objectFactory.property(String.class)
-                .convention("application");
+        this.imageName = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.buildArgs = objectFactory.listProperty(String.class)
                 .convention(new ArrayList<>(5));
@@ -116,6 +116,8 @@ public class NativeImageOptions {
         this.booleanCmds.put(server::get, "-Dcom.oracle.graalvm.isaot=true");
         this.agent = objectFactory.property(Boolean.class).convention(false);
         this.persistConfig = objectFactory.property(Boolean.class).convention(false);
+
+        this.configured = false;
     }
 
     public static NativeImageOptions register(Project project) {
@@ -131,6 +133,11 @@ public class NativeImageOptions {
     }
 
     protected void configure(Project project, String sourceSetName) {
+        if (configured) {
+            return;
+        }
+        this.configured = true;
+
         FileCollection classpath = GradleUtils.getClassPath(project);
         FileCollection userClasspath = getClasspath();
         if (userClasspath != null) {
@@ -149,7 +156,14 @@ public class NativeImageOptions {
         });
 
         args("-H:Path=native-image");
-        args("-H:Name=" + getImageName().get());
+
+        String imageName;
+        if (getImageName().isPresent()) {
+            imageName = getImageName().get();
+        } else {
+            imageName = project.getName().toLowerCase();
+        }
+        args("-H:Name=" + imageName);
 
         Map<String, Object> sysProps = getSystemProperties().get();
         sysProps.forEach((n, v) -> {
@@ -179,7 +193,7 @@ public class NativeImageOptions {
             args("--allow-incomplete-classpath");
         }
 
-        String mainClass = ".";
+        String mainClass = null;
         if (getMain().isPresent()) {
             mainClass = getMain().get();
         } else {
@@ -189,7 +203,7 @@ public class NativeImageOptions {
             }
         }
 
-        if (!mainClass.equals(".")) {
+        if (mainClass != null) {
             args("-H:Class=" + mainClass);
         }
     }
@@ -257,8 +271,7 @@ public class NativeImageOptions {
      * @return this
      */
     public NativeImageOptions setMain(@Nullable String mainClass) {
-        this.mainClass.set(mainClass);
-        return this;
+        return setMainClass(mainClass);
     }
 
     /**

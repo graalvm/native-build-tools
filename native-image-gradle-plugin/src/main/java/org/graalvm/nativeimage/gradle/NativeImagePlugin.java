@@ -40,6 +40,7 @@
  */
 package org.graalvm.nativeimage.gradle;
 
+import org.graalvm.nativeimage.Utils;
 import org.graalvm.nativeimage.gradle.dsl.JUnitPlatformOptions;
 import org.graalvm.nativeimage.gradle.dsl.NativeImageOptions;
 import org.graalvm.nativeimage.gradle.tasks.NativeBuildTask;
@@ -67,8 +68,8 @@ import java.util.Objects;
 
 import static org.graalvm.nativeimage.gradle.GradleUtils.initLogger;
 import static org.graalvm.nativeimage.gradle.GradleUtils.log;
-import static org.graalvm.nativeimage.gradle.Utils.AGENT_FILTER;
-import static org.graalvm.nativeimage.gradle.Utils.AGENT_OUTPUT_FOLDER;
+import static org.graalvm.nativeimage.Utils.AGENT_FILTER;
+import static org.graalvm.nativeimage.Utils.AGENT_OUTPUT_FOLDER;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -90,7 +91,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             log("====================");
 
             // Add DSL extensions for building and testing
-            NativeImageOptions nativeExtension = NativeImageOptions.register(project);
+            NativeImageOptions buildExtension = NativeImageOptions.register(project);
 
             JUnitPlatformOptions testExtension = JUnitPlatformOptions.register(project);
 
@@ -113,7 +114,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
             project.getTasks().register(NativeRunTask.TASK_NAME, NativeRunTask.class);
 
-            if (project.hasProperty(Utils.AGENT_PROPERTY) || nativeExtension.getAgent().get()) {
+            if (project.hasProperty(Utils.AGENT_PROPERTY) || buildExtension.getAgent().get()) {
                 // We want to add agent invocation to "run" task, but it is only available when
                 // Application Plugin is initialized.
                 project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
@@ -122,7 +123,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     assert run != null : "Application plugin didn't register 'run' task";
 
                     boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null
-                            || nativeExtension.getPersistConfig().get();
+                            || buildExtension.getPersistConfig().get();
                     setAgentArgs(project, SourceSet.MAIN_SOURCE_SET_NAME, run, persistConfig);
                 });
             }
