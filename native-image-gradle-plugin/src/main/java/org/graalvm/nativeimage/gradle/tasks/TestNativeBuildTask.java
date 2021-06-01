@@ -72,7 +72,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
     public TestNativeBuildTask() {
         super(TestNativeBuildTask.class);
         dependsOn("testClasses");
-        getProject().afterEvaluate(project -> project.getConfigurations().configureEach(
+        getProject().getConfigurations().configureEach(
                 configuration -> {
                     if (DEPENDENT_CONFIGURATIONS.contains(configuration.getName())) {
                         configuration.getDependencies().stream()
@@ -87,7 +87,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
                                 });
                     }
                 }
-        ));
+        );
         setExecutable(Utils.getNativeImage());
         setWorkingDir(getProject().getBuildDir());
         setDescription("Builds native image with tests.");

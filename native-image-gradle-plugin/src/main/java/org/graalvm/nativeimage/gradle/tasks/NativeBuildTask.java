@@ -71,8 +71,8 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
 
     public NativeBuildTask() {
         super(NativeBuildTask.class);
-        dependsOn("classes");
-        getProject().afterEvaluate(project -> project.getConfigurations().configureEach(
+        dependsOn("build");
+        getProject().getConfigurations().configureEach(
                 configuration -> {
                     if (DEPENDENT_CONFIGURATIONS.contains(configuration.getName())) {
                         configuration.getDependencies().stream()
@@ -87,7 +87,7 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
                                 });
                     }
                 }
-        ));
+        );
         setExecutable(Utils.getNativeImage());
         setWorkingDir(getProject().getBuildDir());
         setDescription("Builds native-image from this project.");

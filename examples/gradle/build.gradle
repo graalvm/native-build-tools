@@ -11,7 +11,7 @@ plugins {
 
 repositories {
     mavenLocal()
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -24,7 +24,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClassName = 'org.graalvm.nativeimage.example.App'
+    mainClass = 'org.graalvm.nativeimage.example.App'
 }
 
 test {
@@ -34,12 +34,9 @@ test {
 
 nativeImage {
   imageName = "example-app"
-  args('--no-fallback')
   debug = false
   verbose = true
   fallback = false
-  classpath("dir1", "dir2")
-  systemProperties = [name1: 'value1', name2: 'value2']
 }
 
 nativeTest {
