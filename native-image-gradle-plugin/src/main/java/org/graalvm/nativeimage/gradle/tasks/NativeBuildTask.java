@@ -42,7 +42,7 @@ package org.graalvm.nativeimage.gradle.tasks;
 
 import org.graalvm.nativeimage.gradle.GradleUtils;
 import org.graalvm.nativeimage.gradle.NativeImageService;
-import org.graalvm.nativeimage.gradle.Utils;
+import org.graalvm.nativeimage.Utils;
 import org.graalvm.nativeimage.gradle.dsl.NativeImageOptions;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;

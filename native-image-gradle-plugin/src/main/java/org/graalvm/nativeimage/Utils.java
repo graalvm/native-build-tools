@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.nativeimage.gradle;
+package org.graalvm.nativeimage;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -50,10 +50,11 @@ import java.util.stream.Stream;
 
 /**
  * Utility class containing various native-image and JVM related methods.
+ * Keep this file in sync across all build tool plugins.
  */
-@SuppressWarnings("unused")
 public class Utils {
-    public static final String EXECUTABLE_EXTENSION = (System.getProperty("os.name", "unknown").startsWith("Windows") ? ".exe" : "");
+    public static final boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
+    public static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
     public static final String NATIVE_IMAGE_EXE = "native-image" + EXECUTABLE_EXTENSION;
     public static final String NATIVE_IMAGE_OUTPUT_FOLDER = "native-image";
     public static final String AGENT_PROPERTY = "agent";
@@ -62,7 +63,6 @@ public class Utils {
     public static final String AGENT_FILTER = "agent-filter.json";
     public static final String PERSIST_CONFIG_PROPERTY = "persistConfig";
 
-    @SuppressWarnings("SameParameterValue")
     public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) {
         String graalHome = System.getenv(javaHomeVariable);
         if (graalHome == null) {

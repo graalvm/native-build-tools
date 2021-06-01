@@ -38,18 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.oracle.substratevm;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+package org.graalvm.nativeimage.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -59,7 +48,18 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.toolchain.java.DefaultJavaToolChain;
+import org.graalvm.nativeimage.Utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.graalvm.nativeimage.Utils.NATIVE_TESTS_EXE;
 
 /**
  * @author Sebastien Deleuze
@@ -71,8 +71,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
 
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
-
-    public static final String NATIVE_TESTS_EXE = "native-image-tests" + EXECUTABLE_EXTENSION;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
@@ -107,9 +105,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
     }
 
     private void buildImage(String classpath, Path buildFolder) throws MojoExecutionException {
-
-        Path nativeImageExecutableRelPath = Paths.get("lib", "svm", "bin", "native-image" + (IS_WINDOWS ? ".exe" : ""));
-        Path nativeImageExecutable = getMojoJavaHome().resolve(nativeImageExecutableRelPath);
+        Path nativeImageExecutable = Utils.getNativeImage();
 
         List<String> command = new ArrayList<>(Arrays.asList(
                 nativeImageExecutable.toString(),
@@ -138,14 +134,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
         }
-    }
-
-    private Path getMojoJavaHome() {
-        return Paths.get(Optional.ofNullable(toolchainManager)
-                .map(tm -> tm.getToolchainFromBuildContext("jdk", session))
-                .filter(DefaultJavaToolChain.class::isInstance).map(DefaultJavaToolChain.class::cast)
-                .map(DefaultJavaToolChain::getJavaHome)
-                .orElse(System.getProperty("java.home")));
     }
 
     private void runTests(Path buildFolder) throws MojoExecutionException {

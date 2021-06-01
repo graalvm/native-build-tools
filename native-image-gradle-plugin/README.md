@@ -43,7 +43,7 @@ plugins {
 <br />
 
 ### DSL definition
-This plugin is primarily configured using Gradle DSL. This can be achieved by adding `nativeImage` and `nativeTest` sections to your `build.gradle` / `build.gradle.kts` like:
+This plugin is primarily configured using Gradle DSL. This can be achieved by adding `nativeBuild` and `nativeTest` sections to your `build.gradle` / `build.gradle.kts` like:
 
 <details open>
 <summary>
@@ -51,17 +51,17 @@ Groovy
 </summary>
 
 ```groovy
-nativeImage {
+nativeBuild {
   imageName = "application"
   mainClass = "org.test.Main" // Main class
   buildArgs("--no-server") // Arguments to be passed to native-image invocation
-  debug = false
+  debug = false // Determines if debug info should be generated
   verbose = false
   fallback = false
   classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
   jvmArgs("flag") // Passes 'flag' directly to the JVM running the native image builder
   runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
-  systemProperties = [name1: 'value1', name2: 'value2'] // Sets a system property
+  systemProperties = [name1: 'value1', name2: 'value2'] // Sets system properties
   agent = false // Can be also set on command line using '-Pagent'
   persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
 }
@@ -70,7 +70,8 @@ nativeTest {
   agent = false // Can be also set on command line using '-Pagent'
   persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
   //...
-  // all of the options from 'nativeImage' block are supported here except for changing main class name
+  // all of the options from 'nativeBuild' block are supported here except for changing main class name.
+  // Note that 'nativeBuild' configuration is separate to 'nativeTest' one and that they don't inherit settings from each other.
 }
 ```
 
@@ -83,11 +84,11 @@ Kotlin
 
 ```kotlin
 tasks {
-  nativeImage {
+  nativeBuild {
     imageName.set("application")
     mainClass.set("org.test.Main") // Main class
     buildArgs("--no-server") // Arguments to be passed to native-image invocation
-    debug.set(false)
+    debug.set(false) // Determines if debug info should be generated
     verbose.set(false)
     fallback.set(false)
     classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
@@ -102,7 +103,8 @@ tasks {
     agent.set(false) // Can be also set on command line using '-Pagent'
     persistConfig.set(false) // Used in conjunction with 'agent' to save its output to META-INF
     //...
-    // all of the options from 'nativeImage' block are supported here except for changing main class name
+    // all of the options from 'nativeBuild' block are supported here except for changing main class name
+    // Note that 'nativeBuild' configuration is separate to 'nativeTest' one and that they don't inherit settings from each other
   }
 }
 ```
@@ -131,7 +133,6 @@ Verification tasks
 ------------------
 nativeTest - Runs native-image compiled tests.
 nativeTestBuild - Builds native image with tests.
-
 ```
 
 ### Reflection support

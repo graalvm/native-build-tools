@@ -38,23 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.oracle.substratevm;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+package org.graalvm.nativeimage.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.ConfigurationContainer;
@@ -67,9 +51,23 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.toolchain.java.DefaultJavaToolChain;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.graalvm.nativeimage.Utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
 public class NativeBuildMojo extends AbstractNativeMojo {
@@ -115,14 +113,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         addClasspath(project.getArtifact());
         String classpathStr = classpath.stream().map(Path::toString).collect(Collectors.joining(File.pathSeparator));
 
-        Path nativeImageExecutableRelPath = Paths.get("lib", "svm", "bin", "native-image" + (IS_WINDOWS ? ".exe" : ""));
-        Path nativeImageExecutable = getMojoJavaHome().resolve(nativeImageExecutableRelPath);
-        if (!Files.isExecutable(nativeImageExecutable)) {
-            nativeImageExecutable = getMojoJavaHome().resolve("jre").resolve(nativeImageExecutableRelPath);
-            if (!Files.isExecutable(nativeImageExecutable)) {
-                throw new MojoExecutionException("Could not find executable native-image in " + nativeImageExecutable);
-            }
-        }
+        Path nativeImageExecutable = Utils.getNativeImage();
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString(), "-cp", classpathStr);
@@ -158,8 +149,8 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             Path nativeImageMetaInfBase = jarFS.getPath("/" + NATIVE_IMAGE_META_INF);
             if (Files.isDirectory(nativeImageMetaInfBase)) {
                 List<Path> nativeImageProperties = Files.walk(nativeImageMetaInfBase)
-                                .filter(p -> p.endsWith(NATIVE_IMAGE_PROPERTIES_FILENAME))
-                                .collect(Collectors.toList());
+                        .filter(p -> p.endsWith(NATIVE_IMAGE_PROPERTIES_FILENAME))
+                        .collect(Collectors.toList());
 
                 for (Path nativeImageProperty : nativeImageProperties) {
                     Path relativeSubDir = nativeImageMetaInfBase.relativize(nativeImageProperty).getParent();
@@ -177,14 +168,6 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
 
         classpath.add(jarFilePath);
-    }
-
-    private Path getMojoJavaHome() {
-        return Paths.get(Optional.ofNullable(toolchainManager)
-            .map(tm -> tm.getToolchainFromBuildContext("jdk", session))
-            .filter(DefaultJavaToolChain.class::isInstance).map(DefaultJavaToolChain.class::cast)
-            .map(DefaultJavaToolChain::getJavaHome)
-            .orElse(Optional.ofNullable(System.getenv("GRAALVM_HOME")).orElse(System.getProperty("java.home"))));
     }
 
     private Path getWorkingDirectory() {
