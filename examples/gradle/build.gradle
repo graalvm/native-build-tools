@@ -24,7 +24,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'org.graalvm.nativeimage.example.App'
+    mainClass = 'org.graalvm.buildtools.example.App'
 }
 
 test {

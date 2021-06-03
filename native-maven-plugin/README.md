@@ -48,7 +48,7 @@ In order to use the recommended test listener mode, you need to add following de
 <dependencies>
    <!-- ... -->
    <dependency>
-        <groupId>org.graalvm.nativeimage</groupId>
+        <groupId>org.graalvm.buildtools</groupId>
         <artifactId>junit-platform-native</artifactId>
         <version>${current-junit-platform-native-version}</version>
         <scope>test</scope>
