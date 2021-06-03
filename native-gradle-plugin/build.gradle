@@ -19,7 +19,7 @@ gradlePlugin {
     plugins {
         nativeImage {
             id = 'org.graalvm.buildtools.native'
-            implementationClass = 'org.graalvm.nativeimage.gradle.NativeImagePlugin'
+            implementationClass = 'org.graalvm.buildtools.gradle.NativeImagePlugin'
         }
     }
 }
