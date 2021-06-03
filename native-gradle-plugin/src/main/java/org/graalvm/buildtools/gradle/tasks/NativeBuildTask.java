@@ -88,12 +88,12 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
                     }
                 }
         );
-        setExecutable(Utils.getNativeImage());
         setWorkingDir(getProject().getBuildDir());
         setDescription("Builds native-image from this project.");
         setGroup(LifecycleBasePlugin.BUILD_GROUP);
 
         options = getProject().getExtensions().findByType(NativeImageOptions.class);
+        options.configure(getProject());
     }
 
     @InputFiles
@@ -103,7 +103,6 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
 
     @Input
     public List<String> getArgs() {
-        options.configure(getProject());
         return options.getArgs().get();
     }
 
@@ -127,6 +126,7 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
         this.args(args);
 
         getServer().get();
+        setExecutable(Utils.getNativeImage());
         super.exec();
         System.out.println("Native Image written to: " + getOutputFile());
     }
