@@ -41,6 +41,7 @@
 package org.graalvm.buildtools.gradle;
 
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.tasks.NativeBuildTask;
@@ -66,10 +67,10 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.graalvm.buildtools.gradle.GradleUtils.initLogger;
-import static org.graalvm.buildtools.gradle.GradleUtils.log;
 import static org.graalvm.buildtools.Utils.AGENT_FILTER;
 import static org.graalvm.buildtools.Utils.AGENT_OUTPUT_FOLDER;
+import static org.graalvm.buildtools.gradle.GradleUtils.initLogger;
+import static org.graalvm.buildtools.gradle.GradleUtils.log;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -173,7 +174,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         Path agentOutput;
         if (persistConfig) { // If user chooses, we can persist native-image-agent generated configuration
-                             // into the codebase.
+            // into the codebase.
             agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources",
                     "META-INF", "native-image");
             log("Persist config option was set.");
@@ -189,6 +190,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void injectTestPluginDependencies(Project project) {
-        project.getDependencies().add("implementation", "org.graalvm.nativeimage:junit-platform-native:+");
+        project.getDependencies().add("implementation", "org.graalvm.nativeimage:junit-platform-native:"
+                + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
     }
 }
