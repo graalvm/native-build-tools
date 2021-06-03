@@ -59,7 +59,7 @@ public class Utils {
     public static final String NATIVE_IMAGE_OUTPUT_FOLDER = "native-image";
     public static final String AGENT_PROPERTY = "agent";
     public static final String AGENT_OUTPUT_FOLDER = Paths.get(NATIVE_IMAGE_OUTPUT_FOLDER, "agent-output").toString();
-    public static final String NATIVE_TESTS_EXE = "native-image-tests" + EXECUTABLE_EXTENSION;
+    public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String AGENT_FILTER = "agent-filter.json";
     public static final String PERSIST_CONFIG_PROPERTY = "persistConfig";
 

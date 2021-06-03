@@ -1,20 +1,20 @@
-name: native-image-gradle-plugin
+name: native-gradle-plugin
 
 on:
   push:
     paths:
-      - 'native-image-gradle-plugin/**'
+      - 'native-gradle-plugin/**'
       - 'examples/gradle/**'
       - 'common/**'
   pull_request:
     paths:
-      - 'native-image-gradle-plugin/**'
+      - 'native-gradle-plugin/**'
       - 'examples/gradle/**'
       - 'common/**'
   workflow_dispatch: [ ]
 
 jobs:
-  test-native-image-gradle-plugin:
+  test-native-gradle-plugin:
     name:
     runs-on: ubuntu-18.04
     strategy:
@@ -31,13 +31,13 @@ jobs:
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Checkstyle
         run: |
-          pushd native-image-gradle-plugin
+          pushd native-gradle-plugin
             ./gradlew checkstyleMain
             ./gradlew checkstyleTest
           popd
       - name: Build and publish plugin
         run: |
-          pushd native-image-gradle-plugin
+          pushd native-gradle-plugin
             ./gradlew publishToMavenLocal
           popd
       - name: Build and publish junit-platform-native feature

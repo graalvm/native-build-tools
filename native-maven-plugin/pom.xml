@@ -43,7 +43,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <maven.version>3.3.9</maven.version>
-        <junit.platform.native>0.1.0-SNAPSHOT</junit.platform.native>
+        <junit.platform.native.version>0.1.0-SNAPSHOT</junit.platform.native.version>
     </properties>
 
     <packaging>maven-plugin</packaging>
@@ -114,7 +114,7 @@
         <dependency>
             <groupId>org.graalvm.nativeimage</groupId>
             <artifactId>junit-platform-native</artifactId>
-            <version>${junit.platform.native}</version>
+            <version>${junit.platform.native.version}</version>
         </dependency>
     </dependencies>
 

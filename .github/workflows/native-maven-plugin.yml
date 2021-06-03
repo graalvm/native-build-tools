@@ -1,20 +1,20 @@
-name: native-image-maven-plugin
+name: native-maven-plugin
 
 on:
   push:
     paths:
-      - 'native-image-maven-plugin/**'
+      - 'native-maven-plugin/**'
       - 'examples/maven/**'
       - 'common/**'
   pull_request:
     paths:
-      - 'native-image-maven-plugin/**'
+      - 'native-maven-plugin/**'
       - 'examples/maven/**'
       - 'common/**'
   workflow_dispatch: [ ]
 
 jobs:
-  test-native-image-maven-plugin:
+  test-native-maven-plugin:
     name:
     runs-on: ubuntu-18.04
     strategy:
@@ -36,7 +36,7 @@ jobs:
           popd
       - name: Build and install plugin
         run: |
-          pushd native-image-maven-plugin
+          pushd native-maven-plugin
             mvn clean install
           popd
       - name: Plugin test (build native)
