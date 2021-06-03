@@ -40,8 +40,8 @@
  */
 package org.graalvm.buildtools.gradle.dsl;
 
-import org.graalvm.buildtools.gradle.GradleUtils;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.gradle.GradleUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -157,13 +157,10 @@ public class NativeImageOptions {
 
         args("-H:Path=native-image");
 
-        String imageName;
-        if (getImageName().isPresent()) {
-            imageName = getImageName().get();
-        } else {
-            imageName = project.getName().toLowerCase();
+        if (!getImageName().isPresent()) {
+            setImageName(project.getName().toLowerCase());
         }
-        args("-H:Name=" + imageName);
+        args("-H:Name=" + getImageName().get());
 
         Map<String, Object> sysProps = getSystemProperties().get();
         sysProps.forEach((n, v) -> {
@@ -193,18 +190,15 @@ public class NativeImageOptions {
             args("--allow-incomplete-classpath");
         }
 
-        String mainClass = null;
-        if (getMain().isPresent()) {
-            mainClass = getMain().get();
-        } else {
+        if (!getMainClass().isPresent()) {
             JavaApplication app = project.getExtensions().findByType(JavaApplication.class);
             if (app != null && app.getMainClass().isPresent()) {
-                mainClass = app.getMainClass().get();
+                setMainClass(app.getMainClass().get());
             }
         }
 
-        if (mainClass != null) {
-            args("-H:Class=" + mainClass);
+        if (getMainClass().isPresent()) {
+            args("-H:Class=" + getMainClass().get());
         }
     }
 

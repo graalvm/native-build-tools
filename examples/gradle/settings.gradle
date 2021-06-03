@@ -4,5 +4,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = 'org.graalvm.nativeimage.examples.gradle'
+rootProject.name = 'org.graalvm.buildtools.examples.gradle'
 

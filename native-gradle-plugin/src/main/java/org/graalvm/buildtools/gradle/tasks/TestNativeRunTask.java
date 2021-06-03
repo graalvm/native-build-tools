@@ -73,7 +73,7 @@ public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
             log("There were no test classes in project " + project.getName() + ", so it was skipped.");
             return;
         }
-        setExecutable(new File(GradleUtils.getTargetDir(getProject()).toFile(), options.getImageName().get()));
+        setExecutable(new File(GradleUtils.getTargetDir(project).toFile(), options.getImageName().get()));
         args(options.getRuntimeArgs().get());
         super.exec();
     }

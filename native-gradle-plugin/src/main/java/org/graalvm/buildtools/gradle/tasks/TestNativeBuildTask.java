@@ -88,7 +88,6 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
                     }
                 }
         );
-        setExecutable(Utils.getNativeImage());
         setWorkingDir(getProject().getBuildDir());
         setDescription("Builds native image with tests.");
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
@@ -112,6 +111,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
 
     @OutputFile
     public File getOutputFile() {
+        options.configure(getProject());
         return GradleUtils.getTargetDir(getProject()).resolve(options.getImageName().get()).toFile();
     }
 
@@ -136,6 +136,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
 
         this.args(args);
         getServer().get();
+        setExecutable(Utils.getNativeImage());
         super.exec();
         System.out.println("Native Image written to: " + getOutputFile());
     }
