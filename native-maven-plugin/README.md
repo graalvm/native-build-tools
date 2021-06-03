@@ -15,7 +15,7 @@ Add `native-maven-plugin` into the `<plugins>` section of the `pom.xml` file:
 <plugin>
     <groupId>org.graalvm.buildtools</groupId>
     <artifactId>native-maven-plugin</artifactId>
-    <version>${graalvm.version}</version>
+    <version>${current_plugin_version}</version>
     <executions>
         <execution>
             <id>build</id>
@@ -94,7 +94,7 @@ The `<buildArgs>` element can be combined between parent and children POM. Suppo
 <plugin>
     <groupId>org.graalvm.buildtools</groupId>
     <artifactId>native-maven-plugin</artifactId>
-    <version>${graalvm.version}</version>
+    <version>${current_plugin_version}</version>
     <configuration>
         <imageName>${project.artifactId}</imageName>
         <mainClass>${exec.mainClass}</mainClass>
