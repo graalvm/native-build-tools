@@ -1,6 +1,6 @@
 # Native Image Gradle Plugin
 Gradle plugin for GraalVM Native Image building
-![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-image-gradle-plugin.yml/badge.svg)
+![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-gradle-plugin.yml/badge.svg)
 
 ## Usage
 > :information_source: Working GraalVM installation (with `native-image` installable and `GRAALVM_HOME` and/or `JAVA_HOME` environment variables set) is prequisite for successful *native-image* building.
@@ -19,7 +19,7 @@ plugins {
     // ...
 
     // Apply GraalVM Native Image plugin
-    id 'org.graalvm.nativeimage' version "${current_plugin_version}"
+    id 'org.graalvm.buildtools.native' version "${current_plugin_version}"
 }
 ```
 </details>
@@ -34,7 +34,7 @@ plugins {
     // ...
 
     // Apply GraalVM Native Image plugin
-    id('org.graalvm.nativeimage') version "${current_plugin_version}"
+    id('org.graalvm.buildtools.native') version "${current_plugin_version}"
 }
 ```
 
@@ -167,6 +167,4 @@ Building of plugin itself should be as simple as:
 
 In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-native` artifact.
 
-*You can also take a look at CI workflow [here](../.github/workflows/native-image-gradle-plugin.yml).*
-
-
+*You can also take a look at CI workflow [here](../.github/workflows/native-gradle-plugin.yml).*

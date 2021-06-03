@@ -7,10 +7,10 @@ pushd common/junit-platform-native
 ./gradlew clean publishToMavenLocal
 popd
 
-pushd native-image-maven-plugin
+pushd native-maven-plugin
 mvn clean install
 popd
 
-pushd native-image-gradle-plugin
+pushd native-gradle-plugin
 ./gradlew clean publishToMavenLocal
 popd

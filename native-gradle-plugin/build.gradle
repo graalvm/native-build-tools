@@ -18,14 +18,14 @@ gradlePlugin {
     // Define the plugin
     plugins {
         nativeImage {
-            id = 'org.graalvm.nativeimage'
+            id = 'org.graalvm.buildtools.native'
             implementationClass = 'org.graalvm.nativeimage.gradle.NativeImagePlugin'
         }
     }
 }
 
 group = 'org.graalvm.buildtools'
-version = nativeimage_gradle_version
+version = native_gradle_plugin_version
 
 publishing {
      repositories {

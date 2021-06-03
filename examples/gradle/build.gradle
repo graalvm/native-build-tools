@@ -6,7 +6,7 @@ plugins {
     id 'application'
 
     // Apply GraalVM Native Image plugin
-    id 'org.graalvm.nativeimage' version "${nativeimage_gradle_version}"
+    id 'org.graalvm.buildtools.native' version "${native_gradle_plugin_version}"
 }
 
 repositories {

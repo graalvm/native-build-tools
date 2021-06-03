@@ -1,6 +1,6 @@
 # Native Image Maven Plugin
 Maven plugin for GraalVM Native Image building
-![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-image-maven-plugin.yml/badge.svg)
+![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-maven-plugin.yml/badge.svg)
 
 ## Usage
 
@@ -9,7 +9,7 @@ Maven plugin for GraalVM Native Image building
 > More information is available [here](../common/docs/GRAALVM_SETUP.md).
 
 
-Add `native-image-maven-plugin` into the `<plugins>` section of the `pom.xml` file:
+Add `native-maven-plugin` into the `<plugins>` section of the `pom.xml` file:
 
 ```xml
 <plugin>
@@ -38,6 +38,8 @@ Add `native-image-maven-plugin` into the `<plugins>` section of the `pom.xml` fi
 </plugin>
 ```
 You can then build a native executable directly with Maven using the `mvn package` command without running the `native-image` command as a separate step.
+
+*You can also take a look at example project [here](../examples/maven).*
 
 ### JUnit Testing support
 In order to use the recommended test listener mode, you need to add following dependency:
@@ -90,8 +92,8 @@ The `<buildArgs>` element can be combined between parent and children POM. Suppo
 
 ```xml
 <plugin>
-    <groupId>org.graalvm.nativeimage</groupId>
-    <artifactId>native-image-maven-plugin</artifactId>
+    <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>native-maven-plugin</artifactId>
     <version>${graalvm.version}</version>
     <configuration>
         <imageName>${project.artifactId}</imageName>
@@ -107,8 +109,8 @@ Children projects have the ability to append `<buildArg>`s in the following way:
 
 ```xml
 <plugin>
-    <groupId>org.graalvm.nativeimage</groupId>
-    <artifactId>native-image-maven-plugin</artifactId>
+    <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>native-maven-plugin</artifactId>
     <configuration>
         <buildArgs combine.children="append">
             <buildArg>--verbose</buildArg>
@@ -128,3 +130,5 @@ This plugin follows standard maven plugin conventions and as such can be built a
 ```shell
 mvn build install
 ```
+
+*You can also take a look at CI workflow [here](../.github/workflows/native-maven-plugin.yml).*
