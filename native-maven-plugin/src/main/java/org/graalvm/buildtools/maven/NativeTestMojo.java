@@ -49,6 +49,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.VersionInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,7 +94,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
             logger.warn("<dependency>");
             logger.warn("    <groupId>org.graalvm.nativeimage</groupId>");
             logger.warn("    <artifactId>junit-platform-native</artifactId>");
-            logger.warn("    <version>${graalvm.version}</version>");
+            logger.warn("    <version>" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION + "</version>");
             logger.warn("    <scope>test</scope>");
             logger.warn("</dependency>");
         }
