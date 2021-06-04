@@ -60,6 +60,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
@@ -158,10 +160,17 @@ public final class JUnitPlatformFeature implements Feature {
                 .filter(ClassSource.class::isInstance)
                 .map(ClassSource.class::cast)
                 .forEach((ClassSource classSource) -> {
+                    Class<?> clazz = classSource.getJavaClass();
                     if (debug) {
-                        System.out.println("[Debug] Found test class: " + classSource.getClassName());
+                        System.out.println("[Debug] Found test class: " + clazz);
                     }
-                    RuntimeReflection.registerForReflectiveInstantiation(classSource.getJavaClass());
+                    RuntimeReflection.registerForReflectiveInstantiation(clazz);
+                    for (Field field : clazz.getDeclaredFields()) {
+                        RuntimeReflection.register(field);
+                    }
+                    for (Method method : clazz.getDeclaredMethods()) {
+                        RuntimeReflection.register(method);
+                    }
                 });
 
         return testPlan;
