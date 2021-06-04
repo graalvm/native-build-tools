@@ -249,9 +249,10 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         if (mainClass != null && !mainClass.equals(".")) {
             list.add("-H:Class=" + mainClass);
         }
-        if (imageName != null) {
-            list.add("-H:Name=" + imageName);
+        if (imageName == null) {
+            imageName = project.getArtifactId();
         }
+        list.add("-H:Name=" + imageName);
         return list;
     }
 }
