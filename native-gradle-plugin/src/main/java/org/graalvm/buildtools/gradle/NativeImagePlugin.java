@@ -190,7 +190,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void injectTestPluginDependencies(Project project) {
-        project.getDependencies().add("implementation", "org.graalvm.nativeimage:junit-platform-native:"
+        project.getDependencies().add("implementation", "org.graalvm.buildtools:junit-platform-native:"
                 + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
     }
 }

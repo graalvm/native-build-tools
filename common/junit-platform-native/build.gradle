@@ -39,7 +39,7 @@ tasks.withType(Test) {
     }
 }
 
-group = 'org.graalvm.nativeimage'
+group = 'org.graalvm.buildtools'
 version = junit_platform_native_version
 
 publishing {
