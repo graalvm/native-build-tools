@@ -25,7 +25,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.graalvm.nativeimage</groupId>
+            <groupId>org.graalvm.buildtools</groupId>
             <artifactId>junit-platform-native</artifactId>
             <version>${junit.platform.native.version}</version>
             <scope>test</scope>
