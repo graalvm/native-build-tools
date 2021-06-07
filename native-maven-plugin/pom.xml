@@ -48,10 +48,10 @@
 
     <packaging>maven-plugin</packaging>
 
-    <name>native-maven-plugin Maven Plugin</name>
-    <description>Tool for generating an image that contains ahead-of-time compiled Java code.</description>
+    <name>GraalVM Native Maven Plugin</name>
+    <description>Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code).</description>
 
-    <url>https://github.com/graalvm/native-image-build-tools</url>
+    <url>https://github.com/graalvm/native-build-tools</url>
 
     <developers>
         <developer>
