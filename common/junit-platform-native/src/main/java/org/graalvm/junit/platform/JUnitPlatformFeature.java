@@ -82,9 +82,6 @@ public final class JUnitPlatformFeature implements Feature {
             RuntimeReflection.register(Class.forName("org.junit.jupiter.params.provider.CsvArgumentsProvider").getMethods());
             RuntimeReflection.register(Class.forName("org.junit.jupiter.params.provider.CsvArgumentsProvider").getDeclaredMethods());
             RuntimeReflection.registerForReflectiveInstantiation(Class.forName("org.junit.jupiter.params.provider.CsvArgumentsProvider"));
-            RuntimeReflection.register(Class.forName("org.junit.platform.console.options.AvailableOptions").getDeclaredMethods());
-            RuntimeReflection.register(Class.forName("org.junit.platform.console.options.AvailableOptions").getDeclaredFields());
-            RuntimeReflection.registerForReflectiveInstantiation(Class.forName("org.junit.platform.console.options.AvailableOptions"));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Missing some JUnit Platform classes for runtime reflection configuration. \n" +
                     "Check if JUnit Platform is on your classpath or if that version is supported. \n" +
