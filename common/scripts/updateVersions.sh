@@ -35,7 +35,7 @@ echo -e "$GRADLE_PROPS" > examples/gradle/gradle.properties
 # Update maven plugin
 pushd native-maven-plugin
 mvn versions:set -DnewVersion=${native_maven_plugin_version} -DgenerateBackupPoms=false
-mvn versions:set-property -Dproperty=junit.platform.native -DnewVersion=${junit_platform_native_version} -DgenerateBackupPoms=false
+mvn versions:set-property -Dproperty=junit.platform.native.version -DnewVersion=${junit_platform_native_version} -DgenerateBackupPoms=false
 echo -e "$TEST_VERSION_INFO" > src/main/java/org/graalvm/buildtools/VersionInfo.java
 popd
 
@@ -43,7 +43,7 @@ popd
 pushd examples/maven
 mvn versions:set-property -Dproperty=junit.jupiter.version -DnewVersion=${junit_jupiter_version} -DgenerateBackupPoms=false
 mvn versions:set-property -Dproperty=native.maven.plugin.version -DnewVersion=${native_maven_plugin_version} -DgenerateBackupPoms=false
-mvn versions:set-property -Dproperty=junit.platform.native -DnewVersion=${junit_platform_native_version} -DgenerateBackupPoms=false
+mvn versions:set-property -Dproperty=junit.platform.native.version -DnewVersion=${junit_platform_native_version} -DgenerateBackupPoms=false
 popd
 
 popd
