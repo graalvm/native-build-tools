@@ -2,6 +2,7 @@ plugins {
     id 'java-gradle-plugin'
     id 'checkstyle'
     id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.15.0'
 }
 
 compileJava {
@@ -14,12 +15,20 @@ repositories {
     mavenCentral()
 }
 
+pluginBundle {
+    website = 'https://graalvm.org/'
+    vcsUrl = 'https://github.com/graalvm/native-build-tools'
+    tags = ['native', 'graalvm', 'graal', 'java']
+}
+
 gradlePlugin {
     // Define the plugin
     plugins {
         nativeImage {
             id = 'org.graalvm.buildtools.native'
             implementationClass = 'org.graalvm.buildtools.gradle.NativeImagePlugin'
+            displayName = 'GraalVM Native Gradle Plugin'
+            description = 'Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code).'
         }
     }
 }
