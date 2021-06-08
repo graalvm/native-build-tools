@@ -155,7 +155,7 @@ public class NativeImageOptions {
             }
         });
 
-        args("-H:Path=native-image");
+        args("-H:Path=" + Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
 
         if (!getImageName().isPresent()) {
             setImageName(project.getName().toLowerCase());

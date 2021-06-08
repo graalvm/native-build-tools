@@ -77,8 +77,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>${project.build.directory}/${imageName}</executable>
-                            <workingDirectory>${project.build.directory}</workingDirectory>
+                            <executable>${project.build.directory}/native/${imageName}</executable>
+                            <workingDirectory>${project.build.directory}/native</workingDirectory>
                         </configuration>
                     </execution>
                 </executions>
