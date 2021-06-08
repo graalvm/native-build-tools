@@ -1,4 +1,4 @@
-# JUnit Platform Feature for GraalVM Native Image
+# JUnit Platform support for GraalVM Native Image
 Feature that enables JUnit Platform testing support for GraalVM Native Image
 ![](https://github.com/graalvm/native-image-configuration/actions/workflows/junit-platform-native-feature.yml/badge.svg)
 

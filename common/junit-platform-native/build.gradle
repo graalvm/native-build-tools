@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id 'maven-publish'
+    id 'signing'
 }
 
 compileJava {
@@ -42,11 +43,47 @@ tasks.withType(Test) {
 group = 'org.graalvm.buildtools'
 version = junit_platform_native_version
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 publishing {
     publications {
-        //noinspection GroovyAssignabilityCheck
-        maven(MavenPublication) {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'junit-platform-native'
+                description = 'JUnit Platform support for GraalVM Native Image'
+                url = 'https://github.com/graalvm/native-build-tools'
+
+                licenses {
+                    license {
+                        name = 'Universal Permissive License Version 1.0'
+                        url = 'http://oss.oracle.com/licenses/upl'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = 'SubstrateVM developers'
+                        email = 'graal-dev@openjdk.java.net'
+                        organization = 'Graal'
+                        organizationUrl = 'http://openjdk.java.net/projects/graal'
+                    }
+                }
+            }
             from components.java
         }
+    }
+}
+
+signing {
+    required { gradle.taskGraph.hasTask("publish") }
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }
