@@ -128,10 +128,10 @@ public final class JUnitPlatformFeature implements Feature {
         }
         try (BufferedReader br = new BufferedReader(new InputStreamReader(listenerStream))) {
             List<String> classes = br.lines().collect(Collectors.toList());
-            System.out.println("Test listener mode");
+            System.out.println("[junit-platform-native] Running in 'test listener' mode.");
             return classes.stream().map(DiscoverySelectors::selectUniqueId).collect(Collectors.toList());
         } catch (IOException | NullPointerException e) {
-            System.out.println("Test discovery mode");
+            System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
         }
 
         // Run a a junit launcher to discover tests and register classes for reflection

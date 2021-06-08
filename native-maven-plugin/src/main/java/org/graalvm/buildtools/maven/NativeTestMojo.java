@@ -75,7 +75,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-
         if (skipTests) {
             logger.info("Tests are skipped.");
             return;
@@ -83,9 +82,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
 
         String classpath = getClassPath();
         Path targetFolder = new File(project.getBuild().getDirectory()).toPath().resolve(Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
-        if (!targetFolder.toFile().exists()) {
-            targetFolder.toFile().mkdirs();
-        }
+        targetFolder.toFile().mkdirs();
 
         logger.info("====================");
         logger.info("Initializing project: " + project.getName());
@@ -108,14 +105,14 @@ public class NativeTestMojo extends AbstractNativeMojo {
         runTests(targetFolder);
     }
 
-    private void buildImage(String classpath, Path buildFolder) throws MojoExecutionException {
+    private void buildImage(String classpath, Path targetFolder) throws MojoExecutionException {
         Path nativeImageExecutable = Utils.getNativeImage();
 
         List<String> command = new ArrayList<>(Arrays.asList(
                 nativeImageExecutable.toString(),
                 "-cp", classpath,
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
-                "-H:Path=" + buildFolder.toAbsolutePath(),
+                "-H:Path=" + targetFolder.toAbsolutePath(),
                 "-H:Name=" + NATIVE_TESTS_EXE));
 
         if (buildArgs != null) {
@@ -126,7 +123,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(command);
-            processBuilder.directory(buildFolder.toFile());
+            processBuilder.directory(new File(project.getBuild().getDirectory()));
             processBuilder.inheritIO();
 
             String commandString = String.join(" ", processBuilder.command());
@@ -140,15 +137,14 @@ public class NativeTestMojo extends AbstractNativeMojo {
         }
     }
 
-    private void runTests(Path buildFolder) throws MojoExecutionException {
-
-        Path xmlLocation = buildFolder.resolve("native-test-reports");
+    private void runTests(Path targetFolder) throws MojoExecutionException {
+        Path xmlLocation = targetFolder.resolve("native-test-reports");
         xmlLocation.toFile().mkdirs();
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder("./" + NATIVE_TESTS_EXE,
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    targetFolder.resolve(NATIVE_TESTS_EXE).toAbsolutePath().toString(),
                     "--xml-output-dir", xmlLocation.toString());
-            processBuilder.directory(buildFolder.toFile());
             processBuilder.inheritIO();
 
             String commandString = String.join(" ", processBuilder.command());
@@ -163,7 +159,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
     }
 
     private String getClassPath() throws MojoFailureException {
-
         try {
             List<Artifact> pluginDependencies = pluginArtifacts.stream()
                     .filter(it -> it.getGroupId().startsWith("org.graalvm.nativeimage") || it.getGroupId().startsWith("org.junit"))
