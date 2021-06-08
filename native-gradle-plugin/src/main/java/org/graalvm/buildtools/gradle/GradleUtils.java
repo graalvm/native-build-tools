@@ -40,6 +40,7 @@
  */
 package org.graalvm.buildtools.gradle;
 
+import org.graalvm.buildtools.Utils;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.Logger;
@@ -101,6 +102,6 @@ public class GradleUtils {
     }
 
     public static Path getTargetDir(Project project) {
-        return project.getBuildDir().toPath().resolve("native-image");
+        return project.getBuildDir().toPath().resolve(Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
     }
 }

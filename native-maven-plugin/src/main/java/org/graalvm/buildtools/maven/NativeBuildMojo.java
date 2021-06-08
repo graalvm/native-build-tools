@@ -78,7 +78,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     private PluginDescriptor plugin;
 
-    @Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)//
+    @Parameter(defaultValue = "${project.build.directory}/" + Utils.NATIVE_IMAGE_OUTPUT_FOLDER, property = "outputDir", required = true)//
     private File outputDirectory;
 
     @Parameter(property = "mainClass")
@@ -171,6 +171,9 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     }
 
     private Path getWorkingDirectory() {
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs();
+        }
         return outputDirectory.toPath();
     }
 

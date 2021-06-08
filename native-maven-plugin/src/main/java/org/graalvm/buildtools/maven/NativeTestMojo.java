@@ -82,7 +82,10 @@ public class NativeTestMojo extends AbstractNativeMojo {
         }
 
         String classpath = getClassPath();
-        Path targetFolder = new File(project.getBuild().getDirectory()).toPath();
+        Path targetFolder = new File(project.getBuild().getDirectory()).toPath().resolve(Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
+        if (!targetFolder.toFile().exists()) {
+            targetFolder.toFile().mkdirs();
+        }
 
         logger.info("====================");
         logger.info("Initializing project: " + project.getName());
