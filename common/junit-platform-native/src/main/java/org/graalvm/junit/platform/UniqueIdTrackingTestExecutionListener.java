@@ -98,10 +98,10 @@ public class UniqueIdTrackingTestExecutionListener implements TestExecutionListe
 
         File buildDir;
 
-        if (new File(".", "pom.xml").exists()) {
-            buildDir = new File(".", "target");
+        if (new File("pom.xml").exists()) {
+            buildDir = new File("target");
         } else {
-            buildDir = new File(".", "build");
+            buildDir = new File("build");
         }
 
         if (!buildDir.exists() && !buildDir.mkdirs()) {
