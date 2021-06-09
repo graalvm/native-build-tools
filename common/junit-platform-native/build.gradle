@@ -71,6 +71,12 @@ publishing {
                         organizationUrl = 'http://openjdk.java.net/projects/graal'
                     }
                 }
+
+                scm {
+                    connection = 'scm:git:git://github.com/graalvm/native-build-tools.git'
+                    developerConnection = 'scm:git:ssh://github.com:graalvm/native-build-tools.git'
+                    url = 'https://github.com/graalvm/native-build-tools/tree/master'
+                }
             }
             from components.java
         }
