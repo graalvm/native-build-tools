@@ -111,8 +111,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
 
     @OutputFile
     public File getOutputFile() {
-        options.configure(getProject());
-        return GradleUtils.getTargetDir(getProject()).resolve(options.getImageName().get()).toFile();
+        return GradleUtils.getTargetDir(getProject()).resolve(Utils.NATIVE_TESTS_EXE).toFile();
     }
 
     // This property provides access to the service instance
