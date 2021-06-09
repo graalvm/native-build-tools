@@ -9,5 +9,5 @@ popd
 
 pushd examples/maven
 mvn compile exec:java@java
-mvn test package exec:exec@native
+mvn -Pnative test package exec:exec@native
 popd

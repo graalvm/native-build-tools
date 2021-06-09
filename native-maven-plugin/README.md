@@ -9,35 +9,45 @@ Maven plugin for GraalVM Native Image building
 > More information is available [here](../common/docs/GRAALVM_SETUP.md).
 
 
-Add `native-maven-plugin` into the `<plugins>` section of the `pom.xml` file:
+Add the following profile to your `pom.xml` file:
 
 ```xml
-<plugin>
-    <groupId>org.graalvm.buildtools</groupId>
-    <artifactId>native-maven-plugin</artifactId>
-    <version>${current_plugin_version}</version>
-    <executions>
-        <execution>
-            <id>build</id>
-            <goals>
-                <goal>build</goal>
-            </goals>
-            <phase>package</phase>
-        </execution>
-        <execution>
-            <id>test</id>
-            <goals>
-                <goal>test</goal>
-            </goals>
-            <phase>test</phase>
-        </execution>
-    </executions>
-    <configuration>
-        <!-- ... -->
-    </configuration>
-</plugin>
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <phase>test</phase>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- ... -->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 ```
-You can then build a native executable directly with Maven using the `mvn package` command without running the `native-image` command as a separate step.
+
+You can then build a native executable directly with Maven using the `mvn -Pnative package` command without running the `native-image` command as a separate step.
 
 *You can also take a look at example project [here](../examples/maven).*
 
@@ -58,7 +68,7 @@ In order to use the recommended test listener mode, you need to add following de
 
 The plugin figures out which JAR files it needs to pass to the native image and
 what the executable main class should be. If the heuristics fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
-specified in the `<configuration>` node of the plugin. When `mvn package` completes, an executable is ready for use, generated in the _target_ directory of the project.
+specified in the `<configuration>` node of the plugin. When `mvn -Pnative package` completes, an executable is ready for use, generated in the _target_ directory of the project. Additionally, running `mvn -Pnative test` will also build and run native tests.
 
 ### Maven Plugin Customization
 

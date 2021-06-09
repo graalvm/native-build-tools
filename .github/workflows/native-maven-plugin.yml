@@ -45,7 +45,7 @@ jobs:
             echo "JVM run"
             mvn compile exec:java@java
             echo "Native run"
-            mvn -DskipTests package exec:exec@native
+            mvn -Pnative -DskipTests package exec:exec@native
           popd
       - name: Plugin test (test native)
         run: |
@@ -53,5 +53,5 @@ jobs:
             echo "JVM run"
             mvn test
             echo "Native run"
-            mvn package
+            mvn -Pnative test
           popd
