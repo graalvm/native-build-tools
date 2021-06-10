@@ -11,8 +11,8 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.7.2</junit.jupiter.version>
-        <native.maven.plugin.version>1.0.0-SNAPSHOT</native.maven.plugin.version>
-        <junit.platform.native.version>1.0.0-SNAPSHOT</junit.platform.native.version>
+        <native.maven.plugin.version>1.0.0-M1-SNAPSHOT</native.maven.plugin.version>
+        <junit.platform.native.version>1.0.0-M1-SNAPSHOT</junit.platform.native.version>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.buildtools.example.App</mainClass>
     </properties>
