@@ -36,14 +36,14 @@
 
     <groupId>org.graalvm.buildtools</groupId>
     <artifactId>native-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0-M1-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <maven.version>3.3.9</maven.version>
-        <junit.platform.native.version>1.0.0-SNAPSHOT</junit.platform.native.version>
+        <junit.platform.native.version>1.0.0-M1-SNAPSHOT</junit.platform.native.version>
     </properties>
 
     <packaging>maven-plugin</packaging>
