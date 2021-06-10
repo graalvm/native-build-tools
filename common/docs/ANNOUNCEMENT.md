@@ -21,6 +21,7 @@ pluginManagement {
 	}
 }
 ```
+*(this step will be redundant once this plugin is published to the Gradle Plugin Portal).*
 
 After that you can configure image building using a `nativeBuild` configuration block, like:
 ```groovy

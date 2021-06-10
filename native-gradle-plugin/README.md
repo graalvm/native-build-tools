@@ -43,7 +43,7 @@ plugins {
 
 <br />
 
-Additionally add the following to your `settings.gradle`:
+Additionally add the following to your `settings.gradle` / `settings.gradle.kts`:
 ```groovy
 pluginManagement {
 	repositories {
@@ -52,6 +52,7 @@ pluginManagement {
 	}
 }
 ```
+*(this step will be redundant once this plugin is published to the Gradle Plugin Portal).*
 
 <br />
 
