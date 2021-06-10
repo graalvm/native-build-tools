@@ -3,7 +3,6 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.15.0'
-    id 'signing'
 }
 
 compileJava {
@@ -44,9 +43,11 @@ java {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        withType(MavenPublication) {
             pom {
                 name = rootProject.name
+                groupId = rootProject.group
+                artifactId = rootProject.name
                 description = 'Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code).'
                 url = 'https://github.com/graalvm/native-build-tools'
 
@@ -72,14 +73,8 @@ publishing {
                     url = 'https://github.com/graalvm/native-build-tools/tree/master'
                 }
             }
-            from components.java
         }
     }
-}
-
-signing {
-    required { gradle.taskGraph.hasTask("publish") }
-    sign publishing.publications.mavenJava
 }
 
 javadoc {

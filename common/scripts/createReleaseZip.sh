@@ -15,11 +15,15 @@ common/scripts/testAll.sh
 mv version.properties.bak version.properties
 common/scripts/updateVersions.sh
 
+rm -rdf build
 mkdir -p build
 cd build
-location=$(pwd)
-rm -f artifacts.zip
+mkdir -p org/graalvm/
+cp -r ~/.m2/repository/org/graalvm/buildtools org/graalvm/buildtools
+find . -name '*.xml' -delete
+find . -name '*.repositories' -delete
+find . -name '*.properties' -delete
 
-cd ~/.m2/repository
-zip -r $location/artifacts.zip org/graalvm/buildtools
+zip -r artifacts.zip org/graalvm/buildtools
+rm -rdf org
 popd
