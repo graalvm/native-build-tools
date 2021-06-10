@@ -40,6 +40,19 @@ plugins {
 
 </details>
 
+
+<br />
+
+Additionally add the following to your `settings.gradle`:
+```groovy
+pluginManagement {
+	repositories {
+		mavenCentral()
+		gradlePluginPortal()
+	}
+}
+```
+
 <br />
 
 ### DSL definition
