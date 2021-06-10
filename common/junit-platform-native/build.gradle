@@ -52,7 +52,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             pom {
-                name = 'junit-platform-native'
+                name = rootProject.name
                 description = 'JUnit Platform support for GraalVM Native Image'
                 url = 'https://github.com/graalvm/native-build-tools'
 

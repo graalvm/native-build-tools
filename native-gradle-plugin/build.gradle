@@ -3,6 +3,7 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.15.0'
+    id 'signing'
 }
 
 compileJava {
@@ -36,8 +37,53 @@ gradlePlugin {
 group = 'org.graalvm.buildtools'
 version = native_gradle_plugin_version
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 publishing {
-     repositories {
-        mavenLocal()
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = rootProject.name
+                description = 'Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code).'
+                url = 'https://github.com/graalvm/native-build-tools'
+
+                licenses {
+                    license {
+                        name = 'Universal Permissive License Version 1.0'
+                        url = 'http://oss.oracle.com/licenses/upl'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = 'SubstrateVM developers'
+                        email = 'graal-dev@openjdk.java.net'
+                        organization = 'Graal'
+                        organizationUrl = 'http://openjdk.java.net/projects/graal'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/graalvm/native-build-tools.git'
+                    developerConnection = 'scm:git:ssh://github.com:graalvm/native-build-tools.git'
+                    url = 'https://github.com/graalvm/native-build-tools/tree/master'
+                }
+            }
+            from components.java
+        }
+    }
+}
+
+signing {
+    required { gradle.taskGraph.hasTask("publish") }
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
     }
 }

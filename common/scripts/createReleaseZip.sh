@@ -5,19 +5,15 @@ pushd $SCRIPT_DIR/../..
 
 rm -rdf ~/.m2/repository/org/graalvm/buildtools
 
-set +e
-git commit -am "tmp"
-set -e
+cp version.properties version.properties.bak
 
 sed -i 's/-SNAPSHOT//' version.properties
 common/scripts/updateVersions.sh
 common/scripts/buildAll.sh
 common/scripts/testAll.sh
 
-set +e
-git checkout --
-git reset --hard
-set -e
+mv version.properties.bak version.properties
+common/scripts/updateVersions.sh
 
 mkdir -p build
 cd build
