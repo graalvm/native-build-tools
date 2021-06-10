@@ -47,7 +47,7 @@ Add the following profile to your `pom.xml` file:
     </profiles>
 ```
 
-You can then build a native executable directly with Maven using the `mvn -Pnative package` command without running the `native-image` command as a separate step.
+You can then build a native executable directly with Maven using the `mvn -Pnative -DskipTests package` command without running the `native-image` command as a separate step.
 
 The plugin figures out which JAR files it needs to pass to the native image and
 what the executable main class should be. If the heuristics fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
@@ -72,7 +72,7 @@ In order to use the recommended test listener mode, you need to add following de
 
 This step won't be needed as of JUnit 5.8 with a future release of native-maven-plugin (see the [related issue](https://github.com/junit-team/junit5/issues/2619) for more information).
 
-Running `mvn -Pnative test` will then build and run native tests.
+Running `mvn -Pnative -Dskip test` will then build and run native tests.
 
 ### Maven Plugin Customization
 
