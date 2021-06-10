@@ -1,0 +1,39 @@
+name: create-release-zip
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  create-release-zip:
+    name:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source common/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Create release artifacts
+        run: |
+          common/scripts/createReleaseZip.sh
+      - uses: "marvinpinto/action-automatic-releases@1.2.1"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: true
+          title: "Latest artifacts"
+          files: |
+            build/artifacts.zip
+      - uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          keep_latest: 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
