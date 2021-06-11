@@ -9,7 +9,7 @@ Complete examples are available [here](https://github.com/graalvm/native-build-t
 Adding `native-gradle-plugin` to your existing *Gradle* project is as simple as adding:
 ```groovy
 plugins {
-  id 'org.graalvm.buildtools.native' version "1.0.0-M1" // or a newer version
+  id 'org.graalvm.buildtools.native' version "0.9.0" // or a newer version
 }
 ```
 to the `plugins` section of your `build.gradle` as well as adding following to your `settings.gradle`:
@@ -70,7 +70,7 @@ BUILD SUCCESSFUL in 771ms
 > More information is avaliable [here](#Testing-Support).
 
 ## Maven Plugin
-We are releasing our new plugin under new maven coordinates - `org.graalvm.buildtools:native-image-plugin`. This change was motivated by our intention to move faster with the plugin development by decoupling it from the *GraalVM* release cycle. Users of our existing `native-image-maven-plugin` only need to change the plugin's `groupId`, `artifactId` and `version` in their `pom.xml`, as the new plugin is backwards compatible with the old one. Versioning of the new plugin will start at `1.0.0-M1`.
+We are releasing our new plugin under new maven coordinates - `org.graalvm.buildtools:native-image-plugin`. This change was motivated by our intention to move faster with the plugin development by decoupling it from the *GraalVM* release cycle. Users of our existing `native-image-maven-plugin` only need to change the plugin's `groupId`, `artifactId` and `version` in their `pom.xml`, as the new plugin is backwards compatible with the old one. Versioning of the new plugin will start at `0.9.0`.
 
 Adding our new plugin to the existing *Maven* project requires adding the following to `pom.xml`:
 ```xml
@@ -82,7 +82,7 @@ Adding our new plugin to the existing *Maven* project requires adding the follow
         <plugin>
           <groupId>org.graalvm.buildtools</groupId>
           <artifactId>native-maven-plugin</artifactId>
-          <version>1.0.0-M1</version> <!-- or newer version -->
+          <version>0.9.0</version> <!-- or newer version -->
           <executions>
             <execution>
               <id>test-native</id>

@@ -5,12 +5,17 @@ pushd $SCRIPT_DIR/../..
 
 rm -rdf ~/.m2/repository/org/graalvm/buildtools
 
-cp version.properties version.properties.bak
+if [ ! -f version.properties.bak ]; then
+    cp version.properties version.properties.bak
+fi
 
 sed -i 's/-SNAPSHOT//' version.properties
 common/scripts/updateVersions.sh
 common/scripts/buildAll.sh
-common/scripts/testAll.sh
+
+if [ "$1" != "--skiptests" ]; then
+    common/scripts/testAll.sh
+fi
 
 mv version.properties.bak version.properties
 common/scripts/updateVersions.sh
