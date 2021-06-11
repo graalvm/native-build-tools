@@ -1,8 +1,8 @@
 # *Gradle* and *Maven* plugins for *Native Image* with initial *JUnit* testing support
 
-We are pleased to announce the release of the official GraalVM Native Image *Gradle* and *Maven* plugins. The new plugins aim to make *GraalVM Native Image* support in JVM projects a breeze. The key feature of the plugins is the out-of-the-box support for *Native JUnit* testing.
+We are pleased to announce the release of the official *GraalVM Native Image* *Gradle* and *Maven* plugins. The new plugins aim to make *GraalVM Native Image* support in *JVM* projects a breeze. The key feature of the plugins is the **out-of-the-box** support for *native JUnit* testing.
 
-The Native JUnit support will allow libraries in the JVM ecosystem to run their full test suites via GraalVM Native Image. With integrated testing, library configuration should be always up to date and ready for the end user. We believe that this is the biggest step towards making the native-ready ecosystem.
+The native *JUnit* support will allow libraries in the *JVM* ecosystem to run their full test suites via *GraalVM Native Image*. With integrated testing, library configuration should be always up to date and ready for the end user. We believe that this is the biggest step towards making the native-ready ecosystem.
 
 All projects mentioned here are released under the [*Universal Permissive License*](https://www.oracle.com/downloads/licenses/upl-license1.html).
 ___
