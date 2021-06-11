@@ -9,13 +9,14 @@ ___
 Complete examples are available [here](https://github.com/graalvm/native-build-tools/blob/master/examples/README.md) with the script demonstrating the usage available [here](https://github.com/graalvm/native-build-tools/blob/master/common/scripts/testAll.sh).
 
 ## Gradle Plugin
+
 Adding `native-gradle-plugin` to an existing *Gradle* project is as simple as adding:
 ```groovy
 plugins {
   id 'org.graalvm.buildtools.native' version "0.9.0" // or a newer version
 }
 ```
-to the `plugins` section of of the `build.gradle` as well as adding following to the `settings.gradle`:
+to the `plugins` section of the `build.gradle` as well as adding following to the `settings.gradle`:
 ```groovy
 pluginManagement {
 	repositories {
@@ -35,7 +36,7 @@ nativeBuild {
   fallback = false
 }
 ```
-The plugin then adds `nativeBuild` and `nativeRun` tasks that build and run the main class (as one might expect :). If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the [`native-image-agent`](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds) without any additional user setup. More information (and *Kotlin* configuration syntax) is available in the [documentation](https://github.com/graalvm/native-build-tools/blob/master/native-gradle-plugin/README.md).
+The plugin then adds `nativeBuild` and `nativeRun` tasks that build and run the main class (as one might expect :) ). If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the [`native-image-agent`](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds) without any additional user setup. More information (and *Kotlin* configuration syntax) is available in the [documentation](https://github.com/graalvm/native-build-tools/blob/master/native-gradle-plugin/README.md).
 
 > To help ease the community transition, at the moment we support a subset of the configuration syntax and aliased task names from the most popular unofficial *GraalVM* *Gradle* plugins (`io.micronaut.application` and `com.palantir.graal`). Note that this behavior might eventually be deprecated.
 
@@ -71,7 +72,7 @@ BUILD SUCCESSFUL in 771ms
 ```
 > Note that the native testing depends on running the standard `test` task in the *JVM* mode beforehand.
 >
-> More information is avaliable [here](#Testing-Support).
+> More information is available [here](#Testing-Support).
 
 ## Maven Plugin
 
@@ -123,6 +124,7 @@ After that, the user can build native images by running:
 mvn -Pnative -DskipTests package
 ```
 ### Testing
+
 The user can start *Native Image* testing by running:
 ```shell
 mvn -Pnative test
@@ -147,7 +149,7 @@ For more information users should consult plugin documentation for their preferr
 
 Our testing support was developed in collaboration with [*JUnit*](https://junit.org/junit5/) and [*Spring*](https://spring.io/) teams.
 
-## Built with Great Collaboration
+## Built with Love Through Collaboration
 
 Many thanks to [Sébastien Deleuze](https://twitter.com/sdeleuze), [Sam Brannen](https://twitter.com/sam_brannen) and [Graeme Rocher](https://twitter.com/graemerocher) for their contributions and advices. Moving forward, our new plugins are already landing in *Spring Native 0.10.0*, and hopefully soon many more projects will follow.
 
