@@ -1,5 +1,5 @@
-# Native Image Build Tools
-Repository which contains build tool plugins for interoperability with GraalVM Native Image
+# Native Build Tools
+Repository which contains build tool plugins for interoperability with [GraalVM Native Image](https://www.graalvm.org/reference-manual/native-image/)
 
 ## Projects
  * [native-maven-plugin](native-maven-plugin/README.md)
