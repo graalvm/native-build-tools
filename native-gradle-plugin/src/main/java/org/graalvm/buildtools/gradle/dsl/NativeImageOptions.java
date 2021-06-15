@@ -175,8 +175,8 @@ public class NativeImageOptions {
         }
 
         if (project.hasProperty(Utils.AGENT_PROPERTY) || getAgent().get()) {
-            Path agentOutput = GradleUtils.getTargetDir(project)
-                    .resolve(Utils.AGENT_OUTPUT_FOLDER).toAbsolutePath();
+            Path agentOutput = project.getBuildDir().toPath()
+                    .resolve(Utils.AGENT_OUTPUT_FOLDER).resolve(sourceSetName).toAbsolutePath();
 
             if (!agentOutput.toFile().exists()) {
                 // Maybe user chose to persist configuration into the codebase, so lets also check if that folder exists.
