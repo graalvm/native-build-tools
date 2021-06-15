@@ -5,13 +5,13 @@ plugins {
     id 'com.gradle.plugin-publish' version '0.15.0'
 }
 
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -78,7 +78,10 @@ publishing {
 }
 
 javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
+    // Use a different toolchain version from the compilation
+    // so that we can generate HTML5 docs
+    javadocTool = javaToolchains.javadocToolFor {
+        languageVersion = JavaLanguageVersion.of(11)
     }
+    options.addBooleanOption('html5', true)
 }
