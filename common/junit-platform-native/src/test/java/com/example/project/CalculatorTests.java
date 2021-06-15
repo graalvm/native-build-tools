@@ -43,11 +43,17 @@ package com.example.project;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 class CalculatorTests {
+
+    CalculatorTests(TestInfo info) {
+        System.out.println("Running test: " + info.getDisplayName());
+    }
 
     @Test
     @DisplayName("1 + 1 = 2")
@@ -56,7 +62,7 @@ class CalculatorTests {
         assertEquals(2, calculator.add(1, 1), "1 + 1 should equal 2");
     }
 
-   @Test
+    @Test
     @DisplayName("1 + 2 = 3")
     void addsTwoNumbers2() {
         Calculator calculator = new Calculator();
@@ -74,5 +80,35 @@ class CalculatorTests {
         Calculator calculator = new Calculator();
         assertEquals(expectedResult, calculator.add(first, second),
                 () -> first + " + " + second + " should equal " + expectedResult);
+    }
+
+    @Nested
+    class NestedTest {
+
+        NestedTest(TestInfo info) {
+            System.out.println("Running nested test: " + info.getDisplayName());
+        }
+
+        @Test
+        @DisplayName("3 + 2 = 5, from a nested test class")
+        void addsTwoNumbersButNested() {
+            Calculator calculator = new Calculator();
+            assertEquals(5, calculator.add(3, 2));
+        }
+
+        @Nested
+        class NestedNestedTest {
+
+            NestedNestedTest(TestInfo info) {
+                System.out.println("Running nested nested test: " + info.getDisplayName());
+            }
+
+            @Test
+            @DisplayName("3 + 2 = 5, from a nested nested test class")
+            void addsTwoNumbersButNested() {
+                Calculator calculator = new Calculator();
+                assertEquals(5, calculator.add(3, 2));
+            }
+        }
     }
 }

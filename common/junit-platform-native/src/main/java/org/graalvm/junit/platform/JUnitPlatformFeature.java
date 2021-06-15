@@ -156,20 +156,23 @@ public final class JUnitPlatformFeature implements Feature {
                 .map(Optional::get)
                 .filter(ClassSource.class::isInstance)
                 .map(ClassSource.class::cast)
-                .forEach((ClassSource classSource) -> {
-                    Class<?> clazz = classSource.getJavaClass();
-                    if (debug) {
-                        System.out.println("[Debug] Found test class: " + clazz);
-                    }
-                    RuntimeReflection.registerForReflectiveInstantiation(clazz);
-                    for (Field field : clazz.getDeclaredFields()) {
-                        RuntimeReflection.register(field);
-                    }
-                    for (Method method : clazz.getDeclaredMethods()) {
-                        RuntimeReflection.register(method);
-                    }
-                });
+                .map(ClassSource::getJavaClass)
+                .forEach(this::registerTestClassForReflection);
 
         return testPlan;
+    }
+
+    private void registerTestClassForReflection(Class<?> clazz) {
+        if (debug) {
+            System.out.println("[Debug] Registering test class for reflection: " + clazz.getName());
+        }
+        RuntimeReflection.register(clazz.getDeclaredConstructors());
+
+        for (Field field : clazz.getDeclaredFields()) {
+            RuntimeReflection.register(field);
+        }
+        for (Method method : clazz.getDeclaredMethods()) {
+            RuntimeReflection.register(method);
+        }
     }
 }
