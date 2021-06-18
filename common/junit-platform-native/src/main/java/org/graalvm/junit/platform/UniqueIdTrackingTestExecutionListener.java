@@ -58,7 +58,7 @@ import java.util.List;
  * that were executed and generates a file (currently hard coded to
  * {@code ./build/test_ids.txt} with Gradle or {@code ./target/test_ids.txt} with Maven)
  * that contains test IDs which can be passed to custom launcher to select exactly those test classes.
- *
+ * <p>
  * This file should be replaced with org.junit.platform.launcher.listeners.UniqueIdTrackingListener,
  * once junit-platform-launcher version 1.8 gets released.
  *
@@ -72,7 +72,16 @@ public class UniqueIdTrackingTestExecutionListener implements TestExecutionListe
     private final List<String> uniqueIds = new ArrayList<>();
 
     @Override
+    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
+        addTest(testIdentifier);
+    }
+
+    @Override
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+        addTest(testIdentifier);
+    }
+
+    private void addTest(TestIdentifier testIdentifier) {
         if (testIdentifier.isTest()) {
             this.uniqueIds.add(testIdentifier.getUniqueId());
         }

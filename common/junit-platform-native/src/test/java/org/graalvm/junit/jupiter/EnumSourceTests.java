@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,12 +38,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.example.project;
+package org.graalvm.junit.jupiter;
 
-public class Calculator {
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
-    public int add(int a, int b) {
-        return a + b;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+public class EnumSourceTests {
+
+    enum Color {
+        RED,
+        GREEN
+    }
+
+    enum Day {
+        MONDAY,
+        TUESDAY
+    }
+
+    public static class EnumSourceWithoutArgumentsTest {
+        private static final Set<Color> colors = new HashSet<>();
+
+        @ParameterizedTest
+        @EnumSource
+        public void testEnumSourceWithoutArguments(Color color) {
+            colors.add(color);
+        }
+
+        @AfterAll
+        public static void afterAll() {
+            Assertions.assertTrue(colors.containsAll(Arrays.asList(Color.RED, Color.GREEN)));
+        }
+    }
+
+    public static class EnumSourceWithArgumentsTest {
+        private static final Set<Day> days = new HashSet<>();
+
+        @ParameterizedTest
+        @EnumSource(value = Day.class)
+        public void testEnumSourceWithArguments(Day day) {
+            days.add(day);
+        }
+
+        @AfterAll
+        public static void afterAll() {
+            Assertions.assertTrue(days.containsAll(Arrays.asList(Day.MONDAY, Day.TUESDAY)));
+        }
     }
 
 }

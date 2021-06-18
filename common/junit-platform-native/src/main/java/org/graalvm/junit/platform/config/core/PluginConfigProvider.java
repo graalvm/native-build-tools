@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,48 +38,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.junit.platform;
+package org.graalvm.junit.platform.config.core;
 
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.reporting.legacy.LegacyReportingUtils;
+public interface PluginConfigProvider {
 
-import java.io.PrintWriter;
+    void onLoad(NativeImageConfiguration config);
 
-@SuppressWarnings("unused")
-public class PrintTestExecutionListener implements TestExecutionListener {
+    void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
 
-    TestPlan testPlan;
-    final PrintWriter out;
-
-    public PrintTestExecutionListener() {
-        out = new PrintWriter(System.out);
-    }
-
-    public PrintTestExecutionListener(PrintWriter out) {
-        this.out = out;
-    }
-
-    @Override
-    public void testPlanExecutionStarted(TestPlan testPlan) {
-        this.testPlan = testPlan;
-    }
-
-    @Override
-    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        printTest(testIdentifier, "SKIPPED: " + reason);
-    }
-
-    @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        printTest(testIdentifier, testExecutionResult.getStatus().name());
-    }
-
-    private void printTest(TestIdentifier testIdentifier, String status) {
-        if (testIdentifier.getParentId().isPresent() && !testIdentifier.isContainer()) {
-            out.println(LegacyReportingUtils.getClassName(testPlan, testIdentifier) + " > " + testIdentifier.getDisplayName() + " " + status + "\n");
-        }
-    }
 }

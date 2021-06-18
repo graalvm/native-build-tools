@@ -23,6 +23,7 @@ dependencies {
     implementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: junit_jupiter_version
     testImplementation(platform('org.junit:junit-bom:' + junit_jupiter_version))
     testImplementation('org.junit.jupiter:junit-jupiter')
+    testImplementation('org.junit.vintage:junit-vintage-engine')
 }
 
 apply from: "gradle/native-image-testing.gradle"

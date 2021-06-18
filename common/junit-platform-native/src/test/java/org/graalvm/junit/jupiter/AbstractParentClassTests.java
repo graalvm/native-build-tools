@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,48 +38,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.junit.platform;
+package org.graalvm.junit.jupiter;
 
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.reporting.legacy.LegacyReportingUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.PrintWriter;
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
-@SuppressWarnings("unused")
-public class PrintTestExecutionListener implements TestExecutionListener {
+public class AbstractParentClassTests {
 
-    TestPlan testPlan;
-    final PrintWriter out;
+    public abstract static class MathPowerTests {
+        protected static BiFunction<Integer, Integer, Integer> powFunction;
 
-    public PrintTestExecutionListener() {
-        out = new PrintWriter(System.out);
+        @ParameterizedTest
+        @MethodSource
+        protected void testPow(int a, int b) {
+            int expected = (int) Math.pow(a, b);
+            int result = powFunction.apply(a, b);
+            Assertions.assertEquals(expected, result);
+        }
+
+        protected static Stream<Arguments> testPow() {
+            return Stream.of(
+                    Arguments.of(2, 4),
+                    Arguments.of(5, 2)
+            );
+        }
     }
 
-    public PrintTestExecutionListener(PrintWriter out) {
-        this.out = out;
+    public static class CustomPowFunctionTests extends MathPowerTests {
+
+        @BeforeAll
+        public static void setupCustomPow() {
+            powFunction = (x, n) -> {
+                int res = 1;
+                for (int i = 0; i < n; ++i) {
+                    res *= x;
+                }
+                return res;
+            };
+        }
     }
 
-    @Override
-    public void testPlanExecutionStarted(TestPlan testPlan) {
-        this.testPlan = testPlan;
-    }
+    public static class BuiltInPowFunctionTests extends MathPowerTests {
 
-    @Override
-    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        printTest(testIdentifier, "SKIPPED: " + reason);
-    }
-
-    @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        printTest(testIdentifier, testExecutionResult.getStatus().name());
-    }
-
-    private void printTest(TestIdentifier testIdentifier, String status) {
-        if (testIdentifier.getParentId().isPresent() && !testIdentifier.isContainer()) {
-            out.println(LegacyReportingUtils.getClassName(testPlan, testIdentifier) + " > " + testIdentifier.getDisplayName() + " " + status + "\n");
+        @BeforeAll
+        public static void setupCustomPow() {
+            powFunction = (x, n) -> (int) Math.pow(x, n);
         }
     }
 }
