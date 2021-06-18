@@ -1,0 +1,3 @@
+org.graalvm.junit.platform.config.jupiter.JupiterConfigProvider
+org.graalvm.junit.platform.config.platform.PlatformConfigProvider
+org.graalvm.junit.platform.config.vintage.VintageConfigProvider

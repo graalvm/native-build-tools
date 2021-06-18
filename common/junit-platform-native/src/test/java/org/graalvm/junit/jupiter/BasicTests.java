@@ -38,48 +38,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.junit.platform;
+package org.graalvm.junit.jupiter;
 
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.reporting.legacy.LegacyReportingUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
-import java.io.PrintWriter;
+class BasicTests {
 
-@SuppressWarnings("unused")
-public class PrintTestExecutionListener implements TestExecutionListener {
-
-    TestPlan testPlan;
-    final PrintWriter out;
-
-    public PrintTestExecutionListener() {
-        out = new PrintWriter(System.out);
+    BasicTests(TestInfo info) {
+        System.out.println("Running test: " + info.getDisplayName());
     }
 
-    public PrintTestExecutionListener(PrintWriter out) {
-        this.out = out;
+    @Test
+    @DisplayName("Basic test one")
+    void addsTwoNumbers(TestInfo testInfo) {
+        Assertions.assertEquals("Basic test one", testInfo.getDisplayName());
     }
 
-    @Override
-    public void testPlanExecutionStarted(TestPlan testPlan) {
-        this.testPlan = testPlan;
+    @Test
+    @DisplayName("Basic test two")
+    void addsTwoNumbers2(TestInfo testInfo) {
+        Assertions.assertEquals("Basic test two", testInfo.getDisplayName());
     }
 
-    @Override
-    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        printTest(testIdentifier, "SKIPPED: " + reason);
-    }
-
-    @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        printTest(testIdentifier, testExecutionResult.getStatus().name());
-    }
-
-    private void printTest(TestIdentifier testIdentifier, String status) {
-        if (testIdentifier.getParentId().isPresent() && !testIdentifier.isContainer()) {
-            out.println(LegacyReportingUtils.getClassName(testPlan, testIdentifier) + " > " + testIdentifier.getDisplayName() + " " + status + "\n");
-        }
-    }
 }

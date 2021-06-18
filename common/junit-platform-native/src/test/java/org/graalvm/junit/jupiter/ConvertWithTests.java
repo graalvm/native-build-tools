@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,48 +38,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.junit.platform;
+package org.graalvm.junit.jupiter;
 
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.reporting.legacy.LegacyReportingUtils;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.converter.ArgumentConversionException;
+import org.junit.jupiter.params.converter.ArgumentConverter;
+import org.junit.jupiter.params.converter.ConvertWith;
+import org.junit.jupiter.params.provider.CsvSource;
 
-import java.io.PrintWriter;
+public class ConvertWithTests {
 
-@SuppressWarnings("unused")
-public class PrintTestExecutionListener implements TestExecutionListener {
-
-    TestPlan testPlan;
-    final PrintWriter out;
-
-    public PrintTestExecutionListener() {
-        out = new PrintWriter(System.out);
+    @ParameterizedTest(name = "Test conversion")
+    @CsvSource({
+            "0.50,   1.30,   1.132",
+    })
+    public void testConverters(@ConvertWith(IntArgumentConverter.class) int a, @ConvertWith(IntArgumentConverter.class) int b, @ConvertWith(IntArgumentConverter.class) int c) {
+        Assertions.assertEquals(0, a);
+        Assertions.assertEquals(1, b);
+        Assertions.assertEquals(1, c);
     }
 
-    public PrintTestExecutionListener(PrintWriter out) {
-        this.out = out;
-    }
+}
+
+class IntArgumentConverter implements ArgumentConverter {
 
     @Override
-    public void testPlanExecutionStarted(TestPlan testPlan) {
-        this.testPlan = testPlan;
-    }
-
-    @Override
-    public void executionSkipped(TestIdentifier testIdentifier, String reason) {
-        printTest(testIdentifier, "SKIPPED: " + reason);
-    }
-
-    @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
-        printTest(testIdentifier, testExecutionResult.getStatus().name());
-    }
-
-    private void printTest(TestIdentifier testIdentifier, String status) {
-        if (testIdentifier.getParentId().isPresent() && !testIdentifier.isContainer()) {
-            out.println(LegacyReportingUtils.getClassName(testPlan, testIdentifier) + " > " + testIdentifier.getDisplayName() + " " + status + "\n");
-        }
+    public Object convert(Object source, ParameterContext context) throws ArgumentConversionException {
+        return (int) Math.floor(Double.parseDouble((String) source));
     }
 }
