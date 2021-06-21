@@ -1,0 +1,22 @@
+plugins {
+    id 'application'
+    id 'org.graalvm.buildtools.native'
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass.set('org.graalvm.demo.Application')
+}
+
+dependencies {
+    testImplementation(platform('org.junit:junit-bom:5.7.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
+
+test {
+    useJUnitPlatform()
+}
+
