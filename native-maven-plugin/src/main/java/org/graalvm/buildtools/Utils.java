@@ -54,7 +54,7 @@ import java.util.stream.Stream;
  */
 public class Utils {
     public static final boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    public static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
+    public static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
     public static final String NATIVE_IMAGE_EXE = "native-image" + EXECUTABLE_EXTENSION;
     public static final String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
     public static final String AGENT_PROPERTY = "agent";
@@ -70,12 +70,9 @@ public class Utils {
         }
 
         Path graalExe = Paths.get(graalHome).resolve("bin").resolve(NATIVE_IMAGE_EXE);
-        if (!Files.exists(graalExe)) {
-            graalExe = Paths.get(graalHome).resolve("lib").resolve("svm").resolve("bin").resolve(NATIVE_IMAGE_EXE);
-            if (!Files.exists(graalExe) && failFast) {
-                throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
-                        "You should install it using `gu install native-image`");
-            }
+        if (!Files.exists(graalExe) && failFast) {
+            throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
+                    "You should install it using `gu install native-image`");
         }
         return graalExe;
     }
