@@ -41,8 +41,10 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import spock.lang.Unroll
 
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
+    @Unroll("can execute tests in a native image on Gradle #version with JUnit Platform #junitVersion")
     def "can execute tests in a native image"() {
         gradleVersion = version
         def nativeTestsApp = file("build/native/native-tests")
@@ -83,5 +85,6 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 
         where:
         version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
     }
 }

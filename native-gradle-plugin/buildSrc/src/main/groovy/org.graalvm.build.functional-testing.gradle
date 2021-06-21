@@ -79,6 +79,7 @@ configurations.functionalTestImplementation.extendsFrom(configurations.testImple
         inputs.files(files("src/samples"))
         inputs.files(configurations.functionalTestCommonRepository)
         systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
+        systemProperty('versions.junit', project.properties.junit_jupiter_version)
         environment('GRAALVM_HOME', javaToolchains.launcherFor {
             languageVersion.set(JavaLanguageVersion.of(11))
             vendor.set(JvmVendorSpec.matching("GraalVM Community"))
