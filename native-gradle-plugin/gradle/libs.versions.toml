@@ -1,0 +1,6 @@
+[versions]
+spock = "2.0-groovy-3.0"
+
+[libraries]
+junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version = "" }
+test-spock = { module = "org.spockframework:spock-core", version.ref = "spock" }
