@@ -3,6 +3,7 @@ plugins {
     id 'checkstyle'
     id 'maven-publish'
     id 'signing'
+    id 'org.graalvm.build.interop.publishing'
 }
 
 compileJava {
@@ -89,7 +90,7 @@ signing {
 }
 
 javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
+    if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
 }
