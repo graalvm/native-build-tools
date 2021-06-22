@@ -40,6 +40,6 @@ nativeBuild {
 }
 
 nativeTest {
-	agent = false
-	persistConfig = false
+  agent = false
+  persistConfig = false
 }

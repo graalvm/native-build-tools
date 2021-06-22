@@ -76,7 +76,7 @@ public class JUnitPlatformOptions extends NativeImageOptions {
 
     @Override
     public void configure(Project project) {
-        args("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+        buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         super.configure(project, SourceSet.TEST_SOURCE_SET_NAME);
     }
 }
