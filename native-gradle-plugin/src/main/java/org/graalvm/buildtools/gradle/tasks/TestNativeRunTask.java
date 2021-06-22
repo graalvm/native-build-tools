@@ -42,13 +42,12 @@ package org.graalvm.buildtools.gradle.tasks;
 
 import org.graalvm.buildtools.gradle.GradleUtils;
 import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
+import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.tasks.AbstractExecTask;
 
 import java.io.File;
-
-import static org.graalvm.buildtools.gradle.GradleUtils.log;
 
 @SuppressWarnings("unused")
 public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
@@ -69,8 +68,9 @@ public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
     @Override
     public void exec() {
         Project project = getProject();
+        GraalVMLogger logger = new GraalVMLogger(getLogger());
         if (!GradleUtils.hasTestClasses(project)) {
-            log("There were no test classes in project " + project.getName() + ", so it was skipped.");
+            logger.log("There were no test classes in project " + project.getName() + ", so it was skipped.");
             return;
         }
         setExecutable(new File(GradleUtils.getTargetDir(project).toFile(), options.getImageName().get()));

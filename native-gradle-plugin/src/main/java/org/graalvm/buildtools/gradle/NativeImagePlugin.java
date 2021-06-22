@@ -44,6 +44,7 @@ import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.tasks.NativeBuildTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.TestNativeBuildTask;
@@ -69,8 +70,6 @@ import java.util.Objects;
 
 import static org.graalvm.buildtools.Utils.AGENT_FILTER;
 import static org.graalvm.buildtools.Utils.AGENT_OUTPUT_FOLDER;
-import static org.graalvm.buildtools.gradle.GradleUtils.initLogger;
-import static org.graalvm.buildtools.gradle.GradleUtils.log;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -78,18 +77,20 @@ import static org.graalvm.buildtools.gradle.GradleUtils.log;
 @SuppressWarnings("unused")
 public class NativeImagePlugin implements Plugin<Project> {
 
+    private GraalVMLogger logger;
+
     @SuppressWarnings("UnstableApiUsage")
     public void apply(Project project) {
         Provider<NativeImageService> nativeImageServiceProvider = project.getGradle().getSharedServices()
                 .registerIfAbsent("nativeImage", NativeImageService.class,
                         spec -> spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16));
 
-        initLogger(project);
+        logger = new GraalVMLogger(project.getLogger());
 
         project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
-            log("====================");
-            log("Initializing project: " + project.getName());
-            log("====================");
+            logger.log("====================");
+            logger.log("Initializing project: " + project.getName());
+            logger.log("====================");
 
             // Add DSL extensions for building and testing
             NativeImageOptions buildExtension = NativeImageOptions.register(project);
@@ -108,7 +109,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 @SuppressWarnings("NullableProblems")
                 @Override
                 public void execute(Task task) {
-                    GradleUtils.error("[WARNING] Task 'nativeImage' is deprecated. "
+                    logger.warn("Task 'nativeImage' is deprecated. "
                             + String.format("Use '%s' instead.", NativeBuildTask.TASK_NAME));
                 }
             });
@@ -177,7 +178,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             // into the codebase.
             agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources",
                     "META-INF", "native-image");
-            log("Persist config option was set.");
+            logger.log("Persist config option was set.");
         } else {
             agentOutput = buildFolder.resolve(AGENT_OUTPUT_FOLDER).resolve(sourceSetName).toAbsolutePath();
         }
