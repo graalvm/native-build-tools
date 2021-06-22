@@ -92,7 +92,7 @@ It is also possible to customize the plugin within a
     <imageName>executable-name</imageName>
     <mainClass>com.test.classname</mainClass>
     <buildArgs>
-        --no-fallback
+        <buildArg>--no-fallback</buildArg>
     </buildArgs>
     <skip>false</skip>
 </configuration>
