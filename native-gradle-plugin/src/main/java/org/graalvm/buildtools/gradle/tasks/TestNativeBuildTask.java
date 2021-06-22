@@ -44,32 +44,41 @@ import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.gradle.GradleUtils;
 import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.AbstractExecTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
 import static org.graalvm.buildtools.gradle.GradleUtils.DEPENDENT_CONFIGURATIONS;
 
-public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBuildTask> {
+public abstract class TestNativeBuildTask extends DefaultTask {
     public static final String TASK_NAME = "nativeTestBuild";
 
     protected JUnitPlatformOptions options;
 
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @Internal
+    protected abstract DirectoryProperty getWorkingDirectory();
+
     public TestNativeBuildTask() {
-        super(TestNativeBuildTask.class);
         dependsOn("testClasses");
         getProject().getConfigurations().configureEach(
                 configuration -> {
@@ -87,7 +96,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
                     }
                 }
         );
-        setWorkingDir(getProject().getBuildDir());
+        getWorkingDirectory().set(getProject().getBuildDir());
         setDescription("Builds native image with tests.");
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
 
@@ -119,7 +128,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
     @Internal
     public abstract Property<Object> getServer();
 
-    @Override
+    @TaskAction
     @SuppressWarnings("ConstantConditions")
     public void exec() {
         Project project = getProject();
@@ -134,11 +143,12 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
             System.out.println("Args are:");
             System.out.println(args);
         }
-
-        this.args(args);
-        getServer().get();
-        setExecutable(Utils.getNativeImage());
-        super.exec();
+        getExecOperations().exec(spec -> {
+            spec.setWorkingDir(getWorkingDirectory());
+            spec.args(args);
+            getServer().get();
+            spec.setExecutable(Utils.getNativeImage());
+        });
         System.out.println("Native Image written to: " + getOutputFile());
     }
 }
