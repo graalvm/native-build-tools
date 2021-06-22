@@ -41,6 +41,7 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.graalvm.buildtools.gradle.fixtures.TestResults
 import spock.lang.Unroll
 
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
@@ -122,6 +123,18 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 [         6 tests successful      ]
 [         0 tests failed          ]
 """.trim()
+
+        and:
+        def results = TestResults.from(file("build/test-results/test/TEST-org.graalvm.demo.CalculatorTest.xml"))
+        def nativeResults = TestResults.from(file("build/test-results/test-native/TEST-junit-jupiter.xml"))
+
+        results == nativeResults
+        results.with {
+            tests == 6
+            failures == 0
+            skipped == 0
+            errors == 0
+        }
 
         where:
         version << TESTED_GRADLE_VERSIONS
