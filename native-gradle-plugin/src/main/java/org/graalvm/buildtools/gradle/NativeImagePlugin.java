@@ -107,7 +107,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 @SuppressWarnings("NullableProblems")
                 @Override
                 public void execute(Task task) {
-                    logger.error("[WARNING] Task 'nativeImage' is deprecated. "
+                    logger.warn("Task 'nativeImage' is deprecated. "
                             + String.format("Use '%s' instead.", NativeBuildTask.TASK_NAME));
                 }
             });
