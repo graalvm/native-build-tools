@@ -38,55 +38,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle;
+package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.buildtools.Utils;
-import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
+import org.gradle.api.logging.Logger;
 
 /**
- * Utility class containing various gradle related methods.
+ * Wraps the Gradle logger with a minimal API surface.
  */
-@SuppressWarnings("unused")
-public class GradleUtils {
+public class GraalVMLogger {
+    private final Logger delegate;
 
-    public static final List<String> DEPENDENT_CONFIGURATIONS = Arrays.asList(
-            JavaPlugin.API_CONFIGURATION_NAME,
-            JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME,
-            JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean hasTestClasses(Project project) {
-        FileCollection testClasspath = getSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
-        return testClasspath.getFiles().stream().anyMatch(File::exists);
+    public GraalVMLogger(Logger delegate) {
+        this.delegate = delegate;
     }
 
-    public static SourceSet getSourceSet(Project project, String sourceSetName) {
-        SourceSetContainer sourceSetContainer = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-        return sourceSetContainer.findByName(sourceSetName);
+    public void log(String s) {
+        delegate.info("[native-image-plugin] {}", s);
     }
 
-    public static FileCollection getClassPath(Project project) {
-        FileCollection main = getClassPath(project, SourceSet.MAIN_SOURCE_SET_NAME);
-        FileCollection test = getClassPath(project, SourceSet.TEST_SOURCE_SET_NAME);
-        return main.plus(test);
+    public void error(String s) {
+        delegate.error("[native-image-plugin] {}", s);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    public static FileCollection getClassPath(Project project, String sourceSetName) {
-        return getSourceSet(project, sourceSetName).getRuntimeClasspath();
-    }
-
-    public static Path getTargetDir(Project project) {
-        return project.getBuildDir().toPath().resolve(Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
+    public void warn(String s) {
+        delegate.warn("[native-image-plugin] {}", s);
     }
 }

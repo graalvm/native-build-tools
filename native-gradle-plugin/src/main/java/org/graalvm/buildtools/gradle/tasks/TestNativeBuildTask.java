@@ -44,6 +44,7 @@ import org.graalvm.buildtools.gradle.GradleUtils;
 import org.graalvm.buildtools.gradle.NativeImageService;
 import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
+import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
@@ -62,7 +63,6 @@ import java.io.File;
 import java.util.List;
 
 import static org.graalvm.buildtools.gradle.GradleUtils.DEPENDENT_CONFIGURATIONS;
-import static org.graalvm.buildtools.gradle.GradleUtils.log;
 
 public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBuildTask> {
     public static final String TASK_NAME = "nativeTestBuild";
@@ -122,8 +122,9 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
     @SuppressWarnings("ConstantConditions")
     public void exec() {
         Project project = getProject();
+        GraalVMLogger logger = new GraalVMLogger(getLogger());
         if (!GradleUtils.hasTestClasses(project)) {
-            log("There were no test classes in project " + project.getName() + ", so it was skipped.");
+            logger.log("There were no test classes in project " + project.getName() + ", so it was skipped.");
             return;
         }
 
