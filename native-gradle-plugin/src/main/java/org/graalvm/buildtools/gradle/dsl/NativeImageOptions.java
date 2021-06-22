@@ -74,8 +74,6 @@ import java.util.function.BooleanSupplier;
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class NativeImageOptions {
-    public static final String EXTENSION_NAME = "nativeBuild";
-
     private final Property<String> imageName;
     private final Property<String> mainClass;
     private final ListProperty<String> buildArgs;
@@ -121,7 +119,7 @@ public class NativeImageOptions {
     }
 
     public static NativeImageOptions register(Project project) {
-        return project.getExtensions().create(EXTENSION_NAME, NativeImageOptions.class, project.getObjects());
+        return project.getExtensions().create("nativeBuild", NativeImageOptions.class, project.getObjects());
     }
 
     public void configure(Project project) {

@@ -49,7 +49,6 @@ import org.graalvm.buildtools.gradle.tasks.NativeBuildTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.TestNativeBuildTask;
 import org.graalvm.buildtools.gradle.tasks.TestNativeRunTask;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -99,17 +98,6 @@ public class NativeImagePlugin implements Plugin<Project> {
             project.getTasks().register(NativeBuildTask.TASK_NAME, NativeBuildTask.class, task -> {
                 task.usesService(nativeImageServiceProvider);
                 task.getServer().set(nativeImageServiceProvider);
-            });
-
-            Task oldTask = project.getTasks().create("nativeImage");
-            oldTask.dependsOn(NativeBuildTask.TASK_NAME);
-            oldTask.doLast(new Action<Task>() {
-                @SuppressWarnings("NullableProblems")
-                @Override
-                public void execute(Task task) {
-                    logger.warn("Task 'nativeImage' is deprecated. "
-                            + String.format("Use '%s' instead.", NativeBuildTask.TASK_NAME));
-                }
             });
 
             project.getTasks().register(NativeRunTask.TASK_NAME, NativeRunTask.class);
