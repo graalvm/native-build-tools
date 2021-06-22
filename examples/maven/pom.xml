@@ -60,7 +60,9 @@
                         <configuration>
                             <skip>false</skip>
                             <imageName>${imageName}</imageName>
-                            <buildArgs>--no-fallback</buildArgs>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>
