@@ -81,9 +81,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     @SuppressWarnings("UnstableApiUsage")
     public void apply(Project project) {
-        Provider<NativeImageService> nativeImageServiceProvider = project.getGradle().getSharedServices()
-                .registerIfAbsent("nativeImage", NativeImageService.class,
-                        spec -> spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16));
+        Provider<NativeImageService> nativeImageServiceProvider = registerNativeImageService(project);
 
         logger = new GraalVMLogger(project.getLogger());
 
@@ -109,7 +107,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 @SuppressWarnings("NullableProblems")
                 @Override
                 public void execute(Task task) {
-                    logger.warn("Task 'nativeImage' is deprecated. "
+                    logger.error("[WARNING] Task 'nativeImage' is deprecated. "
                             + String.format("Use '%s' instead.", NativeBuildTask.TASK_NAME));
                 }
             });
@@ -155,6 +153,13 @@ public class NativeImagePlugin implements Plugin<Project> {
                 }
             }
         });
+    }
+
+    private Provider<NativeImageService> registerNativeImageService(Project project) {
+        return project.getGradle()
+                .getSharedServices()
+                .registerIfAbsent("nativeImage", NativeImageService.class,
+                        spec -> spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16));
     }
 
     private void setAgentArgs(Project project, String sourceSetName, Task task, Boolean persistConfig) {
