@@ -72,7 +72,7 @@ import java.util.function.BooleanSupplier;
  *
  * @author gkrocher
  */
-@SuppressWarnings({"UnstableApiUsage", "unused", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "UnusedReturnValue"})
 public class NativeImageOptions {
     public static final List<String> EXTENSION_NAMES = Arrays.asList("nativeBuild", "nativeImage", "graal");
 
@@ -121,10 +121,9 @@ public class NativeImageOptions {
     }
 
     public static NativeImageOptions register(Project project) {
-        EXTENSION_NAMES.forEach(name -> {
-            project.getExtensions().create(name,
-                    NativeImageOptions.class, project.getObjects());
-        });
+        EXTENSION_NAMES.forEach(name ->
+                project.getExtensions().create(name, NativeImageOptions.class, project.getObjects())
+        );
         return project.getExtensions().findByType(NativeImageOptions.class);
     }
 
@@ -132,11 +131,23 @@ public class NativeImageOptions {
         configure(project, SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
+    /**
+     * Configures the arguments for the native-image invocation based on user supplied options.
+     *
+     * @param project       The current project.
+     * @param sourceSetName Used source set name.
+     */
     protected void configure(Project project, String sourceSetName) {
         if (configured) {
             return;
         }
         this.configured = true;
+
+        // User arguments should be at the end of the native-image invocation
+        // but at this moment they are already set. So we remove them here
+        // and add them back later.
+        List<String> userArgs = buildArgs.get();
+        buildArgs.set(Collections.emptyList());
 
         FileCollection classpath = GradleUtils.getClassPath(project);
         FileCollection userClasspath = getClasspath();
@@ -146,32 +157,32 @@ public class NativeImageOptions {
 
         String cp = classpath.getAsPath();
         if (cp.length() > 0) {
-            args("-cp", cp);
+            buildArgs("-cp", cp);
         }
 
         booleanCmds.forEach((property, cmd) -> {
             if (property.getAsBoolean()) {
-                args(cmd);
+                buildArgs(cmd);
             }
         });
 
-        args("-H:Path=" + Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
+        buildArgs("-H:Path=" + Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
 
         if (!getImageName().isPresent()) {
             setImageName(project.getName().toLowerCase());
         }
-        args("-H:Name=" + getImageName().get());
+        buildArgs("-H:Name=" + getImageName().get());
 
         Map<String, Object> sysProps = getSystemProperties().get();
         sysProps.forEach((n, v) -> {
             if (v != null) {
-                args("-D" + n + "=\"" + v + "\"");
+                buildArgs("-D" + n + "=\"" + v + "\"");
             }
         });
 
         List<String> jvmArgs = getJvmArgs().get();
         for (String jvmArg : jvmArgs) {
-            args("-J" + jvmArg);
+            buildArgs("-J" + jvmArg);
         }
 
         if (project.hasProperty(Utils.AGENT_PROPERTY) || getAgent().get()) {
@@ -183,11 +194,11 @@ public class NativeImageOptions {
                 agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources", "META-INF", "native-image");
                 if (!agentOutput.toFile().exists()) {
                     throw new GradleException("Agent output missing while `agent` option is set.\n" +
-                            "Did you run the test task before with `-Pagent` enabled?");
+                            "Did you run the corresponding task in JVM mode before with the `-Pagent` option enabled?");
                 }
             }
-            args("-H:ConfigurationFileDirectories=" + agentOutput);
-            args("--allow-incomplete-classpath");
+            buildArgs("-H:ConfigurationFileDirectories=" + agentOutput);
+            buildArgs("--allow-incomplete-classpath");
         }
 
         if (!getMainClass().isPresent()) {
@@ -198,12 +209,16 @@ public class NativeImageOptions {
         }
 
         if (getMainClass().isPresent()) {
-            args("-H:Class=" + getMainClass().get());
+            buildArgs("-H:Class=" + getMainClass().get());
         }
+
+        buildArgs.addAll(userArgs);
     }
 
     /**
      * Gets the name of the native executable to be generated.
+     *
+     * @return The image name property.
      */
     public Property<String> getImageName() {
         return imageName;
@@ -212,7 +227,7 @@ public class NativeImageOptions {
     /**
      * Sets the name of the native executable to be generated.
      *
-     * @param name The name.
+     * @param name The image name property.
      * @return this
      */
     public NativeImageOptions setImageName(@Nullable String name) {
@@ -222,6 +237,10 @@ public class NativeImageOptions {
 
     /**
      * Gets the name of the native executable to be generated.
+     *
+     * @return The image name property.
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #getImageName()} instead. </p>
      */
     public Property<String> getOutputName() {
         return imageName;
@@ -230,8 +249,10 @@ public class NativeImageOptions {
     /**
      * Sets the name of the native executable to be generated.
      *
-     * @param name The name.
+     * @param name The image name property.
      * @return this
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #setImageName(String)} instead. </p>
      */
     public NativeImageOptions setOutputName(@Nullable String name) {
         imageName.set(name);
@@ -243,6 +264,8 @@ public class NativeImageOptions {
      * <p>
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * </p>
+     *
+     * @return mainClass The main class.
      */
     public Property<String> getMain() {
         return mainClass;
@@ -253,6 +276,8 @@ public class NativeImageOptions {
      * <p>
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * </p>
+     *
+     * @return mainClass The main class.
      */
     public Property<String> getMainClass() {
         return mainClass;
@@ -261,7 +286,7 @@ public class NativeImageOptions {
     /**
      * Sets the fully qualified name of the main class to be executed.
      *
-     * @param mainClass the fully qualified name of the main class to be executed.
+     * @param mainClass The fully qualified name of the main class to be executed.
      * @return this
      */
     public NativeImageOptions setMain(@Nullable String mainClass) {
@@ -271,7 +296,7 @@ public class NativeImageOptions {
     /**
      * Sets the fully qualified name of the main class to be executed.
      *
-     * @param mainClass the fully qualified name of the main class to be executed.
+     * @param mainClass The fully qualified name of the main class to be executed.
      * @return this
      */
     public NativeImageOptions setMainClass(@Nullable String mainClass) {
@@ -280,101 +305,42 @@ public class NativeImageOptions {
     }
 
     /**
-     * Adds args for the native-image invocation.
+     * Adds arguments for the native-image invocation.
      *
-     * @param args Args for native-image invocation.
+     * @param buildArgs Arguments for the native-image invocation.
      * @return this
      */
-    public NativeImageOptions args(Object... args) {
-        setArgs(Arrays.asList(args));
+    public NativeImageOptions buildArgs(Object... buildArgs) {
+        setBuildArgs(Arrays.asList(buildArgs));
         return this;
     }
 
     /**
-     * Adds args for the native-image invocation.
+     * Adds arguments for the native-image invocation.
      *
-     * @param args Args for the native-image invocation.
+     * @param buildArgs Arguments for the native-image invocation.
      * @return this
      */
-    public NativeImageOptions buildArgs(Object... args) {
-        return this.args(args);
+    public NativeImageOptions buildArgs(Iterable<?> buildArgs) {
+        return setBuildArgs(buildArgs);
     }
 
     /**
-     * Adds args for the native-image invocation.
+     * Returns the arguments for the native-image invocation.
      *
-     * @param args Args for the native-image invocation.
-     * @return this
-     */
-    public NativeImageOptions option(Object... args) {
-        return this.args(args);
-    }
-
-    /**
-     * Adds args for the native-image invocation.
-     *
-     * @param args Args for the native-image invocation.
-     * @return this
-     */
-    public NativeImageOptions args(Iterable<?> args) {
-        setArgs(args);
-        return this;
-    }
-
-    /**
-     * Adds args for the native-image invocation.
-     *
-     * @param args Args for the native-image invocation.
-     * @return this
-     */
-    public NativeImageOptions buildArgs(Iterable<?> args) {
-        return this.args(args);
-    }
-
-    /**
-     * Adds args for the native-image invocation.
-     *
-     * @param args Args for the native-image invocation.
-     * @return this
-     */
-    public NativeImageOptions option(Iterable<?> args) {
-        return this.args(args);
-    }
-
-    /**
-     * Returns the args for the native-image invocation.
-     *
-     * @return Args for native-image invocation.
-     */
-    public ListProperty<String> getArgs() {
-        return this.buildArgs;
-    }
-
-    /**
-     * Returns the args for the native-image invocation.
-     *
-     * @return Args for native-image invocation.
+     * @return Arguments for the native-image invocation.
      */
     public ListProperty<String> getBuildArgs() {
-        return this.buildArgs;
+        return buildArgs;
     }
 
     /**
-     * Returns the args for the native-image invocation.
+     * Sets the arguments for the native-image invocation.
      *
-     * @return Args for native-image invocation.
-     */
-    public ListProperty<String> getOption() {
-        return this.buildArgs;
-    }
-
-    /**
-     * Sets the args for the native-image invocation.
-     *
-     * @param buildArgs Args for native-image invocation.
+     * @param buildArgs Arguments for the native-image invocation.
      * @return this
      */
-    public NativeImageOptions setArgs(@Nullable List<String> buildArgs) {
+    public NativeImageOptions setBuildArgs(@Nullable List<String> buildArgs) {
         if (buildArgs == null) {
             this.buildArgs.set(new ArrayList<>(5));
         } else {
@@ -384,36 +350,16 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the args for the native-image invocation.
+     * Sets the arguments for the native-image invocation.
      *
-     * @param args Args for native-image invocation.
+     * @param buildArgs Arguments for the native-image invocation.
      * @return this
      */
-    public NativeImageOptions setBuildArgs(@Nullable List<String> args) {
-        return this.setArgs(args);
-    }
-
-    /**
-     * Sets the args for the native-image invocation.
-     *
-     * @param args Args for native-image invocation.
-     * @return this
-     */
-    public NativeImageOptions setOption(@Nullable List<String> args) {
-        return this.setArgs(args);
-    }
-
-    /**
-     * Sets the args for the native-image invocation.
-     *
-     * @param args Args for native-image invocation.
-     * @return this
-     */
-    public NativeImageOptions setArgs(@Nullable Iterable<?> args) {
-        if (args == null) {
+    public NativeImageOptions setBuildArgs(@Nullable Iterable<?> buildArgs) {
+        if (buildArgs == null) {
             this.buildArgs.set(Collections.emptyList());
         } else {
-            for (Object argument : args) {
+            for (Object argument : buildArgs) {
                 if (argument != null) {
                     this.buildArgs.add(argument.toString());
                 }
@@ -423,27 +369,126 @@ public class NativeImageOptions {
     }
 
     /**
+     * Adds arguments for the native-image invocation.
+     *
+     * @param buildArgs Arguments for the native-image invocation.
+     * @return this
+     * @deprecated This method was used for compatibility with the io.micronaut.application plugin.
+     * <p> Use {@link #buildArgs(Object...)} instead. </p>
+     */
+    public NativeImageOptions args(Object... buildArgs) {
+        return buildArgs(buildArgs);
+    }
+
+    /**
+     * Adds arguments for the native-image invocation.
+     *
+     * @param buildArgs Arguments for the native-image invocation.
+     * @return this
+     * @deprecated This method was used for compatibility with the io.micronaut.application plugin.
+     * <p> Use {@link #buildArgs(Iterable)} instead. </p>
+     */
+    public NativeImageOptions args(Iterable<?> buildArgs) {
+        return setBuildArgs(buildArgs);
+    }
+
+    /**
+     * Returns the arguments for the native-image invocation.
+     *
+     * @return Arguments for the native-image invocation.
+     * @deprecated This method was used for compatibility with the io.micronaut.application plugin.
+     * <p> Use {@link #getBuildArgs()} instead. </p>
+     */
+    public ListProperty<String> getArgs() {
+        return getBuildArgs();
+    }
+
+    /**
+     * Sets the arguments for the native-image invocation.
+     *
+     * @param buildArgs Arguments for the native-image invocation.
+     * @return this
+     * @deprecated This method was used for compatibility with the io.micronaut.application plugin.
+     * <p> Use {@link #setBuildArgs(List)} instead. </p>
+     */
+    public NativeImageOptions setArgs(@Nullable List<String> buildArgs) {
+        return setBuildArgs(buildArgs);
+    }
+
+    /**
+     * Sets the arguments for the native-image invocation.
+     *
+     * @param buildArgs Arguments for the native-image invocation.
+     * @return this
+     * @deprecated This method was used for compatibility with the io.micronaut.application plugin.
+     * <p> Use {@link #setBuildArgs(Iterable)} instead. </p>
+     */
+    public NativeImageOptions setArgs(@Nullable Iterable<?> buildArgs) {
+        return setBuildArgs(buildArgs);
+    }
+
+    /**
+     * Adds arguments for the native-image invocation.
+     *
+     * @param buildArgs Arguments for the native-image invocation.
+     * @return this
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #buildArgs(Object...)} instead. </p>
+     */
+    public NativeImageOptions option(Object... buildArgs) {
+        return buildArgs(buildArgs);
+    }
+
+    /**
+     * Adds arguments for the native-image invocation.
+     *
+     * @param buildArgs Arguments for the native-image invocation.
+     * @return this
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #buildArgs(Iterable)} instead. </p>
+     */
+    public NativeImageOptions option(Iterable<?> buildArgs) {
+        return buildArgs(buildArgs);
+    }
+
+    /**
+     * Returns the arguments for the native-image invocation.
+     *
+     * @return arguments for the native-image invocation.
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #getBuildArgs()} instead. </p>
+     */
+    public ListProperty<String> getOption() {
+        return getBuildArgs();
+    }
+
+
+    /**
      * Sets the args for the native-image invocation.
      *
-     * @param args Args for native-image invocation.
+     * @param buildArgs Arguments for the native-image invocation.
      * @return this
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #setBuildArgs(List)} instead. </p>
      */
-    public NativeImageOptions setBuildArgs(@Nullable Iterable<?> args) {
-        return this.setArgs(args);
+    public NativeImageOptions setOption(@Nullable List<String> buildArgs) {
+        return setBuildArgs(buildArgs);
     }
 
     /**
      * Sets the args for the native-image invocation.
      *
-     * @param args Args for native-image invocation.
+     * @param buildArgs Arguments for the native-image invocation.
      * @return this
+     * @deprecated This method was used for compatibility with the com.palantir.graal plugin.
+     * <p> Use {@link #setBuildArgs(Iterable)} instead. </p>
      */
-    public NativeImageOptions setOption(@Nullable Iterable<?> args) {
-        return this.setArgs(args);
+    public NativeImageOptions setOption(@Nullable Iterable<?> buildArgs) {
+        return setBuildArgs(buildArgs);
     }
 
     /**
-     * Returns the system properties which will be used for the process.
+     * Returns the system properties which will be used by the native-image builder process.
      *
      * @return The system properties. Returns an empty map when there are no system properties.
      */
@@ -452,7 +497,7 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the system properties to use for the process.
+     * Sets the system properties to be used by the native-image builder process.
      *
      * @param properties The system properties. Must not be null.
      */
@@ -465,18 +510,19 @@ public class NativeImageOptions {
     }
 
     /**
-     * Adds some system properties to use for the process.
+     * Adds some system properties to be used by the native-image builder process.
      *
      * @param properties The system properties. Must not be null.
      * @return this
      */
+    @SuppressWarnings("unused")
     public NativeImageOptions systemProperties(Map<String, ?> properties) {
         setSystemProperties(properties);
         return this;
     }
 
     /**
-     * Adds a system property to use for the process.
+     * Adds a system property to be used by the native-image builder process.
      *
      * @param name  The name of the property
      * @param value The value for the property. May be null.
@@ -490,9 +536,9 @@ public class NativeImageOptions {
     }
 
     /**
-     * Adds elements to the classpath for executing the main class.
+     * Adds elements to the classpath for the native-image building.
      *
-     * @param paths classpath elements
+     * @param paths The classpath elements.
      * @return this
      */
     public NativeImageOptions classpath(Object... paths) {
@@ -501,7 +547,9 @@ public class NativeImageOptions {
     }
 
     /**
-     * Returns the classpath for executing the main class.
+     * Returns the classpath for the native-image building.
+     *
+     * @return classpath The classpath for the native-image building.
      */
     @Classpath
     @Nullable
@@ -510,9 +558,9 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the classpath for executing the main class.
+     * Sets the classpath for the native-image building.
      *
-     * @param classpath the classpath
+     * @param classpath The classpath.
      * @return this
      */
     public NativeImageOptions setClasspath(FileCollection classpath) {
@@ -521,8 +569,30 @@ public class NativeImageOptions {
     }
 
     /**
-     * Returns the extra arguments to use to launch the JVM for the process. Does not include system properties and the
-     * minimum/maximum heap size.
+     * Adds some arguments to use when launching the JVM for the native-image building process.
+     *
+     * @param arguments The arguments.
+     * @return this
+     */
+    public NativeImageOptions jvmArgs(Object... arguments) {
+        setJvmArgs(Arrays.asList(arguments));
+        return this;
+    }
+
+    /**
+     * Adds some arguments to use when launching the JVM for the native-image building process.
+     *
+     * @param arguments The arguments. Must not be null.
+     * @return this
+     */
+    public NativeImageOptions jvmArgs(Iterable<?> arguments) {
+        setJvmArgs(arguments);
+        return this;
+    }
+
+    /**
+     * Returns the extra arguments to use when launching the JVM for the native-image building process.
+     * Does not include system properties and the minimum/maximum heap size.
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
@@ -531,8 +601,8 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the extra arguments to use to launch the JVM for the process. System properties
-     * and minimum/maximum heap size are updated.
+     * Sets the extra arguments to use when launching the JVM for the native-image building process.
+     * System properties and minimum/maximum heap size are updated.
      *
      * @param arguments The arguments. Must not be null.
      */
@@ -545,8 +615,8 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the extra arguments to use to launch the JVM for the process. System properties
-     * and minimum/maximum heap size are updated.
+     * Sets the extra arguments to use when launching the JVM for the native-image building process.
+     * System properties and minimum/maximum heap size are updated.
      *
      * @param arguments The arguments. Must not be null.
      */
@@ -563,29 +633,29 @@ public class NativeImageOptions {
     }
 
     /**
-     * Adds some arguments to use to launch the JVM for the process.
-     *
-     * @param arguments The arguments. Must not be null.
-     * @return this
-     */
-    public NativeImageOptions jvmArgs(Iterable<?> arguments) {
-        setJvmArgs(arguments);
-        return this;
-    }
-
-    /**
-     * Adds some arguments to use to launch the JVM for the process.
+     * Adds some arguments to use when launching the built image.
      *
      * @param arguments The arguments.
      * @return this
      */
-    public NativeImageOptions jvmArgs(Object... arguments) {
-        setJvmArgs(Arrays.asList(arguments));
+    public NativeImageOptions runtimeArgs(Object... arguments) {
+        setRuntimeArgs(Arrays.asList(arguments));
         return this;
     }
 
     /**
-     * Returns the arguments to use when launching built image.
+     * Adds some arguments to use when launching the built image.
+     *
+     * @param arguments The arguments. Must not be null.
+     * @return this
+     */
+    public NativeImageOptions runtimeArgs(Iterable<?> arguments) {
+        setRuntimeArgs(arguments);
+        return this;
+    }
+
+    /**
+     * Returns the arguments to use when launching the built image.
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
@@ -594,7 +664,7 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the extra arguments to use when launching built image.
+     * Sets the extra arguments to use when launching the built image.
      *
      * @param arguments The arguments. Must not be null.
      */
@@ -607,7 +677,7 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets the arguments to use when launching built image.
+     * Sets the arguments to use when launching the built image.
      *
      * @param arguments The arguments. Must not be null.
      */
@@ -624,30 +694,9 @@ public class NativeImageOptions {
     }
 
     /**
-     * Adds some arguments to use when launching built image.
-     *
-     * @param arguments The arguments. Must not be null.
-     * @return this
-     */
-    public NativeImageOptions runtimeArgs(Iterable<?> arguments) {
-        setRuntimeArgs(arguments);
-        return this;
-    }
-
-    /**
-     * Adds some arguments to use when launching built image.
-     *
-     * @param arguments The arguments.
-     * @return this
-     */
-    public NativeImageOptions runtimeArgs(Object... arguments) {
-        setRuntimeArgs(Arrays.asList(arguments));
-        return this;
-    }
-
-    /**
      * Sets the native image build to be verbose.
      *
+     * @param verbose Value which controls whether the native-image is in the verbose mode.
      * @return this
      */
     public NativeImageOptions verbose(boolean verbose) {
@@ -656,8 +705,18 @@ public class NativeImageOptions {
     }
 
     /**
+     * Gets the value which toggles native-image verbose output.
+     *
+     * @return Is verbose output
+     */
+    public Property<Boolean> getVerbose() {
+        return verbose;
+    }
+
+    /**
      * Enables server build. Server build is disabled by default.
      *
+     * @param enabled Value which controls whether the server build is enabled.
      * @return this
      */
     public NativeImageOptions enableServerBuild(boolean enabled) {
@@ -666,6 +725,19 @@ public class NativeImageOptions {
     }
 
     /**
+     * Toggles native-image debug symbol output.
+     *
+     * @param debug Value which controls whether the debug symbols should be generated.
+     * @return this
+     */
+    public NativeImageOptions debug(boolean debug) {
+        this.debug.set(debug);
+        return this;
+    }
+
+    /**
+     * Gets the value which toggles native-image debug symbol output.
+     *
      * @return Is debug enabled
      */
     public Property<Boolean> getDebug() {
@@ -673,12 +745,13 @@ public class NativeImageOptions {
     }
 
     /**
-     * Builds a native image with debug symbols.
+     * Sets whether to enable a fallback native image build or not.
      *
+     * @param fallback The value which toggles a fallback native image build.
      * @return this
      */
-    public NativeImageOptions debug(boolean debug) {
-        this.debug.set(debug);
+    public NativeImageOptions fallback(boolean fallback) {
+        this.fallback.set(fallback);
         return this;
     }
 
@@ -690,31 +763,18 @@ public class NativeImageOptions {
     }
 
     /**
-     * Sets whether to enable a fallback or not.
+     * Gets the value which toggles the native-image-agent usage.
      *
-     * @return this
-     */
-    public NativeImageOptions fallback(boolean fallback) {
-        this.fallback.set(fallback);
-        return this;
-    }
-
-    /**
-     * @return Is verbose output
-     */
-    public Property<Boolean> getVerbose() {
-        return verbose;
-    }
-
-    /**
-     * @return Gets value which toggles agent usage
+     * @return The value which toggles the native-image-agent usage.
      */
     public Property<Boolean> getAgent() {
         return this.agent;
     }
 
     /**
-     * @return Gets value which toggles persisting of agent config to META-INF
+     * Gets the value which toggles persisting of agent config to META-INF.
+     *
+     * @return The value which toggles persisting of agent config to META-INF.
      */
     public Property<Boolean> getPersistConfig() {
         return this.persistConfig;
