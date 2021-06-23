@@ -48,6 +48,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -203,11 +204,8 @@ public abstract class NativeImageOptions {
         getServer().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
-        getAgent().convention(providers.gradleProperty(Utils.AGENT_PROPERTY)
-                .forUseAtConfigurationTime()
-                .map(Boolean::valueOf)
-                .orElse(false));
-        getPersistConfig().convention(false);
+        getAgent().convention(false);
+        getPersistConfig().convention(property(providers, Utils.PERSIST_CONFIG_PROPERTY));
         getImageName().convention(defaultImageName);
         getJavaLauncher().convention(
                 toolchains.launcherFor(spec -> {
@@ -217,6 +215,13 @@ public abstract class NativeImageOptions {
                     }
                 })
         );
+    }
+
+    private static Provider<Boolean> property(ProviderFactory providers, String name) {
+        return providers.gradleProperty(name)
+                .forUseAtConfigurationTime()
+                .map(Boolean::valueOf)
+                .orElse(false);
     }
 
     public static NativeImageOptions register(Project project, String extensionName) {

@@ -40,10 +40,10 @@
  */
 package org.graalvm.buildtools.gradle.tasks;
 
-import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.gradle.NativeImageService;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.gradle.internal.Utils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
@@ -108,6 +108,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         return getOutputDirectory().map(dir -> dir.file(getExecutableName()).get());
     }
 
+    @Input
+    public abstract Property<Boolean> getAgentEnabled();
+
     public BuildNativeImageTask() {
         DirectoryProperty buildDir = getProject().getLayout().getBuildDirectory();
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
@@ -153,7 +156,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         if (!configFiles.isEmpty()) {
             cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
         }
-        if (options.getAgent().get()) {
+        if (getAgentEnabled().get()) {
             cliArgs.add("--allow-incomplete-classpath");
         }
         if (options.getMainClass().isPresent()) {
