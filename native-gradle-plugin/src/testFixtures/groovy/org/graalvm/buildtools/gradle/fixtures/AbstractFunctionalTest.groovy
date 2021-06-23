@@ -131,6 +131,10 @@ abstract class AbstractFunctionalTest extends Specification {
         assert output.contains(text)
     }
 
+    void outputDoesNotContain(String text) {
+        assert !output.contains(text)
+    }
+
     void errorOutputContains(String text) {
         assert errorOutput.contains(text)
     }

@@ -61,6 +61,8 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
             succeeded ':testClasses', ':nativeTestBuild'
             // doesNotContain ':build'
         }
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "Running in 'test listener' mode."
 
         and:
         nativeTestsApp.exists()
@@ -109,6 +111,9 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         }
 
         then:
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "Running in 'test listener' mode."
+
         outputContains """
 [         3 containers found      ]
 [         0 containers skipped    ]

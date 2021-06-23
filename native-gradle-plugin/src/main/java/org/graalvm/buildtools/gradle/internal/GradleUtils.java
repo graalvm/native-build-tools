@@ -54,8 +54,12 @@ public class GradleUtils {
     private static final GradleVersion GRADLE_7 = GradleVersion.version("7.0");
 
     public static SourceSet findSourceSet(Project project, String sourceSetName) {
-        SourceSetContainer sourceSetContainer = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+        SourceSetContainer sourceSetContainer = getJavaPluginConvention(project).getSourceSets();
         return sourceSetContainer.findByName(sourceSetName);
+    }
+
+    public static JavaPluginConvention getJavaPluginConvention(Project project) {
+        return project.getConvention().getPlugin(JavaPluginConvention.class);
     }
 
     public static boolean isAtLeastGradle7() {

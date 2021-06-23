@@ -40,11 +40,11 @@
  */
 package org.graalvm.buildtools.gradle;
 
-import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.gradle.api.GradleException;
@@ -53,6 +53,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
@@ -60,9 +61,12 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.process.JavaForkOptions;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -130,34 +134,50 @@ public class NativeImagePlugin implements Plugin<Project> {
                 });
             }
 
+            // In future Gradle releases this becomes a proper DirectoryProperty
+            File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
+            DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
+
             // Testing part begins here.
-            Task test = project.getTasksByName(JavaPlugin.TEST_TASK_NAME, false).stream().findFirst().orElse(null);
-            if (test != null) {
+            TaskCollection<Test> testTask = findTestTask(project);
+            testTask.configureEach(test -> {
+                testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
+                test.getOutputs().dir(testResultsDir);
+                test.systemProperty("graalvm.testids.outputdir", testListDirectory.getAsFile().get());
+            });
 
-                // Following ensures that required feature jar is on classpath for every project
-                injectTestPluginDependencies(project);
+            // Following ensures that required feature jar is on classpath for every project
+            injectTestPluginDependencies(project);
 
-                // If `test` task was found we should add `nativeTestBuild` and `nativeTest`
-                // tasks to this project as well.
-                TaskProvider<BuildNativeImageTask> testImageBuilder = project.getTasks().register(NATIVE_TEST_BUILD_TASK_NAME, BuildNativeImageTask.class, task -> {
-                    task.setDescription("Builds native image with tests.");
-                    task.getOptions().set(testExtension);
-                    task.dependsOn(test); // FIXME: this is wrong, there should be an explicit input
-                });
-                project.getTasks().register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
-                    task.setDescription("Runs native-image compiled tests.");
-                    task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
-                    task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
-                });
+            // If `test` task was found we should add `nativeTestBuild` and `nativeTest`
+            // tasks to this project as well.
+            TaskProvider<BuildNativeImageTask> testImageBuilder = project.getTasks().register(NATIVE_TEST_BUILD_TASK_NAME, BuildNativeImageTask.class, task -> {
+                task.setDescription("Builds native image with tests.");
+                task.getOptions().set(testExtension);
+                ConfigurableFileCollection testList = project.getObjects().fileCollection();
+                // Later this will be replaced by a dedicated task not requiring execution of tests
+                testList.from(testListDirectory).builtBy(testTask);
+                testExtension.getClasspath().from(testList);
+            });
 
-                if (project.hasProperty(Utils.AGENT_PROPERTY) || testExtension.getAgent().get()) {
-                    // Add agent invocation to test task.
-                    Boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null
-                            || testExtension.getPersistConfig().get();
-                    setAgentArgs(project, SourceSet.TEST_SOURCE_SET_NAME, test, persistConfig);
-                }
+            project.getTasks().register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
+                task.setDescription("Runs native-image compiled tests.");
+                task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
+                task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
+            });
+
+            if (project.hasProperty(Utils.AGENT_PROPERTY) || testExtension.getAgent().get()) {
+                // Add agent invocation to test task.
+                Boolean persistConfig = System.getProperty(Utils.PERSIST_CONFIG_PROPERTY) != null
+                        || testExtension.getPersistConfig().get();
+            //    setAgentArgs(project, SourceSet.TEST_SOURCE_SET_NAME, test, persistConfig);
             }
+
         });
+    }
+
+    private TaskCollection<Test> findTestTask(Project project) {
+        return project.getTasks().withType(Test.class).matching(task -> JavaPlugin.TEST_TASK_NAME.equals(task.getName()));
     }
 
     private static void registerServiceProvider(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
