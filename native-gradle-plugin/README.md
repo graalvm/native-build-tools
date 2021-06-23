@@ -75,7 +75,7 @@ nativeBuild {
   classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
   jvmArgs("flag") // Passes 'flag' directly to the JVM running the native image builder
   runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
-  systemProperties = [name1: 'value1', name2: 'value2'] // Sets system properties
+  systemProperties = [name1: 'value1', name2: 'value2'] // Sets system properties for the native image builder
   agent = false // Can be also set on command line using '-Pagent'
   persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
 }
@@ -108,7 +108,7 @@ tasks {
     classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
     jvmArgs("flag") // Passes 'flag' directly to the JVM running the native image builder
     runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
-    systemProperties.put("key1", "value1") // Sets a system property
+    systemProperties.put("key1", "value1") // Sets a system property for the native-image builder
     agent.set(false) // Can be also set on command line using '-Pagent'
     persistConfig.set(false) // Used in conjunction with 'agent' to save its output to META-INF
   }
