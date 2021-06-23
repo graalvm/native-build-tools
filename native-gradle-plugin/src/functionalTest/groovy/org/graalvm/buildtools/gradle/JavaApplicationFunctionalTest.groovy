@@ -56,7 +56,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         tasks {
             succeeded ':jar', ':nativeBuild'
-//            doesNotContain ':build'
+            // doesNotContain ':build'
         }
 
         and:

@@ -67,6 +67,7 @@ abstract class AbstractFunctionalTest extends Specification {
     Path testDirectory
 
     String gradleVersion
+    boolean debug
 
     private StringWriter outputWriter
     private StringWriter errorOutputWriter
@@ -155,9 +156,12 @@ abstract class AbstractFunctionalTest extends Specification {
                 .forwardStdError(tee(new OutputStreamWriter(System.err), errorOutputWriter))
                 .withPluginClasspath()
                 .withProjectDir(testDirectory.toFile())
-                .withArguments(["-I", initScript.getAbsolutePath(), *args])
+                .withArguments(["-S", "-I", initScript.getAbsolutePath(), *args])
         if (gradleVersion) {
             runner.withGradleVersion(gradleVersion)
+        }
+        if (debug) {
+            runner.withDebug(true)
         }
         runner
     }

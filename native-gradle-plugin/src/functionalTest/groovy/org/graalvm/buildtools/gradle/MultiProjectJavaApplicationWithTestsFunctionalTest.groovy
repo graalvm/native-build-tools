@@ -41,71 +41,26 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-import org.graalvm.buildtools.gradle.fixtures.TestResults
 import spock.lang.Unroll
 
-class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
-    @Unroll("can execute tests in a native image on Gradle #version with JUnit Platform #junitVersion")
-    def "can build a native image and run it"() {
-        gradleVersion = version
-        def nativeTestsApp = file("build/native/native-tests")
-
-        given:
-        withSample("java-application-with-tests")
-
-        when:
-        run 'nativeTestBuild'
-
-        then:
-        tasks {
-            succeeded ':testClasses', ':nativeTestBuild'
-            // doesNotContain ':build'
-        }
-
-        and:
-        nativeTestsApp.exists()
-
-        when:
-        def process = execute(nativeTestsApp)
-
-        then:
-        process.output.contains """
-[         3 containers found      ]
-[         0 containers skipped    ]
-[         3 containers started    ]
-[         0 containers aborted    ]
-[         3 containers successful ]
-[         0 containers failed     ]
-[         6 tests found           ]
-[         0 tests skipped         ]
-[         6 tests started         ]
-[         0 tests aborted         ]
-[         6 tests successful      ]
-[         0 tests failed          ]
-""".trim()
-
-        where:
-        version << TESTED_GRADLE_VERSIONS
-        junitVersion = System.getProperty('versions.junit')
-    }
-
-    @Unroll("can execute tests in a native image directly on Gradle #version with JUnit Platform #junitVersion")
-    def "can execute tests in a native image directly"() {
+class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
+    @Unroll("transitive dependencies are included when testing on Gradle #version with JUnit Platform #junitVersion")
+    def "transitive dependencies are included when testing"() {
         gradleVersion = version
 
         given:
-        withSample("java-application-with-tests")
+        withSample("multi-project-with-tests")
 
         when:
         run 'nativeTest'
 
         then:
         tasks {
-            succeeded ':testClasses',
-                    ':nativeTestBuild',
-                    ':test', // there should probably not be a dependency here
-                    ':nativeTest'
-            doesNotContain ':build'
+            succeeded ':utils:jar',
+                    ':core:testClasses',
+                    ':core:nativeTestBuild',
+                    ':core:nativeTest'
+            doesNotContain ':core:build'
         }
 
         then:
@@ -116,25 +71,13 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 [         0 containers aborted    ]
 [         3 containers successful ]
 [         0 containers failed     ]
-[         6 tests found           ]
+[         7 tests found           ]
 [         0 tests skipped         ]
-[         6 tests started         ]
+[         7 tests started         ]
 [         0 tests aborted         ]
-[         6 tests successful      ]
+[         7 tests successful      ]
 [         0 tests failed          ]
 """.trim()
-
-        and:
-        def results = TestResults.from(file("build/test-results/test/TEST-org.graalvm.demo.CalculatorTest.xml"))
-        def nativeResults = TestResults.from(file("build/test-results/test-native/TEST-junit-jupiter.xml"))
-
-        results == nativeResults
-        results.with {
-            tests == 6
-            failures == 0
-            skipped == 0
-            errors == 0
-        }
 
         where:
         version << TESTED_GRADLE_VERSIONS
