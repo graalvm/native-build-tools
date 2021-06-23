@@ -45,33 +45,24 @@ import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.SourceSet;
 
-import javax.annotation.Nullable;
 import java.nio.file.Paths;
 
-public class JUnitPlatformOptions extends NativeImageOptions {
+public abstract class JUnitPlatformOptions extends NativeImageOptions {
     public static final String EXTENSION_NAME = "nativeTest";
 
 
     @SuppressWarnings("UnstableApiUsage")
     public JUnitPlatformOptions(ObjectFactory objectFactory) {
         super(objectFactory);
-        super.setMainClass("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-        super.setImageName(Utils.NATIVE_TESTS_EXE);
-        super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
+        getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
+        getMainClass().finalizeValue();
+        getImageName().set(Utils.NATIVE_TESTS_EXE);
+        getImageName().finalizeValue();
+        runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
     }
 
     public static JUnitPlatformOptions register(Project project) {
         return project.getExtensions().create(EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
-    }
-
-    @Override
-    public NativeImageOptions setMainClass(@Nullable String main) {
-        throw new IllegalStateException("Main class for test task cannot be changed");
-    }
-
-    @Override
-    public NativeImageOptions setImageName(@Nullable String image) {
-        throw new IllegalStateException("Image name for test task cannot be changed");
     }
 
     @Override
