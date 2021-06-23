@@ -35,28 +35,8 @@ jobs:
             ./gradlew checkstyleMain
             ./gradlew checkstyleTest
           popd
-      - name: Build and publish plugin
+      - name: Build and test plugin
         run: |
           pushd native-gradle-plugin
-            ./gradlew publishToMavenLocal
+            ./gradlew functionalTest
           popd
-      - name: Build and publish junit-platform-native feature
-        run: |
-          pushd common/junit-platform-native/
-            ./gradlew publishToMavenLocal
-          popd
-      - name: Plugin test (build native)
-        run: |
-          pushd examples/gradle
-            echo "JVM run"
-            ./gradlew run
-            echo "Native run"
-            ./gradlew nativeRun
-          popd
-      - name: Plugin test (test native)
-        run: |
-          pushd examples/gradle
-            ./gradlew clean test
-            ./gradlew nativeTest
-          popd
-

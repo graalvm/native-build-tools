@@ -106,7 +106,7 @@ public abstract class TestNativeBuildTask extends AbstractExecTask<TestNativeBui
     @Input
     public List<String> getArgs() {
         options.configure(getProject());
-        return options.getArgs().get();
+        return options.getBuildArgs().get();
     }
 
     @OutputFile

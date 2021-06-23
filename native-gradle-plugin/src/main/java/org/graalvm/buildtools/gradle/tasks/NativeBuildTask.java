@@ -63,7 +63,6 @@ import java.util.List;
 
 import static org.graalvm.buildtools.gradle.GradleUtils.DEPENDENT_CONFIGURATIONS;
 
-@SuppressWarnings("unused")
 public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> {
     public static final String TASK_NAME = "nativeBuild";
 
@@ -103,7 +102,7 @@ public abstract class NativeBuildTask extends AbstractExecTask<NativeBuildTask> 
 
     @Input
     public List<String> getArgs() {
-        return options.getArgs().get();
+        return options.getBuildArgs().get();
     }
 
     @OutputFile
