@@ -40,33 +40,41 @@
  */
 package org.graalvm.buildtools.gradle.tasks;
 
-import org.graalvm.buildtools.gradle.GradleUtils;
-import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.ApplicationPlugin;
-import org.gradle.api.tasks.AbstractExecTask;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 
-import java.io.File;
+import javax.inject.Inject;
 
 @SuppressWarnings("unused")
-public class NativeRunTask extends AbstractExecTask<NativeRunTask> {
+public abstract class NativeRunTask extends DefaultTask {
     public static final String TASK_NAME = "nativeRun";
 
-    protected NativeImageOptions options;
+    @InputFile
+    public abstract RegularFileProperty getImage();
+
+    @Input
+    public abstract ListProperty<String> getRuntimeArgs();
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
 
     public NativeRunTask() {
-        super(NativeRunTask.class);
-        dependsOn(NativeBuildTask.TASK_NAME);
-        setWorkingDir(getProject().getBuildDir());
+
         setDescription("Runs this project as a native-image application");
         setGroup(ApplicationPlugin.APPLICATION_GROUP);
-
-        options = getProject().getExtensions().findByType(NativeImageOptions.class);
     }
 
-    @Override
+    @TaskAction
     public void exec() {
-        setExecutable(new File(GradleUtils.getTargetDir(getProject()).toFile(), options.getImageName().get()));
-        args(options.getRuntimeArgs());
-        super.exec();
+        getExecOperations().exec(spec -> {
+            spec.setExecutable(getImage().get().getAsFile().getAbsolutePath());
+            spec.args(getRuntimeArgs().get());
+        });
     }
 }

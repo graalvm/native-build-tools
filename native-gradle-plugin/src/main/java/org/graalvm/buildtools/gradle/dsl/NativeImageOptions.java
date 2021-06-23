@@ -40,27 +40,26 @@
  */
 package org.graalvm.buildtools.gradle.dsl;
 
-import org.graalvm.buildtools.Utils;
-import org.graalvm.buildtools.gradle.GradleUtils;
-import org.gradle.api.GradleException;
+import org.graalvm.buildtools.gradle.internal.Utils;
+import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -77,6 +76,7 @@ public abstract class NativeImageOptions {
      *
      * @return The image name property.
      */
+    @Input
     public abstract Property<String> getImageName();
 
     /**
@@ -87,6 +87,7 @@ public abstract class NativeImageOptions {
      *
      * @return mainClass The main class.
      */
+    @Input
     public abstract Property<String> getMainClass();
 
     /**
@@ -94,6 +95,7 @@ public abstract class NativeImageOptions {
      *
      * @return Arguments for the native-image invocation.
      */
+    @Input
     public abstract ListProperty<String> getBuildArgs();
 
     /**
@@ -101,6 +103,7 @@ public abstract class NativeImageOptions {
      *
      * @return The system properties. Returns an empty map when there are no system properties.
      */
+    @Input
     public abstract MapProperty<String, Object> getSystemProperties();
 
     /**
@@ -108,6 +111,8 @@ public abstract class NativeImageOptions {
      *
      * @return classpath The classpath for the native-image building.
      */
+    @InputFiles
+    @Classpath
     public abstract ConfigurableFileCollection getClasspath();
 
     /**
@@ -116,6 +121,7 @@ public abstract class NativeImageOptions {
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
+    @Input
     public abstract ListProperty<String> getJvmArgs();
 
     /**
@@ -123,6 +129,7 @@ public abstract class NativeImageOptions {
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
+    @Input
     public abstract ListProperty<String> getRuntimeArgs();
 
     /**
@@ -130,6 +137,7 @@ public abstract class NativeImageOptions {
      *
      * @return Is debug enabled
      */
+    @Input
     public abstract Property<Boolean> getDebug();
 
     /**
@@ -138,11 +146,13 @@ public abstract class NativeImageOptions {
      *
      * @return the server property
      */
+    @Input
     public abstract Property<Boolean> getServer();
 
     /**
      * @return Whether to enable fallbacks (defaults to false).
      */
+    @Input
     public abstract Property<Boolean> getFallback();
 
     /**
@@ -150,6 +160,7 @@ public abstract class NativeImageOptions {
      *
      * @return Is verbose output
      */
+    @Input
     public abstract Property<Boolean> getVerbose();
 
     /**
@@ -157,6 +168,7 @@ public abstract class NativeImageOptions {
      *
      * @return The value which toggles the native-image-agent usage.
      */
+    @Input
     public abstract Property<Boolean> getAgent();
 
     /**
@@ -164,119 +176,57 @@ public abstract class NativeImageOptions {
      *
      * @return The value which toggles persisting of agent config to META-INF.
      */
+    @Input
     public abstract Property<Boolean> getPersistConfig();
 
-    // internal state
-    private boolean configured;
-    private final Map<BooleanSupplier, String> booleanCmds;
+    /**
+     * Returns the toolchain used to invoke native-image. Currently pointing
+     * to a Java launcher due to Gradle limitations.
+     */
+    @Nested
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
-    public NativeImageOptions(ObjectFactory objectFactory) {
+    /**
+     * Returns the list of configuration file directories (e.g resource-config.json, ...) which need
+     * to be passed to native-image.
+     *
+     * @return a collection of directories
+     */
+    @InputFiles
+    public abstract ConfigurableFileCollection getConfigurationFileDirectories();
+
+    public NativeImageOptions(ObjectFactory objectFactory,
+                              ProviderFactory providers,
+                              JavaToolchainService toolchains,
+                              String defaultImageName) {
         getDebug().convention(false);
         getServer().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
-        getAgent().convention(false);
+        getAgent().convention(providers.gradleProperty(Utils.AGENT_PROPERTY)
+                .forUseAtConfigurationTime()
+                .map(Boolean::valueOf)
+                .orElse(false));
         getPersistConfig().convention(false);
-
-        this.booleanCmds = new LinkedHashMap<>(3);
-        this.booleanCmds.put(getDebug()::get, "-H:GenerateDebugInfo=1");
-        this.booleanCmds.put(() -> !getFallback().get(), "--no-fallback");
-        this.booleanCmds.put(getVerbose()::get, "--verbose");
-        this.booleanCmds.put(getServer()::get, "-Dcom.oracle.graalvm.isaot=true");
-
-        this.configured = false;
+        getImageName().convention(defaultImageName);
+        getJavaLauncher().convention(
+                toolchains.launcherFor(spec -> {
+                    spec.getLanguageVersion().set(JavaLanguageVersion.of(11));
+                    if (GradleUtils.isAtLeastGradle7()) {
+                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM Community"));
+                    }
+                })
+        );
     }
 
-    public static NativeImageOptions register(Project project) {
-        return project.getExtensions().create("nativeBuild", NativeImageOptions.class, project.getObjects());
-    }
-
-    public void configure(Project project) {
-        configure(project, SourceSet.MAIN_SOURCE_SET_NAME);
-    }
-
-    /**
-     * Configures the arguments for the native-image invocation based on user supplied options.
-     *
-     * @param project The current project.
-     * @param sourceSetName Used source set name.
-     */
-    protected void configure(Project project, String sourceSetName) {
-        if (configured) {
-            return;
-        }
-        this.configured = true;
-
-        // User arguments should be at the end of the native-image invocation
-        // but at this moment they are already set. So we remove them here
-        // and add them back later.
-        List<String> userArgs = getBuildArgs().get();
-        getBuildArgs().set(Collections.emptyList());
-
-        FileCollection classpath = GradleUtils.getClassPath(project);
-        FileCollection userClasspath = getClasspath();
-        if (userClasspath != null) {
-            classpath = classpath.plus(userClasspath);
-        }
-
-        String cp = classpath.getAsPath();
-        if (cp.length() > 0) {
-            buildArgs("-cp", cp);
-        }
-
-        booleanCmds.forEach((property, cmd) -> {
-            if (property.getAsBoolean()) {
-                buildArgs(cmd);
-            }
-        });
-
-        buildArgs("-H:Path=" + Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
-
-        if (!getImageName().isPresent()) {
-            getImageName().set(project.getName().toLowerCase());
-        }
-        buildArgs("-H:Name=" + getImageName().get());
-
-        Map<String, Object> sysProps = getSystemProperties().get();
-        sysProps.forEach((n, v) -> {
-            if (v != null) {
-                buildArgs("-D" + n + "=\"" + v + "\"");
-            }
-        });
-
-        List<String> jvmArgs = getJvmArgs().get();
-        for (String jvmArg : jvmArgs) {
-            buildArgs("-J" + jvmArg);
-        }
-
-        if (project.hasProperty(Utils.AGENT_PROPERTY) || getAgent().get()) {
-            Path agentOutput = project.getBuildDir().toPath()
-                    .resolve(Utils.AGENT_OUTPUT_FOLDER).resolve(sourceSetName).toAbsolutePath();
-
-            if (!agentOutput.toFile().exists()) {
-                // Maybe user chose to persist configuration into the codebase, so lets also check if that folder exists.
-                agentOutput = Paths.get(project.getProjectDir().getAbsolutePath(), "src", sourceSetName, "resources", "META-INF", "native-image");
-                if (!agentOutput.toFile().exists()) {
-                    throw new GradleException("Agent output missing while `agent` option is set.\n" +
-                            "Did you run the corresponding task in JVM mode before with the `-Pagent` option enabled?");
-                }
-            }
-            buildArgs("-H:ConfigurationFileDirectories=" + agentOutput);
-            buildArgs("--allow-incomplete-classpath");
-        }
-
-        if (!getMainClass().isPresent()) {
-            JavaApplication app = project.getExtensions().findByType(JavaApplication.class);
-            if (app != null && app.getMainClass().isPresent()) {
-                getMainClass().set(app.getMainClass().get());
-            }
-        }
-
-        if (getMainClass().isPresent()) {
-            buildArgs("-H:Class=" + getMainClass().get());
-        }
-
-        getBuildArgs().addAll(userArgs);
+    public static NativeImageOptions register(Project project, String extensionName) {
+        return project.getExtensions().create(extensionName,
+                NativeImageOptions.class,
+                project.getObjects(),
+                project.getProviders(),
+                project.getExtensions().findByType(JavaToolchainService.class),
+                project.getName()
+        );
     }
 
     /**

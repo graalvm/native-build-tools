@@ -38,43 +38,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.tasks;
+package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.buildtools.gradle.GradleUtils;
-import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
-import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.gradle.api.Project;
-import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.tasks.AbstractExecTask;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.util.GradleVersion;
 
-import java.io.File;
-
+/**
+ * Utility class containing various gradle related methods.
+ */
 @SuppressWarnings("unused")
-public class TestNativeRunTask extends AbstractExecTask<TestNativeRunTask> {
-    public static final String TASK_NAME = "nativeTest";
+public class GradleUtils {
+    private static final GradleVersion GRADLE_7 = GradleVersion.version("7.0");
 
-    protected JUnitPlatformOptions options;
-
-    public TestNativeRunTask() {
-        super(TestNativeRunTask.class);
-        dependsOn(TestNativeBuildTask.TASK_NAME);
-        setWorkingDir(getProject().getBuildDir());
-        setDescription("Runs native-image compiled tests.");
-        setGroup(JavaBasePlugin.VERIFICATION_GROUP);
-
-        options = getProject().getExtensions().findByType(JUnitPlatformOptions.class);
+    public static SourceSet findSourceSet(Project project, String sourceSetName) {
+        SourceSetContainer sourceSetContainer = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+        return sourceSetContainer.findByName(sourceSetName);
     }
 
-    @Override
-    public void exec() {
-        Project project = getProject();
-        GraalVMLogger logger = new GraalVMLogger(getLogger());
-        if (!GradleUtils.hasTestClasses(project)) {
-            logger.log("There were no test classes in project " + project.getName() + ", so it was skipped.");
-            return;
-        }
-        setExecutable(new File(GradleUtils.getTargetDir(project).toFile(), options.getImageName().get()));
-        args(options.getRuntimeArgs().get());
-        super.exec();
+    public static boolean isAtLeastGradle7() {
+        return GradleVersion.current().compareTo(GRADLE_7) >= 0;
     }
 }

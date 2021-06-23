@@ -40,23 +40,27 @@
  */
 package org.graalvm.buildtools.gradle;
 
-import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.VersionInfo;
-import org.graalvm.buildtools.gradle.dsl.JUnitPlatformOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
-import org.graalvm.buildtools.gradle.tasks.NativeBuildTask;
+import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
-import org.graalvm.buildtools.gradle.tasks.TestNativeBuildTask;
-import org.graalvm.buildtools.gradle.tasks.TestNativeRunTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.ApplicationPlugin;
+import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.IOException;
@@ -67,14 +71,19 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.graalvm.buildtools.Utils.AGENT_FILTER;
-import static org.graalvm.buildtools.Utils.AGENT_OUTPUT_FOLDER;
+import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_FILTER;
+import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_OUTPUT_FOLDER;
 
 /**
  * Gradle plugin for GraalVM Native Image.
  */
 @SuppressWarnings("unused")
 public class NativeImagePlugin implements Plugin<Project> {
+    public static final String NATIVE_BUILD_TASK_NAME = "nativeBuild";
+    public static final String NATIVE_TEST_TASK_NAME = "nativeTest";
+    public static final String NATIVE_TEST_BUILD_TASK_NAME = "nativeTestBuild";
+    public static final String NATIVE_TEST_EXTENSION = "nativeTest";
+    public static final String NATIVE_BUILD_EXTENSION = "nativeBuild";
 
     private GraalVMLogger logger;
 
@@ -90,17 +99,22 @@ public class NativeImagePlugin implements Plugin<Project> {
             logger.log("====================");
 
             // Add DSL extensions for building and testing
-            NativeImageOptions buildExtension = NativeImageOptions.register(project);
+            NativeImageOptions buildExtension = createMainExtension(project);
+            NativeImageOptions testExtension = createTestExtension(project, buildExtension);
 
-            JUnitPlatformOptions testExtension = JUnitPlatformOptions.register(project);
+            project.getPlugins().withId("application", p -> buildExtension.getMainClass().convention(
+                    project.getExtensions().findByType(JavaApplication.class).getMainClass()
+            ));
+
+            registerServiceProvider(project, nativeImageServiceProvider);
 
             // Register Native Image tasks
-            project.getTasks().register(NativeBuildTask.TASK_NAME, NativeBuildTask.class, task -> {
-                task.usesService(nativeImageServiceProvider);
-                task.getServer().set(nativeImageServiceProvider);
-            });
+            TaskProvider<BuildNativeImageTask> imageBuilder = project.getTasks().register(NATIVE_BUILD_TASK_NAME, BuildNativeImageTask.class);
 
-            project.getTasks().register(NativeRunTask.TASK_NAME, NativeRunTask.class);
+            project.getTasks().register(NativeRunTask.TASK_NAME, NativeRunTask.class, task -> {
+                task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
+                task.getRuntimeArgs().convention(buildExtension.getRuntimeArgs());
+            });
 
             if (project.hasProperty(Utils.AGENT_PROPERTY) || buildExtension.getAgent().get()) {
                 // We want to add agent invocation to "run" task, but it is only available when
@@ -119,19 +133,22 @@ public class NativeImagePlugin implements Plugin<Project> {
             // Testing part begins here.
             Task test = project.getTasksByName(JavaPlugin.TEST_TASK_NAME, false).stream().findFirst().orElse(null);
             if (test != null) {
+
                 // Following ensures that required feature jar is on classpath for every project
                 injectTestPluginDependencies(project);
 
                 // If `test` task was found we should add `nativeTestBuild` and `nativeTest`
                 // tasks to this project as well.
-                project.getTasks().register(TestNativeBuildTask.TASK_NAME, TestNativeBuildTask.class, task -> {
-                    task.usesService(nativeImageServiceProvider);
-                    task.getServer().set(nativeImageServiceProvider);
+                TaskProvider<BuildNativeImageTask> testImageBuilder = project.getTasks().register(NATIVE_TEST_BUILD_TASK_NAME, BuildNativeImageTask.class, task -> {
+                    task.setDescription("Builds native image with tests.");
+                    task.getOptions().set(testExtension);
+                    task.dependsOn(test); // FIXME: this is wrong, there should be an explicit input
                 });
-                Task nativeTest = project.getTasksByName(TestNativeBuildTask.TASK_NAME, false).stream().findFirst().orElse(null);
-                nativeTest.dependsOn(test);
-
-                project.getTasks().register(TestNativeRunTask.TASK_NAME, TestNativeRunTask.class);
+                project.getTasks().register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
+                    task.setDescription("Runs native-image compiled tests.");
+                    task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
+                    task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
+                });
 
                 if (project.hasProperty(Utils.AGENT_PROPERTY) || testExtension.getAgent().get()) {
                     // Add agent invocation to test task.
@@ -141,6 +158,50 @@ public class NativeImagePlugin implements Plugin<Project> {
                 }
             }
         });
+    }
+
+    private static void registerServiceProvider(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
+        project.getTasks()
+                .withType(BuildNativeImageTask.class)
+                .configureEach(task -> {
+                    task.usesService(nativeImageServiceProvider);
+                    task.getService().set(nativeImageServiceProvider);
+                });
+    }
+
+    private NativeImageOptions createMainExtension(Project project) {
+        NativeImageOptions buildExtension = NativeImageOptions.register(project, NATIVE_BUILD_EXTENSION);
+        buildExtension.getClasspath().from(findMainArtifacts(project));
+        buildExtension.getClasspath().from(findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        return buildExtension;
+    }
+
+    private static Configuration findConfiguration(Project project, String name) {
+        return project.getConfigurations().getByName(name);
+    }
+
+    private static FileCollection findMainArtifacts(Project project) {
+        return findConfiguration(project, JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+                .getOutgoing()
+                .getArtifacts()
+                .getFiles();
+    }
+
+    private NativeImageOptions createTestExtension(Project project, NativeImageOptions mainExtension) {
+        NativeImageOptions testExtension = NativeImageOptions.register(project, NATIVE_TEST_EXTENSION);
+        testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
+        testExtension.getMainClass().finalizeValue();
+        testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + Utils.NATIVE_TESTS_SUFFIX));
+        ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
+        runtimeArgs.add("--xml-output-dir");
+        runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/test-native").map(d -> d.getAsFile().getAbsolutePath()));
+        testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+        ConfigurableFileCollection classpath = testExtension.getClasspath();
+        classpath.from(findMainArtifacts(project));
+        classpath.from(findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
+        classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getResourcesDir());
+        return testExtension;
     }
 
     private Provider<NativeImageService> registerNativeImageService(Project project) {

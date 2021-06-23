@@ -48,7 +48,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute tests in a native image on Gradle #version with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {
         gradleVersion = version
-        def nativeTestsApp = file("build/native/native-tests")
+        def nativeTestsApp = file("build/native/nativeTestBuild/java-application-tests")
 
         given:
         withSample("java-application-with-tests")

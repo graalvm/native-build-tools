@@ -45,7 +45,7 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
         gradleVersion = version
-        def nativeApp = file("build/native/java-application")
+        def nativeApp = file("build/native/nativeBuild/java-application")
 
         given:
         withSample("java-application")
@@ -56,7 +56,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         tasks {
             succeeded ':jar', ':nativeBuild'
-            // doesNotContain ':build'
+            doesNotContain ':build'
         }
 
         and:
