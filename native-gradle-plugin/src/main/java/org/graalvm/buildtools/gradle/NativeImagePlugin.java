@@ -67,6 +67,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_FILTER;
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_OUTPUT_FOLDER;
@@ -83,6 +84,14 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_TEST_EXTENSION = "nativeTest";
     public static final String NATIVE_BUILD_EXTENSION = "nativeBuild";
     public static final String COPY_AGENT_FILTER_TASK_NAME = "copyAgentFilter";
+
+    /**
+     * This looks strange, but it is used to force the configuration of a dependent
+     * task during the configuration of another one. This is a workaround for a bug
+     * when applying the Kotlin plugin, where the test task is configured too late
+     * for some reason.
+     */
+    private static final Consumer<Object> FORCE_CONFIG = t -> { };
 
     private GraalVMLogger logger;
 
@@ -153,6 +162,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_BUILD_TASK_NAME, BuildNativeImageTask.class, task -> {
             task.setDescription("Builds native image with tests.");
             task.getOptions().set(testExtension);
+            testTask.forEach(FORCE_CONFIG);
             ConfigurableFileCollection testList = project.getObjects().fileCollection();
             // Later this will be replaced by a dedicated task not requiring execution of tests
             testList.from(testListDirectory).builtBy(testTask);
