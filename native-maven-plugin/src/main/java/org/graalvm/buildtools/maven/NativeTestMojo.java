@@ -161,7 +161,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
     private String getClassPath() throws MojoFailureException {
         try {
             List<Artifact> pluginDependencies = pluginArtifacts.stream()
-                    .filter(it -> it.getGroupId().startsWith("org.graalvm.nativeimage") || it.getGroupId().startsWith("org.junit"))
+                    .filter(it -> it.getGroupId().startsWith(Utils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
                     .collect(Collectors.toList());
 
             List<String> projectClassPath = new ArrayList<>(project
