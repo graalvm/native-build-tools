@@ -62,6 +62,7 @@ public class Utils {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String AGENT_FILTER = "agent-filter.json";
     public static final String PERSIST_CONFIG_PROPERTY = "persistConfig";
+    public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
 
     public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) {
         String graalHome = System.getenv(javaHomeVariable);
