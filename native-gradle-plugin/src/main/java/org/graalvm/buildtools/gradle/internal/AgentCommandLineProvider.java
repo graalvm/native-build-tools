@@ -40,43 +40,48 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.util.GradleVersion;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.process.CommandLineArgumentProvider;
 
-/**
- * Utility class containing various gradle related methods.
- */
-@SuppressWarnings("unused")
-public class GradleUtils {
-    private static final GradleVersion GRADLE_7 = GradleVersion.version("7.0");
+import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
 
-    public static SourceSet findSourceSet(Project project, String sourceSetName) {
-        SourceSetContainer sourceSetContainer = getJavaPluginConvention(project).getSourceSets();
-        return sourceSetContainer.findByName(sourceSetName);
+public abstract class AgentCommandLineProvider implements CommandLineArgumentProvider {
+
+    @Inject
+    @SuppressWarnings("checkstyle:redundantmodifier")
+    public AgentCommandLineProvider() {
+
     }
 
-    public static JavaPluginConvention getJavaPluginConvention(Project project) {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
-    }
+    @Input
+    public abstract Property<Boolean> getEnabled();
 
-    public static boolean isAtLeastGradle7() {
-        return GradleVersion.current().compareTo(GRADLE_7) >= 0;
-    }
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getAccessFilter();
 
-    public static Configuration findConfiguration(Project project, String name) {
-        return project.getConfigurations().getByName(name);
-    }
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDirectory();
 
-    public static FileCollection findMainArtifacts(Project project) {
-        return findConfiguration(project, JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-                .getOutgoing()
-                .getArtifacts()
-                .getFiles();
+    @Override
+    public Iterable<String> asArguments() {
+        if (getEnabled().get()) {
+            return Arrays.asList(
+                    "-agentlib:native-image-agent=experimental-class-loader-support," +
+                            "config-output-dir=" + getOutputDirectory().getAsFile().get().getAbsolutePath() + "," +
+                            "access-filter-file=" + getAccessFilter().getAsFile().get().getAbsolutePath(),
+                    "-Dorg.graalvm.nativeimage.imagecode=agent"
+            );
+        }
+        return Collections.emptyList();
     }
 }

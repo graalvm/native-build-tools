@@ -42,6 +42,7 @@ package org.graalvm.buildtools.gradle;
 
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.CopyClasspathResourceTask;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
@@ -50,35 +51,22 @@ import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.JavaExec;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
-import javax.inject.Inject;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
 
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_FILTER;
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_OUTPUT_FOLDER;
@@ -98,83 +86,84 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private GraalVMLogger logger;
 
-    @SuppressWarnings("UnstableApiUsage")
     public void apply(Project project) {
-        Provider<NativeImageService> nativeImageServiceProvider = registerNativeImageService(project);
+        Provider<NativeImageService> nativeImageServiceProvider = NativeImageService.registerOn(project);
 
         logger = new GraalVMLogger(project.getLogger());
 
-        project.getPlugins().withType(JavaPlugin.class, javaPlugin -> {
-            logger.log("====================");
-            logger.log("Initializing project: " + project.getName());
-            logger.log("====================");
+        project.getPlugins()
+                .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider));
+    }
 
-            // Add DSL extensions for building and testing
-            NativeImageOptions buildExtension = createMainExtension(project);
-            NativeImageOptions testExtension = createTestExtension(project, buildExtension);
+    private void configureJavaProject(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
+        logger.log("====================");
+        logger.log("Initializing project: " + project.getName());
+        logger.log("====================");
 
-            project.getPlugins().withId("application", p -> buildExtension.getMainClass().convention(
-                    project.getExtensions().findByType(JavaApplication.class).getMainClass()
-            ));
+        // Add DSL extensions for building and testing
+        NativeImageOptions buildExtension = createMainExtension(project);
+        NativeImageOptions testExtension = createTestExtension(project, buildExtension);
 
-            registerServiceProvider(project, nativeImageServiceProvider);
+        project.getPlugins().withId("application", p -> buildExtension.getMainClass().convention(
+                project.getExtensions().findByType(JavaApplication.class).getMainClass()
+        ));
 
-            // Register Native Image tasks
-            TaskContainer tasks = project.getTasks();
+        registerServiceProvider(project, nativeImageServiceProvider);
 
-            Provider<Boolean> agent = agentPropertyOverride(project, buildExtension);
-            TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(NATIVE_BUILD_TASK_NAME,
-                    BuildNativeImageTask.class, builder -> builder.getAgentEnabled().set(agent));
-            tasks.register(NativeRunTask.TASK_NAME, NativeRunTask.class, task -> {
-                task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
-                task.getRuntimeArgs().convention(buildExtension.getRuntimeArgs());
-            });
+        // Register Native Image tasks
+        TaskContainer tasks = project.getTasks();
 
-            TaskProvider<CopyClasspathResourceTask> copyAgentFilterTask = registerCopyAgentFilterTask(project);
+        Provider<Boolean> agent = agentPropertyOverride(project, buildExtension);
+        TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(NATIVE_BUILD_TASK_NAME,
+                BuildNativeImageTask.class, builder -> builder.getAgentEnabled().set(agent));
+        tasks.register(NativeRunTask.TASK_NAME, NativeRunTask.class, task -> {
+            task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
+            task.getRuntimeArgs().convention(buildExtension.getRuntimeArgs());
+        });
 
-            // We want to add agent invocation to "run" task, but it is only available when
-            // Application Plugin is initialized.
-            project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin ->
-                    tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME, run -> {
-                        Provider<File> cliProvider = configureAgent(project, run, copyAgentFilterTask, agent, buildExtension, run.getName());
-                        buildExtension.getConfigurationFileDirectories().from(cliProvider);
-                    }));
+        TaskProvider<CopyClasspathResourceTask> copyAgentFilterTask = registerCopyAgentFilterTask(project);
 
-            // In future Gradle releases this becomes a proper DirectoryProperty
-            File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
-            DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
+        // We want to add agent invocation to "run" task, but it is only available when
+        // Application Plugin is initialized.
+        project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin ->
+                tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME, run -> {
+                    Provider<File> cliProvider = configureAgent(project, run, copyAgentFilterTask, agent, buildExtension, run.getName());
+                    buildExtension.getConfigurationFileDirectories().from(cliProvider);
+                }));
 
-            // Testing part begins here.
-            TaskCollection<Test> testTask = findTestTask(project);
-            Provider<Boolean> testAgent = agentPropertyOverride(project, testExtension);
+        // In future Gradle releases this becomes a proper DirectoryProperty
+        File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
+        DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
 
-            testTask.configureEach(test -> {
-                testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
-                test.getOutputs().dir(testResultsDir);
-                test.systemProperty("graalvm.testids.outputdir", testListDirectory.getAsFile().get());
-                Provider<File> cliProviderFile = configureAgent(project, test, copyAgentFilterTask, testAgent, testExtension, test.getName());
-                testExtension.getConfigurationFileDirectories().from(cliProviderFile);
-            });
+        // Testing part begins here.
+        TaskCollection<Test> testTask = findTestTask(project);
+        Provider<Boolean> testAgent = agentPropertyOverride(project, testExtension);
 
-            // Following ensures that required feature jar is on classpath for every project
-            injectTestPluginDependencies(project);
+        testTask.configureEach(test -> {
+            testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
+            test.getOutputs().dir(testResultsDir);
+            test.systemProperty("graalvm.testids.outputdir", testListDirectory.getAsFile().get());
+            Provider<File> cliProviderFile = configureAgent(project, test, copyAgentFilterTask, testAgent, testExtension, test.getName());
+            testExtension.getConfigurationFileDirectories().from(cliProviderFile);
+        });
 
-            TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_BUILD_TASK_NAME, BuildNativeImageTask.class, task -> {
-                task.setDescription("Builds native image with tests.");
-                task.getOptions().set(testExtension);
-                ConfigurableFileCollection testList = project.getObjects().fileCollection();
-                // Later this will be replaced by a dedicated task not requiring execution of tests
-                testList.from(testListDirectory).builtBy(testTask);
-                testExtension.getClasspath().from(testList);
-                task.getAgentEnabled().set(testAgent);
-            });
+        // Following ensures that required feature jar is on classpath for every project
+        injectTestPluginDependencies(project);
 
-            tasks.register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
-                task.setDescription("Runs native-image compiled tests.");
-                task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
-                task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
-            });
+        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_BUILD_TASK_NAME, BuildNativeImageTask.class, task -> {
+            task.setDescription("Builds native image with tests.");
+            task.getOptions().set(testExtension);
+            ConfigurableFileCollection testList = project.getObjects().fileCollection();
+            // Later this will be replaced by a dedicated task not requiring execution of tests
+            testList.from(testListDirectory).builtBy(testTask);
+            testExtension.getClasspath().from(testList);
+            task.getAgentEnabled().set(testAgent);
+        });
 
+        tasks.register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
+            task.setDescription("Runs native-image compiled tests.");
+            task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
+            task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
         });
     }
 
@@ -182,7 +171,7 @@ public class NativeImagePlugin implements Plugin<Project> {
      * Returns a provider which prefers the CLI arguments over the configured
      * extension value.
      */
-    private Provider<Boolean> agentPropertyOverride(Project project, NativeImageOptions extension) {
+    private static Provider<Boolean> agentPropertyOverride(Project project, NativeImageOptions extension) {
         return project.getProviders()
                 .gradleProperty(AGENT_PROPERTY)
                 .forUseAtConfigurationTime()
@@ -195,17 +184,18 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .orElse(extension.getAgent());
     }
 
-    private TaskProvider<CopyClasspathResourceTask> registerCopyAgentFilterTask(Project project) {
+    private static TaskProvider<CopyClasspathResourceTask> registerCopyAgentFilterTask(Project project) {
         return project.getTasks().register(COPY_AGENT_FILTER_TASK_NAME, CopyClasspathResourceTask.class, task -> {
             task.getClasspathResource().set("/" + AGENT_FILTER);
             task.getOutputFile().set(project.getLayout().getBuildDirectory().file("native/agent-filter/" + AGENT_FILTER));
         });
     }
 
-    private TaskCollection<Test> findTestTask(Project project) {
+    private static TaskCollection<Test> findTestTask(Project project) {
         return project.getTasks().withType(Test.class).matching(task -> JavaPlugin.TEST_TASK_NAME.equals(task.getName()));
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     private static void registerServiceProvider(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
         project.getTasks()
                 .withType(BuildNativeImageTask.class)
@@ -215,25 +205,14 @@ public class NativeImagePlugin implements Plugin<Project> {
                 });
     }
 
-    private NativeImageOptions createMainExtension(Project project) {
+    private static NativeImageOptions createMainExtension(Project project) {
         NativeImageOptions buildExtension = NativeImageOptions.register(project, NATIVE_BUILD_EXTENSION);
-        buildExtension.getClasspath().from(findMainArtifacts(project));
-        buildExtension.getClasspath().from(findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        buildExtension.getClasspath().from(GradleUtils.findMainArtifacts(project));
+        buildExtension.getClasspath().from(GradleUtils.findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         return buildExtension;
     }
 
-    private static Configuration findConfiguration(Project project, String name) {
-        return project.getConfigurations().getByName(name);
-    }
-
-    private static FileCollection findMainArtifacts(Project project) {
-        return findConfiguration(project, JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-                .getOutgoing()
-                .getArtifacts()
-                .getFiles();
-    }
-
-    private NativeImageOptions createTestExtension(Project project, NativeImageOptions mainExtension) {
+    private static NativeImageOptions createTestExtension(Project project, NativeImageOptions mainExtension) {
         NativeImageOptions testExtension = NativeImageOptions.register(project, NATIVE_TEST_EXTENSION);
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
@@ -243,26 +222,19 @@ public class NativeImagePlugin implements Plugin<Project> {
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/test-native").map(d -> d.getAsFile().getAbsolutePath()));
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         ConfigurableFileCollection classpath = testExtension.getClasspath();
-        classpath.from(findMainArtifacts(project));
-        classpath.from(findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        classpath.from(GradleUtils.findMainArtifacts(project));
+        classpath.from(GradleUtils.findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
         classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getResourcesDir());
         return testExtension;
     }
 
-    private Provider<NativeImageService> registerNativeImageService(Project project) {
-        return project.getGradle()
-                .getSharedServices()
-                .registerIfAbsent("nativeImage", NativeImageService.class,
-                        spec -> spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16));
-    }
-
-    private Provider<File> configureAgent(Project project,
-                                          JavaForkOptions javaForkOptions,
-                                          TaskProvider<CopyClasspathResourceTask> filterProvider,
-                                          Provider<Boolean> agent,
-                                          NativeImageOptions nativeImageOptions,
-                                          String context) {
+    private static Provider<File> configureAgent(Project project,
+                                                 JavaForkOptions javaForkOptions,
+                                                 TaskProvider<CopyClasspathResourceTask> filterProvider,
+                                                 Provider<Boolean> agent,
+                                                 NativeImageOptions nativeImageOptions,
+                                                 String context) {
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         cliProvider.getEnabled().set(agent);
         cliProvider.getAccessFilter().set(filterProvider.flatMap(CopyClasspathResourceTask::getOutputFile));
@@ -273,40 +245,9 @@ public class NativeImagePlugin implements Plugin<Project> {
         return project.getProviders().provider(() -> cliProvider.getOutputDirectory().get().getAsFile());
     }
 
-    private void injectTestPluginDependencies(Project project) {
-        project.getDependencies().add("implementation", Utils.MAVEN_GROUP_ID + ":junit-platform-native:"
+    private static void injectTestPluginDependencies(Project project) {
+        project.getDependencies().add("implementation", "org.graalvm.buildtools:junit-platform-native:"
                 + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
     }
 
-    abstract static class AgentCommandLineProvider implements CommandLineArgumentProvider {
-
-        @Inject
-        @SuppressWarnings("checkstyle:redundantmodifier")
-        public AgentCommandLineProvider() {
-
-        }
-
-        @Input
-        public abstract Property<Boolean> getEnabled();
-
-        @InputFile
-        @PathSensitive(PathSensitivity.NONE)
-        public abstract RegularFileProperty getAccessFilter();
-
-        @OutputDirectory
-        public abstract DirectoryProperty getOutputDirectory();
-
-        @Override
-        public Iterable<String> asArguments() {
-            if (getEnabled().get()) {
-                return Arrays.asList(
-                        "-agentlib:native-image-agent=experimental-class-loader-support," +
-                                "config-output-dir=" + getOutputDirectory().getAsFile().get().getAbsolutePath() + "," +
-                                "access-filter-file=" + getAccessFilter().getAsFile().get().getAbsolutePath(),
-                        "-Dorg.graalvm.nativeimage.imagecode=agent"
-                );
-            }
-            return Collections.emptyList();
-        }
-    }
 }

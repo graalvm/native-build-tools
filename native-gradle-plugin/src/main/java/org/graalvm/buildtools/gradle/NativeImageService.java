@@ -40,9 +40,18 @@
  */
 package org.graalvm.buildtools.gradle;
 
+import org.gradle.api.Project;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
 @SuppressWarnings({"UnstableApiUsage", "unused"})
 public abstract class NativeImageService implements BuildService<BuildServiceParameters.None> {
+    public static Provider<NativeImageService> registerOn(Project project) {
+        return project.getGradle()
+                .getSharedServices()
+                .registerIfAbsent("nativeImage", NativeImageService.class,
+                        spec -> spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16));
+
+    }
 }
