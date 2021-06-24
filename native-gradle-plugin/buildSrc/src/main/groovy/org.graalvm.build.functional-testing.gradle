@@ -74,7 +74,7 @@ configurations.functionalTestImplementation.extendsFrom(configurations.testImple
 
 def graalVm = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(11))
-    vendor.set(JvmVendorSpec.matching("GraalVM Community"))
+    vendor.set(JvmVendorSpec.matching("GraalVM"))
 }
 
 ['functionalTest', 'fullFunctionalTest', 'configCacheFunctionalTest'].each {

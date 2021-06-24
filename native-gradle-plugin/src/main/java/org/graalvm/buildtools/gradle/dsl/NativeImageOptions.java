@@ -201,7 +201,7 @@ public abstract class NativeImageOptions {
                 toolchains.launcherFor(spec -> {
                     spec.getLanguageVersion().set(JavaLanguageVersion.of(11));
                     if (GradleUtils.isAtLeastGradle7()) {
-                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM Community"));
+                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
                     }
                 })
         );
