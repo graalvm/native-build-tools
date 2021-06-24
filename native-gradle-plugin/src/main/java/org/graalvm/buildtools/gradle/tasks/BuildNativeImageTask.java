@@ -80,6 +80,8 @@ import static org.graalvm.buildtools.gradle.internal.Utils.NATIVE_IMAGE_EXE;
 public abstract class BuildNativeImageTask extends DefaultTask {
     private static final Transformer<Boolean, Boolean> NEGATE = b -> !b;
 
+    private final Provider<String> graalvmHomeProvider;
+
     @Nested
     public abstract Property<NativeImageOptions> getOptions();
 
@@ -95,7 +97,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Optional
     @Input
     protected Provider<String> getGraalVMHome() {
-        return getProject().getProviders().environmentVariable("GRAALVM_HOME");
+        return graalvmHomeProvider;
     }
 
     @Internal
@@ -120,6 +122,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
         getOptions().convention(getProject().getExtensions().findByType(NativeImageOptions.class));
         getOutputDirectory().convention(outputDir);
+        this.graalvmHomeProvider = getProject().getProviders().environmentVariable("GRAALVM_HOME");
     }
 
     private List<String> buildActualCommandLineArgs() {

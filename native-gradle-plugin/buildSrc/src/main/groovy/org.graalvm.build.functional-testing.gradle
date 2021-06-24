@@ -77,7 +77,7 @@ def graalVm = javaToolchains.launcherFor {
     vendor.set(JvmVendorSpec.matching("GraalVM Community"))
 }
 
-['functionalTest', 'fullFunctionalTest'].each {
+['functionalTest', 'fullFunctionalTest', 'configCacheFunctionalTest'].each {
     // Add a task to run the functional tests
     tasks.register(it, Test) {
         // Any change to samples invalidates functional tests
@@ -94,6 +94,10 @@ def graalVm = javaToolchains.launcherFor {
 
 tasks.named('fullFunctionalTest') {
     systemProperty('full.coverage', 'true')
+}
+
+tasks.named('configCacheFunctionalTest') {
+    systemProperty('config.cache', 'true')
 }
 
 tasks.named('check') {
