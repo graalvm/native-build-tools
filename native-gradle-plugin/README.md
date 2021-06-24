@@ -77,12 +77,10 @@ nativeBuild {
   runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
   systemProperties = [name1: 'value1', name2: 'value2'] // Sets system properties for the native image builder
   agent = false // Can be also set on command line using '-Pagent'
-  persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
 }
 
 nativeTest {
   agent = false // Can be also set on command line using '-Pagent'
-  persistConfig = false // Used in conjunction with 'agent' to save its output to META-INF
   //...
   // all of the options from 'nativeBuild' block are supported here except for changing main class name.
   // Note that 'nativeBuild' configuration is separate to 'nativeTest' one and that they don't inherit settings from each other.
@@ -97,29 +95,25 @@ Kotlin
 </summary>
 
 ```kotlin
-tasks {
-  nativeBuild {
-    imageName.set("application")
-    mainClass.set("org.test.Main") // Main class
-    buildArgs("--no-server") // Arguments to be passed to native-image invocation
-    debug.set(false) // Determines if debug info should be generated
-    verbose.set(false)
-    fallback.set(false)
-    classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
-    jvmArgs("flag") // Passes 'flag' directly to the JVM running the native image builder
-    runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
-    systemProperties.put("key1", "value1") // Sets a system property for the native-image builder
-    agent.set(false) // Can be also set on command line using '-Pagent'
-    persistConfig.set(false) // Used in conjunction with 'agent' to save its output to META-INF
-  }
+nativeBuild {
+  imageName.set("application")
+  mainClass.set("org.test.Main") // Main class
+  buildArgs("--no-server") // Arguments to be passed to native-image invocation
+  debug.set(false) // Determines if debug info should be generated
+  verbose.set(false)
+  fallback.set(false)
+  classpath("dir1", "dir2") // Adds "dir1" and "dir2" to the classpath
+  jvmArgs("flag") // Passes 'flag' directly to the JVM running the native image builder
+  runtimeArgs("--help") // Passes '--help' to built image, during "nativeRun" task
+  systemProperties.put("key1", "value1") // Sets a system property for the native-image builder
+  agent.set(false) // Can be also set on command line using '-Pagent'
+}
 
-  nativeTest {
-    agent.set(false) // Can be also set on command line using '-Pagent'
-    persistConfig.set(false) // Used in conjunction with 'agent' to save its output to META-INF
-    //...
-    // all of the options from 'nativeBuild' block are supported here except for changing main class name
-    // Note that 'nativeBuild' configuration is separate to 'nativeTest' one and that they don't inherit settings from each other
-  }
+nativeTest {
+  agent.set(false) // Can be also set on command line using '-Pagent'
+  //...
+  // all of the options from 'nativeBuild' block are supported here except for changing main class name
+  // Note that 'nativeBuild' configuration is separate to 'nativeTest' one and that they don't inherit settings from each other
 }
 ```
 
@@ -128,10 +122,7 @@ tasks {
 <br />
 
 
-> :information_source: Most of the plugin configuration syntax and tasks from `io.micronaut.application` and `com.palantir.graal` plugins is out of the box supported at the moment via aliasing.
-> However, this behaviour should be considered transitional and therefore deprecated.
-
-> :information_source: Also note that for options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
+> :information_source: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
 ### Available tasks:
 ```
