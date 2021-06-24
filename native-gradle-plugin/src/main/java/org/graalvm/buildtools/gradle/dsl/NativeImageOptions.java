@@ -40,7 +40,6 @@
  */
 package org.graalvm.buildtools.gradle.dsl;
 
-import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -173,14 +172,6 @@ public abstract class NativeImageOptions {
     public abstract Property<Boolean> getAgent();
 
     /**
-     * Gets the value which toggles persisting of agent config to META-INF.
-     *
-     * @return The value which toggles persisting of agent config to META-INF.
-     */
-    @Input
-    public abstract Property<Boolean> getPersistConfig();
-
-    /**
      * Returns the toolchain used to invoke native-image. Currently pointing
      * to a Java launcher due to Gradle limitations.
      */
@@ -205,7 +196,6 @@ public abstract class NativeImageOptions {
         getFallback().convention(false);
         getVerbose().convention(false);
         getAgent().convention(false);
-        getPersistConfig().convention(property(providers, Utils.PERSIST_CONFIG_PROPERTY));
         getImageName().convention(defaultImageName);
         getJavaLauncher().convention(
                 toolchains.launcherFor(spec -> {
