@@ -43,15 +43,17 @@ package org.graalvm.buildtools.gradle;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
-import org.graalvm.buildtools.gradle.internal.CopyClasspathResourceTask;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
 import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
@@ -67,9 +69,10 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_FILTER;
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_OUTPUT_FOLDER;
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_PROPERTY;
 
@@ -83,7 +86,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_TEST_BUILD_TASK_NAME = "nativeTestBuild";
     public static final String NATIVE_TEST_EXTENSION = "nativeTest";
     public static final String NATIVE_BUILD_EXTENSION = "nativeBuild";
-    public static final String COPY_AGENT_FILTER_TASK_NAME = "copyAgentFilter";
+    public static final String PROCESS_AGENT_RESOURCES_TASK_NAME = "filterAgentResources";
+    public static final String PROCESS_AGENT_TEST_RESOURCES_TASK_NAME = "filterAgentTestResources";
 
     /**
      * This looks strange, but it is used to force the configuration of a dependent
@@ -91,7 +95,8 @@ public class NativeImagePlugin implements Plugin<Project> {
      * when applying the Kotlin plugin, where the test task is configured too late
      * for some reason.
      */
-    private static final Consumer<Object> FORCE_CONFIG = t -> { };
+    private static final Consumer<Object> FORCE_CONFIG = t -> {
+    };
 
     private GraalVMLogger logger;
 
@@ -130,14 +135,14 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getRuntimeArgs().convention(buildExtension.getRuntimeArgs());
         });
 
-        TaskProvider<CopyClasspathResourceTask> copyAgentFilterTask = registerCopyAgentFilterTask(project);
+        TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_RESOURCES_TASK_NAME);
 
         // We want to add agent invocation to "run" task, but it is only available when
         // Application Plugin is initialized.
-        project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin ->
-                tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME, run -> {
-                    configureAgent(project, run, copyAgentFilterTask, agent, buildExtension, run.getName());
-                }));
+        project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
+            TaskProvider<JavaExec> runTask = tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME);
+            runTask.configure(run -> configureAgent(project, agent, buildExtension, runTask, processAgentFiles));
+        });
 
         // In future Gradle releases this becomes a proper DirectoryProperty
         File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
@@ -146,12 +151,13 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Testing part begins here.
         TaskCollection<Test> testTask = findTestTask(project);
         Provider<Boolean> testAgent = agentPropertyOverride(project, testExtension);
+        TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_TEST_RESOURCES_TASK_NAME);
 
         testTask.configureEach(test -> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
             test.getOutputs().dir(testResultsDir);
             test.systemProperty("graalvm.testids.outputdir", testListDirectory.getAsFile().get());
-            configureAgent(project, test, copyAgentFilterTask, testAgent, testExtension, test.getName());
+            configureAgent(project, testAgent, testExtension, testTask.named(test.getName()), processAgentTestFiles);
         });
 
         // Following ensures that required feature jar is on classpath for every project
@@ -192,10 +198,10 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .orElse(extension.getAgent());
     }
 
-    private static TaskProvider<CopyClasspathResourceTask> registerCopyAgentFilterTask(Project project) {
-        return project.getTasks().register(COPY_AGENT_FILTER_TASK_NAME, CopyClasspathResourceTask.class, task -> {
-            task.getClasspathResource().set("/" + AGENT_FILTER);
-            task.getOutputFile().set(project.getLayout().getBuildDirectory().file("native/agent-filter/" + AGENT_FILTER));
+    private static TaskProvider<ProcessGeneratedGraalResourceFiles> registerProcessAgentFilesTask(Project project, String name) {
+        return project.getTasks().register(name, ProcessGeneratedGraalResourceFiles.class, task -> {
+            task.getFilterableEntries().convention(Arrays.asList("org.gradle.", "java."));
+            task.getOutputDirectory().convention(project.getLayout().getBuildDirectory().dir("native/processed/agent/" + name));
         });
     }
 
@@ -238,22 +244,30 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static void configureAgent(Project project,
-                                                 JavaForkOptions javaForkOptions,
-                                                 TaskProvider<CopyClasspathResourceTask> filterProvider,
-                                                 Provider<Boolean> agent,
-                                                 NativeImageOptions nativeImageOptions,
-                                                 String context) {
+                                       Provider<Boolean> agent,
+                                       NativeImageOptions nativeImageOptions,
+                                       TaskProvider<? extends JavaForkOptions> instrumentedTask,
+                                       TaskProvider<ProcessGeneratedGraalResourceFiles> postProcessingTask) {
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         cliProvider.getEnabled().set(agent);
-        cliProvider.getAccessFilter().set(filterProvider.flatMap(CopyClasspathResourceTask::getOutputFile));
-        cliProvider.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + context));
-        javaForkOptions.getJvmArgumentProviders().add(cliProvider);
-        // We're "desugaring" the output intentionally to workaround a Gradle bug which absolutely
-        // wants the file to track the input but since it's not from a task it would fail
-        Provider<File> producer = project.getProviders().provider(() -> cliProvider.getOutputDirectory().get().getAsFile());
-        nativeImageOptions.getConfigurationFileDirectories().from(
-                agent.map(enabled -> enabled ? producer.get() : project.files())
+        Provider<Directory> outputDir = project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
+        cliProvider.getOutputDirectory().set(outputDir);
+        instrumentedTask.get().getJvmArgumentProviders().add(cliProvider);
+        // Gradle won't let us configure from configure so we have to eagerly create the post-processing task :(
+        postProcessingTask.get().getGeneratedFilesDir().set(
+                instrumentedTask.map(t -> outputDir.get())
         );
+        // We can't set from(postProcessingTask) directly, otherwise a task
+        // dependency would be introduced even if the agent is not enabled.
+        // We should be able to write this:
+        // nativeImageOptions.getConfigurationFileDirectories().from(
+        //     agent.map(enabled -> enabled ? postProcessingTask : project.files())
+        // )
+        // but Gradle won't track the postProcessingTask dependency so we have to write this:
+        ConfigurableFileCollection files = project.getObjects().fileCollection();
+        files.from(agent.map(enabled -> enabled ? postProcessingTask : project.files()));
+        files.builtBy((Callable<Task>) () -> agent.get() ? postProcessingTask.get() : null);
+        nativeImageOptions.getConfigurationFileDirectories().from(files);
     }
 
     private static void injectTestPluginDependencies(Project project) {

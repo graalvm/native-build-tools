@@ -52,5 +52,4 @@ public class Utils {
     public static final String AGENT_PROPERTY = "agent";
     public static final String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
     public static final String NATIVE_TESTS_SUFFIX = "-tests";
-    public static final String AGENT_FILTER = "agent-filter.json";
 }

@@ -41,15 +41,8 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
-import spock.lang.Requires
 import spock.lang.Unroll
 
-@Requires({
-    GraalVMSupport.isGraal()
-        && GraalVMSupport.majorVersion >= 21
-        && GraalVMSupport.minorVersion > 0
-})
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
     @Unroll("agent is passed and generates resources files on Gradle #version with JUnit Platform #junitVersion")
@@ -65,7 +58,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         then:
         tasks {
             succeeded ':jar',
-                    ':copyAgentFilter',
+                    ':filterAgentTestResources',
                     ':nativeTest'
             doesNotContain ':build'
         }
@@ -99,7 +92,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
     @Unroll("agent property takes precedence on Gradle #version with JUnit Platform #junitVersion")
     def "agent property takes precedence"() {
         gradleVersion = version
-        debug = true
+        
         given:
         withSample("java-application-with-reflection")
 
