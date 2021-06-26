@@ -29,14 +29,8 @@ jobs:
           echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
-      - name: Checkstyle
+      - name: Check and test the plugin
         run: |
           pushd native-gradle-plugin
-            ./gradlew checkstyleMain
-            ./gradlew checkstyleTest
-          popd
-      - name: Build and test plugin
-        run: |
-          pushd native-gradle-plugin
-            ./gradlew functionalTest
+            ./gradlew check
           popd
