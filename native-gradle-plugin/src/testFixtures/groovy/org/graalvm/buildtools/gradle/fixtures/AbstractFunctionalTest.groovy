@@ -197,7 +197,8 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     ProcessController execute(File executablePath) {
-        new ProcessController(executablePath).execute()
+        new ProcessController(executablePath, file("build"))
+                .execute()
     }
 
     private void assertInitScript() {

@@ -45,16 +45,19 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class ProcessController {
     private final File executablePath
+    private final File workingDir
 
     private final StringWriter out = new StringWriter()
     private final StringWriter err = new StringWriter()
 
-    ProcessController(File executablePath) {
+    ProcessController(File executablePath, File workingDir) {
         this.executablePath = executablePath
+        this.workingDir = workingDir
     }
 
     ProcessController execute() {
         def process = new ProcessBuilder(executablePath.absolutePath)
+            .directory(workingDir)
             .start()
         TeeWriter.of(
                 new OutputStreamWriter(System.out),
