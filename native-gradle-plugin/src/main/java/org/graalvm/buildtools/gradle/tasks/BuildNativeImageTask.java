@@ -40,7 +40,6 @@
  */
 package org.graalvm.buildtools.gradle.tasks;
 
-import org.graalvm.buildtools.gradle.NativeImageService;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.gradle.api.DefaultTask;
@@ -176,8 +175,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
 
     // This property provides access to the service instance
+    // It should be Property<NativeImageService> but because of a bug in Gradle
+    // we have to use a more generic type, see https://github.com/gradle/gradle/issues/17559
     @Internal
-    public abstract Property<NativeImageService> getService();
+    public abstract Property<Object> getService();
 
     @TaskAction
     @SuppressWarnings("ConstantConditions")
