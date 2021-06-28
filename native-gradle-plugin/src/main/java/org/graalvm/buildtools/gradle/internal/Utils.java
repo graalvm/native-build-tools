@@ -41,6 +41,10 @@
 
 package org.graalvm.buildtools.gradle.internal;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Utility class containing various native-image and JVM related methods.
  * Keep this file in sync across all build tool plugins.
@@ -53,4 +57,15 @@ public class Utils {
     public static final String AGENT_PROPERTY = "agent";
     public static final String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
     public static final String NATIVE_TESTS_SUFFIX = "-tests";
+    public static final List<String> DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE = Collections.unmodifiableList(Arrays.asList(
+            "META-INF/services/.*",
+            "META-INF/native-image/.*",
+            "META-INF/maven/.*",
+            "META-INF/LICENSE.*",
+            "META-INF/NOTICE.*",
+            "META-INF/.*[.](md|adoc)",
+            "META-INF/INDEX.LIST",
+            ".*/package.html"
+    ));
+    public static final String META_INF_NATIVE_IMAGE = "META-INF/native-image";
 }

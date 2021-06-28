@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,42 +38,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.dsl;
 
-package org.graalvm.buildtools.gradle.internal;
+import org.graalvm.buildtools.gradle.internal.Utils;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
 
-import org.gradle.api.logging.Logger;
+public abstract class ResourceInferenceOptions {
+    /**
+     * Determines if the resources should be inferred from classpath.
+     * If this property is set to true, then Gradle will automatically
+     * infer resources to include from conventional places like src/main/resources.
+     */
+    @Input
+    public abstract Property<Boolean> getEnabled();
 
-/**
- * Wraps the Gradle logger with a minimal API surface.
- */
-public final class GraalVMLogger {
-    private final Logger delegate;
+    /**
+     * Determines if infererence should be limited to project dependencies, in
+     * which case external dependencies will not be scanned.
+     *
+     * Default value is true.
+     */
+    @Input
+    public abstract Property<Boolean> getRestrictToProjectDependencies();
 
-    public static GraalVMLogger of(Logger delegate) {
-        return new GraalVMLogger(delegate);
+    /**
+     * Returns the list of regular expressions which will be used to exclude
+     * resources from inference.
+     */
+    @Input
+    public abstract SetProperty<String> getInferenceExclusionPatterns();
+
+    /**
+     * Adds the default resource excludes for inference, which can be useful if
+     * you want to add more excludes but still want the conventional ones to be
+     * added.
+     */
+    public ResourceInferenceOptions addDefaultInferenceExclusions() {
+        getInferenceExclusionPatterns().addAll(Utils.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
+        return this;
     }
 
-    private GraalVMLogger(Logger delegate) {
-        this.delegate = delegate;
-    }
 
-    public void log(String s) {
-        delegate.info("[native-image-plugin] {}", s);
-    }
-
-    public void log(String pattern, Object... args) {
-        delegate.info("[native-image-plugin] " + pattern, args);
-    }
-
-    public void lifecycle(String s) {
-        delegate.lifecycle("[native-image-plugin] {}", s);
-    }
-
-    public void error(String s) {
-        delegate.error("[native-image-plugin] {}", s);
-    }
-
-    public void warn(String s) {
-        delegate.warn("[native-image-plugin] {}", s);
+    public ResourceInferenceOptions() {
+        getEnabled().convention(false);
+        getRestrictToProjectDependencies().convention(true);
+        getInferenceExclusionPatterns().convention(Utils.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
     }
 }

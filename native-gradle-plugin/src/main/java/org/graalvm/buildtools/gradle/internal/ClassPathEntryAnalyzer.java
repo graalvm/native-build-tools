@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,42 +38,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.logging.Logger;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
 
-/**
- * Wraps the Gradle logger with a minimal API surface.
- */
-public final class GraalVMLogger {
-    private final Logger delegate;
+@NotThreadSafe
+public abstract class ClassPathEntryAnalyzer {
+    private final Function<String, Boolean> resourceFilter;
 
-    public static GraalVMLogger of(Logger delegate) {
-        return new GraalVMLogger(delegate);
+    private List<String> resources;
+
+    public static ClassPathEntryAnalyzer of(File file, Function<String, Boolean> resourceFilter) {
+        if (file.getName().endsWith(".jar")) {
+            return new JarAnalyzer(file, resourceFilter);
+        }
+        return new ClassPathDirectoryAnalyzer(file.toPath(), resourceFilter);
     }
 
-    private GraalVMLogger(Logger delegate) {
-        this.delegate = delegate;
+    protected ClassPathEntryAnalyzer(Function<String, Boolean> resourceFilter) {
+        this.resourceFilter = resourceFilter;
     }
 
-    public void log(String s) {
-        delegate.info("[native-image-plugin] {}", s);
+    public List<String> getResources() throws IOException {
+        if (resources == null) {
+            resources = initialize();
+        }
+        return resources;
     }
 
-    public void log(String pattern, Object... args) {
-        delegate.info("[native-image-plugin] " + pattern, args);
-    }
+    protected abstract List<String> initialize() throws IOException;
 
-    public void lifecycle(String s) {
-        delegate.lifecycle("[native-image-plugin] {}", s);
-    }
-
-    public void error(String s) {
-        delegate.error("[native-image-plugin] {}", s);
-    }
-
-    public void warn(String s) {
-        delegate.warn("[native-image-plugin] {}", s);
+    protected void maybeAddResource(String entry, List<String> resources) {
+        if (entry.endsWith(".class")) {
+            return;
+        }
+        if (resourceFilter.apply(entry)) {
+            resources.add(entry);
+        }
     }
 }
