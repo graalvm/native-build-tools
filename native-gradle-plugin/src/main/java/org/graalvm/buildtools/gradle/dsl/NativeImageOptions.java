@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -188,6 +189,13 @@ public abstract class NativeImageOptions {
      */
     @InputFiles
     public abstract ConfigurableFileCollection getConfigurationFileDirectories();
+
+    @Nested
+    public abstract NativeResourcesOptions getResources();
+
+    public void resources(Action<? super NativeResourcesOptions> spec) {
+        spec.execute(getResources());
+    }
 
     @Inject
     public NativeImageOptions(ObjectFactory objectFactory,

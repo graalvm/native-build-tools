@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,42 +38,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.dsl;
 
-package org.graalvm.buildtools.gradle.internal;
+import org.gradle.api.Action;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 
-import org.gradle.api.logging.Logger;
+public abstract class NativeResourcesOptions {
 
-/**
- * Wraps the Gradle logger with a minimal API surface.
- */
-public final class GraalVMLogger {
-    private final Logger delegate;
+    @Nested
+    public abstract ResourceInferenceOptions getInferenceOptions();
 
-    public static GraalVMLogger of(Logger delegate) {
-        return new GraalVMLogger(delegate);
+    @SuppressWarnings("unused")
+    public void inference(Action<? super ResourceInferenceOptions> spec) {
+        spec.execute(getInferenceOptions());
     }
 
-    private GraalVMLogger(Logger delegate) {
-        this.delegate = delegate;
-    }
+    /**
+     * The list of bundles to include in the generated resources file.
+     * The contents of this property is used to generate the "bundles"
+     * section of the resource-config.json file
+     */
+    @Input
+    public abstract ListProperty<String> getBundles();
 
-    public void log(String s) {
-        delegate.info("[native-image-plugin] {}", s);
-    }
+    /**
+     * The list of resources to include, as Java regular expressions.
+     * The contents of this property is used to generate the "resources" : "includes"
+     * section of the resource-config.json file.
+     *
+     * It will be merged with inferred resources, if any.
+     *
+     */
+    @Input
+    public abstract ListProperty<String> getIncludedPatterns();
 
-    public void log(String pattern, Object... args) {
-        delegate.info("[native-image-plugin] " + pattern, args);
-    }
+    /**
+     * The list of resources to exclude, as Java regular expressions.
+     * The contents of this property is used to generate the "resources" : "excludes"
+     * section of the resource-config.json file.
+     *
+     * It will be merged with inferred resources, if any.
+     *
+     */
+    @Input
+    public abstract ListProperty<String> getExcludedPatterns();
 
-    public void lifecycle(String s) {
-        delegate.lifecycle("[native-image-plugin] {}", s);
-    }
-
-    public void error(String s) {
-        delegate.error("[native-image-plugin] {}", s);
-    }
-
-    public void warn(String s) {
-        delegate.warn("[native-image-plugin] {}", s);
-    }
 }

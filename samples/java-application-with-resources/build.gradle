@@ -1,0 +1,21 @@
+plugins {
+    id 'application'
+    id 'org.graalvm.buildtools.native'
+}
+
+application {
+    mainClass.set('org.graalvm.demo.Application')
+}
+
+def junitVersion = providers.gradleProperty('junit.jupiter.version')
+        .forUseAtConfigurationTime()
+        .get()
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
+
+test {
+    useJUnitPlatform()
+}

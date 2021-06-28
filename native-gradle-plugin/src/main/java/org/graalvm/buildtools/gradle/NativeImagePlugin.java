@@ -49,6 +49,7 @@ import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
 import org.graalvm.buildtools.gradle.internal.Utils;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
+import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -57,6 +58,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
@@ -76,6 +78,9 @@ import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
+import static org.graalvm.buildtools.gradle.internal.GradleUtils.findConfiguration;
+import static org.graalvm.buildtools.gradle.internal.GradleUtils.findMainArtifacts;
+import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_OUTPUT_FOLDER;
 import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_PROPERTY;
 
@@ -91,6 +96,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_BUILD_EXTENSION = "nativeBuild";
     public static final String PROCESS_AGENT_RESOURCES_TASK_NAME = "filterAgentResources";
     public static final String PROCESS_AGENT_TEST_RESOURCES_TASK_NAME = "filterAgentTestResources";
+    public static final String GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME = "generateResourcesConfigFile";
+    public static final String GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME = "generateTestResourcesConfigFile";
 
     /**
      * This looks strange, but it is used to force the configuration of a dependent
@@ -108,7 +115,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     public void apply(Project project) {
         Provider<NativeImageService> nativeImageServiceProvider = NativeImageService.registerOn(project);
 
-        logger = new GraalVMLogger(project.getLogger());
+        logger = GraalVMLogger.of(project.getLogger());
 
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider));
@@ -148,6 +155,19 @@ public class NativeImagePlugin implements Plugin<Project> {
             runTask.configure(run -> configureAgent(project, agent, buildExtension, runTask, processAgentFiles));
         });
 
+        Provider<Directory> generatedResourcesDir = project.getLayout()
+                .getBuildDirectory()
+                .dir("native/generated/");
+
+        TaskProvider<GenerateResourcesConfigFile> generateResourcesConfig = registerResourcesConfigTask(
+                generatedResourcesDir,
+                buildExtension,
+                tasks,
+                transitiveProjectArtifacts(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
+                GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME);
+        buildExtension.getConfigurationFileDirectories().from(generateResourcesConfig.map(t ->
+                t.getOutputFile().map(f -> f.getAsFile().getParentFile())
+        ));
 
         // Testing part begins here. -------------------------------------------
 
@@ -161,6 +181,16 @@ public class NativeImagePlugin implements Plugin<Project> {
         TaskCollection<Test> testTask = findTestTask(project);
         Provider<Boolean> testAgent = agentPropertyOverride(project, testExtension);
         TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_TEST_RESOURCES_TASK_NAME);
+
+        TaskProvider<GenerateResourcesConfigFile> generateTestResourcesConfig = registerResourcesConfigTask(
+                generatedResourcesDir,
+                testExtension,
+                tasks,
+                transitiveProjectArtifacts(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME),
+                GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME);
+        testExtension.getConfigurationFileDirectories().from(generateTestResourcesConfig.map(t ->
+                t.getOutputFile().map(f -> f.getAsFile().getParentFile())
+        ));
 
         testTask.configureEach(test -> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
@@ -189,6 +219,20 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.setDescription("Runs native-image compiled tests.");
             task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
             task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
+        });
+    }
+
+    private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,
+                                                                                  NativeImageOptions options,
+                                                                                  TaskContainer tasks,
+                                                                                  FileCollection transitiveProjectArtifacts,
+                                                                                  String name) {
+        return tasks.register(name, GenerateResourcesConfigFile.class, task -> {
+            task.setDescription("Generates a GraalVM resource-config.json file");
+            task.getOptions().convention(options.getResources());
+            task.getClasspath().from(options.getClasspath());
+            task.getTransitiveProjectArtifacts().from(transitiveProjectArtifacts);
+            task.getOutputFile().convention(generatedDir.map(d -> d.file(name + "/resource-config.json")));
         });
     }
 
@@ -232,8 +276,8 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static NativeImageOptions createMainExtension(Project project) {
         NativeImageOptions buildExtension = NativeImageOptions.register(project, NATIVE_BUILD_EXTENSION);
-        buildExtension.getClasspath().from(GradleUtils.findMainArtifacts(project));
-        buildExtension.getClasspath().from(GradleUtils.findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        buildExtension.getClasspath().from(findMainArtifacts(project));
+        buildExtension.getClasspath().from(findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         return buildExtension;
     }
 
@@ -249,8 +293,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Set system property read indirectly by the JUnitPlatformFeature.
         testExtension.getBuildArgs().add(project.provider(() ->"-Djunit.platform.listeners.uid.tracking.output.dir=" + testListDirectory.getAsFile().get().getAbsolutePath()));
         ConfigurableFileCollection classpath = testExtension.getClasspath();
-        classpath.from(GradleUtils.findMainArtifacts(project));
-        classpath.from(GradleUtils.findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        classpath.from(findMainArtifacts(project));
+        classpath.from(findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
         classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getResourcesDir());
         return testExtension;

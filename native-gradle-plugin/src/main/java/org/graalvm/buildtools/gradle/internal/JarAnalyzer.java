@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,42 +38,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.logging.Logger;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
+import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
 
-/**
- * Wraps the Gradle logger with a minimal API surface.
- */
-public final class GraalVMLogger {
-    private final Logger delegate;
+import static org.graalvm.buildtools.gradle.internal.GradleUtils.normalizePathSeparators;
 
-    public static GraalVMLogger of(Logger delegate) {
-        return new GraalVMLogger(delegate);
+@NotThreadSafe
+class JarAnalyzer extends ClassPathEntryAnalyzer {
+    private final File jarFile;
+
+    JarAnalyzer(File jarFile, Function<String, Boolean> resourceFilter) {
+        super(resourceFilter);
+        this.jarFile = jarFile;
     }
 
-    private GraalVMLogger(Logger delegate) {
-        this.delegate = delegate;
-    }
-
-    public void log(String s) {
-        delegate.info("[native-image-plugin] {}", s);
-    }
-
-    public void log(String pattern, Object... args) {
-        delegate.info("[native-image-plugin] " + pattern, args);
-    }
-
-    public void lifecycle(String s) {
-        delegate.lifecycle("[native-image-plugin] {}", s);
-    }
-
-    public void error(String s) {
-        delegate.error("[native-image-plugin] {}", s);
-    }
-
-    public void warn(String s) {
-        delegate.warn("[native-image-plugin] {}", s);
+    protected List<String> initialize() throws IOException {
+        List<String> resources = new ArrayList<>();
+        boolean hasNativeImageResourceFile = false;
+        try (JarInputStream zin = new JarInputStream(new FileInputStream(jarFile))) {
+            ZipEntry entry;
+            while ((entry = zin.getNextEntry()) != null) {
+                hasNativeImageResourceFile = normalizePathSeparators(entry.getName()).startsWith(Utils.META_INF_NATIVE_IMAGE + "/");
+                if (hasNativeImageResourceFile) {
+                    break;
+                }
+                if (!entry.isDirectory()) {
+                    maybeAddResource(entry.getName(), resources);
+                }
+            }
+        }
+        return hasNativeImageResourceFile ? Collections.emptyList() : resources;
     }
 }

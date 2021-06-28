@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,42 +38,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.logging.Logger;
+public class PatternValue {
+    private final String pattern;
 
-/**
- * Wraps the Gradle logger with a minimal API surface.
- */
-public final class GraalVMLogger {
-    private final Logger delegate;
-
-    public static GraalVMLogger of(Logger delegate) {
-        return new GraalVMLogger(delegate);
+    public PatternValue(String pattern) {
+        this.pattern = pattern;
     }
 
-    private GraalVMLogger(Logger delegate) {
-        this.delegate = delegate;
+    public String getPattern() {
+        return pattern;
     }
 
-    public void log(String s) {
-        delegate.info("[native-image-plugin] {}", s);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        PatternValue that = (PatternValue) o;
+
+        return pattern.equals(that.pattern);
     }
 
-    public void log(String pattern, Object... args) {
-        delegate.info("[native-image-plugin] " + pattern, args);
+    @Override
+    public int hashCode() {
+        return pattern.hashCode();
     }
 
-    public void lifecycle(String s) {
-        delegate.lifecycle("[native-image-plugin] {}", s);
-    }
-
-    public void error(String s) {
-        delegate.error("[native-image-plugin] {}", s);
-    }
-
-    public void warn(String s) {
-        delegate.warn("[native-image-plugin] {}", s);
+    @Override
+    public String toString() {
+        return "name='" + pattern + '\'';
     }
 }

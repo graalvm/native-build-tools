@@ -43,6 +43,8 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -74,10 +76,24 @@ public class GradleUtils {
         return project.getConfigurations().getByName(name);
     }
 
+    public static FileCollection transitiveProjectArtifacts(Project project, String name) {
+        ConfigurableFileCollection transitiveProjectArtifacts = project.getObjects().fileCollection();
+        transitiveProjectArtifacts.from(findMainArtifacts(project));
+        transitiveProjectArtifacts.from(findConfiguration(project, name)
+                .getIncoming()
+                .artifactView(view -> view.componentFilter(ProjectComponentIdentifier.class::isInstance))
+                .getFiles());
+        return transitiveProjectArtifacts;
+    }
+
     public static FileCollection findMainArtifacts(Project project) {
         return findConfiguration(project, JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
                 .getOutgoing()
                 .getArtifacts()
                 .getFiles();
+    }
+
+    public static String normalizePathSeparators(String path) {
+        return path.replace('\\', '/');
     }
 }

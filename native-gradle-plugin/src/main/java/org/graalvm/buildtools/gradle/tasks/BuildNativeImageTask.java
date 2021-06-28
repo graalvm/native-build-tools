@@ -145,7 +145,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     public void exec() {
         List<String> args = buildActualCommandLineArgs();
         NativeImageOptions options = getOptions().get();
-        GraalVMLogger logger = new GraalVMLogger(getLogger());
+        GraalVMLogger logger = GraalVMLogger.of(getLogger());
         if (options.getVerbose().get()) {
             logger.lifecycle("Args are: " + args);
         }

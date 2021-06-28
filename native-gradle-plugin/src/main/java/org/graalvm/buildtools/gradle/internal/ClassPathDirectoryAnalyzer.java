@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,42 +38,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.logging.Logger;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
-/**
- * Wraps the Gradle logger with a minimal API surface.
- */
-public final class GraalVMLogger {
-    private final Logger delegate;
+import static org.graalvm.buildtools.gradle.internal.GradleUtils.normalizePathSeparators;
 
-    public static GraalVMLogger of(Logger delegate) {
-        return new GraalVMLogger(delegate);
+@NotThreadSafe
+class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
+    private final Path root;
+
+    ClassPathDirectoryAnalyzer(Path root, Function<String, Boolean> resourceFilter) {
+        super(resourceFilter);
+        this.root = root;
     }
 
-    private GraalVMLogger(Logger delegate) {
-        this.delegate = delegate;
+    protected List<String> initialize() throws IOException {
+        DirectoryVisitor visitor = new DirectoryVisitor();
+        Files.walkFileTree(root, visitor);
+        return visitor.hasNativeImageResourceFile ? Collections.emptyList() : visitor.resources;
     }
 
-    public void log(String s) {
-        delegate.info("[native-image-plugin] {}", s);
-    }
+    private class DirectoryVisitor extends SimpleFileVisitor<Path> {
+        List<String> resources = new ArrayList<>();
+        boolean hasNativeImageResourceFile;
 
-    public void log(String pattern, Object... args) {
-        delegate.info("[native-image-plugin] " + pattern, args);
-    }
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            String relativePath = normalizePathSeparators(root.relativize(dir).toString());
+            if (Utils.META_INF_NATIVE_IMAGE.equals(relativePath)) {
+                hasNativeImageResourceFile = true;
+                return FileVisitResult.TERMINATE;
+            }
+            return FileVisitResult.CONTINUE;
+        }
 
-    public void lifecycle(String s) {
-        delegate.lifecycle("[native-image-plugin] {}", s);
-    }
-
-    public void error(String s) {
-        delegate.error("[native-image-plugin] {}", s);
-    }
-
-    public void warn(String s) {
-        delegate.warn("[native-image-plugin] {}", s);
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            maybeAddResource(root.relativize(file).toString(), resources);
+            return FileVisitResult.CONTINUE;
+        }
     }
 }
