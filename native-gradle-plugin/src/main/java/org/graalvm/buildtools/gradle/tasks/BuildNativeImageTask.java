@@ -43,7 +43,6 @@ package org.graalvm.buildtools.gradle.tasks;
 import org.graalvm.buildtools.gradle.NativeImageService;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
-import org.graalvm.buildtools.gradle.internal.Utils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
@@ -102,7 +101,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Internal
     public Provider<String> getExecutableName() {
-        return Utils.executableNameOf(getOptions().flatMap(NativeImageOptions::getImageName));
+        return getOptions().flatMap(NativeImageOptions::getImageName);
     }
 
     @Internal

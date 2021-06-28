@@ -53,7 +53,7 @@ class GraalVMSupport {
     }
 
     static String getVersion() {
-        (System.getProperty("java.vendor.version", "") - 'GraalVM' - 'CE').trim()
+        (System.getProperty("java.vendor.version", "") - 'GraalVM' - 'CE' - 'EE').trim()
     }
 
     static int getMajorVersion() {

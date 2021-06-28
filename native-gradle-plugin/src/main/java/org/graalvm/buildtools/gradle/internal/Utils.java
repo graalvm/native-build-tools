@@ -40,8 +40,6 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.provider.Provider;
-
 /**
  * Utility class containing various native-image and JVM related methods.
  * Keep this file in sync across all build tool plugins.
@@ -55,9 +53,4 @@ public class Utils {
     public static final String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
     public static final String NATIVE_TESTS_SUFFIX = "-tests";
     public static final String AGENT_FILTER = "agent-filter.json";
-    public static final String PERSIST_CONFIG_PROPERTY = "persistConfig";
-
-    public static Provider<String> executableNameOf(Provider<String> provider) {
-        return provider.map(name -> name + EXECUTABLE_EXTENSION);
-    }
 }
