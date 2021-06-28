@@ -56,7 +56,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.process.ExecOperations;
@@ -89,7 +89,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Internal
     protected abstract DirectoryProperty getWorkingDirectory();
 
-    @OutputFile
+    @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
     @Optional
