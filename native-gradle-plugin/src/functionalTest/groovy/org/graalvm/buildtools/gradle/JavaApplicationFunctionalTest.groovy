@@ -46,9 +46,16 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
         gradleVersion = version
         def nativeApp = file("build/native/nativeBuild/java-application")
+        debug  = true
 
         given:
         withSample("java-application")
+
+        buildFile << """
+            // force realization of the run task to verify that it
+            // doesn't accidentally introduce a dependency
+            tasks.getByName('run')
+        """.stripIndent()
 
         when:
         run 'nativeBuild'
@@ -56,7 +63,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         tasks {
             succeeded ':jar', ':nativeBuild'
-            doesNotContain ':build'
+            doesNotContain ':build', ':run'
         }
 
         and:

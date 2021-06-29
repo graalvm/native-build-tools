@@ -136,8 +136,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Application Plugin is initialized.
         project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin ->
                 tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME, run -> {
-                    Provider<File> cliProvider = configureAgent(project, run, copyAgentFilterTask, agent, buildExtension, run.getName());
-                    buildExtension.getConfigurationFileDirectories().from(cliProvider);
+                    configureAgent(project, run, copyAgentFilterTask, agent, buildExtension, run.getName());
                 }));
 
         // In future Gradle releases this becomes a proper DirectoryProperty
@@ -152,8 +151,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
             test.getOutputs().dir(testResultsDir);
             test.systemProperty("graalvm.testids.outputdir", testListDirectory.getAsFile().get());
-            Provider<File> cliProviderFile = configureAgent(project, test, copyAgentFilterTask, testAgent, testExtension, test.getName());
-            testExtension.getConfigurationFileDirectories().from(cliProviderFile);
+            configureAgent(project, test, copyAgentFilterTask, testAgent, testExtension, test.getName());
         });
 
         // Following ensures that required feature jar is on classpath for every project
@@ -239,7 +237,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         return testExtension;
     }
 
-    private static Provider<File> configureAgent(Project project,
+    private static void configureAgent(Project project,
                                                  JavaForkOptions javaForkOptions,
                                                  TaskProvider<CopyClasspathResourceTask> filterProvider,
                                                  Provider<Boolean> agent,
@@ -252,7 +250,10 @@ public class NativeImagePlugin implements Plugin<Project> {
         javaForkOptions.getJvmArgumentProviders().add(cliProvider);
         // We're "desugaring" the output intentionally to workaround a Gradle bug which absolutely
         // wants the file to track the input but since it's not from a task it would fail
-        return project.getProviders().provider(() -> cliProvider.getOutputDirectory().get().getAsFile());
+        Provider<File> producer = project.getProviders().provider(() -> cliProvider.getOutputDirectory().get().getAsFile());
+        nativeImageOptions.getConfigurationFileDirectories().from(
+                agent.map(enabled -> enabled ? producer.get() : project.files())
+        );
     }
 
     private static void injectTestPluginDependencies(Project project) {
