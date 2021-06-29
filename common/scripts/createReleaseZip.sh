@@ -25,7 +25,7 @@ mkdir -p build
 cd build
 mkdir -p org/graalvm/
 cp -r ~/.m2/repository/org/graalvm/buildtools org/graalvm/buildtools
-find . -name '*.xml' -delete
+find . -name '*.xml*' -delete
 find . -name '*.repositories' -delete
 find . -name '*.properties' -delete
 
