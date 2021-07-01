@@ -31,7 +31,8 @@
    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
    WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.graalvm.buildtools</groupId>
@@ -149,6 +150,43 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <!--
+                This profile is used for interoperability with Gradle.
+                Traditional Maven workflow is to use the .m2 local Maven
+                repository as a bridge between projects. So if a project A
+                depends on B, you have to build B first and publish its
+                artifacts in .m2. This can lead to non-reproducible builds.
+                Instead, all dependent artifacts are built with Gradle,
+                automatically, and published to a local repository which
+                **only** contains the artifacts which are produced by
+                the dependent builds. As a user you don't have to care
+                anymore to publish dependent projects.
+            -->
+            <id>gradle-interop</id>
+            <activation>
+                <property>
+                    <name>common.repo.path</name>
+                </property>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>interop</id>
+                    <url>file://${common.repo.path}</url>
+                    <snapshots>
+                        <updatePolicy>always</updatePolicy>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </repository>
+            </repositories>
+            <properties>
+                <altSnapshotDeploymentRepository>snapshot-repo::default::file://${common.repo.path}</altSnapshotDeploymentRepository>
+                <altReleaseDeploymentRepository>repo::default::file://${common.repo.path}</altReleaseDeploymentRepository>
+            </properties>
         </profile>
     </profiles>
 

@@ -12,3 +12,4 @@ rootProject.name = 'native-gradle-plugin'
 enableFeaturePreview("VERSION_CATALOGS")
 
 includeBuild("../common/junit-platform-native")
+includeBuild("../common/gradle-publishing")
