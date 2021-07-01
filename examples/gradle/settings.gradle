@@ -1,9 +1,9 @@
 pluginManagement {
     repositories {
-        mavenLocal()
         mavenCentral()
         gradlePluginPortal()
     }
 }
 rootProject.name = 'org.graalvm.buildtools.examples.gradle'
 
+enableFeaturePreview("VERSION_CATALOGS")

@@ -29,15 +29,15 @@ jobs:
           echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
-      - name: Build and publish junit-platform-native feature
+      - name: Check and test the plugin
         run: |
-          pushd common/junit-platform-native/
-            ./gradlew publishToMavenLocal
+          pushd native-maven-plugin
+            ./gradlew check
           popd
       - name: Build and install plugin
         run: |
           pushd native-maven-plugin
-            mvn clean install
+            ./gradlew publishToMavenLocal
           popd
       - name: Plugin test (build native)
         run: |
