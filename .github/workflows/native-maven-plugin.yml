@@ -39,6 +39,11 @@ jobs:
           pushd native-maven-plugin
             ./gradlew publishToMavenLocal
           popd
+      - name: Build and install JUnit Native
+        run: |
+          pushd common/junit-platform-native
+            ./gradlew publishToMavenLocal
+          popd
       - name: Plugin test (build native)
         run: |
           pushd examples/maven
