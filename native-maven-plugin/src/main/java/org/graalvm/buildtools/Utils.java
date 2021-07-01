@@ -50,7 +50,6 @@ import java.util.stream.Stream;
 
 /**
  * Utility class containing various native-image and JVM related methods.
- * Keep this file in sync across all build tool plugins.
  */
 public class Utils {
     public static final boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
