@@ -42,8 +42,9 @@ publishing {
 }
 
 val generatePluginDescriptor = tasks.register<GeneratePluginDescriptor>("generatePluginDescriptor") {
+    dependsOn(gradle.includedBuild("utils").task(":publishAllPublicationsToCommonRepository"))
     projectDirectory.set(project.layout.projectDirectory)
-    commonRepository.set(project.layout.projectDirectory.dir("../build/common-repo"));
+    commonRepository.set(gradle.rootLayout.buildDirectory.dir("common-repo"))
     pluginClasses.from(sourceSets.getByName("main").output.classesDirs)
     settingsFile.set(project.layout.projectDirectory.file("config/settings.xml"))
     pomFile.set(tasks.withType<GenerateMavenPom>().named("generatePomFileForMavenPluginPublication").map { pom ->

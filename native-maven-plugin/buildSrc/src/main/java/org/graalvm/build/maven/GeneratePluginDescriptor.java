@@ -88,7 +88,7 @@ public abstract class GeneratePluginDescriptor extends DefaultTask {
             spec.systemProperty("common.repo.uri", getCommonRepository().getAsFile().get().toURI().toString());
             spec.args(
                     "--errors",
-                    "-X",
+                    "-U",
                     "--batch-mode",
                     "--settings", settingsFile.getAbsolutePath(),
                     "--file", new File(tmpDir, pomFile.getName()),
