@@ -53,7 +53,10 @@ import org.graalvm.buildtools.VersionInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,6 +80,9 @@ public class NativeTestMojo extends AbstractNativeMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skipTests) {
             logger.info("Tests are skipped.");
+            return;
+        }
+        if (!hasTests()) {
             return;
         }
 
@@ -103,6 +109,18 @@ public class NativeTestMojo extends AbstractNativeMojo {
         buildImage(classpath, targetFolder);
 
         runTests(targetFolder);
+    }
+
+    private boolean hasTests() {
+        Path testOutputPath = Paths.get(project.getBuild().getTestOutputDirectory());
+        if (Files.exists(testOutputPath) && Files.isDirectory(testOutputPath)) {
+            try (DirectoryStream<Path> directory = Files.newDirectoryStream(testOutputPath)) {
+                return directory.iterator().hasNext();
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+        return false;
     }
 
     private void buildImage(String classpath, Path targetFolder) throws MojoExecutionException {
