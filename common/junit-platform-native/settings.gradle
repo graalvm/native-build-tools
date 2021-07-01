@@ -1,1 +1,3 @@
 rootProject.name = 'junit-platform-native'
+
+includeBuild "../gradle-publishing"
