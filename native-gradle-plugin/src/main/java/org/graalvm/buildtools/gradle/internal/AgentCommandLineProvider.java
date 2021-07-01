@@ -38,43 +38,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.tasks;
+package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.plugins.ApplicationPlugin;
-import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.process.ExecOperations;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
 
-@SuppressWarnings("unused")
-public abstract class NativeRunTask extends DefaultTask {
-    public static final String TASK_NAME = "nativeRun";
-
-    @InputFile
-    public abstract RegularFileProperty getImage();
-
-    @Input
-    public abstract ListProperty<String> getRuntimeArgs();
+public abstract class AgentCommandLineProvider implements CommandLineArgumentProvider {
 
     @Inject
-    protected abstract ExecOperations getExecOperations();
+    @SuppressWarnings("checkstyle:redundantmodifier")
+    public AgentCommandLineProvider() {
 
-    public NativeRunTask() {
-
-        setDescription("Runs this project as a native-image application");
-        setGroup(ApplicationPlugin.APPLICATION_GROUP);
     }
 
-    @TaskAction
-    public void exec() {
-        getExecOperations().exec(spec -> {
-            spec.setExecutable(getImage().get().getAsFile().getAbsolutePath());
-            spec.args(getRuntimeArgs().get());
-        });
+    @Input
+    public abstract Property<Boolean> getEnabled();
+
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getAccessFilter();
+
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDirectory();
+
+    @Override
+    public Iterable<String> asArguments() {
+        if (getEnabled().get()) {
+            return Arrays.asList(
+                    "-agentlib:native-image-agent=experimental-class-loader-support," +
+                            "config-output-dir=" + getOutputDirectory().getAsFile().get().getAbsolutePath() + "," +
+                            "access-filter-file=" + getAccessFilter().getAsFile().get().getAbsolutePath(),
+                    "-Dorg.graalvm.nativeimage.imagecode=agent"
+            );
+        }
+        return Collections.emptyList();
     }
 }

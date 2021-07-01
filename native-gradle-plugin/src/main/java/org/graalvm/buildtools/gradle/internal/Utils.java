@@ -38,55 +38,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle;
-
-import org.graalvm.buildtools.Utils;
-import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
+package org.graalvm.buildtools.gradle.internal;
 
 /**
- * Utility class containing various gradle related methods.
+ * Utility class containing various native-image and JVM related methods.
+ * Keep this file in sync across all build tool plugins.
  */
-@SuppressWarnings("unused")
-public class GradleUtils {
-
-    public static final List<String> DEPENDENT_CONFIGURATIONS = Arrays.asList(
-            JavaPlugin.API_CONFIGURATION_NAME,
-            JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME,
-            JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean hasTestClasses(Project project) {
-        FileCollection testClasspath = getSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs();
-        return testClasspath.getFiles().stream().anyMatch(File::exists);
-    }
-
-    public static SourceSet getSourceSet(Project project, String sourceSetName) {
-        SourceSetContainer sourceSetContainer = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-        return sourceSetContainer.findByName(sourceSetName);
-    }
-
-    public static FileCollection getClassPath(Project project) {
-        FileCollection main = getClassPath(project, SourceSet.MAIN_SOURCE_SET_NAME);
-        FileCollection test = getClassPath(project, SourceSet.TEST_SOURCE_SET_NAME);
-        return main.plus(test);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    public static FileCollection getClassPath(Project project, String sourceSetName) {
-        return getSourceSet(project, sourceSetName).getRuntimeClasspath();
-    }
-
-    public static Path getTargetDir(Project project) {
-        return project.getBuildDir().toPath().resolve(Utils.NATIVE_IMAGE_OUTPUT_FOLDER);
-    }
+public class Utils {
+    private static final boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
+    private static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
+    public static final String NATIVE_IMAGE_EXE = "native-image" + EXECUTABLE_EXTENSION;
+    public static final String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
+    public static final String AGENT_PROPERTY = "agent";
+    public static final String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
+    public static final String NATIVE_TESTS_SUFFIX = "-tests";
+    public static final String AGENT_FILTER = "agent-filter.json";
 }

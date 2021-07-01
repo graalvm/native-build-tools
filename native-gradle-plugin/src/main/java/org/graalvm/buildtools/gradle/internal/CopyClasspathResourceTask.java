@@ -38,45 +38,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.dsl;
+package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.buildtools.Utils;
-import org.gradle.api.Project;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.TaskAction;
 
-import javax.annotation.Nullable;
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Objects;
 
-public class JUnitPlatformOptions extends NativeImageOptions {
-    public static final String EXTENSION_NAME = "nativeTest";
+/**
+ * This task is for internal use only, its responsibility is to
+ * generate a filter config file which is used by native image.
+ */
+public abstract class CopyClasspathResourceTask extends DefaultTask {
+    @Input
+    public abstract Property<String> getClasspathResource();
 
+    @OutputFile
+    public abstract RegularFileProperty getOutputFile();
 
-    @SuppressWarnings("UnstableApiUsage")
-    public JUnitPlatformOptions(ObjectFactory objectFactory) {
-        super(objectFactory);
-        super.setMainClass("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-        super.setImageName(Utils.NATIVE_TESTS_EXE);
-        super.runtimeArgs("--xml-output-dir", Paths.get("test-results").resolve("test-native"));
-    }
-
-    public static JUnitPlatformOptions register(Project project) {
-        return project.getExtensions().create(EXTENSION_NAME, JUnitPlatformOptions.class, project.getObjects());
-    }
-
-    @Override
-    public NativeImageOptions setMainClass(@Nullable String main) {
-        throw new IllegalStateException("Main class for test task cannot be changed");
-    }
-
-    @Override
-    public NativeImageOptions setImageName(@Nullable String image) {
-        throw new IllegalStateException("Image name for test task cannot be changed");
-    }
-
-    @Override
-    public void configure(Project project) {
-        buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
-        super.configure(project, SourceSet.TEST_SOURCE_SET_NAME);
+    @TaskAction
+    public void copy() {
+        File outputFile = getOutputFile().getAsFile().get();
+        File directory = outputFile.getParentFile();
+        String resource = getClasspathResource().get();
+        if (directory.isDirectory() || directory.mkdirs()) {
+            try {
+                Files.copy(Objects.requireNonNull(this.getClass().getResourceAsStream(resource)),
+                        outputFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException | NullPointerException e) {
+                throw new GradleException("Error while copying access-filter file.", e);
+            }
+        }
     }
 }

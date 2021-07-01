@@ -15,8 +15,9 @@
     <module name="LineLength">
         <property name="max" value="250"/>
     </module>
+    <module name="SuppressWarningsFilter" />
     <module name="TreeWalker">
-
+        <module name="SuppressWarningsHolder" />
         <!-- Disallows direct calls to "AnnotatedElement.get(Declared)Annotation(s)". This check can yield false positives,
         i.e., it will match any ".get(Declared)Annotation(s)" calls that are not preceded by "GuardedAnnotationAccess"
         since checkstyle relies only on pattern matching and it cannot determine the type of the call's receiver object. -->

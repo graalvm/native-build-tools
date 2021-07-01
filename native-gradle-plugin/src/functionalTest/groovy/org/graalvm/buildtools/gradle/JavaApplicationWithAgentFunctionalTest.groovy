@@ -41,41 +41,76 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
+import spock.lang.Requires
+import spock.lang.Unroll
 
-class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
-    def "can build a native image for a simple application"() {
+@Requires({
+    GraalVMSupport.isGraal()
+        && GraalVMSupport.majorVersion >= 21
+        && GraalVMSupport.minorVersion > 0
+})
+class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
+
+    @Unroll("agent is passed and generates resources files on Gradle #version with JUnit Platform #junitVersion")
+    def "agent is passed"() {
         gradleVersion = version
-        def nativeApp = file("build/native/nativeBuild/java-application")
-        debug  = true
-
+        debug = true
         given:
-        withSample("java-application")
-
-        buildFile << """
-            // force realization of the run task to verify that it
-            // doesn't accidentally introduce a dependency
-            tasks.getByName('run')
-        """.stripIndent()
+        withSample("java-application-with-reflection")
 
         when:
-        run 'nativeBuild'
+        run 'nativeTest'
 
         then:
         tasks {
-            succeeded ':jar', ':nativeBuild'
-            doesNotContain ':build', ':run'
+            succeeded ':jar',
+                    ':copyAgentFilter',
+                    ':nativeTest'
+            doesNotContain ':build'
         }
 
-        and:
-        nativeApp.exists()
-
-        when:
-        def process = execute(nativeApp)
-
         then:
-        process.output.contains "Hello, native!"
+        outputContains """
+[         4 containers found      ]
+[         0 containers skipped    ]
+[         4 containers started    ]
+[         0 containers aborted    ]
+[         4 containers successful ]
+[         0 containers failed     ]
+[         7 tests found           ]
+[         0 tests skipped         ]
+[         7 tests started         ]
+[         0 tests aborted         ]
+[         7 tests successful      ]
+[         0 tests failed          ]
+""".trim()
+
+        and:
+        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
+            assert file("build/native/agent-output/test/${name}-config.json").exists()
+        }
 
         where:
         version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Unroll("agent property takes precedence on Gradle #version with JUnit Platform #junitVersion")
+    def "agent property takes precedence"() {
+        gradleVersion = version
+        debug = true
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        fails 'nativeTest', '-Pagent=false'
+
+        then:
+        outputContains """org.graalvm.demo.ApplicationTest > message is hello native FAILED"""
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
     }
 }

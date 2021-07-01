@@ -38,47 +38,67 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.fixtures
+package org.graalvm.buildtools.gradle
 
-import groovy.transform.CompileStatic
+import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.graalvm.buildtools.gradle.fixtures.TestResults
+import spock.lang.Unroll
 
-@CompileStatic
-class ProcessController {
-    private final File executablePath
-    private final File workingDir
+class KotlinApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 
-    private final StringWriter out = new StringWriter()
-    private final StringWriter err = new StringWriter()
+    @Unroll("can execute Kotlin tests in a native image directly on Gradle #version with JUnit Platform #junitVersion")
+    def "can execute Kotlin tests in a native image directly"() {
+        gradleVersion = version
+        debug = true
+        given:
+        withSample("kotlin-application-with-tests")
 
-    ProcessController(File executablePath, File workingDir) {
-        this.executablePath = executablePath
-        this.workingDir = workingDir
-    }
+        when:
+        run 'nativeTest'
 
-    ProcessController execute() {
-        def process = new ProcessBuilder(executablePath.absolutePath)
-            .directory(workingDir)
-            .start()
-        TeeWriter.of(
-                new OutputStreamWriter(System.out),
-                out
-        ).withCloseable {outWriter ->
-            TeeWriter.of(
-                    new OutputStreamWriter(System.err),
-                    err
-            ).withCloseable {errWriter ->
-                process.waitForProcessOutput(outWriter, errWriter)
-            }
+        then:
+        tasks {
+            succeeded ':compileTestKotlin',
+                    ':nativeTestBuild',
+                    ':test',
+                    ':nativeTest'
+            doesNotContain ':build'
         }
 
-        this
-    }
+        then:
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "Running in 'test listener' mode."
 
-    String getOutput() {
-        out.toString()
-    }
+        outputContains 'ktest.AppTest > testAppHasAGreeting() SUCCESSFUL'
+        outputContains """
+[         2 containers found      ]
+[         0 containers skipped    ]
+[         2 containers started    ]
+[         0 containers aborted    ]
+[         2 containers successful ]
+[         0 containers failed     ]
+[         1 tests found           ]
+[         0 tests skipped         ]
+[         1 tests started         ]
+[         0 tests aborted         ]
+[         1 tests successful      ]
+[         0 tests failed          ]
+""".trim()
 
-    String getErrorOutput() {
-        err.toString()
+        and:
+        def results = TestResults.from(file("build/test-results/test/TEST-ktest.AppTest.xml"))
+        def nativeResults = TestResults.from(file("build/test-results/test-native/TEST-junit-jupiter.xml"))
+
+        results == nativeResults
+        results.with {
+            tests == 1
+            failures == 0
+            skipped == 0
+            errors == 0
+        }
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
     }
 }

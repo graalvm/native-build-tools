@@ -131,6 +131,10 @@ abstract class AbstractFunctionalTest extends Specification {
         assert output.contains(text)
     }
 
+    void outputDoesNotContain(String text) {
+        assert !output.contains(text)
+    }
+
     void errorOutputContains(String text) {
         assert errorOutput.contains(text)
     }
@@ -151,12 +155,13 @@ abstract class AbstractFunctionalTest extends Specification {
         assertInitScript()
         outputWriter = new StringWriter()
         errorOutputWriter = new StringWriter()
+        ArrayList<String> autoArgs = computeAutoArgs()
         def runner = GradleRunner.create()
                 .forwardStdOutput(tee(new OutputStreamWriter(System.out), outputWriter))
                 .forwardStdError(tee(new OutputStreamWriter(System.err), errorOutputWriter))
                 .withPluginClasspath()
                 .withProjectDir(testDirectory.toFile())
-                .withArguments(["-S", "-I", initScript.getAbsolutePath(), *args])
+                .withArguments([*autoArgs, *args])
         if (gradleVersion) {
             runner.withGradleVersion(gradleVersion)
         }
@@ -164,6 +169,18 @@ abstract class AbstractFunctionalTest extends Specification {
             runner.withDebug(true)
         }
         runner
+    }
+
+    private ArrayList<String> computeAutoArgs() {
+        List<String> autoArgs = [
+                "-S",
+        ]
+        if (Boolean.getBoolean("config.cache")) {
+            autoArgs << '--configuration-cache'
+        }
+        autoArgs << "-I"
+        autoArgs << initScript.getAbsolutePath()
+        autoArgs
     }
 
     private static Writer tee(Writer one, Writer two) {
@@ -180,7 +197,8 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     ProcessController execute(File executablePath) {
-        new ProcessController(executablePath).execute()
+        new ProcessController(executablePath, file("build"))
+                .execute()
     }
 
     private void assertInitScript() {
@@ -189,7 +207,7 @@ abstract class AbstractFunctionalTest extends Specification {
             allprojects {
                 repositories {
                     maven {
-                        url = "\${System.getProperty('common.repo.url')}"
+                        url = "\${providers.systemProperty('common.repo.url').forUseAtConfigurationTime().get()}"
                     }
                     mavenCentral()
                 }

@@ -67,6 +67,8 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class UniqueIdTrackingTestExecutionListener implements TestExecutionListener {
 
+    private static final String OUTPUT_DIR_SYSTEM_PROPERTY = "graalvm.testids.outputdir";
+
     static final String FILE_NAME = "test_ids.txt";
 
     private final List<String> uniqueIds = new ArrayList<>();
@@ -105,11 +107,17 @@ public class UniqueIdTrackingTestExecutionListener implements TestExecutionListe
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static File getFile() {
 
-        File buildDir;
+        File buildDir = null;
 
-        if (new File("pom.xml").exists()) {
+        String buildDirProp = System.getProperty(OUTPUT_DIR_SYSTEM_PROPERTY, null);
+        if (buildDirProp != null) {
+            buildDir = new File(buildDirProp);
+        }
+
+        if (buildDir == null && new File("pom.xml").exists()) {
             buildDir = new File("target");
-        } else {
+        }
+        if (buildDir == null) {
             buildDir = new File("build");
         }
 

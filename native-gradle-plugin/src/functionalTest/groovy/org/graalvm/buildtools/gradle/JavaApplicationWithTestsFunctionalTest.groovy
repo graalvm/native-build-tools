@@ -48,7 +48,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute tests in a native image on Gradle #version with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {
         gradleVersion = version
-        def nativeTestsApp = file("build/native/native-tests")
+        def nativeTestsApp = file("build/native/nativeTestBuild/java-application-tests")
 
         given:
         withSample("java-application-with-tests")
@@ -61,6 +61,8 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
             succeeded ':testClasses', ':nativeTestBuild'
             // doesNotContain ':build'
         }
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "Running in 'test listener' mode."
 
         and:
         nativeTestsApp.exists()
@@ -109,6 +111,9 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         }
 
         then:
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "Running in 'test listener' mode."
+
         outputContains """
 [         3 containers found      ]
 [         0 containers skipped    ]
