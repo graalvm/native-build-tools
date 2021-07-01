@@ -28,7 +28,11 @@ buildNumber.properties
 ## Gradle
 ##############################
 bin/
-build/
+/build
+/*/build
+/*/*/build
+/*/*/*/build
+/*/*/*/*/build
 .gradle
 .gradletasknamecache
 gradle-app.setting
@@ -65,7 +69,6 @@ local.properties
 ## NetBeans
 ##############################
 nbproject/private/
-build/
 nbbuild/
 dist/
 nbdist/
