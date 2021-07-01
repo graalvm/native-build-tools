@@ -6,6 +6,6 @@ plugins {
     id("org.graalvm.build.common")
 }
 
-rootProject.name = 'native-gradle-plugin'
+rootProject.name = "native-maven-plugin"
 
 includeBuild("../common/junit-platform-native")

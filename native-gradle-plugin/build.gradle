@@ -1,21 +1,16 @@
 plugins {
     id 'java-gradle-plugin'
     id 'checkstyle'
-    id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.15.0'
     id 'java-test-fixtures'
+    id 'org.graalvm.build.java'
     id 'org.graalvm.build.functional-testing'
-    id 'org.graalvm.build.interop.publishing'
+    id 'org.graalvm.build.publishing'
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
-    }
-}
-
-repositories {
-    mavenCentral()
+maven {
+    name.set("GraalVM Native Gradle Plugin")
+    description.set("Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code)")
 }
 
 dependencies {
@@ -37,63 +32,10 @@ gradlePlugin {
         nativeImage {
             id = 'org.graalvm.buildtools.native'
             implementationClass = 'org.graalvm.buildtools.gradle.NativeImagePlugin'
-            displayName = 'GraalVM Native Gradle Plugin'
-            description = 'Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code).'
+            displayName = maven.name.get()
+            description = maven.description.get()
         }
     }
-}
-
-group = 'org.graalvm.buildtools'
-version = native_gradle_plugin_version
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-publishing {
-    publications {
-        withType(MavenPublication) {
-            pom {
-                name = rootProject.name
-                groupId = rootProject.group
-                artifactId = rootProject.name
-                description = 'Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code).'
-                url = 'https://github.com/graalvm/native-build-tools'
-
-                licenses {
-                    license {
-                        name = 'Universal Permissive License Version 1.0'
-                        url = 'http://oss.oracle.com/licenses/upl'
-                    }
-                }
-
-                developers {
-                    developer {
-                        name = 'SubstrateVM developers'
-                        email = 'graal-dev@openjdk.java.net'
-                        organization = 'Graal'
-                        organizationUrl = 'http://openjdk.java.net/projects/graal'
-                    }
-                }
-
-                scm {
-                    connection = 'scm:git:git://github.com/graalvm/native-build-tools.git'
-                    developerConnection = 'scm:git:ssh://github.com:graalvm/native-build-tools.git'
-                    url = 'https://github.com/graalvm/native-build-tools/tree/master'
-                }
-            }
-        }
-    }
-}
-
-javadoc {
-    // Use a different toolchain version from the compilation
-    // so that we can generate HTML5 docs
-    javadocTool = javaToolchains.javadocToolFor {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
-    options.addBooleanOption('html5', true)
 }
 
 components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) {

@@ -15,11 +15,12 @@ repositories {
 }
 
 dependencies {
+    testImplementation(platform(libs.test.junit.bom))
     // Use JUnit Jupiter API for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:' + junit_jupiter_version
+    testImplementation libs.test.junit.jupiter.api
 
     // Use JUnit Jupiter Engine for testing.
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:' + junit_jupiter_version
+    testRuntimeOnly libs.test.junit.jupiter.engine
 }
 
 application {

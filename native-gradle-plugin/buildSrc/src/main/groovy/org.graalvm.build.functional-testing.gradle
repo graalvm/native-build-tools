@@ -84,7 +84,7 @@ def graalVm = javaToolchains.launcherFor {
         inputs.files(files("src/samples"))
         inputs.files(configurations.functionalTestCommonRepository)
         systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
-        systemProperty('versions.junit', project.properties.junit_jupiter_version)
+        systemProperty('versions.junit', libs.versions.junitJupiter.get())
         environment('GRAALVM_HOME', graalVm.forUseAtConfigurationTime().get().metadata.installationPath.asFile.absolutePath)
         testClassesDirs = sourceSets.functionalTest.output.classesDirs
         classpath = sourceSets.functionalTest.runtimeClasspath

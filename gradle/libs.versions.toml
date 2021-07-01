@@ -1,0 +1,43 @@
+[versions]
+# Project versions
+junitPlatformNative = "0.9.2-SNAPSHOT"
+nativeGradlePlugin = "0.9.2-SNAPSHOT"
+nativeMavenPlugin = "0.9.2-SNAPSHOT"
+
+# External dependencies
+spock = "2.0-groovy-3.0"
+maven = "3.3.9"
+mavenAnnotations = "3.5.1"
+mavenEmbedder = "3.8.1"
+mavenWagon = "3.4.3"
+graalvm = "21.1.0"
+junitPlatform = "1.7.2"
+junitJupiter = "5.7.2"
+aether = "1.1.0"
+slf4j = "1.7.9"
+
+[libraries]
+junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version.ref = "junitPlatformNative" }
+test-junit-platform-console = { module = "org.junit.platform:junit-platform-console", version.ref = "junitPlatform"}
+test-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform"}
+test-junit-bom = { module = "org.junit:junit-bom", version.ref = "junitJupiter"}
+test-junit-jupiter-core = { module = "org.junit.jupiter:junit-jupiter", version = ""}
+test-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version = ""}
+test-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version = ""}
+test-junit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version = ""}
+test-spock = { module = "org.spockframework:spock-core", version.ref = "spock" }
+
+graalvm-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graalvm"}
+
+maven-pluginApi = { module = "org.apache.maven:maven-plugin-api", version.ref = "maven" }
+maven-pluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version.ref = "mavenAnnotations" }
+maven-core = { module = "org.apache.maven:maven-core", version.ref = "maven" }
+maven-artifact = { module = "org.apache.maven:maven-artifact", version.ref = "maven" }
+maven-compat = { module = "org.apache.maven:maven-compat", version.ref = "maven" }
+maven-embedder = { module = "org.apache.maven:maven-embedder", version.ref = "mavenEmbedder" }
+maven-aether-connector = { module = "org.eclipse.aether:aether-connector-basic" , version.ref = "aether" }
+maven-aether-wagon = { module = "org.eclipse.aether:aether-transport-wagon" , version.ref = "aether" }
+maven-wagon-http = { module = "org.apache.maven.wagon:wagon-http", version.ref = "mavenWagon" }
+maven-wagon-provider = { module = "org.apache.maven.wagon:wagon-provider-api", version.ref = "mavenWagon" }
+
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }

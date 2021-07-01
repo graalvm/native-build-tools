@@ -1,85 +1,39 @@
 plugins {
     id 'java-library'
     id 'checkstyle'
-    id 'maven-publish'
     id 'signing'
-    id 'org.graalvm.build.interop.publishing'
+    id 'org.graalvm.build.java'
+    id 'org.graalvm.build.publishing'
 }
 
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+maven {
+    name = "JUnit Platform Native"
+    description = 'JUnit Platform support for GraalVM Native Image'
 }
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 dependencies {
-    compileOnly group: 'org.graalvm.nativeimage', name: 'svm', version: org_graalvm_version
-    implementation group: 'org.junit.platform', name: 'junit-platform-console', version: junit_platform_version
-    implementation group: 'org.junit.platform', name: 'junit-platform-launcher', version: junit_platform_version
-    implementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: junit_jupiter_version
-    testImplementation(platform('org.junit:junit-bom:' + junit_jupiter_version))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testImplementation('org.junit.vintage:junit-vintage-engine')
+    compileOnly libs.graalvm.svm
+    implementation(platform(libs.test.junit.bom))
+    implementation libs.test.junit.platform.console
+    implementation libs.test.junit.platform.launcher
+    implementation libs.test.junit.jupiter.core
+    testImplementation libs.test.junit.vintage
 }
 
 apply from: "gradle/native-image-testing.gradle"
-
-clean.doLast {
-    delete "${buildDir}/*"
-}
 
 test {
     useJUnitPlatform()
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
     testLogging {
         events "standardOut", "passed", "skipped", "failed"
     }
 }
 
-group = 'org.graalvm.buildtools'
-version = junit_platform_native_version
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            pom {
-                name = rootProject.name
-                description = 'JUnit Platform support for GraalVM Native Image'
-                url = 'https://github.com/graalvm/native-build-tools'
-
-                licenses {
-                    license {
-                        name = 'Universal Permissive License Version 1.0'
-                        url = 'http://oss.oracle.com/licenses/upl'
-                    }
-                }
-
-                developers {
-                    developer {
-                        name = 'SubstrateVM developers'
-                        email = 'graal-dev@openjdk.java.net'
-                        organization = 'Graal'
-                        organizationUrl = 'http://openjdk.java.net/projects/graal'
-                    }
-                }
-
-                scm {
-                    connection = 'scm:git:git://github.com/graalvm/native-build-tools.git'
-                    developerConnection = 'scm:git:ssh://github.com:graalvm/native-build-tools.git'
-                    url = 'https://github.com/graalvm/native-build-tools/tree/master'
-                }
-            }
             from components.java
         }
     }
@@ -88,10 +42,4 @@ publishing {
 signing {
     required { gradle.taskGraph.hasTask("publish") }
     sign publishing.publications.mavenJava
-}
-
-javadoc {
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
 }
