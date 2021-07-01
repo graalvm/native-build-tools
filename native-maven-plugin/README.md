@@ -142,7 +142,7 @@ In this case, the arguments that will be passed to the `native-image` executable
 This plugin follows standard maven plugin conventions and as such can be built as:
 
 ```shell
-mvn build install
+./gradlew publishAllPublicationsToCommonRepository
 ```
 
 *You can also take a look at CI workflow [here](../.github/workflows/native-maven-plugin.yml).*
