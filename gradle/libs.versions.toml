@@ -3,6 +3,7 @@
 junitPlatformNative = "0.9.2-SNAPSHOT"
 nativeGradlePlugin = "0.9.2-SNAPSHOT"
 nativeMavenPlugin = "0.9.2-SNAPSHOT"
+utils = "0.9.2-SNAPSHOT"
 
 # External dependencies
 spock = "2.0-groovy-3.0"
@@ -17,7 +18,11 @@ aether = "1.1.0"
 slf4j = "1.7.9"
 
 [libraries]
+# Local projects
 junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version.ref = "junitPlatformNative" }
+utils = { module = "org.graalvm.buildtools:utils", version.ref = "utils" }
+
+# External dependencies
 test-junit-platform-console = { module = "org.junit.platform:junit-platform-console", version.ref = "junitPlatform"}
 test-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junitPlatform"}
 test-junit-bom = { module = "org.junit:junit-bom", version.ref = "junitJupiter"}
@@ -37,6 +42,7 @@ maven-compat = { module = "org.apache.maven:maven-compat", version.ref = "maven"
 maven-embedder = { module = "org.apache.maven:maven-embedder", version.ref = "mavenEmbedder" }
 maven-aether-connector = { module = "org.eclipse.aether:aether-connector-basic" , version.ref = "aether" }
 maven-aether-wagon = { module = "org.eclipse.aether:aether-transport-wagon" , version.ref = "aether" }
+maven-wagon-file = { module = "org.apache.maven.wagon:wagon-file", version.ref = "mavenWagon" }
 maven-wagon-http = { module = "org.apache.maven.wagon:wagon-http", version.ref = "mavenWagon" }
 maven-wagon-provider = { module = "org.apache.maven.wagon:wagon-provider-api", version.ref = "mavenWagon" }
 

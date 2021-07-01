@@ -14,6 +14,7 @@ maven {
 val mavenEmbedder by configurations.creating
 
 dependencies {
+    implementation(libs.utils)
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
     compileOnly(libs.maven.artifact)
@@ -23,6 +24,7 @@ dependencies {
     mavenEmbedder(libs.maven.aether.connector)
     mavenEmbedder(libs.maven.aether.wagon)
     mavenEmbedder(libs.maven.wagon.http)
+    mavenEmbedder(libs.maven.wagon.file)
     mavenEmbedder(libs.maven.wagon.provider)
     mavenEmbedder(libs.maven.compat)
     mavenEmbedder(libs.slf4j.simple)
@@ -41,6 +43,7 @@ publishing {
 
 val generatePluginDescriptor = tasks.register<GeneratePluginDescriptor>("generatePluginDescriptor") {
     projectDirectory.set(project.layout.projectDirectory)
+    commonRepository.set(project.layout.projectDirectory.dir("../build/common-repo"));
     pluginClasses.from(sourceSets.getByName("main").output.classesDirs)
     settingsFile.set(project.layout.projectDirectory.file("config/settings.xml"))
     pomFile.set(tasks.withType<GenerateMavenPom>().named("generatePomFileForMavenPluginPublication").map { pom ->
