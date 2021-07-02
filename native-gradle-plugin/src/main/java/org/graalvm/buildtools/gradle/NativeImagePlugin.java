@@ -100,6 +100,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private GraalVMLogger logger;
 
+    @Override
     public void apply(Project project) {
         Provider<NativeImageService> nativeImageServiceProvider = NativeImageService.registerOn(project);
 
@@ -114,9 +115,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         logger.log("Initializing project: " + project.getName());
         logger.log("====================");
 
-        // Add DSL extensions for building and testing
+        // Add DSL extension for building
         NativeImageOptions buildExtension = createMainExtension(project);
-        NativeImageOptions testExtension = createTestExtension(project, buildExtension);
 
         project.getPlugins().withId("application", p -> buildExtension.getMainClass().convention(
                 project.getExtensions().findByType(JavaApplication.class).getMainClass()
@@ -144,11 +144,16 @@ public class NativeImagePlugin implements Plugin<Project> {
             runTask.configure(run -> configureAgent(project, agent, buildExtension, runTask, processAgentFiles));
         });
 
+
+        // Testing part begins here. -------------------------------------------
+
         // In future Gradle releases this becomes a proper DirectoryProperty
         File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
         DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
 
-        // Testing part begins here.
+        // Add DSL extension for testing
+        NativeImageOptions testExtension = createTestExtension(project, buildExtension, testResultsDir);
+
         TaskCollection<Test> testTask = findTestTask(project);
         Provider<Boolean> testAgent = agentPropertyOverride(project, testExtension);
         TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_TEST_RESOURCES_TASK_NAME);
@@ -156,7 +161,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         testTask.configureEach(test -> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
             test.getOutputs().dir(testResultsDir);
-            test.systemProperty("graalvm.testids.outputdir", testListDirectory.getAsFile().get());
+            // Set system property read by the UniqueIdTrackingListener.
+            test.systemProperty("junit.platform.listeners.uid.tracking.output.dir", testListDirectory.getAsFile().get());
             configureAgent(project, testAgent, testExtension, testTask.named(test.getName()), processAgentTestFiles);
         });
 
@@ -226,7 +232,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         return buildExtension;
     }
 
-    private static NativeImageOptions createTestExtension(Project project, NativeImageOptions mainExtension) {
+    private static NativeImageOptions createTestExtension(Project project, NativeImageOptions mainExtension, File testResultsDir) {
         NativeImageOptions testExtension = NativeImageOptions.register(project, NATIVE_TEST_EXTENSION);
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
@@ -235,6 +241,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         runtimeArgs.add("--xml-output-dir");
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/test-native").map(d -> d.getAsFile().getAbsolutePath()));
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+        // Set system property read indirectly by the JUnitPlatformFeature.
+        testExtension.buildArgs("-Djunit.platform.listeners.uid.tracking.output.dir=" + testResultsDir.getAbsolutePath());
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(GradleUtils.findMainArtifacts(project));
         classpath.from(GradleUtils.findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));

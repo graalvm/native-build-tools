@@ -62,7 +62,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
             // doesNotContain ':build'
         }
         outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
-        outputContains "Running in 'test listener' mode."
+        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
 
         and:
         nativeTestsApp.exists()
@@ -112,7 +112,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 
         then:
         outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
-        outputContains "Running in 'test listener' mode."
+        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
 
         outputContains """
 [         3 containers found      ]
