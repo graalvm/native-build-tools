@@ -94,8 +94,11 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
                 *injectedSystemProperties,
                 *args
         )
-        System.out.println(result.stdOut)
-        System.err.println(result.stdErr)
+        System.out.println("Exit code is ${result.exitCode}")
+    }
+
+    boolean isDidNotCrash() {
+        return result.exitCode <= 1
     }
 
     boolean isBuildSucceeded() {
