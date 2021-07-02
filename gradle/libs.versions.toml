@@ -16,6 +16,7 @@ junitPlatform = "1.7.2"
 junitJupiter = "5.7.2"
 aether = "1.1.0"
 slf4j = "1.7.9"
+testContainers = "1.15.3"
 
 [libraries]
 # Local projects
@@ -31,6 +32,9 @@ test-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", versi
 test-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version = ""}
 test-junit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version = ""}
 test-spock = { module = "org.spockframework:spock-core", version.ref = "spock" }
+test-testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref="testContainers" }
+test-testcontainers-core = { module = "org.testcontainers:testcontainers", version="" }
+test-testcontainers-spock = { module = "org.testcontainers:spock", version="" }
 
 graalvm-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graalvm"}
 
