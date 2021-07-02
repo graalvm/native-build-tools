@@ -1,8 +1,5 @@
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
-
 /*
- * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,6 +38,9 @@ import org.gradle.api.invocation.Gradle
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+import org.gradle.api.Project
+import org.gradle.api.invocation.Gradle
 
 val Gradle.rootGradle: Gradle
     get() {
