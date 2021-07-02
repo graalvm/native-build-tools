@@ -114,7 +114,7 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     protected void withSample(String name) {
-        File sampleDir = new File("src/samples/$name")
+        File sampleDir = new File("../samples/$name")
         GFileUtils.copyDirectory(sampleDir, testDirectory.toFile())
     }
 

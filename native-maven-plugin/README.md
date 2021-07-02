@@ -53,7 +53,7 @@ The plugin figures out which JAR files it needs to pass to the native image and
 what the executable main class should be. If the heuristics fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
 specified in the `<configuration>` node of the plugin. When `mvn -Pnative package` completes, an executable is ready for use, generated in the _target_ directory of the project.
 
-*You can also take a look at example project [here](../examples/maven).*
+*You can also take a look at example project [here](../samples/maven).*
 
 ### JUnit Testing support
 In order to use the recommended test listener mode, you need to add following dependency:

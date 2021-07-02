@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - 'native-maven-plugin/**'
-      - 'examples/maven/**'
+      - 'samples/**'
       - 'common/**'
   pull_request:
     paths:
       - 'native-maven-plugin/**'
-      - 'examples/maven/**'
+      - 'samples/**'
       - 'common/**'
   workflow_dispatch: [ ]
 
@@ -33,30 +33,4 @@ jobs:
         run: |
           pushd native-maven-plugin
             ./gradlew check
-          popd
-      - name: Build and install plugin
-        run: |
-          pushd native-maven-plugin
-            ./gradlew publishToMavenLocal
-          popd
-      - name: Build and install JUnit Native
-        run: |
-          pushd common/junit-platform-native
-            ./gradlew publishToMavenLocal
-          popd
-      - name: Plugin test (build native)
-        run: |
-          pushd examples/maven
-            echo "JVM run"
-            mvn compile exec:java@java
-            echo "Native run"
-            mvn -Pnative -DskipTests package exec:exec@native
-          popd
-      - name: Plugin test (test native)
-        run: |
-          pushd examples/maven
-            echo "JVM run"
-            mvn test
-            echo "Native run"
-            mvn -Pnative test
           popd
