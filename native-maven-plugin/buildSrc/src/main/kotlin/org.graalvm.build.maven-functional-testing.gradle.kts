@@ -1,6 +1,3 @@
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
-
 /*
  * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -42,21 +39,44 @@ import org.gradle.api.invocation.Gradle
  * SOFTWARE.
  */
 
-val Gradle.rootGradle: Gradle
-    get() {
-        var cur = this
-        while (cur.parent != null) {
-            cur = cur.parent!!
-        }
-        return cur
+plugins {
+    groovy
+}
+
+val functionalTest by sourceSets.creating
+
+val functionalTestCommonRepository by configurations.creating {
+    // This configuration will trigger the composite build
+    // which builds the JUnit native library, and publish it to a repository
+    // which can then be injected into tests
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("repository"))
     }
+}
 
-val Gradle.rootLayout
-    get() = rootGradle.rootProject.layout
+configurations {
+    "functionalTestImplementation" {
+        extendsFrom(testImplementation.get())
+    }
+}
 
-val Project.compositeRootBuildDirectory
-    get() = gradle.rootLayout.buildDirectory
+// Add a task to run the functional tests
+tasks.register<Test>("functionalTest") {
+    // Any change to samples invalidates functional tests
+    inputs.files(files("src/samples"))
+    inputs.files(functionalTestCommonRepository)
+    systemProperty("common.repo.url", functionalTestCommonRepository.incoming.files.files.first())
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = functionalTest.runtimeClasspath
+}
 
-val Project.repoDirectory
-    get() = compositeRootBuildDirectory.dir("common-repo")
+tasks.named("check") {
+    // Run the functional tests as part of `check`
+    dependsOn(tasks.named("functionalTest"))
+}
 
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}

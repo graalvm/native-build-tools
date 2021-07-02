@@ -38,10 +38,3 @@ gradlePlugin {
         }
     }
 }
-
-components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) {
-    skip()
-}
-components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) {
-    skip()
-}

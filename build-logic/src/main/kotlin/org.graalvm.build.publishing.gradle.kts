@@ -17,7 +17,6 @@ val mavenExtension = project.extensions.create<MavenExtension>("maven").also {
     it.description.convention(project.description)
 }
 
-val repoDirectory = compositeRootBuildDirectory.dir("common-repo")
 val publishingTasks = tasks.withType<PublishToMavenRepository>()
         .matching { it.name.endsWith("ToCommonRepository") }
 
@@ -77,6 +76,19 @@ publishing {
                 connection.set("scm:git:git://github.com/graalvm/native-build-tools.git")
                 developerConnection.set("scm:git:ssh://github.com:graalvm/native-build-tools.git")
                 url.set("https://github.com/graalvm/native-build-tools/tree/master")
+            }
+        }
+    }
+}
+
+plugins.withId("java-test-fixtures") {
+    components.configureEach {
+        if (this is AdhocComponentWithVariants) {
+            withVariantsFromConfiguration(configurations.getByName("testFixturesApiElements")) {
+                skip()
+            }
+            withVariantsFromConfiguration(configurations.getByName("testFixturesRuntimeElements")) {
+                skip()
             }
         }
     }
