@@ -34,3 +34,13 @@ mapOf(
     }
 }
 
+val commonRepo = layout.buildDirectory.dir("common-repo")
+
+val pruneCommonRepo = tasks.register<Delete>("pruneCommonRepository") {
+    delete(commonRepo)
+}
+
+tasks.register<Zip>("releaseZip") {
+    dependsOn(pruneCommonRepo, "publishAllPublicationsToCommonRepository")
+    from(commonRepo)
+}
