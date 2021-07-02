@@ -102,7 +102,8 @@ public final class JUnitPlatformFeature implements Feature {
                     .collect(Collectors.toList());
             if (!selectors.isEmpty()) {
                 System.out.printf(
-                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] found in folder [%s].%n",
+                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
+                                + "found in folder [%s] and its subfolders.%n",
                         prefix, outputDir.toAbsolutePath());
                 return selectors;
             }
@@ -183,7 +184,7 @@ public final class JUnitPlatformFeature implements Feature {
         if (!Files.exists(dir)) {
             return Stream.empty();
         }
-        return Files.find(dir, 1,
+        return Files.find(dir, Integer.MAX_VALUE,
             (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
                     && path.getFileName().toString().startsWith(prefix)));
     }
