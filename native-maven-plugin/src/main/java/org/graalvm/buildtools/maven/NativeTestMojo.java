@@ -96,14 +96,15 @@ public class NativeTestMojo extends AbstractNativeMojo {
         logger.info("====================");
 
         if (!hasTestIds()) {
-            logger.warn("Test configuration file wasn't found. Build will now fallback to test discovery mode.");
-            logger.warn("Add following dependency to use the test listener mode:");
-            logger.warn("<dependency>");
-            logger.warn("    <groupId>org.graalvm.buildtools</groupId>");
-            logger.warn("    <artifactId>junit-platform-native</artifactId>");
-            logger.warn("    <version>" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION + "</version>");
-            logger.warn("    <scope>test</scope>");
-            logger.warn("</dependency>");
+            logger.error("Test configuration file wasn't found.");
+            logger.error("Add a following dependency to use the test listener mode:\n" +
+                "<dependency>\n" +
+                "    <groupId>org.graalvm.buildtools</groupId>\n" +
+                "    <artifactId>junit-platform-native</artifactId>\n" +
+                "    <version>" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION + "</version>\n" +
+                "    <scope>test</scope>\n" +
+                "</dependency>");
+            throw new IllegalStateException("Test configuration file wasn't found.");
         }
 
         logger.debug("Classpath: " + classpath);

@@ -110,6 +110,11 @@ public final class JUnitPlatformFeature implements Feature {
         if (debug) {
             classpath.forEach(path -> debug("Found classpath: " + path));
         }
+        // Test discovery mode should be revamped in order to filter
+        // non-test classes from classpath roots.
+        //
+        // See https://github.com/graalvm/native-build-tools/issues/53#issuecomment-874197070
+        // for more info.
         return DiscoverySelectors.selectClasspathRoots(new HashSet<>(classpath));
 
     }
