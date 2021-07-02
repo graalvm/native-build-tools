@@ -65,7 +65,7 @@ configurations {
 // Add a task to run the functional tests
 tasks.register<Test>("functionalTest") {
     // Any change to samples invalidates functional tests
-    inputs.files(files("src/samples"))
+    inputs.files(files("../samples"))
     inputs.files(functionalTestCommonRepository)
     systemProperty("common.repo.url", functionalTestCommonRepository.incoming.files.files.first())
     testClassesDirs = functionalTest.output.classesDirs

@@ -162,7 +162,7 @@ In order for this feature to register required tests and run them, you need to r
 
 This will run tests in JVM mode then in native mode.
 
-*You can also take a look at example project [here](../examples/gradle).*
+*You can also take a look at example project [here](../samples).*
 
 ## Building
 Building of plugin itself should be as simple as:

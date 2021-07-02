@@ -80,7 +80,7 @@ val generatePluginDescriptor = tasks.register<GeneratePluginDescriptor>("generat
 val prepareBuildContext = tasks.register("prepareBuildContext", Copy::class.java) {
     dependsOn(":publishAllPublicationsToCommonRepository")
     destinationDir = layout.buildDirectory.dir("docker/context").get().asFile
-    from(layout.projectDirectory.dir("src/samples/java-application")) {
+    from(layout.projectDirectory.dir("../samples/java-application")) {
         into("java-application")
     }
     from(dockerFileForFunctionalTests.map { it.destDir })

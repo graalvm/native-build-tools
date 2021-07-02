@@ -81,7 +81,7 @@ def graalVm = javaToolchains.launcherFor {
     // Add a task to run the functional tests
     tasks.register(it, Test) {
         // Any change to samples invalidates functional tests
-        inputs.files(files("src/samples"))
+        inputs.files(files("../samples"))
         inputs.files(configurations.functionalTestCommonRepository)
         systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
         systemProperty('versions.junit', libs.versions.junitJupiter.get())

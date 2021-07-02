@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - 'native-gradle-plugin/**'
-      - 'examples/gradle/**'
+      - 'samples/**'
       - 'common/**'
   pull_request:
     paths:
       - 'native-gradle-plugin/**'
-      - 'examples/gradle/**'
+      - 'samples/**'
       - 'common/**'
   workflow_dispatch: [ ]
 

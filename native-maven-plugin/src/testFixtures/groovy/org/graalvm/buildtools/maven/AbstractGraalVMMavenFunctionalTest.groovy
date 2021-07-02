@@ -21,7 +21,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     DockerExecutionResult result
 
     protected void withSample(String name) {
-        File sampleDir = new File("src/samples/$name")
+        File sampleDir = new File("../samples/$name")
         copySample(sampleDir.toPath(), testDirectory)
         host.addFileSystemBind(
                 testDirectory.toFile().getAbsolutePath(),

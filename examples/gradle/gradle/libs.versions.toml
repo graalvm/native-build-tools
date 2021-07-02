@@ -1,7 +1,0 @@
-[versions]
-junitJupiter = "5.7.2"
-
-[libraries]
-test-junit-bom = { module = "org.junit:junit-bom", version.ref = "junitJupiter"}
-test-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version = ""}
-test-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version = ""}
