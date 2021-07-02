@@ -54,6 +54,7 @@ class GraalVMContainer extends GenericContainer<GraalVMContainer> {
         callback.addConsumer(OutputFrame.OutputType.STDERR, stderrConsumer)
         dockerClient.execStartCmd(execCreateCmdResponse.getId()).exec(callback).awaitCompletion()
         Long exitCode = dockerClient.inspectExecCmd(execCreateCmdResponse.getId()).exec().exitCodeLong
+        callback.close()
         return new DockerExecutionResult(exitCode, stdoutConsumer.toString(Charsets.UTF_8), stderrConsumer.toString(Charsets.UTF_8))
     }
 
