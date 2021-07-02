@@ -195,14 +195,13 @@ public class NativeTestMojo extends AbstractNativeMojo {
     }
 
     private boolean hasTestIds() {
-    	try {
-    		Path buildDir = Paths.get(project.getBuild().getDirectory());
-    		// See org.graalvm.junit.platform.UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX
-			return readAllFiles(buildDir, "junit-platform-unique-ids").anyMatch(contents -> !contents.isEmpty());
-		}
-		catch (Exception ex) {
-			return false;
-		}
+        try {
+            Path buildDir = Paths.get(project.getBuild().getDirectory());
+            // See org.graalvm.junit.platform.UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX
+            return readAllFiles(buildDir, "junit-platform-unique-ids").anyMatch(contents -> !contents.isEmpty());
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     private Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
