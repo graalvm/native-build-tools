@@ -4,6 +4,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'org.graalvm.build.interop.publishing'
+    id 'eclipse'
 }
 
 compileJava {
@@ -33,7 +34,9 @@ clean.doLast {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform() {
+        systemProperty('junit.platform.listeners.uid.tracking.output.dir', "${buildDir}/test_ids")
+    }
 }
 
 tasks.withType(Test) {

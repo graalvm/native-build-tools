@@ -46,6 +46,7 @@ import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
@@ -54,12 +55,9 @@ import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +65,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {
@@ -85,37 +84,48 @@ public final class JUnitPlatformFeature implements Feature {
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
 
+        List<Path> classpathRoots = access.getApplicationClassPath();
+        List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
+
         Launcher launcher = LauncherFactory.create();
-        TestPlan testplan = registerTestPlan(launcher, access.getApplicationClassPath());
+        TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
         ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
     }
 
-    private List<? extends DiscoverySelector> getSelectors(List<Path> classpath) {
-        InputStream listenerStream;
+    private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
         try {
-            listenerStream = new FileInputStream(UniqueIdTrackingTestExecutionListener.FILE_NAME);
-        } catch (FileNotFoundException e) {
-            listenerStream = getClass().getClassLoader().getResourceAsStream(UniqueIdTrackingTestExecutionListener.FILE_NAME);
-        }
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(listenerStream))) {
-            List<String> classes = br.lines().collect(Collectors.toList());
-            System.out.println("[junit-platform-native] Running in 'test listener' mode.");
-            return classes.stream().map(DiscoverySelectors::selectUniqueId).collect(Collectors.toList());
-        } catch (IOException | NullPointerException e) {
-            System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
+            Path outputDir = new UniqueIdTrackingListener().getOutputDir();
+            String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
+                    UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
+            List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
+                    .map(DiscoverySelectors::selectUniqueId)
+                    .collect(Collectors.toList());
+            if (!selectors.isEmpty()) {
+                System.out.printf(
+                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] found in folder [%s].%n",
+                        prefix, outputDir.toAbsolutePath());
+                return selectors;
+            }
+        } catch (Exception ex) {
+            debug("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
         }
 
-        // Run a a junit launcher to discover tests and register classes for reflection
+        System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
         if (debug) {
-            classpath.forEach(path -> debug("Found classpath: " + path));
+            classpathRoots.forEach(entry -> debug("Selecting classpath root: " + entry));
         }
-        return DiscoverySelectors.selectClasspathRoots(new HashSet<>(classpath));
-
+        return DiscoverySelectors.selectClasspathRoots(new HashSet<>(classpathRoots));
     }
 
-    private TestPlan registerTestPlan(Launcher launcher, List<Path> classpath) {
+    /**
+     * Use the JUnit Platform Launcher to discover tests and register classes
+     * for reflection.
+     */
+    private TestPlan discoverTestsAndRegisterTestClassesForReflection(Launcher launcher,
+            List<? extends DiscoverySelector> selectors) {
+
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(getSelectors(classpath))
+                .selectors(selectors)
                 .build();
 
         TestPlan testPlan = launcher.discover(request);
@@ -158,4 +168,24 @@ public final class JUnitPlatformFeature implements Feature {
     public static boolean debug() {
         return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
     }
+
+    private Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
+        return findFiles(dir, prefix).map(outputFile -> {
+            try {
+                return Files.readAllLines(outputFile);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        }).flatMap(List::stream);
+    }
+
+    private static Stream<Path> findFiles(Path dir, String prefix) throws IOException {
+        if (!Files.exists(dir)) {
+            return Stream.empty();
+        }
+        return Files.find(dir, 1,
+            (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
+                    && path.getFileName().toString().startsWith(prefix)));
+    }
+
 }

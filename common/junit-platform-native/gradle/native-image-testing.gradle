@@ -39,6 +39,7 @@ afterEvaluate {
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
                 "-H:Name=native-image-tests",
                 "-H:Class=org.graalvm.junit.platform.NativeImageJUnitLauncher",
+                "-Djunit.platform.listeners.uid.tracking.output.dir=${buildDir}/test_ids"
         ]
         if (project.hasProperty("agent")) {
             if (!new File("${buildDir}/agentOutput/").exists()) {
