@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 /*
  * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -78,4 +80,10 @@ tasks.javadoc {
         languageVersion.set(JavaLanguageVersion.of(11))
     })
     (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+}
+
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
+    }
 }

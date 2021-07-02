@@ -1,6 +1,7 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import org.graalvm.build.maven.GeneratePluginDescriptor
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     `java-library`
