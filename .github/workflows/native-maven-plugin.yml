@@ -32,5 +32,5 @@ jobs:
       - name: Check and test the plugin
         run: |
           pushd native-maven-plugin
-            ./gradlew check
+            ./gradlew check --no-daemon
           popd
