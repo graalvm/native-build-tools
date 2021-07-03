@@ -41,15 +41,9 @@
 
 plugins {
     `kotlin-dsl`
-    id("com.github.joschi.licenser") version "0.6.1"
 }
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
 }
-
-license {
-    header = file("../LICENSE")
-}
-
