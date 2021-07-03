@@ -89,6 +89,8 @@ public abstract class GeneratePluginDescriptor extends DefaultTask {
             spec.args(
                     "--errors",
                     "-U",
+                    "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn",
+                    "-q",
                     "--batch-mode",
                     "--settings", settingsFile.getAbsolutePath(),
                     "--file", new File(tmpDir, pomFile.getName()),
