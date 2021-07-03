@@ -43,7 +43,6 @@ plugins {
     checkstyle
     id("org.graalvm.build.java")
     id("org.graalvm.build.publishing")
-    id("com.github.joschi.licenser") version "0.6.1"
 }
 
 maven {
@@ -70,11 +69,6 @@ publishing {
             from(components["java"])
         }
     }
-}
-
-license {
-    header = file("LICENSE")
-    skipExistingHeaders = true
 }
 
 tasks.withType<Checkstyle>().configureEach {

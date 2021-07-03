@@ -52,7 +52,6 @@ plugins {
     id("org.graalvm.build.publishing")
     id("org.graalvm.build.maven-functional-testing")
     id("com.bmuschko.docker-remote-api") version "7.1.0"
-    id("com.github.joschi.licenser") version "0.6.1"
 }
 
 maven {
@@ -191,10 +190,6 @@ tasks {
         systemProperty("native.maven.plugin.version", libs.versions.nativeMavenPlugin.get())
         systemProperty("junit.platform.native.version", libs.versions.junitPlatformNative.get())
     }
-}
-
-license {
-    header = file("LICENSE")
 }
 
 tasks.withType<Checkstyle>().configureEach {

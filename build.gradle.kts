@@ -39,11 +39,8 @@
  * SOFTWARE.
  */
 
-import org.cadixdev.gradle.licenser.LicenseTaskProperties
-
 plugins {
     base
-    id("com.github.joschi.licenser") version "0.6.1"
 }
 
 tasks.named("clean") {
@@ -87,20 +84,4 @@ val pruneCommonRepo = tasks.register<Delete>("pruneCommonRepository") {
 tasks.register<Zip>("releaseZip") {
     dependsOn(pruneCommonRepo, "publishAllPublicationsToCommonRepository")
     from(commonRepo)
-}
-
-license {
-    header = file("LICENSE")
-    tasks(closureOf<NamedDomainObjectContainer<LicenseTaskProperties>> {
-        create("gradle") {
-            files = project.fileTree(".").matching {
-                exclude("build/**")
-                exclude("**/buildSrc/build/**")
-                exclude("**/kotlin-dsl/**")
-                include("**/*.kts")
-                include("**/*.gradle")
-                include("**/pom.xml")
-            }
-        }
-    })
 }

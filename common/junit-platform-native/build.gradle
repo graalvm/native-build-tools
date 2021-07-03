@@ -45,7 +45,6 @@ plugins {
     id 'signing'
     id 'org.graalvm.build.java'
     id 'org.graalvm.build.publishing'
-    id 'com.github.joschi.licenser' version '0.6.1'
 }
 
 maven {
@@ -84,10 +83,6 @@ publishing {
 signing {
     required { gradle.taskGraph.hasTask("publish") }
     sign publishing.publications.mavenJava
-}
-
-license {
-    header = file("LICENSE")
 }
 
 tasks.withType(Checkstyle).configureEach {
