@@ -150,9 +150,16 @@ val dockerFileForFunctionalTests = tasks.register("dockerFileForFunctionalTests"
     addFile("java-application", "/bootstrap")
     addFile("maven-repo", "/bootstrap/repo")
     addFile("settings.xml", "/root/.m2/")
-    val mvn = "cd /bootstrap && /usr/lib/mvn/bin/mvn -X -Dcommon.repo.uri=file:///bootstrap/repo -Djunit.jupiter.version=${libs.versions.junitJupiter.get()} -Dnative.maven.plugin.version=${libs.versions.nativeMavenPlugin.get()} -Djunit.platform.native.version=${libs.versions.junitPlatformNative.get()}"
-    runCommand("$mvn install")
-    runCommand("$mvn package exec:exec || true")
+    val mvn = "cd /bootstrap && /usr/lib/mvn/bin/mvn " +
+            "-Dcommon.repo.uri=file:///bootstrap/repo " +
+            "-Djunit.jupiter.version=${libs.versions.junitJupiter.get()} " +
+            "-Dnative.maven.plugin.version=${libs.versions.nativeMavenPlugin.get()} " +
+            "-Djunit.platform.native.version=${libs.versions.junitPlatformNative.get()}"
+    // Fill the Maven cache with as many dependencies as we can
+    runCommand("$mvn package || true")
+    runCommand("$mvn test || true")
+    runCommand("$mvn install || true")
+    runCommand("$mvn exec:exec || true")
     environmentVariable("MAVEN_HOME", "/usr/lib/mvn")
     environmentVariable("PATH", "\$MAVEN_HOME/bin:\$PATH")
     workingDir("/sample")
@@ -161,6 +168,7 @@ val dockerFileForFunctionalTests = tasks.register("dockerFileForFunctionalTests"
 val dockerImageForFunctionalTests = tasks.register("dockerImageForFunctionalTests", DockerBuildImage::class.java) {
     inputDir.set(prepareBuildContext.map { ctx -> objects.directoryProperty().also { it.set(ctx.destinationDir) }.get() })
     images.add("graalvm/maven-functional-testing:latest")
+    quiet.set(true)
     onlyIf {
         // prevent execution of this task if jar hasn't changed
         // this isn't quite right but otherwise the publishing is done on every
