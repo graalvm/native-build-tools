@@ -77,12 +77,41 @@ class GraalVMContainer extends GenericContainer<GraalVMContainer> {
                 .withCmd(command)
                 .exec()
         def stdoutConsumer = new ToStringConsumer() {
+            String previous = ""
             @Override
             void accept(OutputFrame outputFrame) {
                 super.accept(outputFrame)
-                println(outputFrame.utf8String)
+                def string = filter(outputFrame.utf8String)
+                if (string) {
+                    print(string)
+                }
+                previous = string
+            }
+
+            // Reduces the verbosity of Maven logs
+            // This isn't quite correct since output is buffered
+            // however this is only used for display, not capturing
+            // the actual full log and it works quite well for this
+            // purpose
+            private String filter(String input) {
+                // adhoc filtering of Maven's download progress which is only
+                // possible to silence since 3.6.5+
+                String filtered = input.replaceAll("[0-9]+/[0-9]+ [KMG]?B\\s+", "")
+                        .replaceAll("Download(ing|ed): .+", "")
+                        .trim()
+                if (filtered.empty) {
+                    if (input == "\n" && previous != "\n") {
+                        return "\n"
+                    }
+                    return ""
+                }
+                if (input.endsWith("\n")) {
+                    return "$filtered\n"
+                }
+                filtered
             }
         }
+
         def stderrConsumer = new ToStringConsumer() {
             @Override
             void accept(OutputFrame outputFrame) {

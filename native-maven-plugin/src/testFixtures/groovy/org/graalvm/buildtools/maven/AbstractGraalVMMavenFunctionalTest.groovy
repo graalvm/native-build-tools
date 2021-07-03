@@ -90,6 +90,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     void mvn(String... args) {
         result = host.execute(
                 "mvn",
+                "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn",
                 "-Dcommon.repo.uri=file:///bootstrap/repo",
                 *injectedSystemProperties,
                 *args
