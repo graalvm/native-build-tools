@@ -52,9 +52,8 @@ application {
     mainClass.set('org.graalvm.demo.Application')
 }
 
-def junitVersion = providers.systemProperty('versions.junit')
+def junitVersion = providers.gradleProperty('junit.jupiter.version')
     .forUseAtConfigurationTime()
-    .orElse('5.7.2') // so that the sample runs if someone checks it out without the testing infra
     .get()
 
 dependencies {

@@ -40,56 +40,10 @@
  */
 
 plugins {
-    base
+    `kotlin-dsl`
 }
 
-tasks.named("clean") {
-    gradle.includedBuilds.forEach {
-        dependsOn(it.task(":clean"))
-    }
-}
-
-tasks.register("test") {
-    gradle.includedBuilds.forEach {
-        dependsOn(it.task(":test"))
-    }
-}
-
-tasks.named("check") {
-    gradle.includedBuilds.forEach {
-        dependsOn(it.task(":check"))
-    }
-}
-
-mapOf(
-        "publishTo" to "MavenLocal",
-        "publishAllPublicationsTo" to "CommonRepository"
-).forEach { entry ->
-    val (taskPrefix, repo) = entry
-    tasks.register("$taskPrefix$repo") {
-        description = "Publishes all artifacts to the ${repo.decapitalize()} repository"
-        group = PublishingPlugin.PUBLISH_TASK_GROUP
-        gradle.includedBuilds.forEach {
-            dependsOn(it.task(":$taskPrefix$repo"))
-        }
-    }
-}
-
-val commonRepo = layout.buildDirectory.dir("common-repo")
-
-val pruneCommonRepo = tasks.register<Delete>("pruneCommonRepository") {
-    delete(commonRepo)
-}
-
-tasks.register<Zip>("releaseZip") {
-    dependsOn(pruneCommonRepo, "publishAllPublicationsToCommonRepository")
-    from(commonRepo)
-}
-
-tasks.register<org.graalvm.build.samples.SamplesUpdateTask>("updateSamples") {
-    inputDirectory.set(layout.projectDirectory.dir("samples"))
-    versions.put("native.maven.plugin.version", libs.versions.nativeMavenPlugin.get())
-    versions.put("junit.jupiter.version", libs.versions.junitJupiter.get())
-    versions.put("junit.platform.version", libs.versions.junitPlatform.get())
-    versions.put("junit.platform.native.version", libs.versions.junitPlatformNative.get())
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
 }

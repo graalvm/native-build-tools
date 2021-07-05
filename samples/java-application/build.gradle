@@ -47,3 +47,7 @@ plugins {
 application {
     mainClass.set('org.graalvm.demo.Application')
 }
+
+repositories {
+    mavenCentral()
+}
