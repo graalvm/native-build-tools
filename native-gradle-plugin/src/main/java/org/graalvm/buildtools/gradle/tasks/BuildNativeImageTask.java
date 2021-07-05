@@ -190,7 +190,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             logger.lifecycle("Args are: " + args);
         }
         JavaInstallationMetadata metadata = options.getJavaLauncher().get().getMetadata();
-        File executablePath = metadata.getInstallationPath().file(NATIVE_IMAGE_EXE).getAsFile();
+        File executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
         if (!executablePath.exists() && getGraalVMHome().isPresent()) {
             executablePath = Paths.get(getGraalVMHome().get()).resolve("bin").resolve(NATIVE_IMAGE_EXE).toFile();
         }
