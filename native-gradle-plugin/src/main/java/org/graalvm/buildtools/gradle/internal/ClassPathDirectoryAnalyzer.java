@@ -72,19 +72,36 @@ class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
     private class DirectoryVisitor extends SimpleFileVisitor<Path> {
         List<String> resources = new ArrayList<>();
         boolean hasNativeImageResourceFile;
+        boolean inNativeImageDir;
 
         @Override
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-            String relativePath = normalizePathSeparators(root.relativize(dir).toString());
+            String relativePath = relativePathOf(dir);
             if (Utils.META_INF_NATIVE_IMAGE.equals(relativePath)) {
-                hasNativeImageResourceFile = true;
-                return FileVisitResult.TERMINATE;
+                inNativeImageDir = true;
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        private String relativePathOf(Path path) {
+            return normalizePathSeparators(root.relativize(path).toString());
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            String relativePath = relativePathOf(dir);
+            if (Utils.META_INF_NATIVE_IMAGE.equals(relativePath)) {
+                inNativeImageDir = false;
             }
             return FileVisitResult.CONTINUE;
         }
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            if (inNativeImageDir && relativePathOf(file).endsWith("resource-config.json")) {
+                hasNativeImageResourceFile = true;
+                return FileVisitResult.TERMINATE;
+            }
             maybeAddResource(root.relativize(file).toString(), resources);
             return FileVisitResult.CONTINUE;
         }

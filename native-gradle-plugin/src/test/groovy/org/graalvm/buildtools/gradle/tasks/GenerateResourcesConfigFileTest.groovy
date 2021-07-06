@@ -278,10 +278,10 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
     }
 
-    def "jars which have a native-image directory do not contribute to inferred resources"() {
+    def "jars which have a native-image resource config file do not contribute to inferred resources"() {
         def project = buildProject {
             withResource(newResourcesJar([
-                    'META-INF/native-image/foo': 'foo'
+                    'META-INF/native-image/resource-config.json': '{}'
             ]))
             enableInference()
         }

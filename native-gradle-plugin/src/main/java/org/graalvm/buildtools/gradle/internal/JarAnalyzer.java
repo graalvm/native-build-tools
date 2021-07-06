@@ -68,7 +68,9 @@ class JarAnalyzer extends ClassPathEntryAnalyzer {
         try (JarInputStream zin = new JarInputStream(new FileInputStream(jarFile))) {
             ZipEntry entry;
             while ((entry = zin.getNextEntry()) != null) {
-                hasNativeImageResourceFile = normalizePathSeparators(entry.getName()).startsWith(Utils.META_INF_NATIVE_IMAGE + "/");
+                hasNativeImageResourceFile = normalizePathSeparators(entry.getName()).startsWith(Utils.META_INF_NATIVE_IMAGE + "/")
+                    && entry.getName().endsWith("resource-config.json");
+
                 if (hasNativeImageResourceFile) {
                     break;
                 }
