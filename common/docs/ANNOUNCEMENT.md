@@ -8,7 +8,7 @@ We are pleased to announce the release of the new official _GraalVM Native Image
 
 The native _JUnit_ support allows libraries in the _JVM_ ecosystem to run their test suites via _GraalVM Native Image_. With integrated testing, library configuration should be always up to date and ready for the end user. We believe that this is the biggest step towards making the _Java_ ecosystem _native-ready_.
 
-Complete examples are available [here](https://github.com/graalvm/native-build-tools/blob/master/samples/README.md) with the script demonstrating the usage available [here](https://github.com/graalvm/native-build-tools/blob/master/common/scripts/testAll.sh).
+Complete examples are available [here](https://github.com/graalvm/native-build-tools/blob/master/samples/README.md).
 
 ### Native Testing: The Way You Are Used to It
 
