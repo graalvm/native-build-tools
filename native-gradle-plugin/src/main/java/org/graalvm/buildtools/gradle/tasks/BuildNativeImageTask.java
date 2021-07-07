@@ -43,16 +43,16 @@ package org.graalvm.buildtools.gradle.tasks;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -65,10 +65,7 @@ import org.gradle.process.ExecOperations;
 import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.gradle.internal.Utils.NATIVE_IMAGE_EXE;
 
@@ -77,8 +74,6 @@ import static org.graalvm.buildtools.gradle.internal.Utils.NATIVE_IMAGE_EXE;
  * calling the corresponding tool in the GraalVM toolchain.
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
-    private static final Transformer<Boolean, Boolean> NEGATE = b -> !b;
-
     private final Provider<String> graalvmHomeProvider;
 
     @Nested
@@ -112,6 +107,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Input
     public abstract Property<Boolean> getAgentEnabled();
 
+    @Inject
+    protected abstract ProviderFactory getProviders();
+
     public BuildNativeImageTask() {
         DirectoryProperty buildDir = getProject().getLayout().getBuildDirectory();
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
@@ -126,54 +124,15 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     private List<String> buildActualCommandLineArgs() {
         getOptions().finalizeValue();
-        NativeImageOptions options = getOptions().get();
-        List<String> cliArgs = new ArrayList<>(20);
-
-        cliArgs.add("-cp");
-        cliArgs.add(options.getClasspath().getAsPath());
-
-        appendBooleanOption(cliArgs, options.getDebug(), "-H:GenerateDebugInfo=1");
-        appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
-        appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
-        appendBooleanOption(cliArgs, options.getServer(), "-Dcom.oracle.graalvm.isaot=true");
-
-        cliArgs.add("-H:Path=" + getOutputDirectory().getAsFile().get().getAbsolutePath());
-        cliArgs.add("-H:Name=" + getExecutableName().get());
-
-        options.getSystemProperties().get().forEach((n, v) -> {
-            if (v != null) {
-                cliArgs.add("-D" + n + "=\"" + v + "\"");
-            }
-        });
-
-        options.getJvmArgs().get().forEach(jvmArg -> cliArgs.add("-J" + jvmArg));
-
-        String configFiles = options.getConfigurationFileDirectories()
-                .getElements()
-                .get()
-                .stream()
-                .map(FileSystemLocation::getAsFile)
-                .map(File::getAbsolutePath)
-                .collect(Collectors.joining(","));
-        if (!configFiles.isEmpty()) {
-            cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
-        }
-        if (getAgentEnabled().get()) {
-            cliArgs.add("--allow-incomplete-classpath");
-        }
-        if (options.getMainClass().isPresent()) {
-            cliArgs.add("-H:Class=" + options.getMainClass().get());
-        }
-        cliArgs.addAll(options.getBuildArgs().get());
-        return Collections.unmodifiableList(cliArgs);
+        return new NativeImageCommandLineProvider(
+                getOptions(),
+                getAgentEnabled(),
+                getExecutableName(),
+                // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
+                // a mapped value before the task was called, when we are actually calling it...
+                getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath())
+        ).asArguments();
     }
-
-    private static void appendBooleanOption(List<String> cliArgs, Provider<Boolean> provider, String whenTrue) {
-        if (provider.get()) {
-            cliArgs.add(whenTrue);
-        }
-    }
-
 
     // This property provides access to the service instance
     // It should be Property<NativeImageService> but because of a bug in Gradle
