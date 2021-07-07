@@ -59,6 +59,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
+import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -188,6 +189,7 @@ public abstract class NativeImageOptions {
     @InputFiles
     public abstract ConfigurableFileCollection getConfigurationFileDirectories();
 
+    @Inject
     public NativeImageOptions(ObjectFactory objectFactory,
                               ProviderFactory providers,
                               JavaToolchainService toolchains,
