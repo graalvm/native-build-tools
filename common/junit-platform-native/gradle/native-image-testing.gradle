@@ -39,11 +39,27 @@
  * SOFTWARE.
  */
 
+import org.gradle.util.GFileUtils
+
+def agentOutput = layout.buildDirectory.dir("agent")
+
+ext {
+    testIdsDir = layout.buildDirectory.dir("test_ids")
+}
+
 tasks.register("testConsoleLauncher", JavaExec) {
+    outputs.dir(agentOutput)
     classpath = test.classpath
-    if (project.hasProperty("agent")) {
-        mkdir "${buildDir}"
-        new File("${buildDir}", "agent-filter.json").text = """
+    main = "org.junit.platform.console.ConsoleLauncher"
+    args = ["--scan-class-path"]
+    doFirst {
+        def agentOutputDir = agentOutput.get().asFile
+        if (agentOutputDir.exists()) {
+            GFileUtils.deleteDirectory(agentOutputDir)
+        }
+        if (project.hasProperty("agent")) {
+            mkdir "${agentOutputDir}"
+            new File("${agentOutputDir}", "agent-filter.json").text = """
             {
                 "rules":[
                     {
@@ -55,46 +71,67 @@ tasks.register("testConsoleLauncher", JavaExec) {
                 ]
             }
         """
-        jvmArgs = [
-                "-agentlib:native-image-agent=access-filter-file=${buildDir}/agent-filter.json,experimental-class-loader-support,config-output-dir=${buildDir}/agentOutput",
-                "-Dorg.graalvm.nativeimage.imagecode=agent"
-        ]
+            jvmArgs = [
+                    "-agentlib:native-image-agent=access-filter-file=${agentOutputDir}/agent-filter.json,experimental-class-loader-support,config-output-dir=${agentOutputDir}/agentOutput",
+                    "-Dorg.graalvm.nativeimage.imagecode=agent"
+            ]
+        }
     }
-    main = "org.junit.platform.console.ConsoleLauncher"
-    args = ["--scan-class-path"]
 }
 
-tasks.register("nativeTestBuild", Exec) {
-    dependsOn testClasses
-    workingDir "${buildDir}"
-    executable = System.getenv("GRAALVM_HOME") + "/bin/native-image"
-    // args: set in afterEvaluate block due to lazy initialization of the test.classpath
-}
+abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider {
+    @InputFiles
+    abstract ConfigurableFileCollection getClasspath()
 
-afterEvaluate {
-    tasks.named("nativeTestBuild").configure {
-        def classpath = test.classpath.join(":")
-        args = [
-                "-cp", classpath,
+    @InputDirectory
+    abstract DirectoryProperty getTestIdsDir()
+
+    @InputDirectory
+    @Optional
+    abstract DirectoryProperty getAgentOutputDir()
+
+    @Input
+    abstract Property<Boolean> getDiscovery()
+
+    @Override
+    Iterable<String> asArguments() {
+        def args = [
+                "-cp", classpath.asPath,
                 "--no-fallback",
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
                 "-H:Name=native-image-tests",
                 "-H:Class=org.graalvm.junit.platform.NativeImageJUnitLauncher",
+                "-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"
         ]
-        if (project.hasProperty("agent")) {
-            if (!new File("${buildDir}/agentOutput/").exists()) {
+        if (agentOutputDir.isPresent()) {
+            def outputDir = agentOutputDir.get().asFile
+            if (!outputDir.exists()) {
                 throw new GradleException("Agent output missing when -Pagent is set.\n" +
                         "You need to run `gradle -Pagent test` first.")
             }
 
-            args << "-H:ConfigurationFileDirectories=${buildDir}/agentOutput"
+            args << "-H:ConfigurationFileDirectories=${outputDir.absolutePath}/agentOutput"
             args << "-H:+AllowIncompleteClasspath"
         }
 
-        if (System.getProperty("testDiscovery")) {
+        if (discovery.get()) {
             args << "-DtestDiscovery"
         }
+        args.collect { it.toString() }
     }
+}
+
+tasks.register("nativeTestBuild", Exec) {
+    dependsOn(test)
+    inputs.files(test.classpath)
+    workingDir "${buildDir}"
+    executable = System.getenv("GRAALVM_HOME") + "/bin/native-image"
+    def argsProvider = objects.newInstance(NativeTestArgumentProvider)
+    argsProvider.classpath.from(test.classpath)
+    argsProvider.testIdsDir.set(testIdsDir)
+    argsProvider.agentOutputDir.set(agentOutput)
+    argsProvider.discovery.set(providers.systemProperty("testDiscovery").forUseAtConfigurationTime().map(v -> Boolean.valueOf(v)).orElse(false))
+    argumentProviders.add(argsProvider)
 }
 
 tasks.register("nativeTest", Exec) {

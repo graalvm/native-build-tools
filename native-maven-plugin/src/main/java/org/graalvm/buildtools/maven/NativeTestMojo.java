@@ -54,6 +54,7 @@ import org.graalvm.buildtools.VersionInfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -196,16 +197,32 @@ public class NativeTestMojo extends AbstractNativeMojo {
     }
 
     private boolean hasTestIds() {
-        File testIds = getTestIdsFile();
-        if (testIds.exists() && testIds.length() > 0) {
-            return true;
+        try {
+            Path buildDir = Paths.get(project.getBuild().getDirectory());
+            // See org.graalvm.junit.platform.UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX
+            return readAllFiles(buildDir, "junit-platform-unique-ids").anyMatch(contents -> !contents.isEmpty());
+        } catch (Exception ex) {
+            return false;
         }
-        return false;
     }
 
-    private File getTestIdsFile() {
-        return new File(project.getBuild().getDirectory(), "test_ids.txt");
+    private Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
+        return findFiles(dir, prefix).map(outputFile -> {
+            try {
+                return Files.readAllLines(outputFile);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        }).flatMap(List::stream);
+    }
+
+    private static Stream<Path> findFiles(Path dir, String prefix) throws IOException {
+        if (!Files.exists(dir)) {
+            return Stream.empty();
+        }
+        return Files.find(dir, Integer.MAX_VALUE,
+            (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
+                    && path.getFileName().toString().startsWith(prefix)));
     }
 
 }
-

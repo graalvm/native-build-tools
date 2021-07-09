@@ -39,6 +39,8 @@
  * SOFTWARE.
  */
 
+import org.gradle.util.GFileUtils
+
 plugins {
     id 'java-library'
     id 'checkstyle'
@@ -63,7 +65,12 @@ dependencies {
 apply from: "gradle/native-image-testing.gradle"
 
 test {
-    useJUnitPlatform()
+    doFirst {
+        GFileUtils.deleteDirectory(testIdsDir.get().asFile)
+    }
+    useJUnitPlatform() {
+        systemProperty('junit.platform.listeners.uid.tracking.output.dir', "${testIdsDir.get().asFile.absolutePath}/test_ids")
+    }
 }
 
 tasks.withType(Test).configureEach {

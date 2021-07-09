@@ -1,1 +1,1 @@
-org.graalvm.junit.platform.UniqueIdTrackingTestExecutionListener
+org.graalvm.junit.platform.UniqueIdTrackingListener
