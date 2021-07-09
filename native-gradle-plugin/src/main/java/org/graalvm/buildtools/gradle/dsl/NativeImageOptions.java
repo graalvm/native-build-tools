@@ -78,9 +78,13 @@ import java.util.stream.StreamSupport;
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public abstract class NativeImageOptions implements Named {
+    private final String name;
+
     @Override
     @Internal
-    public abstract String getName();
+    public String getName() {
+        return name;
+    }
 
     /**
      * Gets the name of the native executable to be generated.
@@ -206,10 +210,12 @@ public abstract class NativeImageOptions implements Named {
     }
 
     @Inject
-    public NativeImageOptions(ObjectFactory objectFactory,
+    public NativeImageOptions(String name,
+                              ObjectFactory objectFactory,
                               ProviderFactory providers,
                               JavaToolchainService toolchains,
                               String defaultImageName) {
+        this.name = name;
         getDebug().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
