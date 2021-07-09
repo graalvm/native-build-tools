@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,36 +39,25 @@
  * SOFTWARE.
  */
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+package org.graalvm.buildtools.gradle.dsl;
 
-repositories {
-    mavenCentral()
-}
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
+/**
+ * This is the entry point for configuring GraalVM relative features
+ * provided by this plugin.
+ */
+public interface GraalVMExtension {
+    /**
+     * Returns the native image configurations used to generate images.
+     * By default, this plugin creates two images, one called "main" for
+     * the main application and another one called "test" for tests.
+     */
+    NamedDomainObjectContainer<NativeImageOptions> getNativeImages();
 
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .forUseAtConfigurationTime()
-        .get()
-
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-graal {
-    nativeImages {
-        test {
-            agent = true
-        }
-    }
+    /**
+     * Configures the native image options.
+     */
+    void nativeImages(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec);
 }
