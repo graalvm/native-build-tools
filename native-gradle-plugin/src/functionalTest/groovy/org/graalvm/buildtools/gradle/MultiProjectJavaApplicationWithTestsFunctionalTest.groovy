@@ -59,7 +59,7 @@ class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctio
         tasks {
             succeeded ':utils:jar',
                     ':core:testClasses',
-                    ':core:nativeTestBuild',
+                    ':core:nativeTestAssemble',
                     ':core:nativeTest'
             doesNotContain ':core:build'
         }

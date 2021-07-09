@@ -65,6 +65,8 @@ test {
     useJUnitPlatform()
 }
 
-nativeTest {
-    agent = true
+graal {
+    test {
+        agent = true
+    }
 }

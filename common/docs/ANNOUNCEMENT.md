@@ -43,19 +43,19 @@ pluginManagement {
 ```
 _(this step will be redundant once this plugin is published to the Gradle Plugin Portal)._
 
-After that, we can configure the image build by using a `nativeBuild` configuration block:
+After that, we can configure the image build by using a `graal` configuration block:
 ```groovy
-nativeBuild {
-  imageName = "my-app"
-  mainClass = "org.test.Main"
-  verbose = true
-  fallback = false
+graal {
+    main {
+        imageName = "my-app"
+        mainClass = "org.test.Main"
+        verbose = true
+        fallback = false
+    }
 }
 ```
 
-The plugin then adds `nativeBuild` and `nativeRun` tasks that build and run the main class (as one might expect ☺). If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the `[native-image-agent](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds)` without any additional user setup. More information (and _Kotlin_ configuration syntax) is available in the [documentation](https://github.com/graalvm/native-build-tools/blob/master/native-gradle-plugin/README.md).
-
-> _To help ease the community transition, at the moment we support a subset of the configuration syntax and aliased task names from the most popular unofficial_ GraalVM  Gradle _plugins (_`_io.micronaut.application_` _and_ `_com.palantir.graal_`_). Note that this behavior might eventually be deprecated._
+The plugin then adds `nativeAssemble` and `nativeRun` tasks that respectively creates a native executable and runs the main class (as one might expect ☺). If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the `[native-image-agent](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds)` without any additional user setup. More information (and _Kotlin_ configuration syntax) is available in the [documentation](https://github.com/graalvm/native-build-tools/blob/master/native-gradle-plugin/README.md).
 
 #### Testing in _Gradle_
 
