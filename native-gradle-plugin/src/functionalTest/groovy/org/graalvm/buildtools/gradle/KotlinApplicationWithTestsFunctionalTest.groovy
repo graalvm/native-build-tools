@@ -60,7 +60,7 @@ class KotlinApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         then:
         tasks {
             succeeded ':compileTestKotlin',
-                    ':nativeTestBuild',
+                    ':nativeTestAssemble',
                     ':test',
                     ':nativeTest'
             doesNotContain ':build'

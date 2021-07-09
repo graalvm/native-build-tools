@@ -46,7 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
         gradleVersion = version
-        def nativeApp = file("build/native/nativeBuild/java-application")
+        def nativeApp = file("build/native/nativeAssemble/java-application")
         debug  = true
 
         given:
@@ -59,11 +59,11 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         """.stripIndent()
 
         when:
-        run 'nativeBuild'
+        run 'nativeAssemble'
 
         then:
         tasks {
-            succeeded ':jar', ':nativeBuild'
+            succeeded ':jar', ':nativeAssemble'
             doesNotContain ':build', ':run'
         }
 

@@ -42,10 +42,10 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.gradle.api.Named;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -56,6 +56,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -76,7 +77,11 @@ import java.util.stream.StreamSupport;
  * @author gkrocher
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public abstract class NativeImageOptions {
+public abstract class NativeImageOptions implements Named {
+    @Override
+    @Internal
+    public abstract String getName();
+
     /**
      * Gets the name of the native executable to be generated.
      *
@@ -227,16 +232,6 @@ public abstract class NativeImageOptions {
                 .forUseAtConfigurationTime()
                 .map(Boolean::valueOf)
                 .orElse(false);
-    }
-
-    public static NativeImageOptions register(Project project, String extensionName) {
-        return project.getExtensions().create(extensionName,
-                NativeImageOptions.class,
-                project.getObjects(),
-                project.getProviders(),
-                project.getExtensions().findByType(JavaToolchainService.class),
-                project.getName()
-        );
     }
 
     /**

@@ -49,6 +49,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -61,7 +62,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
@@ -123,9 +123,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
         getWorkingDirectory().set(outputDir);
         setDescription("Builds a native image.");
-        setGroup(LifecycleBasePlugin.BUILD_GROUP);
-
-        getOptions().convention(getProject().getExtensions().findByType(NativeImageOptions.class));
+        setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         getOutputDirectory().convention(outputDir);
         this.graalvmHomeProvider = getProject().getProviders().environmentVariable("GRAALVM_HOME");
     }
