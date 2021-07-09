@@ -42,8 +42,10 @@
 package org.graalvm.buildtools.gradle;
 
 import org.graalvm.buildtools.VersionInfo;
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
+import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
@@ -141,16 +143,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         logger.log("Initializing project: " + project.getName());
         logger.log("====================");
 
-        NamedDomainObjectContainer<NativeImageOptions> graalExtension = project.getObjects()
-                .domainObjectContainer(NativeImageOptions.class, name ->
-                        project.getObjects().newInstance(NativeImageOptions.class,
-                                name,
-                                project.getObjects(),
-                                project.getProviders(),
-                                project.getExtensions().findByType(JavaToolchainService.class),
-                                project.getName())
-                );
-        project.getExtensions().add("graal", graalExtension);
+        GraalVMExtension graalExtension = registerGraalVMExtension(project);
 
         // Add DSL extensions for building and testing
         NativeImageOptions mainOptions = createMainOptions(graalExtension, project);
@@ -276,6 +269,19 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
     }
 
+    private GraalVMExtension registerGraalVMExtension(Project project) {
+        NamedDomainObjectContainer<NativeImageOptions> nativeImages = project.getObjects()
+                .domainObjectContainer(NativeImageOptions.class, name ->
+                        project.getObjects().newInstance(NativeImageOptions.class,
+                                name,
+                                project.getObjects(),
+                                project.getProviders(),
+                                project.getExtensions().findByType(JavaToolchainService.class),
+                                project.getName())
+                );
+        return project.getExtensions().create(GraalVMExtension.class, "graal", DefaultGraalVmExtension.class, nativeImages);
+    }
+
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,
                                                                                   NativeImageOptions options,
                                                                                   TaskContainer tasks,
@@ -328,15 +334,15 @@ public class NativeImagePlugin implements Plugin<Project> {
                 });
     }
 
-    private static NativeImageOptions createMainOptions(NamedDomainObjectContainer<NativeImageOptions> graalExtension, Project project) {
-        NativeImageOptions mainOptions = graalExtension.create(NATIVE_MAIN_EXTENSION);
-        mainOptions.getClasspath().from(GradleUtils.findMainArtifacts(project));
-        mainOptions.getClasspath().from(GradleUtils.findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
-        return mainOptions;
+    private static NativeImageOptions createMainOptions(GraalVMExtension graalExtension, Project project) {
+        NativeImageOptions buildExtension = graalExtension.getNativeImages().create(NATIVE_MAIN_EXTENSION);
+        buildExtension.getClasspath().from(GradleUtils.findMainArtifacts(project));
+        buildExtension.getClasspath().from(GradleUtils.findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        return buildExtension;
     }
 
-    private static NativeImageOptions createTestOptions(NamedDomainObjectContainer<NativeImageOptions> graalExtension, Project project, NativeImageOptions mainExtension, DirectoryProperty testListDirectory) {
-        NativeImageOptions testExtension = graalExtension.create(NATIVE_TEST_EXTENSION);
+    private static NativeImageOptions createTestOptions(GraalVMExtension graalExtension, Project project, NativeImageOptions mainExtension, DirectoryProperty testListDirectory) {
+        NativeImageOptions testExtension = graalExtension.getNativeImages().create(NATIVE_TEST_EXTENSION);
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));

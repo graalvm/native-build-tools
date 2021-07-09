@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,36 +39,30 @@
  * SOFTWARE.
  */
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+package org.graalvm.buildtools.gradle.internal;
 
-repositories {
-    mavenCentral()
-}
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
+import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
+import javax.inject.Inject;
 
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .forUseAtConfigurationTime()
-        .get()
+public class DefaultGraalVmExtension implements GraalVMExtension {
+    private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-}
+    @Inject
+    public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages) {
+        this.nativeImages = nativeImages;
+    }
 
-test {
-    useJUnitPlatform()
-}
+    @Override
+    public NamedDomainObjectContainer<NativeImageOptions> getNativeImages() {
+        return nativeImages;
+    }
 
-graal {
-    nativeImages {
-        test {
-            agent = true
-        }
+    @Override
+    public void nativeImages(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
+        spec.execute(nativeImages);
     }
 }
