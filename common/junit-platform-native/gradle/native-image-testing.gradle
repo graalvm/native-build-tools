@@ -121,7 +121,13 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
     }
 }
 
-tasks.register("nativeTestBuild", Exec) {
+tasks.named("test") {
+    doFirst {
+        agentOutput.get().asFile.mkdirs()
+    }
+}
+
+tasks.register("nativeTestAssemble", Exec) {
     dependsOn(test)
     inputs.files(test.classpath)
     workingDir "${buildDir}"
@@ -135,7 +141,7 @@ tasks.register("nativeTestBuild", Exec) {
 }
 
 tasks.register("nativeTest", Exec) {
-    dependsOn nativeTestBuild
+    dependsOn nativeTestAssemble
     workingDir = "${buildDir}"
     executable = "${buildDir}/native-image-tests"
 }
