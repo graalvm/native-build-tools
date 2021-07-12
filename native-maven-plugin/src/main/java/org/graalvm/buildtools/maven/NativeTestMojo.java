@@ -43,6 +43,7 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -99,12 +100,12 @@ public class NativeTestMojo extends AbstractNativeMojo {
         if (!hasTestIds()) {
             logger.error("Test configuration file wasn't found.");
             logger.error("Add a following dependency to use the test listener mode:\n" +
-                "<dependency>\n" +
-                "    <groupId>org.graalvm.buildtools</groupId>\n" +
-                "    <artifactId>junit-platform-native</artifactId>\n" +
-                "    <version>" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION + "</version>\n" +
-                "    <scope>test</scope>\n" +
-                "</dependency>");
+                    "<dependency>\n" +
+                    "    <groupId>org.graalvm.buildtools</groupId>\n" +
+                    "    <artifactId>junit-platform-native</artifactId>\n" +
+                    "    <version>" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION + "</version>\n" +
+                    "    <scope>test</scope>\n" +
+                    "</dependency>");
             throw new IllegalStateException("Test configuration file wasn't found.");
         }
 
@@ -135,6 +136,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
                 "-H:Path=" + targetFolder.toAbsolutePath(),
                 "-H:Name=" + NATIVE_TESTS_EXE));
+        maybeAddGeneratedResourcesConfig(command);
 
         if (buildArgs != null) {
             command.addAll(buildArgs);
@@ -188,7 +190,18 @@ public class NativeTestMojo extends AbstractNativeMojo {
             List<String> projectClassPath = new ArrayList<>(project
                     .getTestClasspathElements());
 
-            return Stream.concat(projectClassPath.stream(), pluginDependencies.stream()
+            Stream<String> allResources = Stream.concat(
+                    project.getBuild()
+                            .getResources()
+                            .stream()
+                            .map(FileSet::getDirectory),
+                    project.getBuild()
+                            .getTestResources()
+                            .stream()
+                            .map(FileSet::getDirectory)
+            );
+
+            return Stream.concat(Stream.concat(projectClassPath.stream(), allResources), pluginDependencies.stream()
                     .map(it -> it.getFile().toString()))
                     .collect(Collectors.joining(File.pathSeparator));
         } catch (DependencyResolutionRequiredException e) {
@@ -221,8 +234,8 @@ public class NativeTestMojo extends AbstractNativeMojo {
             return Stream.empty();
         }
         return Files.find(dir, Integer.MAX_VALUE,
-            (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
-                    && path.getFileName().toString().startsWith(prefix)));
+                (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
+                        && path.getFileName().toString().startsWith(prefix)));
     }
 
 }

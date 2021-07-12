@@ -47,7 +47,7 @@ import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
-import org.graalvm.buildtools.gradle.internal.Utils;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
@@ -81,8 +81,8 @@ import java.util.function.Consumer;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.findConfiguration;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.findMainArtifacts;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
-import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_OUTPUT_FOLDER;
-import static org.graalvm.buildtools.gradle.internal.Utils.AGENT_PROPERTY;
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -285,7 +285,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         NativeImageOptions testExtension = NativeImageOptions.register(project, NATIVE_TEST_EXTENSION);
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
-        testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + Utils.NATIVE_TESTS_SUFFIX));
+        testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
         ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
         runtimeArgs.add("--xml-output-dir");
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/test-native").map(d -> d.getAsFile().getAbsolutePath()));

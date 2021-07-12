@@ -38,46 +38,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.internal;
+package org.graalvm.buildtools.model.resources;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.function.Function;
+public class PatternValue {
+    private final String pattern;
 
-@NotThreadSafe
-public abstract class ClassPathEntryAnalyzer {
-    private final Function<String, Boolean> resourceFilter;
-
-    private List<String> resources;
-
-    public static ClassPathEntryAnalyzer of(File file, Function<String, Boolean> resourceFilter) {
-        if (file.getName().endsWith(".jar")) {
-            return new JarAnalyzer(file, resourceFilter);
-        }
-        return new ClassPathDirectoryAnalyzer(file.toPath(), resourceFilter);
+    public PatternValue(String pattern) {
+        this.pattern = pattern;
     }
 
-    protected ClassPathEntryAnalyzer(Function<String, Boolean> resourceFilter) {
-        this.resourceFilter = resourceFilter;
+    public String getPattern() {
+        return pattern;
     }
 
-    public List<String> getResources() throws IOException {
-        if (resources == null) {
-            resources = initialize();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-        return resources;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        PatternValue that = (PatternValue) o;
+
+        return pattern.equals(that.pattern);
     }
 
-    protected abstract List<String> initialize() throws IOException;
+    @Override
+    public int hashCode() {
+        return pattern.hashCode();
+    }
 
-    protected void maybeAddResource(String entry, List<String> resources) {
-        if (entry.endsWith(".class")) {
-            return;
-        }
-        if (resourceFilter.apply(entry)) {
-            resources.add(entry);
-        }
+    @Override
+    public String toString() {
+        return "name='" + pattern + '\'';
     }
 }

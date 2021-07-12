@@ -41,6 +41,8 @@
 
 package org.graalvm.buildtools;
 
+import org.graalvm.buildtools.utils.SharedConstants;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,16 +54,9 @@ import java.util.stream.Stream;
 /**
  * Utility class containing various native-image and JVM related methods.
  */
-public class Utils {
-    public static final boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    public static final String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
+public abstract class Utils implements SharedConstants {
     public static final String NATIVE_IMAGE_EXE = "native-image" + (IS_WINDOWS ? ".cmd" : "");
-    public static final String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
-    public static final String AGENT_PROPERTY = "agent";
-    public static final String AGENT_OUTPUT_FOLDER = Paths.get(NATIVE_IMAGE_OUTPUT_FOLDER, "agent-output").toString();
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
-    public static final String AGENT_FILTER = "agent-filter.json";
-    public static final String PERSIST_CONFIG_PROPERTY = "persistConfig";
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
 
     public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) {

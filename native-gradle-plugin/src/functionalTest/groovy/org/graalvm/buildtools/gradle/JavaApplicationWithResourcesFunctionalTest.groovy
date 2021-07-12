@@ -179,7 +179,7 @@ nativeTest {
     resources {
         inference {
             enabled = true
-            inferenceExclusionPatterns.addAll("META-INF/.*", "test_ids[.]txt")
+            inferenceExclusionPatterns.addAll("META-INF/.*", "junit-platform-unique-ids.*")
         }
     }
 }

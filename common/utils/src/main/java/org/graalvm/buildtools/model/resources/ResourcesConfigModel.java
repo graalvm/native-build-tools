@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,54 +39,25 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.maven;
+package org.graalvm.buildtools.model.resources;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.toolchain.ToolchainManager;
-import org.codehaus.plexus.logging.Logger;
+import java.util.Set;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+@SuppressWarnings("unused")
+public class ResourcesConfigModel {
+    private final ResourcesModel resources;
+    private final Set<NamedValue> bundles;
 
-/**
- * @author Sebastien Deleuze
- */
-public abstract class AbstractNativeMojo extends AbstractMojo {
+    public ResourcesConfigModel(ResourcesModel resources, Set<NamedValue> bundles) {
+        this.resources = resources;
+        this.bundles = bundles;
+    }
 
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    protected MavenProject project;
+    public ResourcesModel getResources() {
+        return resources;
+    }
 
-    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
-    protected List<Artifact> pluginArtifacts;
-
-    @Parameter(property = "buildArgs")
-    protected List<String> buildArgs;
-
-    @Parameter(defaultValue = "${session}", readonly = true)
-    protected MavenSession session;
-
-    @Parameter(defaultValue = "${project.build.directory}/native/generated", property = "resourcesConfigDirectory", required = true)
-    private File resourcesConfigDirectory;
-
-    @Component
-    protected ToolchainManager toolchainManager;
-
-    @Component
-    protected Logger logger;
-
-    protected void maybeAddGeneratedResourcesConfig(List<String> into) {
-        if (resourcesConfigDirectory.exists()) {
-            into.add("-H:ConfigurationFileDirectories=" +
-                    Arrays.stream(resourcesConfigDirectory.listFiles())
-                            .map(File::getAbsolutePath)
-                            .collect(Collectors.joining(",")));
-        }
+    public Set<NamedValue> getBundles() {
+        return bundles;
     }
 }
