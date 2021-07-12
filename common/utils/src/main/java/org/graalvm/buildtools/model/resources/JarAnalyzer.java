@@ -38,72 +38,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.internal;
+package org.graalvm.buildtools.model.resources;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import org.graalvm.buildtools.utils.FileUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
 
-import static org.graalvm.buildtools.gradle.internal.GradleUtils.normalizePathSeparators;
+class JarAnalyzer extends ClassPathEntryAnalyzer {
+    private final File jarFile;
 
-@NotThreadSafe
-class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
-    private final Path root;
-
-    ClassPathDirectoryAnalyzer(Path root, Function<String, Boolean> resourceFilter) {
+    JarAnalyzer(File jarFile, Function<String, Boolean> resourceFilter) {
         super(resourceFilter);
-        this.root = root;
+        this.jarFile = jarFile;
     }
 
     protected List<String> initialize() throws IOException {
-        DirectoryVisitor visitor = new DirectoryVisitor();
-        Files.walkFileTree(root, visitor);
-        return visitor.hasNativeImageResourceFile ? Collections.emptyList() : visitor.resources;
-    }
-
-    private class DirectoryVisitor extends SimpleFileVisitor<Path> {
         List<String> resources = new ArrayList<>();
-        boolean hasNativeImageResourceFile;
-        boolean inNativeImageDir;
+        boolean hasNativeImageResourceFile = false;
+        try (JarInputStream zin = new JarInputStream(new FileInputStream(jarFile))) {
+            ZipEntry entry;
+            while ((entry = zin.getNextEntry()) != null) {
+                hasNativeImageResourceFile = FileUtils.normalizePathSeparators(entry.getName()).startsWith(Helper.META_INF_NATIVE_IMAGE + "/")
+                    && entry.getName().endsWith("resource-config.json");
 
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-            String relativePath = relativePathOf(dir);
-            if (Utils.META_INF_NATIVE_IMAGE.equals(relativePath)) {
-                inNativeImageDir = true;
+                if (hasNativeImageResourceFile) {
+                    break;
+                }
+                if (!entry.isDirectory()) {
+                    maybeAddResource(entry.getName(), resources);
+                }
             }
-            return FileVisitResult.CONTINUE;
         }
-
-        private String relativePathOf(Path path) {
-            return normalizePathSeparators(root.relativize(path).toString());
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-            String relativePath = relativePathOf(dir);
-            if (Utils.META_INF_NATIVE_IMAGE.equals(relativePath)) {
-                inNativeImageDir = false;
-            }
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            if (inNativeImageDir && relativePathOf(file).endsWith("resource-config.json")) {
-                hasNativeImageResourceFile = true;
-                return FileVisitResult.TERMINATE;
-            }
-            maybeAddResource(root.relativize(file).toString(), resources);
-            return FileVisitResult.CONTINUE;
-        }
+        return hasNativeImageResourceFile ? Collections.emptyList() : resources;
     }
 }

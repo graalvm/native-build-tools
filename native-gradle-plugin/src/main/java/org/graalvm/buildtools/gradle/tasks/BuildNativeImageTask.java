@@ -67,7 +67,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.graalvm.buildtools.gradle.internal.Utils.NATIVE_IMAGE_EXE;
+import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
 /**
  * This task is responsible for generating a native image by

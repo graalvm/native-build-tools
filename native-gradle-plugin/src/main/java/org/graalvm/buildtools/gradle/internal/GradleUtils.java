@@ -93,7 +93,4 @@ public class GradleUtils {
                 .getFiles();
     }
 
-    public static String normalizePathSeparators(String path) {
-        return path.replace('\\', '/');
-    }
 }

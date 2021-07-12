@@ -64,6 +64,10 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         )
     }
 
+    protected void withDebug() {
+        executor.debug = true
+    }
+
     protected void withSample(String name) {
         File sampleDir = new File("../samples/$name")
         copySample(sampleDir.toPath(), testDirectory)
@@ -83,6 +87,10 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         ].collect {
             "-D${it}=${System.getProperty(it)}".toString()
         }
+    }
+
+    void mvn(List<String> args) {
+        mvn(args as String[])
     }
 
     void mvn(String... args) {
@@ -121,4 +129,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         !result.stdOut.contains(text)
     }
 
+    File file(String path) {
+        testDirectory.resolve(path).toFile()
+    }
 }

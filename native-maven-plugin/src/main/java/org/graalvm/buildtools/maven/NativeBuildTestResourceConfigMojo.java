@@ -41,52 +41,33 @@
 
 package org.graalvm.buildtools.maven;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.toolchain.ToolchainManager;
-import org.codehaus.plexus.logging.Logger;
+import org.apache.maven.model.FileSet;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
-/**
- * @author Sebastien Deleuze
- */
-public abstract class AbstractNativeMojo extends AbstractMojo {
+@Mojo(
+        name = "generateTestResourceConfig",
+        defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyCollection = ResolutionScope.TEST
+)
+public class NativeBuildTestResourceConfigMojo extends AbstractResourceConfigMojo {
+    @Override
+    String getConfigurationKind() {
+        return "generateTestResourceConfig";
+    }
 
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    protected MavenProject project;
-
-    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
-    protected List<Artifact> pluginArtifacts;
-
-    @Parameter(property = "buildArgs")
-    protected List<String> buildArgs;
-
-    @Parameter(defaultValue = "${session}", readonly = true)
-    protected MavenSession session;
-
-    @Parameter(defaultValue = "${project.build.directory}/native/generated", property = "resourcesConfigDirectory", required = true)
-    private File resourcesConfigDirectory;
-
-    @Component
-    protected ToolchainManager toolchainManager;
-
-    @Component
-    protected Logger logger;
-
-    protected void maybeAddGeneratedResourcesConfig(List<String> into) {
-        if (resourcesConfigDirectory.exists()) {
-            into.add("-H:ConfigurationFileDirectories=" +
-                    Arrays.stream(resourcesConfigDirectory.listFiles())
-                            .map(File::getAbsolutePath)
-                            .collect(Collectors.joining(",")));
-        }
+    @Override
+    protected Collection<? extends File> getExtraProjectArtifacts() {
+        return mavenProject.getBuild()
+                .getTestResources()
+                .stream()
+                .map(FileSet::getDirectory)
+                .map(File::new)
+                .collect(Collectors.toList());
     }
 }

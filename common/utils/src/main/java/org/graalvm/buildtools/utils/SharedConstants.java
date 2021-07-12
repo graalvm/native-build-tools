@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,54 +39,32 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.maven;
+package org.graalvm.buildtools.utils;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.toolchain.ToolchainManager;
-import org.codehaus.plexus.logging.Logger;
-
-import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * @author Sebastien Deleuze
+ * Utility class containing various native-image and JVM related methods.
+ * Keep this file in sync across all build tool plugins.
  */
-public abstract class AbstractNativeMojo extends AbstractMojo {
-
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    protected MavenProject project;
-
-    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
-    protected List<Artifact> pluginArtifacts;
-
-    @Parameter(property = "buildArgs")
-    protected List<String> buildArgs;
-
-    @Parameter(defaultValue = "${session}", readonly = true)
-    protected MavenSession session;
-
-    @Parameter(defaultValue = "${project.build.directory}/native/generated", property = "resourcesConfigDirectory", required = true)
-    private File resourcesConfigDirectory;
-
-    @Component
-    protected ToolchainManager toolchainManager;
-
-    @Component
-    protected Logger logger;
-
-    protected void maybeAddGeneratedResourcesConfig(List<String> into) {
-        if (resourcesConfigDirectory.exists()) {
-            into.add("-H:ConfigurationFileDirectories=" +
-                    Arrays.stream(resourcesConfigDirectory.listFiles())
-                            .map(File::getAbsolutePath)
-                            .collect(Collectors.joining(",")));
-        }
-    }
+public interface SharedConstants {
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
+    String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
+    String NATIVE_IMAGE_EXE = "native-image" + EXECUTABLE_EXTENSION;
+    String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
+    String AGENT_PROPERTY = "agent";
+    String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
+    String NATIVE_TESTS_SUFFIX = "-tests";
+    List<String> DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE = Collections.unmodifiableList(Arrays.asList(
+            "META-INF/services/.*",
+            "META-INF/native-image/.*",
+            "META-INF/maven/.*",
+            "META-INF/LICENSE.*",
+            "META-INF/NOTICE.*",
+            "META-INF/.*[.](md|adoc)",
+            "META-INF/INDEX.LIST",
+            ".*/package.html"
+    ));
 }

@@ -40,7 +40,7 @@
  */
 package org.graalvm.buildtools.gradle.dsl;
 
-import org.graalvm.buildtools.gradle.internal.Utils;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
@@ -76,7 +76,7 @@ public abstract class ResourceInferenceOptions {
      * added.
      */
     public ResourceInferenceOptions addDefaultInferenceExclusions() {
-        getInferenceExclusionPatterns().addAll(Utils.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
+        getInferenceExclusionPatterns().addAll(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
         return this;
     }
 
@@ -84,6 +84,6 @@ public abstract class ResourceInferenceOptions {
     public ResourceInferenceOptions() {
         getEnabled().convention(false);
         getRestrictToProjectDependencies().convention(true);
-        getInferenceExclusionPatterns().convention(Utils.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
+        getInferenceExclusionPatterns().convention(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
     }
 }

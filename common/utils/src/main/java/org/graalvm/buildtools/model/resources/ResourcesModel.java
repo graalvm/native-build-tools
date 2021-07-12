@@ -38,47 +38,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.internal;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.jar.JarInputStream;
-import java.util.zip.ZipEntry;
+package org.graalvm.buildtools.model.resources;
 
-import static org.graalvm.buildtools.gradle.internal.GradleUtils.normalizePathSeparators;
+import java.util.Set;
 
-@NotThreadSafe
-class JarAnalyzer extends ClassPathEntryAnalyzer {
-    private final File jarFile;
+@SuppressWarnings("unused")
+public class ResourcesModel {
+    private final Set<PatternValue> includes;
+    private final Set<PatternValue> excludes;
 
-    JarAnalyzer(File jarFile, Function<String, Boolean> resourceFilter) {
-        super(resourceFilter);
-        this.jarFile = jarFile;
+    public ResourcesModel(Set<PatternValue> includes, Set<PatternValue> excludes) {
+        this.includes = includes;
+        this.excludes = excludes;
     }
 
-    protected List<String> initialize() throws IOException {
-        List<String> resources = new ArrayList<>();
-        boolean hasNativeImageResourceFile = false;
-        try (JarInputStream zin = new JarInputStream(new FileInputStream(jarFile))) {
-            ZipEntry entry;
-            while ((entry = zin.getNextEntry()) != null) {
-                hasNativeImageResourceFile = normalizePathSeparators(entry.getName()).startsWith(Utils.META_INF_NATIVE_IMAGE + "/")
-                    && entry.getName().endsWith("resource-config.json");
+    public Set<PatternValue> getIncludes() {
+        return includes;
+    }
 
-                if (hasNativeImageResourceFile) {
-                    break;
-                }
-                if (!entry.isDirectory()) {
-                    maybeAddResource(entry.getName(), resources);
-                }
-            }
-        }
-        return hasNativeImageResourceFile ? Collections.emptyList() : resources;
+    public Set<PatternValue> getExcludes() {
+        return excludes;
     }
 }

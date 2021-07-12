@@ -116,6 +116,8 @@ public class NativeBuildMojo extends AbstractNativeMojo {
 
         Path nativeImageExecutable = Utils.getNativeImage();
 
+        maybeAddGeneratedResourcesConfig(buildArgs);
+
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString(), "-cp", classpathStr);
             processBuilder.command().addAll(getBuildArgs());

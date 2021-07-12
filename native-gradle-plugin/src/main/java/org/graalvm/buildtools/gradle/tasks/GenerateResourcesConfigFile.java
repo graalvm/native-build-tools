@@ -44,15 +44,18 @@ import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.ResourceInferenceOptions;
-import org.graalvm.buildtools.gradle.internal.ClassPathEntryAnalyzer;
+import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
-import org.graalvm.buildtools.gradle.internal.NamedValue;
-import org.graalvm.buildtools.gradle.internal.PatternValue;
+import org.graalvm.buildtools.model.resources.Helper;
+import org.graalvm.buildtools.model.resources.NamedValue;
+import org.graalvm.buildtools.model.resources.PatternValue;
+import org.graalvm.buildtools.model.resources.ResourceFilter;
+import org.graalvm.buildtools.model.resources.ResourcesConfigModel;
+import org.graalvm.buildtools.model.resources.ResourcesModel;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
@@ -92,14 +95,14 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
     public void generate() throws IOException {
         NativeResourcesOptions nativeResourcesOptions = getOptions().get();
         ResourceInferenceOptions inferenceOptions = nativeResourcesOptions.getInferenceOptions();
-        Set<NamedValue> bundles = asNamedValues(nativeResourcesOptions.getBundles());
-        Set<PatternValue> includes = asPatternValues(nativeResourcesOptions.getIncludedPatterns());
-        Set<PatternValue> excludes = asPatternValues(nativeResourcesOptions.getExcludedPatterns());
+        Set<NamedValue> bundles = Helper.asNamedValues(nativeResourcesOptions.getBundles().get());
+        Set<PatternValue> includes = Helper.asPatternValues(nativeResourcesOptions.getIncludedPatterns().get());
+        Set<PatternValue> excludes = Helper.asPatternValues(nativeResourcesOptions.getExcludedPatterns().get());
         if (inferenceOptions.getEnabled().get()) {
             inferResourcesFromClasspath(inferenceOptions, includes);
         }
-        Model model = new Model(new ResourcesModel(includes, excludes), bundles);
-        serializeModel(model);
+        ResourcesConfigModel model = new ResourcesConfigModel(new ResourcesModel(includes, excludes), bundles);
+        serializeModel(model, getOutputFile().getAsFile().get());
     }
 
     private void inferResourcesFromClasspath(ResourceInferenceOptions inferenceOptions,
@@ -139,12 +142,11 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
         inferredResources.addAll(resources);
     }
 
-    private void serializeModel(Model model) throws IOException {
+    private void serializeModel(ResourcesConfigModel model, File outputFile) throws IOException {
         JsonGenerator builder = new JsonGenerator.Options()
                 .build();
         String json = builder.toJson(model);
         String pretty = JsonOutput.prettyPrint(json);
-        File outputFile = getOutputFile().getAsFile().get();
         File outputDir = outputFile.getParentFile();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
@@ -154,71 +156,4 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
         GraalVMLogger.of(getLogger()).lifecycle("Resources configuration written into " + outputFile);
     }
 
-    private static final class ResourceFilter {
-        private final Pattern excludes;
-
-        private ResourceFilter(Set<String> regularExpressions) {
-            excludes = regularExpressions.isEmpty() ? null : Pattern.compile(
-                    regularExpressions.stream()
-                            .map(p -> "(" + p + ")")
-                            .collect(Collectors.joining("|"))
-            );
-        }
-
-        private boolean shouldIncludeResource(String name) {
-            return excludes == null || !excludes.matcher(name).find();
-        }
-    }
-
-    private static Set<NamedValue> asNamedValues(Provider<List<String>> input) {
-        return input.get()
-                .stream()
-                .map(NamedValue::new)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private static Set<PatternValue> asPatternValues(Provider<List<String>> input) {
-        return input.get()
-                .stream()
-                .map(PatternValue::new)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    @SuppressWarnings("unused")
-    private static final class Model {
-        private final ResourcesModel resources;
-        private final Set<NamedValue> bundles;
-
-        private Model(ResourcesModel resources, Set<NamedValue> bundles) {
-            this.resources = resources;
-            this.bundles = bundles;
-        }
-
-        public ResourcesModel getResources() {
-            return resources;
-        }
-
-        public Set<NamedValue> getBundles() {
-            return bundles;
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private static final class ResourcesModel {
-        private final Set<PatternValue> includes;
-        private final Set<PatternValue> excludes;
-
-        private ResourcesModel(Set<PatternValue> includes, Set<PatternValue> excludes) {
-            this.includes = includes;
-            this.excludes = excludes;
-        }
-
-        public Set<PatternValue> getIncludes() {
-            return includes;
-        }
-
-        public Set<PatternValue> getExcludes() {
-            return excludes;
-        }
-    }
 }

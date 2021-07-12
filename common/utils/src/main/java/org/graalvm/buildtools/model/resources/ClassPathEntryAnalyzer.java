@@ -38,40 +38,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.internal;
+package org.graalvm.buildtools.model.resources;
 
-public class PatternValue {
-    private final String pattern;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.Function;
 
-    public PatternValue(String pattern) {
-        this.pattern = pattern;
-    }
+public abstract class ClassPathEntryAnalyzer {
+    private final Function<String, Boolean> resourceFilter;
 
-    public String getPattern() {
-        return pattern;
-    }
+    private List<String> resources;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    public static ClassPathEntryAnalyzer of(File file, Function<String, Boolean> resourceFilter) {
+        if (file.getName().endsWith(".jar")) {
+            return new JarAnalyzer(file, resourceFilter);
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
+        return new ClassPathDirectoryAnalyzer(file.toPath(), resourceFilter);
+    }
+
+    protected ClassPathEntryAnalyzer(Function<String, Boolean> resourceFilter) {
+        this.resourceFilter = resourceFilter;
+    }
+
+    public List<String> getResources() throws IOException {
+        if (resources == null) {
+            resources = initialize();
         }
-
-        PatternValue that = (PatternValue) o;
-
-        return pattern.equals(that.pattern);
+        return resources;
     }
 
-    @Override
-    public int hashCode() {
-        return pattern.hashCode();
-    }
+    protected abstract List<String> initialize() throws IOException;
 
-    @Override
-    public String toString() {
-        return "name='" + pattern + '\'';
+    protected void maybeAddResource(String entry, List<String> resources) {
+        if (entry.endsWith(".class")) {
+            return;
+        }
+        if (resourceFilter.apply(entry)) {
+            resources.add(entry);
+        }
     }
 }

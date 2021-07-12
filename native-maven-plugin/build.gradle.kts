@@ -60,6 +60,8 @@ maven {
 
 dependencies {
     implementation(libs.utils)
+    implementation(libs.groovy.json)
+
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
     compileOnly(libs.maven.artifact)

@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.internal;
+package org.graalvm.buildtools.model.resources;
 
 public class NamedValue {
     private final String name;
