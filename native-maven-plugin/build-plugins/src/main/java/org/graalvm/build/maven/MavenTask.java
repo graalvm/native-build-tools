@@ -20,33 +20,37 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
+import org.gradle.process.JavaExecSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @CacheableTask
-public abstract class GeneratePluginDescriptor extends DefaultTask {
+public abstract class MavenTask extends DefaultTask {
     @Inject
     public abstract ExecOperations getExecOperations();
 
     @Inject
     public abstract FileSystemOperations getFileSystemOperations();
 
-    @Internal
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getProjectDirectory();
-
-    @Internal
-    public abstract DirectoryProperty getCommonRepository();
 
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -60,46 +64,46 @@ public abstract class GeneratePluginDescriptor extends DefaultTask {
     @Classpath
     public abstract ConfigurableFileCollection getMavenEmbedderClasspath();
 
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract ConfigurableFileCollection getPluginClasses();
+    @Input
+    public abstract ListProperty<String> getArguments();
 
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
+    protected void extractOutput(File tmpDir, File outputDirectory) {
+        getFileSystemOperations().copy(spec -> {
+            File targetDir = new File(tmpDir, "target");
+            spec.from(targetDir).into(outputDirectory);
+        });
+    }
+
+    protected void prepareSpec(JavaExecSpec spec) {
+    }
+
     @TaskAction
-    protected void generatePluginDescriptor() {
+    protected void executeMaven() {
         File pomFile = getPomFile().getAsFile().get();
         File settingsFile = getSettingsFile().getAsFile().get();
         File outputDirectory = getOutputDirectory().getAsFile().get();
         File projectdir = getProjectDirectory().getAsFile().get();
-        File tmpDir = getTemporaryDirFactory().create();
-        FileSystemOperations fileSystemOperations = getFileSystemOperations();
-        fileSystemOperations.copy(spec -> {
-            getPluginClasses().getFiles().forEach(dir -> {
-                spec.from(dir).into(new File(tmpDir, "target/classes"));
-            });
-        });
-        fileSystemOperations.copy(spec -> spec.into(tmpDir).from(pomFile));
         getExecOperations().javaexec(spec -> {
             spec.setClasspath(getMavenEmbedderClasspath());
             spec.setMain("org.apache.maven.cli.MavenCli");
             spec.systemProperty("maven.multiModuleProjectDirectory", projectdir.getAbsolutePath());
-            spec.systemProperty("common.repo.uri", getCommonRepository().getAsFile().get().toURI().toString());
-            spec.args(
+            prepareSpec(spec);
+            List<String> arguments = new ArrayList<>();
+            arguments.addAll(Arrays.asList(
                     "--errors",
                     "-U",
                     "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn",
-                    "-q",
                     "--batch-mode",
                     "--settings", settingsFile.getAbsolutePath(),
-                    "--file", new File(tmpDir, pomFile.getName()),
-                    "org.apache.maven.plugins:maven-plugin-plugin:3.6.1:descriptor"
-            );
+                    "--file", pomFile.getAbsolutePath()
+            ));
+            arguments.addAll(getArguments().get());
+            spec.args(arguments);
+            getLogger().lifecycle("Invoking Maven with arguments " + arguments);
         });
-        fileSystemOperations.copy(spec -> {
-            File file = new File(tmpDir, "target/classes");
-            spec.from(file).include("META-INF/maven/**").into(outputDirectory);
-        });
+        extractOutput(projectdir, outputDirectory);
     }
 }

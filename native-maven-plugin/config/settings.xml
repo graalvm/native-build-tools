@@ -10,6 +10,16 @@
             </activation>
             <repositories>
                 <repository>
+                    <id>seed</id>
+                    <url>${seed.repo.uri}</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </repository>
+                <repository>
                     <id>common</id>
                     <url>${common.repo.uri}</url>
                     <snapshots>
@@ -21,6 +31,16 @@
                 </repository>
             </repositories>
             <pluginRepositories>
+                <pluginRepository>
+                    <id>seed</id>
+                    <url>${seed.repo.uri}</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                </pluginRepository>
                 <pluginRepository>
                     <id>common</id>
                     <url>${common.repo.uri}</url>

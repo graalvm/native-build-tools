@@ -1,3 +1,8 @@
+import gradle.kotlin.dsl.accessors._c82c258a19f3f9db84b385a71a3d54fd.testFixturesImplementation
+import org.gradle.kotlin.dsl.creating
+import org.gradle.kotlin.dsl.getValue
+import org.gradle.kotlin.dsl.invoke
+
 /*
  * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -39,15 +44,10 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.maven
+val mavenEmbedder by configurations.creating
 
-import groovy.transform.Canonical
-import groovy.transform.CompileStatic
-
-@CompileStatic
-@Canonical
-class DockerExecutionResult {
-    final Long exitCode
-    final String stdOut
-    final String stdErr
+configurations {
+    testFixturesImplementation {
+        extendsFrom(mavenEmbedder)
+    }
 }

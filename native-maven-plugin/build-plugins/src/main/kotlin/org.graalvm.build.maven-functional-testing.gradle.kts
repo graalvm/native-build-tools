@@ -1,3 +1,6 @@
+import org.graalvm.build.maven.MavenTask
+import org.gradle.util.GFileUtils
+
 /*
  * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -39,16 +42,46 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("../build-logic")
-    includeBuild("build-plugins")
-}
-
 plugins {
-    id("org.graalvm.build.common")
+    groovy
+    `java-test-fixtures`
+    id("org.graalvm.build.maven-embedder")
 }
 
-rootProject.name = "native-maven-plugin"
+val functionalTest by sourceSets.creating
 
-includeBuild("../common/junit-platform-native")
-includeBuild("../common/utils")
+val functionalTestCommonRepository by configurations.creating {
+    // This configuration will trigger the composite build
+    // which builds the JUnit native library, and publish it to a repository
+    // which can then be injected into tests
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("repository"))
+    }
+}
+
+configurations {
+    "functionalTestImplementation" {
+        extendsFrom(testImplementation.get())
+    }
+}
+
+// Add a task to run the functional tests
+tasks.register<Test>("functionalTest") {
+    // Any change to samples invalidates functional tests
+    inputs.files(files("../samples"))
+    inputs.files(functionalTestCommonRepository)
+    systemProperty("common.repo.url", functionalTestCommonRepository.incoming.files.files.first())
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = functionalTest.runtimeClasspath
+}
+
+tasks.named("check") {
+    // Run the functional tests as part of `check`
+    dependsOn(tasks.named("functionalTest"))
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
