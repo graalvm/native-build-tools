@@ -22,10 +22,12 @@ import java.util.concurrent.CompletableFuture
 @CompileStatic
 class IsolatedMavenExecutor {
     private final File javaExecutable
+    private final File m2Home
     private final String classpath
 
-    IsolatedMavenExecutor(File javaExecutable, String classpath) {
+    IsolatedMavenExecutor(File javaExecutable, File m2Home, String classpath) {
         this.javaExecutable = javaExecutable
+        this.m2Home = m2Home
         this.classpath = classpath
     }
 
@@ -46,7 +48,10 @@ class IsolatedMavenExecutor {
         ProcessBuilder builder = new ProcessBuilder()
                 .directory(rootProjectDirectory)
                 .command(cliArgs)
-        builder.environment().put("GRAALVM_HOME", javaExecutable.parentFile.parentFile.absolutePath)
+
+        def environment = builder.environment()
+        environment.put("GRAALVM_HOME", javaExecutable.parentFile.parentFile.absolutePath)
+        environment.put("M2_HOME", m2Home.absolutePath)
         Process p = builder
                 .redirectErrorStream(true)
                 .start()

@@ -49,15 +49,20 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
 abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
-    private final IsolatedMavenExecutor executor = new IsolatedMavenExecutor(
-            new File(System.getProperty("java.executable")),
-            System.getProperty("maven.classpath")
-    )
-
     @TempDir
     Path testDirectory
 
+    private IsolatedMavenExecutor executor
+
     MavenExecutionResult result
+
+    def setup() {
+        executor = new IsolatedMavenExecutor(
+                new File(System.getProperty("java.executable")),
+                testDirectory.resolve("m2-home").toFile(),
+                System.getProperty("maven.classpath")
+        )
+    }
 
     protected void withSample(String name) {
         File sampleDir = new File("../samples/$name")
