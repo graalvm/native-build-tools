@@ -39,9 +39,8 @@
  * SOFTWARE.
  */
 
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import org.graalvm.build.maven.GeneratePluginDescriptor
+import org.graalvm.build.maven.MavenTask
+import org.gradle.util.GFileUtils
 
 plugins {
     `java-library`
@@ -50,22 +49,13 @@ plugins {
     `java-test-fixtures`
     id("org.graalvm.build.java")
     id("org.graalvm.build.publishing")
+    id("org.graalvm.build.maven-plugin")
     id("org.graalvm.build.maven-functional-testing")
-    id("com.bmuschko.docker-remote-api") version "7.1.0"
 }
 
 maven {
     name.set("GraalVM Native Maven Plugin")
     description.set("Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code)")
-}
-
-val mavenEmbedder by configurations.creating
-
-val testingBase by configurations.creating {
-    isCanBeConsumed = false
-    isCanBeResolved = false
-    configurations.testImplementation.get().extendsFrom(this)
-    configurations.testFixturesImplementation.get().extendsFrom(this)
 }
 
 dependencies {
@@ -84,14 +74,12 @@ dependencies {
     mavenEmbedder(libs.maven.compat)
     mavenEmbedder(libs.slf4j.simple)
 
-    testingBase(libs.test.spock)
-    testingBase(platform(libs.test.testcontainers.bom))
-    testingBase(libs.test.testcontainers.core)
-    testingBase(libs.test.testcontainers.spock)
+    testFixturesImplementation(libs.test.spock)
 
     functionalTestCommonRepository(libs.utils)
     functionalTestCommonRepository(libs.junitPlatformNative)
 
+    functionalTestImplementation(libs.test.spock)
     functionalTestRuntimeOnly(libs.slf4j.simple)
 }
 
@@ -106,89 +94,67 @@ publishing {
     }
 }
 
-val generatePluginDescriptor = tasks.register<GeneratePluginDescriptor>("generatePluginDescriptor") {
-    dependsOn(gradle.includedBuild("utils").task(":publishAllPublicationsToCommonRepository"))
-    projectDirectory.set(project.layout.projectDirectory)
-    commonRepository.set(gradle.rootLayout.buildDirectory.dir("common-repo"))
-    pluginClasses.from(sourceSets.getByName("main").output.classesDirs)
-    settingsFile.set(project.layout.projectDirectory.file("config/settings.xml"))
-    pomFile.set(tasks.withType<GenerateMavenPom>().named("generatePomFileForMavenPluginPublication").map { pom ->
-        project.objects.fileProperty().also { it.set(pom.destination) }.get()
-    })
-    mavenEmbedderClasspath.from(mavenEmbedder)
-    outputDirectory.set(project.layout.buildDirectory.dir("generated/maven-plugin"))
-}
-
-val prepareBuildContext = tasks.register("prepareBuildContext", Copy::class.java) {
-    dependsOn(":publishAllPublicationsToCommonRepository")
-    destinationDir = layout.buildDirectory.dir("docker/context").get().asFile
-    from(layout.projectDirectory.dir("../samples/java-application")) {
-        into("java-application")
-    }
-    from(dockerFileForFunctionalTests.map { it.destDir })
-    from(file("config/settings.xml"))
-    into("maven-repo") {
-        from(configurations.functionalTestCommonRepository.get())
+tasks {
+    generatePluginDescriptor {
+        commonRepository.set(repoDirectory)
     }
 }
 
-val dockerFileForFunctionalTests = tasks.register("dockerFileForFunctionalTests", Dockerfile::class.java) {
-    inputs.property("graalVmVersion", libs.versions.graalvm)
-    inputs.property("mavenVersion", libs.versions.maven)
-    from(providers.provider {
-        Dockerfile.From("ghcr.io/graalvm/graalvm-ce:java11-${libs.versions.graalvm.get()}")
-    })
-    runCommand("gu install native-image")
-    runCommand(providers.provider {
-        val mvnVersion = libs.versions.maven.get()
-        """curl https://archive.apache.org/dist/maven/maven-3/$mvnVersion/binaries/apache-maven-$mvnVersion-bin.tar.gz --output apache-maven-$mvnVersion-bin.tar.gz && \
-  tar -zxvf apache-maven-$mvnVersion-bin.tar.gz && \
-  rm apache-maven-$mvnVersion-bin.tar.gz && \
-  mv apache-maven-$mvnVersion /usr/lib/mvn"""
-    })
-    addFile("java-application", "/bootstrap")
-    addFile("maven-repo", "/bootstrap/repo")
-    addFile("settings.xml", "/root/.m2/")
-    val mvn = "cd /bootstrap && /usr/lib/mvn/bin/mvn " +
-            "-Dcommon.repo.uri=file:///bootstrap/repo " +
-            "-Djunit.jupiter.version=${libs.versions.junitJupiter.get()} " +
-            "-Dnative.maven.plugin.version=${libs.versions.nativeMavenPlugin.get()} " +
-            "-Djunit.platform.native.version=${libs.versions.junitPlatformNative.get()}"
-    // Fill the Maven cache with as many dependencies as we can
-    runCommand("$mvn package || true")
-    runCommand("$mvn test || true")
-    runCommand("$mvn install || true")
-    runCommand("$mvn exec:exec || true")
-    environmentVariable("MAVEN_HOME", "/usr/lib/mvn")
-    environmentVariable("PATH", "\$MAVEN_HOME/bin:\$PATH")
-    workingDir("/sample")
+val seedingDir = project.layout.buildDirectory.dir("maven-seeding")
+
+val prepareSeedingProject = tasks.register<Sync>("prepareSeedingProject") {
+    from(files("src/seeding-build"))
+    into(seedingDir)
+    outputs.upToDateWhen { false }
 }
 
-val dockerImageForFunctionalTests = tasks.register("dockerImageForFunctionalTests", DockerBuildImage::class.java) {
-    inputDir.set(prepareBuildContext.map { ctx -> objects.directoryProperty().also { it.set(ctx.destinationDir) }.get() })
-    images.add("graalvm/maven-functional-testing:latest")
-    quiet.set(true)
-    onlyIf {
-        // prevent execution of this task if jar hasn't changed
-        // this isn't quite right but otherwise the publishing is done on every
-        // execution and this triggers rebuild of a full image
-        tasks.jar.get().state.outcome in setOf(
-                org.gradle.api.internal.tasks.TaskExecutionOutcome.EXECUTED,
-                org.gradle.api.internal.tasks.TaskExecutionOutcome.FROM_CACHE,
-        )
+val localRepository = project.layout.buildDirectory.dir("maven-seeded-repo")
+
+val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
+    dependsOn(prepareSeedingProject)
+    projectDirectory.set(prepareSeedingProject.map { seedingDir.get() })
+    settingsFile.set(layout.projectDirectory.file("config/settings.xml"))
+    pomFile.set(seedingDir.map { it.file("pom.xml") })
+    mavenEmbedderClasspath.from(configurations.mavenEmbedder)
+    outputDirectory.set(localRepository)
+    arguments.set(listOf(
+            "-q",
+            "-Dproject.build.directory=${File(temporaryDir, "target")}",
+            "-Dmaven.repo.local=${localRepository.get().asFile.absolutePath}",
+            "-Djunit.jupiter.version=${libs.versions.junitJupiter.get()}",
+            "-Dnative.maven.plugin.version=${libs.versions.nativeMavenPlugin.get()}",
+            "-Djunit.platform.native.version=${libs.versions.junitPlatformNative.get()}",
+            "-Dexec.mainClass=org.graalvm.demo.Application",
+            "package",
+            "test",
+            "install",
+            "exec:java"
+    )
+    )
+
+    doFirst {
+        GFileUtils.deleteDirectory(localRepository.get().asFile)
     }
+}
+
+val launcher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(11))
+    vendor.set(JvmVendorSpec.matching("GraalVM"))
 }
 
 tasks {
-    jar {
-        from(generatePluginDescriptor)
-    }
     functionalTest {
-        dependsOn(dockerImageForFunctionalTests)
+        javaLauncher.set(launcher)
+        dependsOn(prepareMavenLocalRepo, publishAllPublicationsToCommonRepository)
         systemProperty("graalvm.version", libs.versions.graalvm.get())
         systemProperty("junit.jupiter.version", libs.versions.junitJupiter.get())
         systemProperty("native.maven.plugin.version", libs.versions.nativeMavenPlugin.get())
         systemProperty("junit.platform.native.version", libs.versions.junitPlatformNative.get())
+        systemProperty("common.repo.uri", repoDirectory.get().asFile.toURI().toASCIIString())
+        systemProperty("seed.repo.uri", localRepository.get().asFile.toURI().toASCIIString())
+        systemProperty("maven.classpath", configurations.mavenEmbedder.asPath)
+        systemProperty("maven.settings", layout.projectDirectory.file("config/settings.xml").asFile.absolutePath)
+        systemProperty("java.executable", javaLauncher.get().executablePath.asFile.absolutePath)
     }
 }
 

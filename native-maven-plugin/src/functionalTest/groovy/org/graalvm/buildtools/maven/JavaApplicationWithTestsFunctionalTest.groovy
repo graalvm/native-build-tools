@@ -49,10 +49,9 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         mvn '-Pnative', 'test'
 
         then:
-        if (didNotCrash) {
-            buildSucceeded
-            outputContains "[junit-platform-native] Running in 'test listener' mode"
-            outputContains """
+        buildSucceeded
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContains """
 [         3 containers found      ]
 [         0 containers skipped    ]
 [         3 containers started    ]
@@ -66,8 +65,5 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 [         6 tests successful      ]
 [         0 tests failed          ]
 """.trim()
-        } else {
-            System.err.println("[WARNING] Native image process likely crashed")
-        }
     }
 }

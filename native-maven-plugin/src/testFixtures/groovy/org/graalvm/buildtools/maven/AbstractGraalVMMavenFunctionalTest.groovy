@@ -41,8 +41,6 @@
 
 package org.graalvm.buildtools.maven
 
-import org.testcontainers.containers.BindMode
-import org.testcontainers.spock.Testcontainers
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -50,25 +48,20 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
-@Testcontainers
 abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
-    final GraalVMContainerController host = new GraalVMContainerController(
-            new GraalVMContainer("graalvm/maven-functional-testing:latest")
+    private final IsolatedMavenExecutor executor = new IsolatedMavenExecutor(
+            new File(System.getProperty("java.executable")),
+            System.getProperty("maven.classpath")
     )
 
     @TempDir
     Path testDirectory
 
-    DockerExecutionResult result
+    MavenExecutionResult result
 
     protected void withSample(String name) {
         File sampleDir = new File("../samples/$name")
         copySample(sampleDir.toPath(), testDirectory)
-        host.addFileSystemBind(
-                testDirectory.toFile().getAbsolutePath(),
-                "/sample",
-                BindMode.READ_WRITE
-        )
     }
 
     private static void copySample(Path from, Path into) {
@@ -88,12 +81,17 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     void mvn(String... args) {
-        result = host.execute(
-                "mvn",
-                "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn",
-                "-Dcommon.repo.uri=file:///bootstrap/repo",
-                *injectedSystemProperties,
-                *args
+        result = executor.execute(
+                testDirectory.toFile(),
+                [
+                        "org.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener": "warn",
+                        "common.repo.uri": System.getProperty("common.repo.uri"),
+                        "seed.repo.uri": System.getProperty("seed.repo.uri"),
+                        "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
+                ],
+                [*injectedSystemProperties,
+                 *args],
+                new File(System.getProperty("maven.settings"))
         )
         System.out.println("Exit code is ${result.exitCode}")
     }
