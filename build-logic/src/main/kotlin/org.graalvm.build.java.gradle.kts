@@ -87,3 +87,7 @@ tasks.withType<Test>().configureEach {
         events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
     }
 }
+
+val inspections by tasks.registering {
+    dependsOn(tasks.withType<Checkstyle>())
+}

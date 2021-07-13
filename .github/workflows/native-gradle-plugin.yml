@@ -15,7 +15,21 @@ on:
 
 jobs:
   test-native-gradle-plugin:
-    name:
+    name: Sanity checks
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Unit tests and inspections
+        run: |
+          pushd native-gradle-plugin
+            ./gradlew test inspections
+          popd
+  functional-testing-gradle-plugin:
+    name: Functional testing
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
@@ -32,5 +46,25 @@ jobs:
       - name: Check and test the plugin
         run: |
           pushd native-gradle-plugin
-            ./gradlew check
+            ./gradlew functionalTest
+          popd
+  full-functional-testing-gradle-plugin:
+    name: Full functional testing
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source common/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Verifies plugin on multiple Gradle versions
+        run: |
+          pushd native-gradle-plugin
+            ./gradlew fullFunctionalTest
           popd
