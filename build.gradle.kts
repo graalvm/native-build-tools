@@ -55,6 +55,12 @@ tasks.register("test") {
     }
 }
 
+tasks.register("inspections") {
+    gradle.includedBuilds.forEach {
+        dependsOn(it.task(":inspections"))
+    }
+}
+
 tasks.named("check") {
     gradle.includedBuilds.forEach {
         dependsOn(it.task(":check"))
