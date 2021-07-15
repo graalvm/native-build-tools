@@ -39,10 +39,16 @@
  * SOFTWARE.
  */
 
-rootProject.name = "native-build-tools"
+rootProject.name = "docs"
 
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
+enableFeaturePreview("VERSION_CATALOGS")
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
+}
+
+includeBuild("../native-gradle-plugin")

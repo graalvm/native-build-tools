@@ -39,10 +39,16 @@
  * SOFTWARE.
  */
 
-rootProject.name = "native-build-tools"
+plugins {
+    `kotlin-dsl`
+}
 
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
+    implementation("org.ajoberstar:gradle-git-publish:3.0.0")
+}

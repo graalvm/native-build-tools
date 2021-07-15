@@ -39,10 +39,40 @@
  * SOFTWARE.
  */
 
-rootProject.name = "native-build-tools"
+plugins {
+    id("org.graalvm.build.documentation")
+}
 
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
+version = providers.gradleProperty("publishVersion")
+        .forUseAtConfigurationTime()
+        .orElse(libs.versions.nativeGradlePlugin)
+        .get()
+
+dependencies {
+    javadocs(libs.nativeGradlePlugin)
+    javadocs(libs.nativeMavenPlugin)
+}
+
+repositories {
+    mavenCentral()
+}
+
+asciidoctorj {
+    attributes(mapOf(
+            "reproducible" to "",
+            "nofooter" to "",
+            "toc" to "left",
+            "docinfo" to "shared",
+            "source-highlighter" to "highlight.js",
+            "highlightjs-theme" to "equilibrium-light",
+            "highlightjsdir" to "highlight",
+            "gradle-plugin-version" to libs.versions.nativeGradlePlugin.get(),
+            "gradle-plugin-version" to libs.versions.nativeGradlePlugin.get(),
+            "maven-plugin-version" to libs.versions.nativeMavenPlugin.get()
+    ))
+}
+
+gitPublish {
+    // todo: use real repo when ready
+    repoUri.set("/tmp/git-repo")
+}

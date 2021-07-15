@@ -21,6 +21,8 @@ groovy = "3.0.8"
 
 [libraries]
 # Local projects
+nativeGradlePlugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "nativeGradlePlugin" }
+nativeMavenPlugin = { module = "org.graalvm.buildtools:native-maven-plugin", version.ref = "nativeMavenPlugin" }
 junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version.ref = "junitPlatformNative" }
 utils = { module = "org.graalvm.buildtools:utils", version.ref = "utils" }
 
