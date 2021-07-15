@@ -1,0 +1,13 @@
+= Native Build Tools
+The GraalVM team
+
+The {doctitle} project provides plugins for different build tools to add support for building and testing native applications written in Java (or any other language compiled to JVM bytecode).
+
+Most notably, this is the official source for integrating with the https://www.graalvm.org/reference-manual/native-image/[GraalVM `native-image` tool].
+
+Please refer to the following pages for build tool specific documentation:
+
+- The <<gradle-plugin.adoc#,Gradle plugin documentation>>
+- The <<maven-plugin.adoc#,Maven plugin documentation>>
+
+If you are interested in contributing, please refer to our https://github.com/graalvm/native-build-tools[Git repository].

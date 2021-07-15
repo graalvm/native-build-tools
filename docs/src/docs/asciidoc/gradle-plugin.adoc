@@ -1,0 +1,213 @@
+= Gradle plugin for GraalVM Native Image building
+The GraalVM team
+:highlighjsdir: {gradle-relative-srcdir}/highlight
+
+image:https://github.com/graalvm/native-image-build-tools/actions/workflows/native-gradle-plugin.yml/badge.svg[]
+
+== Introduction
+
+The {doctitle} adds support for building and testing native images using the https://gradle.org[Gradle build tool].
+
+== Quickstart
+
+=== Adding the plugin
+
+Add following to `plugins` section of your project's `build.gradle` / `build.gradle.kts`:
+
+.Groovy
+[subs="verbatim,attributes"]
+```groovy
+plugins {
+  // ...
+
+  // Apply GraalVM Native Image plugin
+  id 'org.graalvm.buildtools.native' version '{gradle-plugin-version}'
+}
+```
+
+.Kotlin
+[subs="verbatim,attributes"]
+```kotlin
+plugins {
+  // ...
+
+  // Apply GraalVM Native Image plugin
+  id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
+}
+```
+
+The plugin isn't available on the https://plugins.gradle.org[Gradle Plugin Portal] yet, so you will need to declare a plugin repository in addition:
+
+Add the following to your `settings.gradle` / `settings.gradle.kts`:
+
+```groovy
+pluginManagement {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}
+```
+
+=== Installing GraalVM native image tool
+
+The plugin relies on Gradle's https://docs.gradle.org/7.1.1/userguide/toolchains.html[JVM toolchain support], allowing to decorrelate the tool used to run Gradle, the compiler used to build your application, and eventually the SDK used to generate a native image.
+
+In practice, it means that this plugin will try to locate a suitable installation of GraalVM for you, even if you don't run Gradle itself with GraalVM.
+For this, it will look into conventional places on your machine, including from installations done by popular tools like https://sdkman.io/[SDKMAN!] or https://github.com/shyiko/jabba[Jabba].
+
+WARNING: Even if you have a GraalVM SDK installed, Gradle will _not_ automatically detect if `native-image` is also installed.
+Therefore, you will need to make sure that you have executed `gu install native-image` as indicated in the <<graalvm-setup.adoc#,setup instructions>>.
+
+If Gradle cannot find a GraalVM installation on the machine, it will fail with an error like this:
+
+```
+   > No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)
+```
+
+This happens because there's no automatic provisioning of the GraalVM toolchain available yet, so you will have to install it first.
+Follow the <<graalvm-setup.adoc#,following instructions>> to install it properly.
+
+Eventually, you also have the options to:
+
+1. Run Gradle itself with a GraalVM SDK
+2. Setup a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
+
+Note that none of those options are recommended as they are more fragile.
+
+== Configuration
+
+This plugin works with the `application` plugin and will register a number of tasks and extensions for you to configure.
+
+=== Available tasks
+
+The main tasks that you will want to execute are:
+
+- `nativeBuild`, which will trigger the generation of a native executable of your application
+- `nativeRun`, which executes the generated native executable
+- `nativeTestBuild`, which will build a native image with tests found in the `test` source set
+- `nativeTest`, which will <<testing,execute tests>> found in the `test` source set in native mode
+
+Those tasks are configured with reasonable defaults respectively by the `nativeBuild` and `nativeTest` extensions, which are of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
+
+=== Native image options
+
+The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
+
+==== Selecting the GraalVM toolchain
+
+By default, the plugin will select a Java 11 GraalVM toolchain.
+If you want to use a different toolchain, for example a GraalVM Enterprise Edition for Java 8, you can configure the toolchain like this:
+
+.Groovy
+```groovy
+nativeBuild {
+  javaLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(8)
+    vendor = JvmVendorSpec.matching("GraalVM Enterprise")
+  }
+}
+```
+
+or in Kotlin:
+
+.Kotlin
+```kotlin
+nativeBuild {
+  javaLauncher.set(javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(8))
+    vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
+  })
+}
+```
+
+==== Configuration options
+
+The following configuration options are available for building images:
+
+```groovy
+nativeBuild {
+  // Main options
+  imageName = 'application' // The name of the native image, defaults to the project name
+  mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
+  debug = true // Determines if debug info should be generated, defaults to false
+  verbose = true // Add verbose output, defaults to false
+  fallback = true // Sets the fallback mode of native-image, defaults to false
+  server = true // Sets the server mode, defaults to false
+  systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
+  configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
+
+  // Advanced options
+  buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+  jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
+
+  // Runtime options
+  runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
+
+  // Development options
+  agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
+}
+```
+
+```kotlin
+nativeBuild {
+  // Main options
+  imageName.set("application") // The name of the native image, defaults to the project name
+  mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
+  debug.set(true) // Determines if debug info should be generated, defaults to false
+  verbose.set(true) // Add verbose output, defaults to false
+  fallback.set(true) // Sets the fallback mode of native-image, defaults to false
+  server.set(true) // Sets the server mode, defaults to false
+  systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
+  configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
+
+  // Advanced options
+  buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+  jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
+
+  // Runtime options
+  runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
+
+  // Development options
+  agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
+}
+```
+
+NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
+
+[[testing]]
+=== Testing support
+
+This plugin supports running JUnit Platform tests as native images.
+In other words, tests will be compiled and executed as native code.
+
+Currently, this feature requires the execution of the tests in the classic "JVM" mode _prior to_ the execution of tests in native mode. To execute the tests, execute:
+
+```bash
+./gradlew nativeTest
+```
+
+=== Reflection support and running with the native agent
+
+If your project requires reflection, then https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html[`native-image-agent`] run might be necessary.
+
+The Gradle plugin makes it easy to generate the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
+
+This should be as easy as appending `-Pagent` to `run` and `nativeBuild`, or `test` and `nativeTest` task invocations:
+
+```bash
+./gradlew -Pagent run # Runs on JVM with native-image-agent.
+./gradlew -Pagent nativeBuild # Builds image using configuration acquired by agent.
+
+# For testing
+./gradlew -Pagent test # Runs on JVM with native-image-agent.
+./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.
+```
+
+Same can be achieved by setting corresponding DSL option, althought this isn't recommended as this is a development mode feature only.
+
+The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
+
+== Javadocs
+
+In addition, you can consult the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
