@@ -11,17 +11,17 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         withSample("java-application-with-resources")
 
         List<String> options = []
-        if (inference) {
-            options << '-Dresources.inference.enabled=true'
+        if (detection) {
+            options << '-Dresources.autodetection.enabled=true'
         }
         if (includedPatterns) {
             options << "-Dresources.includedPatterns=${joinForCliArg(includedPatterns)}".toString()
         }
         if (!restrictToModules) {
-            options << '-Dresources.inference.restrictToModuleDependencies=false'
+            options << '-Dresources.autodetection.restrictToModuleDependencies=false'
         }
-        if (inferenceExclusionPatterns) {
-            options << "-Dresources.inference.inferenceExclusionPatterns=${joinForCliArg(inferenceExclusionPatterns)}".toString()
+        if (detectionExclusionPatterns) {
+            options << "-Dresources.autodetection.detectionExclusionPatterns=${joinForCliArg(detectionExclusionPatterns)}".toString()
         }
 
         when:
@@ -49,7 +49,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 }'''
 
         where:
-        inference | includedPatterns               | restrictToModules | inferenceExclusionPatterns
+        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns
         false     | [Pattern.quote("message.txt")] | false             | []
         true      | []                             | false             | ["META-INF/.*"]
         true      | []                             | true              | ["META-INF/.*"]
@@ -61,17 +61,17 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         withSample("java-application-with-resources")
 
         List<String> options = []
-        if (inference) {
-            options << '-Dresources.inference.enabled=true'
+        if (detection) {
+            options << '-Dresources.autodetection.enabled=true'
         }
         if (includedPatterns) {
             options << "-Dresources.includedPatterns=${joinForCliArg(includedPatterns)}".toString()
         }
         if (!restrictToModules) {
-            options << '-Dresources.inference.restrictToModuleDependencies=false'
+            options << '-Dresources.autodetection.restrictToModuleDependencies=false'
         }
-        if (inferenceExclusionPatterns) {
-            options << "-Dresources.inference.inferenceExclusionPatterns=${joinForCliArg(inferenceExclusionPatterns)}".toString()
+        if (detectionExclusionPatterns) {
+            options << "-Dresources.autodetection.detectionExclusionPatterns=${joinForCliArg(detectionExclusionPatterns)}".toString()
         }
 
         when:
@@ -101,7 +101,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 }'''
 
         where:
-        inference | includedPatterns                                                               | restrictToModules | inferenceExclusionPatterns
+        detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns
         false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []
         true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"]
         true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"]

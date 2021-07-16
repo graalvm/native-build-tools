@@ -48,11 +48,18 @@ import org.gradle.api.tasks.Nested;
 public abstract class NativeResourcesOptions {
 
     @Nested
-    public abstract ResourceInferenceOptions getInferenceOptions();
+    public abstract ResourceDetectionOptions getDetectionOptions();
 
     @SuppressWarnings("unused")
-    public void inference(Action<? super ResourceInferenceOptions> spec) {
-        spec.execute(getInferenceOptions());
+    public void autodetection(Action<? super ResourceDetectionOptions> spec) {
+        spec.execute(getDetectionOptions());
+    }
+
+    /**
+     * Enables auto-detection of resources, using the default detection parameters.
+     */
+    public void autodetect() {
+        autodetection(options -> options.getEnabled().set(true));
     }
 
     /**
@@ -68,7 +75,7 @@ public abstract class NativeResourcesOptions {
      * The contents of this property is used to generate the "resources" : "includes"
      * section of the resource-config.json file.
      *
-     * It will be merged with inferred resources, if any.
+     * It will be merged with detected resources, if any.
      *
      */
     @Input
@@ -79,7 +86,7 @@ public abstract class NativeResourcesOptions {
      * The contents of this property is used to generate the "resources" : "excludes"
      * section of the resource-config.json file.
      *
-     * It will be merged with inferred resources, if any.
+     * It will be merged with detected resources, if any.
      *
      */
     @Input

@@ -57,7 +57,7 @@ public interface SharedConstants {
     String AGENT_PROPERTY = "agent";
     String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
     String NATIVE_TESTS_SUFFIX = "-tests";
-    List<String> DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE = Collections.unmodifiableList(Arrays.asList(
+    List<String> DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION = Collections.unmodifiableList(Arrays.asList(
             "META-INF/services/.*",
             "META-INF/native-image/.*",
             "META-INF/maven/.*",

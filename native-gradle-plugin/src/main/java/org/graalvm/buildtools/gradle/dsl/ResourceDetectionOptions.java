@@ -45,17 +45,17 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 
-public abstract class ResourceInferenceOptions {
+public abstract class ResourceDetectionOptions {
     /**
-     * Determines if the resources should be inferred from classpath.
+     * Determines if the resources should be detected from classpath.
      * If this property is set to true, then Gradle will automatically
-     * infer resources to include from conventional places like src/main/resources.
+     * detect resources to include from conventional places like src/main/resources.
      */
     @Input
     public abstract Property<Boolean> getEnabled();
 
     /**
-     * Determines if infererence should be limited to project dependencies, in
+     * Determines if detection should be limited to project dependencies, in
      * which case external dependencies will not be scanned.
      *
      * Default value is true.
@@ -65,25 +65,25 @@ public abstract class ResourceInferenceOptions {
 
     /**
      * Returns the list of regular expressions which will be used to exclude
-     * resources from inference.
+     * resources from detection.
      */
     @Input
-    public abstract SetProperty<String> getInferenceExclusionPatterns();
+    public abstract SetProperty<String> getDetectionExclusionPatterns();
 
     /**
-     * Adds the default resource excludes for inference, which can be useful if
+     * Adds the default resource excludes for detection, which can be useful if
      * you want to add more excludes but still want the conventional ones to be
      * added.
      */
-    public ResourceInferenceOptions addDefaultInferenceExclusions() {
-        getInferenceExclusionPatterns().addAll(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
+    public ResourceDetectionOptions addDefaultDetectionExclusions() {
+        getDetectionExclusionPatterns().addAll(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION);
         return this;
     }
 
 
-    public ResourceInferenceOptions() {
+    public ResourceDetectionOptions() {
         getEnabled().convention(false);
         getRestrictToProjectDependencies().convention(true);
-        getInferenceExclusionPatterns().convention(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
+        getDetectionExclusionPatterns().convention(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION);
     }
 }
