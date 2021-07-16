@@ -73,6 +73,5 @@ asciidoctorj {
 }
 
 gitPublish {
-    // todo: use real repo when ready
-    repoUri.set(file("..").absoluteFile.toURI().toASCIIString())
+    repoUri.set("git@github.com:graalvm/native-build-tools.git")
 }
