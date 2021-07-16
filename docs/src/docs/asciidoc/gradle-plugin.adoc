@@ -14,8 +14,8 @@ The {doctitle} adds support for building and testing native images using the htt
 
 Add following to `plugins` section of your project's `build.gradle` / `build.gradle.kts`:
 
-.Groovy
-[subs="verbatim,attributes"]
+.Applying the plugin
+[subs="verbatim,attributes", role="multi-language-sample"]
 ```groovy
 plugins {
   // ...
@@ -25,8 +25,7 @@ plugins {
 }
 ```
 
-.Kotlin
-[subs="verbatim,attributes"]
+[subs="verbatim,attributes", role="multi-language-sample"]
 ```kotlin
 plugins {
   // ...
@@ -40,7 +39,19 @@ The plugin isn't available on the https://plugins.gradle.org[Gradle Plugin Porta
 
 Add the following to your `settings.gradle` / `settings.gradle.kts`:
 
+[role="multi-language-sample"]
+.Declaring the plugin repository
 ```groovy
+pluginManagement {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}
+```
+
+[role="multi-language-sample"]
+```kotlin
 pluginManagement {
   repositories {
     mavenCentral()
@@ -99,7 +110,8 @@ The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeI
 By default, the plugin will select a Java 11 GraalVM toolchain.
 If you want to use a different toolchain, for example a GraalVM Enterprise Edition for Java 8, you can configure the toolchain like this:
 
-.Groovy
+.Selecting the GraalVM toolchain
+[role="multi-language-sample"]
 ```groovy
 nativeBuild {
   javaLauncher = javaToolchains.launcherFor {
@@ -109,9 +121,7 @@ nativeBuild {
 }
 ```
 
-or in Kotlin:
-
-.Kotlin
+[role="multi-language-sample"]
 ```kotlin
 nativeBuild {
   javaLauncher.set(javaToolchains.launcherFor {
@@ -125,6 +135,8 @@ nativeBuild {
 
 The following configuration options are available for building images:
 
+.NativeImageOption configuration
+[role="multi-language-sample"]
 ```groovy
 nativeBuild {
   // Main options
@@ -149,6 +161,7 @@ nativeBuild {
 }
 ```
 
+[role="multi-language-sample"]
 ```kotlin
 nativeBuild {
   // Main options
