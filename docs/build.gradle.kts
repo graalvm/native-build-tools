@@ -74,5 +74,5 @@ asciidoctorj {
 
 gitPublish {
     // todo: use real repo when ready
-    repoUri.set("/tmp/git-repo")
+    repoUri.set(file("..").absoluteFile.toURI().toASCIIString())
 }
