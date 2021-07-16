@@ -82,6 +82,12 @@ tasks {
             from(resolveJavadocs) {
                 into("javadocs")
             }
+            from("src/docs/asciidoc/css") {
+                into("css")
+            }
+            from("src/docs/asciidoc/js") {
+                into("js")
+            }
         }
     }
 }
