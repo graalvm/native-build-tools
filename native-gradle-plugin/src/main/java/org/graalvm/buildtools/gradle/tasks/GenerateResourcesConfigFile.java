@@ -43,7 +43,7 @@ package org.graalvm.buildtools.gradle.tasks;
 import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
-import org.graalvm.buildtools.gradle.dsl.ResourceInferenceOptions;
+import org.graalvm.buildtools.gradle.dsl.ResourceDetectionOptions;
 import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.model.resources.Helper;
@@ -94,23 +94,23 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
     @TaskAction
     public void generate() throws IOException {
         NativeResourcesOptions nativeResourcesOptions = getOptions().get();
-        ResourceInferenceOptions inferenceOptions = nativeResourcesOptions.getInferenceOptions();
+        ResourceDetectionOptions detectionOptions = nativeResourcesOptions.getDetectionOptions();
         Set<NamedValue> bundles = Helper.asNamedValues(nativeResourcesOptions.getBundles().get());
         Set<PatternValue> includes = Helper.asPatternValues(nativeResourcesOptions.getIncludedPatterns().get());
         Set<PatternValue> excludes = Helper.asPatternValues(nativeResourcesOptions.getExcludedPatterns().get());
-        if (inferenceOptions.getEnabled().get()) {
-            inferResourcesFromClasspath(inferenceOptions, includes);
+        if (detectionOptions.getEnabled().get()) {
+            detectResourcesFromClasspath(detectionOptions, includes);
         }
         ResourcesConfigModel model = new ResourcesConfigModel(new ResourcesModel(includes, excludes), bundles);
         serializeModel(model, getOutputFile().getAsFile().get());
     }
 
-    private void inferResourcesFromClasspath(ResourceInferenceOptions inferenceOptions,
-                                             Set<PatternValue> output) throws IOException {
+    private void detectResourcesFromClasspath(ResourceDetectionOptions detectionOptions,
+                                              Set<PatternValue> output) throws IOException {
         Set<File> classpath = getClasspath().getFiles();
-        ResourceFilter filter = new ResourceFilter(inferenceOptions.getInferenceExclusionPatterns().get());
-        Set<String> inferredResources = new LinkedHashSet<>();
-        boolean projectLocalOnly = inferenceOptions.getRestrictToProjectDependencies().get();
+        ResourceFilter filter = new ResourceFilter(detectionOptions.getDetectionExclusionPatterns().get());
+        Set<String> detectedResources = new LinkedHashSet<>();
+        boolean projectLocalOnly = detectionOptions.getRestrictToProjectDependencies().get();
         Set<File> projectsArtifacts = getTransitiveProjectArtifacts().getFiles();
         for (File file : classpath) {
             if (projectLocalOnly && file.getName().endsWith(".jar") && !projectsArtifacts.contains(file)) {
@@ -118,11 +118,11 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
             }
             // todo: ideally we should try to find a way for Gradle to cache the analysis per jar
             // which should be doable via artifact transforms instead
-            inferResourcesFromClasspathEntry(filter, inferredResources, file);
+            detectResourcesFromClasspathEntry(filter, detectedResources, file);
         }
-        if (!inferredResources.isEmpty()) {
+        if (!detectedResources.isEmpty()) {
             output.addAll(
-                    inferredResources.stream()
+                    detectedResources.stream()
                             .map(Pattern::quote)
                             .map(PatternValue::new)
                             .collect(Collectors.toList())
@@ -135,11 +135,11 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
      * If it's a directory, we will walk the directory and collect resources found in
      * the directory. If it's a jar we do the same but with jar entries instead.
      */
-    private void inferResourcesFromClasspathEntry(ResourceFilter filter, Set<String> inferredResources, File file) throws IOException {
+    private void detectResourcesFromClasspathEntry(ResourceFilter filter, Set<String> detectedResources, File file) throws IOException {
         ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(file, filter::shouldIncludeResource);
         List<String> resources = analyzer.getResources();
-        GraalVMLogger.of(getLogger()).log("Inferred resources for {} are {}", file, resources);
-        inferredResources.addAll(resources);
+        GraalVMLogger.of(getLogger()).log("Detected resources for {} are {}", file, resources);
+        detectedResources.addAll(resources);
     }
 
     private void serializeModel(ResourcesConfigModel model, File outputFile) throws IOException {

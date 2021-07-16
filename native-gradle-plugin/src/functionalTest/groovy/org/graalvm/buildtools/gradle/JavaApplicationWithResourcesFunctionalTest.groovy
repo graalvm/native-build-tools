@@ -99,22 +99,22 @@ nativeBuild {
     }
 }
 """],
-                                         ["inferred", """
+                                         ["detected", """
 nativeBuild {
     resources {
-        inference {
+        autodetection {
             enabled = true
             restrictToProjectDependencies = false
-            inferenceExclusionPatterns.add("META-INF/.*")
+            detectionExclusionPatterns.add("META-INF/.*")
         }
     }
 }
 """
                                          ],
-                                          ["project local inference only", """
+                                          ["project local detection only", """
 nativeBuild {
     resources {
-        inference {
+        autodetection {
             enabled = true
             restrictToProjectDependencies = true
         }
@@ -174,12 +174,12 @@ nativeTest {
     }
 }
 """],
-                                         ["inferred", """
+                                         ["detected", """
 nativeTest {
     resources {
-        inference {
+        autodetection {
             enabled = true
-            inferenceExclusionPatterns.addAll("META-INF/.*", "junit-platform-unique-ids.*")
+            detectionExclusionPatterns.addAll("META-INF/.*", "junit-platform-unique-ids.*")
         }
     }
 }

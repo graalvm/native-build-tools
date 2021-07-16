@@ -62,7 +62,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -100,23 +99,23 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
     @Parameter(property = "resources.excludedPatterns")
     private List<String> resourceExcludedPatterns;
 
-    @Parameter(property = "resources.inference.enabled", defaultValue = "false")
-    private boolean isInferenceEnabled;
+    @Parameter(property = "resources.autodetection.enabled", defaultValue = "false")
+    private boolean isDetectionEnabled;
 
-    @Parameter(property = "resources.inference.restrictToModuleDependencies", defaultValue = "true")
-    private boolean isInferenceRestrictedToModuleDependencies;
+    @Parameter(property = "resources.autodetection.restrictToModuleDependencies", defaultValue = "true")
+    private boolean isDetectionRestrictedToModuleDependencies;
 
-    @Parameter(property = "resources.inference.inferenceExclusionPatterns")
-    private List<String> inferenceExclusionPatterns = new ArrayList<>(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_INFERENCE);
+    @Parameter(property = "resources.autodetection.detectionExclusionPatterns")
+    private List<String> detectionExclusionPatterns;
 
     @Override
     public void execute() throws MojoExecutionException {
         Set<PatternValue> includes = asPatternValues(resourceIncludedPatterns);
         Set<PatternValue> excludes = asPatternValues(resourceExcludedPatterns);
         Set<NamedValue> bundles = asNamedValues(resourceBundles);
-        if (isInferenceEnabled) {
+        if (isDetectionEnabled) {
             try {
-                inferResourcesFromClasspath(includes);
+                detectResourcesFromClasspath(includes);
             } catch (IOException e) {
                 throw new MojoExecutionException("Unable to infer resources", e);
             }
@@ -139,7 +138,6 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
         all.add(mavenProject.getArtifact().getFile());
         all.addAll(transitiveProjectsArtifacts());
         Collection<? extends File> extraProjectArtifacts = getExtraProjectArtifacts();
-        getLog().info("extraProjectArtifacts = " + extraProjectArtifacts);
         all.addAll(extraProjectArtifacts);
         return all;
     }
@@ -177,19 +175,19 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
         return new LinkedHashSet<>(elements);
     }
 
-    private void inferResourcesFromClasspath(Set<PatternValue> output) throws IOException {
-        ResourceFilter filter = new ResourceFilter(safeAsSet(inferenceExclusionPatterns));
-        Set<String> inferredResources = new LinkedHashSet<>();
+    private void detectResourcesFromClasspath(Set<PatternValue> output) throws IOException {
+        ResourceFilter filter = new ResourceFilter(safeAsSet(detectionExclusionPatterns == null ? SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION : detectionExclusionPatterns));
+        Set<String> detectedResources = new LinkedHashSet<>();
         Set<File> artifacts = findAllProjectArtifacts();
-        if (!isInferenceRestrictedToModuleDependencies) {
+        if (!isDetectionRestrictedToModuleDependencies) {
             artifacts.addAll(findAllExternalArtifacts());
         }
         for (File file : artifacts) {
-            inferResourcesFromClasspathEntry(filter, inferredResources, file);
+            detectResourcesFromClasspathEntry(filter, detectedResources, file);
         }
-        if (!inferredResources.isEmpty()) {
+        if (!detectedResources.isEmpty()) {
             output.addAll(
-                    inferredResources.stream()
+                    detectedResources.stream()
                             .map(Pattern::quote)
                             .map(PatternValue::new)
                             .collect(Collectors.toList())
@@ -202,11 +200,11 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
      * If it's a directory, we will walk the directory and collect resources found in
      * the directory. If it's a jar we do the same but with jar entries instead.
      */
-    private void inferResourcesFromClasspathEntry(ResourceFilter filter, Set<String> inferredResources, File file) throws IOException {
+    private void detectResourcesFromClasspathEntry(ResourceFilter filter, Set<String> detectedResources, File file) throws IOException {
         ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(file, filter::shouldIncludeResource);
         List<String> resources = analyzer.getResources();
-        getLog().info(String.format("Inferred resources for %s are %s", file, resources));
-        inferredResources.addAll(resources);
+        getLog().info(String.format("Detected resources for %s are %s", file, resources));
+        detectedResources.addAll(resources);
     }
 
     private void serializeModel(ResourcesConfigModel model, File outputFile) throws IOException {

@@ -160,7 +160,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
     }
 
-    def "doesn't infer resources by default"() {
+    def "doesn't detect resources by default"() {
         def project = buildProject {
             withResource(newResourcesDirectory())
         }
@@ -187,41 +187,10 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
     }
 
-    def "can infer resources on classpath"() {
+    def "can detect resources on classpath"() {
         def project = buildProject {
             withResource(newResourcesDirectory())
-            enableInference()
-        }
-
-        when:
-        project.execute()
-
-        then:
-        with(project) {
-            outputFile.exists()
-            outputFile.text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "\\\\Qorg/foo/some/resource.txt\\\\E"
-            }
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
-}'''
-        }
-    }
-
-    def "can exclude resources from inferred elements"() {
-        def project = buildProject {
-            withResource(newResourcesDirectory())
-            enableInference()
-            excludeFromInference 'META-INF/.*'
+            enableDetection()
         }
 
         when:
@@ -248,10 +217,41 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
     }
 
-    def "can infer resources from jars on classpath"() {
+    def "can exclude resources from detected elements"() {
+        def project = buildProject {
+            withResource(newResourcesDirectory())
+            enableDetection()
+            excludeFromDetection 'META-INF/.*'
+        }
+
+        when:
+        project.execute()
+
+        then:
+        with(project) {
+            outputFile.exists()
+            outputFile.text == '''{
+    "resources": {
+        "includes": [
+            {
+                "pattern": "\\\\Qorg/foo/some/resource.txt\\\\E"
+            }
+        ],
+        "excludes": [
+            
+        ]
+    },
+    "bundles": [
+        
+    ]
+}'''
+        }
+    }
+
+    def "can detect resources from jars on classpath"() {
         def project = buildProject {
             withResource(newResourcesJar())
-            enableInference()
+            enableDetection()
         }
 
         when:
@@ -278,12 +278,12 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
     }
 
-    def "jars which have a native-image resource config file do not contribute to inferred resources"() {
+    def "jars which have a native-image resource config file do not contribute to detected resources"() {
         def project = buildProject {
             withResource(newResourcesJar([
                     'META-INF/native-image/resource-config.json': '{}'
             ]))
-            enableInference()
+            enableDetection()
         }
 
         when:
@@ -308,10 +308,10 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
     }
 
-    def "can infer resources ignoring transitive jars on classpath"() {
+    def "can detect resources ignoring transitive jars on classpath"() {
         def project = buildProject {
             withResource(newResourcesJar())
-            restrictInferenceToProjects()
+            restrictDetectionToProjects()
         }
 
         when:
@@ -406,20 +406,20 @@ class GenerateResourcesConfigFileTest extends Specification {
             it.outputFile.set(outputFileProvider)
         }
 
-        Fixture enableInference() {
-            options.inferenceOptions.enabled.set(true)
-            options.inferenceOptions.restrictToProjectDependencies.set(false)
+        Fixture enableDetection() {
+            options.detectionOptions.enabled.set(true)
+            options.detectionOptions.restrictToProjectDependencies.set(false)
             this
         }
 
-        Fixture restrictInferenceToProjects() {
-            options.inferenceOptions.enabled.set(true)
-            options.inferenceOptions.restrictToProjectDependencies.set(true)
+        Fixture restrictDetectionToProjects() {
+            options.detectionOptions.enabled.set(true)
+            options.detectionOptions.restrictToProjectDependencies.set(true)
             this
         }
 
-        Fixture excludeFromInference(String... patterns) {
-            options.inferenceOptions.inferenceExclusionPatterns.addAll(patterns)
+        Fixture excludeFromDetection(String... patterns) {
+            options.detectionOptions.detectionExclusionPatterns.addAll(patterns)
             this
         }
 
