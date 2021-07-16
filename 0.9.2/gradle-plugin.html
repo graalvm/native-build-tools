@@ -490,8 +490,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Add following to <code>plugins</code> section of your project&#8217;s <code>build.gradle</code> / <code>build.gradle.kts</code>:</p>
 </div>
-<div class="listingblock">
-<div class="title">Groovy</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Applying the plugin</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">plugins {
   // ...
@@ -501,8 +501,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 }</code></pre>
 </div>
 </div>
-<div class="listingblock">
-<div class="title">Kotlin</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">plugins {
   // ...
@@ -518,9 +517,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Add the following to your <code>settings.gradle</code> / <code>settings.gradle.kts</code>:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
+<div class="title">Declaring the plugin repository</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">pluginManagement {
   repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -624,8 +634,8 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <p>By default, the plugin will select a Java 11 GraalVM toolchain.
 If you want to use a different toolchain, for example a GraalVM Enterprise Edition for Java 8, you can configure the toolchain like this:</p>
 </div>
-<div class="listingblock">
-<div class="title">Groovy</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Selecting the GraalVM toolchain</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
   javaLauncher = javaToolchains.launcherFor {
@@ -635,11 +645,7 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>or in Kotlin:</p>
-</div>
-<div class="listingblock">
-<div class="title">Kotlin</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">nativeBuild {
   javaLauncher.set(javaToolchains.launcherFor {
@@ -655,7 +661,8 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 <div class="paragraph">
 <p>The following configuration options are available for building images:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
+<div class="title">NativeImageOption configuration</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
   // Main options
@@ -680,7 +687,7 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 }</code></pre>
 </div>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">nativeBuild {
   // Main options
@@ -776,6 +783,8 @@ In other words, tests will be compiled and executed as native code.</p>
 <link rel="stylesheet" href="highlight/styles/equilibrium-light.min.css">
 <script src="highlight/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
+<link rel="stylesheet" href="css/multi-lang-sample.css">
+<script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
         <img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"> (c) 2021. Licensed under the Universal Permissive License (UPL), Version 1.0
