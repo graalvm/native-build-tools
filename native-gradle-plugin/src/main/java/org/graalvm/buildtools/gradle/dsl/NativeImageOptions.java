@@ -55,6 +55,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -91,6 +92,7 @@ public abstract class NativeImageOptions {
      * @return mainClass The main class.
      */
     @Input
+    @Optional
     public abstract Property<String> getMainClass();
 
     /**

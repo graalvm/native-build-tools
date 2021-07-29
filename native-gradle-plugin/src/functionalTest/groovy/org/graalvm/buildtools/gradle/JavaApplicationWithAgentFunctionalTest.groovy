@@ -93,7 +93,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
     @Unroll("agent property takes precedence on Gradle #version with JUnit Platform #junitVersion")
     def "agent property takes precedence"() {
         gradleVersion = version
-        
+
         given:
         withSample("java-application-with-reflection")
 

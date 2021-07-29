@@ -39,8 +39,17 @@
  * SOFTWARE.
  */
 
+pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version getProperty('native.gradle.plugin.version')
+    }
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'java-application'
 
 include 'core'
 include 'utils'
-
