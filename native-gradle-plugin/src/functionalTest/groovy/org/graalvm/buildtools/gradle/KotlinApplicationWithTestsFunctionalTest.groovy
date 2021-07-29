@@ -50,7 +50,7 @@ class KotlinApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute Kotlin tests in a native image directly on Gradle #version with JUnit Platform #junitVersion")
     def "can execute Kotlin tests in a native image directly"() {
         gradleVersion = version
-        
+
         given:
         withSample("kotlin-application-with-tests")
 

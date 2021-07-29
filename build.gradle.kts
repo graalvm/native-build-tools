@@ -88,6 +88,7 @@ tasks.register<Zip>("releaseZip") {
 
 tasks.register<org.graalvm.build.samples.SamplesUpdateTask>("updateSamples") {
     inputDirectory.set(layout.projectDirectory.dir("samples"))
+    versions.put("native.gradle.plugin.version", libs.versions.nativeGradlePlugin.get())
     versions.put("native.maven.plugin.version", libs.versions.nativeMavenPlugin.get())
     versions.put("junit.jupiter.version", libs.versions.junitJupiter.get())
     versions.put("junit.platform.version", libs.versions.junitPlatform.get())
