@@ -70,6 +70,7 @@ import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
 
@@ -217,6 +218,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         tasks.register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
             task.setDescription("Runs native-image compiled tests.");
+            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
             task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
         });
