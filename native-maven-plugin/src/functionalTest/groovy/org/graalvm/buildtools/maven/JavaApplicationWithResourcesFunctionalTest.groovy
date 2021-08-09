@@ -33,19 +33,13 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 
         and:
         file("target/native/generated/generateResourceConfig/resource-config.json").text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "\\\\Qmessage.txt\\\\E"
-            }
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "\\\\Qmessage.txt\\\\E"
+    } ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
 
         where:
@@ -82,22 +76,15 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 
         and:
         file("target/native/generated/generateTestResourceConfig/resource-config.json").text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "\\\\Qmessage.txt\\\\E"
-            },
-            {
-                "pattern": "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
-            }
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "\\\\Qmessage.txt\\\\E"
+    }, {
+      "pattern" : "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
+    } ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
 
         where:

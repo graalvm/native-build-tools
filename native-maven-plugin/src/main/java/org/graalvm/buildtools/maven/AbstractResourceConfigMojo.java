@@ -41,8 +41,6 @@
 
 package org.graalvm.buildtools.maven;
 
-import groovy.json.JsonGenerator;
-import groovy.json.JsonOutput;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -55,13 +53,11 @@ import org.graalvm.buildtools.model.resources.PatternValue;
 import org.graalvm.buildtools.model.resources.ResourceFilter;
 import org.graalvm.buildtools.model.resources.ResourcesConfigModel;
 import org.graalvm.buildtools.model.resources.ResourcesModel;
+import org.graalvm.buildtools.model.resources.ResourcesConfigModelSerializer;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -208,16 +204,7 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
     }
 
     private void serializeModel(ResourcesConfigModel model, File outputFile) throws IOException {
-        JsonGenerator builder = new JsonGenerator.Options()
-                .build();
-        String json = builder.toJson(model);
-        String pretty = JsonOutput.prettyPrint(json);
-        File outputDir = outputFile.getParentFile();
-        if (outputDir.isDirectory() || outputDir.mkdirs()) {
-            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
-                out.append(pretty);
-            }
-        }
+        ResourcesConfigModelSerializer.serialize(model, outputFile);
         getLog().info("Resources configuration written into " + outputFile);
     }
 }

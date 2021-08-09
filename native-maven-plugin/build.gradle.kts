@@ -60,7 +60,7 @@ maven {
 
 dependencies {
     implementation(libs.utils)
-    implementation(libs.groovy.json)
+    implementation(libs.jackson.databind)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)

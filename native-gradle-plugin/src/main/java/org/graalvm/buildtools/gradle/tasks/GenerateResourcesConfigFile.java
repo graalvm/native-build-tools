@@ -40,18 +40,17 @@
  */
 package org.graalvm.buildtools.gradle.tasks;
 
-import groovy.json.JsonGenerator;
-import groovy.json.JsonOutput;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.ResourceDetectionOptions;
-import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
 import org.graalvm.buildtools.model.resources.Helper;
 import org.graalvm.buildtools.model.resources.NamedValue;
 import org.graalvm.buildtools.model.resources.PatternValue;
 import org.graalvm.buildtools.model.resources.ResourceFilter;
 import org.graalvm.buildtools.model.resources.ResourcesConfigModel;
 import org.graalvm.buildtools.model.resources.ResourcesModel;
+import org.graalvm.buildtools.model.resources.ResourcesConfigModelSerializer;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
@@ -64,10 +63,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -143,16 +139,7 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
     }
 
     private void serializeModel(ResourcesConfigModel model, File outputFile) throws IOException {
-        JsonGenerator builder = new JsonGenerator.Options()
-                .build();
-        String json = builder.toJson(model);
-        String pretty = JsonOutput.prettyPrint(json);
-        File outputDir = outputFile.getParentFile();
-        if (outputDir.isDirectory() || outputDir.mkdirs()) {
-            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
-                out.append(pretty);
-            }
-        }
+        ResourcesConfigModelSerializer.serialize(model, outputFile);
         GraalVMLogger.of(getLogger()).lifecycle("Resources configuration written into " + outputFile);
     }
 

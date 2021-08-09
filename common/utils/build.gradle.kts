@@ -50,6 +50,10 @@ maven {
     description.set("Contains code which is shared by both by the Maven and Gradle plugins")
 }
 
+dependencies {
+    implementation(libs.jackson.databind)
+}
+
 val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {
     versions.put("junitPlatformNative", libs.versions.junitPlatformNative)
     outputDirectory.set(layout.buildDirectory.dir("generated/sources/versions"))
