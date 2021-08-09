@@ -12,6 +12,7 @@ mavenAnnotations = "3.5.1"
 mavenEmbedder = "3.8.1"
 mavenWagon = "3.4.3"
 graalvm = "21.1.0"
+jackson = "2.12.4"
 junitPlatform = "1.7.2"
 junitJupiter = "5.7.2"
 aether = "1.1.0"
@@ -35,7 +36,7 @@ test-spock = { module = "org.spockframework:spock-core", version.ref = "spock" }
 
 graalvm-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graalvm" }
 
-groovy-json = { module = "org.codehaus.groovy:groovy-json", version.ref = "groovy" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 
 maven-pluginApi = { module = "org.apache.maven:maven-plugin-api", version.ref = "maven" }
 maven-pluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version.ref = "mavenAnnotations" }

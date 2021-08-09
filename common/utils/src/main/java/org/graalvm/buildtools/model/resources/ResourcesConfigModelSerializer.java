@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,29 +40,23 @@
  */
 package org.graalvm.buildtools.model.resources;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Helper {
-    public static final String META_INF_NATIVE_IMAGE = "META-INF/native-image";
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
-    public static Set<NamedValue> asNamedValues(List<String> input) {
-        if (input == null) {
-            return new LinkedHashSet<>();
+public class ResourcesConfigModelSerializer {
+    public static void serialize(ResourcesConfigModel model,  File outputFile) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model);
+        File outputDir = outputFile.getParentFile();
+        if (outputDir.isDirectory() || outputDir.mkdirs()) {
+            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
+                out.append(pretty);
+            }
         }
-        return input.stream()
-                .map(NamedValue::new)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    public static Set<PatternValue> asPatternValues(List<String> input) {
-        if (input == null) {
-            return new LinkedHashSet<>();
-        }
-        return input.stream()
-                .map(PatternValue::new)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 }

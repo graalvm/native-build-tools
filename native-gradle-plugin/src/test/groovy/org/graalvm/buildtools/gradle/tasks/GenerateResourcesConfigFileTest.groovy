@@ -75,17 +75,11 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -102,22 +96,15 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        {
-            "name": "my.bundle"
-        },
-        {
-            "name": "other.bundle"
-        }
-    ]
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ {
+    "name" : "my.bundle"
+  }, {
+    "name" : "other.bundle"
+  } ]
 }'''
         }
     }
@@ -135,27 +122,19 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "pattern"
-            },
-            {
-                "pattern": "[a-z]+"
-            }
-        ],
-        "excludes": [
-            {
-                "pattern": "META-INF/.*"
-            },
-            {
-                "pattern": ".*[.]class"
-            }
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "pattern"
+    }, {
+      "pattern" : "[a-z]+"
+    } ],
+    "excludes" : [ {
+      "pattern" : "META-INF/.*"
+    }, {
+      "pattern" : ".*[.]class"
+    } ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -172,17 +151,11 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -200,19 +173,13 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "\\\\Qorg/foo/some/resource.txt\\\\E"
-            }
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "\\\\Qorg/foo/some/resource.txt\\\\E"
+    } ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -231,19 +198,13 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "\\\\Qorg/foo/some/resource.txt\\\\E"
-            }
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "\\\\Qorg/foo/some/resource.txt\\\\E"
+    } ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -261,19 +222,13 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            {
-                "pattern": "\\\\Qorg/foo/some/resource.txt\\\\E"
-            }
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "\\\\Qorg/foo/some/resource.txt\\\\E"
+    } ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -293,17 +248,11 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
@@ -321,17 +270,11 @@ class GenerateResourcesConfigFileTest extends Specification {
         with(project) {
             outputFile.exists()
             outputFile.text == '''{
-    "resources": {
-        "includes": [
-            
-        ],
-        "excludes": [
-            
-        ]
-    },
-    "bundles": [
-        
-    ]
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
 }'''
         }
     }
