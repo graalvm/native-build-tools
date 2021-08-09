@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -212,7 +213,7 @@ public abstract class NativeImageOptions {
         getImageName().convention(defaultImageName);
         getJavaLauncher().convention(
                 toolchains.launcherFor(spec -> {
-                    spec.getLanguageVersion().set(JavaLanguageVersion.of(11));
+                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
                     if (GradleUtils.isAtLeastGradle7()) {
                         spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
                     }
