@@ -6,9 +6,9 @@ Working GraalVM distribution with `native-image` installable and `GRAALVM_HOME` 
 
 Following are the steps needed to obtain and setup GraalVM environment.
 
-> Alternatively, we have provided a [script](../scripts/downloadGraalVM.sh) for downloading and setting up latest nightly in CI environment.
+Alternatively, we have provided a https://github.com/graalvm/native-build-tools/tree/master/common/scripts/downloadGraalVM.sh[script] for downloading and setting up latest nightly in CI environment.
 
-Notice that this is just a quick overview, and that user should consult https://www.graalvm.org/docs/getting-started/[Getting Started section] in official documentation before proceeding.
+NOTE: This is just a quick overview, and that user should consult https://www.graalvm.org/docs/getting-started/[Getting Started section] in official documentation before proceeding.
 
 == 1. Obtaining distribution
 
