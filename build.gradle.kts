@@ -83,7 +83,10 @@ val pruneCommonRepo = tasks.register<Delete>("pruneCommonRepository") {
 
 tasks.register<Zip>("releaseZip") {
     dependsOn(pruneCommonRepo, "publishAllPublicationsToCommonRepository")
-    from(commonRepo)
+    from(commonRepo) {
+        exclude("**/*.sha256")
+        exclude("**/*.sha512")
+    }
 }
 
 tasks.register<org.graalvm.build.samples.SamplesUpdateTask>("updateSamples") {
