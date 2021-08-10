@@ -53,6 +53,7 @@ public interface SharedConstants {
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
     String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
     String NATIVE_IMAGE_EXE = "native-image" + EXECUTABLE_EXTENSION;
+    String GU_EXE = "gu" + EXECUTABLE_EXTENSION;
     String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
     String AGENT_PROPERTY = "agent";
     String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
