@@ -49,6 +49,7 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.*
 import java.io.File
+import java.lang.RuntimeException
 import javax.inject.Inject
 
 plugins {
@@ -139,6 +140,6 @@ abstract class ResolveJavadocs : DefaultTask() {
     }
 
     private val File.baseName
-        get() = Regex("([a-zA-Z\\-]+)-([0-9].?)+-javadoc.jar")
+        get() = Regex("([a-zA-Z\\-]+)-([0-9].?(-[\\-a-zA-Z0-9]+)?)+-javadoc.jar")
                 .matchEntire(name)!!.groups.get(1)!!.value
 }
