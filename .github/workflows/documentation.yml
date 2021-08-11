@@ -20,8 +20,5 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Build documentation
-        uses: eskatos/gradle-command-action@v1
-        with:
-          arguments: :docs:asciidoctor
-          distributions-cache-enabled: true
-          dependencies-cache-enabled: true
+        run: |
+          ./gradlew :docs:asciidoctor
