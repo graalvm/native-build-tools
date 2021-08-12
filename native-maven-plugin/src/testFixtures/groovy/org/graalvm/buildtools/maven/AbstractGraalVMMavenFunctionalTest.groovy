@@ -56,6 +56,10 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
 
     MavenExecutionResult result
 
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
+    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
+    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
+
     def setup() {
         executor = new IsolatedMavenExecutor(
                 new File(System.getProperty("java.executable")),

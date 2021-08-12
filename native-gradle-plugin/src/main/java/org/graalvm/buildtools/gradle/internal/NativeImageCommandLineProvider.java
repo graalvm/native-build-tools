@@ -105,6 +105,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getServer(), "-Dcom.oracle.graalvm.isaot=true");
+        appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
         if (getOutputDirectory().isPresent()) {
             cliArgs.add("-H:Path=" + getOutputDirectory().get());
         }

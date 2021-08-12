@@ -178,6 +178,14 @@ public abstract class NativeImageOptions {
     public abstract Property<Boolean> getAgent();
 
     /**
+     * Gets the value which determines if shared library is being built.
+     *
+     * @return The value which determines if shared library is being built.
+     */
+    @Input
+    public abstract Property<Boolean> getSharedLibrary();
+
+    /**
      * Returns the toolchain used to invoke native-image. Currently pointing
      * to a Java launcher due to Gradle limitations.
      */
@@ -210,6 +218,7 @@ public abstract class NativeImageOptions {
         getFallback().convention(false);
         getVerbose().convention(false);
         getAgent().convention(false);
+        getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getJavaLauncher().convention(
                 toolchains.launcherFor(spec -> {

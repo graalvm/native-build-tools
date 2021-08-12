@@ -134,6 +134,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                 project.getExtensions().findByType(JavaApplication.class).getMainClass()
         ));
 
+        project.getPlugins().withId("java-library", p -> buildExtension.getSharedLibrary().convention(true));
+
         registerServiceProvider(project, nativeImageServiceProvider);
 
         // Register Native Image tasks
