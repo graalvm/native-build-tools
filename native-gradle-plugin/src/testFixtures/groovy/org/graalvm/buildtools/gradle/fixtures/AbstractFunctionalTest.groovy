@@ -70,6 +70,10 @@ abstract class AbstractFunctionalTest extends Specification {
     String gradleVersion
     boolean debug
 
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
+    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
+    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
+
     private StringWriter outputWriter
     private StringWriter errorOutputWriter
     private String output
