@@ -13,12 +13,30 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+          ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
+      - name: Setup git
+        env:
+          GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+          SSH_PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 700 -R ~/.ssh
+          eval "$(ssh-agent -s)"
+          ssh-add
+          ssh git@github.com || true
+          git config --global user.name 'graalvm bot'
+          git config --global user.email 'graalvmbot@users.noreply.github.com'
       - name: Get GraalVM Nightly
         run: |
-          source common/scripts/downloadGraalVM.sh
+          SCRIPT="$PWD/common/scripts/downloadGraalVM.sh"
+          pushd ~
+          source $SCRIPT
           echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
-      - name: Build documentation
+          popd
+      - name: Build and publish documentation
         run: |
-          ./gradlew :docs:asciidoctor
+          echo "org.ajoberstar.grgit.auth.command.allow=true" >> gradle.properties
+          ./gradlew :docs:gitPublishPush
