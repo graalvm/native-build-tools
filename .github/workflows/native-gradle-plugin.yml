@@ -11,7 +11,7 @@ on:
       - 'native-gradle-plugin/**'
       - 'samples/**'
       - 'common/**'
-  workflow_dispatch: [ ]
+  workflow_dispatch:
 
 jobs:
   test-native-gradle-plugin:
