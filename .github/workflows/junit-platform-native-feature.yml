@@ -7,7 +7,7 @@ on:
   pull_request:
     paths:
       - 'common/junit-platform-native/**'
-  workflow_dispatch: [ ]
+  workflow_dispatch:
 
 jobs:
   test-junit-platform-native-feature:
