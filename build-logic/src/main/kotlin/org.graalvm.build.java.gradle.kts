@@ -80,6 +80,7 @@ tasks.javadoc {
         languageVersion.set(JavaLanguageVersion.of(11))
     })
     (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+    (options as StandardJavadocDocletOptions).noTimestamp(true)
 }
 
 tasks.withType<Test>().configureEach {

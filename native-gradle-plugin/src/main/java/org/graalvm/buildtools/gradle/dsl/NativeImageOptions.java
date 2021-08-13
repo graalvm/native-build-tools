@@ -147,15 +147,6 @@ public abstract class NativeImageOptions {
     public abstract Property<Boolean> getDebug();
 
     /**
-     * Returns the server property, used to determine if the native image
-     * build server should be used.
-     *
-     * @return the server property
-     */
-    @Input
-    public abstract Property<Boolean> getServer();
-
-    /**
      * @return Whether to enable fallbacks (defaults to false).
      */
     @Input
@@ -214,7 +205,6 @@ public abstract class NativeImageOptions {
                               JavaToolchainService toolchains,
                               String defaultImageName) {
         getDebug().convention(false);
-        getServer().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
         getAgent().convention(false);
@@ -362,17 +352,6 @@ public abstract class NativeImageOptions {
                         .map(String::valueOf)
                         .collect(Collectors.toList())
         );
-        return this;
-    }
-
-    /**
-     * Enables server build. Server build is disabled by default.
-     *
-     * @param enabled Value which controls whether the server build is enabled.
-     * @return this
-     */
-    public NativeImageOptions enableServerBuild(boolean enabled) {
-        getServer().set(enabled);
         return this;
     }
 
