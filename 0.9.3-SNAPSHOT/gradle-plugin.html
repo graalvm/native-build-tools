@@ -671,7 +671,6 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
   debug = true // Determines if debug info should be generated, defaults to false
   verbose = true // Add verbose output, defaults to false
   fallback = true // Sets the fallback mode of native-image, defaults to false
-  server = true // Sets the server mode, defaults to false
   sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
 
   systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
@@ -698,7 +697,6 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
   debug.set(true) // Determines if debug info should be generated, defaults to false
   verbose.set(true) // Add verbose output, defaults to false
   fallback.set(true) // Sets the fallback mode of native-image, defaults to false
-  server.set(true) // Sets the server mode, defaults to false
   sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
 
   systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
