@@ -43,7 +43,8 @@ pluginManagement {
 ```
 _(this step will be redundant once this plugin is published to the Gradle Plugin Portal)._
 
-After that, we can configure the image build by using a `graal` configuration block:
+After that, we can configure the image build by using a `javaNative` configuration block:
+
 ```groovy
 javaNative {
     images {
