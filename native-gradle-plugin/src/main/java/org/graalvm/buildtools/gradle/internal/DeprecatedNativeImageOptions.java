@@ -155,12 +155,6 @@ public abstract class DeprecatedNativeImageOptions implements NativeImageOptions
 
     @Override
     @Input
-    public Property<Boolean> getServer() {
-        return warnAboutDeprecation(delegate::getServer);
-    }
-
-    @Override
-    @Input
     public Property<Boolean> getFallback() {
         return warnAboutDeprecation(delegate::getFallback);
     }
@@ -249,10 +243,5 @@ public abstract class DeprecatedNativeImageOptions implements NativeImageOptions
     @Override
     public NativeImageOptions runtimeArgs(Iterable<?> arguments) {
         return warnAboutDeprecation(() ->delegate.runtimeArgs(arguments));
-    }
-
-    @Override
-    public NativeImageOptions enableServerBuild(boolean enabled) {
-        return warnAboutDeprecation(() -> delegate.enableServerBuild(enabled));
     }
 }
