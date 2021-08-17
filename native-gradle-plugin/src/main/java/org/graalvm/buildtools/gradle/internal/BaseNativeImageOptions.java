@@ -39,23 +39,36 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.gradle.dsl;
+package org.graalvm.buildtools.gradle.internal;
 
+import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
-import org.gradle.api.Named;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
+import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -64,10 +77,14 @@ import java.util.Map;
  * @author gkrocher
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public interface NativeImageOptions extends Named {
+public abstract class BaseNativeImageOptions implements NativeImageOptions {
+    private final String name;
+
     @Override
     @Internal
-    String getName();
+    public String getName() {
+        return name;
+    }
 
     /**
      * Gets the name of the native executable to be generated.
@@ -75,7 +92,7 @@ public interface NativeImageOptions extends Named {
      * @return The image name property.
      */
     @Input
-    Property<String> getImageName();
+    public abstract Property<String> getImageName();
 
     /**
      * Returns the fully qualified name of the Main class to be executed.
@@ -87,7 +104,7 @@ public interface NativeImageOptions extends Named {
      */
     @Input
     @Optional
-    Property<String> getMainClass();
+    public abstract Property<String> getMainClass();
 
     /**
      * Returns the arguments for the native-image invocation.
@@ -95,7 +112,7 @@ public interface NativeImageOptions extends Named {
      * @return Arguments for the native-image invocation.
      */
     @Input
-    ListProperty<String> getBuildArgs();
+    public abstract ListProperty<String> getBuildArgs();
 
     /**
      * Returns the system properties which will be used by the native-image builder process.
@@ -103,7 +120,7 @@ public interface NativeImageOptions extends Named {
      * @return The system properties. Returns an empty map when there are no system properties.
      */
     @Input
-    MapProperty<String, Object> getSystemProperties();
+    public abstract MapProperty<String, Object> getSystemProperties();
 
     /**
      * Returns the classpath for the native-image building.
@@ -112,7 +129,7 @@ public interface NativeImageOptions extends Named {
      */
     @InputFiles
     @Classpath
-    ConfigurableFileCollection getClasspath();
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Returns the extra arguments to use when launching the JVM for the native-image building process.
@@ -121,7 +138,7 @@ public interface NativeImageOptions extends Named {
      * @return The arguments. Returns an empty list if there are no arguments.
      */
     @Input
-    ListProperty<String> getJvmArgs();
+    public abstract ListProperty<String> getJvmArgs();
 
     /**
      * Returns the arguments to use when launching the built image.
@@ -129,7 +146,7 @@ public interface NativeImageOptions extends Named {
      * @return The arguments. Returns an empty list if there are no arguments.
      */
     @Input
-    ListProperty<String> getRuntimeArgs();
+    public abstract ListProperty<String> getRuntimeArgs();
 
     /**
      * Gets the value which toggles native-image debug symbol output.
@@ -137,13 +154,22 @@ public interface NativeImageOptions extends Named {
      * @return Is debug enabled
      */
     @Input
-    Property<Boolean> getDebug();
+    public abstract Property<Boolean> getDebug();
+
+    /**
+     * Returns the server property, used to determine if the native image
+     * build server should be used.
+     *
+     * @return the server property
+     */
+    @Input
+    public abstract Property<Boolean> getServer();
 
     /**
      * @return Whether to enable fallbacks (defaults to false).
      */
     @Input
-    Property<Boolean> getFallback();
+    public abstract Property<Boolean> getFallback();
 
     /**
      * Gets the value which toggles native-image verbose output.
@@ -151,7 +177,7 @@ public interface NativeImageOptions extends Named {
      * @return Is verbose output
      */
     @Input
-    Property<Boolean> getVerbose();
+    public abstract Property<Boolean> getVerbose();
 
     /**
      * Gets the value which toggles the native-image-agent usage.
@@ -159,7 +185,7 @@ public interface NativeImageOptions extends Named {
      * @return The value which toggles the native-image-agent usage.
      */
     @Input
-    Property<Boolean> getAgent();
+    public abstract Property<Boolean> getAgent();
 
     /**
      * Gets the value which determines if shared library is being built.
@@ -167,14 +193,14 @@ public interface NativeImageOptions extends Named {
      * @return The value which determines if shared library is being built.
      */
     @Input
-    Property<Boolean> getSharedLibrary();
+    public abstract Property<Boolean> getSharedLibrary();
 
     /**
      * Returns the toolchain used to invoke native-image. Currently pointing
      * to a Java launcher due to Gradle limitations.
      */
     @Nested
-    Property<JavaLauncher> getJavaLauncher();
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     /**
      * Returns the list of configuration file directories (e.g resource-config.json, ...) which need
@@ -183,12 +209,46 @@ public interface NativeImageOptions extends Named {
      * @return a collection of directories
      */
     @InputFiles
-    ConfigurableFileCollection getConfigurationFileDirectories();
+    public abstract ConfigurableFileCollection getConfigurationFileDirectories();
 
     @Nested
-    NativeResourcesOptions getResources();
+    public abstract NativeResourcesOptions getResources();
 
-    void resources(Action<? super NativeResourcesOptions> spec);
+    public void resources(Action<? super NativeResourcesOptions> spec) {
+        spec.execute(getResources());
+    }
+
+    @Inject
+    public BaseNativeImageOptions(String name,
+                                  ObjectFactory objectFactory,
+                                  ProviderFactory providers,
+                                  JavaToolchainService toolchains,
+                                  String defaultImageName) {
+        this.name = name;
+        getDebug().convention(false);
+        getServer().convention(false);
+        getFallback().convention(false);
+        getVerbose().convention(false);
+        getAgent().convention(false);
+        getSharedLibrary().convention(false);
+        getImageName().convention(defaultImageName);
+        getUseFatJar().convention(SharedConstants.IS_WINDOWS);
+        getJavaLauncher().convention(
+                toolchains.launcherFor(spec -> {
+                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
+                    if (GradleUtils.isAtLeastGradle7()) {
+                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
+                    }
+                })
+        );
+    }
+
+    private static Provider<Boolean> property(ProviderFactory providers, String name) {
+        return providers.gradleProperty(name)
+                .forUseAtConfigurationTime()
+                .map(Boolean::valueOf)
+                .orElse(false);
+    }
 
     /**
      * Adds arguments for the native-image invocation.
@@ -196,7 +256,14 @@ public interface NativeImageOptions extends Named {
      * @param buildArgs Arguments for the native-image invocation.
      * @return this
      */
-    NativeImageOptions buildArgs(Object... buildArgs);
+    public BaseNativeImageOptions buildArgs(Object... buildArgs) {
+        getBuildArgs().addAll(
+                Arrays.stream(buildArgs)
+                        .map(String::valueOf)
+                        .collect(Collectors.toList())
+        );
+        return this;
+    }
 
     /**
      * Adds arguments for the native-image invocation.
@@ -204,7 +271,14 @@ public interface NativeImageOptions extends Named {
      * @param buildArgs Arguments for the native-image invocation.
      * @return this
      */
-    NativeImageOptions buildArgs(Iterable<?> buildArgs);
+    public BaseNativeImageOptions buildArgs(Iterable<?> buildArgs) {
+        getBuildArgs().addAll(
+                StreamSupport.stream(buildArgs.spliterator(), false)
+                        .map(String::valueOf)
+                        .collect(Collectors.toList())
+        );
+        return this;
+    }
 
     /**
      * Adds some system properties to be used by the native-image builder process.
@@ -213,7 +287,11 @@ public interface NativeImageOptions extends Named {
      * @return this
      */
     @SuppressWarnings("unused")
-    NativeImageOptions systemProperties(Map<String, ?> properties);
+    public BaseNativeImageOptions systemProperties(Map<String, ?> properties) {
+        MapProperty<String, Object> map = getSystemProperties();
+        properties.forEach((key, value) -> map.put(key, value == null ? null : String.valueOf(value)));
+        return this;
+    }
 
     /**
      * Adds a system property to be used by the native-image builder process.
@@ -222,7 +300,10 @@ public interface NativeImageOptions extends Named {
      * @param value The value for the property. May be null.
      * @return this
      */
-    NativeImageOptions systemProperty(String name, Object value);
+    public BaseNativeImageOptions systemProperty(String name, Object value) {
+        getSystemProperties().put(name, value == null ? null : String.valueOf(value));
+        return this;
+    }
 
     /**
      * Adds elements to the classpath for the native-image building.
@@ -230,7 +311,10 @@ public interface NativeImageOptions extends Named {
      * @param paths The classpath elements.
      * @return this
      */
-    NativeImageOptions classpath(Object... paths);
+    public BaseNativeImageOptions classpath(Object... paths) {
+        getClasspath().from(paths);
+        return this;
+    }
 
     /**
      * Adds some arguments to use when launching the JVM for the native-image building process.
@@ -238,7 +322,10 @@ public interface NativeImageOptions extends Named {
      * @param arguments The arguments.
      * @return this
      */
-    NativeImageOptions jvmArgs(Object... arguments);
+    public BaseNativeImageOptions jvmArgs(Object... arguments) {
+        getJvmArgs().addAll(Arrays.stream(arguments).map(String::valueOf).collect(Collectors.toList()));
+        return this;
+    }
 
     /**
      * Adds some arguments to use when launching the JVM for the native-image building process.
@@ -246,7 +333,14 @@ public interface NativeImageOptions extends Named {
      * @param arguments The arguments. Must not be null.
      * @return this
      */
-    NativeImageOptions jvmArgs(Iterable<?> arguments);
+    public BaseNativeImageOptions jvmArgs(Iterable<?> arguments) {
+        getJvmArgs().addAll(
+                StreamSupport.stream(arguments.spliterator(), false)
+                        .map(String::valueOf)
+                        .collect(Collectors.toList())
+        );
+        return this;
+    }
 
     /**
      * Adds some arguments to use when launching the built image.
@@ -254,7 +348,10 @@ public interface NativeImageOptions extends Named {
      * @param arguments The arguments.
      * @return this
      */
-    NativeImageOptions runtimeArgs(Object... arguments);
+    public BaseNativeImageOptions runtimeArgs(Object... arguments) {
+        getRuntimeArgs().addAll(Arrays.stream(arguments).map(String::valueOf).collect(Collectors.toList()));
+        return this;
+    }
 
     /**
      * Adds some arguments to use when launching the built image.
@@ -262,16 +359,24 @@ public interface NativeImageOptions extends Named {
      * @param arguments The arguments. Must not be null.
      * @return this
      */
-    NativeImageOptions runtimeArgs(Iterable<?> arguments);
+    public BaseNativeImageOptions runtimeArgs(Iterable<?> arguments) {
+        getRuntimeArgs().addAll(
+                StreamSupport.stream(arguments.spliterator(), false)
+                        .map(String::valueOf)
+                        .collect(Collectors.toList())
+        );
+        return this;
+    }
 
     /**
-     * If set to true, this will build a fat jar of the image classpath
-     * instead of passing each jar individually to the classpath. This
-     * option can be used in case the classpath is too long and that
-     * invoking native image fails, which can happen on Windows.
+     * Enables server build. Server build is disabled by default.
      *
-     * @return true if a fatjar should be used. Defaults to true for Windows, and false otherwise.
+     * @param enabled Value which controls whether the server build is enabled.
+     * @return this
      */
-    @Input
-    Property<Boolean> getUseFatJar();
+    public BaseNativeImageOptions enableServerBuild(boolean enabled) {
+        getServer().set(enabled);
+        return this;
+    }
+
 }
