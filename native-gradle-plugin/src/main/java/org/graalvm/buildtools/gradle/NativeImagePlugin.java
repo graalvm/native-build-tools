@@ -118,6 +118,8 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     public static final String DEPRECATED_NATIVE_BUILD_EXTENSION = "nativeBuild";
     public static final String DEPRECATED_NATIVE_TEST_EXTENSION = "nativeTest";
+    public static final String DEPRECATED_NATIVE_BUILD_TASK = "nativeBuild";
+    public static final String DEPRECATED_NATIVE_TEST_BUILD_TASK = "nativeTestBuild";
 
     /**
      * This looks strange, but it is used to force the configuration of a dependent
@@ -174,6 +176,10 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.getOptions().convention(mainOptions);
                     builder.getAgentEnabled().set(agent);
                 });
+        TaskProvider<Task> deprecatedTask = tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
+            t.dependsOn(imageBuilder);
+            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_ASSEMBLE_TASK_NAME + " instead."));
+        });
         tasks.register(NativeRunTask.TASK_NAME, NativeRunTask.class, task -> {
             task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
             task.getRuntimeArgs().convention(mainOptions.getRuntimeArgs());
@@ -248,6 +254,10 @@ public class NativeImagePlugin implements Plugin<Project> {
             testList.from(testListDirectory).builtBy(testTask);
             testOptions.getClasspath().from(testList);
             task.getAgentEnabled().set(testAgent);
+        });
+        tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
+            t.dependsOn(imageBuilder);
+            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_ASSEMBLE_TASK_NAME + " instead."));
         });
         configureClasspathJarFor(tasks, testOptions, testImageBuilder);
 

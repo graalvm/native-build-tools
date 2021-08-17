@@ -46,7 +46,6 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
     def "using a deprecated extension issues a warning"() {
         given:
-        debug = true
         buildFile << """
             plugins {
                 id 'application'
@@ -72,5 +71,27 @@ class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
         extensionName | replacedWith
         'nativeBuild' | 'main'
         'nativeTest'  | 'test'
+    }
+
+    def "calling the deprecated nativeBuild task triggers a warning and execution of the native image task"() {
+        gradleVersion = version
+
+        given:
+        withSample("java-application")
+
+        when:
+        run 'nativeBuild'
+
+        then:
+        tasks {
+            succeeded ':nativeAssemble'
+            succeeded ':nativeBuild'
+        }
+
+        and:
+        outputContains 'Task nativeBuild is deprecated. Use nativeAssemble instead.'
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
     }
 }
