@@ -47,7 +47,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
     @Unroll("can build an application which uses resources using #pattern on Gradle #version with JUnit Platform #junitVersion")
     def "can build an application which uses resources"() {
         gradleVersion = version
-        def nativeApp = file("build/native/nativeBuild/java-application")
+        def nativeApp = file("build/native/nativeAssemble/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")
@@ -60,11 +60,11 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         """
 
         when:
-        run 'nativeBuild'
+        run 'nativeAssemble'
 
         then:
         tasks {
-            succeeded ':jar', ':nativeBuild'
+            succeeded ':jar', ':nativeAssemble'
             doesNotContain ':build', ':run'
         }
 
@@ -92,30 +92,42 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-nativeBuild {
-    resources {
-        includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
+graal {
+    nativeImages {
+        main {
+            resources {
+                includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
+            }
+        }
     }
 }
 """],
                                          ["detected", """
-nativeBuild {
-    resources {
-        autodetection {
-            enabled = true
-            restrictToProjectDependencies = false
-            detectionExclusionPatterns.add("META-INF/.*")
+graal {
+    nativeImages {
+        main {
+            resources {
+                autodetection {
+                    enabled = true
+                    restrictToProjectDependencies = false
+                    detectionExclusionPatterns.add("META-INF/.*")
+                }
+            }
         }
     }
 }
 """
                                          ],
                                           ["project local detection only", """
-nativeBuild {
-    resources {
-        autodetection {
-            enabled = true
-            restrictToProjectDependencies = true
+graal {
+    nativeImages {
+        main {
+            resources {
+                autodetection {
+                    enabled = true
+                    restrictToProjectDependencies = true
+                }
+            }
         }
     }
 }
@@ -159,19 +171,27 @@ nativeBuild {
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-nativeTest {
-    resources {
-        includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
-        includedPatterns.add(java.util.regex.Pattern.quote("org/graalvm/demo/expected.txt"))
+graal {
+    nativeImages {
+        test {
+            resources {
+                includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
+                includedPatterns.add(java.util.regex.Pattern.quote("org/graalvm/demo/expected.txt"))
+            }
+        }
     }
 }
 """],
                                          ["detected", """
-nativeTest {
-    resources {
-        autodetection {
-            enabled = true
-            detectionExclusionPatterns.addAll("META-INF/.*", "junit-platform-unique-ids.*")
+graal {
+    nativeImages {
+        test {
+            resources {
+                autodetection {
+                    enabled = true
+                    detectionExclusionPatterns.addAll("META-INF/.*", "junit-platform-unique-ids.*")
+                }
+            }
         }
     }
 }
