@@ -57,8 +57,8 @@ dependencies {
     testImplementation('org.junit.jupiter:junit-jupiter')
 }
 
-graal {
-    nativeImages {
+javaNative {
+    images {
         main {
             verbose = true
         }
