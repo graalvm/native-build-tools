@@ -129,12 +129,14 @@ This plugin works with the `application` plugin and will register a number of ta
 
 The main tasks that you will want to execute are:
 
-- `nativeBuild`, which will trigger the generation of a native executable of your application
+- `nativeAssemble`, which will trigger the generation of a native executable of your application
 - `nativeRun`, which executes the generated native executable
-- `nativeTestBuild`, which will build a native image with tests found in the `test` source set
+- `nativeTestAssemble`, which will build a native image with tests found in the `test` source set
 - `nativeTest`, which will <<testing,execute tests>> found in the `test` source set in native mode
 
-Those tasks are configured with reasonable defaults respectively by the `nativeBuild` and `nativeTest` extensions, which are of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
+Those tasks are configured with reasonable defaults using the `javaNative` extension `images` container of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
+
+The main executable is configured by the image named `main`, while the test executable is configured via the image named `test`.
 
 === Native image options
 
@@ -148,21 +150,29 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 .Selecting the GraalVM toolchain
 [role="multi-language-sample"]
 ```groovy
-nativeBuild {
-  javaLauncher = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(8)
-    vendor = JvmVendorSpec.matching("GraalVM Enterprise")
-  }
+javaNative {
+    images {
+      main {
+          javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(8)
+            vendor = JvmVendorSpec.matching("GraalVM Enterprise")
+          }
+      }
+    }
 }
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-nativeBuild {
-  javaLauncher.set(javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(8))
-    vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
-  })
+javaNative {
+   images {
+    main {
+      javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
+      })
+    }
+  }
 }
 ```
 
@@ -173,58 +183,65 @@ The following configuration options are available for building images:
 .NativeImageOption configuration
 [role="multi-language-sample"]
 ```groovy
-nativeBuild {
-  // Main options
-  imageName = 'application' // The name of the native image, defaults to the project name
-  mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
-  debug = true // Determines if debug info should be generated, defaults to false
-  verbose = true // Add verbose output, defaults to false
-  fallback = true // Sets the fallback mode of native-image, defaults to false
-  sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+javaNative {
+  images {
+    main {
+      // Main options
+      imageName = 'application' // The name of the native image, defaults to the project name
+      mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
+      debug = true // Determines if debug info should be generated, defaults to false
+      verbose = true // Add verbose output, defaults to false
+      fallback = true // Sets the fallback mode of native-image, defaults to false
+      sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
 
-  systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
-  configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
+      systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
+      configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
 
-  // Advanced options
-  buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-  jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
+      // Advanced options
+      buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+      jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
 
-  // Runtime options
-  runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
+      // Runtime options
+      runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
 
-  // Development options
-  agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
+      // Development options
+      agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
 
-  useFatJar = true // Instead of passing each jar individually, builds a fat jar
+      useFatJar = true // Instead of passing each jar individually, builds a fat jar
+    }
+  }
 }
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-nativeBuild {
-  // Main options
-  imageName.set("application") // The name of the native image, defaults to the project name
-  mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
-  debug.set(true) // Determines if debug info should be generated, defaults to false
-  verbose.set(true) // Add verbose output, defaults to false
-  fallback.set(true) // Sets the fallback mode of native-image, defaults to false
-  sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+javaNative {
+  images {
+    main {
+      // Main options
+      imageName.set("application") // The name of the native image, defaults to the project name
+      mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
+      debug.set(true) // Determines if debug info should be generated, defaults to false
+      verbose.set(true) // Add verbose output, defaults to false
+      fallback.set(true) // Sets the fallback mode of native-image, defaults to false
+      sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
 
-  systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
-  configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
+      systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
+      configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
 
-  // Advanced options
-  buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-  jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
+      // Advanced options
+      buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+      jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
 
-  // Runtime options
-  runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
+      // Runtime options
+      runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
 
-  // Development options
-  agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
+      // Development options
+      agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
 
-
-  useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
+      useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
+    }
+  }
 }
 ```
 
@@ -293,7 +310,7 @@ This should be as easy as appending `-Pagent` to `run` and `nativeBuild`, or `te
 
 ```bash
 ./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeBuild # Builds image using configuration acquired by agent.
+./gradlew -Pagent nativeAssemble # Builds image using configuration acquired by agent.
 
 # For testing
 ./gradlew -Pagent test # Runs on JVM with native-image-agent.
