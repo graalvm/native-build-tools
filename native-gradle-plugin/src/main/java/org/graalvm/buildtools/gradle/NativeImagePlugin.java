@@ -45,16 +45,20 @@ import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
+import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
+import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -64,6 +68,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
@@ -111,6 +116,9 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME = "generateResourcesConfigFile";
     public static final String GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME = "generateTestResourcesConfigFile";
 
+    public static final String DEPRECATED_NATIVE_BUILD_EXTENSION = "nativeBuild";
+    public static final String DEPRECATED_NATIVE_TEST_EXTENSION = "nativeTest";
+
     /**
      * This looks strange, but it is used to force the configuration of a dependent
      * task during the configuration of another one. This is a workaround for a bug
@@ -147,6 +155,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Add DSL extensions for building and testing
         NativeImageOptions mainOptions = createMainOptions(graalExtension, project);
+        deprecateExtension(project, mainOptions, DEPRECATED_NATIVE_BUILD_EXTENSION, "main");
 
         project.getPlugins().withId("application", p -> mainOptions.getMainClass().convention(
                 project.getExtensions().findByType(JavaApplication.class).getMainClass()
@@ -202,6 +211,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Add DSL extension for testing
         NativeImageOptions testOptions = createTestOptions(graalExtension, project, mainOptions, testListDirectory);
+        deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
 
         TaskCollection<Test> testTask = findTestTask(project);
         Provider<Boolean> testAgent = agentPropertyOverride(project, testOptions);
@@ -249,6 +259,19 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
     }
 
+    private void deprecateExtension(Project project,
+                                    NativeImageOptions delegate,
+                                    String name,
+                                    String substitute) {
+        JavaToolchainService toolchains = project.getExtensions().findByType(JavaToolchainService.class);
+        ObjectFactory objects = project.getObjects();
+        project.getExtensions().add(name, objects.newInstance(DeprecatedNativeImageOptions.class,
+                name,
+                delegate,
+                substitute,
+                project.getLogger()));
+    }
+
     private void configureClasspathJarFor(TaskContainer tasks, NativeImageOptions options, TaskProvider<BuildNativeImageTask> imageBuilder) {
         String baseName = imageBuilder.getName();
         TaskProvider<Jar> classpathJar = tasks.register(baseName + "ClasspathJar", Jar.class, jar -> {
@@ -272,7 +295,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     private GraalVMExtension registerGraalVMExtension(Project project) {
         NamedDomainObjectContainer<NativeImageOptions> nativeImages = project.getObjects()
                 .domainObjectContainer(NativeImageOptions.class, name ->
-                        project.getObjects().newInstance(NativeImageOptions.class,
+                        project.getObjects().newInstance(BaseNativeImageOptions.class,
                                 name,
                                 project.getObjects(),
                                 project.getProviders(),
@@ -351,7 +374,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/test-native").map(d -> d.getAsFile().getAbsolutePath()));
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         // Set system property read indirectly by the JUnitPlatformFeature.
-        testExtension.getBuildArgs().add(project.provider(() ->"-Djunit.platform.listeners.uid.tracking.output.dir=" + testListDirectory.getAsFile().get().getAbsolutePath()));
+        testExtension.getBuildArgs().add(project.provider(() -> "-Djunit.platform.listeners.uid.tracking.output.dir=" + testListDirectory.getAsFile().get().getAbsolutePath()));
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(findMainArtifacts(project));
         classpath.from(findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
