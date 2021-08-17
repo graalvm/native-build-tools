@@ -8,6 +8,8 @@ image:https://github.com/graalvm/native-image-build-tools/actions/workflows/nati
 
 The {doctitle} adds support for building and testing native images using the https://gradle.org[Gradle build tool].
 
+For upgrading please take a look at the <<changelog,changes section>>.
+
 == Quickstart
 
 === Adding the plugin
@@ -324,3 +326,60 @@ The generated configuration files will be found in the `${buildDir}/native/agent
 == Javadocs
 
 In addition, you can consult the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
+
+[[changelog]]
+== Changelog
+
+=== Release 0.9.3
+
+In preparation for supporting more images:
+
+- The `nativeBuild` and `nativeTest` extensions are now deprecated. A top-level container for configuring native images has been introduced. Instead of:
+
+```groovy
+nativeBuild {
+   verbose = true
+}
+```
+
+you need to use:
+
+```groovy
+javaNative {
+  images {
+    main {
+      verbose = true
+    }
+  }
+}
+```
+
+and instead of:
+
+```groovy
+nativeTest {
+    buildArgs("...")
+}
+```
+
+you need to use:
+
+```groovy
+javaNative {
+  images {
+    test {
+      verbose = true
+    }
+  }
+}
+```
+
+- The `nativeBuild` task has been renamed to `nativeAssemble`.
+- The `nativeTestBuild` task has been renamed to `nativeTestAssemble`.
+
+Both `nativeBuild` and `nativeTestBuild` task invocations are still supported but deprecated and will be removed in a future release.
+
+== Release 0.9.2
+
+- Added support for resources detection
+- Fixed a number of regressions
