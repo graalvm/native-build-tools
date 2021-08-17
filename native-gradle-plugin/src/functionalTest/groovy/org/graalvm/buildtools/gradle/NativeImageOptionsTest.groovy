@@ -29,7 +29,7 @@ class NativeImageOptionsTest extends Specification {
                 id 'org.graalvm.buildtools.native'
             }
             
-            assert graal.nativeImages.main.javaLauncher
+            assert javaNative.images.main.javaLauncher
                 .get()
                 .metadata
                 .languageVersion

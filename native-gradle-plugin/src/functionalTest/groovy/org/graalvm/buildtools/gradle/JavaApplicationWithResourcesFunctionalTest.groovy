@@ -92,8 +92,8 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-graal {
-    nativeImages {
+javaNative {
+    images {
         main {
             resources {
                 includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
@@ -103,8 +103,8 @@ graal {
 }
 """],
                                          ["detected", """
-graal {
-    nativeImages {
+javaNative {
+    images {
         main {
             resources {
                 autodetection {
@@ -119,8 +119,8 @@ graal {
 """
                                          ],
                                           ["project local detection only", """
-graal {
-    nativeImages {
+javaNative {
+    images {
         main {
             resources {
                 autodetection {
@@ -171,8 +171,8 @@ graal {
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-graal {
-    nativeImages {
+javaNative {
+    images {
         test {
             resources {
                 includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
@@ -183,8 +183,8 @@ graal {
 }
 """],
                                          ["detected", """
-graal {
-    nativeImages {
+javaNative {
+    images {
         test {
             resources {
                 autodetection {

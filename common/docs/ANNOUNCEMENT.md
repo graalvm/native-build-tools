@@ -45,8 +45,8 @@ _(this step will be redundant once this plugin is published to the Gradle Plugin
 
 After that, we can configure the image build by using a `graal` configuration block:
 ```groovy
-graal {
-    nativeImages {
+javaNative {
+    images {
         main {
             imageName = "my-app"
             mainClass = "org.test.Main"

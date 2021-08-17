@@ -54,10 +54,10 @@ public interface GraalVMExtension {
      * By default, this plugin creates two images, one called "main" for
      * the main application and another one called "test" for tests.
      */
-    NamedDomainObjectContainer<NativeImageOptions> getNativeImages();
+    NamedDomainObjectContainer<NativeImageOptions> getImages();
 
     /**
      * Configures the native image options.
      */
-    void nativeImages(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec);
+    void images(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec);
 }
