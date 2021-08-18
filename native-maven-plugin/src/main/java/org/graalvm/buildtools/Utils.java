@@ -41,9 +41,11 @@
 
 package org.graalvm.buildtools;
 
+import org.apache.maven.plugin.MojoExecutionException;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,17 +57,36 @@ import java.util.stream.Stream;
  * Utility class containing various native-image and JVM related methods.
  */
 public abstract class Utils implements SharedConstants {
-    public static final String NATIVE_IMAGE_EXE = "native-image" + (IS_WINDOWS ? ".cmd" : "");
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
 
-    public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) {
+    public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) throws MojoExecutionException {
         String graalHome = System.getenv(javaHomeVariable);
         if (graalHome == null) {
             return null;
         }
 
         Path graalExe = Paths.get(graalHome).resolve("bin").resolve(NATIVE_IMAGE_EXE);
+        Path guExe = Paths.get(graalHome).resolve("bin").resolve(GU_EXE);
+
+        if (!Files.exists(graalExe)) {
+            if (Files.exists(guExe)) {
+                ProcessBuilder processBuilder = new ProcessBuilder(guExe.toString(), "install", "native-image");
+                processBuilder.inheritIO();
+
+                try {
+                    Process nativeImageFetchingProcess = processBuilder.start();
+                    if (nativeImageFetchingProcess.waitFor() != 0) {
+                        throw new MojoExecutionException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.");
+                    }
+                } catch (MojoExecutionException | IOException | InterruptedException e) {
+                    throw new MojoExecutionException("Determining GraalVM installation failed with message: " + e.getMessage());
+                }
+            } else if (failFast) {
+                throw new MojoExecutionException("'" + GU_EXE + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
+            }
+        }
+
         if (!Files.exists(graalExe) && failFast) {
             throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
                     "You should install it using `gu install native-image`");
@@ -81,7 +102,7 @@ public abstract class Utils implements SharedConstants {
         return exePath.map(path -> path.resolve(NATIVE_IMAGE_EXE)).orElse(null);
     }
 
-    public static Path getNativeImage() {
+    public static Path getNativeImage() throws MojoExecutionException {
         Path nativeImage = getJavaHomeNativeImage("JAVA_HOME", false);
 
         if (nativeImage == null) {
