@@ -159,6 +159,8 @@ nativeBuild {
 
   // Development options
   agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
+
+  useFatJar = true // Instead of passing each jar individually, builds a fat jar
 }
 ```
 
@@ -185,10 +187,54 @@ nativeBuild {
 
   // Development options
   agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
+
+
+  useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
 }
 ```
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
+
+==== Long classpath and fat jar support
+
+Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
+As a consequence, if you are running under Windows, the plugin will automatically shorten the classpath of your project by building a so called "fat jar", which includes all entries from the classpath automatically.
+
+In case this behavior is not required, you can disable the fat jar creation by calling:
+
+.Disabling the fat jar creation
+[role="multi-language-sample"]
+```groovy
+nativeBuild {
+    useFatJar = false
+}
+```
+
+[role="multi-language-sample"]
+```kotlin
+nativeBuild {
+    useFatJar.set(false)
+}
+```
+
+Alternatively, it is possible to use your own fat jar (for example created using the https://imperceptiblethoughts.com/shadow/[Shadow plugin]) by setting the `classpathJar` property directly on the _task_:
+
+.Disabling the fat jar creation
+[role="multi-language-sample"]
+```groovy
+tasks.named("nativeBuild") {
+    classpathJar = myFatJar
+}
+```
+
+[role="multi-language-sample"]
+```kotlin
+tasks.named<BuildNativeImageTask>("nativeBuild") {
+    classpathJar.set(myFatJar)
+}
+```
+
+When the `classpathJar` property is set, the `classpath` property is _ignored_.
 
 [[testing]]
 === Testing support
