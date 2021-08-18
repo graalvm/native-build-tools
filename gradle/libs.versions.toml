@@ -1,9 +1,9 @@
 [versions]
 # Project versions
-junitPlatformNative = "0.9.3"
-nativeGradlePlugin = "0.9.3"
-nativeMavenPlugin = "0.9.3"
-utils = "0.9.3"
+junitPlatformNative = "0.9.4-SNAPSHOT"
+nativeGradlePlugin = "0.9.4-SNAPSHOT"
+nativeMavenPlugin = "0.9.4-SNAPSHOT"
+utils = "0.9.4-SNAPSHOT"
 
 # External dependencies
 spock = "2.0-groovy-3.0"
