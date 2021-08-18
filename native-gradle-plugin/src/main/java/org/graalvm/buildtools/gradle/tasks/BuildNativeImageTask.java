@@ -49,10 +49,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -112,6 +114,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Inject
     protected abstract ProviderFactory getProviders();
 
+    @InputFile
+    @Optional
+    public abstract RegularFileProperty getClasspathJar();
+
     public BuildNativeImageTask() {
         DirectoryProperty buildDir = getProject().getLayout().getBuildDirectory();
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
@@ -132,8 +138,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 getExecutableName(),
                 // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
                 // a mapped value before the task was called, when we are actually calling it...
-                getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath())
-        ).asArguments();
+                getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
+                getClasspathJar()).asArguments();
     }
 
     // This property provides access to the service instance
