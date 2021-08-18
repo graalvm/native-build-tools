@@ -254,7 +254,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             jar.getArchiveBaseName().set(baseName.toLowerCase(Locale.ENGLISH) + "-classpath");
         });
         imageBuilder.configure(nit -> {
-            if (SharedConstants.IS_WINDOWS) {
+            if (options.getUseFatJar().get()) {
                 nit.getClasspathJar().set(classpathJar.flatMap(AbstractArchiveTask::getArchiveFile));
             }
         });
