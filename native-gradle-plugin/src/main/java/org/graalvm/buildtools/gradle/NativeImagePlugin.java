@@ -47,10 +47,10 @@ import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
-import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -59,6 +59,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
@@ -69,6 +70,8 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.JavaForkOptions;
@@ -76,8 +79,10 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.findConfiguration;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.findMainArtifacts;
@@ -148,6 +153,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
             task.getRuntimeArgs().convention(buildExtension.getRuntimeArgs());
         });
+        configureClasspathJarFor(tasks, buildExtension, imageBuilder);
 
         TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_RESOURCES_TASK_NAME);
 
@@ -217,12 +223,32 @@ public class NativeImagePlugin implements Plugin<Project> {
             testExtension.getClasspath().from(testList);
             task.getAgentEnabled().set(testAgent);
         });
+        configureClasspathJarFor(tasks, testExtension, testImageBuilder);
 
         tasks.register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
             task.setDescription("Runs native-image compiled tests.");
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
             task.getRuntimeArgs().convention(testExtension.getRuntimeArgs());
+        });
+    }
+
+    private void configureClasspathJarFor(TaskContainer tasks, NativeImageOptions options, TaskProvider<BuildNativeImageTask> imageBuilder) {
+        String baseName = imageBuilder.getName();
+        TaskProvider<Jar> classpathJar = tasks.register(baseName + "ClasspathJar", Jar.class, jar -> {
+            jar.manifest(mn -> mn.getAttributes().put("Class-Path", options.getClasspath()
+                    .getElements()
+                    .map(cp -> cp.stream()
+                            .map(FileSystemLocation::getAsFile)
+                            .map(File::getAbsolutePath)
+                            .collect(Collectors.joining(" "))
+                    )));
+            jar.getArchiveBaseName().set(baseName.toLowerCase(Locale.ENGLISH) + "-classpath");
+        });
+        imageBuilder.configure(nit -> {
+            if (SharedConstants.IS_WINDOWS) {
+                nit.getClasspathJar().set(classpathJar.flatMap(AbstractArchiveTask::getArchiveFile));
+            }
         });
     }
 

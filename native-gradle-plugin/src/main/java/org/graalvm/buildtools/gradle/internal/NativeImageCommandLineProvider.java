@@ -44,8 +44,10 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Nested;
 import org.gradle.process.CommandLineArgumentProvider;
 
@@ -62,15 +64,18 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<Boolean> agentEnabled;
     private final Provider<String> executableName;
     private final Provider<String> outputDirectory;
+    private final Provider<RegularFile> classpathJar;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<Boolean> agentEnabled,
                                           Provider<String> executableName,
-                                          Provider<String> outputDirectory) {
+                                          Provider<String> outputDirectory,
+                                          Provider<RegularFile> classpathJar) {
         this.options = options;
         this.agentEnabled = agentEnabled;
         this.executableName = executableName;
         this.outputDirectory = outputDirectory;
+        this.classpathJar = classpathJar;
     }
 
     @Nested
@@ -93,13 +98,22 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         return outputDirectory;
     }
 
+    @InputFile
+    public Provider<RegularFile> getClasspathJar() {
+        return classpathJar;
+    }
+
     @Override
     public List<String> asArguments() {
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
 
         cliArgs.add("-cp");
-        cliArgs.add(options.getClasspath().getAsPath());
+        if (classpathJar.isPresent()) {
+            cliArgs.add(classpathJar.get().getAsFile().getAbsolutePath());
+        } else {
+            cliArgs.add(options.getClasspath().getAsPath());
+        }
 
         appendBooleanOption(cliArgs, options.getDebug(), "-H:GenerateDebugInfo=1");
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");

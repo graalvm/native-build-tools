@@ -53,6 +53,11 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         withSample("java-application-with-resources")
 
         buildFile << config
+        buildFile << """
+            nativeBuild {
+                verbose = true
+            }
+        """
 
         when:
         run 'nativeBuild'
