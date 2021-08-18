@@ -76,7 +76,9 @@ mapOf(
         description = "Publishes all artifacts to the ${repo.decapitalize()} repository"
         group = PublishingPlugin.PUBLISH_TASK_GROUP
         gradle.includedBuilds.forEach {
-            dependsOn(it.task(":$taskPrefix$repo"))
+            if (it.name != "docs") {
+                dependsOn(it.task(":$taskPrefix$repo"))
+            }
         }
     }
 }
