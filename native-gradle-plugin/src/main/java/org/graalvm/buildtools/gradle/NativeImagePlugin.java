@@ -55,11 +55,12 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
@@ -77,6 +78,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
@@ -116,6 +118,11 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
 
     private GraalVMLogger logger;
+
+    @Inject
+    public ArchiveOperations getArchiveOperations() {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public void apply(Project project) {
@@ -236,13 +243,14 @@ public class NativeImagePlugin implements Plugin<Project> {
     private void configureClasspathJarFor(TaskContainer tasks, NativeImageOptions options, TaskProvider<BuildNativeImageTask> imageBuilder) {
         String baseName = imageBuilder.getName();
         TaskProvider<Jar> classpathJar = tasks.register(baseName + "ClasspathJar", Jar.class, jar -> {
-            jar.manifest(mn -> mn.getAttributes().put("Class-Path", options.getClasspath()
-                    .getElements()
-                    .map(cp -> cp.stream()
-                            .map(FileSystemLocation::getAsFile)
-                            .map(File::getAbsolutePath)
-                            .collect(Collectors.joining(" "))
-                    )));
+            jar.from(
+                    options.getClasspath()
+                            .getElements()
+                            .map(elems -> elems.stream()
+                                    .map(e -> getArchiveOperations().zipTree(e))
+                                    .collect(Collectors.toList()))
+            );
+            jar.setDuplicatesStrategy(DuplicatesStrategy.WARN);
             jar.getArchiveBaseName().set(baseName.toLowerCase(Locale.ENGLISH) + "-classpath");
         });
         imageBuilder.configure(nit -> {
