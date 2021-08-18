@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -210,6 +211,7 @@ public abstract class NativeImageOptions {
         getAgent().convention(false);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
+        getUseFatJar().convention(SharedConstants.IS_WINDOWS);
         getJavaLauncher().convention(
                 toolchains.launcherFor(spec -> {
                     spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
@@ -355,4 +357,14 @@ public abstract class NativeImageOptions {
         return this;
     }
 
+    /**
+     * If set to true, this will build a fat jar of the image classpath
+     * instead of passing each jar individually to the classpath. This
+     * option can be used in case the classpath is too long and that
+     * invoking native image fails, which can happen on Windows.
+     *
+     * @return true if a fatjar should be used. Defaults to true for Windows, and false otherwise.
+     */
+    @Input
+    public abstract Property<Boolean> getUseFatJar();
 }
