@@ -95,6 +95,58 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>shaded</id>
+            <build>
+                <plugins>
+                    <!-- tag::shade-plugin[] -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.2.4</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- end::shade-plugin[] -->
+
+                    <!-- tag::native-plugin[] -->
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <imageName>${imageName}</imageName>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                            </buildArgs>
+                            <classpath>
+                                <param>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</param>
+                            </classpath>
+                        </configuration>
+                    </plugin>
+                    <!-- end::native-plugin[] -->
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>

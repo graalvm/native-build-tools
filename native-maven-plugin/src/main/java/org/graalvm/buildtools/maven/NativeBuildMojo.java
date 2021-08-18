@@ -63,6 +63,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -94,7 +95,10 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Parameter(defaultValue = "${mojoExecution}")
     private MojoExecution mojoExecution;
 
-    private final List<Path> classpath = new ArrayList<>();
+    @Parameter(property = "classpath")
+    private List<String> classpath;
+
+    private final List<Path> imageClasspath = new ArrayList<>();
 
     private PluginParameterExpressionEvaluator evaluator;
 
@@ -105,14 +109,18 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
 
-        classpath.clear();
-        List<String> imageClasspathScopes = Arrays.asList(Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME);
-        project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
-        for (Artifact dependency : project.getArtifacts()) {
-            addClasspath(dependency);
+        imageClasspath.clear();
+        if (classpath != null && !classpath.isEmpty()) {
+            imageClasspath.addAll(classpath.stream().map(Paths::get).collect(Collectors.toList()));
+        } else {
+            List<String> imageClasspathScopes = Arrays.asList(Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME);
+            project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
+            for (Artifact dependency : project.getArtifacts()) {
+                addClasspath(dependency);
+            }
+            addClasspath(project.getArtifact());
         }
-        addClasspath(project.getArtifact());
-        String classpathStr = classpath.stream().map(Path::toString).collect(Collectors.joining(File.pathSeparator));
+        String classpathStr = imageClasspath.stream().map(Path::toString).collect(Collectors.joining(File.pathSeparator));
 
         Path nativeImageExecutable = Utils.getNativeImage();
 
@@ -170,7 +178,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             throw new MojoExecutionException("Artifact " + artifact + "cannot be added to image classpath", e);
         }
 
-        classpath.add(jarFilePath);
+        imageClasspath.add(jarFilePath);
     }
 
     private Path getWorkingDirectory() {

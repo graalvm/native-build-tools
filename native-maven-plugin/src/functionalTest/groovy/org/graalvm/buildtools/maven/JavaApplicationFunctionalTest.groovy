@@ -52,4 +52,15 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         outputContains "Hello, native!"
     }
+
+    def "can build and execute a native image with the Maven plugin and the shade plugin"() {
+        withSample("java-application")
+
+        when:
+        mvn '-Pshaded', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "Hello, native!"
+    }
 }

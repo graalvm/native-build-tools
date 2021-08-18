@@ -147,6 +147,24 @@ This step won't be needed as of JUnit 5.8 with a future release of native-maven-
 
 Running `mvn -Pnative -Dskip test` will then build and run native tests.
 
+== Long classpath and shading support
+
+Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
+
+If this happens, one option is to use a https://maven.apache.org/plugins/maven-shade-plugin[shaded jar] and use it instead of individual jars on classpath.
+
+First, you'll need to setup the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin]:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application/pom.xml[tag=shade-plugin]
+
+Then the native plugin needs to be configured to use this jar instead of the full classpath:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application/pom.xml[tag=native-plugin]
+
+Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading.
+
 == Javadocs
 
 In addition, you can consult the link:javadocs/native-maven-plugin/index.html[Javadocs of the plugin].
