@@ -165,11 +165,6 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_IMAGE_EXE">NATIVE_IMAGE_EXE</a></span></code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>static java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_TESTS_EXE">NATIVE_TESTS_EXE</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
@@ -179,7 +174,7 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <!--   -->
 </a>
 <h3>Fields inherited from interface&nbsp;org.graalvm.buildtools.utils.SharedConstants</h3>
-<code>AGENT_OUTPUT_FOLDER, AGENT_PROPERTY, DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION, EXECUTABLE_EXTENSION, GU_EXE, IS_WINDOWS, NATIVE_IMAGE_OUTPUT_FOLDER, NATIVE_TESTS_SUFFIX</code></li>
+<code>AGENT_OUTPUT_FOLDER, AGENT_PROPERTY, DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION, EXECUTABLE_EXTENSION, GRAALVM_EXE_EXTENSION, GU_EXE, IS_WINDOWS, NATIVE_IMAGE_EXE, NATIVE_IMAGE_OUTPUT_FOLDER, NATIVE_TESTS_SUFFIX</code></li>
 </ul>
 </li>
 </ul>
@@ -259,15 +254,6 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a id="NATIVE_IMAGE_EXE">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>NATIVE_IMAGE_EXE</h4>
-<pre>public static final&nbsp;java.lang.String NATIVE_IMAGE_EXE</pre>
-</li>
-</ul>
 <a id="NATIVE_TESTS_EXE">
 <!--   -->
 </a>
@@ -326,7 +312,12 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <li class="blockList">
 <h4>getJavaHomeNativeImage</h4>
 <pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getJavaHomeNativeImage&#8203;(java.lang.String&nbsp;javaHomeVariable,
-                                                        java.lang.Boolean&nbsp;failFast)</pre>
+                                                        java.lang.Boolean&nbsp;failFast)
+                                                 throws org.apache.maven.plugin.MojoExecutionException</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
 </li>
 </ul>
 <a id="getNativeImageFromPath()">
@@ -344,7 +335,12 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getNativeImage</h4>
-<pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getNativeImage()</pre>
+<pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getNativeImage()
+                                         throws org.apache.maven.plugin.MojoExecutionException</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
 </li>
 </ul>
 </li>
