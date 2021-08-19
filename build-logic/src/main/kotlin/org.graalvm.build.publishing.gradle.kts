@@ -90,6 +90,10 @@ publishing {
             name = "common"
             url = uri(repoDirectory)
         }
+        maven {
+            name = "snapshots"
+            url = uri(snapshotsDirectory)
+        }
     }
     publications.withType<MavenPublication>().configureEach {
         pom {
