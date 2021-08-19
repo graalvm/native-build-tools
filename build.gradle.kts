@@ -128,6 +128,7 @@ val addSnapshots = tasks.register<org.graalvm.build.tasks.GitAdd>("addSnapshots"
 val commitSnapshots = tasks.register<org.graalvm.build.tasks.GitCommit>("commitSnapshots") {
     dependsOn(addSnapshots)
     repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    amend.set(true)
     message.set("Publishing new snapshot")
 }
 
