@@ -43,10 +43,10 @@ pluginManagement {
 ```
 _(this step will be redundant once this plugin is published to the Gradle Plugin Portal)._
 
-After that, we can configure the image build by using a `javaNative` configuration block:
+After that, we can configure the image build by using a `jvmNative` configuration block:
 
 ```groovy
-javaNative {
+jvmNative {
     images {
         main {
             imageName = "my-app"
@@ -58,7 +58,7 @@ javaNative {
 }
 ```
 
-The plugin then adds `nativeAssemble` and `nativeRun` tasks that respectively creates a native executable and runs the main class (as one might expect ☺). If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the `[native-image-agent](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds)` without any additional user setup. More information (and _Kotlin_ configuration syntax) is available in the [documentation](https://github.com/graalvm/native-build-tools/blob/master/native-gradle-plugin/README.md).
+The plugin then adds `jvmNativeCompile` and `nativeRun` tasks that respectively creates a native executable and runs the main class (as one might expect ☺). If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the `[native-image-agent](https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds)` without any additional user setup. More information (and _Kotlin_ configuration syntax) is available in the [documentation](https://github.com/graalvm/native-build-tools/blob/master/native-gradle-plugin/README.md).
 
 #### Testing in _Gradle_
 

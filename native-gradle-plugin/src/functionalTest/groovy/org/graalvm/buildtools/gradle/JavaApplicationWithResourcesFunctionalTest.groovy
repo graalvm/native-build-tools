@@ -47,7 +47,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
     @Unroll("can build an application which uses resources using #pattern on Gradle #version with JUnit Platform #junitVersion")
     def "can build an application which uses resources"() {
         gradleVersion = version
-        def nativeApp = file("build/native/nativeAssemble/java-application")
+        def nativeApp = file("build/native/jvmNativeCompile/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")
@@ -60,11 +60,11 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         """
 
         when:
-        run 'nativeAssemble'
+        run 'jvmNativeCompile'
 
         then:
         tasks {
-            succeeded ':jar', ':nativeAssemble'
+            succeeded ':jar', ':jvmNativeCompile'
             doesNotContain ':build', ':run'
         }
 
@@ -92,7 +92,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-javaNative {
+jvmNative {
     images {
         main {
             resources {
@@ -103,7 +103,7 @@ javaNative {
 }
 """],
                                          ["detected", """
-javaNative {
+jvmNative {
     images {
         main {
             resources {
@@ -119,7 +119,7 @@ javaNative {
 """
                                          ],
                                           ["project local detection only", """
-javaNative {
+jvmNative {
     images {
         main {
             resources {
@@ -171,7 +171,7 @@ javaNative {
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-javaNative {
+jvmNative {
     images {
         test {
             resources {
@@ -183,7 +183,7 @@ javaNative {
 }
 """],
                                          ["detected", """
-javaNative {
+jvmNative {
     images {
         test {
             resources {
