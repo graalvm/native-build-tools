@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,26 +39,43 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
+package org.graalvm.build.tasks
 
-val Gradle.rootGradle: Gradle
-    get() {
-        var cur = this
-        while (cur.parent != null) {
-            cur = cur.parent!!
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.util.FileUtils
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+
+abstract class GitClone : DefaultTask() {
+    @get:OutputDirectory
+    abstract val repositoryDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val repositoryUri: Property<String>
+
+    @get:Input
+    abstract val branch: Property<String>
+
+    @TaskAction
+    fun execute() {
+        val repoDir = repositoryDirectory.asFile.get()
+        if (repoDir.exists()) {
+            println("Deleting $repoDir")
+            FileUtils.delete(repoDir, FileUtils.RECURSIVE)
         }
-        return cur
+        repoDir.mkdirs()
+        val repo = repositoryUri.get()
+        val branch = this.branch.get()
+        println("Cloning $repo branch '$branch' into '${repoDir}'...")
+        Git.cloneRepository()
+                .setURI(repo)
+                .setBranch(branch)
+                .setDirectory(repoDir)
+                .call()
+                .close()
     }
-
-val Gradle.rootLayout
-    get() = rootGradle.rootProject.layout
-
-val Project.compositeRootBuildDirectory
-    get() = gradle.rootLayout.buildDirectory
-
-val Project.repoDirectory
-    get() = compositeRootBuildDirectory.dir("common-repo")
-
-val Project.snapshotsDirectory
-    get() = compositeRootBuildDirectory.dir("snapshots")
+}

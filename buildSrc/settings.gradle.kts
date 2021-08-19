@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,26 +39,13 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
 
-val Gradle.rootGradle: Gradle
-    get() {
-        var cur = this
-        while (cur.parent != null) {
-            cur = cur.parent!!
+enableFeaturePreview("VERSION_CATALOGS")
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from(files("../gradle/libs.versions.toml"))
         }
-        return cur
     }
-
-val Gradle.rootLayout
-    get() = rootGradle.rootProject.layout
-
-val Project.compositeRootBuildDirectory
-    get() = gradle.rootLayout.buildDirectory
-
-val Project.repoDirectory
-    get() = compositeRootBuildDirectory.dir("common-repo")
-
-val Project.snapshotsDirectory
-    get() = compositeRootBuildDirectory.dir("snapshots")
+}

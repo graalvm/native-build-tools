@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,26 +39,32 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.Project
-import org.gradle.api.invocation.Gradle
+package org.graalvm.build.tasks
 
-val Gradle.rootGradle: Gradle
-    get() {
-        var cur = this
-        while (cur.parent != null) {
-            cur = cur.parent!!
+import org.eclipse.jgit.api.Git
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+
+abstract class GitCommit : DefaultTask() {
+    @get:InputDirectory
+    abstract val repositoryDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val message: Property<String>
+
+    @TaskAction
+    fun execute() {
+        Git.open(repositoryDirectory.asFile.get()).use {
+            it.commit()
+                    .setAll(true)
+                    .setMessage(message.get())
+                    .setSign(false)
+                    .call()
         }
-        return cur
     }
-
-val Gradle.rootLayout
-    get() = rootGradle.rootProject.layout
-
-val Project.compositeRootBuildDirectory
-    get() = gradle.rootLayout.buildDirectory
-
-val Project.repoDirectory
-    get() = compositeRootBuildDirectory.dir("common-repo")
-
-val Project.snapshotsDirectory
-    get() = compositeRootBuildDirectory.dir("snapshots")
+}

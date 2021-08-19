@@ -1,0 +1,27 @@
+name: Deploy snapshots to GitHub
+
+on:
+  workflow_run:
+    workflows: [ "native-gradle-plugin", "native-maven-plugin", "junit-platform-native-feature" ]
+    branches: [ "master" ]
+    types:
+      - completed
+
+jobs:
+  deploy-snapshots:
+    name: Deploy
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source common/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Run gradle
+        run: ./gradlew publishAllPublicationsToSnapshotsRepository --no-parallel

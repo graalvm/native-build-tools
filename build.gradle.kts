@@ -67,9 +67,10 @@ tasks.named("check") {
     }
 }
 
-mapOf(
+listOf(
         "publishTo" to "MavenLocal",
-        "publishAllPublicationsTo" to "CommonRepository"
+        "publishAllPublicationsTo" to "CommonRepository",
+        "publishAllPublicationsTo" to "SnapshotsRepository",
 ).forEach { entry ->
     val (taskPrefix, repo) = entry
     tasks.register("$taskPrefix$repo") {
@@ -80,10 +81,16 @@ mapOf(
                 dependsOn(it.task(":$taskPrefix$repo"))
             }
         }
+        doFirst {
+            if (gradle.startParameter.isParallelProjectExecutionEnabled) {
+                throw RuntimeException("Publishing should be done using --no-parallel")
+            }
+        }
     }
 }
 
 val commonRepo = layout.buildDirectory.dir("common-repo")
+val snapshotsRepo = layout.buildDirectory.dir("snapshots")
 
 val pruneCommonRepo = tasks.register<Delete>("pruneCommonRepository") {
     delete(commonRepo)
@@ -104,4 +111,35 @@ tasks.register<org.graalvm.build.samples.SamplesUpdateTask>("updateSamples") {
     versions.put("junit.jupiter.version", libs.versions.junitJupiter.get())
     versions.put("junit.platform.version", libs.versions.junitPlatform.get())
     versions.put("junit.platform.native.version", libs.versions.junitPlatformNative.get())
+}
+
+val cloneSnapshots = tasks.register<org.graalvm.build.tasks.GitClone>("cloneSnapshotRepository") {
+    repositoryUri.set("git@github.com:graalvm/native-build-tools.git")
+    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    branch.set("snapshots")
+}
+
+val addSnapshots = tasks.register<org.graalvm.build.tasks.GitAdd>("addSnapshots") {
+    dependsOn(cloneSnapshots)
+    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    pattern.set("org/")
+}
+
+val commitSnapshots = tasks.register<org.graalvm.build.tasks.GitCommit>("commitSnapshots") {
+    dependsOn(addSnapshots)
+    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    message.set("Publishing new snapshot")
+}
+
+val pushSnapshots = tasks.register<org.graalvm.build.tasks.GitPush>("pushSnapshots") {
+    dependsOn(commitSnapshots)
+    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+}
+
+tasks.named("publishAllPublicationsToSnapshotsRepository") {
+    dependsOn(cloneSnapshots)
+    finalizedBy(pushSnapshots)
+    onlyIf {
+        libs.versions.nativeGradlePlugin.get().endsWith("-SNAPSHOT")
+    }
 }
