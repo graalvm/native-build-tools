@@ -57,15 +57,15 @@ class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
                 jvmArgs('hello', 'world')
             }
             
-            assert javaNative.images.${replacedWith}.verbose.get() == true
-            assert javaNative.images.${replacedWith}.jvmArgs.get() == ['hello', 'world']
+            assert jvmNative.images.${replacedWith}.verbose.get() == true
+            assert jvmNative.images.${replacedWith}.jvmArgs.get() == ['hello', 'world']
         """
 
         when:
         run 'help'
 
         then:
-        outputContains "The $extensionName extension is deprecated and will be removed. Please use the 'javaNative.images.$replacedWith' extension to configure the native image instead."
+        outputContains "The $extensionName extension is deprecated and will be removed. Please use the 'jvmNative.images.$replacedWith' extension to configure the native image instead."
 
         where:
         extensionName | replacedWith
@@ -84,12 +84,12 @@ class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
 
         then:
         tasks {
-            succeeded ':nativeAssemble'
+            succeeded ':jvmNativeCompile'
             succeeded ':nativeBuild'
         }
 
         and:
-        outputContains 'Task nativeBuild is deprecated. Use nativeAssemble instead.'
+        outputContains 'Task nativeBuild is deprecated. Use jvmNativeCompile instead.'
 
         where:
         version << TESTED_GRADLE_VERSIONS

@@ -55,8 +55,6 @@ import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.utils.SharedConstants;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
@@ -106,9 +104,9 @@ import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
  */
 @SuppressWarnings("unused")
 public class NativeImagePlugin implements Plugin<Project> {
-    public static final String NATIVE_ASSEMBLE_TASK_NAME = "nativeAssemble";
+    public static final String NATIVE_COMPILE_TASK_NAME = "jvmNativeCompile";
+    public static final String NATIVE_TEST_COMPILE_TASK_NAME = "jvmNativeTestCompile";
     public static final String NATIVE_TEST_TASK_NAME = "nativeTest";
-    public static final String NATIVE_TEST_ASSEMBLE_TASK_NAME = "nativeTestAssemble";
     public static final String NATIVE_TEST_EXTENSION = "test";
     public static final String NATIVE_MAIN_EXTENSION = "main";
     public static final String PROCESS_AGENT_RESOURCES_TASK_NAME = "filterAgentResources";
@@ -171,14 +169,14 @@ public class NativeImagePlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
 
         Provider<Boolean> agent = agentPropertyOverride(project, mainOptions);
-        TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(NATIVE_ASSEMBLE_TASK_NAME,
+        TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(NATIVE_COMPILE_TASK_NAME,
                 BuildNativeImageTask.class, builder -> {
                     builder.getOptions().convention(mainOptions);
                     builder.getAgentEnabled().set(agent);
                 });
         TaskProvider<Task> deprecatedTask = tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
             t.dependsOn(imageBuilder);
-            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_ASSEMBLE_TASK_NAME + " instead."));
+            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_COMPILE_TASK_NAME + " instead."));
         });
         tasks.register(NativeRunTask.TASK_NAME, NativeRunTask.class, task -> {
             task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
@@ -245,7 +243,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Following ensures that required feature jar is on classpath for every project
         injectTestPluginDependencies(project);
 
-        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_ASSEMBLE_TASK_NAME, BuildNativeImageTask.class, task -> {
+        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_COMPILE_TASK_NAME, BuildNativeImageTask.class, task -> {
             task.setDescription("Builds native image with tests.");
             task.getOptions().set(testOptions);
             testTask.forEach(FORCE_CONFIG);
@@ -257,7 +255,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
         tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
             t.dependsOn(imageBuilder);
-            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_ASSEMBLE_TASK_NAME + " instead."));
+            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_COMPILE_TASK_NAME + " instead."));
         });
         configureClasspathJarFor(tasks, testOptions, testImageBuilder);
 
@@ -312,7 +310,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 project.getExtensions().findByType(JavaToolchainService.class),
                                 project.getName())
                 );
-        return project.getExtensions().create(GraalVMExtension.class, "javaNative", DefaultGraalVmExtension.class, nativeImages);
+        return project.getExtensions().create(GraalVMExtension.class, "jvmNative", DefaultGraalVmExtension.class, nativeImages);
     }
 
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,
