@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -157,10 +157,11 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">NativeImageCommandLineProvider</a></span>&#8203;(org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;options,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">NativeImageCommandLineProvider</a></span>&#8203;(org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;options,
                               org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;agentEnabled,
                               org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;executableName,
-                              org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;outputDirectory)</code></th>
+                              org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;outputDirectory,
+                              org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;&nbsp;classpathJar)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </table>
@@ -192,16 +193,21 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getClasspathJar()">getClasspathJar</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecutableName()">getExecutableName</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOptions()">getOptions</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOutputDirectory()">getOutputDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
@@ -230,7 +236,7 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">
+<a id="&lt;init&gt;(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -239,7 +245,8 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <pre>public&nbsp;NativeImageCommandLineProvider&#8203;(org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;options,
                                       org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;agentEnabled,
                                       org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;executableName,
-                                      org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;outputDirectory)</pre>
+                                      org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;outputDirectory,
+                                      org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;&nbsp;classpathJar)</pre>
 </li>
 </ul>
 </li>
@@ -289,6 +296,16 @@ public&nbsp;org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;getExe
 <h4>getOutputDirectory</h4>
 <pre class="methodSignature">@Input
 public&nbsp;org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;getOutputDirectory()</pre>
+</li>
+</ul>
+<a id="getClasspathJar()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getClasspathJar</h4>
+<pre class="methodSignature">@InputFile
+public&nbsp;org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;&nbsp;getClasspathJar()</pre>
 </li>
 </ul>
 <a id="asArguments()">
