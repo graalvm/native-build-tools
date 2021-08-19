@@ -57,12 +57,16 @@ abstract class GitCommit : DefaultTask() {
     @get:Input
     abstract val message: Property<String>
 
+    @get:Input
+    abstract val amend: Property<Boolean>
+
     @TaskAction
     fun execute() {
         Git.open(repositoryDirectory.asFile.get()).use {
             it.commit()
                     .setAll(true)
                     .setMessage(message.get())
+                    .setAmend(true)
                     .setSign(false)
                     .call()
         }
