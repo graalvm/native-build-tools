@@ -109,10 +109,97 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>shaded</id>
+            <build>
+                <plugins>
+                    <!-- tag::shade-plugin[] -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.2.4</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                        </configuration>
+                    </plugin>
+                    <!-- end::shade-plugin[] -->
+
+                    <!-- tag::assembly-plugin[] -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.4.1</version>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/test-jar-with-dependencies.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make-test-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- end::assembly-plugin[] -->
+
+                    <!-- tag::native-plugin[] -->
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                                <configuration>
+                                    <classpath>
+                                        <param>${project.build.directory}/${project.artifactId}-${project.version}-tests.jar</param>
+                                    </classpath>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <classpath>
+                                        <param>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</param>
+                                    </classpath>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <imageName>${imageName}</imageName>
+                            <buildArgs>
+                                <buildArg>--no-fallback</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                    <!-- end::native-plugin[] -->
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

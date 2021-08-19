@@ -127,6 +127,7 @@ In this case, the arguments that will be passed to the `native-image` executable
 --no-fallback --verbose
 ```
 
+[[testing-support]]
 == JUnit Testing support
 
 In order to use the recommended test listener mode, you need to add following dependency:
@@ -163,7 +164,30 @@ Then the native plugin needs to be configured to use this jar instead of the ful
 [source,xml,indent=0]
 include::../../../../samples/java-application/pom.xml[tag=native-plugin]
 
-Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading.
+To be able to <<testing-support,execute tests in native mode>>, you will need more setup:
+
+- Create a `src/assembly/test-jar-with-dependencies.xml` file with the following contents:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-tests/src/assembly/test-jar-with-dependencies.xml[tag=assembly]
+
+- Add the assembly plugin to your `native` profile:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=assembly-plugin]
+
+- Due to a limitation in Maven, you will need to move the tests execution to the "integration-test" phase:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plugin]
+
+Finally, you will need to execute tests using the `integration-test` phase instead of `test`:
+
+```bash
+./mvn -Pnative integration-test
+```
+
+Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading and the https://maven.apache.org/plugins/maven-assembly-plugin[Maven Assembly plugin documentation] to tweak what to include in tests.
 
 == Javadocs
 

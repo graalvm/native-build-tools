@@ -79,6 +79,9 @@ public class NativeTestMojo extends AbstractNativeMojo {
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
 
+    @Parameter(property = "classpath")
+    private List<String> classpath;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skipTests) {
@@ -182,6 +185,9 @@ public class NativeTestMojo extends AbstractNativeMojo {
     }
 
     private String getClassPath() throws MojoFailureException {
+        if (classpath != null && !classpath.isEmpty()) {
+            return String.join(File.pathSeparator, classpath);
+        }
         try {
             List<Artifact> pluginDependencies = pluginArtifacts.stream()
                     .filter(it -> it.getGroupId().startsWith(Utils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
