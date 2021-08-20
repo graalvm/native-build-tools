@@ -154,7 +154,7 @@ tasks {
         systemProperty("junit.platform.native.version", libs.versions.junitPlatformNative.get())
         systemProperty("common.repo.uri", repoDirectory.get().asFile.toURI().toASCIIString())
         systemProperty("seed.repo.uri", localRepository.get().asFile.toURI().toASCIIString())
-        systemProperty("maven.classpath", configurations.mavenEmbedder.asPath)
+        systemProperty("maven.classpath", configurations.mavenEmbedder.get().asPath)
         systemProperty("maven.settings", layout.projectDirectory.file("config/settings.xml").asFile.absolutePath)
         systemProperty("java.executable", javaLauncher.get().executablePath.asFile.absolutePath)
     }
