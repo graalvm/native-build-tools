@@ -2,7 +2,7 @@ name: Deploy snapshots to GitHub
 
 on:
   workflow_run:
-    workflows: [ "native-gradle-plugin", "native-maven-plugin", "junit-platform-native-feature" ]
+    workflows: [ "documentation", "native-gradle-plugin", "native-maven-plugin", "junit-platform-native-feature" ]
     branches: [ "master" ]
     types:
       - completed
@@ -21,11 +21,13 @@ jobs:
       - name: Setup git
         env:
           GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+          GIT_SSH: "ssh"
           SSH_PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 700 -R ~/.ssh
+          ssh-keygen -p -f ~/.ssh/id_rsa -m pem
           eval "$(ssh-agent -s)"
           ssh-add
           ssh git@github.com || true

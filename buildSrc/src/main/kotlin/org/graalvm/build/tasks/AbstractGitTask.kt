@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,16 +39,38 @@
  * SOFTWARE.
  */
 
-plugins {
-    `kotlin-dsl`
-}
+package org.graalvm.build.tasks
 
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-}
+import com.jcraft.jsch.JSch
+import org.eclipse.jgit.transport.SshSessionFactory
+import org.eclipse.jgit.transport.JschConfigSessionFactory
+import org.eclipse.jgit.transport.OpenSshConfig
 
-dependencies {
-    implementation(libs.jgit)
-    implementation(libs.jsch)
+import com.jcraft.jsch.Session
+import org.eclipse.jgit.util.FS
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Internal
+
+abstract class AbstractGitTask : DefaultTask() {
+    @get:Internal
+    val sshSessionFactory: SshSessionFactory = object : JschConfigSessionFactory() {
+        override fun configure(host: OpenSshConfig.Host, session: Session) {
+            session.setConfig("StrictHostKeyChecking", "no")
+            session.setConfig("PreferredAuthentications", "publickey")
+            session.setConfig("IdentitiesOnly", "yes")
+        }
+
+        override fun createDefaultJSch(fs: FS?): JSch {
+            return super.createDefaultJSch(fs).also {
+                val identityFile = System.getProperty("user.home") + "/.ssh/id_rsa"
+                it.addIdentity(identityFile)
+            }
+        }
+    }
+
+    @get:InputDirectory
+    abstract val repositoryDirectory: DirectoryProperty
 }

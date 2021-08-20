@@ -50,10 +50,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-abstract class GitCommit : DefaultTask() {
-    @get:InputDirectory
-    abstract val repositoryDirectory: DirectoryProperty
-
+abstract class GitCommit : AbstractGitTask() {
     @get:Input
     abstract val message: Property<String>
 

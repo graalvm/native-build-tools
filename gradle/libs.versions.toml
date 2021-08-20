@@ -56,3 +56,4 @@ maven-wagon-provider = { module = "org.apache.maven.wagon:wagon-provider-api", v
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
+jsch = { module = "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch", version.ref="jgit" }

@@ -124,7 +124,7 @@ val prepareRepository = tasks.register<org.graalvm.build.tasks.GitReset>("resetH
     dependsOn(cloneSnapshots)
     repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
     mode.set(org.eclipse.jgit.api.ResetCommand.ResetType.HARD)
-    ref.set("34f9149e361ec64b6be5a3842450545dc58a95cc")
+    ref.set("25ecdec020f57dbe980eeb052c71659ccd0d9bcc")
 }
 
 val addSnapshots = tasks.register<org.graalvm.build.tasks.GitAdd>("addSnapshots") {
@@ -136,18 +136,19 @@ val addSnapshots = tasks.register<org.graalvm.build.tasks.GitAdd>("addSnapshots"
 val commitSnapshots = tasks.register<org.graalvm.build.tasks.GitCommit>("commitSnapshots") {
     dependsOn(addSnapshots)
     repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
-    amend.set(true)
     message.set("Publishing new snapshot")
+    amend.set(false)
 }
 
 val pushSnapshots = tasks.register<org.graalvm.build.tasks.GitPush>("pushSnapshots") {
     dependsOn(commitSnapshots)
     repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    force.set(true)
 }
 
 tasks.named("publishAllPublicationsToSnapshotsRepository") {
     dependsOn(prepareRepository)
-    finalizedBy(commitSnapshots)
+    finalizedBy(pushSnapshots)
     onlyIf {
         libs.versions.nativeGradlePlugin.get().endsWith("-SNAPSHOT")
     }

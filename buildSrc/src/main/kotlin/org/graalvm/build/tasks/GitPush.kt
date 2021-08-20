@@ -42,6 +42,7 @@
 package org.graalvm.build.tasks
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.transport.SshTransport
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -50,14 +51,20 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-abstract class GitPush : DefaultTask() {
-    @get:InputDirectory
-    abstract val repositoryDirectory: DirectoryProperty
+abstract class GitPush : AbstractGitTask() {
+    @get:Input
+    abstract val force: Property<Boolean>
 
     @TaskAction
     fun execute() {
         Git.open(repositoryDirectory.asFile.get()).use {
-            it.push().call()
+            it.push()
+                    .setTransportConfigCallback { transport ->
+                        val sshTransport: SshTransport = transport as SshTransport
+                        sshTransport.sshSessionFactory = sshSessionFactory
+                    }
+                    .setForce(force.get())
+                    .call()
         }
     }
 }

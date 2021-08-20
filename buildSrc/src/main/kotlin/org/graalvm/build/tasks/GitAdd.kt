@@ -50,10 +50,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-abstract class GitAdd : DefaultTask() {
-    @get:InputDirectory
-    abstract val repositoryDirectory: DirectoryProperty
-
+abstract class GitAdd : AbstractGitTask() {
     @get:Input
     abstract val pattern: Property<String>
 
