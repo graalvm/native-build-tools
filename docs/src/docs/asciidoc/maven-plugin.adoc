@@ -164,6 +164,30 @@ Then the native plugin needs to be configured to use this jar instead of the ful
 [source,xml,indent=0]
 include::../../../../samples/java-application/pom.xml[tag=native-plugin]
 
+
+Depending on the other plugins your build uses (typically the Spring Boot plugin), you might have to configure, in addition, the main class:
+
+[source,xml]
+----
+<plugin>
+    <groupId>org.graalvm.buildtools</groupId>
+	<artifactId>native-maven-plugin</artifactId>
+	<version>${native.buildtools.version}</version>
+	<configuration>
+		<imageName>${project.artifactId}</imageName>
+		<mainClass>${exec.mainClass}</mainClass>
+		<buildArgs>
+			<buildArg>--no-fallback</buildArg>
+		</buildArgs>
+		<classpath>
+			<param>
+				${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
+			</param>
+		</classpath>
+...
+----
+
+
 To be able to <<testing-support,execute tests in native mode>>, you will need more setup:
 
 - Create a `src/assembly/test-jar-with-dependencies.xml` file with the following contents:
