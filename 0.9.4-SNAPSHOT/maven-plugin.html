@@ -730,6 +730,29 @@ It is also possible to customize the plugin within a
 </div>
 </div>
 <div class="paragraph">
+<p>Depending on the other plugins your build uses (typically the Spring Boot plugin), you might have to configure, in addition, the main class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+	&lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+	&lt;version&gt;${native.buildtools.version}&lt;/version&gt;
+	&lt;configuration&gt;
+		&lt;imageName&gt;${project.artifactId}&lt;/imageName&gt;
+		&lt;mainClass&gt;${exec.mainClass}&lt;/mainClass&gt;
+		&lt;buildArgs&gt;
+			&lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
+		&lt;/buildArgs&gt;
+		&lt;classpath&gt;
+			&lt;param&gt;
+				${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
+			&lt;/param&gt;
+		&lt;/classpath&gt;
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>To be able to <a href="#testing-support">execute tests in native mode</a>, you will need more setup:</p>
 </div>
 <div class="ulist">
