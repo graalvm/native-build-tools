@@ -63,7 +63,7 @@ abstract class GitCommit : AbstractGitTask() {
             it.commit()
                     .setAll(true)
                     .setMessage(message.get())
-                    .setAmend(true)
+                    .setAmend(amend.get())
                     .setSign(false)
                     .call()
         }
