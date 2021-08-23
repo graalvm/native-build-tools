@@ -538,6 +538,51 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 }</code></pre>
 </div>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+<div class="title">Testing pre-releases</div>
+<div class="paragraph">
+<p>You can use the development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version '...'
+    }
+    repositories {
+        maven {
+            url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
+        }
+        gradlePluginPortal()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">pluginManagement {
+    plugins {
+        id("org.graalvm.buildtools.native") version "..."
+    }
+    repositories {
+        maven {
+            url = uri("https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots")
+        }
+        gradlePluginPortal()
+    }
+}</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_installing_graalvm_native_image_tool">Installing GraalVM native image tool</h3>
