@@ -63,6 +63,28 @@ If the heuristics fails with the `no main manifest attribute, in target/<name>.j
 specified in the `<configuration>` node of the plugin.
 When `mvn -Pnative package` completes, an executable is ready for use, generated in the `target` directory of the project.
 
+[TIP]
+.Testing pre-releases
+====
+You can use the development versions of the plugin by adding our snapshot repository. Pre-releases are provided for convenience, without any guarantee.
+[source,xml]
+----
+<pluginRepositories>
+    <pluginRepository>
+        <id>graalvm-native-build-tools-snapshots</id>
+        <name>GraalVM native-build-tools Snapshots</name>
+        <url>https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
+----
+====
+
 === Configuration options
 
 If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  _META-INF/native-image/_ resource location, as described in https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/[Native Image Build Configuration].

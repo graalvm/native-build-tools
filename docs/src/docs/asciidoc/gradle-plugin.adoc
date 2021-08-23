@@ -60,6 +60,41 @@ pluginManagement {
 }
 ```
 
+[TIP]
+.Testing pre-releases
+====
+You can use the development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
+[role="multi-language-sample"]
+```groovy
+pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version '...'
+    }
+    repositories {
+        maven {
+            url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
+        }
+        gradlePluginPortal()
+    }
+}
+```
+
+[role="multi-language-sample"]
+```kotlin
+pluginManagement {
+    plugins {
+        id("org.graalvm.buildtools.native") version "..."
+    }
+    repositories {
+        maven {
+            url = uri("https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots")
+        }
+        gradlePluginPortal()
+    }
+}
+```
+====
+
 === Installing GraalVM native image tool
 
 The plugin relies on Gradle's https://docs.gradle.org/7.1.1/userguide/toolchains.html[JVM toolchain support], allowing to decorrelate the tool used to run Gradle, the compiler used to build your application, and eventually the SDK used to generate a native image.
