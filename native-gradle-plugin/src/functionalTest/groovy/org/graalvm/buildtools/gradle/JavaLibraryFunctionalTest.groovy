@@ -57,18 +57,18 @@ class JavaLibraryFunctionalTest extends AbstractFunctionalTest {
             libExt = ".dylib"
         }
 
-        def library = file("build/native/jvmNativeCompile/java-library" + libExt)
+        def library = file("build/native/nativeCompile/java-library" + libExt)
         debug  = true
 
         given:
         withSample("java-library")
 
         when:
-        run 'jvmNativeCompile'
+        run 'nativeCompile'
 
         then:
         tasks {
-            succeeded ':jar', ':jvmNativeCompile'
+            succeeded ':jar', ':nativeCompile'
             doesNotContain ':build'
         }
 

@@ -127,7 +127,7 @@ tasks.named("test") {
     }
 }
 
-tasks.register("jvmNativeTestCompile", Exec) {
+tasks.register("nativeTestCompile", Exec) {
     dependsOn(test)
     inputs.files(test.classpath)
     workingDir "${buildDir}"
@@ -141,7 +141,7 @@ tasks.register("jvmNativeTestCompile", Exec) {
 }
 
 tasks.register("nativeTest", Exec) {
-    dependsOn jvmNativeTestCompile
+    dependsOn nativeTestCompile
     workingDir = "${buildDir}"
     executable = "${buildDir}/native-image-tests"
 }

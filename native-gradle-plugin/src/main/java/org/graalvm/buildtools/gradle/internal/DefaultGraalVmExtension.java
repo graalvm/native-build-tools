@@ -57,12 +57,12 @@ public class DefaultGraalVmExtension implements GraalVMExtension {
     }
 
     @Override
-    public NamedDomainObjectContainer<NativeImageOptions> getImages() {
+    public NamedDomainObjectContainer<NativeImageOptions> getBinaries() {
         return nativeImages;
     }
 
     @Override
-    public void images(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
+    public void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
         spec.execute(nativeImages);
     }
 }

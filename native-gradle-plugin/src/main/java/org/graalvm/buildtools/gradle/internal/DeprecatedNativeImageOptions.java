@@ -93,7 +93,7 @@ public abstract class DeprecatedNativeImageOptions implements NativeImageOptions
 
     private void issueWarning() {
         if (warned.compareAndSet(false, true)) {
-            logger.warn("The " + name + " extension is deprecated and will be removed. Please use the 'jvmNative.images." + replacedWith + "' extension to configure the native image instead.");
+            logger.warn("The " + name + " extension is deprecated and will be removed. Please use the 'graalvmNative.binaries." + replacedWith + "' extension to configure the native image instead.");
         }
     }
 

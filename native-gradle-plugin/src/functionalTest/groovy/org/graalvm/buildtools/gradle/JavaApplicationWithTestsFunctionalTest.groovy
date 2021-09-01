@@ -49,17 +49,17 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute tests in a native image on Gradle #version with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {
         gradleVersion = version
-        def nativeTestsApp = file("build/native/jvmNativeTestCompile/java-application-tests")
+        def nativeTestsApp = file("build/native/nativeTestCompile/java-application-tests")
 
         given:
         withSample("java-application-with-tests")
 
         when:
-        run 'jvmNativeTestCompile'
+        run 'nativeTestCompile'
 
         then:
         tasks {
-            succeeded ':testClasses', ':jvmNativeTestCompile'
+            succeeded ':testClasses', ':nativeTestCompile'
             // doesNotContain ':build'
         }
         outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
@@ -105,7 +105,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         then:
         tasks {
             succeeded ':testClasses',
-                    ':jvmNativeTestCompile',
+                    ':nativeTestCompile',
                     ':test', // there should probably not be a dependency here
                     ':nativeTest'
             doesNotContain ':build'
