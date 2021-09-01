@@ -47,7 +47,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
     @Unroll("can build an application which uses resources using #pattern on Gradle #version with JUnit Platform #junitVersion")
     def "can build an application which uses resources"() {
         gradleVersion = version
-        def nativeApp = file("build/native/jvmNativeCompile/java-application")
+        def nativeApp = file("build/native/nativeCompile/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")
@@ -60,11 +60,11 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         """
 
         when:
-        run 'jvmNativeCompile'
+        run 'nativeCompile'
 
         then:
         tasks {
-            succeeded ':jar', ':jvmNativeCompile'
+            succeeded ':jar', ':nativeCompile'
             doesNotContain ':build', ':run'
         }
 
@@ -92,8 +92,8 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
         main {
             resources {
                 includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
@@ -103,8 +103,8 @@ jvmNative {
 }
 """],
                                          ["detected", """
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
         main {
             resources {
                 autodetection {
@@ -119,8 +119,8 @@ jvmNative {
 """
                                          ],
                                           ["project local detection only", """
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
         main {
             resources {
                 autodetection {
@@ -171,8 +171,8 @@ jvmNative {
         junitVersion = System.getProperty('versions.junit')
         [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
                                          [["explicit resource declaration", """
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
         test {
             resources {
                 includedPatterns.add(java.util.regex.Pattern.quote("message.txt"))
@@ -183,8 +183,8 @@ jvmNative {
 }
 """],
                                          ["detected", """
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
         test {
             resources {
                 autodetection {

@@ -131,12 +131,12 @@ This plugin works with the `application` plugin and will register a number of ta
 
 The main tasks that you will want to execute are:
 
-- `jvmNativeCompile`, which will trigger the generation of a native executable of your application
+- `nativeCompile`, which will trigger the generation of a native executable of your application
 - `nativeRun`, which executes the generated native executable
-- `jvmNativeTestCompile`, which will build a native image with tests found in the `test` source set
+- `nativeTestCompile`, which will build a native image with tests found in the `test` source set
 - `nativeTest`, which will <<testing,execute tests>> found in the `test` source set in native mode
 
-Those tasks are configured with reasonable defaults using the `jvmNative` extension `images` container of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
+Those tasks are configured with reasonable defaults using the `graalvmNative` extension `binaries` container of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
 
 The main executable is configured by the image named `main`, while the test executable is configured via the image named `test`.
 
@@ -152,8 +152,8 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 .Selecting the GraalVM toolchain
 [role="multi-language-sample"]
 ```groovy
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
       main {
           javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(8)
@@ -166,8 +166,8 @@ jvmNative {
 
 [role="multi-language-sample"]
 ```kotlin
-jvmNative {
-   images {
+graalvmNative {
+   binaries {
     main {
       javaLauncher.set(javaToolchains.launcherFor {
         languageVersion.set(JavaLanguageVersion.of(8))
@@ -185,8 +185,8 @@ The following configuration options are available for building images:
 .NativeImageOption configuration
 [role="multi-language-sample"]
 ```groovy
-jvmNative {
-  images {
+graalvmNative {
+  binaries {
     main {
       // Main options
       imageName = 'application' // The name of the native image, defaults to the project name
@@ -217,8 +217,8 @@ jvmNative {
 
 [role="multi-language-sample"]
 ```kotlin
-jvmNative {
-  images {
+graalvmNative {
+  binaries {
     main {
       // Main options
       imageName.set("application") // The name of the native image, defaults to the project name
@@ -312,7 +312,7 @@ This should be as easy as appending `-Pagent` to `run` and `nativeBuild`, or `te
 
 ```bash
 ./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent jvmNativeCompile # Builds image using configuration acquired by agent.
+./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
 
 # For testing
 ./gradlew -Pagent test # Runs on JVM with native-image-agent.
@@ -345,8 +345,8 @@ nativeBuild {
 you need to use:
 
 ```groovy
-jvmNative {
-  images {
+graalvmNative {
+  binaries {
     main {
       verbose = true
     }
@@ -365,8 +365,8 @@ nativeTest {
 you need to use:
 
 ```groovy
-jvmNative {
-  images {
+graalvmNative {
+  binaries {
     test {
       verbose = true
     }
@@ -374,8 +374,8 @@ jvmNative {
 }
 ```
 
-- The `nativeBuild` task has been renamed to `jvmNativeCompile`.
-- The `nativeTestBuild` task has been renamed to `jvmNativeTestCompile`.
+- The `nativeBuild` task has been renamed to `nativeCompile`.
+- The `nativeTestBuild` task has been renamed to `nativeTestCompile`.
 
 Both `nativeBuild` and `nativeTestBuild` task invocations are still supported but deprecated and will be removed in a future release.
 

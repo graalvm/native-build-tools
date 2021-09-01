@@ -65,8 +65,8 @@ test {
     useJUnitPlatform()
 }
 
-jvmNative {
-    images {
+graalvmNative {
+    binaries {
         test {
             agent = true
         }
