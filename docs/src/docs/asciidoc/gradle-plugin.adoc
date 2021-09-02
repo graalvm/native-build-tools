@@ -249,6 +249,7 @@ graalvmNative {
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
+[[long_classpath_and_fat_jar_support]]
 ==== Long classpath and fat jar support
 
 Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
@@ -326,60 +327,3 @@ The generated configuration files will be found in the `${buildDir}/native/agent
 == Javadocs
 
 In addition, you can consult the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
-
-[[changelog]]
-== Changelog
-
-=== Release 0.9.3
-
-In preparation for supporting more images:
-
-- The `nativeBuild` and `nativeTest` extensions are now deprecated. A top-level container for configuring native images has been introduced. Instead of:
-
-```groovy
-nativeBuild {
-   verbose = true
-}
-```
-
-you need to use:
-
-```groovy
-graalvmNative {
-  binaries {
-    main {
-      verbose = true
-    }
-  }
-}
-```
-
-and instead of:
-
-```groovy
-nativeTest {
-    buildArgs("...")
-}
-```
-
-you need to use:
-
-```groovy
-graalvmNative {
-  binaries {
-    test {
-      verbose = true
-    }
-  }
-}
-```
-
-- The `nativeBuild` task has been renamed to `nativeCompile`.
-- The `nativeTestBuild` task has been renamed to `nativeTestCompile`.
-
-Both `nativeBuild` and `nativeTestBuild` task invocations are still supported but deprecated and will be removed in a future release.
-
-== Release 0.9.2
-
-- Added support for resources detection
-- Fixed a number of regressions

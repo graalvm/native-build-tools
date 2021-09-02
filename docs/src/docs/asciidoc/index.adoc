@@ -11,3 +11,151 @@ Please refer to the following pages for build tool specific documentation:
 - The <<maven-plugin.adoc#,Maven plugin documentation>>
 
 If you are interested in contributing, please refer to our https://github.com/graalvm/native-build-tools[Git repository].
+
+[[changelog]]
+== Changelog
+
+=== Release 0.9.5
+
+This release contains, in preparation for supporting more images in the Gradle plugin:
+
+- The `nativeBuild` and `nativeTest` extensions are now deprecated. A top-level container for configuring native images has been introduced. Instead of:
+
+[source,groovy]
+----
+nativeBuild {
+   verbose = true
+}
+----
+
+you need to use:
+
+[source,groovy]
+----
+graalvmNative {
+  binaries {
+    main {
+      verbose = true
+    }
+  }
+}
+----
+
+and instead of:
+
+[source,groovy]
+----
+nativeTest {
+    buildArgs("...")
+}
+----
+
+you need to use:
+
+[source,groovy]
+----
+graalvmNative {
+  binaries {
+    test {
+      verbose = true
+    }
+  }
+}
+----
+
+- The `nativeBuild` task has been renamed to `nativeCompile`.
+- The `nativeTestBuild` task has been renamed to `nativeTestCompile`.
+
+Both `nativeBuild` and `nativeTestBuild` task invocations are still supported but deprecated and will be removed in a future release.
+
+=== Release 0.9.4
+
+This release works around a limitation for Windows users who encounter an issue with long classpath entries on CLI: the Gradle plugin will now automatically handle this problem by creating a fat jar instead of passing all entries on classpath (this behavior can be <<gradle-plugin.adoc#long_classpath_and_fat_jar_support, disabled>>) if needed).
+Maven users will have to <<maven-plugin.adoc#long_classpath_and_shading_support, configure their build differently>> to use shading.
+
+In addition to this, we're now publishing development snapshots of this plugin. For Gradle, you will need to declare this repository in your settings.gradle(.kts) file:
+
+[source,groovy]
+----
+pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version '0.9.5-SNAPSHOT'
+    }
+    repositories {
+        maven {
+            url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
+        }
+        gradlePluginPortal()
+    }
+}
+----
+
+For Maven, you need to use this repository configuration:
+
+[source,xml]
+----
+<pluginRepositories>
+    <pluginRepository>
+        <id>graalvm-native-build-tools-snapshots</id>
+        <name>GraalVM native-build-tools Snapshots</name>
+        <url>https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots</url>
+        <releases>
+            <enabled>false</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
+----
+
+=== Release 0.9.3
+
+This release contains:
+
+- Fix for mainClass not being optional (Gradle plugin)
+- Fix for Gradle < 7 failing to determine GraalVM toolchain
+- Gradle plugin now registers proper groups
+- Automatic native-image tool fetching via gu (Gradle plugin)
+- FIxed issue where nativeTest would fail when tests are annotated with Timeout
+- Added a sharedLibrary configuration option for Gradle plugin
+- Removed broken server configuration option from Gradle plugin
+- Added a documentation website with proper CI integration
+
+In addition to those improvements, several behind-the-scenes changes were made:
+
+- Introduced "Dockerless" Maven plugin functional testing
+- Parallelized Gradle testing in CI
+- Replaced groovy-json with jackson-databind for JSON handling
+- Fixed Github Actions syntax to enable manual workflow invoking
+
+=== Release 0.9.2
+
+This release contains:
+
+- Revamped Gradle plugin that is now a lot more idiomatic.
+- Fixes for several issues regarding JUnit testing.
+- Removal of Test Discovery mode from the Maven plugin.
+- Fix for Maven creating empty test images when no tests are present.
+- Added support for Kotlin tests in Gradle.
+
+In addition to those improvements, several behind-the-scenes changes were made in order to ensure better compatibility moving forward:
+
+- Test coverage has been greatly improved for all subprojects.
+- Build tooling for this repository has been improved significantly.
+
+Note that there has been a breaking change in the Gradle plugin - `persistConfig` configuration option was removed.
+Using said option will cause existing builds to break, so users are advised to remove it from their configuration prior to upgrading.
+System property `-DpersistConfig` will have no effect going forward.
+
+=== Release 0.9.1
+
+This release contains:
+
+- Fixes for most of the known issues regarding Gradle and Maven plugins
+- Massively improved automatic JUnit support as well as initial JUnit Vintage support
+- Improved JavaDoc and tests for the Gradle plugin
+
+=== Release 0.9.0
+
+Initial release

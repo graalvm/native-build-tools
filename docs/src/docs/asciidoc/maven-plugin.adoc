@@ -170,6 +170,7 @@ This step won't be needed as of JUnit 5.8 with a future release of native-maven-
 
 Running `mvn -Pnative -Dskip test` will then build and run native tests.
 
+[[long_classpath_and_shading_support]]
 == Long classpath and shading support
 
 Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
