@@ -160,6 +160,26 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#DEPRECATED_NATIVE_BUILD_EXTENSION">DEPRECATED_NATIVE_BUILD_EXTENSION</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#DEPRECATED_NATIVE_BUILD_TASK">DEPRECATED_NATIVE_BUILD_TASK</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#DEPRECATED_NATIVE_TEST_BUILD_TASK">DEPRECATED_NATIVE_TEST_BUILD_TASK</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#DEPRECATED_NATIVE_TEST_EXTENSION">DEPRECATED_NATIVE_TEST_EXTENSION</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME">GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
@@ -170,17 +190,17 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_BUILD_EXTENSION">NATIVE_BUILD_EXTENSION</a></span></code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_COMPILE_TASK_NAME">NATIVE_COMPILE_TASK_NAME</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_BUILD_TASK_NAME">NATIVE_BUILD_TASK_NAME</a></span></code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_MAIN_EXTENSION">NATIVE_MAIN_EXTENSION</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_TEST_BUILD_TASK_NAME">NATIVE_TEST_BUILD_TASK_NAME</a></span></code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_TEST_COMPILE_TASK_NAME">NATIVE_TEST_COMPILE_TASK_NAME</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
@@ -276,16 +296,29 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a id="NATIVE_BUILD_TASK_NAME">
+<a id="NATIVE_COMPILE_TASK_NAME">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>NATIVE_BUILD_TASK_NAME</h4>
-<pre>public static final&nbsp;java.lang.String NATIVE_BUILD_TASK_NAME</pre>
+<h4>NATIVE_COMPILE_TASK_NAME</h4>
+<pre>public static final&nbsp;java.lang.String NATIVE_COMPILE_TASK_NAME</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_BUILD_TASK_NAME">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_COMPILE_TASK_NAME">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a id="NATIVE_TEST_COMPILE_TASK_NAME">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>NATIVE_TEST_COMPILE_TASK_NAME</h4>
+<pre>public static final&nbsp;java.lang.String NATIVE_TEST_COMPILE_TASK_NAME</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_TEST_COMPILE_TASK_NAME">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -302,19 +335,6 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 </dl>
 </li>
 </ul>
-<a id="NATIVE_TEST_BUILD_TASK_NAME">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>NATIVE_TEST_BUILD_TASK_NAME</h4>
-<pre>public static final&nbsp;java.lang.String NATIVE_TEST_BUILD_TASK_NAME</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_TEST_BUILD_TASK_NAME">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
 <a id="NATIVE_TEST_EXTENSION">
 <!--   -->
 </a>
@@ -328,16 +348,16 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 </dl>
 </li>
 </ul>
-<a id="NATIVE_BUILD_EXTENSION">
+<a id="NATIVE_MAIN_EXTENSION">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>NATIVE_BUILD_EXTENSION</h4>
-<pre>public static final&nbsp;java.lang.String NATIVE_BUILD_EXTENSION</pre>
+<h4>NATIVE_MAIN_EXTENSION</h4>
+<pre>public static final&nbsp;java.lang.String NATIVE_MAIN_EXTENSION</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_BUILD_EXTENSION">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.NATIVE_MAIN_EXTENSION">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -383,13 +403,65 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 <a id="GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME</h4>
 <pre>public static final&nbsp;java.lang.String GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a id="DEPRECATED_NATIVE_BUILD_EXTENSION">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>DEPRECATED_NATIVE_BUILD_EXTENSION</h4>
+<pre>public static final&nbsp;java.lang.String DEPRECATED_NATIVE_BUILD_EXTENSION</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.DEPRECATED_NATIVE_BUILD_EXTENSION">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a id="DEPRECATED_NATIVE_TEST_EXTENSION">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>DEPRECATED_NATIVE_TEST_EXTENSION</h4>
+<pre>public static final&nbsp;java.lang.String DEPRECATED_NATIVE_TEST_EXTENSION</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.DEPRECATED_NATIVE_TEST_EXTENSION">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a id="DEPRECATED_NATIVE_BUILD_TASK">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>DEPRECATED_NATIVE_BUILD_TASK</h4>
+<pre>public static final&nbsp;java.lang.String DEPRECATED_NATIVE_BUILD_TASK</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.DEPRECATED_NATIVE_BUILD_TASK">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a id="DEPRECATED_NATIVE_TEST_BUILD_TASK">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>DEPRECATED_NATIVE_TEST_BUILD_TASK</h4>
+<pre>public static final&nbsp;java.lang.String DEPRECATED_NATIVE_TEST_BUILD_TASK</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#org.graalvm.buildtools.gradle.NativeImagePlugin.DEPRECATED_NATIVE_TEST_BUILD_TASK">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>

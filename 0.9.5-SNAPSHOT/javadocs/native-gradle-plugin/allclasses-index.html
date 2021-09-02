@@ -26,6 +26,12 @@
     catch(err) {
     }
 //-->
+var data = {"i0":2,"i1":2,"i2":2,"i3":2,"i4":2,"i5":2,"i6":1,"i7":2,"i8":2,"i9":2,"i10":1,"i11":2,"i12":2,"i13":2,"i14":2,"i15":2,"i16":2};
+var tabs = {65535:["t0","All Classes"],1:["t1","Interface Summary"],2:["t2","Class Summary"]};
+var altColor = "altColor";
+var rowColor = "rowColor";
+var tableTab = "tableTab";
+var activeTableTab = "activeTableTab";
 var pathtoroot = "./";
 var useModuleDirectories = true;
 loadScripts(document, 'script');</script>
@@ -98,7 +104,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <table class="typeSummary">
-<caption><span>Class Summary</span><span class="tabEnd">&nbsp;</span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Classes</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Interface Summary</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Class Summary</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Class</th>
 <th class="colLast" scope="col">Description</th>
@@ -108,57 +114,78 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/BaseNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">BaseNativeImageOptions</a></td>
+<th class="colLast" scope="row">
+<div class="block">Class that declares native image options.</div>
+</th>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></td>
 <th class="colLast" scope="row">
 <div class="block">This task is responsible for generating a native image by
  calling the corresponding tool in the GraalVM toolchain.</div>
 </th>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
+<td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a></td>
+<th class="colLast" scope="row">&nbsp;</th>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/DeprecatedNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">DeprecatedNativeImageOptions</a></td>
+<th class="colLast" scope="row">Deprecated.</th>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></td>
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i6" class="altColor">
+<td class="colFirst"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></td>
+<th class="colLast" scope="row">
+<div class="block">This is the entry point for configuring GraalVM relative features
+ provided by this plugin.</div>
+</th>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/GraalVMLogger.html" title="class in org.graalvm.buildtools.gradle.internal">GraalVMLogger</a></td>
 <th class="colLast" scope="row">
 <div class="block">Wraps the Gradle logger with a minimal API surface.</div>
 </th>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html" title="class in org.graalvm.buildtools.gradle.internal">GradleUtils</a></td>
 <th class="colLast" scope="row">
 <div class="block">Utility class containing various gradle related methods.</div>
 </th>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></td>
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></td>
+<tr id="i10" class="altColor">
+<td class="colFirst"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></td>
 <th class="colLast" scope="row">
 <div class="block">Class that declares native image options.</div>
 </th>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></td>
 <th class="colLast" scope="row">
 <div class="block">Gradle plugin for GraalVM Native Image.</div>
 </th>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/NativeImageService.html" title="class in org.graalvm.buildtools.gradle">NativeImageService</a></td>
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></td>
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/tasks/NativeRunTask.html" title="class in org.graalvm.buildtools.gradle.tasks">NativeRunTask</a></td>
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></td>
 <th class="colLast" scope="row">
 <div class="block">This task is responsible for processing the JSON files generated by
@@ -166,7 +193,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  inherited from the Gradle environment itself.</div>
 </th>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><a href="org/graalvm/buildtools/gradle/dsl/ResourceDetectionOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">ResourceDetectionOptions</a></td>
 <th class="colLast" scope="row">&nbsp;</th>
 </tr>

@@ -463,6 +463,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_javadocs">Javadocs</a></li>
+<li><a href="#changelog">Changelog</a>
+<ul class="sectlevel2">
+<li><a href="#_release_0_9_3">Release 0.9.3</a></li>
+</ul>
+</li>
+<li><a href="#_release_0_9_2">Release 0.9.2</a></li>
 </ul>
 </div>
 </div>
@@ -479,6 +485,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Gradle plugin for GraalVM Native Image building adds support for building and testing native images using the <a href="https://gradle.org">Gradle build tool</a>.</p>
+</div>
+<div class="paragraph">
+<p>For upgrading please take a look at the <a href="#changelog">changes section</a>.</p>
 </div>
 </div>
 </div>
@@ -651,13 +660,13 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <div class="ulist">
 <ul>
 <li>
-<p><code>nativeBuild</code>, which will trigger the generation of a native executable of your application</p>
+<p><code>nativeCompile</code>, which will trigger the generation of a native executable of your application</p>
 </li>
 <li>
 <p><code>nativeRun</code>, which executes the generated native executable</p>
 </li>
 <li>
-<p><code>nativeTestBuild</code>, which will build a native image with tests found in the <code>test</code> source set</p>
+<p><code>nativeTestCompile</code>, which will build a native image with tests found in the <code>test</code> source set</p>
 </li>
 <li>
 <p><code>nativeTest</code>, which will <a href="#testing">execute tests</a> found in the <code>test</code> source set in native mode</p>
@@ -665,7 +674,10 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 </ul>
 </div>
 <div class="paragraph">
-<p>Those tasks are configured with reasonable defaults respectively by the <code>nativeBuild</code> and <code>nativeTest</code> extensions, which are of type <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a>.</p>
+<p>Those tasks are configured with reasonable defaults using the <code>graalvmNative</code> extension <code>binaries</code> container of type <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a>.</p>
+</div>
+<div class="paragraph">
+<p>The main executable is configured by the image named <code>main</code>, while the test executable is configured via the image named <code>test</code>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -682,21 +694,29 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 <div class="listingblock multi-language-sample">
 <div class="title">Selecting the GraalVM toolchain</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
-  javaLauncher = javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(8)
-    vendor = JvmVendorSpec.matching("GraalVM Enterprise")
-  }
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+      main {
+          javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(8)
+            vendor = JvmVendorSpec.matching("GraalVM Enterprise")
+          }
+      }
+    }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">nativeBuild {
-  javaLauncher.set(javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(8))
-    vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
-  })
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+   binaries {
+    main {
+      javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
+      })
+    }
+  }
 }</code></pre>
 </div>
 </div>
@@ -709,58 +729,65 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 <div class="listingblock multi-language-sample">
 <div class="title">NativeImageOption configuration</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
-  // Main options
-  imageName = 'application' // The name of the native image, defaults to the project name
-  mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
-  debug = true // Determines if debug info should be generated, defaults to false
-  verbose = true // Add verbose output, defaults to false
-  fallback = true // Sets the fallback mode of native-image, defaults to false
-  sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+  binaries {
+    main {
+      // Main options
+      imageName = 'application' // The name of the native image, defaults to the project name
+      mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
+      debug = true // Determines if debug info should be generated, defaults to false
+      verbose = true // Add verbose output, defaults to false
+      fallback = true // Sets the fallback mode of native-image, defaults to false
+      sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
 
-  systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
-  configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
+      systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
+      configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
 
-  // Advanced options
-  buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-  jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
+      // Advanced options
+      buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+      jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
 
-  // Runtime options
-  runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
+      // Runtime options
+      runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
 
-  // Development options
-  agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
+      // Development options
+      agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
 
-  useFatJar = true // Instead of passing each jar individually, builds a fat jar
+      useFatJar = true // Instead of passing each jar individually, builds a fat jar
+    }
+  }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">nativeBuild {
-  // Main options
-  imageName.set("application") // The name of the native image, defaults to the project name
-  mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
-  debug.set(true) // Determines if debug info should be generated, defaults to false
-  verbose.set(true) // Add verbose output, defaults to false
-  fallback.set(true) // Sets the fallback mode of native-image, defaults to false
-  sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+  binaries {
+    main {
+      // Main options
+      imageName.set("application") // The name of the native image, defaults to the project name
+      mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
+      debug.set(true) // Determines if debug info should be generated, defaults to false
+      verbose.set(true) // Add verbose output, defaults to false
+      fallback.set(true) // Sets the fallback mode of native-image, defaults to false
+      sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
 
-  systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
-  configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
+      systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
+      configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
 
-  // Advanced options
-  buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-  jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
+      // Advanced options
+      buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+      jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
 
-  // Runtime options
-  runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
+      // Runtime options
+      runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
 
-  // Development options
-  agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
+      // Development options
+      agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
 
-
-  useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
+      useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
+    }
+  }
 }</code></pre>
 </div>
 </div>
@@ -853,7 +880,7 @@ In other words, tests will be compiled and executed as native code.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeBuild # Builds image using configuration acquired by agent.
+./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
 
 # For testing
 ./gradlew -Pagent test # Runs on JVM with native-image-agent.
@@ -874,6 +901,97 @@ In other words, tests will be compiled and executed as native code.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In addition, you can consult the <a href="javadocs/native-gradle-plugin/index.html">Javadocs of the plugin</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="changelog">Changelog</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_release_0_9_3">Release 0.9.3</h3>
+<div class="paragraph">
+<p>In preparation for supporting more images:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>nativeBuild</code> and <code>nativeTest</code> extensions are now deprecated. A top-level container for configuring native images has been introduced. Instead of:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
+   verbose = true
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you need to use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+  binaries {
+    main {
+      verbose = true
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and instead of:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeTest {
+    buildArgs("...")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you need to use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+  binaries {
+    test {
+      verbose = true
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>nativeBuild</code> task has been renamed to <code>nativeCompile</code>.</p>
+</li>
+<li>
+<p>The <code>nativeTestBuild</code> task has been renamed to <code>nativeTestCompile</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both <code>nativeBuild</code> and <code>nativeTestBuild</code> task invocations are still supported but deprecated and will be removed in a future release.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_release_0_9_2">Release 0.9.2</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Added support for resources detection</p>
+</li>
+<li>
+<p>Fixed a number of regressions</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
