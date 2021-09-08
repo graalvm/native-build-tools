@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.graalvm.buildtools"},{"l":"org.graalvm.buildtools.maven"}]
