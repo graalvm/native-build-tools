@@ -69,6 +69,7 @@ test {
         GFileUtils.deleteDirectory(testIdsDir.get().asFile)
     }
     useJUnitPlatform() {
+        systemProperty('junit.platform.listeners.uid.tracking.enabled', true)
         systemProperty('junit.platform.listeners.uid.tracking.output.dir', "${testIdsDir.get().asFile.absolutePath}/test_ids")
     }
 }

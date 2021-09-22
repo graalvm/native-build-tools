@@ -55,11 +55,13 @@ import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
+import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -84,6 +86,7 @@ public final class JUnitPlatformFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
+        RuntimeClassInitialization.initializeAtBuildTime(TestIdentifier.class);
 
         List<Path> classpathRoots = access.getApplicationClassPath();
         List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
@@ -95,7 +98,7 @@ public final class JUnitPlatformFeature implements Feature {
 
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
         try {
-            Path outputDir = new UniqueIdTrackingListener().getOutputDir();
+            Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
             String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
             List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
