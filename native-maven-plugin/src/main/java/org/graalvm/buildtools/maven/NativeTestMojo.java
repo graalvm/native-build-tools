@@ -82,6 +82,9 @@ public class NativeTestMojo extends AbstractNativeMojo {
     @Parameter(property = "classpath")
     private List<String> classpath;
 
+    @Parameter(property = "project.build.directory")
+    private File buildDirectory;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skipTests) {
@@ -137,6 +140,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
                 nativeImageExecutable.toString(),
                 "-cp", classpath,
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
+                "-Djunit.platform.listeners.uid.tracking.output.dir=" + buildDirectory,
                 "-H:Path=" + targetFolder.toAbsolutePath(),
                 "-H:Name=" + NATIVE_TESTS_EXE));
         maybeAddGeneratedResourcesConfig(command);

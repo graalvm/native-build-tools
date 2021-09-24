@@ -15,6 +15,28 @@ If you are interested in contributing, please refer to our https://github.com/gr
 [[changelog]]
 == Changelog
 
+=== Release 0.9.6
+
+==== Upgrade to JUnit 5.8
+
+The plugins now depend on JUnit 5.8 which provides official an official test listener which is used by these plugins.
+As a consequence, Maven users will have to configure an extra system property to support testing on their Surefire plugin configuration
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.0.0-M5</version>
+    <configuration>
+        <systemProperties>
+            <junit.platform.listeners.uid.tracking.enabled>true</junit.platform.listeners.uid.tracking.enabled>
+        </systemProperties>
+    </configuration>
+</plugin>
+```
+
+For Gradle users, there's no impact on the configuration, however a good consequence is that the `junit-native-platform` dependency no longer leaks into your application's classpath.
+
 === Release 0.9.5
 
 This release contains, in preparation for supporting more images in the Gradle plugin:
