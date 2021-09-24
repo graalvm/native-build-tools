@@ -166,9 +166,12 @@ In order to use the recommended test listener mode, you need to add following de
 </dependencies>
 ```
 
-This step won't be needed as of JUnit 5.8 with a future release of native-maven-plugin (see the https://github.com/junit-team/junit5/issues/2619[related issue] for more information).
+In addition, you need to configure the surefire plugin:
 
-Running `mvn -Pnative -Dskip test` will then build and run native tests.
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=surefire-plugin]
+
+Running `mvn -Pnative test` will then build and run native tests.
 
 [[long_classpath_and_shading_support]]
 == Long classpath and shading support

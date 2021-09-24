@@ -52,6 +52,7 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <native.maven.plugin.version>0.9.6-SNAPSHOT</native.maven.plugin.version>
+        <junit.jupiter.version>5.8.1</junit.jupiter.version>
         <junit.platform.native.version>0.9.6-SNAPSHOT</junit.platform.native.version>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.demo.Application</mainClass>
@@ -69,6 +70,12 @@
             <version>${junit.platform.native.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -76,6 +83,16 @@
             <id>native</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <configuration>
+                            <systemProperties>
+                                <junit.platform.listeners.uid.tracking.enabled>true</junit.platform.listeners.uid.tracking.enabled>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
