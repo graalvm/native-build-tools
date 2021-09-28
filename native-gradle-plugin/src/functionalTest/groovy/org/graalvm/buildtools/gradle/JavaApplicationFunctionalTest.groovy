@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import spock.lang.Issue
 
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
@@ -68,6 +69,39 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
+        nativeApp.exists()
+
+        when:
+        def process = execute(nativeApp)
+
+        then:
+        process.output.contains "Hello, native!"
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/129")
+    def "can build a native image with dependencies only needed by native image"() {
+        gradleVersion = version
+        def nativeApp = file("build/native/nativeCompile/java-application")
+
+        given:
+        withSample("java-application-with-extra-sourceset")
+
+        when:
+        run 'nativeCompile'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':compileGraalJava'
+            doesNotContain ':build', ':run'
+        }
+
+        and:
+        new File(nativeApp.parentFile, 'app.txt').text.contains(
+                'Application Feature'
+        )
         nativeApp.exists()
 
         when:

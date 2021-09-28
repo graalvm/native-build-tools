@@ -56,6 +56,7 @@ abstract class AbstractFunctionalTest extends Specification {
             GradleVersion.current().version // Only current Gradle version
     ]
     private static final Set<String> FULL_COVERAGE = MINIMAL_COVERAGE + [
+            '7.2',
             '7.1',
             '6.8.3',
             '6.7.1'

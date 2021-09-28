@@ -50,6 +50,7 @@ import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
@@ -60,6 +61,10 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
@@ -94,8 +99,6 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.graalvm.buildtools.gradle.internal.GradleUtils.findConfiguration;
-import static org.graalvm.buildtools.gradle.internal.GradleUtils.findMainArtifacts;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
@@ -368,15 +371,58 @@ public class NativeImagePlugin implements Plugin<Project> {
                 });
     }
 
+    private static String capitalize(String name) {
+        if (name.length() > 0) {
+            return name.substring(0, 1).toLowerCase(Locale.US) + name.substring(1);
+        }
+        return name;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static NativeConfigurations createNativeConfigurations(Project project, String binaryName, String baseClasspathConfigurationName) {
+        ConfigurationContainer configurations = project.getConfigurations();
+        String prefix = "main".equals(binaryName) ? "" : capitalize(binaryName);
+        Configuration baseClasspath = configurations.getByName(baseClasspathConfigurationName);
+        Configuration compileOnly = configurations.create("nativeImage" + prefix + "CompileOnly", c -> {
+            c.setCanBeResolved(false);
+            c.setCanBeConsumed(false);
+        });
+        Configuration classpath = configurations.create("nativeImage" + prefix + "Classpath", c -> {
+            c.setCanBeConsumed(false);
+            c.setCanBeResolved(true);
+            c.extendsFrom(compileOnly);
+            baseClasspath.getExtendsFrom().forEach(c::extendsFrom);
+            c.attributes(attrs -> {
+                AttributeContainer baseAttributes = baseClasspath.getAttributes();
+                for (Attribute<?> attribute : baseAttributes.keySet()) {
+                    Attribute<Object> attr = (Attribute<Object>) attribute;
+                    Object value = baseAttributes.getAttribute(attr);
+                    attrs.attribute(attr, value);
+                }
+            });
+        });
+        compileOnly.getDependencies().add(project.getDependencies().create(project));
+        return new NativeConfigurations(compileOnly, classpath);
+    }
+
     private static NativeImageOptions createMainOptions(GraalVMExtension graalExtension, Project project) {
         NativeImageOptions buildExtension = graalExtension.getBinaries().create(NATIVE_MAIN_EXTENSION);
-        buildExtension.getClasspath().from(GradleUtils.findMainArtifacts(project));
-        buildExtension.getClasspath().from(GradleUtils.findConfiguration(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        NativeConfigurations configs = createNativeConfigurations(
+                project,
+                "main",
+                JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
+        );
+        buildExtension.getClasspath().from(configs.getImageClasspathConfiguration());
         return buildExtension;
     }
 
     private static NativeImageOptions createTestOptions(GraalVMExtension graalExtension, Project project, NativeImageOptions mainExtension, DirectoryProperty testListDirectory) {
         NativeImageOptions testExtension = graalExtension.getBinaries().create(NATIVE_TEST_EXTENSION);
+        NativeConfigurations configs = createNativeConfigurations(
+                project,
+                "test",
+                JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME
+        );
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
@@ -387,8 +433,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Set system property read indirectly by the JUnitPlatformFeature.
         testExtension.getBuildArgs().add(project.provider(() -> "-Djunit.platform.listeners.uid.tracking.output.dir=" + testListDirectory.getAsFile().get().getAbsolutePath()));
         ConfigurableFileCollection classpath = testExtension.getClasspath();
-        classpath.from(findMainArtifacts(project));
-        classpath.from(findConfiguration(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        classpath.from(configs.getImageClasspathConfiguration());
         classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
         classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getResourcesDir());
         return testExtension;
