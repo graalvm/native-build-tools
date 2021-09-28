@@ -71,6 +71,7 @@ import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
@@ -241,11 +242,12 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
 
         // Following ensures that required feature jar is on classpath for every project
-        injectTestPluginDependencies(project);
+        injectTestPluginDependencies(project, graalExtension.getTestSupport());
 
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_COMPILE_TASK_NAME, BuildNativeImageTask.class, task -> {
             task.setDescription("Builds native image with tests.");
             task.getOptions().set(testOptions);
+            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
             testTask.forEach(FORCE_CONFIG);
             ConfigurableFileCollection testList = project.getObjects().fileCollection();
             // Later this will be replaced by a dedicated task not requiring execution of tests
@@ -262,6 +264,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         tasks.register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
             task.setDescription("Runs native-image compiled tests.");
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
             task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
             task.getRuntimeArgs().convention(testOptions.getRuntimeArgs());
         });
@@ -418,9 +421,13 @@ public class NativeImagePlugin implements Plugin<Project> {
         nativeImageOptions.getConfigurationFileDirectories().from(files);
     }
 
-    private static void injectTestPluginDependencies(Project project) {
-        project.getDependencies().add("implementation", "org.graalvm.buildtools:junit-platform-native:"
-                + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
+    private static void injectTestPluginDependencies(Project project, Property<Boolean> testSupportEnabled) {
+        project.afterEvaluate(p -> {
+            if (testSupportEnabled.get()) {
+                project.getDependencies().add("implementation", "org.graalvm.buildtools:junit-platform-native:"
+                        + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
+            }
+        });
     }
 
     private static final class CleanupTestIdsDirectory implements Action<Task> {

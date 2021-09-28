@@ -43,12 +43,23 @@ package org.graalvm.buildtools.gradle.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.provider.Property;
 
 /**
  * This is the entry point for configuring GraalVM relative features
  * provided by this plugin.
  */
 public interface GraalVMExtension {
+
+    /**
+     * Determines if test support is active. This can be used
+     * to disable automatic test support, especially in cases
+     * where the test framework doesn't allow testing within
+     * a native image.
+     *
+     */
+    Property<Boolean> getTestSupport();
+
     /**
      * Returns the native image configurations used to generate images.
      * By default, this plugin creates two images, one called "main" for

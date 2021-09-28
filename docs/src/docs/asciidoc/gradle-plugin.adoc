@@ -324,6 +324,30 @@ Same can be achieved by setting corresponding DSL option, althought this isn't r
 
 The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
 
+=== Disabling test support
+
+There are cases where you might want to disable test support:
+
+- you don't actually want to run your tests in native mode
+- your library or application uses another test framework than JUnit Platform (currently this plugin only supports testing with JUnit Platform)
+
+In this case, you can disable test support by configuring the `graalvmNative` extension:
+
+.Disabling test support
+[role="multi-language-sample"]
+```groovy
+graalvmNative {
+    testSupport = false
+}
+```
+
+[role="multi-language-sample"]
+```kotlin
+graalvmNative {
+    testSupport.set(false)
+}
+```
+
 == Javadocs
 
 In addition, you can consult the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
