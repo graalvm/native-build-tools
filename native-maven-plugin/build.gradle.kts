@@ -59,6 +59,7 @@ maven {
 }
 
 dependencies {
+    implementation(libs.junitPlatformNative)
     implementation(libs.utils)
     implementation(libs.jackson.databind)
 

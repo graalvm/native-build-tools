@@ -51,11 +51,12 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.graalvm.buildtools.Utils;
-import org.graalvm.buildtools.VersionInfo;
+import org.graalvm.junit.platform.JUnitPlatformFeature;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URISyntaxException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,6 +64,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,6 +98,10 @@ public class NativeTestMojo extends AbstractNativeMojo {
         }
 
         String classpath = getClassPath();
+        Optional<Path> nativePlatformJar = findNativePlatformJar();
+        if (nativePlatformJar.isPresent()) {
+            classpath += File.pathSeparator + nativePlatformJar.get().toFile().getAbsolutePath();
+        }
         Path targetFolder = new File(project.getBuild().getDirectory()).toPath();
         targetFolder.toFile().mkdirs();
 
@@ -104,14 +110,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
         logger.info("====================");
 
         if (!hasTestIds()) {
-            logger.error("Test configuration file wasn't found.");
-            logger.error("Add a following dependency to use the test listener mode:\n" +
-                    "<dependency>\n" +
-                    "    <groupId>org.graalvm.buildtools</groupId>\n" +
-                    "    <artifactId>junit-platform-native</artifactId>\n" +
-                    "    <version>" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION + "</version>\n" +
-                    "    <scope>test</scope>\n" +
-                    "</dependency>");
+            logger.error("Test configuration file wasn't found. Make sure that test execution wasn't skipped.");
             throw new IllegalStateException("Test configuration file wasn't found.");
         }
 
@@ -140,7 +139,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
                 nativeImageExecutable.toString(),
                 "-cp", classpath,
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
-                "-Djunit.platform.listeners.uid.tracking.output.dir=" + buildDirectory,
+                "-Djunit.platform.listeners.uid.tracking.output.dir=" + NativeExtension.testIdsDirectory(buildDirectory.getAbsolutePath()),
                 "-H:Path=" + targetFolder.toAbsolutePath(),
                 "-H:Name=" + NATIVE_TESTS_EXE));
         maybeAddGeneratedResourcesConfig(command);
@@ -246,6 +245,15 @@ public class NativeTestMojo extends AbstractNativeMojo {
         return Files.find(dir, Integer.MAX_VALUE,
                 (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
                         && path.getFileName().toString().startsWith(prefix)));
+    }
+
+
+    private static Optional<Path> findNativePlatformJar() {
+        try {
+            return Optional.of(new File(JUnitPlatformFeature.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toPath());
+        } catch (URISyntaxException e) {
+            return Optional.empty();
+        }
     }
 
 }
