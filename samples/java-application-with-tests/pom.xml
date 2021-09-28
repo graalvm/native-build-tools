@@ -65,12 +65,6 @@
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>junit-platform-native</artifactId>
-            <version>${junit.platform.native.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <profiles>
@@ -78,22 +72,18 @@
             <id>native</id>
             <build>
                 <plugins>
-                    <!-- tag::surefire-plugin[] -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.0.0-M5</version>
-                        <configuration>
-                            <systemProperties>
-                                <junit.platform.listeners.uid.tracking.enabled>true</junit.platform.listeners.uid.tracking.enabled>
-                            </systemProperties>
-                        </configuration>
                     </plugin>
-                    <!-- end::surefire-plugin[] -->
+                    <!-- tag::native-plugin-extensions[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                    <!-- end::native-plugin-extensions[] -->
                         <executions>
                             <execution>
                                 <id>test-native</id>
@@ -123,6 +113,16 @@
         </profile>
         <profile>
             <id>shaded</id>
+            <!-- tag::junit-platform-native-dependency[] -->
+            <dependencies>
+                <dependency>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>junit-platform-native</artifactId>
+                    <version>${junit.platform.native.version}</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <!-- end::junit-platform-native-dependency[] -->
             <build>
                 <plugins>
                     <!-- tag::shade-plugin[] -->
@@ -171,16 +171,12 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>3.0.0-M5</version>
-                        <configuration>
-                            <systemProperties>
-                                <junit.platform.listeners.uid.tracking.enabled>true</junit.platform.listeners.uid.tracking.enabled>
-                            </systemProperties>
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
                         <executions>
                             <execution>
                                 <id>test-native</id>

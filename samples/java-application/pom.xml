@@ -57,15 +57,6 @@
         <mainClass>org.graalvm.demo.Application</mainClass>
     </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>junit-platform-native</artifactId>
-            <version>${junit.platform.native.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
     <profiles>
         <profile>
             <id>native</id>
@@ -75,6 +66,7 @@
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
                         <executions>
                             <execution>
                                 <id>build-native</id>
@@ -123,6 +115,7 @@
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
                         <executions>
                             <execution>
                                 <id>build-native</id>

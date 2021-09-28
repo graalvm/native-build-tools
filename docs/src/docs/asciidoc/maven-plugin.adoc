@@ -29,6 +29,7 @@ Add the following profile to your `pom.xml` file:
             <groupId>org.graalvm.buildtools</groupId>
             <artifactId>native-maven-plugin</artifactId>
             <version>${native.maven.plugin.version}</version>
+            <extensions>true</extensions>
             <executions>
               <execution>
                 <id>build-native</id>
@@ -152,24 +153,14 @@ In this case, the arguments that will be passed to the `native-image` executable
 [[testing-support]]
 == JUnit Testing support
 
-In order to use the recommended test listener mode, you need to add following dependency:
+In order to use the recommended test listener mode, you need to enable the plugin extensions:
 
-```xml
-<dependencies>
-   <!-- ... -->
-   <dependency>
-    <groupId>org.graalvm.buildtools</groupId>
-    <artifactId>junit-platform-native</artifactId>
-    <version>${current-junit-platform-native-version}</version>
-    <scope>test</scope>
-  </dependency>
-</dependencies>
-```
 
 In addition, you need to configure the surefire plugin:
 
 [source,xml,indent=0]
-include::../../../../samples/java-application-with-tests/pom.xml[tag=surefire-plugin]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plugin-extensions]
+
 
 Running `mvn -Pnative test` will then build and run native tests.
 
@@ -184,6 +175,11 @@ First, you'll need to setup the https://maven.apache.org/plugins/maven-shade-plu
 
 [source,xml,indent=0]
 include::../../../../samples/java-application/pom.xml[tag=shade-plugin]
+
+If you need testing support, add the JUnit Platform Native dependency explicitly:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=junit-platform-native-dependency]
 
 Then the native plugin needs to be configured to use this jar instead of the full classpath:
 

@@ -131,7 +131,7 @@ public class NativeImagePlugin implements Plugin<Project> {
      */
     private static final Consumer<Object> FORCE_CONFIG = t -> {
     };
-    private static final String JUNIT_PLATFORM_LISTENER_ENABLE = "junit.platform.listeners.uid.tracking.enabled";
+    private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
 
     private GraalVMLogger logger;
@@ -240,7 +240,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
             test.getOutputs().dir(testResultsDir);
             // Set system property read by the UniqueIdTrackingListener.
-            test.systemProperty(JUNIT_PLATFORM_LISTENER_ENABLE, true);
+            test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR, testListDirectory.getAsFile().get());
             configureAgent(project, testAgent, testOptions, testTask.named(test.getName()), processAgentTestFiles);
             test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
