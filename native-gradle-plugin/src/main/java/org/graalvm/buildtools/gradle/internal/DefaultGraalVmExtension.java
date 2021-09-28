@@ -48,12 +48,13 @@ import org.gradle.api.NamedDomainObjectContainer;
 
 import javax.inject.Inject;
 
-public class DefaultGraalVmExtension implements GraalVMExtension {
+public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages) {
         this.nativeImages = nativeImages;
+        getTestSupport().convention(true);
     }
 
     @Override

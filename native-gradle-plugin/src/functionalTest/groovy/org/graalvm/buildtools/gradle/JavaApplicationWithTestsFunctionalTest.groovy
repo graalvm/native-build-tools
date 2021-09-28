@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.TestResults
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
@@ -140,6 +141,35 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
             failures == 0
             skipped == 0
             errors == 0
+        }
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/133")
+    @Unroll("can disable test support on Gradle #version with JUnit Platform #junitVersion")
+    def "can disable test support"() {
+        gradleVersion = version
+
+        given:
+        withSample("java-application-with-tests")
+
+        file("build.gradle") << """
+            graalvmNative {
+                testSupport = false
+            }
+        """
+
+        when:
+        run 'nativeTest'
+
+        then:
+        tasks {
+            succeeded ':testClasses', ':test'
+            skipped ':nativeTestCompile', ':nativeTest'
+            doesNotContain ':build'
         }
 
         where:
