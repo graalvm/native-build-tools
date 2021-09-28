@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6};
+var data = {"i0":6,"i1":6,"i2":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -163,6 +163,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns the native image configurations used to generate images.</div>
 </td>
 </tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getTestSupport()">getTestSupport</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Determines if test support is active.</div>
+</td>
+</tr>
 </table>
 </li>
 </ul>
@@ -180,6 +187,19 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a id="getTestSupport()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTestSupport</h4>
+<pre class="methodSignature">org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getTestSupport()</pre>
+<div class="block">Determines if test support is active. This can be used
+ to disable automatic test support, especially in cases
+ where the test framework doesn't allow testing within
+ a native image.</div>
+</li>
+</ul>
 <a id="getBinaries()">
 <!--   -->
 </a>

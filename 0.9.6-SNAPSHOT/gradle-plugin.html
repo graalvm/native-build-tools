@@ -460,6 +460,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_native_image_options">Native image options</a></li>
 <li><a href="#testing">Testing support</a></li>
 <li><a href="#_reflection_support_and_running_with_the_native_agent">Reflection support and running with the native agent</a></li>
+<li><a href="#_disabling_test_support">Disabling test support</a></li>
 </ul>
 </li>
 <li><a href="#_javadocs">Javadocs</a></li>
@@ -886,6 +887,40 @@ In other words, tests will be compiled and executed as native code.</p>
 </div>
 <div class="paragraph">
 <p>The generated configuration files will be found in the <code>${buildDir}/native/agent-output/${taskName}</code> directory, for example, <code>build/native/agent-output/run</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_disabling_test_support">Disabling test support</h3>
+<div class="paragraph">
+<p>There are cases where you might want to disable test support:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>you don&#8217;t actually want to run your tests in native mode</p>
+</li>
+<li>
+<p>your library or application uses another test framework than JUnit 5 (currently this plugin only supports testing with JUnit Platform 5.8+)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this case, you can disable test support by configuring the <code>graalvmNative</code> extension:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Disabling test support</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    testSupport = false
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    testSupport.set(false)
+}</code></pre>
+</div>
 </div>
 </div>
 </div>
