@@ -68,6 +68,7 @@ test {
 graalvmNative {
     binaries {
         test {
+            verbose = true
             agent = true
         }
     }

@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
@@ -107,4 +108,38 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/134")
+    @Unroll("generated agent files are added when building native image on Gradle #version with JUnit Platform #junitVersion")
+    def "generated agent files are used when building native image"() {
+        gradleVersion = version
+        debug = true
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        run '-Pagent=true', 'run'
+
+        then:
+        tasks {
+            succeeded ':run'
+            doesNotContain ':jar'
+        }
+
+        and:
+        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
+            assert file("build/native/agent-output/run/${name}-config.json").exists()
+        }
+
+        when:
+        run '-Pagent=true', 'nativeRun'
+
+        then:
+        outputContains "Hello, native!"
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
+
 }

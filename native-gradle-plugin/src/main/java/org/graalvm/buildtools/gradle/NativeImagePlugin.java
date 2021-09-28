@@ -190,7 +190,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Application Plugin is initialized.
         project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
             TaskProvider<JavaExec> runTask = tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME);
-            runTask.configure(run -> configureAgent(project, agent, mainOptions, runTask, processAgentFiles));
+            configureAgent(project, agent, mainOptions, runTask, processAgentFiles);
         });
 
         Provider<Directory> generatedResourcesDir = project.getLayout()
