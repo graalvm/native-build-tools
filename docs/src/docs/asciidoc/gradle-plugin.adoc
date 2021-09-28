@@ -329,7 +329,7 @@ The generated configuration files will be found in the `${buildDir}/native/agent
 There are cases where you might want to disable test support:
 
 - you don't actually want to run your tests in native mode
-- your library or application uses another test framework than JUnit Platform (currently this plugin only supports testing with JUnit Platform)
+- your library or application uses another test framework than JUnit 5 (currently this plugin only supports testing with JUnit Platform 5.8+)
 
 In this case, you can disable test support by configuring the `graalvmNative` extension:
 
