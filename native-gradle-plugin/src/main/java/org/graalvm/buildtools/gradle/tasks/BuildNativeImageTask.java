@@ -183,7 +183,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             "native-image in a standard location recognized by Gradle Java toolchain support");
         }
 
-        logger.log("Using executable path: " + executablePath);
+        logger.lifecycle("Using executable path: " + executablePath);
         String executable = executablePath.getAbsolutePath();
         File outputDir = getOutputDirectory().getAsFile().get();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {

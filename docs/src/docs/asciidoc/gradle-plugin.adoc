@@ -348,6 +348,30 @@ graalvmNative {
 }
 ```
 
+[[plugin-configurations]]
+=== Configurations defined by the plugin
+
+For each binary (`main` and `test`), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:
+
+- `nativeImageCompileOnly` (for the `main` binary) and `nativeImageTestCompileOnly` (for the `test` binary) can be used to declare dependencies which are only needed at image compilation.
+- `nativeImageClasspath` (for the `main` binary) and `nativeImageTestClasspath` (for the `test` binary) are the configurations which are resolved to determine the image classpaths.
+
+The native image "compile only" configurations can typically be used to declare dependencies which are only required when building a native binary, and therefore shouldn't leak to the classic "JVM" runtime.
+
+For example, you could declare a source set which uses the GraalVM SDK to implement native features.
+This source set would contain code which is only relevant to native images building:
+
+.Declaring a custom source set
+[role="multi-language-sample"]
+```groovy
+include::../../../../samples/java-application-with-extra-sourceset/build.gradle[tag=extra-sourceset]
+```
+
+[role="multi-language-sample"]
+```kotlin
+include::../../../../samples/java-application-with-extra-sourceset/build.gradle.kts[tag=extra-sourceset]
+```
+
 == Javadocs
 
 In addition, you can consult the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
