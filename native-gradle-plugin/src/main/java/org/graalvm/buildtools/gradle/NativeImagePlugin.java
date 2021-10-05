@@ -94,7 +94,9 @@ import org.gradle.util.GFileUtils;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -157,6 +159,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         logger.log("====================");
 
         GraalVMExtension graalExtension = registerGraalVMExtension(project);
+        Map<String, Provider<Boolean>> agents = new HashMap<>();
 
         // Add DSL extensions for building and testing
         NativeImageOptions mainOptions = createMainOptions(graalExtension, project);
@@ -172,22 +175,13 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Register Native Image tasks
         TaskContainer tasks = project.getTasks();
+        configureAutomaticTaskCreation(project, graalExtension, agents, tasks);
 
-        Provider<Boolean> agent = agentPropertyOverride(project, mainOptions);
-        TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(NATIVE_COMPILE_TASK_NAME,
-                BuildNativeImageTask.class, builder -> {
-                    builder.getOptions().convention(mainOptions);
-                    builder.getAgentEnabled().set(agent);
-                });
+        TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
         TaskProvider<Task> deprecatedTask = tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
             t.dependsOn(imageBuilder);
             t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_COMPILE_TASK_NAME + " instead."));
         });
-        tasks.register(NativeRunTask.TASK_NAME, NativeRunTask.class, task -> {
-            task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
-            task.getRuntimeArgs().convention(mainOptions.getRuntimeArgs());
-        });
-        configureClasspathJarFor(tasks, mainOptions, imageBuilder);
 
         TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_RESOURCES_TASK_NAME);
 
@@ -195,7 +189,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Application Plugin is initialized.
         project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
             TaskProvider<JavaExec> runTask = tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME);
-            configureAgent(project, agent, mainOptions, runTask, processAgentFiles);
+            configureAgent(project, agents, mainOptions, runTask, processAgentFiles);
         });
 
         Provider<Directory> generatedResourcesDir = project.getLayout()
@@ -223,7 +217,6 @@ public class NativeImagePlugin implements Plugin<Project> {
         deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
 
         TaskCollection<Test> testTask = findTestTask(project);
-        Provider<Boolean> testAgent = agentPropertyOverride(project, testOptions);
         TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_TEST_RESOURCES_TASK_NAME);
 
         TaskProvider<GenerateResourcesConfigFile> generateTestResourcesConfig = registerResourcesConfigTask(
@@ -242,36 +235,64 @@ public class NativeImagePlugin implements Plugin<Project> {
             // Set system property read by the UniqueIdTrackingListener.
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR, testListDirectory.getAsFile().get());
-            configureAgent(project, testAgent, testOptions, testTask.named(test.getName()), processAgentTestFiles);
+            configureAgent(project, agents, testOptions, testTask.named(test.getName()), processAgentTestFiles);
             test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
         });
 
         // Following ensures that required feature jar is on classpath for every project
         injectTestPluginDependencies(project, graalExtension.getTestSupport());
 
-        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.register(NATIVE_TEST_COMPILE_TASK_NAME, BuildNativeImageTask.class, task -> {
-            task.setDescription("Builds native image with tests.");
-            task.getOptions().set(testOptions);
+        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(NATIVE_TEST_COMPILE_TASK_NAME, BuildNativeImageTask.class, task -> {
             task.setOnlyIf(t -> graalExtension.getTestSupport().get());
             testTask.forEach(FORCE_CONFIG);
             ConfigurableFileCollection testList = project.getObjects().fileCollection();
             // Later this will be replaced by a dedicated task not requiring execution of tests
             testList.from(testListDirectory).builtBy(testTask);
             testOptions.getClasspath().from(testList);
-            task.getAgentEnabled().set(testAgent);
         });
         tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
-            t.dependsOn(imageBuilder);
+            t.dependsOn(testImageBuilder);
             t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_COMPILE_TASK_NAME + " instead."));
         });
-        configureClasspathJarFor(tasks, testOptions, testImageBuilder);
 
-        tasks.register(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
-            task.setDescription("Runs native-image compiled tests.");
+        tasks.named(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.setOnlyIf(t -> graalExtension.getTestSupport().get());
-            task.getImage().convention(testImageBuilder.map(t -> t.getOutputFile().get()));
-            task.getRuntimeArgs().convention(testOptions.getRuntimeArgs());
+        });
+    }
+
+    private void configureAutomaticTaskCreation(Project project,
+                                                GraalVMExtension graalExtension,
+                                                Map<String, Provider<Boolean>> agents,
+                                                TaskContainer tasks) {
+        graalExtension.getBinaries().configureEach(options -> {
+            String binaryName = options.getName();
+            String compileTaskName = "native" + capitalize(binaryName) + "Compile";
+            if ("main".equals(binaryName)) {
+                compileTaskName = NATIVE_COMPILE_TASK_NAME;
+            }
+            Provider<Boolean> agent = agentPropertyOverride(project, options);
+            agents.put(binaryName, agent);
+            TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(compileTaskName,
+                    BuildNativeImageTask.class, builder -> {
+                        builder.setDescription("Compiles a native image for the " + options.getName() + " binary");
+                        builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                        builder.getOptions().convention(options);
+                        builder.getAgentEnabled().set(agent);
+                    });
+            String runTaskName = "native" + capitalize(binaryName) + "Run";
+            if ("main".equals(binaryName)) {
+                runTaskName = NativeRunTask.TASK_NAME;
+            } else if (binaryName.toLowerCase(Locale.US).endsWith("test")) {
+                runTaskName = "native" + capitalize(binaryName);
+            }
+            tasks.register(runTaskName, NativeRunTask.class, task -> {
+                task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                task.setDescription("Executes the " + options.getName() + " native binary");
+                task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
+                task.getRuntimeArgs().convention(options.getRuntimeArgs());
+            });
+            configureClasspathJarFor(tasks, options, imageBuilder);
         });
     }
 
@@ -291,6 +312,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     private void configureClasspathJarFor(TaskContainer tasks, NativeImageOptions options, TaskProvider<BuildNativeImageTask> imageBuilder) {
         String baseName = imageBuilder.getName();
         TaskProvider<Jar> classpathJar = tasks.register(baseName + "ClasspathJar", Jar.class, jar -> {
+            jar.setDescription("Builds a pathing jar for the " + options.getName() + " native binary");
             jar.from(
                     options.getClasspath()
                             .getElements()
@@ -375,7 +397,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static String capitalize(String name) {
         if (name.length() > 0) {
-            return name.substring(0, 1).toLowerCase(Locale.US) + name.substring(1);
+            return name.substring(0, 1).toUpperCase(Locale.US) + name.substring(1);
         }
         return name;
     }
@@ -418,7 +440,10 @@ public class NativeImagePlugin implements Plugin<Project> {
         return buildExtension;
     }
 
-    private static NativeImageOptions createTestOptions(GraalVMExtension graalExtension, Project project, NativeImageOptions mainExtension, DirectoryProperty testListDirectory) {
+    private static NativeImageOptions createTestOptions(GraalVMExtension graalExtension,
+                                                        Project project,
+                                                        NativeImageOptions mainExtension,
+                                                        DirectoryProperty testListDirectory) {
         NativeImageOptions testExtension = graalExtension.getBinaries().create(NATIVE_TEST_EXTENSION);
         NativeConfigurations configs = createNativeConfigurations(
                 project,
@@ -442,11 +467,12 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static void configureAgent(Project project,
-                                       Provider<Boolean> agent,
+                                       Map<String, Provider<Boolean>> agents,
                                        NativeImageOptions nativeImageOptions,
                                        TaskProvider<? extends JavaForkOptions> instrumentedTask,
                                        TaskProvider<ProcessGeneratedGraalResourceFiles> postProcessingTask) {
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
+        Provider<Boolean> agent = agents.get(nativeImageOptions.getName());
         cliProvider.getEnabled().set(agent);
         Provider<Directory> outputDir = project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
         cliProvider.getOutputDirectory().set(outputDir);
