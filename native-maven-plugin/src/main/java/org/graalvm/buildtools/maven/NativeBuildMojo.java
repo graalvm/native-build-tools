@@ -89,7 +89,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Parameter(property = "imageName")
     private String imageName;
 
-    @Parameter(property = "skip", defaultValue = "false")
+    @Parameter(property = "skipNativeBuild", defaultValue = "false")
     private boolean skip;
 
     @Parameter(defaultValue = "${mojoExecution}")

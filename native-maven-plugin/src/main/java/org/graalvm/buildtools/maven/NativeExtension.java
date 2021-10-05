@@ -45,10 +45,19 @@ import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.graalvm.buildtools.Utils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * This extension is responsible for configuring the Surefire plugin to enable
@@ -59,36 +68,115 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
+    private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
 
     static String testIdsDirectory(String baseDir) {
         return baseDir + File.separator + "test-ids";
     }
 
+    static String buildAgentOption(String context, String baseDir) {
+        String subdir = agentOutputDirectoryFor(context, baseDir);
+        return "-agentlib:native-image-agent=experimental-class-loader-support," +
+                "config-output-dir=" + subdir;
+    }
+
+    private static String agentOutputDirectoryFor(String context, String baseDir) {
+        return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
+    }
+
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        Build build = session.getCurrentProject()
-                .getBuild();
+        Build build = session.getCurrentProject().getBuild();
+        boolean hasAgent = hasAgent(session);
         String target = build.getDirectory();
         String testIdsDir = testIdsDirectory(target);
+        withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
+            configureJunitListener(surefirePlugin, testIdsDir);
+            if (hasAgent) {
+                configureAgentForSurefire(surefirePlugin, "test", target);
+            }
+        });
+        if (hasAgent) {
+            withPlugin(build, "exec-maven-plugin", execPlugin ->
+                    updatePluginConfiguration(execPlugin, (exec, config) -> {
+                        if ("java-agent".equals(exec.getId())) {
+                            Xpp3Dom commandlineArgs = findOrAppend(config, "arguments");
+                            Xpp3Dom[] arrayOfChildren = commandlineArgs.getChildren();
+                            for (int i = 0; i < arrayOfChildren.length; i++) {
+                                commandlineArgs.removeChild(0);
+                            }
+                            List<Xpp3Dom> children = new ArrayList<>();
+                            Collections.addAll(children, arrayOfChildren);
+                            Xpp3Dom arg = new Xpp3Dom("argument");
+                            arg.setValue(buildAgentOption("exec", target));
+                            children.add(0, arg);
+                            arg = new Xpp3Dom("argument");
+                            arg.setValue("-D" + NATIVEIMAGE_IMAGECODE + "=agent");
+                            children.add(1, arg);
+                            for (Xpp3Dom child : children) {
+                                commandlineArgs.addChild(child);
+                            }
+                            Xpp3Dom executable = findOrAppend(config, "executable");
+                            try {
+                                executable.setValue(Utils.getNativeImage().getParent().resolve("java").toString());
+                            } catch (MojoExecutionException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    })
+            );
+            withPlugin(build, "native-maven-plugin", nativePlugin ->
+                    updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
+                        String context = exec.getGoals().stream().anyMatch("test"::equals) ? "test" : "exec";
+                        Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
+                        agentResourceDirectory.setValue(agentOutputDirectoryFor(context, target));
+                    })
+            );
+        }
+    }
+
+    private static boolean hasAgent(MavenSession session) {
+        Properties systemProperties = session.getSystemProperties();
+        return Boolean.parseBoolean(String.valueOf(systemProperties.getOrDefault("agent", "false")));
+    }
+
+    private static void withPlugin(Build build, String artifactId, Consumer<? super Plugin> consumer) {
         build.getPlugins()
                 .stream()
-                .filter(p -> "maven-surefire-plugin".equals(p.getArtifactId()))
+                .filter(p -> artifactId.equals(p.getArtifactId()))
                 .findFirst()
-                .ifPresent(surefirePlugin -> configureJunitListener(surefirePlugin, testIdsDir));
+                .ifPresent(consumer);
+    }
+
+    private static void configureAgentForSurefire(Plugin surefirePlugin, String context, String targetDir) {
+        updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
+            Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
+            Xpp3Dom agent = findOrAppend(systemProperties, NATIVEIMAGE_IMAGECODE);
+            agent.setValue("agent");
+            Xpp3Dom argLine = new Xpp3Dom("argLine");
+            argLine.setValue(buildAgentOption(context, targetDir));
+            configuration.addChild(argLine);
+        });
     }
 
     private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {
-        surefirePlugin.getExecutions().forEach(exec -> {
-            Xpp3Dom configuration = (Xpp3Dom) exec.getConfiguration();
-            if (configuration == null) {
-                configuration = new Xpp3Dom("configuration");
-                exec.setConfiguration(configuration);
-            }
+        updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
             Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
             Xpp3Dom junitTracking = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED);
             Xpp3Dom testIdsProperty = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
             junitTracking.setValue("true");
             testIdsProperty.setValue(testIdsDir);
+        });
+    }
+
+    private static void updatePluginConfiguration(Plugin plugin, BiConsumer<PluginExecution, ? super Xpp3Dom> consumer) {
+        plugin.getExecutions().forEach(exec -> {
+            Xpp3Dom configuration = (Xpp3Dom) exec.getConfiguration();
+            if (configuration == null) {
+                configuration = new Xpp3Dom("configuration");
+                exec.setConfiguration(configuration);
+            }
+            consumer.accept(exec, configuration);
         });
     }
 

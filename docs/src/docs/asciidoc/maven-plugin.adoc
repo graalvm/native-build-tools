@@ -106,7 +106,7 @@ It is also possible to customize the plugin within a
   <buildArgs>
     <buildArg>--no-fallback</buildArg>
   </buildArgs>
-  <skip>false</skip>
+  <skipNativeBuild>false</skipNativeBuild>
 </configuration>
 ```
 
@@ -234,6 +234,53 @@ Finally, you will need to execute tests using the `integration-test` phase inste
 ```
 
 Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading and the https://maven.apache.org/plugins/maven-assembly-plugin[Maven Assembly plugin documentation] to tweak what to include in tests.
+
+[[agent-support]]
+=== Reflection support and running with the native agent
+
+If your project requires reflection, then https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html[`native-image-agent`] run might be necessary.
+
+The Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
+
+Automation will generate configuration files in `target/native/agent-output`. While those files will be automatically used if you run your build with the `-Dagent=true` flag, you should consider reviewing them and add them to your sources instead.
+
+==== Running tests with the agent
+
+The simplest way to execute the agent is to do it via execution of unit tests.
+Run your test suite with:
+
+```bash
+mvn -Pnative -Dagent=true test
+```
+
+Then the agent will be automatically attached to your tests execution.
+The generated files will be found in `target/native/agent-output/test`.
+
+WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
+
+==== Running your application with the agent
+
+Executing your application with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.
+
+In your `native` Maven profile section, add the following:
+
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-reflection/pom.xml[tag=java-agent-exec]
+
+Then you can execute your application with the agent by running:
+
+```bash
+mvn -Pnative -Dagent=true -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
+```
+
+This will generate configuration files at `target/native/agent-output/exec`.
+If you want to run your native application with those configuration files, you then need to execute this command line:
+
+```bash
+mvn -Pnative -Dagent=true -DskipTests=true package exec:exec@native
+```
+
+WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
 
 == Javadocs
 
