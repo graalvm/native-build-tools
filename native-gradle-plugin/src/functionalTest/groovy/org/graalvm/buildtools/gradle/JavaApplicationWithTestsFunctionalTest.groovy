@@ -176,4 +176,60 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/77")
+    @Unroll("can register a custom test image on Gradle #version with JUnit Platform #junitVersion")
+    def "can register a custom test image"() {
+        gradleVersion = version
+
+        given:
+        withSample("java-application-with-custom-tests")
+
+        when:
+        run 'nativeIntegTest'
+
+        then:
+        tasks {
+            succeeded ':integTestClasses',
+                    ':nativeIntegTestCompile',
+                    ':integTest',
+                    ':nativeIntegTest'
+            doesNotContain ':build'
+        }
+
+        then:
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
+
+        outputContains """
+[         3 containers found      ]
+[         0 containers skipped    ]
+[         3 containers started    ]
+[         0 containers aborted    ]
+[         3 containers successful ]
+[         0 containers failed     ]
+[         6 tests found           ]
+[         0 tests skipped         ]
+[         6 tests started         ]
+[         0 tests aborted         ]
+[         6 tests successful      ]
+[         0 tests failed          ]
+""".trim()
+
+        and:
+        def results = TestResults.from(file("build/test-results/integTest/TEST-org.graalvm.demo.CalculatorTest.xml"))
+        def nativeResults = TestResults.from(file("build/test-results/integTest-native/TEST-junit-jupiter.xml"))
+
+        results == nativeResults
+        results.with {
+            tests == 6
+            failures == 0
+            skipped == 0
+            errors == 0
+        }
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
 }

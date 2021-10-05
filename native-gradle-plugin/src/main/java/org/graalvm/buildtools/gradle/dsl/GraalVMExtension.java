@@ -43,7 +43,11 @@ package org.graalvm.buildtools.gradle.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.testing.Test;
 
 /**
  * This is the entry point for configuring GraalVM relative features
@@ -60,6 +64,8 @@ public interface GraalVMExtension {
      */
     Property<Boolean> getTestSupport();
 
+    DirectoryProperty getGeneratedResourcesDirectory();
+
     /**
      * Returns the native image configurations used to generate images.
      * By default, this plugin creates two images, one called "main" for
@@ -71,4 +77,21 @@ public interface GraalVMExtension {
      * Configures the native image options.
      */
     void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec);
+
+    /**
+     * Registers a new native image binary with testing support.
+     * @param spec the test image configuration
+     */
+    void registerTestBinary(String name, Action<? super TestBinaryConfig> spec);
+
+    interface TestBinaryConfig {
+        /**
+         * Sets the JVM test task which corresponds to the
+         * native test that we're configuring.
+         * @param jvmTestTask an existing JVM test task
+         */
+        void forTestTask(TaskProvider<Test> jvmTestTask);
+
+        void usingSourceSet(SourceSet testSourceSet);
+    }
 }

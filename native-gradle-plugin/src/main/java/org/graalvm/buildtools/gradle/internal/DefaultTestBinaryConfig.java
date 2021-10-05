@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,55 +38,58 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
-import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
-import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Project;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Named;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
 
-public abstract class DefaultGraalVmExtension implements GraalVMExtension {
-    private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
-    private final NativeImagePlugin plugin;
-    private final Project project;
-    private final Map<String, Provider<Boolean>> agentProperties = new HashMap<>();
+public class DefaultTestBinaryConfig implements GraalVMExtension.TestBinaryConfig, Named {
+    private final String name;
+
+    private TaskProvider<Test> testTask;
+    private SourceSet sourceSet;
 
     @Inject
-    public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
-                                   NativeImagePlugin plugin,
-                                   Project project) {
-        this.nativeImages = nativeImages;
-        this.plugin = plugin;
-        this.project = project;
-        getTestSupport().convention(true);
+    public DefaultTestBinaryConfig(String name) {
+        this.name = name;
     }
 
     @Override
-    public NamedDomainObjectContainer<NativeImageOptions> getBinaries() {
-        return nativeImages;
+    public void forTestTask(TaskProvider<Test> jvmTestTask) {
+        this.testTask = jvmTestTask;
     }
 
     @Override
-    public void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
-        spec.execute(nativeImages);
-    }
-
-    public Map<String, Provider<Boolean>> getAgentProperties() {
-        return agentProperties;
+    public void usingSourceSet(SourceSet testSourceSet) {
+        this.sourceSet = testSourceSet;
     }
 
     @Override
-    public void registerTestBinary(String name, Action<? super TestBinaryConfig> spec) {
-        DefaultTestBinaryConfig config = project.getObjects().newInstance(DefaultTestBinaryConfig.class, name);
-        spec.execute(config);
-        plugin.registerTestBinary(project, this, config);
+    public String getName() {
+        return name;
+    }
+
+    public TaskProvider<Test> getTestTask() {
+        return testTask;
+    }
+
+    public SourceSet getSourceSet() {
+        return sourceSet;
+    }
+
+    public DefaultTestBinaryConfig validate() {
+        if (testTask == null) {
+            throw new InvalidUserCodeException("On custom test binary '" + name + "', you must specify a JVM test task to mirror");
+        }
+        if (sourceSet == null) {
+            throw new InvalidUserCodeException("On custom test binary '" + name + "', you must specify a test source set to use");
+        }
+        return this;
     }
 }

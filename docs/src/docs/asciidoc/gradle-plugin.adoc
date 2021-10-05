@@ -348,6 +348,39 @@ graalvmNative {
 }
 ```
 
+[[extra-test-suites]]
+=== Configuring additional test suites
+
+It's common to have multiple test source sets in a Gradle build.
+Typically, you may have an integration test suite, or a functional test suite, in addition to the unit test suite.
+The plugin supports running those tests as native binaries too.
+
+For example, imagine that you have a source set named `integTest` and that its corresponding test task is named `integTest`.
+In this case you can register a new native test binary via the `graalvmNative` extension:
+
+.Registering a new test suite
+[role="multi-language-sample"]
+```groovy
+include::../../../../samples/java-application-with-custom-tests/build.gradle[tag=register-native-test]
+```
+
+[role="multi-language-sample"]
+```kotlin
+graalvmNative {
+    registerTestBinary("integTest") {
+        usingSourceSet(sourceSets.getByName("integTest"))
+        forTestTask(tasks.named<Test>("integTest"))
+    }
+}
+```
+
+The plugin will then automatically create the following tasks:
+
+- `nativeIntegTestCompile`, to compile a native image using the `integTest` source set
+- `nativeIntegTest`, to execute the tests in native mode
+
+The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.
+
 [[plugin-configurations]]
 === Configurations defined by the plugin
 
