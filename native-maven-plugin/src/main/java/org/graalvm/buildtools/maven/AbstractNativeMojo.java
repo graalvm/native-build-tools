@@ -54,12 +54,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Sebastien Deleuze
  */
 public abstract class AbstractNativeMojo extends AbstractMojo {
-
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
@@ -75,6 +75,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.directory}/native/generated", property = "resourcesConfigDirectory", required = true)
     private File resourcesConfigDirectory;
 
+    @Parameter(property = "agentResourceDirectory")
+    private File agentResourceDirectory;
+
     @Component
     protected ToolchainManager toolchainManager;
 
@@ -82,11 +85,22 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected Logger logger;
 
     protected void maybeAddGeneratedResourcesConfig(List<String> into) {
-        if (resourcesConfigDirectory.exists()) {
+        if (resourcesConfigDirectory.exists() || agentResourceDirectory != null) {
+            File[] dirs = resourcesConfigDirectory.listFiles();
+            Stream<File> configDirs = Stream.concat(
+                    dirs == null ? Stream.empty() : Arrays.stream(dirs),
+                    agentResourceDirectory == null ? Stream.empty() : Stream.of(agentResourceDirectory).filter(File::isDirectory)
+            );
             into.add("-H:ConfigurationFileDirectories=" +
-                    Arrays.stream(resourcesConfigDirectory.listFiles())
+                    configDirs
                             .map(File::getAbsolutePath)
                             .collect(Collectors.joining(",")));
+            if (agentResourceDirectory != null && agentResourceDirectory.isDirectory()) {
+                // The generated reflect config file contains references to java.*
+                // and org.apache.maven.surefire that we'd need to remove using
+                // a proper JSON parser/writer instead
+                into.add("-H:+AllowIncompleteClasspath");
+            }
         }
     }
 }
