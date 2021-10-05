@@ -54,6 +54,12 @@ graalvmNative {
 }
 ```
 
+==== Configuring additional test images
+
+The Gradle plugin now supports building multiple test images, which can be used to execute tests natively for more kinds of tests: integration tests, functional tests, ...
+
+For more information, please refer to <<gradle-plugin.adoc#extra-test-suites,the Gradle plugin documentation>>
+
 === Release 0.9.5
 
 This release contains, in preparation for supporting more images in the Gradle plugin:

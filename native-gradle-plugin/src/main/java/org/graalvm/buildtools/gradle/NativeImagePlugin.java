@@ -47,6 +47,7 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
+import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
@@ -80,7 +81,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -94,7 +94,6 @@ import org.gradle.util.GFileUtils;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -153,13 +152,20 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider));
     }
 
+    private static String deriveTaskName(String name, String prefix, String suffix) {
+        if ("main".equals(name)) {
+            return prefix + suffix;
+        }
+        return prefix + capitalize(name) + suffix;
+    }
+
     private void configureJavaProject(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
         logger.log("====================");
         logger.log("Initializing project: " + project.getName());
         logger.log("====================");
 
-        GraalVMExtension graalExtension = registerGraalVMExtension(project);
-        Map<String, Provider<Boolean>> agents = new HashMap<>();
+        DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
+        Map<String, Provider<Boolean>> agents = graalExtension.getAgentProperties();
 
         // Add DSL extensions for building and testing
         NativeImageOptions mainOptions = createMainOptions(graalExtension, project);
@@ -192,12 +198,8 @@ public class NativeImagePlugin implements Plugin<Project> {
             configureAgent(project, agents, mainOptions, runTask, processAgentFiles);
         });
 
-        Provider<Directory> generatedResourcesDir = project.getLayout()
-                .getBuildDirectory()
-                .dir("native/generated/");
-
         TaskProvider<GenerateResourcesConfigFile> generateResourcesConfig = registerResourcesConfigTask(
-                generatedResourcesDir,
+                graalExtension.getGeneratedResourcesDirectory(),
                 mainOptions,
                 tasks,
                 transitiveProjectArtifacts(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
@@ -206,60 +208,11 @@ public class NativeImagePlugin implements Plugin<Project> {
                 t.getOutputFile().map(f -> f.getAsFile().getParentFile())
         ));
 
-        // Testing part begins here. -------------------------------------------
-
-        // In future Gradle releases this becomes a proper DirectoryProperty
-        File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
-        DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
-
-        // Add DSL extension for testing
-        NativeImageOptions testOptions = createTestOptions(graalExtension, project, mainOptions, testListDirectory);
-        deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
-
-        TaskCollection<Test> testTask = findTestTask(project);
-        TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_TEST_RESOURCES_TASK_NAME);
-
-        TaskProvider<GenerateResourcesConfigFile> generateTestResourcesConfig = registerResourcesConfigTask(
-                generatedResourcesDir,
-                testOptions,
-                tasks,
-                transitiveProjectArtifacts(project, JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME),
-                GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME);
-        testOptions.getConfigurationFileDirectories().from(generateTestResourcesConfig.map(t ->
-                t.getOutputFile().map(f -> f.getAsFile().getParentFile())
-        ));
-
-        testTask.configureEach(test -> {
-            testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
-            test.getOutputs().dir(testResultsDir);
-            // Set system property read by the UniqueIdTrackingListener.
-            test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
-            test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR, testListDirectory.getAsFile().get());
-            configureAgent(project, agents, testOptions, testTask.named(test.getName()), processAgentTestFiles);
-            test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
+        graalExtension.registerTestBinary("test", config -> {
+            config.forTestTask(tasks.named("test", Test.class));
+            config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
         });
-
-        // Following ensures that required feature jar is on classpath for every project
-        injectTestPluginDependencies(project, graalExtension.getTestSupport());
-
-        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(NATIVE_TEST_COMPILE_TASK_NAME, BuildNativeImageTask.class, task -> {
-            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
-            testTask.forEach(FORCE_CONFIG);
-            ConfigurableFileCollection testList = project.getObjects().fileCollection();
-            // Later this will be replaced by a dedicated task not requiring execution of tests
-            testList.from(testListDirectory).builtBy(testTask);
-            testOptions.getClasspath().from(testList);
-        });
-        tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
-            t.dependsOn(testImageBuilder);
-            t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_COMPILE_TASK_NAME + " instead."));
-        });
-
-        tasks.named(NATIVE_TEST_TASK_NAME, NativeRunTask.class, task -> {
-            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
-        });
-    }
+     }
 
     private void configureAutomaticTaskCreation(Project project,
                                                 GraalVMExtension graalExtension,
@@ -267,7 +220,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                 TaskContainer tasks) {
         graalExtension.getBinaries().configureEach(options -> {
             String binaryName = options.getName();
-            String compileTaskName = "native" + capitalize(binaryName) + "Compile";
+            String compileTaskName = deriveTaskName(binaryName, "native", "Compile");
             if ("main".equals(binaryName)) {
                 compileTaskName = NATIVE_COMPILE_TASK_NAME;
             }
@@ -280,7 +233,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                         builder.getOptions().convention(options);
                         builder.getAgentEnabled().set(agent);
                     });
-            String runTaskName = "native" + capitalize(binaryName) + "Run";
+            String runTaskName = deriveTaskName(binaryName, "native", "Run");
             if ("main".equals(binaryName)) {
                 runTaskName = NativeRunTask.TASK_NAME;
             } else if (binaryName.toLowerCase(Locale.US).endsWith("test")) {
@@ -340,7 +293,12 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 project.getExtensions().findByType(JavaToolchainService.class),
                                 project.getName())
                 );
-        return project.getExtensions().create(GraalVMExtension.class, "graalvmNative", DefaultGraalVmExtension.class, nativeImages);
+        GraalVMExtension graalvmNative = project.getExtensions().create(GraalVMExtension.class, "graalvmNative",
+                DefaultGraalVmExtension.class, nativeImages, this, project);
+        graalvmNative.getGeneratedResourcesDirectory().set(project.getLayout()
+                .getBuildDirectory()
+                .dir("native/generated/"));
+        return graalvmNative;
     }
 
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,
@@ -354,6 +312,73 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getClasspath().from(options.getClasspath());
             task.getTransitiveProjectArtifacts().from(transitiveProjectArtifacts);
             task.getOutputFile().convention(generatedDir.map(d -> d.file(name + "/resource-config.json")));
+        });
+    }
+
+    public void registerTestBinary(Project project,
+                            DefaultGraalVmExtension graalExtension,
+                            DefaultTestBinaryConfig config) {
+        NativeImageOptions mainOptions = graalExtension.getBinaries().getByName("main");
+        String name = config.getName();
+        boolean isPrimaryTest = "test".equals(name);
+        TaskContainer tasks = project.getTasks();
+
+        // Testing part begins here. -------------------------------------------
+
+        // In future Gradle releases this becomes a proper DirectoryProperty
+        File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
+        DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
+
+        // Add DSL extension for testing
+        NativeImageOptions testOptions = createTestOptions(graalExtension, name, project, mainOptions, testListDirectory, config.getSourceSet());
+        if (isPrimaryTest) {
+            deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
+        }
+
+        TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, deriveTaskName(name, "filterAgent", "Resources"));
+
+        TaskProvider<GenerateResourcesConfigFile> generateTestResourcesConfig = registerResourcesConfigTask(
+                graalExtension.getGeneratedResourcesDirectory(),
+                testOptions,
+                tasks,
+                transitiveProjectArtifacts(project, config.getSourceSet().getRuntimeClasspathConfigurationName()),
+                deriveTaskName(name, "generate", "ResourcesConfigFile"));
+        testOptions.getConfigurationFileDirectories().from(generateTestResourcesConfig.map(t ->
+                t.getOutputFile().map(f -> f.getAsFile().getParentFile())
+        ));
+
+        TaskProvider<Test> testTask = config.validate().getTestTask();
+        testTask.configure(test -> {
+            testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
+            test.getOutputs().dir(testResultsDir);
+            // Set system property read by the UniqueIdTrackingListener.
+            test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
+            test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR, testListDirectory.getAsFile().get());
+            configureAgent(project, graalExtension.getAgentProperties(), testOptions, config.getTestTask(), processAgentTestFiles);
+            test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
+        });
+
+        // Following ensures that required feature jar is on classpath for every project
+        injectTestPluginDependencies(project, graalExtension.getTestSupport());
+
+        TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(deriveTaskName(name, "native", "Compile"), BuildNativeImageTask.class, task -> {
+            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
+            testTask.get();
+            ConfigurableFileCollection testList = project.getObjects().fileCollection();
+            // Later this will be replaced by a dedicated task not requiring execution of tests
+            testList.from(testListDirectory).builtBy(testTask);
+            testOptions.getClasspath().from(testList);
+        });
+        if (isPrimaryTest) {
+            tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
+                t.dependsOn(testImageBuilder);
+                t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_COMPILE_TASK_NAME + " instead."));
+            });
+        }
+
+        tasks.named(isPrimaryTest ? NATIVE_TEST_TASK_NAME : "native" + capitalize(name), NativeRunTask.class, task -> {
+            task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
         });
     }
 
@@ -379,10 +404,6 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getFilterableEntries().convention(Arrays.asList("org.gradle.", "java."));
             task.getOutputDirectory().convention(project.getLayout().getBuildDirectory().dir("native/processed/agent/" + name));
         });
-    }
-
-    private static TaskCollection<Test> findTestTask(Project project) {
-        return project.getTasks().withType(Test.class).matching(task -> JavaPlugin.TEST_TASK_NAME.equals(task.getName()));
     }
 
     @SuppressWarnings("UnstableApiUsage")
@@ -441,13 +462,15 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static NativeImageOptions createTestOptions(GraalVMExtension graalExtension,
+                                                        String binaryName,
                                                         Project project,
                                                         NativeImageOptions mainExtension,
-                                                        DirectoryProperty testListDirectory) {
-        NativeImageOptions testExtension = graalExtension.getBinaries().create(NATIVE_TEST_EXTENSION);
+                                                        DirectoryProperty testListDirectory,
+                                                        SourceSet sourceSet) {
+        NativeImageOptions testExtension = graalExtension.getBinaries().create(binaryName);
         NativeConfigurations configs = createNativeConfigurations(
                 project,
-                "test",
+                binaryName,
                 JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME
         );
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
@@ -455,14 +478,14 @@ public class NativeImagePlugin implements Plugin<Project> {
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
         ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
         runtimeArgs.add("--xml-output-dir");
-        runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/test-native").map(d -> d.getAsFile().getAbsolutePath()));
+        runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "-native").map(d -> d.getAsFile().getAbsolutePath()));
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         // Set system property read indirectly by the JUnitPlatformFeature.
         testExtension.getBuildArgs().add(project.provider(() -> "-Djunit.platform.listeners.uid.tracking.output.dir=" + testListDirectory.getAsFile().get().getAbsolutePath()));
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(configs.getImageClasspathConfiguration());
-        classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getClassesDirs());
-        classpath.from(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME).getOutput().getResourcesDir());
+        classpath.from(sourceSet.getOutput().getClassesDirs());
+        classpath.from(sourceSet.getOutput().getResourcesDir());
         return testExtension;
     }
 
