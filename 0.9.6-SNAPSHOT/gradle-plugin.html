@@ -461,6 +461,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#testing">Testing support</a></li>
 <li><a href="#_reflection_support_and_running_with_the_native_agent">Reflection support and running with the native agent</a></li>
 <li><a href="#_disabling_test_support">Disabling test support</a></li>
+<li><a href="#extra-test-suites">Configuring additional test suites</a></li>
 <li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
 </ul>
 </li>
@@ -922,6 +923,55 @@ In other words, tests will be compiled and executed as native code.</p>
     testSupport.set(false)
 }</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="extra-test-suites">Configuring additional test suites</h3>
+<div class="paragraph">
+<p>It&#8217;s common to have multiple test source sets in a Gradle build.
+Typically, you may have an integration test suite, or a functional test suite, in addition to the unit test suite.
+The plugin supports running those tests as native binaries too.</p>
+</div>
+<div class="paragraph">
+<p>For example, imagine that you have a source set named <code>integTest</code> and that its corresponding test task is named <code>integTest</code>.
+In this case you can register a new native test binary via the <code>graalvmNative</code> extension:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Registering a new test suite</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    registerTestBinary("integTest") {
+        usingSourceSet(sourceSets.integTest)
+        forTestTask(integTest)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    registerTestBinary("integTest") {
+        usingSourceSet(sourceSets.getByName("integTest"))
+        forTestTask(tasks.named&lt;Test&gt;("integTest"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The plugin will then automatically create the following tasks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>nativeIntegTestCompile</code>, to compile a native image using the <code>integTest</code> source set</p>
+</li>
+<li>
+<p><code>nativeIntegTest</code>, to execute the tests in native mode</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.</p>
 </div>
 </div>
 <div class="sect2">

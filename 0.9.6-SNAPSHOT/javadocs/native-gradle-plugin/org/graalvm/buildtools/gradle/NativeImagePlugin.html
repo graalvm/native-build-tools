@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10};
+var data = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -272,6 +272,13 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getArchiveOperations()">getArchiveOperations</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerTestBinary(org.gradle.api.Project,org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension,org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig)">registerTestBinary</a></span>&#8203;(org.gradle.api.Project&nbsp;project,
+                  <a href="internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a>&nbsp;graalExtension,
+                  <a href="internal/DefaultTestBinaryConfig.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultTestBinaryConfig</a>&nbsp;config)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -507,7 +514,7 @@ public&nbsp;org.gradle.api.file.ArchiveOperations&nbsp;getArchiveOperations()</p
 <a id="apply(org.gradle.api.Project)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>apply</h4>
 <pre class="methodSignature">public&nbsp;void&nbsp;apply&#8203;(org.gradle.api.Project&nbsp;project)</pre>
@@ -515,6 +522,17 @@ public&nbsp;org.gradle.api.file.ArchiveOperations&nbsp;getArchiveOperations()</p
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code>apply</code>&nbsp;in interface&nbsp;<code>org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</code></dd>
 </dl>
+</li>
+</ul>
+<a id="registerTestBinary(org.gradle.api.Project,org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension,org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>registerTestBinary</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;registerTestBinary&#8203;(org.gradle.api.Project&nbsp;project,
+                               <a href="internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a>&nbsp;graalExtension,
+                               <a href="internal/DefaultTestBinaryConfig.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultTestBinaryConfig</a>&nbsp;config)</pre>
 </li>
 </ul>
 </li>
