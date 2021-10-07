@@ -450,6 +450,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#changelog">Changelog</a>
 <ul class="sectlevel2">
 <li><a href="#_release_0_9_6">Release 0.9.6</a></li>
+<li><a href="#_agent_support_for_maven_plugin">Agent support for Maven plugin</a></li>
+<li><a href="#_disabling_testing_support">Disabling testing support</a></li>
 <li><a href="#_release_0_9_5">Release 0.9.5</a></li>
 <li><a href="#_release_0_9_4">Release 0.9.4</a></li>
 <li><a href="#_release_0_9_3">Release 0.9.3</a></li>
@@ -515,6 +517,30 @@ As a consequence, Maven users will have to configure their builds to enable the 
 </div>
 <div class="paragraph">
 <p>For Gradle users, there&#8217;s no impact on the configuration, however a good consequence is that the <code>junit-native-platform</code> dependency no longer leaks into your application&#8217;s classpath.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_agent_support_for_maven_plugin">Agent support for Maven plugin</h3>
+<div class="paragraph">
+<p>The Maven plugin now supports the GraalVM agent to generate configuration files.
+Please refer to the <a href="maven-plugin.html#agent-support">Maven plugin documentation</a> for details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_disabling_testing_support">Disabling testing support</h3>
+<div class="paragraph">
+<p>The Gradle plugin now provides an option to disable testing support.
+This can be useful if the test framework you are using doesn&#8217;t work with this plugin or that you simply don&#8217;t want to execute tests natively.</p>
+</div>
+<div class="paragraph">
+<p>To disable tests, use the <code>graalvmNative</code> configuration block:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    testSupport.set(false)
+}</code></pre>
 </div>
 </div>
 </div>
