@@ -29,6 +29,9 @@ public abstract class GeneratePluginDescriptor extends MavenTask {
     @Internal
     public abstract DirectoryProperty getCommonRepository();
 
+    @Internal
+    public abstract DirectoryProperty getLocalRepository();
+
     public GeneratePluginDescriptor() {
         getArguments().set(Arrays.asList("-q", "org.apache.maven.plugins:maven-plugin-plugin:3.6.1:descriptor"));
     }
@@ -36,6 +39,7 @@ public abstract class GeneratePluginDescriptor extends MavenTask {
     @Override
     protected void prepareSpec(JavaExecSpec spec) {
         spec.systemProperty("common.repo.uri", getCommonRepository().getAsFile().get().toURI().toString());
+        spec.systemProperty("seed.repo.uri", getLocalRepository().get().getAsFile().toURI().toASCIIString());
     }
 
     @Override

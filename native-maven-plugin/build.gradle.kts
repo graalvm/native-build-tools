@@ -97,9 +97,12 @@ publishing {
     }
 }
 
+val localRepositoryDir = project.layout.buildDirectory.dir("maven-seeded-repo")
+
 tasks {
     generatePluginDescriptor {
         commonRepository.set(repoDirectory)
+        localRepository.set(localRepositoryDir)
     }
 }
 
@@ -111,19 +114,17 @@ val prepareSeedingProject = tasks.register<Sync>("prepareSeedingProject") {
     outputs.upToDateWhen { false }
 }
 
-val localRepository = project.layout.buildDirectory.dir("maven-seeded-repo")
-
 val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
     dependsOn(prepareSeedingProject)
     projectDirectory.set(prepareSeedingProject.map { seedingDir.get() })
     settingsFile.set(layout.projectDirectory.file("config/settings.xml"))
     pomFile.set(seedingDir.map { it.file("pom.xml") })
     mavenEmbedderClasspath.from(configurations.mavenEmbedder)
-    outputDirectory.set(localRepository)
+    outputDirectory.set(localRepositoryDir)
     arguments.set(listOf(
             "-q",
             "-Dproject.build.directory=${File(temporaryDir, "target")}",
-            "-Dmaven.repo.local=${localRepository.get().asFile.absolutePath}",
+            "-Dmaven.repo.local=${localRepositoryDir.get().asFile.absolutePath}",
             "-Djunit.jupiter.version=${libs.versions.junitJupiter.get()}",
             "-Dnative.maven.plugin.version=${libs.versions.nativeBuildTools.get()}",
             "-Djunit.platform.native.version=${libs.versions.nativeBuildTools.get()}",
@@ -136,7 +137,7 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
     )
 
     doFirst {
-        GFileUtils.deleteDirectory(localRepository.get().asFile)
+        GFileUtils.deleteDirectory(localRepositoryDir.get().asFile)
     }
 }
 
@@ -154,7 +155,7 @@ tasks {
         systemProperty("native.maven.plugin.version", libs.versions.nativeBuildTools.get())
         systemProperty("junit.platform.native.version", libs.versions.nativeBuildTools.get())
         systemProperty("common.repo.uri", repoDirectory.get().asFile.toURI().toASCIIString())
-        systemProperty("seed.repo.uri", localRepository.get().asFile.toURI().toASCIIString())
+        systemProperty("seed.repo.uri", localRepositoryDir.get().asFile.toURI().toASCIIString())
         systemProperty("maven.classpath", configurations.mavenEmbedder.get().asPath)
         systemProperty("maven.settings", layout.projectDirectory.file("config/settings.xml").asFile.absolutePath)
         systemProperty("java.executable", javaLauncher.get().executablePath.asFile.absolutePath)
