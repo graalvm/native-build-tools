@@ -97,6 +97,7 @@ val pruneCommonRepo = tasks.register<Delete>("pruneCommonRepository") {
 }
 
 tasks.register<Zip>("releaseZip") {
+    archiveVersion.set(libs.versions.nativeBuildTools)
     dependsOn(pruneCommonRepo, "publishAllPublicationsToCommonRepository")
     from(commonRepo) {
         exclude("**/*.sha256")
