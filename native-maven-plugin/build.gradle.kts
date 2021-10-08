@@ -125,8 +125,8 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
             "-Dproject.build.directory=${File(temporaryDir, "target")}",
             "-Dmaven.repo.local=${localRepository.get().asFile.absolutePath}",
             "-Djunit.jupiter.version=${libs.versions.junitJupiter.get()}",
-            "-Dnative.maven.plugin.version=${libs.versions.nativeMavenPlugin.get()}",
-            "-Djunit.platform.native.version=${libs.versions.junitPlatformNative.get()}",
+            "-Dnative.maven.plugin.version=${libs.versions.nativeBuildTools.get()}",
+            "-Djunit.platform.native.version=${libs.versions.nativeBuildTools.get()}",
             "-Dexec.mainClass=org.graalvm.demo.Application",
             "package",
             "test",
@@ -151,8 +151,8 @@ tasks {
         dependsOn(prepareMavenLocalRepo, publishAllPublicationsToCommonRepository)
         systemProperty("graalvm.version", libs.versions.graalvm.get())
         systemProperty("junit.jupiter.version", libs.versions.junitJupiter.get())
-        systemProperty("native.maven.plugin.version", libs.versions.nativeMavenPlugin.get())
-        systemProperty("junit.platform.native.version", libs.versions.junitPlatformNative.get())
+        systemProperty("native.maven.plugin.version", libs.versions.nativeBuildTools.get())
+        systemProperty("junit.platform.native.version", libs.versions.nativeBuildTools.get())
         systemProperty("common.repo.uri", repoDirectory.get().asFile.toURI().toASCIIString())
         systemProperty("seed.repo.uri", localRepository.get().asFile.toURI().toASCIIString())
         systemProperty("maven.classpath", configurations.mavenEmbedder.get().asPath)

@@ -1,9 +1,6 @@
 [versions]
 # Project versions
-junitPlatformNative = "0.9.6-SNAPSHOT"
-nativeGradlePlugin = "0.9.6-SNAPSHOT"
-nativeMavenPlugin = "0.9.6-SNAPSHOT"
-utils = "0.9.6-SNAPSHOT"
+nativeBuildTools = "0.9.6-SNAPSHOT"
 
 # External dependencies
 spock = "2.0-groovy-3.0"
@@ -22,10 +19,10 @@ jgit = "5.12.0.202106070339-r"
 
 [libraries]
 # Local projects
-nativeGradlePlugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "nativeGradlePlugin" }
-nativeMavenPlugin = { module = "org.graalvm.buildtools:native-maven-plugin", version.ref = "nativeMavenPlugin" }
-junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version.ref = "junitPlatformNative" }
-utils = { module = "org.graalvm.buildtools:utils", version.ref = "utils" }
+nativeGradlePlugin = { module = "org.graalvm.buildtools:native-gradle-plugin", version.ref = "nativeBuildTools" }
+nativeMavenPlugin = { module = "org.graalvm.buildtools:native-maven-plugin", version.ref = "nativeBuildTools" }
+junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version.ref = "nativeBuildTools" }
+utils = { module = "org.graalvm.buildtools:utils", version.ref = "nativeBuildTools" }
 
 # External dependencies
 test-junit-platform-console = { module = "org.junit.platform:junit-platform-console", version.ref = "junitPlatform" }

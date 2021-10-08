@@ -45,7 +45,7 @@ plugins {
 
 version = providers.gradleProperty("publishVersion")
         .forUseAtConfigurationTime()
-        .orElse(libs.versions.nativeGradlePlugin)
+        .orElse(libs.versions.nativeBuildTools)
         .get()
 
 dependencies {
@@ -66,9 +66,9 @@ asciidoctorj {
             "source-highlighter" to "highlight.js",
             "highlightjs-theme" to "equilibrium-light",
             "highlightjsdir" to "highlight",
-            "gradle-plugin-version" to libs.versions.nativeGradlePlugin.get(),
-            "gradle-plugin-version" to libs.versions.nativeGradlePlugin.get(),
-            "maven-plugin-version" to libs.versions.nativeMavenPlugin.get()
+            "gradle-plugin-version" to libs.versions.nativeBuildTools.get(),
+            "gradle-plugin-version" to libs.versions.nativeBuildTools.get(),
+            "maven-plugin-version" to libs.versions.nativeBuildTools.get()
     ))
 }
 

@@ -55,7 +55,7 @@ dependencies {
 }
 
 val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {
-    versions.put("junitPlatformNative", libs.versions.junitPlatformNative)
+    versions.put("junitPlatformNative", libs.versions.nativeBuildTools)
     outputDirectory.set(layout.buildDirectory.dir("generated/sources/versions"))
 }
 
