@@ -1,6 +1,6 @@
 [versions]
 # Project versions
-nativeBuildTools = "0.9.6"
+nativeBuildTools = "0.9.7-SNAPSHOT"
 
 # External dependencies
 spock = "2.0-groovy-3.0"
