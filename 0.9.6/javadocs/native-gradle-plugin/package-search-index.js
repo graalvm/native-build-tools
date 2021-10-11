@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"org.graalvm.buildtools.gradle"},{"l":"org.graalvm.buildtools.gradle.dsl"},{"l":"org.graalvm.buildtools.gradle.internal"},{"l":"org.graalvm.buildtools.gradle.tasks"}]
