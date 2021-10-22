@@ -1,8 +1,5 @@
-import org.graalvm.build.maven.MavenTask
-import org.gradle.util.GFileUtils
-
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -42,47 +39,34 @@ import org.gradle.util.GFileUtils
  * SOFTWARE.
  */
 
-plugins {
-    groovy
-    `java-test-fixtures`
-    id("org.graalvm.build.maven-embedder")
-}
+package org.graalvm.buildtools.maven.issues
 
-val functionalTest by sourceSets.creating
+import org.graalvm.buildtools.maven.AbstractGraalVMMavenFunctionalTest
 
-val functionalTestCommonRepository by configurations.creating {
-    // This configuration will trigger the composite build
-    // which builds the JUnit native library, and publish it to a repository
-    // which can then be injected into tests
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("repository"))
+class JavaAppWithTestsAndParentPomFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    def "can run tests in a native image with the Maven plugin"() {
+        withReproducer("issue-144")
+
+        when:
+        mvn '-Pnative', 'test'
+
+        then:
+        buildSucceeded
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContains """
+[         3 containers found      ]
+[         0 containers skipped    ]
+[         3 containers started    ]
+[         0 containers aborted    ]
+[         3 containers successful ]
+[         0 containers failed     ]
+[         6 tests found           ]
+[         0 tests skipped         ]
+[         6 tests started         ]
+[         0 tests aborted         ]
+[         6 tests successful      ]
+[         0 tests failed          ]
+""".trim()
     }
-}
 
-configurations {
-    "functionalTestImplementation" {
-        extendsFrom(testImplementation.get())
-    }
-}
-
-// Add a task to run the functional tests
-tasks.register<Test>("functionalTest") {
-    // Any change to samples invalidates functional tests
-    inputs.files(files("../samples"))
-    inputs.files(files("reproducers"))
-    inputs.files(functionalTestCommonRepository)
-    systemProperty("common.repo.url", functionalTestCommonRepository.incoming.files.files.first())
-    testClassesDirs = functionalTest.output.classesDirs
-    classpath = functionalTest.runtimeClasspath
-}
-
-tasks.named("check") {
-    // Run the functional tests as part of `check`
-    dependsOn(tasks.named("functionalTest"))
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
 }

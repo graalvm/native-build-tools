@@ -15,6 +15,12 @@ If you are interested in contributing, please refer to our https://github.com/gr
 [[changelog]]
 == Changelog
 
+=== Release 0.9.7
+
+==== Bugfixes
+
+- Fixed https://github.com/graalvm/native-build-tools/issues/144[Maven plugin configuration not applied if declared in a parent POM].
+
 === Release 0.9.6
 
 ==== Upgrade to JUnit 5.8

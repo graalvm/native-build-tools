@@ -47,6 +47,7 @@ import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
@@ -86,52 +87,56 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     @Override
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-        Build build = session.getCurrentProject().getBuild();
-        boolean hasAgent = hasAgent(session);
-        String target = build.getDirectory();
-        String testIdsDir = testIdsDirectory(target);
-        withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
-            configureJunitListener(surefirePlugin, testIdsDir);
-            if (hasAgent) {
-                configureAgentForSurefire(surefirePlugin, "test", target);
-            }
-        });
-        if (hasAgent) {
-            withPlugin(build, "exec-maven-plugin", execPlugin ->
-                    updatePluginConfiguration(execPlugin, (exec, config) -> {
-                        if ("java-agent".equals(exec.getId())) {
-                            Xpp3Dom commandlineArgs = findOrAppend(config, "arguments");
-                            Xpp3Dom[] arrayOfChildren = commandlineArgs.getChildren();
-                            for (int i = 0; i < arrayOfChildren.length; i++) {
-                                commandlineArgs.removeChild(0);
-                            }
-                            List<Xpp3Dom> children = new ArrayList<>();
-                            Collections.addAll(children, arrayOfChildren);
-                            Xpp3Dom arg = new Xpp3Dom("argument");
-                            arg.setValue(buildAgentOption("exec", target));
-                            children.add(0, arg);
-                            arg = new Xpp3Dom("argument");
-                            arg.setValue("-D" + NATIVEIMAGE_IMAGECODE + "=agent");
-                            children.add(1, arg);
-                            for (Xpp3Dom child : children) {
-                                commandlineArgs.addChild(child);
-                            }
-                            Xpp3Dom executable = findOrAppend(config, "executable");
-                            try {
-                                executable.setValue(Utils.getNativeImage().getParent().resolve("java").toString());
-                            } catch (MojoExecutionException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    })
-            );
-            withPlugin(build, "native-maven-plugin", nativePlugin ->
-                    updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
-                        String context = exec.getGoals().stream().anyMatch("test"::equals) ? "test" : "exec";
-                        Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
-                        agentResourceDirectory.setValue(agentOutputDirectoryFor(context, target));
-                    })
-            );
+        for (MavenProject project : session.getProjects()) {
+            Build build = project.getBuild();
+            boolean hasAgent = hasAgent(session);
+            String target = build.getDirectory();
+            String testIdsDir = testIdsDirectory(target);
+            withPlugin(build, "native-maven-plugin", onlyApplyWhenNativePluginPresent -> {
+                withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
+                    configureJunitListener(surefirePlugin, testIdsDir);
+                    if (hasAgent) {
+                        configureAgentForSurefire(surefirePlugin, "test", target);
+                    }
+                });
+                if (hasAgent) {
+                    withPlugin(build, "exec-maven-plugin", execPlugin ->
+                            updatePluginConfiguration(execPlugin, (exec, config) -> {
+                                if ("java-agent".equals(exec.getId())) {
+                                    Xpp3Dom commandlineArgs = findOrAppend(config, "arguments");
+                                    Xpp3Dom[] arrayOfChildren = commandlineArgs.getChildren();
+                                    for (int i = 0; i < arrayOfChildren.length; i++) {
+                                        commandlineArgs.removeChild(0);
+                                    }
+                                    List<Xpp3Dom> children = new ArrayList<>();
+                                    Collections.addAll(children, arrayOfChildren);
+                                    Xpp3Dom arg = new Xpp3Dom("argument");
+                                    arg.setValue(buildAgentOption("exec", target));
+                                    children.add(0, arg);
+                                    arg = new Xpp3Dom("argument");
+                                    arg.setValue("-D" + NATIVEIMAGE_IMAGECODE + "=agent");
+                                    children.add(1, arg);
+                                    for (Xpp3Dom child : children) {
+                                        commandlineArgs.addChild(child);
+                                    }
+                                    Xpp3Dom executable = findOrAppend(config, "executable");
+                                    try {
+                                        executable.setValue(Utils.getNativeImage().getParent().resolve("java").toString());
+                                    } catch (MojoExecutionException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                            })
+                    );
+                    withPlugin(build, "native-maven-plugin", nativePlugin ->
+                            updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
+                                String context = exec.getGoals().stream().anyMatch("test"::equals) ? "test" : "exec";
+                                Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
+                                agentResourceDirectory.setValue(agentOutputDirectoryFor(context, target));
+                            })
+                    );
+                }
+            });
         }
     }
 
