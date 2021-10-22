@@ -55,7 +55,7 @@ import javax.inject.Inject
 plugins {
     id("org.asciidoctor.jvm.convert")
     id("org.ajoberstar.git-publish")
-    `jvm-ecosystem`
+    java
 }
 
 val javadocs by configurations.creating {

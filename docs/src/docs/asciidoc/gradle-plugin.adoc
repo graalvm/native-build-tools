@@ -44,22 +44,13 @@ Add the following to your `settings.gradle` / `settings.gradle.kts`:
 [role="multi-language-sample"]
 .Declaring the plugin repository
 ```groovy
-pluginManagement {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-}
+include::../snippets/gradle/groovy/settings.gradle[tags=plugin-management]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-pluginManagement {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
-}
+include::../snippets/gradle/kotlin/settings.gradle.kts[tags=plugin-management]
+
 ```
 
 [TIP]
@@ -68,32 +59,13 @@ pluginManagement {
 You can use the development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
 [role="multi-language-sample"]
 ```groovy
-pluginManagement {
-    plugins {
-        id 'org.graalvm.buildtools.native' version '...'
-    }
-    repositories {
-        maven {
-            url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
-        }
-        gradlePluginPortal()
-    }
-}
+include::../snippets/gradle/groovy/settings.gradle[tags=pre-release, indent=0]
+
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-pluginManagement {
-    plugins {
-        id("org.graalvm.buildtools.native") version "..."
-    }
-    repositories {
-        maven {
-            url = uri("https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots")
-        }
-        gradlePluginPortal()
-    }
-}
+include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=0]
 ```
 ====
 
@@ -152,30 +124,12 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 .Selecting the GraalVM toolchain
 [role="multi-language-sample"]
 ```groovy
-graalvmNative {
-    binaries {
-      main {
-          javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(8)
-            vendor = JvmVendorSpec.matching("GraalVM Enterprise")
-          }
-      }
-    }
-}
+include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-graalvmNative {
-   binaries {
-    main {
-      javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(8))
-        vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
-      })
-    }
-  }
-}
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
 ```
 
 ==== Configuration options
@@ -185,66 +139,12 @@ The following configuration options are available for building images:
 .NativeImageOption configuration
 [role="multi-language-sample"]
 ```groovy
-graalvmNative {
-  binaries {
-    main {
-      // Main options
-      imageName = 'application' // The name of the native image, defaults to the project name
-      mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
-      debug = true // Determines if debug info should be generated, defaults to false
-      verbose = true // Add verbose output, defaults to false
-      fallback = true // Sets the fallback mode of native-image, defaults to false
-      sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
-
-      systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
-      configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
-
-      // Advanced options
-      buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-      jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
-
-      // Runtime options
-      runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
-
-      // Development options
-      agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
-
-      useFatJar = true // Instead of passing each jar individually, builds a fat jar
-    }
-  }
-}
+include::../snippets/gradle/groovy/build.gradle[tags=all-plugin-options]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-graalvmNative {
-  binaries {
-    main {
-      // Main options
-      imageName.set("application") // The name of the native image, defaults to the project name
-      mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
-      debug.set(true) // Determines if debug info should be generated, defaults to false
-      verbose.set(true) // Add verbose output, defaults to false
-      fallback.set(true) // Sets the fallback mode of native-image, defaults to false
-      sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
-
-      systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
-      configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
-
-      // Advanced options
-      buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-      jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
-
-      // Runtime options
-      runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
-
-      // Development options
-      agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
-
-      useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
-    }
-  }
-}
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-plugin-options]
 ```
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
@@ -260,16 +160,12 @@ In case this behavior is not required, you can disable the fat jar creation by c
 .Disabling the fat jar creation
 [role="multi-language-sample"]
 ```groovy
-nativeBuild {
-    useFatJar = false
-}
+include::../snippets/gradle/groovy/build.gradle[tags=disable-fatjar]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-nativeBuild {
-    useFatJar.set(false)
-}
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-fatjar]
 ```
 
 Alternatively, it is possible to use your own fat jar (for example created using the https://imperceptiblethoughts.com/shadow/[Shadow plugin]) by setting the `classpathJar` property directly on the _task_:
@@ -277,16 +173,12 @@ Alternatively, it is possible to use your own fat jar (for example created using
 .Disabling the fat jar creation
 [role="multi-language-sample"]
 ```groovy
-tasks.named("nativeBuild") {
-    classpathJar = myFatJar
-}
+include::../snippets/gradle/groovy/build.gradle[tags=custom-fatjar]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-tasks.named<BuildNativeImageTask>("nativeBuild") {
-    classpathJar.set(myFatJar)
-}
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=custom-fatjar]
 ```
 
 When the `classpathJar` property is set, the `classpath` property is _ignored_.
@@ -336,16 +228,12 @@ In this case, you can disable test support by configuring the `graalvmNative` ex
 .Disabling test support
 [role="multi-language-sample"]
 ```groovy
-graalvmNative {
-    testSupport = false
-}
+include::../snippets/gradle/groovy/build.gradle[tags=disable-test-support]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-graalvmNative {
-    testSupport.set(false)
-}
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-test-support]
 ```
 
 [[extra-test-suites]]
@@ -366,12 +254,7 @@ include::../../../../samples/java-application-with-custom-tests/build.gradle[tag
 
 [role="multi-language-sample"]
 ```kotlin
-graalvmNative {
-    registerTestBinary("integTest") {
-        usingSourceSet(sourceSets.getByName("integTest"))
-        forTestTask(tasks.named<Test>("integTest"))
-    }
-}
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=custom-binary]
 ```
 
 The plugin will then automatically create the following tasks:
