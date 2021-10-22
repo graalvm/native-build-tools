@@ -105,14 +105,25 @@ tasks.register<Zip>("releaseZip") {
     }
 }
 
-tasks.register<org.graalvm.build.samples.SamplesUpdateTask>("updateSamples") {
-    inputDirectory.set(layout.projectDirectory.dir("samples"))
-    versions.put("native.gradle.plugin.version", libs.versions.nativeBuildTools.get())
-    versions.put("native.maven.plugin.version", libs.versions.nativeBuildTools.get())
-    versions.put("junit.jupiter.version", libs.versions.junitJupiter.get())
-    versions.put("junit.platform.version", libs.versions.junitPlatform.get())
-    versions.put("junit.platform.native.version", libs.versions.nativeBuildTools.get())
+val updateSamples by tasks.registering
+
+mapOf(
+        "updateSamplesDir" to "samples",
+        "updateMavenReprosDir" to "native-maven-plugin/reproducers"
+).forEach { taskName, dir ->
+    val t = tasks.register<org.graalvm.build.samples.SamplesUpdateTask>(taskName) {
+        inputDirectory.set(layout.projectDirectory.dir(dir))
+        versions.put("native.gradle.plugin.version", libs.versions.nativeBuildTools.get())
+        versions.put("native.maven.plugin.version", libs.versions.nativeBuildTools.get())
+        versions.put("junit.jupiter.version", libs.versions.junitJupiter.get())
+        versions.put("junit.platform.version", libs.versions.junitPlatform.get())
+        versions.put("junit.platform.native.version", libs.versions.nativeBuildTools.get())
+    }
+    updateSamples.configure {
+        dependsOn(t)
+    }
 }
+
 
 val cloneSnapshots = tasks.register<org.graalvm.build.tasks.GitClone>("cloneSnapshotRepository") {
     repositoryUri.set("git@github.com:graalvm/native-build-tools.git")

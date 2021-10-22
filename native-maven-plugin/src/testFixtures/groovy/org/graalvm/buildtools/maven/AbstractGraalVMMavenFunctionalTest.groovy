@@ -72,6 +72,11 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         executor.debug = true
     }
 
+    protected void withReproducer(String name) {
+        File sampleDir = new File("reproducers/$name")
+        copySample(sampleDir.toPath(), testDirectory)
+    }
+
     protected void withSample(String name) {
         File sampleDir = new File("../samples/$name")
         copySample(sampleDir.toPath(), testDirectory)
