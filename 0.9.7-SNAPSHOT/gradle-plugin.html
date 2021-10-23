@@ -527,20 +527,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Declaring the plugin repository</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">pluginManagement {
-  repositories {
-    mavenCentral()
-    gradlePluginPortal()
-  }
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
 }</code></pre>
 </div>
 </div>
@@ -558,9 +558,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
-    plugins {
-        id 'org.graalvm.buildtools.native' version '...'
-    }
     repositories {
         maven {
             url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
@@ -573,9 +570,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">pluginManagement {
-    plugins {
-        id("org.graalvm.buildtools.native") version "..."
-    }
     repositories {
         maven {
             url = uri("https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots")
@@ -693,27 +687,76 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     binaries {
-      main {
-          javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(8)
-            vendor = JvmVendorSpec.matching("GraalVM Enterprise")
-          }
-      }
+        main {
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(8)
+                vendor = JvmVendorSpec.matching("GraalVM Enterprise")
+            }
+        }
     }
+}
+// end:select-toolchain[]
+
+// tag:all-config-options[]
+graalvmNative {
+    binaries {
+        main {
+            // Main options
+            imageName = 'application' // The name of the native image, defaults to the project name
+            mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
+            debug = true // Determines if debug info should be generated, defaults to false
+            verbose = true // Add verbose output, defaults to false
+            fallback = true // Sets the fallback mode of native-image, defaults to false
+            sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+
+            systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
+            configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
+
+            // Advanced options
+            buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+            jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
+
+            // Runtime options
+            runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
+
+            // Development options
+            agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
+
+            useFatJar = true // Instead of passing each jar individually, builds a fat jar
+        }
+    }
+}
+
+graalvmNative {
+    binaries {
+        main {
+            useFatJar = false
+        }
+    }
+}
+
+def myFatJar = tasks.register("myFatJar", Jar)
+
+tasks.named("nativeCompile") {
+    classpathJar = myFatJar
+}
+
+graalvmNative {
+    testSupport = false
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-   binaries {
-    main {
-      javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(8))
-        vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
-      })
+    binaries {
+        named("main") {
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(8))
+                vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
+            })
+        }
     }
-  }
 }</code></pre>
 </div>
 </div>
@@ -726,66 +769,12 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
 <div class="listingblock multi-language-sample">
 <div class="title">NativeImageOption configuration</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-  binaries {
-    main {
-      // Main options
-      imageName = 'application' // The name of the native image, defaults to the project name
-      mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
-      debug = true // Determines if debug info should be generated, defaults to false
-      verbose = true // Add verbose output, defaults to false
-      fallback = true // Sets the fallback mode of native-image, defaults to false
-      sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
-
-      systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
-      configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
-
-      // Advanced options
-      buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-      jvmArgs.add('flag') // Passes 'flag' directly to the JVM running the native image builder
-
-      // Runtime options
-      runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
-
-      // Development options
-      agent = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
-
-      useFatJar = true // Instead of passing each jar individually, builds a fat jar
-    }
-  }
-}</code></pre>
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs"></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-  binaries {
-    main {
-      // Main options
-      imageName.set("application") // The name of the native image, defaults to the project name
-      mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
-      debug.set(true) // Determines if debug info should be generated, defaults to false
-      verbose.set(true) // Add verbose output, defaults to false
-      fallback.set(true) // Sets the fallback mode of native-image, defaults to false
-      sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
-
-      systemProperties.putAll(mapOf(name1 to "value1", name2 to "value2")) // Sets the system properties to use for the native image builder
-      configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
-
-      // Advanced options
-      buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
-      jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
-
-      // Runtime options
-      runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
-
-      // Development options
-      agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
-
-      useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
-    }
-  }
-}</code></pre>
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs"></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -813,16 +802,18 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 <div class="listingblock multi-language-sample">
 <div class="title">Disabling the fat jar creation</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
-    useFatJar = false
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        main {
+            useFatJar = false
+        }
+    }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">nativeBuild {
-    useFatJar.set(false)
-}</code></pre>
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs"></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -831,15 +822,15 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 <div class="listingblock multi-language-sample">
 <div class="title">Disabling the fat jar creation</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.named("nativeBuild") {
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.named("nativeCompile") {
     classpathJar = myFatJar
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">tasks.named&lt;BuildNativeImageTask&gt;("nativeBuild") {
-    classpathJar.set(myFatJar)
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">tasks.named&lt;BuildNativeImageTask&gt;("nativeCompile") {
+    classpathJar.set(myFatJar.flatMap { it.archiveFile })
 }</code></pre>
 </div>
 </div>
