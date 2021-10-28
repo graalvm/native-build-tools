@@ -52,6 +52,7 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.toolchain.Toolchain;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
@@ -122,7 +123,17 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         String classpathStr = imageClasspath.stream().map(Path::toString).collect(Collectors.joining(File.pathSeparator));
 
-        Path nativeImageExecutable = Utils.getNativeImage();
+        Path nativeImageExecutable = null;
+        Toolchain tc = toolchainManager.getToolchainFromBuildContext("jdk", session);
+        if (tc != null) {
+            final String nativeImageFullPath = tc.findTool("native-image");
+            if (nativeImageFullPath != null) {
+                nativeImageExecutable = Paths.get(nativeImageFullPath);
+            }
+        }
+        if (nativeImageExecutable == null) {
+            nativeImageExecutable = Utils.getNativeImage();
+        }
 
         maybeAddGeneratedResourcesConfig(buildArgs);
 
