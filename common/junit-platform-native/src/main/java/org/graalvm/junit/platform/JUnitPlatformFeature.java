@@ -86,7 +86,6 @@ public final class JUnitPlatformFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
-        RuntimeClassInitialization.initializeAtBuildTime(TestIdentifier.class);
 
         List<Path> classpathRoots = access.getApplicationClassPath();
         List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);

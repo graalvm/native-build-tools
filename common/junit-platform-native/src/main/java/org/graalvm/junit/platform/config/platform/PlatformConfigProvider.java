@@ -41,14 +41,15 @@
 
 package org.graalvm.junit.platform.config.platform;
 
-import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
+import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 
 public class PlatformConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        String[] buildTimeInitializedClasses = new String[]{
+        String[] buildTimeInitializedClasses = new String[] {
+                "org.junit.platform.launcher.TestIdentifier",
                 "org.junit.platform.launcher.core.InternalTestPlan",
                 "org.junit.platform.commons.util.StringUtils",
                 "org.junit.platform.launcher.core.TestExecutionListenerRegistry",
