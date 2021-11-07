@@ -42,6 +42,9 @@
 package org.graalvm.junit.jupiter;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -52,15 +55,36 @@ class BasicTests {
         System.out.println("Running test: " + info.getDisplayName());
     }
 
+    @BeforeAll
+    static void beforeAll() {
+        // Uncomment this block to see that a failed container fails the build.
+        //
+        // if (System.getProperty("org.graalvm.nativeimage.imagecode") != null) {
+        //     throw new RuntimeException("Failed test container within native image");
+        // }
+    }
+
+    @Test
+    @Disabled
+    void skippedTest() {
+        throw new RuntimeException("Test must have been disabled/skipped entirely");
+    }
+
+    @Test
+    void abortedTest() {
+        Assumptions.assumeTrue(false, "false is never true");
+        throw new RuntimeException("Test must have been aborted mid-flight");
+    }
+
     @Test
     @DisplayName("Basic test one")
-    void addsTwoNumbers(TestInfo testInfo) {
+    void basicTest1(TestInfo testInfo) {
         Assertions.assertEquals("Basic test one", testInfo.getDisplayName());
     }
 
     @Test
     @DisplayName("Basic test two")
-    void addsTwoNumbers2(TestInfo testInfo) {
+    void basicTest2(TestInfo testInfo) {
         Assertions.assertEquals("Basic test two", testInfo.getDisplayName());
     }
 

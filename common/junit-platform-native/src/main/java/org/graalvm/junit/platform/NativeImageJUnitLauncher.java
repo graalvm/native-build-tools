@@ -134,7 +134,7 @@ public class NativeImageJUnitLauncher {
             summary.printTo(out);
         }
 
-        long failedCount = summary.getTestsFailedCount() + summary.getTestsAbortedCount();
+        long failedCount = summary.getTotalFailureCount();
         System.exit(failedCount > 0 ? 1 : 0);
     }
 }
