@@ -72,6 +72,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
@@ -270,7 +271,12 @@ public class NativeImagePlugin implements Plugin<Project> {
                     options.getClasspath()
                             .getElements()
                             .map(elems -> elems.stream()
-                                    .map(e -> getArchiveOperations().zipTree(e))
+                                    .map(e -> {
+                                        if (isJar(e)) {
+                                            return getArchiveOperations().zipTree(e);
+                                        }
+                                        return e;
+                                    })
                                     .collect(Collectors.toList()))
             );
             jar.setDuplicatesStrategy(DuplicatesStrategy.WARN);
@@ -281,6 +287,10 @@ public class NativeImagePlugin implements Plugin<Project> {
                 nit.getClasspathJar().set(classpathJar.flatMap(AbstractArchiveTask::getArchiveFile));
             }
         });
+    }
+
+    private static boolean isJar(FileSystemLocation location) {
+        return location.getAsFile().getName().toLowerCase(Locale.US).endsWith(".jar");
     }
 
     private GraalVMExtension registerGraalVMExtension(Project project) {
