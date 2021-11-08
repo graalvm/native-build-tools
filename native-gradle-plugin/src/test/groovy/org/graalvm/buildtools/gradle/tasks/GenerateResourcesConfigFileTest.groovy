@@ -41,35 +41,12 @@
 
 package org.graalvm.buildtools.gradle.tasks
 
-import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions
-import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.testfixtures.ProjectBuilder
-import spock.lang.Specification
-import spock.lang.TempDir
-
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.jar.JarEntry
-import java.util.jar.JarOutputStream
-
-class GenerateResourcesConfigFileTest extends Specification {
-    @TempDir
-    Path testDirectory
-
-    private int resourceCount = 0
-
+class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     def "generates an empty resource-config.json file"() {
         def project = buildProject()
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -90,7 +67,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -116,7 +93,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -145,7 +122,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -167,7 +144,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -192,7 +169,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -216,7 +193,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -242,7 +219,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -264,7 +241,7 @@ class GenerateResourcesConfigFileTest extends Specification {
         }
 
         when:
-        project.execute()
+        project.generateResourcesConfig()
 
         then:
         with(project) {
@@ -276,122 +253,6 @@ class GenerateResourcesConfigFileTest extends Specification {
   },
   "bundles" : [ ]
 }'''
-        }
-    }
-
-    private Fixture buildProject(@DelegatesTo(value=Fixture, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        def fixture = new Fixture()
-        spec.delegate = fixture
-        spec.resolveStrategy = Closure.DELEGATE_FIRST
-        spec()
-        fixture
-    }
-
-    private Project newProject() {
-        ProjectBuilder.builder()
-                .withProjectDir(testDirectory.resolve("test-project").toFile())
-                .build()
-    }
-
-    private File newResourcesDirectory() {
-        def dir = testDirectory.resolve("exploded${resourceCount++}").toFile()
-        new FileTreeBuilder(dir) {
-            'META-INF' {
-                'INDEX.LIST'('dummy')
-            }
-            'org' {
-                'foo' {
-                    'some' {
-                        'resource.txt'('resource text')
-                    }
-                }
-            }
-        }
-        dir
-    }
-
-    private File newResourcesJar(Map<String, String> extraResources = [:]) {
-        File resourcesDirectory = newResourcesDirectory()
-        extraResources.each { path, contents -> {
-            def resource = new File(resourcesDirectory, path)
-            if (resource.getParentFile().directory || resource.getParentFile().mkdirs()) {
-                resource << contents
-            }
-        }}
-        File jar = new File(testDirectory.toFile(), "resources-${resourceCount}.jar")
-        Path resourcesPath = resourcesDirectory.toPath()
-
-        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(jar))) {
-            Files.walkFileTree(resourcesPath, new SimpleFileVisitor<Path>() {
-                JarEntry entry
-
-                @Override
-                FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    entry = new JarEntry(resourcesPath.relativize(file).toString())
-                    out.putNextEntry(entry)
-                    out.write(file.toFile().bytes)
-                    out.closeEntry()
-                    return super.visitFile(file, attrs)
-                }
-            })
-        }
-        jar
-    }
-
-    private class Fixture {
-        private final Project project = newProject()
-        private final NativeResourcesOptions options = project.objects.newInstance(NativeResourcesOptions)
-        private final Provider<RegularFile> outputFileProvider = project.layout.buildDirectory.file("resource-config.json")
-        private final ConfigurableFileCollection classpath = project.objects.fileCollection()
-        private final TaskProvider<GenerateResourcesConfigFile> task = project.tasks.register('underTest', GenerateResourcesConfigFile) {
-            it.options.set(Fixture.this.options)
-            it.classpath.from(Fixture.this.classpath)
-            it.outputFile.set(outputFileProvider)
-        }
-
-        Fixture enableDetection() {
-            options.detectionOptions.enabled.set(true)
-            options.detectionOptions.restrictToProjectDependencies.set(false)
-            this
-        }
-
-        Fixture restrictDetectionToProjects() {
-            options.detectionOptions.enabled.set(true)
-            options.detectionOptions.restrictToProjectDependencies.set(true)
-            this
-        }
-
-        Fixture excludeFromDetection(String... patterns) {
-            options.detectionOptions.detectionExclusionPatterns.addAll(patterns)
-            this
-        }
-
-        Fixture withResource(File dir) {
-            classpath.from(dir)
-            this
-        }
-
-        Fixture bundles(String... bundles) {
-            options.bundles.addAll(bundles)
-            this
-        }
-
-        Fixture includes(String... includes) {
-            options.includedPatterns.addAll(includes)
-            this
-        }
-
-        Fixture excludes(String... excludes) {
-            options.excludedPatterns.addAll(excludes)
-            this
-        }
-
-        File getOutputFile() {
-            outputFileProvider.get().asFile
-        }
-
-        void execute() {
-            task.get().generate()
         }
     }
 
