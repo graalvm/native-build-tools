@@ -42,13 +42,15 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
+import spock.lang.Requires
 
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
         gradleVersion = version
         def nativeApp = file("build/native/nativeCompile/java-application")
-        debug  = true
+        debug = true
 
         given:
         withSample("java-application")
@@ -113,4 +115,53 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         where:
         version << TESTED_GRADLE_VERSIONS
     }
+
+    @Requires({
+        def graalvmHome = System.getenv("GRAALVM_HOME")
+        graalvmHome != null
+    })
+    def "can override toolchain selection"() {
+        gradleVersion = version
+        def nativeApp = file("build/native/nativeCompile/java-application")
+        boolean dummyToolchain = GradleVersion.version(gradleVersion).compareTo(GradleVersion.version("7.0")) >= 0
+
+        given:
+        withSample("java-application")
+
+        if (dummyToolchain) {
+            buildFile << """graalvmNative.binaries.configureEach {
+                javaLauncher.set(javaToolchains.launcherFor {
+                    vendor.set(JvmVendorSpec.matching("non existing vendor"))
+                })
+            }"""
+        }
+
+        buildFile << """
+            tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
+                disableToolchainDetection = true
+            }
+        """.stripIndent()
+
+        when:
+        run 'nativeCompile', '-i'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+            doesNotContain ':build', ':run'
+        }
+
+        and:
+        nativeApp.exists()
+
+        when:
+        def process = execute(nativeApp)
+
+        then:
+        process.output.contains "Hello, native!"
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+    }
+
 }

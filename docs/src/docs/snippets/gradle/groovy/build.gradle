@@ -50,14 +50,22 @@ graalvmNative {
         main {
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(8)
-                vendor = JvmVendorSpec.matching("GraalVM Enterprise")
+                vendor = JvmVendorSpec.matching("GraalVM Community")
             }
         }
     }
 }
-// end:select-toolchain[]
+// end::select-toolchain[]
 
-// tag:all-config-options[]
+if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
+// tag::disabling-toolchain[]
+    tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
+        disableToolchainDetection = true
+    }
+// end::disabling-toolchain[]
+}
+
+// tag::all-config-options[]
 graalvmNative {
     binaries {
         main {

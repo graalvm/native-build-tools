@@ -174,6 +174,7 @@ public interface NativeImageOptions extends Named {
      * to a Java launcher due to Gradle limitations.
      */
     @Nested
+    @Optional
     Property<JavaLauncher> getJavaLauncher();
 
     /**
