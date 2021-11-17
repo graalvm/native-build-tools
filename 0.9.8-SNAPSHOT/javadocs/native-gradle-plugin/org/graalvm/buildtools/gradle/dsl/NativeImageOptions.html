@@ -576,7 +576,8 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getSharedLibrary(
 <ul class="blockList">
 <li class="blockList">
 <h4>getJavaLauncher</h4>
-<pre class="methodSignature">org.gradle.api.provider.Property&lt;org.gradle.jvm.toolchain.JavaLauncher&gt;&nbsp;getJavaLauncher()</pre>
+<pre class="methodSignature">@Optional
+org.gradle.api.provider.Property&lt;org.gradle.jvm.toolchain.JavaLauncher&gt;&nbsp;getJavaLauncher()</pre>
 <div class="block">Returns the toolchain used to invoke native-image. Currently pointing
  to a Java launcher due to Gradle limitations.</div>
 </li>

@@ -624,6 +624,9 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <div class="olist arabic">
 <ol class="arabic">
 <li>
+<p><a href="#disabling-toolchains">Disabling toolchain support</a></p>
+</li>
+<li>
 <p>Run Gradle itself with a GraalVM SDK</p>
 </li>
 <li>
@@ -680,7 +683,7 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <h4 id="_selecting_the_graalvm_toolchain">Selecting the GraalVM toolchain</h4>
 <div class="paragraph">
 <p>By default, the plugin will select a Java 11 GraalVM toolchain.
-If you want to use a different toolchain, for example a GraalVM Enterprise Edition for Java 8, you can configure the toolchain like this:</p>
+If you want to use a different toolchain, for example a GraalVM Community Edition for Java 8, you can configure the toolchain like this:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="title">Selecting the GraalVM toolchain</div>
@@ -690,15 +693,67 @@ If you want to use a different toolchain, for example a GraalVM Enterprise Editi
         main {
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(8)
-                vendor = JvmVendorSpec.matching("GraalVM Enterprise")
+                vendor = JvmVendorSpec.matching("GraalVM Community")
             }
         }
     }
-}
-// end:select-toolchain[]
-
-// tag:all-config-options[]
-graalvmNative {
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(8))
+                vendor.set(JvmVendorSpec.matching("GraalVM Community"))
+            })
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="disabling-toolchains">Disabling toolchain detection</h4>
+<div class="paragraph">
+<p>Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
+This is the case if, for example, you want to use GraalVM Enterprise or that you want to be able to select a particular version of GraalVM.</p>
+</div>
+<div class="paragraph">
+<p>To workaround this problem, you can disable toolchain detection:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Disabling toolchain detection</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
+    disableToolchainDetection = true
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">tasks.withType&lt;org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask&gt;().configureEach {
+    disableToolchainDetection.set(true)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do this, the plugin will search for 2 environment variables: <code>GRAALVM_HOME</code> and <code>JAVA_HOME</code> <em>in that order</em>.
+If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
+Therefore, it becomes your responsibility to make sure that the JDK pointing at this environment variable matches your build script requirements (in particular, the language version).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_configuration_options">Configuration options</h4>
+<div class="paragraph">
+<p>The following configuration options are available for building images:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">NativeImageOption configuration</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     binaries {
         main {
             // Main options
@@ -725,24 +780,6 @@ graalvmNative {
             useFatJar = true // Instead of passing each jar individually, builds a fat jar
         }
     }
-}
-
-graalvmNative {
-    binaries {
-        main {
-            useFatJar = false
-        }
-    }
-}
-
-def myFatJar = tasks.register("myFatJar", Jar)
-
-tasks.named("nativeCompile") {
-    classpathJar = myFatJar
-}
-
-graalvmNative {
-    testSupport = false
 }</code></pre>
 </div>
 </div>
@@ -751,30 +788,31 @@ graalvmNative {
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
     binaries {
         named("main") {
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(8))
-                vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
-            })
+            // Main options
+            imageName.set("application") // The name of the native image, defaults to the project name
+            mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
+            debug.set(true) // Determines if debug info should be generated, defaults to false
+            verbose.set(true) // Add verbose output, defaults to false
+            fallback.set(true) // Sets the fallback mode of native-image, defaults to false
+            sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+
+            systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder
+            configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
+
+            // Advanced options
+            buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+            jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
+
+            // Runtime options
+            runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
+
+            // Development options
+            agent.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
+
+            useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
         }
     }
 }</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_configuration_options">Configuration options</h4>
-<div class="paragraph">
-<p>The following configuration options are available for building images:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="title">NativeImageOption configuration</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs"></code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs"></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
