@@ -51,12 +51,20 @@ graalvmNative {
         named("main") {
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(8))
-                vendor.set(JvmVendorSpec.matching("GraalVM Enterprise"))
+                vendor.set(JvmVendorSpec.matching("GraalVM Community"))
             })
         }
     }
 }
 // end::select-toolchain[]
+
+if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
+// tag::disabling-toolchain[]
+    tasks.withType<org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask>().configureEach {
+        disableToolchainDetection.set(true)
+    }
+// end::disabling-toolchain[]
+}
 
 // tag::all-config-options[]
 graalvmNative {

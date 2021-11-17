@@ -15,6 +15,17 @@ If you are interested in contributing, please refer to our https://github.com/gr
 [[changelog]]
 == Changelog
 
+=== Release 0.9.8
+
+==== Gradle plugin
+
+* Add an option to disable toolchain support altogether, which can be useful to use GraalVM Enterprise Edition, for example.
+* Fixed a bug when using a _fat jar_ which assumed that all entries to be repackaged were jars.
+
+==== JUnit Platform Native
+
+* Fixed builds failing when tests were aborted
+
 === Release 0.9.7.1
 
 ==== Bugfixes

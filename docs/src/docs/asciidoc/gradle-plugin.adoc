@@ -90,8 +90,9 @@ Follow the <<graalvm-setup.adoc#,following instructions>> to install it properly
 
 Eventually, you also have the options to:
 
-1. Run Gradle itself with a GraalVM SDK
-2. Setup a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
+1. <<disabling-toolchains,Disabling toolchain support>>
+2. Run Gradle itself with a GraalVM SDK
+3. Setup a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
 
 Note that none of those options are recommended as they are more fragile.
 
@@ -119,7 +120,7 @@ The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeI
 ==== Selecting the GraalVM toolchain
 
 By default, the plugin will select a Java 11 GraalVM toolchain.
-If you want to use a different toolchain, for example a GraalVM Enterprise Edition for Java 8, you can configure the toolchain like this:
+If you want to use a different toolchain, for example a GraalVM Community Edition for Java 8, you can configure the toolchain like this:
 
 .Selecting the GraalVM toolchain
 [role="multi-language-sample"]
@@ -132,6 +133,29 @@ include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
 ```
 
+[[disabling-toolchains]]
+==== Disabling toolchain detection
+
+Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
+This is the case if, for example, you want to use GraalVM Enterprise or that you want to be able to select a particular version of GraalVM.
+
+To workaround this problem, you can disable toolchain detection:
+
+.Disabling toolchain detection
+[role="multi-language-sample"]
+```groovy
+include::../snippets/gradle/groovy/build.gradle[tags=disabling-toolchain, indent=0]
+```
+
+[role="multi-language-sample"]
+```kotlin
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=disabling-toolchain, indent=0]
+```
+
+If you do this, the plugin will search for 2 environment variables: `GRAALVM_HOME` and `JAVA_HOME` _in that order_.
+If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
+Therefore, it becomes your responsibility to make sure that the JDK pointing at this environment variable matches your build script requirements (in particular, the language version).
+
 ==== Configuration options
 
 The following configuration options are available for building images:
@@ -139,12 +163,12 @@ The following configuration options are available for building images:
 .NativeImageOption configuration
 [role="multi-language-sample"]
 ```groovy
-include::../snippets/gradle/groovy/build.gradle[tags=all-plugin-options]
+include::../snippets/gradle/groovy/build.gradle[tags=all-config-options]
 ```
 
 [role="multi-language-sample"]
 ```kotlin
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-plugin-options]
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 ```
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.

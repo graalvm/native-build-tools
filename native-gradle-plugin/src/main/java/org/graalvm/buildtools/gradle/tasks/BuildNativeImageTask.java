@@ -111,6 +111,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Input
     public abstract Property<Boolean> getAgentEnabled();
 
+    @Input
+    public abstract Property<Boolean> getDisableToolchainDetection();
+
     @Inject
     protected abstract ProviderFactory getProviders();
 
@@ -125,7 +128,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         setDescription("Builds a native image.");
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         getOutputDirectory().convention(outputDir);
-        this.graalvmHomeProvider = getProject().getProviders().environmentVariable("GRAALVM_HOME");
+        ProviderFactory providers = getProject().getProviders();
+        this.graalvmHomeProvider = providers.environmentVariable("GRAALVM_HOME")
+                .forUseAtConfigurationTime()
+                .orElse(providers.environmentVariable("JAVA_HOME").forUseAtConfigurationTime());
+        getDisableToolchainDetection().convention(false);
     }
 
     private List<String> buildActualCommandLineArgs() {
@@ -155,10 +162,20 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         if (options.getVerbose().get()) {
             logger.lifecycle("Args are: " + args);
         }
-        JavaInstallationMetadata metadata = options.getJavaLauncher().get().getMetadata();
-        File executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
-        if (!executablePath.exists() && getGraalVMHome().isPresent()) {
-            executablePath = Paths.get(getGraalVMHome().get()).resolve("bin").resolve(NATIVE_IMAGE_EXE).toFile();
+        File executablePath = null;
+        if (getDisableToolchainDetection().get()) {
+            if (getGraalVMHome().isPresent()) {
+                String graalvmHome = getGraalVMHome().get();
+                getLogger().lifecycle("Toolchain detection is disabled, will use GraalVM from {}.", graalvmHome);
+                executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
+            }
+        }
+        if (executablePath == null) {
+            JavaInstallationMetadata metadata = options.getJavaLauncher().get().getMetadata();
+            executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
+            if (!executablePath.exists() && getGraalVMHome().isPresent()) {
+                executablePath = Paths.get(getGraalVMHome().get()).resolve("bin").resolve(NATIVE_IMAGE_EXE).toFile();
+            }
         }
 
         try {
