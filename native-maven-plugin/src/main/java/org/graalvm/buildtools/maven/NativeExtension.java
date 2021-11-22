@@ -75,13 +75,13 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         return baseDir + File.separator + "test-ids";
     }
 
-    static String buildAgentOption(String context, String baseDir) {
-        String subdir = agentOutputDirectoryFor(context, baseDir);
-        return "-agentlib:native-image-agent=experimental-class-loader-support," +
-                "config-output-dir=" + subdir;
+    static String buildAgentArgument(String baseDir, String context, List<String> agentOptions) {
+        List<String> options = new ArrayList<>(agentOptions);
+        options.add("config-output-dir=" + agentOutputDirectoryFor(baseDir, context));
+        return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
-    private static String agentOutputDirectoryFor(String context, String baseDir) {
+    private static String agentOutputDirectoryFor(String baseDir, String context) {
         return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
     }
 
@@ -92,13 +92,20 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
             boolean hasAgent = hasAgent(session);
             String target = build.getDirectory();
             String testIdsDir = testIdsDirectory(target);
-            withPlugin(build, "native-maven-plugin", onlyApplyWhenNativePluginPresent -> {
+            withPlugin(build, "native-maven-plugin", nativePlugin -> {
+                List<String> agentOptions = hasAgent ?
+                        getAgentOptions(nativePlugin, getSelectedAgentOptions(session)) :
+                        Collections.emptyList();
+
+                // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
                     if (hasAgent) {
-                        configureAgentForSurefire(surefirePlugin, "test", target);
+                        configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, "test", agentOptions));
                     }
                 });
+
+                // Main configuration
                 if (hasAgent) {
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
@@ -111,7 +118,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                                     List<Xpp3Dom> children = new ArrayList<>();
                                     Collections.addAll(children, arrayOfChildren);
                                     Xpp3Dom arg = new Xpp3Dom("argument");
-                                    arg.setValue(buildAgentOption("exec", target));
+                                    arg.setValue(buildAgentArgument(target, "exec", agentOptions));
                                     children.add(0, arg);
                                     arg = new Xpp3Dom("argument");
                                     arg.setValue("-D" + NATIVEIMAGE_IMAGECODE + "=agent");
@@ -128,13 +135,11 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                                 }
                             })
                     );
-                    withPlugin(build, "native-maven-plugin", nativePlugin ->
-                            updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
-                                String context = exec.getGoals().stream().anyMatch("test"::equals) ? "test" : "exec";
-                                Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
-                                agentResourceDirectory.setValue(agentOutputDirectoryFor(context, target));
-                            })
-                    );
+                    updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
+                        String context = exec.getGoals().stream().anyMatch("test"::equals) ? "test" : "exec";
+                        Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
+                        agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
+                    });
                 }
             });
         }
@@ -145,6 +150,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         return Boolean.parseBoolean(String.valueOf(systemProperties.getOrDefault("agent", "false")));
     }
 
+    private static String getSelectedAgentOptions(MavenSession session) {
+        String selectedAgentOptions = session.getSystemProperties().getProperty("agentOptions");
+        if (selectedAgentOptions == null) {
+            return null;
+        }
+        return assertNotEmptyAndTrim(selectedAgentOptions, "agentOptions system property must have a value");
+    }
+
     private static void withPlugin(Build build, String artifactId, Consumer<? super Plugin> consumer) {
         build.getPlugins()
                 .stream()
@@ -153,13 +166,57 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                 .ifPresent(consumer);
     }
 
-    private static void configureAgentForSurefire(Plugin surefirePlugin, String context, String targetDir) {
+    private static List<String> getAgentOptions(Plugin plugin, String selectedAgentOptions) {
+        // This method parses a configuration block with the following structure, searching
+        // for agentOptions elements whose names match the supplied selectedAgentOptions.
+        //
+        // <configuration>
+        //     <agentOptions name="exec">
+        //         <agentOption>experimental-class-loader-support</agentOption>
+        //     </agentOptions>
+        //     <agentOptions name="test">
+        //         <agentOption>experimental-class-loader-support</agentOption>
+        //         <agentOption>access-filter-file=${basedir}/src/test/resources/access-filter.json</agentOption>
+        //     </agentOptions>
+        // </configuration>
+
+        // Implementation Note: selectedAgentOptions may be null if not supplied via a
+        // system property, but we process the configuration anyway in order to
+        // validate proper structure (i.e., that each agentOptions element has a name).
+
+        List<String> options = new ArrayList<>();
+        Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
+        if (configuration != null) {
+            for (Xpp3Dom agentOptions : configuration.getChildren("agentOptions")) {
+                String name = assertNotEmptyAndTrim(agentOptions.getAttribute("name"), "agentOptions element must declare a name attribute");
+                if (name.equals(selectedAgentOptions)) {
+                    for (Xpp3Dom agentOption : agentOptions.getChildren("agentOption")) {
+                        String value = assertNotEmptyAndTrim(agentOption.getValue(), "agentOption element must declare a value");
+                        if (value.contains("config-output-dir")) {
+                            throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
+                        }
+                        options.add(value);
+                    }
+                }
+            }
+        }
+        return options;
+    }
+
+    private static String assertNotEmptyAndTrim(String input, String message) {
+        if (input == null || input.isEmpty()) {
+            throw new IllegalStateException(message);
+        }
+        return input.trim();
+    }
+
+    private static void configureAgentForSurefire(Plugin surefirePlugin, String agentArgument) {
         updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
             Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
             Xpp3Dom agent = findOrAppend(systemProperties, NATIVEIMAGE_IMAGECODE);
             agent.setValue("agent");
             Xpp3Dom argLine = new Xpp3Dom("argLine");
-            argLine.setValue(buildAgentOption(context, targetDir));
+            argLine.setValue(agentArgument);
             configuration.addChild(argLine);
         });
     }
