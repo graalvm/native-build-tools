@@ -130,6 +130,30 @@ For example, to build a native image named `executable-name` that uses
   </buildArgs>
 </configuration>
 ```
+[[configuration-options-agent-options]]
+`<agentOptions>`::
+   If you would like to configure the options for the agent (see <<agent-support>>) --
+   for example, to configure experimental features such as `experimental-class-loader-support`
+   or advanced features such as
+   https://www.graalvm.org/reference-manual/native-image/Agent/#caller-based-filters[Caller-based Filters]
+   and https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters[Access Filters] --
+   you can include `<agentOptions>` within the `<configuration>` block
+   for the Native Image Maven plugin.
+     * You can supply multiple sets of `<agentOptions>`.
+     * Each `<agentOptions>` element must declare a unique `name` attribute.
+     * To enable a specific set of `<agentOptions>`, supply `-DagentOptions=<NAME>` as a command-line
+       argument for Maven, where `<NAME>` corresponds to the `name` attribute of the `<agentOptions>`
+       element.
+     * If `-DagentOptions=<NAME>` is not specified, custom options will not be used with the agent.
+     * The Native Image Maven plugin automatically configures the `config-output-dir` for the agent.
+       An attempt to provide a custom value for the `config-output-dir` option will therefore result
+       in a build failure.
+     * The following example demonstrates how to configure two sets of `<agentOptions>`, one for
+       application execution (`exec`) and one for tests (`test`). The names `exec` and `test` are
+       for demonstration: you may choose any names you wish.
++
+[source,xml,indent=0]
+include::../../../../samples/java-application-with-reflection/pom.xml[tag=native-plugin-agent-options]
 
 NOTE: If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with enterprise features enabled -- for example, an executable will automatically be built with https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e[compressed references] and other optimizations enabled.
 
@@ -290,6 +314,12 @@ mvn -Pnative -Dagent=true test
 
 When the `agent` system property is set to `true`, the agent will be automatically attached to your Maven Surefire test execution, and the generated files can be found in the `target/native/agent-output/test` directory.
 
+To run your tests with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the <<configuration-options-agent-options, documentation for +++agentOptions+++>> for details.
+
+```bash
+mvn -Pnative -Dagent=true -DagentOptions=test test
+```
+
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
 
 [[agent-support-running-application]]
@@ -308,8 +338,14 @@ Then you can execute your application with the agent by running:
 mvn -Pnative -Dagent=true -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
 ```
 
-This will generate configuration files at `target/native/agent-output/exec`.
-If you want to run your native application with those configuration files, you then need to execute this command line:
+To execute your application with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the <<configuration-options-agent-options, documentation for +++agentOptions+++>> for details.
+
+```bash
+mvn -Pnative -Dagent=true -DagentOptions=exec -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
+```
+
+Both of the above commands will generate configuration files in the `target/native/agent-output/exec` directory.
+If you want to run your native application with those configuration files, you then need to execute the following command:
 
 ```bash
 mvn -Pnative -Dagent=true -DskipTests=true package exec:exec@native
