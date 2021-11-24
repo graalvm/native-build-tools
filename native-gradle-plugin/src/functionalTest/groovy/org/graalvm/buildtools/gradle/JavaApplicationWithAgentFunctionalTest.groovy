@@ -149,7 +149,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         withSample("java-application-with-reflection")
 
         when:
-        fails 'nativeTest', '-DagentOption=will-fail'
+        fails 'nativeTest', '-DagentOptions=will-fail'
 
         then:
         errorOutputContains "native-image-agent: unknown option: 'will-fail'."

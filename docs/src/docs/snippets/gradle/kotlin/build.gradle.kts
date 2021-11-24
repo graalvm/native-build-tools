@@ -142,3 +142,20 @@ graalvmNative {
     }
 }
 // end::add-agent-options[]
+
+// tag::add-agent-options-individual[]
+graalvmNative {
+    binaries {
+        named("main") {
+            agentOptions {
+                args.add("experimental-class-loader-support")
+            }
+        }
+        named("test") {
+            agentOptions {
+                args.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
+            }
+        }
+    }
+}
+// end::add-agent-options-individual[]
