@@ -21,6 +21,7 @@ If you are interested in contributing, please refer to our https://github.com/gr
 
 * Add an option to disable toolchain support altogether, which can be useful to use GraalVM Enterprise Edition, for example.
 * Fixed a bug when using a _fat jar_ which assumed that all entries to be repackaged were jars.
+* Made agent options configurable. Note that the `experimental-class-loader-support` agent option is no longer added by default.
 
 ==== JUnit Platform Native
 

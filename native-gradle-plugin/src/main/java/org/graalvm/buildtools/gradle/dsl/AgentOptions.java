@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,53 +38,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.dsl;
 
-package org.graalvm.buildtools.gradle.internal;
-
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.process.JavaForkOptions;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-public abstract class AgentCommandLineProvider implements CommandLineArgumentProvider {
-
-    @Inject
-    @SuppressWarnings("checkstyle:redundantmodifier")
-    public AgentCommandLineProvider() {
-
-    }
-
+public interface AgentOptions {
+    /**
+     * Gets the value which toggles the native-image-agent usage.
+     *
+     * @return The value which toggles the native-image-agent usage.
+     */
     @Input
-    public abstract Property<Boolean> getEnabled();
+    Property<Boolean> getAgent();
 
-    @OutputDirectory
-    public abstract DirectoryProperty getOutputDirectory();
-
+    /**
+     * Gets the native agent arguments. Only used when {@link #getAgent()} is true.
+     * @return the native agent options.
+     */
     @Input
     @Optional
-    public abstract ListProperty<String> getAgentOptions();
+    ListProperty<String> getArgs();
 
-    @Override
-    public Iterable<String> asArguments() {
-        if (getEnabled().get()) {
-            File outputDir = getOutputDirectory().getAsFile().get();
-            List<String> agentOptions = new ArrayList<>(getAgentOptions().getOrElse(Collections.emptyList()));
-            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath());
-            return Arrays.asList(
-                    "-agentlib:native-image-agent=" + String.join(",", agentOptions),
-                    "-Dorg.graalvm.nativeimage.imagecode=agent"
-            );
-        }
-        return Collections.emptyList();
-    }
+    /**
+     * Configures the task which needs to be instrumented.
+     * @return the instrumented task.
+     */
+    @Internal
+    Property<TaskProvider<? extends JavaForkOptions>> getInstrumentedTask();
+
 }

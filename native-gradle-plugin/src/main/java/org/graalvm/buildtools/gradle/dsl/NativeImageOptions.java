@@ -155,11 +155,27 @@ public interface NativeImageOptions extends Named {
 
     /**
      * Gets the value which toggles the native-image-agent usage.
+     * This is a convenience method for calling <code>getAgentOptions().getAgent()</code>.
      *
      * @return The value which toggles the native-image-agent usage.
      */
     @Input
     Property<Boolean> getAgent();
+
+    /**
+     * Returns the GraalVM agent options.
+     * @return the options.
+     */
+    @Nested
+    AgentOptions getAgentOptions();
+
+    /**
+     * Configures the GraalVM agent options.
+     * @param spec the agent configuration.
+     */
+    default void agentOptions(Action<? super AgentOptions> spec) {
+        spec.execute(getAgentOptions());
+    }
 
     /**
      * Gets the value which determines if shared library is being built.

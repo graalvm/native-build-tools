@@ -69,7 +69,10 @@ graalvmNative {
     binaries {
         test {
             verbose = true
-            agent = true
+            agentOptions {
+                agent = true
+                args.add(providers.systemProperty("agentOption").forUseAtConfigurationTime())
+            }
         }
     }
 }

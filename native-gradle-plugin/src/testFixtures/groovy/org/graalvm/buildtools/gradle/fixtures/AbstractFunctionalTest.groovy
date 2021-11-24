@@ -154,7 +154,7 @@ abstract class AbstractFunctionalTest extends Specification {
 
     private void recordOutputs() {
         output = outputWriter.toString()
-        errorOutput = errorOutput.toString()
+        errorOutput = errorOutputWriter.toString()
     }
 
     private GradleRunner newRunner(String... args) {

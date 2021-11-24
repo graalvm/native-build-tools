@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle;
 
 import org.graalvm.buildtools.VersionInfo;
+import org.graalvm.buildtools.gradle.dsl.AgentOptions;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
@@ -115,8 +116,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_TEST_TASK_NAME = "nativeTest";
     public static final String NATIVE_TEST_EXTENSION = "test";
     public static final String NATIVE_MAIN_EXTENSION = "main";
-    public static final String PROCESS_AGENT_RESOURCES_TASK_NAME = "filterAgentResources";
-    public static final String PROCESS_AGENT_TEST_RESOURCES_TASK_NAME = "filterAgentTestResources";
+    public static final String PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX = "filterAgent";
+    public static final String PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX = "Resources";
     public static final String GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME = "generateResourcesConfigFile";
     public static final String GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME = "generateTestResourcesConfigFile";
 
@@ -148,9 +149,18 @@ public class NativeImagePlugin implements Plugin<Project> {
         Provider<NativeImageService> nativeImageServiceProvider = NativeImageService.registerOn(project);
 
         logger = GraalVMLogger.of(project.getLogger());
-
+        DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
         project.getPlugins()
-                .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider));
+                .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
+        project.afterEvaluate(p -> {
+            Map<String, Provider<Boolean>> agents = graalExtension.getAgentProperties();
+            graalExtension.getBinaries().all(options -> {
+                AgentOptions agentOptions = options.getAgentOptions();
+                if (agentOptions.getInstrumentedTask().isPresent()) {
+                    configureAgent(p, agents, options);
+                }
+            });
+        });
     }
 
     private static String deriveTaskName(String name, String prefix, String suffix) {
@@ -160,12 +170,11 @@ public class NativeImagePlugin implements Plugin<Project> {
         return prefix + capitalize(name) + suffix;
     }
 
-    private void configureJavaProject(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
+    private void configureJavaProject(Project project, Provider<NativeImageService> nativeImageServiceProvider, DefaultGraalVmExtension graalExtension) {
         logger.log("====================");
         logger.log("Initializing project: " + project.getName());
         logger.log("====================");
 
-        DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
         Map<String, Provider<Boolean>> agents = graalExtension.getAgentProperties();
 
         // Add DSL extensions for building and testing
@@ -190,13 +199,11 @@ public class NativeImagePlugin implements Plugin<Project> {
             t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_COMPILE_TASK_NAME + " instead."));
         });
 
-        TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentFiles = registerProcessAgentFilesTask(project, PROCESS_AGENT_RESOURCES_TASK_NAME);
-
         // We want to add agent invocation to "run" task, but it is only available when
         // Application Plugin is initialized.
         project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
-            TaskProvider<JavaExec> runTask = tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME);
-            configureAgent(project, agents, mainOptions, runTask, processAgentFiles);
+            TaskProvider<? extends JavaForkOptions> runTask = tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME);
+            mainOptions.getAgentOptions().getInstrumentedTask().convention(runTask);
         });
 
         TaskProvider<GenerateResourcesConfigFile> generateResourcesConfig = registerResourcesConfigTask(
@@ -345,8 +352,6 @@ public class NativeImagePlugin implements Plugin<Project> {
             deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
         }
 
-        TaskProvider<ProcessGeneratedGraalResourceFiles> processAgentTestFiles = registerProcessAgentFilesTask(project, deriveTaskName(name, "filterAgent", "Resources"));
-
         TaskProvider<GenerateResourcesConfigFile> generateTestResourcesConfig = registerResourcesConfigTask(
                 graalExtension.getGeneratedResourcesDirectory(),
                 testOptions,
@@ -358,13 +363,13 @@ public class NativeImagePlugin implements Plugin<Project> {
         ));
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
+        testOptions.getAgentOptions().getInstrumentedTask().set(testTask);
         testTask.configure(test -> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
             test.getOutputs().dir(testResultsDir);
             // Set system property read by the UniqueIdTrackingListener.
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR, testListDirectory.getAsFile().get());
-            configureAgent(project, graalExtension.getAgentProperties(), testOptions, config.getTestTask(), processAgentTestFiles);
             test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
         });
 
@@ -501,14 +506,16 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static void configureAgent(Project project,
                                        Map<String, Provider<Boolean>> agents,
-                                       NativeImageOptions nativeImageOptions,
-                                       TaskProvider<? extends JavaForkOptions> instrumentedTask,
-                                       TaskProvider<ProcessGeneratedGraalResourceFiles> postProcessingTask) {
+                                       NativeImageOptions nativeImageOptions) {
+        String postProcessTaskName = PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX + capitalize(nativeImageOptions.getName()) + PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX;
+        TaskProvider<ProcessGeneratedGraalResourceFiles> postProcessingTask = registerProcessAgentFilesTask(project, postProcessTaskName);
+        TaskProvider<? extends JavaForkOptions> instrumentedTask = nativeImageOptions.getAgentOptions().getInstrumentedTask().get();
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         Provider<Boolean> agent = agents.get(nativeImageOptions.getName());
         cliProvider.getEnabled().set(agent);
         Provider<Directory> outputDir = project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
         cliProvider.getOutputDirectory().set(outputDir);
+        cliProvider.getAgentOptions().set(nativeImageOptions.getAgentOptions().getArgs());
         instrumentedTask.get().getJvmArgumentProviders().add(cliProvider);
         // Gradle won't let us configure from configure so we have to eagerly create the post-processing task :(
         postProcessingTask.get().getGeneratedFilesDir().set(
