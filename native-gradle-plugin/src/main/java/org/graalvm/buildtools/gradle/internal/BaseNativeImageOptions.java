@@ -178,7 +178,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
      */
     @Input
     public Property<Boolean> getAgent() {
-        return getAgentOptions().getAgent();
+        return getAgentOptions().getEnabled();
     }
 
     /**

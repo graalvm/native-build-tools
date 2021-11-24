@@ -70,7 +70,7 @@ graalvmNative {
         test {
             verbose = true
             agentOptions {
-                agent = true
+                enabled = true
                 args.add(providers.systemProperty("agentOptions").forUseAtConfigurationTime())
             }
         }
