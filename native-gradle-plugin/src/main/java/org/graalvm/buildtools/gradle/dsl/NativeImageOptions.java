@@ -155,7 +155,7 @@ public interface NativeImageOptions extends Named {
 
     /**
      * Gets the value which toggles the native-image-agent usage.
-     * This is a convenience method for calling <code>getAgentOptions().getAgent()</code>.
+     * This is a convenience method for calling <code>getAgentOptions().getEnabled()</code>.
      *
      * @return The value which toggles the native-image-agent usage.
      */

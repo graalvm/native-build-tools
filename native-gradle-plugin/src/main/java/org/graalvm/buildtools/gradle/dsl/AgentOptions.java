@@ -55,10 +55,10 @@ public interface AgentOptions {
      * @return The value which toggles the native-image-agent usage.
      */
     @Input
-    Property<Boolean> getAgent();
+    Property<Boolean> getEnabled();
 
     /**
-     * Gets the native agent arguments. Only used when {@link #getAgent()} is true.
+     * Gets the native agent arguments. Only used when {@link #getEnabled()} is true.
      * @return the native agent options.
      */
     @Input
