@@ -246,7 +246,7 @@ The generated configuration files will be found in the `${buildDir}/native/agent
 The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
 This can be done using the `agentOptions` configuration block:
 
-.Disabling the fat jar creation
+.Configuring agent options for every binary
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
@@ -257,6 +257,19 @@ include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
 ----
 
+You may also define distinct agent options for different images.
+In the following example, the agent used for instrumention for the main image has distinct options from the test ones:
+
+.Configuring agent options specifically
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options-individual]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options-individual]
+----
 
 === Disabling test support
 
