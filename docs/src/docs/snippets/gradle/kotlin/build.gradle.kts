@@ -97,7 +97,7 @@ graalvmNative {
 }
 // end::all-config-options[]
 
-// tag::disable-farjar[]
+// tag::disable-fatjar[]
 graalvmNative {
     binaries {
         named("main") {
@@ -132,3 +132,13 @@ graalvmNative {
     }
 }
 // end::custom-binary[]
+
+// tag::add-agent-options[]
+graalvmNative {
+    binaries.configureEach {
+        agentOptions {
+            args.add("experimental-class-loader-support")
+        }
+    }
+}
+// end::add-agent-options[]

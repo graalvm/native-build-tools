@@ -59,6 +59,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -176,7 +177,9 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
      * @return The value which toggles the native-image-agent usage.
      */
     @Input
-    public abstract Property<Boolean> getAgent();
+    public Property<Boolean> getAgent() {
+        return getAgentOptions().getAgent();
+    }
 
     /**
      * Gets the value which determines if shared library is being built.
@@ -214,6 +217,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
                                   ObjectFactory objectFactory,
                                   ProviderFactory providers,
                                   JavaToolchainService toolchains,
+                                  TaskContainer tasks,
                                   String defaultImageName) {
         this.name = name;
         getDebug().convention(false);

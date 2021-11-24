@@ -17,56 +17,55 @@ For upgrading please take a look at the <<changelog,changes section>>.
 Add following to `plugins` section of your project's `build.gradle` / `build.gradle.kts`:
 
 .Applying the plugin
-[subs="verbatim,attributes", role="multi-language-sample"]
-```groovy
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
 plugins {
   // ...
 
   // Apply GraalVM Native Image plugin
   id 'org.graalvm.buildtools.native' version '{gradle-plugin-version}'
 }
-```
+----
 
-[subs="verbatim,attributes", role="multi-language-sample"]
-```kotlin
+[source,kotlin,subs="verbatim,attributes",role="multi-language-sample"]
+----
 plugins {
   // ...
 
   // Apply GraalVM Native Image plugin
   id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
 }
-```
+----
 
 The plugin isn't available on the https://plugins.gradle.org[Gradle Plugin Portal] yet, so you will need to declare a plugin repository in addition:
 
 Add the following to your `settings.gradle` / `settings.gradle.kts`:
 
-[role="multi-language-sample"]
 .Declaring the plugin repository
-```groovy
+[source,groovy,role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/settings.gradle[tags=plugin-management]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source,kotlin,role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/settings.gradle.kts[tags=plugin-management]
-
-```
+----
 
 [TIP]
 .Testing pre-releases
 ====
 You can use the development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/settings.gradle[tags=pre-release, indent=0]
+----
 
-```
-
-[role="multi-language-sample"]
-```kotlin
+[source,kotlin,role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=0]
-```
+----
+
 ====
 
 === Installing GraalVM native image tool
@@ -81,9 +80,9 @@ Therefore, you will need to make sure that you have executed `gu install native-
 
 If Gradle cannot find a GraalVM installation on the machine, it will fail with an error like this:
 
-```
+----
    > No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)
-```
+----
 
 This happens because there's no automatic provisioning of the GraalVM toolchain available yet, so you will have to install it first.
 Follow the <<graalvm-setup.adoc#,following instructions>> to install it properly.
@@ -123,15 +122,15 @@ By default, the plugin will select a Java 11 GraalVM toolchain.
 If you want to use a different toolchain, for example a GraalVM Community Edition for Java 8, you can configure the toolchain like this:
 
 .Selecting the GraalVM toolchain
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source,kotlin,role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
-```
+----
 
 [[disabling-toolchains]]
 ==== Disabling toolchain detection
@@ -142,15 +141,15 @@ This is the case if, for example, you want to use GraalVM Enterprise or that you
 To workaround this problem, you can disable toolchain detection:
 
 .Disabling toolchain detection
-[role="multi-language-sample"]
-```groovy
+[source,groovy,role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/build.gradle[tags=disabling-toolchain, indent=0]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source, kotlin, role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=disabling-toolchain, indent=0]
-```
+----
 
 If you do this, the plugin will search for 2 environment variables: `GRAALVM_HOME` and `JAVA_HOME` _in that order_.
 If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
@@ -161,15 +160,15 @@ Therefore, it becomes your responsibility to make sure that the JDK pointing at 
 The following configuration options are available for building images:
 
 .NativeImageOption configuration
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/build.gradle[tags=all-config-options]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source, kotlin, role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
-```
+----
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
@@ -182,28 +181,28 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 In case this behavior is not required, you can disable the fat jar creation by calling:
 
 .Disabling the fat jar creation
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/build.gradle[tags=disable-fatjar]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source,kotlin,role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-fatjar]
-```
+----
 
 Alternatively, it is possible to use your own fat jar (for example created using the https://imperceptiblethoughts.com/shadow/[Shadow plugin]) by setting the `classpathJar` property directly on the _task_:
 
 .Disabling the fat jar creation
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/build.gradle[tags=custom-fatjar]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source, kotlin, role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=custom-fatjar]
-```
+----
 
 When the `classpathJar` property is set, the `classpath` property is _ignored_.
 
@@ -215,9 +214,10 @@ In other words, tests will be compiled and executed as native code.
 
 Currently, this feature requires the execution of the tests in the classic "JVM" mode _prior to_ the execution of tests in native mode. To execute the tests, execute:
 
-```bash
+[source,bash]
+----
 ./gradlew nativeTest
-```
+----
 
 === Reflection support and running with the native agent
 
@@ -227,18 +227,36 @@ The Gradle plugin makes it easy to generate the required configuration files by 
 
 This should be as easy as appending `-Pagent` to `run` and `nativeBuild`, or `test` and `nativeTest` task invocations:
 
-```bash
+[source,bash]
+----
 ./gradlew -Pagent run # Runs on JVM with native-image-agent.
 ./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
 
 # For testing
 ./gradlew -Pagent test # Runs on JVM with native-image-agent.
 ./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.
-```
+----
 
 Same can be achieved by setting corresponding DSL option, althought this isn't recommended as this is a development mode feature only.
 
 The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
+
+==== Configuring agent options
+
+The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
+This can be done using the `agentOptions` configuration block:
+
+.Disabling the fat jar creation
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
+----
+
 
 === Disabling test support
 
@@ -250,15 +268,15 @@ There are cases where you might want to disable test support:
 In this case, you can disable test support by configuring the `graalvmNative` extension:
 
 .Disabling test support
-[role="multi-language-sample"]
-```groovy
+[source,groovy,role="multi-language-sample"]
+----
 include::../snippets/gradle/groovy/build.gradle[tags=disable-test-support]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source,kotlin,role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-test-support]
-```
+----
 
 [[extra-test-suites]]
 === Configuring additional test suites
@@ -271,15 +289,15 @@ For example, imagine that you have a source set named `integTest` and that its c
 In this case you can register a new native test binary via the `graalvmNative` extension:
 
 .Registering a new test suite
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../../../../samples/java-application-with-custom-tests/build.gradle[tag=register-native-test]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source, kotlin, role="multi-language-sample"]
+----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=custom-binary]
-```
+----
 
 The plugin will then automatically create the following tasks:
 
@@ -302,15 +320,15 @@ For example, you could declare a source set which uses the GraalVM SDK to implem
 This source set would contain code which is only relevant to native images building:
 
 .Declaring a custom source set
-[role="multi-language-sample"]
-```groovy
+[source, groovy, role="multi-language-sample"]
+----
 include::../../../../samples/java-application-with-extra-sourceset/build.gradle[tag=extra-sourceset]
-```
+----
 
-[role="multi-language-sample"]
-```kotlin
+[source, kotlin, role="multi-language-sample"]
+----
 include::../../../../samples/java-application-with-extra-sourceset/build.gradle.kts[tag=extra-sourceset]
-```
+----
 
 == Javadocs
 

@@ -142,4 +142,20 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         junitVersion = System.getProperty('versions.junit')
     }
 
+    def "can configure extra options to the agent"() {
+        gradleVersion = version
+        debug = true
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        fails 'nativeTest', '-DagentOption=will-fail'
+
+        then:
+        errorOutputContains "native-image-agent: unknown option: 'will-fail'."
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
 }
