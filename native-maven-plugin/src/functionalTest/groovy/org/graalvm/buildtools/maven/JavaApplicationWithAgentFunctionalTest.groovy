@@ -46,12 +46,12 @@ import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
-    def "agent is used without custom options"() {
+    def "agent is used for tests when enabled in POM without custom options"() {
         given:
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-Pnative', '-Dagent=true', 'test'
+        mvn '-Pnative', 'test'
 
         then:
         outputContains """
@@ -80,14 +80,41 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains 'Warning: Could not resolve org.apache.maven.surefire'
     }
 
-    def "agent is used with custom options"() {
+    def "agent is not used for tests when enabled in POM but disabled via the command line"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        mvn '-Pnative', '-Dagent=false', 'test'
+
+        then:
+        outputContains """
+[         4 containers found      ]
+[         0 containers skipped    ]
+[         4 containers started    ]
+[         0 containers aborted    ]
+[         4 containers successful ]
+[         0 containers failed     ]
+[         7 tests found           ]
+[         0 tests skipped         ]
+[         7 tests started         ]
+[         0 tests aborted         ]
+[         6 tests successful      ]
+[         1 tests failed          ]
+""".trim()
+
+        and:
+        outputContains 'expected: <Hello, native!> but was: <null>'
+    }
+
+    def "agent is used for tests when enabled in POM with custom options"() {
         given:
         withSample("java-application-with-reflection")
 
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvn '-X', '-Pnative', '-Dagent=true', '-DagentOptions=test', 'test'
+        mvn '-X', '-Pnative', '-DagentOptions=test', 'test'
 
         then:
         outputContains """
@@ -133,7 +160,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-X', '-Pnative', '-Dagent=true', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn '-X', '-Pnative', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         then:
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
@@ -149,10 +176,27 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain 'experimental-class-loader-support'
 
         when:
-        mvn '-Pnative', '-Dagent=true', '-DskipTests=true', 'package', 'exec:exec@native'
+        mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
 
         then:
-        outputContains "Hello, native!"
+        outputContains "Application message: Hello, native!"
+    }
+
+    def "generated agent files are not used when building native image when agent is enabled in POM but disabled via the command line"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        mvn '-X', '-Pnative', '-Dagent=false', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        then:
+        outputDoesNotContain '-agentlib:native-image-agent'
+
+        when:
+        mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
+
+        then:
+        outputContains "Application message: null"
     }
 
     def "custom options and generated agent files are used when building native image"() {
@@ -160,7 +204,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-X', '-Pnative', '-Dagent=true', '-DagentOptions=exec', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn '-X', '-Pnative', '-DagentOptions=main', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         then:
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
@@ -176,10 +220,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain 'access-filter-file='
 
         when:
-        mvn '-Pnative', '-Dagent=true', '-DskipTests=true', 'package', 'exec:exec@native'
+        mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
 
         then:
-        outputContains "Hello, native!"
+        outputContains "Application message: Hello, native!"
     }
 
 }

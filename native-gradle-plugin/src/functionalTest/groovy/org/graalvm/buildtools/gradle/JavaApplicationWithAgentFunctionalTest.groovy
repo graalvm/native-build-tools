@@ -135,7 +135,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         run '-Pagent=true', 'nativeRun'
 
         then:
-        outputContains "Hello, native!"
+        outputContains "Application message: Hello, native!"
 
         where:
         version << TESTED_GRADLE_VERSIONS

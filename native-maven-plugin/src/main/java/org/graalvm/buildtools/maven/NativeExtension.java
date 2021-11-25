@@ -56,7 +56,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -89,24 +88,24 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
     public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
         for (MavenProject project : session.getProjects()) {
             Build build = project.getBuild();
-            boolean hasAgent = hasAgent(session);
-            String target = build.getDirectory();
-            String testIdsDir = testIdsDirectory(target);
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
-                List<String> agentOptions = hasAgent ?
+                String target = build.getDirectory();
+                String testIdsDir = testIdsDirectory(target);
+                boolean isAgentEnabled = isAgentEnabled(session, nativePlugin);
+                List<String> agentOptions = isAgentEnabled ?
                         getAgentOptions(nativePlugin, getSelectedAgentOptions(session)) :
                         Collections.emptyList();
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
-                    if (hasAgent) {
+                    if (isAgentEnabled) {
                         configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, "test", agentOptions));
                     }
                 });
 
                 // Main configuration
-                if (hasAgent) {
+                if (isAgentEnabled) {
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if ("java-agent".equals(exec.getId())) {
@@ -145,9 +144,30 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         }
     }
 
-    private static boolean hasAgent(MavenSession session) {
-        Properties systemProperties = session.getSystemProperties();
-        return Boolean.parseBoolean(String.valueOf(systemProperties.getOrDefault("agent", "false")));
+    private static void withPlugin(Build build, String artifactId, Consumer<? super Plugin> consumer) {
+        build.getPlugins()
+                .stream()
+                .filter(p -> artifactId.equals(p.getArtifactId()))
+                .findFirst()
+                .ifPresent(consumer);
+    }
+
+    private static boolean isAgentEnabled(MavenSession session, Plugin nativePlugin) {
+        String systemProperty = session.getSystemProperties().getProperty("agent");
+        if (systemProperty != null) {
+            // -Dagent=[true|false] overrides configuration in the POM.
+            return parseBoolean("agent system property", systemProperty);
+        }
+
+        Xpp3Dom agent = getAgentNode(nativePlugin);
+        if (agent != null) {
+            Xpp3Dom enabled = agent.getChild("enabled");
+            if (enabled != null) {
+                return parseBoolean("<enabled>", enabled.getValue());
+            }
+        }
+
+        return false;
     }
 
     private static String getSelectedAgentOptions(MavenSession session) {
@@ -158,49 +178,53 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         return assertNotEmptyAndTrim(selectedAgentOptions, "agentOptions system property must have a value");
     }
 
-    private static void withPlugin(Build build, String artifactId, Consumer<? super Plugin> consumer) {
-        build.getPlugins()
-                .stream()
-                .filter(p -> artifactId.equals(p.getArtifactId()))
-                .findFirst()
-                .ifPresent(consumer);
-    }
-
-    private static List<String> getAgentOptions(Plugin plugin, String selectedAgentOptions) {
+    private static List<String> getAgentOptions(Plugin nativePlugin, String selectedAgentOptions) {
         // This method parses a configuration block with the following structure, searching
-        // for agentOptions elements whose names match the supplied selectedAgentOptions.
+        // for <options> elements whose names match the supplied selectedAgentOptions.
         //
         // <configuration>
-        //     <agentOptions name="exec">
-        //         <agentOption>experimental-class-loader-support</agentOption>
-        //     </agentOptions>
-        //     <agentOptions name="test">
-        //         <agentOption>experimental-class-loader-support</agentOption>
-        //         <agentOption>access-filter-file=${basedir}/src/test/resources/access-filter.json</agentOption>
-        //     </agentOptions>
+        //     <agent>
+        //         <enabled>true</enabled>
+        //         <options name="main">
+        //             <option>experimental-class-loader-support</option>
+        //         </options>
+        //         <options name="test">
+        //             <option>experimental-class-loader-support</option>
+        //             <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
+        //         </options>
+        //     </agent>
         // </configuration>
 
         // Implementation Note: selectedAgentOptions may be null if not supplied via a
         // system property, but we process the configuration anyway in order to
-        // validate proper structure (i.e., that each agentOptions element has a name).
+        // validate proper structure (i.e., that each options element has a name).
 
-        List<String> options = new ArrayList<>();
-        Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-        if (configuration != null) {
-            for (Xpp3Dom agentOptions : configuration.getChildren("agentOptions")) {
-                String name = assertNotEmptyAndTrim(agentOptions.getAttribute("name"), "agentOptions element must declare a name attribute");
+        List<String> optionsList = new ArrayList<>();
+        Xpp3Dom agent = getAgentNode(nativePlugin);
+        if (agent != null) {
+            for (Xpp3Dom options : agent.getChildren("options")) {
+                String name = assertNotEmptyAndTrim(options.getAttribute("name"), "<options> must declare a name attribute");
                 if (name.equals(selectedAgentOptions)) {
-                    for (Xpp3Dom agentOption : agentOptions.getChildren("agentOption")) {
-                        String value = assertNotEmptyAndTrim(agentOption.getValue(), "agentOption element must declare a value");
+                    for (Xpp3Dom option : options.getChildren("option")) {
+                        String value = assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value");
                         if (value.contains("config-output-dir")) {
                             throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
                         }
-                        options.add(value);
+                        optionsList.add(value);
                     }
                 }
             }
         }
-        return options;
+        return optionsList;
+    }
+
+    private static boolean parseBoolean(String description, String value) {
+        value = assertNotEmptyAndTrim(value, description + " must have a value").toLowerCase();
+        switch (value) {
+            case "true": return true;
+            case "false": return false;
+            default: throw new IllegalStateException(description + " must have a value of 'true' or 'false'");
+        }
     }
 
     private static String assertNotEmptyAndTrim(String input, String message) {
@@ -208,6 +232,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
             throw new IllegalStateException(message);
         }
         return input.trim();
+    }
+
+    private static Xpp3Dom getAgentNode(Plugin nativePlugin) {
+        Xpp3Dom configuration = (Xpp3Dom) nativePlugin.getConfiguration();
+        if (configuration != null) {
+            return configuration.getChild("agent");
+        }
+        return null;
     }
 
     private static void configureAgentForSurefire(Plugin surefirePlugin, String agentArgument) {

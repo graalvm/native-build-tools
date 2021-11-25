@@ -144,13 +144,18 @@
                                 <buildArg>--no-fallback</buildArg>
                             </buildArgs>
                             <!-- tag::native-plugin-agent-options[] -->
-                            <agentOptions name="exec">
-                                <agentOption>experimental-class-loader-support</agentOption>
-                            </agentOptions>
-                            <agentOptions name="test">
-                                <agentOption>experimental-class-loader-support</agentOption>
-                                <agentOption>access-filter-file=${basedir}/src/test/resources/access-filter.json</agentOption>
-                            </agentOptions>
+                            <agent>
+                                <!-- end::native-plugin-agent-options[] -->
+                                <enabled>true</enabled>
+                                <!-- tag::native-plugin-agent-options[] -->
+                                <options name="main">
+                                    <option>experimental-class-loader-support</option>
+                                </options>
+                                <options name="test">
+                                    <option>experimental-class-loader-support</option>
+                                    <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
+                                </options>
+                            </agent>
                         </configuration>
                         <!-- end::native-plugin-agent-options[] -->
                     </plugin>
