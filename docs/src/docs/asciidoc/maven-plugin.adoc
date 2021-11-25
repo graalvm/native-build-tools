@@ -88,19 +88,23 @@ You can use the development versions of the plugin by adding our snapshot reposi
 ----
 ====
 
+[[configuration-options]]
 === Configuration options
 
 If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  _META-INF/native-image/_ resource location, as described in https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/[Native Image Build Configuration].
 It is also possible to customize the plugin within a
-`<configuration>` node. The following configurations are available.
+`<configuration>` node. The following configuration options are available.
 
-1. Configuration parameter `<mainClass>`: if the execution fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be specified. By default the plugin consults several locations in the  `pom.xml` file in the following order to determine what the main class of the image should be:
-* `<maven-shade-plugin> <transformers> <transformer> <mainClass>`
-* `<maven-assembly-plugin> <archive> <manifest> <mainClass>`
-* `<maven-jar-plugin> <archive> <manifest> <mainClass>`
-2. Configuration parameter `<imageName>`: if an image filename is not set explicitly, use parameter `<imageName>` to provide a custom filename for the image.
-3. Configuration parameter `<buildArgs>`: if you want to pass additional options for to the native image builder, use the `<buildArgs>` parameter in the definition of the plugin. For example, to build a native image with assertions enabled that uses _com.test.classname_ as a main class, add:
-
+`<mainClass>`::
+   If the execution fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be specified. By default the plugin consults several locations in the  `pom.xml` file in the following order to determine what the main class of the image should be:
+      * `<maven-shade-plugin> <transformers> <transformer> <mainClass>`
+      * `<maven-assembly-plugin> <archive> <manifest> <mainClass>`
+      * `<maven-jar-plugin> <archive> <manifest> <mainClass>`
+`<imageName>`::
+   If an image filename is not set explicitly, use parameter `<imageName>` to provide a custom filename for the image.
+`<buildArgs>`::
+   If you want to pass additional options to the native image builder, use the `<buildArgs>` parameter in the definition of the plugin. For example, to build a native image with assertions enabled that uses _com.test.classname_ as a main class, add:
++
 ```xml
 <configuration>
   <imageName>executable-name</imageName>
@@ -116,7 +120,7 @@ If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds 
 
 ==== Reusing configuration from a parent POM
 
-The `<buildArgs>` element can be combined between parent and children POM. Suppose the following parent POM definition:
+The `<buildArgs>` element can be combined between parent and children POM. Suppose you have the following parent POM definition:
 
 ```xml
 <plugin>
@@ -155,14 +159,11 @@ In this case, the arguments that will be passed to the `native-image` executable
 [[testing-support]]
 == JUnit Testing support
 
-In order to use the recommended test listener mode, you need to enable the plugin extensions:
-
-
-In addition, you need to configure the surefire plugin:
+In order to use the recommended test listener mode, you need to enable extensions
+for the `native-maven-plugin` by adding `<extensions>true</extensions>`:
 
 [source,xml,indent=0]
 include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plugin-extensions]
-
 
 Running `mvn -Pnative test` will then build and run native tests.
 
@@ -240,23 +241,23 @@ Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Sh
 [[agent-support]]
 === Reflection support and running with the native agent
 
-If your project requires reflection, then https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html[`native-image-agent`] run might be necessary.
+If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
 
-The Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
+The Native Image Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
 
-Automation will generate configuration files in `target/native/agent-output`. While those files will be automatically used if you run your build with the `-Dagent=true` flag, you should consider reviewing them and add them to your sources instead.
+This agent will generate the native configuration files in a subdirectory of `target/native/agent-output`. Although those files will be automatically used if you run your build with the `-Dagent=true` flag, you should consider reviewing them and adding them to your sources instead.
 
 ==== Running tests with the agent
 
-The simplest way to execute the agent is to do it via execution of unit tests.
+The simplest way to use the agent is to do it via execution of your tests.
+
 Run your test suite with:
 
 ```bash
 mvn -Pnative -Dagent=true test
 ```
 
-Then the agent will be automatically attached to your tests execution.
-The generated files will be found in `target/native/agent-output/test`.
+When the `agent` system property is set to `true`, the agent will be automatically attached to your Maven Surefire test execution, and the generated files can be found in the `target/native/agent-output/test` directory.
 
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
 
