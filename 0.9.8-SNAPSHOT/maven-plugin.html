@@ -436,6 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
@@ -474,15 +475,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_introduction">Introduction</h2>
+<h2 id="_introduction"><a class="anchor" href="#_introduction"></a>Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Maven plugin for GraalVM Native Image building adds support for building and testing native images using <a href="https://maven.apache.org">Apache Maven</a>™.</p>
 </div>
+<div class="paragraph">
+<p>For upgrading please take a look at the <a href="index.html#changelog">Changelog</a>.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_quickstart">Quickstart</h2>
+<h2 id="_quickstart"><a class="anchor" href="#_quickstart"></a>Quickstart</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This plugin first requires that you <a href="graalvm-setup.html">setup GraalVM and <code>native-image</code> properly</a>.
@@ -491,10 +495,10 @@ It will then make use of Maven profiles to enable building and testing of native
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration">Configuration</h2>
+<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>Configuration</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_registering_the_plugin">Registering the plugin</h3>
+<h3 id="_registering_the_plugin"><a class="anchor" href="#_registering_the_plugin"></a>Registering the plugin</h3>
 <div class="paragraph">
 <p>Add the following profile to your <code>pom.xml</code> file:</p>
 </div>
@@ -550,7 +554,7 @@ When <code>mvn -Pnative package</code> completes, an executable is ready for use
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="title">Testing pre-releases</div>
@@ -580,7 +584,7 @@ When <code>mvn -Pnative package</code> completes, an executable is ready for use
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configuration_options">Configuration options</h3>
+<h3 id="_configuration_options"><a class="anchor" href="#_configuration_options"></a>Configuration options</h3>
 <div class="paragraph">
 <p>If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  <em>META-INF/native-image/</em> resource location, as described in <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image Build Configuration</a>.
 It is also possible to customize the plugin within a
@@ -628,7 +632,7 @@ It is also possible to customize the plugin within a
 <p>If you use GraalVM Enterprise as the <code>JAVA_HOME</code> environment, the plugin builds a native image with Enterprise features enabled, e.g., an executable will automatically be built with <a href="https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e">compressed references</a> and other optimizations enabled.</p>
 </div>
 <div class="sect3">
-<h4 id="_reusing_configuration_from_a_parent_pom">Reusing configuration from a parent POM</h4>
+<h4 id="_reusing_configuration_from_a_parent_pom"><a class="anchor" href="#_reusing_configuration_from_a_parent_pom"></a>Reusing configuration from a parent POM</h4>
 <div class="paragraph">
 <p>The <code>&lt;buildArgs&gt;</code> element can be combined between parent and children POM. Suppose the following parent POM definition:</p>
 </div>
@@ -677,7 +681,7 @@ It is also possible to customize the plugin within a
 </div>
 </div>
 <div class="sect1">
-<h2 id="testing-support">JUnit Testing support</h2>
+<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>JUnit Testing support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In order to use the recommended test listener mode, you need to enable the plugin extensions:</p>
@@ -700,7 +704,7 @@ It is also possible to customize the plugin within a
 </div>
 </div>
 <div class="sect1">
-<h2 id="long_classpath_and_shading_support">Long classpath and shading support</h2>
+<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath and shading support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.</p>
@@ -939,7 +943,7 @@ It is also possible to customize the plugin within a
 <p>Please refer to the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin documentation</a> for more details on how to configure shading and the <a href="https://maven.apache.org/plugins/maven-assembly-plugin">Maven Assembly plugin documentation</a> to tweak what to include in tests.</p>
 </div>
 <div class="sect2">
-<h3 id="agent-support">Reflection support and running with the native agent</h3>
+<h3 id="agent-support"><a class="anchor" href="#agent-support"></a>Reflection support and running with the native agent</h3>
 <div class="paragraph">
 <p>If your project requires reflection, then <a href="https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html"><code>native-image-agent</code></a> run might be necessary.</p>
 </div>
@@ -950,7 +954,7 @@ It is also possible to customize the plugin within a
 <p>Automation will generate configuration files in <code>target/native/agent-output</code>. While those files will be automatically used if you run your build with the <code>-Dagent=true</code> flag, you should consider reviewing them and add them to your sources instead.</p>
 </div>
 <div class="sect3">
-<h4 id="_running_tests_with_the_agent">Running tests with the agent</h4>
+<h4 id="_running_tests_with_the_agent"><a class="anchor" href="#_running_tests_with_the_agent"></a>Running tests with the agent</h4>
 <div class="paragraph">
 <p>The simplest way to execute the agent is to do it via execution of unit tests.
 Run your test suite with:</p>
@@ -968,7 +972,7 @@ The generated files will be found in <code>target/native/agent-output/test</code
 <table>
 <tr>
 <td class="icon">
-<div class="title">Warning</div>
+<i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
 If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is automatically added to your native build options.
@@ -978,7 +982,7 @@ If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
 </div>
 </div>
 <div class="sect3">
-<h4 id="_running_your_application_with_the_agent">Running your application with the agent</h4>
+<h4 id="_running_your_application_with_the_agent"><a class="anchor" href="#_running_your_application_with_the_agent"></a>Running your application with the agent</h4>
 <div class="paragraph">
 <p>Executing your application with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.</p>
 </div>
@@ -1032,7 +1036,7 @@ If you want to run your native application with those configuration files, you t
 <table>
 <tr>
 <td class="icon">
-<div class="title">Warning</div>
+<i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
 If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is automatically added to your native build options.
@@ -1045,7 +1049,7 @@ If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
 </div>
 </div>
 <div class="sect1">
-<h2 id="_javadocs">Javadocs</h2>
+<h2 id="_javadocs"><a class="anchor" href="#_javadocs"></a>Javadocs</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In addition, you can consult the <a href="javadocs/native-maven-plugin/index.html">Javadocs of the plugin</a>.</p>

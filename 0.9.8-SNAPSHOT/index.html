@@ -436,6 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
@@ -453,8 +454,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_release_0_9_7_1">Release 0.9.7.1</a></li>
 <li><a href="#_release_0_9_7">Release 0.9.7</a></li>
 <li><a href="#_release_0_9_6">Release 0.9.6</a></li>
-<li><a href="#_agent_support_for_maven_plugin">Agent support for Maven plugin</a></li>
-<li><a href="#_disabling_testing_support">Disabling testing support</a></li>
 <li><a href="#_release_0_9_5">Release 0.9.5</a></li>
 <li><a href="#_release_0_9_4">Release 0.9.4</a></li>
 <li><a href="#_release_0_9_3">Release 0.9.3</a></li>
@@ -494,12 +493,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="changelog">Changelog</h2>
+<h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_release_0_9_8">Release 0.9.8</h3>
+<h3 id="_release_0_9_8"><a class="anchor" href="#_release_0_9_8"></a>Release 0.9.8</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin">Gradle plugin</h4>
+<h4 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -512,7 +511,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_junit_platform_native">JUnit Platform Native</h4>
+<h4 id="_junit_platform_native"><a class="anchor" href="#_junit_platform_native"></a>JUnit Platform Native</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -523,9 +522,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_7_1">Release 0.9.7.1</h3>
+<h3 id="_release_0_9_7_1"><a class="anchor" href="#_release_0_9_7_1"></a>Release 0.9.7.1</h3>
 <div class="sect3">
-<h4 id="_bugfixes">Bugfixes</h4>
+<h4 id="_bugfixes"><a class="anchor" href="#_bugfixes"></a>Bugfixes</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -536,15 +535,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_7">Release 0.9.7</h3>
+<h3 id="_release_0_9_7"><a class="anchor" href="#_release_0_9_7"></a>Release 0.9.7</h3>
 <div class="paragraph">
 <p>Release didn&#8217;t include any fixes.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_6">Release 0.9.6</h3>
+<h3 id="_release_0_9_6"><a class="anchor" href="#_release_0_9_6"></a>Release 0.9.6</h3>
 <div class="sect3">
-<h4 id="_upgrade_to_junit_5_8">Upgrade to JUnit 5.8</h4>
+<h4 id="_upgrade_to_junit_5_8"><a class="anchor" href="#_upgrade_to_junit_5_8"></a>Upgrade to JUnit 5.8</h4>
 <div class="paragraph">
 <p>The plugins now depend on JUnit 5.8 which provides an official test listener which is used by these plugins.
 As a consequence, Maven users will have to configure their builds to enable the plugin extensions:</p>
@@ -567,16 +566,15 @@ As a consequence, Maven users will have to configure their builds to enable the 
 <p>For Gradle users, there&#8217;s no impact on the configuration, however a good consequence is that the <code>junit-native-platform</code> dependency no longer leaks into your application&#8217;s classpath.</p>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_agent_support_for_maven_plugin">Agent support for Maven plugin</h3>
+<div class="sect3">
+<h4 id="_agent_support_for_maven_plugin"><a class="anchor" href="#_agent_support_for_maven_plugin"></a>Agent support for Maven plugin</h4>
 <div class="paragraph">
 <p>The Maven plugin now supports the GraalVM agent to generate configuration files.
 Please refer to the <a href="maven-plugin.html#agent-support">Maven plugin documentation</a> for details.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_disabling_testing_support">Disabling testing support</h3>
+<div class="sect3">
+<h4 id="_disabling_testing_support"><a class="anchor" href="#_disabling_testing_support"></a>Disabling testing support</h4>
 <div class="paragraph">
 <p>The Gradle plugin now provides an option to disable testing support.
 This can be useful if the test framework you are using doesn&#8217;t work with this plugin or that you simply don&#8217;t want to execute tests natively.</p>
@@ -591,8 +589,9 @@ This can be useful if the test framework you are using doesn&#8217;t work with t
 }</code></pre>
 </div>
 </div>
+</div>
 <div class="sect3">
-<h4 id="_configuring_additional_test_images">Configuring additional test images</h4>
+<h4 id="_configuring_additional_test_images"><a class="anchor" href="#_configuring_additional_test_images"></a>Configuring additional test images</h4>
 <div class="paragraph">
 <p>The Gradle plugin now supports building multiple test images, which can be used to execute tests natively for more kinds of tests: integration tests, functional tests, &#8230;&#8203;</p>
 </div>
@@ -602,7 +601,7 @@ This can be useful if the test framework you are using doesn&#8217;t work with t
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_5">Release 0.9.5</h3>
+<h3 id="_release_0_9_5"><a class="anchor" href="#_release_0_9_5"></a>Release 0.9.5</h3>
 <div class="paragraph">
 <p>This release contains, in preparation for supporting more images in the Gradle plugin:</p>
 </div>
@@ -673,7 +672,7 @@ This can be useful if the test framework you are using doesn&#8217;t work with t
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_4">Release 0.9.4</h3>
+<h3 id="_release_0_9_4"><a class="anchor" href="#_release_0_9_4"></a>Release 0.9.4</h3>
 <div class="paragraph">
 <p>This release works around a limitation for Windows users who encounter an issue with long classpath entries on CLI: the Gradle plugin will now automatically handle this problem by creating a fat jar instead of passing all entries on classpath (this behavior can be <a href="gradle-plugin.html#long_classpath_and_fat_jar_support">disabled</a>) if needed).
 Maven users will have to <a href="maven-plugin.html#long_classpath_and_shading_support">configure their build differently</a> to use shading.</p>
@@ -718,7 +717,7 @@ Maven users will have to <a href="maven-plugin.html#long_classpath_and_shading_s
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_3">Release 0.9.3</h3>
+<h3 id="_release_0_9_3"><a class="anchor" href="#_release_0_9_3"></a>Release 0.9.3</h3>
 <div class="paragraph">
 <p>This release contains:</p>
 </div>
@@ -771,7 +770,7 @@ Maven users will have to <a href="maven-plugin.html#long_classpath_and_shading_s
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_2">Release 0.9.2</h3>
+<h3 id="_release_0_9_2"><a class="anchor" href="#_release_0_9_2"></a>Release 0.9.2</h3>
 <div class="paragraph">
 <p>This release contains:</p>
 </div>
@@ -814,7 +813,7 @@ System property <code>-DpersistConfig</code> will have no effect going forward.<
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_1">Release 0.9.1</h3>
+<h3 id="_release_0_9_1"><a class="anchor" href="#_release_0_9_1"></a>Release 0.9.1</h3>
 <div class="paragraph">
 <p>This release contains:</p>
 </div>
@@ -833,7 +832,7 @@ System property <code>-DpersistConfig</code> will have no effect going forward.<
 </div>
 </div>
 <div class="sect2">
-<h3 id="_release_0_9_0">Release 0.9.0</h3>
+<h3 id="_release_0_9_0"><a class="anchor" href="#_release_0_9_0"></a>Release 0.9.0</h3>
 <div class="paragraph">
 <p>Initial release</p>
 </div>

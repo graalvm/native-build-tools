@@ -436,6 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
@@ -478,21 +479,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_introduction">Introduction</h2>
+<h2 id="_introduction"><a class="anchor" href="#_introduction"></a>Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Gradle plugin for GraalVM Native Image building adds support for building and testing native images using the <a href="https://gradle.org">Gradle build tool</a>.</p>
 </div>
 <div class="paragraph">
-<p>For upgrading please take a look at the <a href="#changelog">changes section</a>.</p>
+<p>For upgrading please take a look at the <a href="index.html#changelog">Changelog</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_quickstart">Quickstart</h2>
+<h2 id="_quickstart"><a class="anchor" href="#_quickstart"></a>Quickstart</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_adding_the_plugin">Adding the plugin</h3>
+<h3 id="_adding_the_plugin"><a class="anchor" href="#_adding_the_plugin"></a>Adding the plugin</h3>
 <div class="paragraph">
 <p>Add following to <code>plugins</code> section of your project&#8217;s <code>build.gradle</code> / <code>build.gradle.kts</code>:</p>
 </div>
@@ -548,7 +549,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <table>
 <tr>
 <td class="icon">
-<div class="title">Tip</div>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
 <div class="title">Testing pre-releases</div>
@@ -585,7 +586,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_installing_graalvm_native_image_tool">Installing GraalVM native image tool</h3>
+<h3 id="_installing_graalvm_native_image_tool"><a class="anchor" href="#_installing_graalvm_native_image_tool"></a>Installing GraalVM native image tool</h3>
 <div class="paragraph">
 <p>The plugin relies on Gradle&#8217;s <a href="https://docs.gradle.org/7.1.1/userguide/toolchains.html">JVM toolchain support</a>, allowing to decorrelate the tool used to run Gradle, the compiler used to build your application, and eventually the SDK used to generate a native image.</p>
 </div>
@@ -597,7 +598,7 @@ For this, it will look into conventional places on your machine, including from 
 <table>
 <tr>
 <td class="icon">
-<div class="title">Warning</div>
+<i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
 Even if you have a GraalVM SDK installed, Gradle will <em>not</em> automatically detect if <code>native-image</code> is also installed.
@@ -641,13 +642,13 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration">Configuration</h2>
+<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>Configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This plugin works with the <code>application</code> plugin and will register a number of tasks and extensions for you to configure.</p>
 </div>
 <div class="sect2">
-<h3 id="_available_tasks">Available tasks</h3>
+<h3 id="_available_tasks"><a class="anchor" href="#_available_tasks"></a>Available tasks</h3>
 <div class="paragraph">
 <p>The main tasks that you will want to execute are:</p>
 </div>
@@ -675,12 +676,12 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 </div>
 </div>
 <div class="sect2">
-<h3 id="_native_image_options">Native image options</h3>
+<h3 id="_native_image_options"><a class="anchor" href="#_native_image_options"></a>Native image options</h3>
 <div class="paragraph">
 <p>The <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a> allows you to tweak how the native image is going to be built.</p>
 </div>
 <div class="sect3">
-<h4 id="_selecting_the_graalvm_toolchain">Selecting the GraalVM toolchain</h4>
+<h4 id="_selecting_the_graalvm_toolchain"><a class="anchor" href="#_selecting_the_graalvm_toolchain"></a>Selecting the GraalVM toolchain</h4>
 <div class="paragraph">
 <p>By default, the plugin will select a Java 11 GraalVM toolchain.
 If you want to use a different toolchain, for example a GraalVM Community Edition for Java 8, you can configure the toolchain like this:</p>
@@ -716,7 +717,7 @@ If you want to use a different toolchain, for example a GraalVM Community Editio
 </div>
 </div>
 <div class="sect3">
-<h4 id="disabling-toolchains">Disabling toolchain detection</h4>
+<h4 id="disabling-toolchains"><a class="anchor" href="#disabling-toolchains"></a>Disabling toolchain detection</h4>
 <div class="paragraph">
 <p>Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
 This is the case if, for example, you want to use GraalVM Enterprise or that you want to be able to select a particular version of GraalVM.</p>
@@ -746,7 +747,7 @@ Therefore, it becomes your responsibility to make sure that the JDK pointing at 
 </div>
 </div>
 <div class="sect3">
-<h4 id="_configuration_options">Configuration options</h4>
+<h4 id="_configuration_options"><a class="anchor" href="#_configuration_options"></a>Configuration options</h4>
 <div class="paragraph">
 <p>The following configuration options are available for building images:</p>
 </div>
@@ -819,7 +820,7 @@ Therefore, it becomes your responsibility to make sure that the JDK pointing at 
 <table>
 <tr>
 <td class="icon">
-<div class="title">Note</div>
+<i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
 For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
@@ -829,7 +830,7 @@ For options that can be set using command-line, if both DSL and command-line opt
 </div>
 </div>
 <div class="sect3">
-<h4 id="long_classpath_and_fat_jar_support">Long classpath and fat jar support</h4>
+<h4 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath and fat jar support</h4>
 <div class="paragraph">
 <p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.
 As a consequence, if you are running under Windows, the plugin will automatically shorten the classpath of your project by building a so called "fat jar", which includes all entries from the classpath automatically.</p>
@@ -878,7 +879,7 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 </div>
 </div>
 <div class="sect2">
-<h3 id="testing">Testing support</h3>
+<h3 id="testing"><a class="anchor" href="#testing"></a>Testing support</h3>
 <div class="paragraph">
 <p>This plugin supports running JUnit Platform tests as native images.
 In other words, tests will be compiled and executed as native code.</p>
@@ -893,7 +894,7 @@ In other words, tests will be compiled and executed as native code.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_reflection_support_and_running_with_the_native_agent">Reflection support and running with the native agent</h3>
+<h3 id="_reflection_support_and_running_with_the_native_agent"><a class="anchor" href="#_reflection_support_and_running_with_the_native_agent"></a>Reflection support and running with the native agent</h3>
 <div class="paragraph">
 <p>If your project requires reflection, then <a href="https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html"><code>native-image-agent</code></a> run might be necessary.</p>
 </div>
@@ -921,7 +922,7 @@ In other words, tests will be compiled and executed as native code.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_disabling_test_support">Disabling test support</h3>
+<h3 id="_disabling_test_support"><a class="anchor" href="#_disabling_test_support"></a>Disabling test support</h3>
 <div class="paragraph">
 <p>There are cases where you might want to disable test support:</p>
 </div>
@@ -955,7 +956,7 @@ In other words, tests will be compiled and executed as native code.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="extra-test-suites">Configuring additional test suites</h3>
+<h3 id="extra-test-suites"><a class="anchor" href="#extra-test-suites"></a>Configuring additional test suites</h3>
 <div class="paragraph">
 <p>It&#8217;s common to have multiple test source sets in a Gradle build.
 Typically, you may have an integration test suite, or a functional test suite, in addition to the unit test suite.
@@ -1004,7 +1005,7 @@ In this case you can register a new native test binary via the <code>graalvmNati
 </div>
 </div>
 <div class="sect2">
-<h3 id="plugin-configurations">Configurations defined by the plugin</h3>
+<h3 id="plugin-configurations"><a class="anchor" href="#plugin-configurations"></a>Configurations defined by the plugin</h3>
 <div class="paragraph">
 <p>For each binary (<code>main</code> and <code>test</code>), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:</p>
 </div>
@@ -1062,7 +1063,7 @@ configurations {
 </div>
 </div>
 <div class="sect1">
-<h2 id="_javadocs">Javadocs</h2>
+<h2 id="_javadocs"><a class="anchor" href="#_javadocs"></a>Javadocs</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In addition, you can consult the <a href="javadocs/native-gradle-plugin/index.html">Javadocs of the plugin</a>.</p>
