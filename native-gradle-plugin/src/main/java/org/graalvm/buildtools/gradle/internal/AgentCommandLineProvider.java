@@ -79,6 +79,9 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
         if (getEnabled().get()) {
             File outputDir = getOutputDirectory().getAsFile().get();
             List<String> agentOptions = new ArrayList<>(getAgentOptions().getOrElse(Collections.emptyList()));
+            if (agentOptions.stream().map(s -> s.split("=")[0]).anyMatch(s -> s.contains("config-output-dir"))) {
+                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
+            }
             agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath());
             return Arrays.asList(
                     "-agentlib:native-image-agent=" + String.join(",", agentOptions),
