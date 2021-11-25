@@ -8,6 +8,8 @@ image:https://github.com/graalvm/native-image-build-tools/actions/workflows/nati
 
 The {doctitle} adds support for building and testing native images using https://maven.apache.org[Apache Maven]™.
 
+For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
+
 == Quickstart
 
 This plugin first requires that you <<graalvm-setup.adoc#,setup GraalVM and `native-image` properly>>.
