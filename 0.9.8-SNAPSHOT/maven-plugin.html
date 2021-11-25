@@ -453,7 +453,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_configuration">Configuration</a>
 <ul class="sectlevel2">
 <li><a href="#_registering_the_plugin">Registering the plugin</a></li>
-<li><a href="#_configuration_options">Configuration options</a></li>
+<li><a href="#configuration-options">Configuration options</a></li>
 </ul>
 </li>
 <li><a href="#testing-support">JUnit Testing support</a></li>
@@ -584,16 +584,17 @@ When <code>mvn -Pnative package</code> completes, an executable is ready for use
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configuration_options"><a class="anchor" href="#_configuration_options"></a>Configuration options</h3>
+<h3 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Configuration options</h3>
 <div class="paragraph">
 <p>If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  <em>META-INF/native-image/</em> resource location, as described in <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image Build Configuration</a>.
 It is also possible to customize the plugin within a
-<code>&lt;configuration&gt;</code> node. The following configurations are available.</p>
+<code>&lt;configuration&gt;</code> node. The following configuration options are available.</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Configuration parameter <code>&lt;mainClass&gt;</code>: if the execution fails with the <code>no main manifest attribute, in target/&lt;name&gt;.jar</code> error, the main class should be specified. By default the plugin consults several locations in the  <code>pom.xml</code> file in the following order to determine what the main class of the image should be:</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;mainClass&gt;</code></dt>
+<dd>
+<p>If the execution fails with the <code>no main manifest attribute, in target/&lt;name&gt;.jar</code> error, the main class should be specified. By default the plugin consults several locations in the  <code>pom.xml</code> file in the following order to determine what the main class of the image should be:</p>
 <div class="ulist">
 <ul>
 <li>
@@ -607,15 +608,14 @@ It is also possible to customize the plugin within a
 </li>
 </ul>
 </div>
-</li>
-<li>
-<p>Configuration parameter <code>&lt;imageName&gt;</code>: if an image filename is not set explicitly, use parameter <code>&lt;imageName&gt;</code> to provide a custom filename for the image.</p>
-</li>
-<li>
-<p>Configuration parameter <code>&lt;buildArgs&gt;</code>: if you want to pass additional options for to the native image builder, use the <code>&lt;buildArgs&gt;</code> parameter in the definition of the plugin. For example, to build a native image with assertions enabled that uses <em>com.test.classname</em> as a main class, add:</p>
-</li>
-</ol>
-</div>
+</dd>
+<dt class="hdlist1"><code>&lt;imageName&gt;</code></dt>
+<dd>
+<p>If an image filename is not set explicitly, use parameter <code>&lt;imageName&gt;</code> to provide a custom filename for the image.</p>
+</dd>
+<dt class="hdlist1"><code>&lt;buildArgs&gt;</code></dt>
+<dd>
+<p>If you want to pass additional options to the native image builder, use the <code>&lt;buildArgs&gt;</code> parameter in the definition of the plugin. For example, to build a native image with assertions enabled that uses <em>com.test.classname</em> as a main class, add:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
@@ -628,13 +628,16 @@ It is also possible to customize the plugin within a
 &lt;/configuration&gt;</code></pre>
 </div>
 </div>
+</dd>
+</dl>
+</div>
 <div class="paragraph">
 <p>If you use GraalVM Enterprise as the <code>JAVA_HOME</code> environment, the plugin builds a native image with Enterprise features enabled, e.g., an executable will automatically be built with <a href="https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e">compressed references</a> and other optimizations enabled.</p>
 </div>
 <div class="sect3">
 <h4 id="_reusing_configuration_from_a_parent_pom"><a class="anchor" href="#_reusing_configuration_from_a_parent_pom"></a>Reusing configuration from a parent POM</h4>
 <div class="paragraph">
-<p>The <code>&lt;buildArgs&gt;</code> element can be combined between parent and children POM. Suppose the following parent POM definition:</p>
+<p>The <code>&lt;buildArgs&gt;</code> element can be combined between parent and children POM. Suppose you have the following parent POM definition:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -684,10 +687,8 @@ It is also possible to customize the plugin within a
 <h2 id="testing-support"><a class="anchor" href="#testing-support"></a>JUnit Testing support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In order to use the recommended test listener mode, you need to enable the plugin extensions:</p>
-</div>
-<div class="paragraph">
-<p>In addition, you need to configure the surefire plugin:</p>
+<p>In order to use the recommended test listener mode, you need to enable extensions
+for the <code>native-maven-plugin</code> by adding <code>&lt;extensions&gt;true&lt;/extensions&gt;</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -945,19 +946,21 @@ It is also possible to customize the plugin within a
 <div class="sect2">
 <h3 id="agent-support"><a class="anchor" href="#agent-support"></a>Reflection support and running with the native agent</h3>
 <div class="paragraph">
-<p>If your project requires reflection, then <a href="https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html"><code>native-image-agent</code></a> run might be necessary.</p>
+<p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
 </div>
 <div class="paragraph">
-<p>The Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
+<p>The Native Image Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
 </div>
 <div class="paragraph">
-<p>Automation will generate configuration files in <code>target/native/agent-output</code>. While those files will be automatically used if you run your build with the <code>-Dagent=true</code> flag, you should consider reviewing them and add them to your sources instead.</p>
+<p>This agent will generate the native configuration files in a subdirectory of <code>target/native/agent-output</code>. Although those files will be automatically used if you run your build with the <code>-Dagent=true</code> flag, you should consider reviewing them and adding them to your sources instead.</p>
 </div>
 <div class="sect3">
 <h4 id="_running_tests_with_the_agent"><a class="anchor" href="#_running_tests_with_the_agent"></a>Running tests with the agent</h4>
 <div class="paragraph">
-<p>The simplest way to execute the agent is to do it via execution of unit tests.
-Run your test suite with:</p>
+<p>The simplest way to use the agent is to do it via execution of your tests.</p>
+</div>
+<div class="paragraph">
+<p>Run your test suite with:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -965,8 +968,7 @@ Run your test suite with:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Then the agent will be automatically attached to your tests execution.
-The generated files will be found in <code>target/native/agent-output/test</code>.</p>
+<p>When the <code>agent</code> system property is set to <code>true</code>, the agent will be automatically attached to your Maven Surefire test execution, and the generated files can be found in the <code>target/native/agent-output/test</code> directory.</p>
 </div>
 <div class="admonitionblock warning">
 <table>
