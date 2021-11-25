@@ -612,7 +612,7 @@ Therefore, you will need to make sure that you have executed <code>gu install na
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">   &gt; No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)</code></pre>
+<pre>   &gt; No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -852,7 +852,13 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs"></code></pre>
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            useFatJar.set(false)
+        }
+    }
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -919,6 +925,77 @@ In other words, tests will be compiled and executed as native code.</p>
 </div>
 <div class="paragraph">
 <p>The generated configuration files will be found in the <code>${buildDir}/native/agent-output/${taskName}</code> directory, for example, <code>build/native/agent-output/run</code>.</p>
+</div>
+<div class="sect3">
+<h4 id="_configuring_agent_options"><a class="anchor" href="#_configuring_agent_options"></a>Configuring agent options</h4>
+<div class="paragraph">
+<p>The native agent can be configured <a href="https://www.graalvm.org/reference-manual/native-image/Agent/">with additional options</a>.
+This can be done using the <code>agentOptions</code> configuration block:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring agent options for every binary</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.configureEach {
+        agentOptions {
+            args.add("experimental-class-loader-support")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries.configureEach {
+        agentOptions {
+            args.add("experimental-class-loader-support")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You may also define distinct agent options for different images.
+In the following example, the agent used for instrumention for the main image has distinct options from the test ones:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring agent options specifically</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        main {
+            agentOptions {
+                args.add("experimental-class-loader-support")
+            }
+        }
+        test {
+            agentOptions {
+                args.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            agentOptions {
+                args.add("experimental-class-loader-support")
+            }
+        }
+        named("test") {
+            agentOptions {
+                args.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
