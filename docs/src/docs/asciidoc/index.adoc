@@ -57,12 +57,12 @@ The dependency on `junit-platform-native` which used to be required pre-0.9.6 ca
 
 For Gradle users, there's no impact on the configuration, however a good consequence is that the `junit-native-platform` dependency no longer leaks into your application's classpath.
 
-=== Agent support for Maven plugin
+==== Agent support for Maven plugin
 
 The Maven plugin now supports the GraalVM agent to generate configuration files.
 Please refer to the <<maven-plugin.adoc#agent-support,Maven plugin documentation>> for details.
 
-=== Disabling testing support
+==== Disabling testing support
 
 The Gradle plugin now provides an option to disable testing support.
 This can be useful if the test framework you are using doesn't work with this plugin or that you simply don't want to execute tests natively.
