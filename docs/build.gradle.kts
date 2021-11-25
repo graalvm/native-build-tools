@@ -59,6 +59,8 @@ repositories {
 
 asciidoctorj {
     attributes(mapOf(
+            "icons" to "font",
+            "sectanchors" to "",
             "reproducible" to "",
             "nofooter" to "",
             "toc" to "left",
