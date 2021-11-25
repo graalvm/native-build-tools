@@ -158,4 +158,38 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
+
+    def "reasonable error message if the user provides themselves an output directory"() {
+        gradleVersion = version
+        debug = true
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        fails 'nativeTest', '-DagentOptions=config-output-dir'
+
+        then:
+        errorOutputContains "config-output-dir cannot be supplied as an agent option"
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    def "reasonable error message if the user provides themselves an output directory value"() {
+        gradleVersion = version
+        debug = true
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        fails 'nativeTest', '-DagentOptions=config-output-dir=nope!'
+
+        then:
+        errorOutputContains "config-output-dir cannot be supplied as an agent option"
+
+        where:
+        version << TESTED_GRADLE_VERSIONS
+        junitVersion = System.getProperty('versions.junit')
+    }
 }
