@@ -51,7 +51,9 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-Pnative', 'test'
+        // Run Maven in debug mode (-X) in order to capture the command line arguments
+        // used to launch Surefire with the agent.
+        mvn '-X', '-Pnative', 'test'
 
         then:
         outputContains """
@@ -73,6 +75,11 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
             assert file("target/native/agent-output/test/${name}-config.json").exists()
         }
+
+        and:
+        outputContains '-agentlib:native-image-agent=experimental-class-loader-support'
+        outputContains ',config-output-dir='
+        outputContains '/target/native/agent-output/test'.replace("/", java.io.File.separator)
 
         // If the custom access-filter.json is NOT applied, we should see a warning similar to the following.
         // Warning: Could not resolve org.apache.maven.surefire.junitplatform.JUnitPlatformProvider for reflection configuration. Reason: java.lang.ClassNotFoundException: org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.
@@ -170,10 +177,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         and:
         // If custom agent options are not used, the Maven debug output should include
         // the following segments of the agent command line argument.
-        // -agentlib:native-image-agent=config-output-dir=<BUILD_DIR>/target/native/agent-output/exec
-        outputContains '-agentlib:native-image-agent=config-output-dir='
+        // -agentlib:native-image-agent=experimental-class-loader-support,config-output-dir=<BUILD_DIR>/target/native/agent-output/exec
+        outputContains '-agentlib:native-image-agent=experimental-class-loader-support'
+        outputContains ',config-output-dir='
         outputContains '/target/native/agent-output/exec'.replace("/", java.io.File.separator)
-        outputDoesNotContain 'experimental-class-loader-support'
 
         when:
         mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
@@ -214,8 +221,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         and:
         // If custom agent options are used, the Maven debug output should include
         // the following segments of the agent command line argument.
-        // -agentlib:native-image-agent=experimental-class-loader-support,config-output-dir=<BUILD_DIR>/target/native/agent-output/exec
-        outputContains '-agentlib:native-image-agent=experimental-class-loader-support,config-output-dir='
+        // -agentlib:native-image-agent=experimental-class-loader-support,config-write-period-secs=30,config-write-initial-delay-secs=5,config-output-dir=<BUILD_DIR>/target/native/agent-output/exec
+        outputContains '-agentlib:native-image-agent=experimental-class-loader-support'
+        outputContains ',config-write-period-secs=30,config-write-initial-delay-secs=5'
+        outputContains ',config-output-dir='
         outputContains '/target/native/agent-output/exec'.replace("/", java.io.File.separator)
         outputDoesNotContain 'access-filter-file='
 
