@@ -148,11 +148,14 @@
                                 <!-- end::native-plugin-agent-options[] -->
                                 <enabled>true</enabled>
                                 <!-- tag::native-plugin-agent-options[] -->
-                                <options name="main">
+                                <options><!-- unnamed, shared options -->
                                     <option>experimental-class-loader-support</option>
                                 </options>
-                                <options name="test">
-                                    <option>experimental-class-loader-support</option>
+                                <options name="main"><!-- main options -->
+                                    <option>config-write-period-secs=30</option>
+                                    <option>config-write-initial-delay-secs=5</option>
+                                </options>
+                                <options name="test"><!-- test options -->
                                     <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
                                 </options>
                             </agent>

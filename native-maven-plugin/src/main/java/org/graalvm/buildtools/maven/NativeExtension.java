@@ -180,13 +180,18 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     private static List<String> getAgentOptions(Plugin nativePlugin, String selectedAgentOptions) {
         // This method parses a configuration block with the following structure, searching
-        // for <options> elements whose names match the supplied selectedAgentOptions.
+        // for <options> elements whose names match the supplied selectedAgentOptions or
+        // for unnamed, shared <options> elements.
         //
         // <configuration>
         //     <agent>
         //         <enabled>true</enabled>
-        //         <options name="main">
+        //         <options>
         //             <option>experimental-class-loader-support</option>
+        //         </options>
+        //         <options name="main">
+        //             <option>config-write-period-secs=30</option>
+        //             <option>config-write-initial-delay-secs=5</option>
         //         </options>
         //         <options name="test">
         //             <option>experimental-class-loader-support</option>
@@ -195,27 +200,33 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         //     </agent>
         // </configuration>
 
-        // Implementation Note: selectedAgentOptions may be null if not supplied via a
-        // system property, but we process the configuration anyway in order to
-        // validate proper structure (i.e., that each options element has a name).
+        // NOTE: selectedAgentOptions may be null if not supplied via a system property.
 
         List<String> optionsList = new ArrayList<>();
         Xpp3Dom agent = getAgentNode(nativePlugin);
         if (agent != null) {
             for (Xpp3Dom options : agent.getChildren("options")) {
-                String name = assertNotEmptyAndTrim(options.getAttribute("name"), "<options> must declare a name attribute");
-                if (name.equals(selectedAgentOptions)) {
-                    for (Xpp3Dom option : options.getChildren("option")) {
-                        String value = assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value");
-                        if (value.contains("config-output-dir")) {
-                            throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
-                        }
-                        optionsList.add(value);
-                    }
+                String name = options.getAttribute("name");
+                if (name != null) {
+                    name = assertNotEmptyAndTrim(name, "<options> must declare a non-empty name attribute or omit the name attribute");
+                }
+                // If unnamed, shared options or selected options:
+                if (name == null || name.equals(selectedAgentOptions)) {
+                    processOptionNodes(options, optionsList);
                 }
             }
         }
         return optionsList;
+    }
+
+    private static void processOptionNodes(Xpp3Dom options, List<String> optionsList) {
+        for (Xpp3Dom option : options.getChildren("option")) {
+            String value = assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value");
+            if (value.contains("config-output-dir")) {
+                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
+            }
+            optionsList.add(value);
+        }
     }
 
     private static boolean parseBoolean(String description, String value) {

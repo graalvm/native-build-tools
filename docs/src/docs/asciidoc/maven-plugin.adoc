@@ -152,17 +152,21 @@ For example, to build a native image named `executable-name` that uses
    and https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters[Access Filters] --
    you can include `<options>` within the `<agent>` block.
      * You can supply multiple sets of `<options>`.
-     * Each `<options>` element must declare a unique `name` attribute.
-     * To enable a specific set of `<options>`, supply `-DagentOptions=<NAME>` as a command-line
-       argument for Maven, where `<NAME>` corresponds to the `name` attribute of the `<options>`
-       element.
-     * If `-DagentOptions=<NAME>` is not specified, custom options will not be used with the agent.
-     * The Native Image Maven plugin automatically configures the `config-output-dir` for the agent.
-       An attempt to provide a custom value for the `config-output-dir` option will therefore result
-       in a build failure.
-     * The following example demonstrates how to configure two sets of `<options>`, one for
-       application execution (`main`) and one for tests (`test`). The names `main` and `test` are
-       for demonstration: you may choose any names you wish.
+     * You may declare one unnamed `<options>` element which will always be used whenever
+       the agent is enabled. This should be used to share common options.
+     * Additional `<options>` elements must declare a unique `name` attribute.
+     * To enable a specific set of named `<options>`, supply `-DagentOptions=<NAME>` as a
+       command-line argument for Maven, where `<NAME>` corresponds to the `name` attribute
+       of the `<options>` element.
+     * If `-DagentOptions=<NAME>` is not specified, named sets of options will not be used
+       with the agent.
+     * The Native Image Maven plugin automatically configures the `config-output-dir` for
+       the agent. An attempt to provide a custom value for the `config-output-dir` option
+       will therefore result in a build failure.
+     * The following example demonstrates how to configure three sets of `<options>`, an
+       unnamed set that is always active, one for application execution (`main`) and one
+       for tests (`test`). The names `main` and `test` are for demonstration purposes
+       only: you may choose any names you wish.
 +
 [source,xml,indent=0]
 include::../../../../samples/java-application-with-reflection/pom.xml[tag=native-plugin-agent-options]
@@ -340,7 +344,7 @@ mvn -Pnative -Dagent=true test
 
 When the `agent` system property is set to `true`, the agent will be automatically attached to your Maven Surefire test execution, and the generated files can be found in the `target/native/agent-output/test` directory.
 
-To run your tests with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the <<configuration-options-agent-options, documentation for agent options>> for details.
+To run your tests with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the documentation for <<configuration-options-agent-options, agent options>> for details.
 
 ```bash
 mvn -Pnative -Dagent=true -DagentOptions=test test
@@ -364,7 +368,7 @@ Then you can execute your application with the agent by running:
 mvn -Pnative -Dagent=true -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
 ```
 
-To execute your application with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the <<configuration-options-agent-options, documentation for agent options>> for details.
+To execute your application with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the To execute your application with custom agent options, supply the `-DagentOptions=<NAME>` command-line argument to Maven as follows. See the documentation for <<configuration-options-agent-options, agent options>> for details.
 
 ```bash
 mvn -Pnative -Dagent=true -DagentOptions=main -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
