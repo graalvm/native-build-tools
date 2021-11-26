@@ -154,27 +154,18 @@ public interface NativeImageOptions extends Named {
     Property<Boolean> getVerbose();
 
     /**
-     * Gets the value which toggles the native-image-agent usage.
-     * This is a convenience method for calling <code>getAgentOptions().getEnabled()</code>.
-     *
-     * @return The value which toggles the native-image-agent usage.
-     */
-    @Input
-    Property<Boolean> getAgent();
-
-    /**
-     * Returns the GraalVM agent options.
-     * @return the options.
+     * Returns the GraalVM agent configuration.
+     * @return the configuration.
      */
     @Nested
-    AgentOptions getAgentOptions();
+    AgentConfiguration getAgent();
 
     /**
      * Configures the GraalVM agent options.
      * @param spec the agent configuration.
      */
-    default void agentOptions(Action<? super AgentOptions> spec) {
-        spec.execute(getAgentOptions());
+    default void agent(Action<? super AgentConfiguration> spec) {
+        spec.execute(getAgent());
     }
 
     /**

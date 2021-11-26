@@ -42,7 +42,7 @@
 package org.graalvm.buildtools.gradle;
 
 import org.graalvm.buildtools.VersionInfo;
-import org.graalvm.buildtools.gradle.dsl.AgentOptions;
+import org.graalvm.buildtools.gradle.dsl.AgentConfiguration;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
@@ -155,8 +155,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             Map<String, Provider<Boolean>> agents = graalExtension.getAgentProperties();
             graalExtension.getBinaries().all(options -> {
-                AgentOptions agentOptions = options.getAgentOptions();
-                if (agentOptions.getInstrumentedTask().isPresent()) {
+                AgentConfiguration agentConfiguration = options.getAgent();
+                if (agentConfiguration.getInstrumentedTask().isPresent()) {
                     configureAgent(p, agents, options);
                 }
             });
@@ -203,7 +203,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Application Plugin is initialized.
         project.getPlugins().withType(ApplicationPlugin.class, applicationPlugin -> {
             TaskProvider<? extends JavaForkOptions> runTask = tasks.withType(JavaExec.class).named(ApplicationPlugin.TASK_RUN_NAME);
-            mainOptions.getAgentOptions().getInstrumentedTask().convention(runTask);
+            mainOptions.getAgent().getInstrumentedTask().convention(runTask);
         });
 
         TaskProvider<GenerateResourcesConfigFile> generateResourcesConfig = registerResourcesConfigTask(
@@ -363,7 +363,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         ));
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
-        testOptions.getAgentOptions().getInstrumentedTask().set(testTask);
+        testOptions.getAgent().getInstrumentedTask().set(testTask);
         testTask.configure(test -> {
             testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
             test.getOutputs().dir(testResultsDir);
@@ -411,7 +411,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     }
                     return true;
                 })
-                .orElse(extension.getAgent());
+                .orElse(extension.getAgent().getEnabled());
     }
 
     private static TaskProvider<ProcessGeneratedGraalResourceFiles> registerProcessAgentFilesTask(Project project, String name) {
@@ -509,13 +509,13 @@ public class NativeImagePlugin implements Plugin<Project> {
                                        NativeImageOptions nativeImageOptions) {
         String postProcessTaskName = PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX + capitalize(nativeImageOptions.getName()) + PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX;
         TaskProvider<ProcessGeneratedGraalResourceFiles> postProcessingTask = registerProcessAgentFilesTask(project, postProcessTaskName);
-        TaskProvider<? extends JavaForkOptions> instrumentedTask = nativeImageOptions.getAgentOptions().getInstrumentedTask().get();
+        TaskProvider<? extends JavaForkOptions> instrumentedTask = nativeImageOptions.getAgent().getInstrumentedTask().get();
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         Provider<Boolean> agent = agents.get(nativeImageOptions.getName());
         cliProvider.getEnabled().set(agent);
         Provider<Directory> outputDir = project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
         cliProvider.getOutputDirectory().set(outputDir);
-        cliProvider.getAgentOptions().set(nativeImageOptions.getAgentOptions().getArgs());
+        cliProvider.getAgentOptions().set(nativeImageOptions.getAgent().getOptions());
         instrumentedTask.get().getJvmArgumentProviders().add(cliProvider);
         // Gradle won't let us configure from configure so we have to eagerly create the post-processing task :(
         postProcessingTask.get().getGeneratedFilesDir().set(

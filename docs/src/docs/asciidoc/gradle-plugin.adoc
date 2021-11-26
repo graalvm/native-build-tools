@@ -244,7 +244,7 @@ The generated configuration files will be found in the `${buildDir}/native/agent
 ==== Configuring agent options
 
 The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
-This can be done using the `agentOptions` configuration block:
+This can be done using the `agent` configuration block:
 
 .Configuring agent options for every binary
 [source, groovy, role="multi-language-sample"]
