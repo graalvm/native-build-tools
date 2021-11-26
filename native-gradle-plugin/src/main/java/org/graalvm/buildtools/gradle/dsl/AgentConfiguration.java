@@ -48,7 +48,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.process.JavaForkOptions;
 
-public interface AgentOptions {
+public interface AgentConfiguration {
     /**
      * Gets the value which toggles the native-image-agent usage.
      *
@@ -58,12 +58,12 @@ public interface AgentOptions {
     Property<Boolean> getEnabled();
 
     /**
-     * Gets the native agent arguments. Only used when {@link #getEnabled()} is true.
+     * Gets the native agent options. Only used when {@link #getEnabled()} is true.
      * @return the native agent options.
      */
     @Input
     @Optional
-    ListProperty<String> getArgs();
+    ListProperty<String> getOptions();
 
     /**
      * Configures the task which needs to be instrumented.

@@ -171,15 +171,6 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     @Input
     public abstract Property<Boolean> getVerbose();
 
-    /**
-     * Gets the value which toggles the native-image-agent usage.
-     *
-     * @return The value which toggles the native-image-agent usage.
-     */
-    @Input
-    public Property<Boolean> getAgent() {
-        return getAgentOptions().getEnabled();
-    }
 
     /**
      * Gets the value which determines if shared library is being built.
@@ -223,7 +214,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getDebug().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
-        getAgent().convention(false);
+        getAgent().getEnabled().convention(false);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(SharedConstants.IS_WINDOWS);
