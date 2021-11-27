@@ -77,14 +77,23 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         }
 
         and:
-        outputContains '-agentlib:native-image-agent=experimental-class-loader-support'
+        outputContains '-agentlib:native-image-agent'
+        // From shared, unnamed config:
+        outputContains '=experimental-class-loader-support'
+        // From test config:
+        outputContains ',access-filter-file='
+        outputContains '/src/test/resources/access-filter.json'.replace('/', java.io.File.separator)
+        // Always configured:
         outputContains ',config-output-dir='
         outputContains '/target/native/agent-output/test'.replace("/", java.io.File.separator)
 
-        // If the custom access-filter.json is NOT applied, we should see a warning similar to the following.
-        // Warning: Could not resolve org.apache.maven.surefire.junitplatform.JUnitPlatformProvider for reflection configuration. Reason: java.lang.ClassNotFoundException: org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.
         and:
-        outputContains 'Warning: Could not resolve org.apache.maven.surefire'
+        // If the custom access-filter.json is applied, we should not see any warnings about Surefire types.
+        // The actual warning would be something like:
+        // Warning: Could not resolve org.apache.maven.surefire.junitplatform.JUnitPlatformProvider for reflection configuration. Reason: java.lang.ClassNotFoundException: org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.
+        outputDoesNotContain 'Warning: Could not resolve org.apache.maven.surefire'
+        // From periodic-config:
+        outputDoesNotContain ',config-write-period-secs=30,config-write-initial-delay-secs=5'
     }
 
     def "agent is not used for tests when enabled in POM but disabled via the command line"() {
@@ -121,7 +130,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvn '-X', '-Pnative', '-DagentOptions=test', 'test'
+        mvn '-X', '-Pnative', '-DagentOptions=periodic-config', 'test'
 
         then:
         outputContains """
@@ -147,9 +156,15 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         and:
         // If custom agent options are processed, the debug output for Surefire
         // should include the following segments of the agent command line argument.
-        // -agentlib:native-image-agent=experimental-class-loader-support,access-filter-file=<BUILD_DIR>/src/test/resources/access-filter.json,config-output-dir=<BUILD_DIR>/target/native/agent-output/test
-        outputContains '-agentlib:native-image-agent=experimental-class-loader-support,access-filter-file='
+        outputContains '-agentlib:native-image-agent'
+        // From shared, unnamed config:
+        outputContains '=experimental-class-loader-support'
+        // From test config:
+        outputContains ',access-filter-file='
         outputContains '/src/test/resources/access-filter.json'.replace('/', java.io.File.separator)
+        // From periodic-config:
+        outputContains ',config-write-period-secs=30,config-write-initial-delay-secs=5'
+        // Always configured:
         outputContains ',config-output-dir='
         outputContains '/target/native/agent-output/test'.replace("/", java.io.File.separator)
 
@@ -171,16 +186,21 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/exec/${name}-config.json").exists()
+            assert file("target/native/agent-output/main/${name}-config.json").exists()
         }
 
         and:
         // If custom agent options are not used, the Maven debug output should include
         // the following segments of the agent command line argument.
-        // -agentlib:native-image-agent=experimental-class-loader-support,config-output-dir=<BUILD_DIR>/target/native/agent-output/exec
-        outputContains '-agentlib:native-image-agent=experimental-class-loader-support'
+        outputContains '-agentlib:native-image-agent'
+        // From shared, unnamed config:
+        outputContains '=experimental-class-loader-support'
+        // From main config:
+        outputContains ',access-filter-file='
+        outputContains '/src/main/resources/access-filter.json'.replace('/', java.io.File.separator)
+        // Always configured:
         outputContains ',config-output-dir='
-        outputContains '/target/native/agent-output/exec'.replace("/", java.io.File.separator)
+        outputContains '/target/native/agent-output/main'.replace("/", java.io.File.separator)
 
         when:
         mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
@@ -211,22 +231,27 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-X', '-Pnative', '-DagentOptions=main', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn '-X', '-Pnative', '-DagentOptions=periodic-config', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         then:
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/exec/${name}-config.json").exists()
+            assert file("target/native/agent-output/main/${name}-config.json").exists()
         }
 
         and:
         // If custom agent options are used, the Maven debug output should include
         // the following segments of the agent command line argument.
-        // -agentlib:native-image-agent=experimental-class-loader-support,config-write-period-secs=30,config-write-initial-delay-secs=5,config-output-dir=<BUILD_DIR>/target/native/agent-output/exec
-        outputContains '-agentlib:native-image-agent=experimental-class-loader-support'
+        outputContains '-agentlib:native-image-agent'
+        // From shared, unnamed config:
+        outputContains '=experimental-class-loader-support'
+        // From main config:
+        outputContains ',access-filter-file='
+        outputContains '/src/main/resources/access-filter.json'.replace('/', java.io.File.separator)
+        // From periodic-config:
         outputContains ',config-write-period-secs=30,config-write-initial-delay-secs=5'
+        // Always configured:
         outputContains ',config-output-dir='
-        outputContains '/target/native/agent-output/exec'.replace("/", java.io.File.separator)
-        outputDoesNotContain 'access-filter-file='
+        outputContains '/target/native/agent-output/main'.replace("/", java.io.File.separator)
 
         when:
         mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
