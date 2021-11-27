@@ -239,7 +239,7 @@ Finally, you will need to execute tests using the `integration-test` phase inste
 Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading and the https://maven.apache.org/plugins/maven-assembly-plugin[Maven Assembly plugin documentation] to tweak what to include in tests.
 
 [[agent-support]]
-=== Reflection support and running with the native agent
+== Reflection support and running with the native agent
 
 If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
 
@@ -247,7 +247,7 @@ The Native Image Maven plugin simplifies generation of the required configuratio
 
 This agent will generate the native configuration files in a subdirectory of `target/native/agent-output`. Although those files will be automatically used if you run your build with the `-Dagent=true` flag, you should consider reviewing them and adding them to your sources instead.
 
-==== Running tests with the agent
+=== Running tests with the agent
 
 The simplest way to use the agent is to do it via execution of your tests.
 
@@ -261,7 +261,7 @@ When the `agent` system property is set to `true`, the agent will be automatical
 
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
 
-==== Running your application with the agent
+=== Running your application with the agent
 
 Executing your application with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.
 
