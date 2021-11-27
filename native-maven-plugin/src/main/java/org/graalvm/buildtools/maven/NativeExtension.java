@@ -38,6 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.graalvm.buildtools.maven;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
@@ -70,17 +71,25 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
 
+    /**
+     * Enumeration of execution contexts.
+     * <p>Enum constants are intentionally lowercase for use as directory names
+     * and within the Maven POM as values of the {@code name} attribute in
+     * {@code <options name="...">}.
+     */
+    private enum Context { main, test };
+
     static String testIdsDirectory(String baseDir) {
         return baseDir + File.separator + "test-ids";
     }
 
-    static String buildAgentArgument(String baseDir, String context, List<String> agentOptions) {
+    static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
         options.add("config-output-dir=" + agentOutputDirectoryFor(baseDir, context));
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
-    private static String agentOutputDirectoryFor(String baseDir, String context) {
+    private static String agentOutputDirectoryFor(String baseDir, Context context) {
         return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
     }
 
@@ -92,15 +101,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                 String target = build.getDirectory();
                 String testIdsDir = testIdsDirectory(target);
                 boolean isAgentEnabled = isAgentEnabled(session, nativePlugin);
-                List<String> agentOptions = isAgentEnabled ?
-                        getAgentOptions(nativePlugin, getSelectedAgentOptions(session)) :
-                        Collections.emptyList();
+                String selectedOptionsName = getSelectedOptionsName(session);
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
                     if (isAgentEnabled) {
-                        configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, "test", agentOptions));
+                        List<String> agentOptions = getAgentOptions(nativePlugin, Context.test, selectedOptionsName);
+                        configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, Context.test, agentOptions));
                     }
                 });
 
@@ -116,12 +124,18 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                                     }
                                     List<Xpp3Dom> children = new ArrayList<>();
                                     Collections.addAll(children, arrayOfChildren);
+
+                                    // Agent argument
                                     Xpp3Dom arg = new Xpp3Dom("argument");
-                                    arg.setValue(buildAgentArgument(target, "exec", agentOptions));
+                                    List<String> agentOptions = getAgentOptions(nativePlugin, Context.main, selectedOptionsName);
+                                    arg.setValue(buildAgentArgument(target, Context.main, agentOptions));
                                     children.add(0, arg);
+
+                                    // System property for org.graalvm.nativeimage.imagecode
                                     arg = new Xpp3Dom("argument");
                                     arg.setValue("-D" + NATIVEIMAGE_IMAGECODE + "=agent");
                                     children.add(1, arg);
+
                                     for (Xpp3Dom child : children) {
                                         commandlineArgs.addChild(child);
                                     }
@@ -135,7 +149,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                             })
                     );
                     updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
-                        String context = exec.getGoals().stream().anyMatch("test"::equals) ? "test" : "exec";
+                        Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
                     });
@@ -170,19 +184,26 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         return false;
     }
 
-    private static String getSelectedAgentOptions(MavenSession session) {
-        String selectedAgentOptions = session.getSystemProperties().getProperty("agentOptions");
-        if (selectedAgentOptions == null) {
+    private static String getSelectedOptionsName(MavenSession session) {
+        String selectedOptionsName = session.getSystemProperties().getProperty("agentOptions");
+        if (selectedOptionsName == null) {
             return null;
         }
-        return assertNotEmptyAndTrim(selectedAgentOptions, "agentOptions system property must have a value");
+        return assertNotEmptyAndTrim(selectedOptionsName, "agentOptions system property must have a value");
     }
 
-    private static List<String> getAgentOptions(Plugin nativePlugin, String selectedAgentOptions) {
-        // This method parses a configuration block with the following structure, searching
-        // for <options> elements whose names match the supplied selectedAgentOptions or
-        // for unnamed, shared <options> elements.
-        //
+    /**
+     * Parses the configuration block for the {@code native-maven-plugin}, searching for
+     * {@code <options>} elements whose names match the name of the supplied {@code context}
+     * or {@code selectedOptionsName} and for unnamed, shared {@code <options>} elements,
+     * and returns a list of the collected agent options.
+     * @param nativePlugin the {@code native-maven-plugin}; never null
+     * @param context the current execution context; never null
+     * @param selectedOptionsName the name of the set of custom agent options activated
+     * by the user via the {@code agentOptions} system property; may be null if not
+     * supplied via a system property
+     */
+    private static List<String> getAgentOptions(Plugin nativePlugin, Context context, String selectedOptionsName) {
         // <configuration>
         //     <agent>
         //         <enabled>true</enabled>
@@ -190,17 +211,17 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
         //             <option>experimental-class-loader-support</option>
         //         </options>
         //         <options name="main">
+        //             <option>access-filter-file=${basedir}/src/main/resources/access-filter.json</option>
+        //         </options>
+        //         <options name="test">
+        //             <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
+        //         </options>
+        //         <options name="periodic-config">
         //             <option>config-write-period-secs=30</option>
         //             <option>config-write-initial-delay-secs=5</option>
         //         </options>
-        //         <options name="test">
-        //             <option>experimental-class-loader-support</option>
-        //             <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
-        //         </options>
         //     </agent>
         // </configuration>
-
-        // NOTE: selectedAgentOptions may be null if not supplied via a system property.
 
         List<String> optionsList = new ArrayList<>();
         Xpp3Dom agent = getAgentNode(nativePlugin);
@@ -210,8 +231,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                 if (name != null) {
                     name = assertNotEmptyAndTrim(name, "<options> must declare a non-empty name attribute or omit the name attribute");
                 }
-                // If unnamed, shared options or selected options:
-                if (name == null || name.equals(selectedAgentOptions)) {
+                // If unnamed/shared options, or options for the current context (main/test), or user-selected options:
+                if (name == null || name.equals(context.name()) || name.equals(selectedOptionsName)) {
                     processOptionNodes(options, optionsList);
                 }
             }
