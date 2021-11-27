@@ -4,19 +4,23 @@ The GraalVM team
 
 image:https://github.com/graalvm/native-image-build-tools/actions/workflows/native-maven-plugin.yml/badge.svg[]
 
+[[introduction]]
 == Introduction
 
 The {doctitle} adds support for building and testing native images using https://maven.apache.org[Apache Maven]™.
 
 For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 
+[[quickstart]]
 == Quickstart
 
 This plugin first requires that you <<graalvm-setup.adoc#,setup GraalVM and `native-image` properly>>.
 It will then make use of Maven profiles to enable building and testing of native images.
 
+[[configuration]]
 == Configuration
 
+[[configuration-registering-plugin]]
 === Registering the plugin
 
 Add the following profile to your `pom.xml` file:
@@ -118,6 +122,7 @@ It is also possible to customize the plugin within a
 
 If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with Enterprise features enabled, e.g., an executable will automatically be built with https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e[compressed references] and other optimizations enabled.
 
+[[configuration-reusing-config-from-parent]]
 ==== Reusing configuration from a parent POM
 
 The `<buildArgs>` element can be combined between parent and children POM. Suppose you have the following parent POM definition:
@@ -247,6 +252,7 @@ The Native Image Maven plugin simplifies generation of the required configuratio
 
 This agent will generate the native configuration files in a subdirectory of `target/native/agent-output`. Although those files will be automatically used if you run your build with the `-Dagent=true` flag, you should consider reviewing them and adding them to your sources instead.
 
+[[agent-support-running-tests]]
 === Running tests with the agent
 
 The simplest way to use the agent is to do it via execution of your tests.
@@ -261,6 +267,7 @@ When the `agent` system property is set to `true`, the agent will be automatical
 
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
 
+[[agent-support-running-application]]
 === Running your application with the agent
 
 Executing your application with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.
@@ -285,6 +292,7 @@ mvn -Pnative -Dagent=true -DskipTests=true package exec:exec@native
 
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is automatically added to your native build options.
 
+[[javadocs]]
 == Javadocs
 
 In addition, you can consult the link:javadocs/native-maven-plugin/index.html[Javadocs of the plugin].
