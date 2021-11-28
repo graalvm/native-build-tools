@@ -23,7 +23,7 @@ It will then make use of Maven profiles to enable building and testing of native
 [[configuration-registering-plugin]]
 === Registering the plugin
 
-Add the following profile to your `pom.xml` file:
+Add the following profile to your `pom.xml` file to register the `native-maven-plugin`.
 
 ```xml
   <profiles>
@@ -66,14 +66,14 @@ You can then build a native executable directly with Maven using the `mvn -Pnati
 
 The plugin figures out which JAR files it needs to pass to the native image and
 what the executable main class should be.
-If the heuristics fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
+If the heuristics fail with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
 specified in the `<configuration>` node of the plugin.
 When `mvn -Pnative package` completes, an executable is ready for use, generated in the `target` directory of the project.
 
 [TIP]
 .Testing pre-releases
 ====
-You can use the development versions of the plugin by adding our snapshot repository. Pre-releases are provided for convenience, without any guarantee.
+You can use development versions of the plugin by adding our snapshot repository. Pre-releases are provided for convenience, without any guarantee.
 [source,xml]
 ----
 <pluginRepositories>
@@ -95,37 +95,44 @@ You can use the development versions of the plugin by adding our snapshot reposi
 [[configuration-options]]
 === Configuration options
 
-If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the  _META-INF/native-image/_ resource location, as described in https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/[Native Image Build Configuration].
+If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the `META-INF/native-image/` resource location, as described in https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/[Native Image Build Configuration].
 It is also possible to customize the plugin within a
 `<configuration>` node. The following configuration options are available.
 
 `<mainClass>`::
-   If the execution fails with the `no main manifest attribute, in target/<name>.jar` error, the main class should be specified. By default the plugin consults several locations in the  `pom.xml` file in the following order to determine what the main class of the image should be:
+   If the execution fails with the `no main manifest attribute, in target/<name>.jar`
+   error, the main class should be specified. By default the plugin consults several
+   locations in the `pom.xml` file in the following order to determine what the main class
+   of the image should be.
       * `<maven-shade-plugin> <transformers> <transformer> <mainClass>`
       * `<maven-assembly-plugin> <archive> <manifest> <mainClass>`
       * `<maven-jar-plugin> <archive> <manifest> <mainClass>`
 `<imageName>`::
    If an image filename is not set explicitly, use parameter `<imageName>` to provide a custom filename for the image.
 `<buildArgs>`::
-   If you want to pass additional options to the native image builder, use the `<buildArgs>` parameter in the definition of the plugin. For example, to build a native image with assertions enabled that uses _com.test.classname_ as a main class, add:
-+
+   If you want to pass additional arguments to the native image builder, use `<buildArgs>`
+   in the configuration of the plugin.
+
+For example, to build a native image named `executable-name` that uses
+`org.example.ClassName` as its main class with assertions enabled, add the following
+`<configuration>` block for the `native-maven-plugin`.
+
 ```xml
 <configuration>
   <imageName>executable-name</imageName>
-  <mainClass>com.test.classname</mainClass>
+  <mainClass>org.example.ClassName</mainClass>
   <buildArgs>
     <buildArg>--no-fallback</buildArg>
   </buildArgs>
-  <skipNativeBuild>false</skipNativeBuild>
 </configuration>
 ```
 
-If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with Enterprise features enabled, e.g., an executable will automatically be built with https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e[compressed references] and other optimizations enabled.
+NOTE: If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with enterprise features enabled -- for example, an executable will automatically be built with https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e[compressed references] and other optimizations enabled.
 
 [[configuration-reusing-config-from-parent]]
 ==== Reusing configuration from a parent POM
 
-The `<buildArgs>` element can be combined between parent and children POM. Suppose you have the following parent POM definition:
+The `<buildArgs>` element can be combined between parent and children POMs. Suppose you have the following parent POM definition:
 
 ```xml
 <plugin>
@@ -162,7 +169,7 @@ In this case, the arguments that will be passed to the `native-image` executable
 ```
 
 [[testing-support]]
-== JUnit Testing support
+== Testing support
 
 In order to use the recommended test listener mode, you need to enable extensions
 for the `native-maven-plugin` by adding `<extensions>true</extensions>`:
