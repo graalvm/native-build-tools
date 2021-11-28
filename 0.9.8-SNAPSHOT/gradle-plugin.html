@@ -459,13 +459,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_available_tasks">Available tasks</a></li>
 <li><a href="#_native_image_options">Native image options</a></li>
-<li><a href="#testing">Testing support</a></li>
-<li><a href="#_reflection_support_and_running_with_the_native_agent">Reflection support and running with the native agent</a></li>
-<li><a href="#_disabling_test_support">Disabling test support</a></li>
-<li><a href="#extra-test-suites">Configuring additional test suites</a></li>
-<li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
 </ul>
 </li>
+<li><a href="#testing-support">Testing support</a>
+<ul class="sectlevel2">
+<li><a href="#_disabling_test_support">Disabling test support</a></li>
+<li><a href="#extra-test-suites">Configuring additional test suites</a></li>
+</ul>
+</li>
+<li><a href="#_reflection_support_and_running_with_the_native_agent">Reflection support and running with the native agent</a>
+<ul class="sectlevel2">
+<li><a href="#_configuring_agent_options">Configuring agent options</a></li>
+</ul>
+</li>
+<li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
 <li><a href="#_javadocs">Javadocs</a></li>
 </ul>
 </div>
@@ -554,7 +561,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="content">
 <div class="title">Testing pre-releases</div>
 <div class="paragraph">
-<p>You can use the development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.</p>
+<p>You can use development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
@@ -612,7 +619,7 @@ Therefore, you will need to make sure that you have executed <code>gu install na
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>   &gt; No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)</pre>
+<pre>&gt; No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -620,23 +627,23 @@ Therefore, you will need to make sure that you have executed <code>gu install na
 Follow the <a href="graalvm-setup.html">following instructions</a> to install it properly.</p>
 </div>
 <div class="paragraph">
-<p>Eventually, you also have the options to:</p>
+<p>Alternatively, you may choose to:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><a href="#disabling-toolchains">Disabling toolchain support</a></p>
+<p><a href="#disabling-toolchains">Disable toolchain support</a></p>
 </li>
 <li>
 <p>Run Gradle itself with a GraalVM SDK</p>
 </li>
 <li>
-<p>Setup a <code>GRAALVM_HOME</code> environment variable pointing to your GraalVM installation</p>
+<p>Set up a <code>GRAALVM_HOME</code> environment variable pointing to your GraalVM installation</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>Note that none of those options are recommended as they are more fragile.</p>
+<p>Note that none of the above options is recommended as they are more fragile.</p>
 </div>
 </div>
 </div>
@@ -664,7 +671,7 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <p><code>nativeTestCompile</code>, which will build a native image with tests found in the <code>test</code> source set</p>
 </li>
 <li>
-<p><code>nativeTest</code>, which will <a href="#testing">execute tests</a> found in the <code>test</code> source set in native mode</p>
+<p><code>nativeTest</code>, which will <a href="#testing-support">execute tests</a> found in the <code>test</code> source set in native mode</p>
 </li>
 </ul>
 </div>
@@ -720,10 +727,10 @@ If you want to use a different toolchain, for example a GraalVM Community Editio
 <h4 id="disabling-toolchains"><a class="anchor" href="#disabling-toolchains"></a>Disabling toolchain detection</h4>
 <div class="paragraph">
 <p>Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
-This is the case if, for example, you want to use GraalVM Enterprise or that you want to be able to select a particular version of GraalVM.</p>
+This is the case if, for example, you want to use GraalVM Enterprise or you want to be able to select a particular version of GraalVM.</p>
 </div>
 <div class="paragraph">
-<p>To workaround this problem, you can disable toolchain detection:</p>
+<p>To work around this problem, you can disable toolchain detection:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="title">Disabling toolchain detection</div>
@@ -743,7 +750,7 @@ This is the case if, for example, you want to use GraalVM Enterprise or that you
 <div class="paragraph">
 <p>If you do this, the plugin will search for 2 environment variables: <code>GRAALVM_HOME</code> and <code>JAVA_HOME</code> <em>in that order</em>.
 If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
-Therefore, it becomes your responsibility to make sure that the JDK pointing at this environment variable matches your build script requirements (in particular, the language version).</p>
+Therefore, it becomes your responsibility to make sure that the environment variable points to a JDK that is compatible with your build script requirements (in particular, the language version).</p>
 </div>
 </div>
 <div class="sect3">
@@ -888,11 +895,22 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="testing"><a class="anchor" href="#testing"></a>Testing support</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing support</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>This plugin supports running JUnit Platform tests as native images.
-In other words, tests will be compiled and executed as native code.</p>
+<p>This plugin supports running tests on the
+<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images. This
+means that tests will be compiled and executed as native code.</p>
+</div>
+<div class="paragraph">
+<p>In theory, any <code>TestEngine</code> supported on the JUnit Platform should be supported by this
+plugin as long as the programming language used by the <code>TestEngine</code> and the programming
+language used to write the tests is supported in a GraalVM native image. This plugin
+provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and
+support for additional test engines should be possible with custom native configuration.</p>
 </div>
 <div class="paragraph">
 <p>Currently, this feature requires the execution of the tests in the classic "JVM" mode <em>prior to</em> the execution of tests in native mode. To execute the tests, execute:</p>
@@ -902,105 +920,17 @@ In other words, tests will be compiled and executed as native code.</p>
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeTest</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_reflection_support_and_running_with_the_native_agent"><a class="anchor" href="#_reflection_support_and_running_with_the_native_agent"></a>Reflection support and running with the native agent</h3>
-<div class="paragraph">
-<p>If your project requires reflection, then <a href="https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html"><code>native-image-agent</code></a> run might be necessary.</p>
-</div>
-<div class="paragraph">
-<p>The Gradle plugin makes it easy to generate the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
-</div>
-<div class="paragraph">
-<p>This should be as easy as appending <code>-Pagent</code> to <code>run</code> and <code>nativeBuild</code>, or <code>test</code> and <code>nativeTest</code> task invocations:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
-
-# For testing
-./gradlew -Pagent test # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Same can be achieved by setting corresponding DSL option, althought this isn&#8217;t recommended as this is a development mode feature only.</p>
-</div>
-<div class="paragraph">
-<p>The generated configuration files will be found in the <code>${buildDir}/native/agent-output/${taskName}</code> directory, for example, <code>build/native/agent-output/run</code>.</p>
-</div>
-<div class="sect3">
-<h4 id="_configuring_agent_options"><a class="anchor" href="#_configuring_agent_options"></a>Configuring agent options</h4>
-<div class="paragraph">
-<p>The native agent can be configured <a href="https://www.graalvm.org/reference-manual/native-image/Agent/">with additional options</a>.
-This can be done using the <code>agent</code> configuration block:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="title">Configuring agent options for every binary</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries.configureEach {
-        agent {
-            options.add("experimental-class-loader-support")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries.configureEach {
-        agent {
-            options.add("experimental-class-loader-support")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You may also define distinct agent options for different images.
-In the following example, the agent used for instrumention for the main image has distinct options from the test ones:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="title">Configuring agent options specifically</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries {
-        main {
-            agent {
-                options.add("experimental-class-loader-support")
-            }
-        }
-        test {
-            agent {
-                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
-            }
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries {
-        named("main") {
-            agent {
-                options.add("experimental-class-loader-support")
-            }
-        }
-        named("test") {
-            agent {
-                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
-            }
-        }
-    }
-}</code></pre>
-</div>
-</div>
-</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This plugin requires JUnit Platform 1.8 or higher.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_disabling_test_support"><a class="anchor" href="#_disabling_test_support"></a>Disabling test support</h3>
@@ -1013,7 +943,7 @@ In the following example, the agent used for instrumention for the main image ha
 <p>you don&#8217;t actually want to run your tests in native mode</p>
 </li>
 <li>
-<p>your library or application uses another test framework than JUnit 5 (currently this plugin only supports testing with JUnit Platform 5.8+)</p>
+<p>your library or application uses a testing framework that is not supported on the JUnit Platform</p>
 </li>
 </ul>
 </div>
@@ -1085,8 +1015,113 @@ In this case you can register a new native test binary via the <code>graalvmNati
 <p>The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.</p>
 </div>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reflection_support_and_running_with_the_native_agent"><a class="anchor" href="#_reflection_support_and_running_with_the_native_agent"></a>Reflection support and running with the native agent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
+</div>
+<div class="paragraph">
+<p>The Native Image Gradle plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
+</div>
+<div class="paragraph">
+<p>This should be as easy as appending <code>-Pagent</code> to the <code>run</code> and <code>nativeBuild</code>, or <code>test</code> and <code>nativeTest</code> task invocations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent run # Runs on JVM with native-image-agent.
+./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
+
+# For testing
+./gradlew -Pagent test # Runs on JVM with native-image-agent.
+./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The agent can also be enabled by setting the corresponding DSL flag; however, that is not recommended since this is a development mode feature only.</p>
+</div>
+<div class="paragraph">
+<p>The generated configuration files will be found in the <code>${buildDir}/native/agent-output/${taskName}</code> directory, for example, <code>build/native/agent-output/run</code>.
+Although those files will be automatically used if you run your build with the agent enabled, you should consider reviewing them and adding them to your sources instead.</p>
+</div>
 <div class="sect2">
-<h3 id="plugin-configurations"><a class="anchor" href="#plugin-configurations"></a>Configurations defined by the plugin</h3>
+<h3 id="_configuring_agent_options"><a class="anchor" href="#_configuring_agent_options"></a>Configuring agent options</h3>
+<div class="paragraph">
+<p>The native agent can be configured <a href="https://www.graalvm.org/reference-manual/native-image/Agent/">with additional options</a>.
+This can be done using the <code>agent</code> configuration block:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring agent options for every binary</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.configureEach {
+        agent {
+            options.add("experimental-class-loader-support")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries.configureEach {
+        agent {
+            options.add("experimental-class-loader-support")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You may also define distinct agent options for different images.
+In the following example, the agent used for instrumentation for the main image has distinct options from the test ones:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring agent options specifically</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        main {
+            agent {
+                options.add("experimental-class-loader-support")
+            }
+        }
+        test {
+            agent {
+                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            agent {
+                options.add("experimental-class-loader-support")
+            }
+        }
+        named("test") {
+            agent {
+                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="plugin-configurations"><a class="anchor" href="#plugin-configurations"></a>Configurations defined by the plugin</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>For each binary (<code>main</code> and <code>test</code>), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:</p>
 </div>
@@ -1138,7 +1173,6 @@ dependencies {
 configurations {
     nativeImageClasspath.extendsFrom(getByName("graalImplementation"))
 }</code></pre>
-</div>
 </div>
 </div>
 </div>
