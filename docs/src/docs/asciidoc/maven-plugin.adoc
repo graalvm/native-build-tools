@@ -108,7 +108,8 @@ It is also possible to customize the plugin within a
       * `<maven-assembly-plugin> <archive> <manifest> <mainClass>`
       * `<maven-jar-plugin> <archive> <manifest> <mainClass>`
 `<imageName>`::
-   If an image filename is not set explicitly, use parameter `<imageName>` to provide a custom filename for the image.
+   Use `<imageName>` to set a custom filename for the generated native image. If a custom
+   image name is not supplied, the artifact ID of the project will be used by default.
 `<buildArgs>`::
    If you want to pass additional arguments to the native image builder, use `<buildArgs>`
    in the configuration of the plugin.
