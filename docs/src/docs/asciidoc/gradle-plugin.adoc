@@ -55,7 +55,7 @@ include::../snippets/gradle/kotlin/settings.gradle.kts[tags=plugin-management]
 [TIP]
 .Testing pre-releases
 ====
-You can use the development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
+You can use development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/settings.gradle[tags=pre-release, indent=0]
@@ -65,7 +65,6 @@ include::../snippets/gradle/groovy/settings.gradle[tags=pre-release, indent=0]
 ----
 include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=0]
 ----
-
 ====
 
 === Installing GraalVM native image tool
@@ -81,19 +80,19 @@ Therefore, you will need to make sure that you have executed `gu install native-
 If Gradle cannot find a GraalVM installation on the machine, it will fail with an error like this:
 
 ----
-   > No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)
+> No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)
 ----
 
 This happens because there's no automatic provisioning of the GraalVM toolchain available yet, so you will have to install it first.
 Follow the <<graalvm-setup.adoc#,following instructions>> to install it properly.
 
-Eventually, you also have the options to:
+Alternatively, you may choose to:
 
-1. <<disabling-toolchains,Disabling toolchain support>>
+1. <<disabling-toolchains, Disable toolchain support>>
 2. Run Gradle itself with a GraalVM SDK
-3. Setup a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
+3. Set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
 
-Note that none of those options are recommended as they are more fragile.
+Note that none of the above options is recommended as they are more fragile.
 
 == Configuration
 
@@ -106,7 +105,7 @@ The main tasks that you will want to execute are:
 - `nativeCompile`, which will trigger the generation of a native executable of your application
 - `nativeRun`, which executes the generated native executable
 - `nativeTestCompile`, which will build a native image with tests found in the `test` source set
-- `nativeTest`, which will <<testing,execute tests>> found in the `test` source set in native mode
+- `nativeTest`, which will <<testing-support,execute tests>> found in the `test` source set in native mode
 
 Those tasks are configured with reasonable defaults using the `graalvmNative` extension `binaries` container of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
 
@@ -136,9 +135,9 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
 ==== Disabling toolchain detection
 
 Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
-This is the case if, for example, you want to use GraalVM Enterprise or that you want to be able to select a particular version of GraalVM.
+This is the case if, for example, you want to use GraalVM Enterprise or you want to be able to select a particular version of GraalVM.
 
-To workaround this problem, you can disable toolchain detection:
+To work around this problem, you can disable toolchain detection:
 
 .Disabling toolchain detection
 [source,groovy,role="multi-language-sample"]
@@ -153,7 +152,7 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=disabling-toolchain, in
 
 If you do this, the plugin will search for 2 environment variables: `GRAALVM_HOME` and `JAVA_HOME` _in that order_.
 If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
-Therefore, it becomes your responsibility to make sure that the JDK pointing at this environment variable matches your build script requirements (in particular, the language version).
+Therefore, it becomes your responsibility to make sure that the environment variable points to a JDK that is compatible with your build script requirements (in particular, the language version).
 
 ==== Configuration options
 
@@ -206,8 +205,8 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=custom-fatjar]
 
 When the `classpathJar` property is set, the `classpath` property is _ignored_.
 
-[[testing]]
-=== Testing support
+[[testing-support]]
+== Testing support
 
 This plugin supports running JUnit Platform tests as native images.
 In other words, tests will be compiled and executed as native code.
@@ -219,57 +218,6 @@ Currently, this feature requires the execution of the tests in the classic "JVM"
 ./gradlew nativeTest
 ----
 
-=== Reflection support and running with the native agent
-
-If your project requires reflection, then https://docs.oracle.com/en/graalvm/enterprise/19/guide/reference/native-image/tracing-agent.html[`native-image-agent`] run might be necessary.
-
-The Gradle plugin makes it easy to generate the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
-
-This should be as easy as appending `-Pagent` to `run` and `nativeBuild`, or `test` and `nativeTest` task invocations:
-
-[source,bash]
-----
-./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
-
-# For testing
-./gradlew -Pagent test # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.
-----
-
-Same can be achieved by setting corresponding DSL option, althought this isn't recommended as this is a development mode feature only.
-
-The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
-
-==== Configuring agent options
-
-The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
-This can be done using the `agent` configuration block:
-
-.Configuring agent options for every binary
-[source, groovy, role="multi-language-sample"]
-----
-include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
-----
-
-[source, kotlin, role="multi-language-sample"]
-----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
-----
-
-You may also define distinct agent options for different images.
-In the following example, the agent used for instrumention for the main image has distinct options from the test ones:
-
-.Configuring agent options specifically
-[source, groovy, role="multi-language-sample"]
-----
-include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options-individual]
-----
-
-[source, kotlin, role="multi-language-sample"]
-----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options-individual]
-----
 
 === Disabling test support
 
@@ -319,8 +267,61 @@ The plugin will then automatically create the following tasks:
 
 The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.
 
+== Reflection support and running with the native agent
+
+If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
+
+The Native Image Gradle plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
+
+This should be as easy as appending `-Pagent` to the `run` and `nativeBuild`, or `test` and `nativeTest` task invocations:
+
+[source,bash]
+----
+./gradlew -Pagent run # Runs on JVM with native-image-agent.
+./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
+
+# For testing
+./gradlew -Pagent test # Runs on JVM with native-image-agent.
+./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.
+----
+
+The agent can also be enabled by setting the corresponding DSL flag; however, that is not recommended since this is a development mode feature only.
+
+The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
+Although those files will be automatically used if you run your build with the agent enabled, you should consider reviewing them and adding them to your sources instead.
+
+=== Configuring agent options
+
+The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
+This can be done using the `agent` configuration block:
+
+.Configuring agent options for every binary
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
+----
+
+You may also define distinct agent options for different images.
+In the following example, the agent used for instrumentation for the main image has distinct options from the test ones:
+
+.Configuring agent options specifically
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options-individual]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options-individual]
+----
+
 [[plugin-configurations]]
-=== Configurations defined by the plugin
+== Configurations defined by the plugin
 
 For each binary (`main` and `test`), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:
 
