@@ -113,6 +113,9 @@ It is also possible to customize the plugin within a
 `<buildArgs>`::
    If you want to pass additional arguments to the native image builder, use `<buildArgs>`
    in the configuration of the plugin.
+`<skipNativeBuild>`::
+   To skip generation of the native image, supply
+   `<skipNativeBuild>true</skipNativeBuild>` in the configuration of the plugin.
 
 For example, to build a native image named `executable-name` that uses
 `org.example.ClassName` as its main class with assertions enabled, add the following
