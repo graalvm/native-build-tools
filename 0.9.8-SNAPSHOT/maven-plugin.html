@@ -460,6 +460,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#long_classpath_and_shading_support">Long classpath and shading support</a></li>
 <li><a href="#agent-support">Reflection support and running with the native agent</a>
 <ul class="sectlevel2">
+<li><a href="#agent-support-enabling">Enabling the agent</a></li>
+<li><a href="#agent-support-configuring-options">Configuring agent options</a></li>
 <li><a href="#agent-support-running-tests">Running tests with the agent</a></li>
 <li><a href="#agent-support-running-application">Running your application with the agent</a></li>
 </ul>
@@ -588,8 +590,10 @@ When <code>mvn -Pnative package</code> completes, an executable is ready for use
 <div class="sect2">
 <h3 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Configuration options</h3>
 <div class="paragraph">
-<p>If you use Native Image Maven plugin, it will pick up all the configuration for your application stored below the <code>META-INF/native-image/</code> resource location, as described in <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image Build Configuration</a>.
-It is also possible to customize the plugin within a
+<p>If you use Native Image Maven plugin, it will pick up all the configuration for your
+application stored below the <code>META-INF/native-image/</code> resource location, as described in
+<a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image
+Build Configuration</a>. It is also possible to customize the plugin within a
 <code>&lt;configuration&gt;</code> node. The following configuration options are available.</p>
 </div>
 <div class="dlist">
@@ -628,6 +632,11 @@ in the configuration of the plugin.</p>
 <dd>
 <p>To skip generation of the native image, supply
 <code>&lt;skipNativeBuild&gt;true&lt;/skipNativeBuild&gt;</code> in the configuration of the plugin.</p>
+</dd>
+<dt class="hdlist1"><code>&lt;agent&gt;</code></dt>
+<dd>
+<p>Configuration of the <a href="#agent-support">native agent</a>. See <a href="#agent-support-enabling">Enabling the agent</a>
+and <a href="#agent-support-configuring-options">Configuring agent options</a> for details.</p>
 </dd>
 </dl>
 </div>
@@ -1010,13 +1019,171 @@ This plugin provides integration with Maven Surefire 2.22.0 or higher.
 <h2 id="agent-support"><a class="anchor" href="#agent-support"></a>Reflection support and running with the native agent</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
+<p>If your project requires reflection, classpath resources, dynamic proxies or other
+features requiring explicit native configuration, it may prove helpful to first run your
+application or tests using the
+<a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
 </div>
 <div class="paragraph">
-<p>The Native Image Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
+<p>The Native Image Maven plugin simplifies generation of the required configuration files by
+injecting the agent automatically for you (this includes, but is not limited to the
+reflection file).</p>
 </div>
 <div class="paragraph">
-<p>This agent will generate the native configuration files in a subdirectory of <code>target/native/agent-output</code>. Although those files will be automatically used if you run your build with the <code>-Dagent=true</code> flag, you should consider reviewing them and adding them to your sources instead.</p>
+<p>The agent generates the native configuration files in a subdirectory of
+<code>target/native/agent-output</code>. Although those files will be automatically used if you run
+your build with the agent enabled, you should consider reviewing the generated files and
+adding them to your sources instead.</p>
+</div>
+<div class="sect2">
+<h3 id="agent-support-enabling"><a class="anchor" href="#agent-support-enabling"></a>Enabling the agent</h3>
+<div class="paragraph">
+<p>The agent is disabled by default, but it can be enabled within your <code>pom.xml</code> file or via
+the command line.</p>
+</div>
+<div class="paragraph">
+<p>To enable the agent by default, specify <code>&lt;enabled&gt;true&lt;/enabled&gt;</code> as follows in the
+configuration of the <code>native-maven-plugin</code> in your POM.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+  &lt;agent&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+  &lt;/agent&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To enable the agent via the command line, supply the <code>-Dagent=true</code> flag when running
+Maven. The examples in the following sections demonstrate how to do this for your
+application and for tests.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you have enabled the agent within your POM, you can still disable it via the command
+line by supplying the <code>-Dagent=false</code> flag.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h3>
+<div class="paragraph">
+<p>If you would like to configure the options for the agent&#8201;&#8212;&#8201;for example, to configure
+experimental features such as <code>experimental-class-loader-support</code> or advanced features
+such as
+<a href="https://www.graalvm.org/reference-manual/native-image/Agent/#caller-based-filters">Caller-based Filters</a>
+and <a href="https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters">Access Filters</a>&#8201;&#8212;&#8201;you can include <code>&lt;options&gt;</code> within the <code>&lt;agent&gt;</code> block of the configuration of the
+<code>native-maven-plugin</code> in your POM.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You can supply multiple sets of <code>&lt;options&gt;</code>.</p>
+</li>
+<li>
+<p>You can declare an unnamed <code>&lt;options&gt;</code> element which will always be used whenever the
+agent is enabled. This should be used to declare common options that will be used for
+all executions with the agent.</p>
+</li>
+<li>
+<p>Additional <code>&lt;options&gt;</code> elements must declare a unique <code>name</code> attribute.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>To configure options for your application, use the name <code>main</code>.</p>
+</li>
+<li>
+<p>To configure options for your tests, use the name <code>test</code>.</p>
+</li>
+<li>
+<p>To configure additional sets of options, declare each with a unique name other than
+<code>main</code> or <code>test</code>.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The <code>main</code> options are enabled automatically whenever your application is run with the
+agent.</p>
+</li>
+<li>
+<p>The <code>test</code> options are enabled automatically whenever your tests are run with the agent.</p>
+</li>
+<li>
+<p>To enable any other set of named <code>&lt;options&gt;</code>, supply <code>-DagentOptions=&lt;NAME&gt;</code> as a
+command-line argument for Maven, where <code>&lt;NAME&gt;</code> corresponds to the <code>name</code> attribute of
+the <code>&lt;options&gt;</code> element.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The Native Image Maven plugin automatically configures the <code>config-output-dir</code> for the
+agent. An attempt to configure a custom value for the <code>config-output-dir</code> option will
+therefore result in a build failure.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following example is likely more complex than anything you would do in your own
+projects, but it demonstrates how to configure four sets of <code>&lt;options&gt;</code>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The unnamed set is always active.</p>
+</li>
+<li>
+<p>The <code>main</code> set is automatically active for application execution.</p>
+</li>
+<li>
+<p>The <code>test</code> set is automatically active for test execution.</p>
+</li>
+<li>
+<p>The <code>periodic-config</code> set is never active by default, but it can be enabled via
+<code>-DagentOptions=periodic-config</code> on the command line.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+    &lt;agent&gt;
+        &lt;options&gt;&lt;!-- shared options --&gt;
+            &lt;option&gt;experimental-class-loader-support&lt;/option&gt;
+        &lt;/options&gt;
+        &lt;options name="main"&gt;&lt;!-- main options --&gt;
+            &lt;option&gt;access-filter-file=${basedir}/src/main/resources/access-filter.json&lt;/option&gt;
+        &lt;/options&gt;
+        &lt;options name="test"&gt;&lt;!-- test options --&gt;
+            &lt;option&gt;access-filter-file=${basedir}/src/test/resources/access-filter.json&lt;/option&gt;
+        &lt;/options&gt;
+        &lt;options name="periodic-config"&gt;&lt;!-- periodic-config options --&gt;
+            &lt;option&gt;config-write-period-secs=30&lt;/option&gt;
+            &lt;option&gt;config-write-initial-delay-secs=5&lt;/option&gt;
+        &lt;/options&gt;
+    &lt;/agent&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="agent-support-running-tests"><a class="anchor" href="#agent-support-running-tests"></a>Running tests with the agent</h3>
@@ -1032,7 +1199,20 @@ This plugin provides integration with Maven Surefire 2.22.0 or higher.
 </div>
 </div>
 <div class="paragraph">
-<p>When the <code>agent</code> system property is set to <code>true</code>, the agent will be automatically attached to your Maven Surefire test execution, and the generated files can be found in the <code>target/native/agent-output/test</code> directory.</p>
+<p>When the <code>agent</code> system property is set to <code>true</code> (or when the agent is
+<a href="#agent-support-enabling">enabled in the POM</a>), the agent will be automatically attached
+to your Maven Surefire test execution, and the generated files can be found in the
+<code>target/native/agent-output/test</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>To run your tests with custom agent options, supply the <code>-DagentOptions=&lt;NAME&gt;</code>
+command-line argument to Maven as follows. See the documentation for
+<a href="#agent-support-configuring-options">agent options</a> for details.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config test</code></pre>
+</div>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1041,7 +1221,8 @@ This plugin provides integration with Maven Surefire 2.22.0 or higher.
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is automatically added to your native build options.
+If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
+automatically added to your native build options.
 </td>
 </tr>
 </table>
@@ -1050,7 +1231,8 @@ If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
 <div class="sect2">
 <h3 id="agent-support-running-application"><a class="anchor" href="#agent-support-running-application"></a>Running your application with the agent</h3>
 <div class="paragraph">
-<p>Executing your application with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.</p>
+<p>Executing your application with the agent is more involved and requires you to configure a
+separate mojo execution which allows forking the Java process.</p>
 </div>
 <div class="paragraph">
 <p>In your <code>native</code> Maven profile section, add the following:</p>
@@ -1090,8 +1272,19 @@ If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
 </div>
 </div>
 <div class="paragraph">
-<p>This will generate configuration files at <code>target/native/agent-output/exec</code>.
-If you want to run your native application with those configuration files, you then need to execute this command line:</p>
+<p>To execute your application with custom agent options, supply the <code>-DagentOptions=&lt;NAME&gt;</code>
+command-line argument to Maven as follows. See the documentation for
+<a href="#agent-support-configuring-options">agent options</a> for details.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both of the above commands will generate configuration files in the
+<code>target/native/agent-output/main</code> directory. If you want to run your native application
+with those configuration files, you then need to execute the following command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1105,7 +1298,8 @@ If you want to run your native application with those configuration files, you t
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is automatically added to your native build options.
+If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
+automatically added to your native build options.
 </td>
 </tr>
 </table>
