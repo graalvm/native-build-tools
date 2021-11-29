@@ -34,6 +34,11 @@ jobs:
           pushd native-gradle-plugin
             ./gradlew test inspections
           popd
+      - name: Unit tests results
+        uses: actions/upload-artifact@v1
+        with:
+          name: unit-tests-results
+          path: native-gradle-plugin/build/reports/tests/test/index.html
   functional-testing-gradle-plugin:
     name: Functional testing
     runs-on: ubuntu-18.04
@@ -54,6 +59,11 @@ jobs:
           pushd native-gradle-plugin
             ./gradlew functionalTest
           popd
+      - name: Functional tests results
+        uses: actions/upload-artifact@v1
+        with:
+          name: functional-tests-results
+          path: native-gradle-plugin/build/reports/tests/functionalTest/index.html
   full-functional-testing-gradle-plugin:
     name: Full functional testing
     runs-on: ubuntu-18.04
@@ -74,3 +84,8 @@ jobs:
           pushd native-gradle-plugin
             ./gradlew fullFunctionalTest
           popd
+      - name: Full functional tests results
+        uses: actions/upload-artifact@v1
+        with:
+          name: full-functional-tests-results
+          path: native-gradle-plugin/build/reports/tests/fullFunctionalTest/index.html
