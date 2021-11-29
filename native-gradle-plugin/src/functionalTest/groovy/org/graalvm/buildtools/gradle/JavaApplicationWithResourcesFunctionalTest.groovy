@@ -44,9 +44,8 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import spock.lang.Unroll
 
 class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest {
-    @Unroll("can build an application which uses resources using #pattern on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can build an application which uses resources using #pattern with JUnit Platform #junitVersion")
     def "can build an application which uses resources"() {
-        gradleVersion = version
         def nativeApp = file("build/native/nativeCompile/java-application")
         debug = true
         given:
@@ -90,8 +89,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
 
         where:
         junitVersion = System.getProperty('versions.junit')
-        [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
-                                         [["explicit resource declaration", """
+        [pattern, config] << [["explicit resource declaration", """
 graalvmNative {
     binaries {
         main {
@@ -132,14 +130,12 @@ graalvmNative {
     }
 }
 """
-                                          ]]
-        ].combinations()
+                                          ]
+        ]
     }
 
-    @Unroll("can run native tests which uses resources using #pattern on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can run native tests which uses resources using #pattern with JUnit Platform #junitVersion")
     def "can run native tests which uses resources"() {
-        gradleVersion = version
-
         given:
         withSample("java-application-with-resources")
 
@@ -169,8 +165,7 @@ graalvmNative {
 
         where:
         junitVersion = System.getProperty('versions.junit')
-        [version, [pattern, config]] << [TESTED_GRADLE_VERSIONS,
-                                         [["explicit resource declaration", """
+        [pattern, config] << [["explicit resource declaration", """
 graalvmNative {
     binaries {
         test {
@@ -196,12 +191,11 @@ graalvmNative {
     }
 }
 """
-                                          ]]
-        ].combinations()
+                                          ]
+        ]
     }
 
     def "scans resources of jar file even if it includes a native-image/resources-config.json file"() {
-        gradleVersion = version
         def nativeApp = file("build/native/nativeCompile/java-application")
         debug = true
         given:
@@ -266,6 +260,5 @@ graalvmNative {
 
         where:
         junitVersion = System.getProperty('versions.junit')
-        version << TESTED_GRADLE_VERSIONS
     }
 }

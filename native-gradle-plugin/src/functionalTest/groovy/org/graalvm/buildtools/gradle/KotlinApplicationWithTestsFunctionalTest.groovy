@@ -47,10 +47,8 @@ import spock.lang.Unroll
 
 class KotlinApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 
-    @Unroll("can execute Kotlin tests in a native image directly on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can execute Kotlin tests in a native image directly with JUnit Platform #junitVersion")
     def "can execute Kotlin tests in a native image directly"() {
-        gradleVersion = version
-
         given:
         withSample("kotlin-application-with-tests")
 
@@ -99,7 +97,6 @@ class KotlinApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         }
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 }

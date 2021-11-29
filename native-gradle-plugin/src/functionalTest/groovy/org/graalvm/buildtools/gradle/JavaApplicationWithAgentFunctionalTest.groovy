@@ -47,9 +47,8 @@ import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
-    @Unroll("agent is passed and generates resources files on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("agent is passed and generates resources files with JUnit Platform #junitVersion")
     def "agent is passed"() {
-        gradleVersion = version
         debug = true
         given:
         withSample("java-application-with-reflection")
@@ -87,14 +86,11 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         }
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
-    @Unroll("agent property takes precedence on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("agent property takes precedence with JUnit Platform #junitVersion")
     def "agent property takes precedence"() {
-        gradleVersion = version
-
         given:
         withSample("java-application-with-reflection")
 
@@ -105,14 +101,12 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         outputContains """org.graalvm.demo.ApplicationTest > message is hello native FAILED"""
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/134")
-    @Unroll("generated agent files are added when building native image on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("generated agent files are added when building native image with JUnit Platform #junitVersion")
     def "generated agent files are used when building native image"() {
-        gradleVersion = version
         debug = true
         given:
         withSample("java-application-with-reflection")
@@ -138,12 +132,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         outputContains "Application message: Hello, native!"
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
     def "can configure extra options to the agent"() {
-        gradleVersion = version
         debug = true
         given:
         withSample("java-application-with-reflection")
@@ -155,12 +147,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "native-image-agent: unknown option: 'will-fail'."
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
     def "reasonable error message if the user provides themselves an output directory"() {
-        gradleVersion = version
         debug = true
         given:
         withSample("java-application-with-reflection")
@@ -172,12 +162,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "config-output-dir cannot be supplied as an agent option"
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
     def "reasonable error message if the user provides themselves an output directory value"() {
-        gradleVersion = version
         debug = true
         given:
         withSample("java-application-with-reflection")
@@ -189,7 +177,6 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "config-output-dir cannot be supplied as an agent option"
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 }

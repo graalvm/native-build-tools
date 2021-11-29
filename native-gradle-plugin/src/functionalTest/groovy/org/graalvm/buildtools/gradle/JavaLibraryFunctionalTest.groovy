@@ -46,8 +46,6 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 class JavaLibraryFunctionalTest extends AbstractFunctionalTest {
 
     def "can build a native image for a simple library"() {
-        gradleVersion = version
-
         def libExt = ""
         if (IS_LINUX) {
             libExt = ".so"
@@ -76,8 +74,5 @@ class JavaLibraryFunctionalTest extends AbstractFunctionalTest {
 
         and:
         library.exists()
-
-        where:
-        version << TESTED_GRADLE_VERSIONS
     }
 }

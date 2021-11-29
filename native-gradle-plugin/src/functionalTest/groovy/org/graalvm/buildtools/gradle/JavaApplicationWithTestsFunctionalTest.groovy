@@ -47,9 +47,8 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
-    @Unroll("can execute tests in a native image on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can execute tests in a native image with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {
-        gradleVersion = version
         def nativeTestsApp = file("build/native/nativeTestCompile/java-application-tests")
 
         given:
@@ -89,14 +88,11 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 """.trim()
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
-    @Unroll("can execute tests in a native image directly on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can execute tests in a native image directly with JUnit Platform #junitVersion")
     def "can execute tests in a native image directly"() {
-        gradleVersion = version
-
         given:
         withSample("java-application-with-tests")
 
@@ -144,15 +140,12 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         }
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/133")
-    @Unroll("can disable test support on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can disable test support with JUnit Platform #junitVersion")
     def "can disable test support"() {
-        gradleVersion = version
-
         given:
         withSample("java-application-with-tests")
 
@@ -173,15 +166,12 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         }
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/77")
-    @Unroll("can register a custom test image on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("can register a custom test image with JUnit Platform #junitVersion")
     def "can register a custom test image"() {
-        gradleVersion = version
-
         given:
         withSample("java-application-with-custom-tests")
 
@@ -229,7 +219,6 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         }
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 }
