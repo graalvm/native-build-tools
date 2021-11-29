@@ -102,7 +102,7 @@ graalvmNative {
     }
 }
 """],
-                                         ["detected", """
+                                          ["detected", """
 graalvmNative {
     binaries {
         main {
@@ -117,7 +117,7 @@ graalvmNative {
     }
 }
 """
-                                         ],
+                                          ],
                                           ["project local detection only", """
 graalvmNative {
     binaries {
@@ -182,7 +182,7 @@ graalvmNative {
     }
 }
 """],
-                                         ["detected", """
+                                          ["detected", """
 graalvmNative {
     binaries {
         test {
@@ -196,7 +196,76 @@ graalvmNative {
     }
 }
 """
-                                         ]]
+                                          ]]
         ].combinations()
+    }
+
+    def "scans resources of jar file even if it includes a native-image/resources-config.json file"() {
+        gradleVersion = version
+        def nativeApp = file("build/native/nativeCompile/java-application")
+        debug = true
+        given:
+        withSample("java-application-with-resources")
+
+        def resourcesFile = file("src/main/resources/META-INF/native-image/app/resource-config.json")
+        resourcesFile.parentFile.mkdirs()
+        resourcesFile << """
+{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}
+        """
+
+        buildFile << """
+            graalvmNative {
+                binaries {
+                    main {
+                        verbose = true
+                        resources {
+                            autodetection {
+                                enabled = true
+                                ignoreExistingResourcesConfigFile = true
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'nativeCompile'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+            doesNotContain ':build', ':run'
+        }
+
+        and:
+        nativeApp.exists()
+
+        and:
+        file("build/native/generated/generateResourcesConfigFile/resource-config.json").text == '''{
+  "resources" : {
+    "includes" : [ {
+      "pattern" : "\\\\Qmessage.txt\\\\E"
+    } ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}'''
+
+        when:
+        def process = execute(nativeApp)
+
+        then:
+        process.output.contains "Hello, native!"
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+        version << TESTED_GRADLE_VERSIONS
     }
 }

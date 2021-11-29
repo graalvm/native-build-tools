@@ -104,6 +104,9 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
     @Parameter(property = "resources.autodetection.detectionExclusionPatterns")
     private List<String> detectionExclusionPatterns;
 
+    @Parameter(property = "resources.autodetection.ignoreExistingResourcesConfig", defaultValue = "false")
+    private boolean ignoreExistingResourcesConfig;
+
     @Override
     public void execute() throws MojoExecutionException {
         Set<PatternValue> includes = asPatternValues(resourceIncludedPatterns);
@@ -197,7 +200,7 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
      * the directory. If it's a jar we do the same but with jar entries instead.
      */
     private void detectResourcesFromClasspathEntry(ResourceFilter filter, Set<String> detectedResources, File file) throws IOException {
-        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(file, filter::shouldIncludeResource);
+        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(file, filter::shouldIncludeResource, ignoreExistingResourcesConfig);
         List<String> resources = analyzer.getResources();
         getLog().info(String.format("Detected resources for %s are %s", file, resources));
         detectedResources.addAll(resources);

@@ -54,10 +54,12 @@ import java.util.zip.ZipEntry;
 
 class JarAnalyzer extends ClassPathEntryAnalyzer {
     private final File jarFile;
+    private final boolean ignoreExistingResourcesConfig;
 
-    JarAnalyzer(File jarFile, Function<String, Boolean> resourceFilter) {
+    JarAnalyzer(File jarFile, Function<String, Boolean> resourceFilter, boolean ignoreExistingResourcesConfig) {
         super(resourceFilter);
         this.jarFile = jarFile;
+        this.ignoreExistingResourcesConfig = ignoreExistingResourcesConfig;
     }
 
     protected List<String> initialize() throws IOException {
@@ -69,7 +71,7 @@ class JarAnalyzer extends ClassPathEntryAnalyzer {
                 hasNativeImageResourceFile = FileUtils.normalizePathSeparators(entry.getName()).startsWith(Helper.META_INF_NATIVE_IMAGE + "/")
                     && entry.getName().endsWith("resource-config.json");
 
-                if (hasNativeImageResourceFile) {
+                if (hasNativeImageResourceFile && !ignoreExistingResourcesConfig) {
                     break;
                 }
                 if (!entry.isDirectory()) {

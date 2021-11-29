@@ -64,6 +64,17 @@ public abstract class ResourceDetectionOptions {
     public abstract Property<Boolean> getRestrictToProjectDependencies();
 
     /**
+     * If set to true, then if a classpath entry contains a META-INF/native-image
+     * resources file, then we would still try to detect resources contained in
+     * that classpath entry (e.g jar). By default, this behavior is set to false,
+     * meaning that if such a file is present, detection is disabled for this
+     * particular classpath entry.
+     * @return the ignore property
+     */
+    @Input
+    public abstract Property<Boolean> getIgnoreExistingResourcesConfigFile();
+
+    /**
      * Returns the list of regular expressions which will be used to exclude
      * resources from detection.
      */
@@ -84,6 +95,7 @@ public abstract class ResourceDetectionOptions {
     public ResourceDetectionOptions() {
         getEnabled().convention(false);
         getRestrictToProjectDependencies().convention(true);
+        getIgnoreExistingResourcesConfigFile().convention(false);
         getDetectionExclusionPatterns().convention(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION);
     }
 }

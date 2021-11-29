@@ -50,11 +50,11 @@ public abstract class ClassPathEntryAnalyzer {
 
     private List<String> resources;
 
-    public static ClassPathEntryAnalyzer of(File file, Function<String, Boolean> resourceFilter) {
+    public static ClassPathEntryAnalyzer of(File file, Function<String, Boolean> resourceFilter, boolean ignoreExistingResourcesConfig) {
         if (file.getName().endsWith(".jar")) {
-            return new JarAnalyzer(file, resourceFilter);
+            return new JarAnalyzer(file, resourceFilter, ignoreExistingResourcesConfig);
         }
-        return new ClassPathDirectoryAnalyzer(file.toPath(), resourceFilter);
+        return new ClassPathDirectoryAnalyzer(file.toPath(), resourceFilter, ignoreExistingResourcesConfig);
     }
 
     protected ClassPathEntryAnalyzer(Function<String, Boolean> resourceFilter) {

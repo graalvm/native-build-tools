@@ -55,16 +55,18 @@ import java.util.function.Function;
 
 class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
     private final Path root;
+    private final boolean ignoreExistingResourcesConfig;
 
-    ClassPathDirectoryAnalyzer(Path root, Function<String, Boolean> resourceFilter) {
+    ClassPathDirectoryAnalyzer(Path root, Function<String, Boolean> resourceFilter, boolean ignoreExistingResourcesConfig) {
         super(resourceFilter);
         this.root = root;
+        this.ignoreExistingResourcesConfig = ignoreExistingResourcesConfig;
     }
 
     protected List<String> initialize() throws IOException {
         DirectoryVisitor visitor = new DirectoryVisitor();
         Files.walkFileTree(root, visitor);
-        return visitor.hasNativeImageResourceFile ? Collections.emptyList() : visitor.resources;
+        return visitor.hasNativeImageResourceFile && !ignoreExistingResourcesConfig ? Collections.emptyList() : visitor.resources;
     }
 
     private class DirectoryVisitor extends SimpleFileVisitor<Path> {

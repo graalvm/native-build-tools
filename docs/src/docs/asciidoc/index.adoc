@@ -26,6 +26,7 @@ If you are interested in contributing, please refer to our https://github.com/gr
 * Agent options are now configurable.
    - Note that the `experimental-class-loader-support` agent option is no longer added by default.
    - See <<gradle-plugin.adoc#agent-support-configuring-options, Configuring agent options>> for details.
+* Added an option to perform resource detection in classpath entries which contain a `native-image/resource-config.json` file.
 
 ==== Maven plugin
 
@@ -34,6 +35,7 @@ If you are interested in contributing, please refer to our https://github.com/gr
 * Agent options are now configurable.
    - Note that the `experimental-class-loader-support` agent option is no longer added by default.
    - See <<maven-plugin.adoc#agent-support-configuring-options, Configuring agent options>> for details.
+* Added an option to perform resource detection in classpath entries which contain a `native-image/resource-config.json` file.
 
 ==== JUnit Platform Native
 
