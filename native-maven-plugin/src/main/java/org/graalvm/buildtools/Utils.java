@@ -87,9 +87,13 @@ public abstract class Utils implements SharedConstants {
             }
         }
 
-        if (!Files.exists(graalExe) && failFast) {
-            throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
-                    "You should install it using `gu install native-image`");
+        if (!Files.exists(graalExe)) {
+            if (failFast) {
+                throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
+                        "You should install it using `gu install native-image`");
+            } else {
+                return null;
+            }
         }
         return graalExe;
     }
