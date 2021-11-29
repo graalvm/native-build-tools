@@ -78,32 +78,38 @@ def graalVm = javaToolchains.launcherFor {
     vendor.set(JvmVendorSpec.matching("GraalVM"))
 }
 
-['functionalTest', 'fullFunctionalTest', 'configCacheFunctionalTest'].each {
-    // Add a task to run the functional tests
-    tasks.register(it, Test) {
-        // Any change to samples invalidates functional tests
-        inputs.files(files("../samples"))
-        inputs.files(configurations.functionalTestCommonRepository)
-        systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
-        systemProperty('versions.junit', libs.versions.junitJupiter.get())
-        environment('GRAALVM_HOME', graalVm.forUseAtConfigurationTime().get().metadata.installationPath.asFile.absolutePath)
-        testClassesDirs = sourceSets.functionalTest.output.classesDirs
-        classpath = sourceSets.functionalTest.runtimeClasspath
-        javaLauncher.set(graalVm)
+def fullFunctionalTest = tasks.register("fullFunctionalTest")
+
+['functionalTest', 'configCacheFunctionalTest'].each { baseName ->
+    ["current", "7.3", "7.2", "7.1", "6.8.3", "6.7.1"].each { gradleVersion ->
+        String taskName = gradleVersion == 'current' ? baseName : "gradle${gradleVersion}${baseName.capitalize()}"
+        // Add a task to run the functional tests
+        def testTask = tasks.register(taskName, Test) {
+            String effectiveVersion = gradleVersion
+            def versionProvider = providers.systemProperty('gradleVersion').forUseAtConfigurationTime()
+            if (effectiveVersion == 'current' && versionProvider.isPresent()) {
+                effectiveVersion = versionProvider.get()
+            }
+            group = "Verification"
+            description = "Runs functional tests for Gradle $effectiveVersion"
+            // Any change to samples invalidates functional tests
+            inputs.files(files("../samples"))
+            inputs.files(configurations.functionalTestCommonRepository)
+            systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
+            systemProperty('gradle.test.version', effectiveVersion)
+            systemProperty('versions.junit', libs.versions.junitJupiter.get())
+            environment('GRAALVM_HOME', graalVm.forUseAtConfigurationTime().get().metadata.installationPath.asFile.absolutePath)
+            testClassesDirs = sourceSets.functionalTest.output.classesDirs
+            classpath = sourceSets.functionalTest.runtimeClasspath
+            javaLauncher.set(graalVm)
+            if (baseName == 'configCacheFunctionalTest') {
+                systemProperty('config.cache', 'true')
+            }
+        }
+        fullFunctionalTest.configure {
+            it.dependsOn(testTask)
+        }
     }
-}
-
-tasks.named('fullFunctionalTest') {
-    systemProperty('full.coverage', 'true')
-}
-
-tasks.named('configCacheFunctionalTest') {
-    systemProperty('config.cache', 'true')
-}
-
-tasks.named('check') {
-    // Run the functional tests as part of `check`
-    dependsOn(tasks.fullFunctionalTest)
 }
 
 tasks.withType(Test).configureEach {

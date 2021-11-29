@@ -52,23 +52,10 @@ import spock.lang.TempDir
 import java.nio.file.Path
 
 abstract class AbstractFunctionalTest extends Specification {
-    private static final Set<String> MINIMAL_COVERAGE = [
-            GradleVersion.current().version // Only current Gradle version
-    ]
-    private static final Set<String> FULL_COVERAGE = MINIMAL_COVERAGE + [
-            '7.2',
-            '7.1',
-            '6.8.3',
-            '6.7.1'
-    ]
-    static final List<String> TESTED_GRADLE_VERSIONS =
-            (Boolean.getBoolean('full.coverage') ?
-                    FULL_COVERAGE : MINIMAL_COVERAGE) as List<String>
-
     @TempDir
     Path testDirectory
 
-    String gradleVersion
+    String gradleVersion = testGradleVersion()
     boolean debug
 
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
@@ -82,6 +69,14 @@ abstract class AbstractFunctionalTest extends Specification {
     private File initScript
 
     BuildResult result
+
+    private static String testGradleVersion() {
+        String version = System.getProperty("gradle.test.version", GradleVersion.current().version)
+        if ("current" == version) {
+            version = GradleVersion.current().version
+        }
+        version
+    }
 
     Path path(String... pathElements) {
         Path cur = testDirectory

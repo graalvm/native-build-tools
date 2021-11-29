@@ -45,10 +45,8 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import spock.lang.Unroll
 
 class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
-    @Unroll("transitive dependencies are included when testing on Gradle #version with JUnit Platform #junitVersion")
+    @Unroll("transitive dependencies are included when testing with JUnit Platform #junitVersion")
     def "transitive dependencies are included when testing"() {
-        gradleVersion = version
-
         given:
         withSample("multi-project-with-tests")
 
@@ -81,7 +79,6 @@ class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctio
 """.trim()
 
         where:
-        version << TESTED_GRADLE_VERSIONS
         junitVersion = System.getProperty('versions.junit')
     }
 }

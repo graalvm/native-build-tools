@@ -74,8 +74,6 @@ class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
     }
 
     def "calling the deprecated nativeBuild task triggers a warning and execution of the native image task"() {
-        gradleVersion = version
-
         given:
         withSample("java-application")
 
@@ -90,8 +88,5 @@ class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
 
         and:
         outputContains 'Task nativeBuild is deprecated. Use nativeCompile instead.'
-
-        where:
-        version << TESTED_GRADLE_VERSIONS
     }
 }

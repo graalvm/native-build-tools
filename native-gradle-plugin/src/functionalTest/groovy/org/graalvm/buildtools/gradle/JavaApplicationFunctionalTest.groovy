@@ -48,7 +48,6 @@ import spock.lang.Requires
 
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
-        gradleVersion = version
         def nativeApp = file("build/native/nativeCompile/java-application")
         debug = true
 
@@ -79,13 +78,10 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         process.output.contains "Hello, native!"
 
-        where:
-        version << TESTED_GRADLE_VERSIONS
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/129")
     def "can build a native image with dependencies only needed by native image"() {
-        gradleVersion = version
         def nativeApp = file("build/native/nativeCompile/java-application")
 
         given:
@@ -112,8 +108,6 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         process.output.contains "Hello, native!"
 
-        where:
-        version << TESTED_GRADLE_VERSIONS
     }
 
     @Requires({
@@ -121,7 +115,6 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         graalvmHome != null
     })
     def "can override toolchain selection"() {
-        gradleVersion = version
         def nativeApp = file("build/native/nativeCompile/java-application")
         boolean dummyToolchain = GradleVersion.version(gradleVersion).compareTo(GradleVersion.version("7.0")) >= 0
 
@@ -160,8 +153,6 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         process.output.contains "Hello, native!"
 
-        where:
-        version << TESTED_GRADLE_VERSIONS
     }
 
 }
