@@ -114,7 +114,7 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
             }
             // todo: ideally we should try to find a way for Gradle to cache the analysis per jar
             // which should be doable via artifact transforms instead
-            detectResourcesFromClasspathEntry(filter, detectedResources, file);
+            detectResourcesFromClasspathEntry(filter, detectedResources, file, detectionOptions.getIgnoreExistingResourcesConfigFile().get());
         }
         if (!detectedResources.isEmpty()) {
             output.addAll(
@@ -131,8 +131,11 @@ public abstract class GenerateResourcesConfigFile extends DefaultTask {
      * If it's a directory, we will walk the directory and collect resources found in
      * the directory. If it's a jar we do the same but with jar entries instead.
      */
-    private void detectResourcesFromClasspathEntry(ResourceFilter filter, Set<String> detectedResources, File file) throws IOException {
-        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(file, filter::shouldIncludeResource);
+    private void detectResourcesFromClasspathEntry(ResourceFilter filter,
+                                                   Set<String> detectedResources,
+                                                   File file,
+                                                   boolean ignoreExistingResourcesConfig) throws IOException {
+        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(file, filter::shouldIncludeResource, ignoreExistingResourcesConfig);
         List<String> resources = analyzer.getResources();
         GraalVMLogger.of(getLogger()).log("Detected resources for {} are {}", file, resources);
         detectedResources.addAll(resources);
