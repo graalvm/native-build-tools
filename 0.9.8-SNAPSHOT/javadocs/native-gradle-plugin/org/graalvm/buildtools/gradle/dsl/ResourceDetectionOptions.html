@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":6,"i3":6};
+var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -199,6 +199,15 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getIgnoreExistingResourcesConfigFile()">getIgnoreExistingResourcesConfigFile</a></span>()</code></th>
+<td class="colLast">
+<div class="block">If set to true, then if a classpath entry contains a META-INF/native-image
+ resources file, then we would still try to detect resources contained in
+ that classpath entry (e.g jar).</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRestrictToProjectDependencies()">getRestrictToProjectDependencies</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Determines if detection should be limited to project dependencies, in
@@ -273,6 +282,25 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
  which case external dependencies will not be scanned.
 
  Default value is true.</div>
+</li>
+</ul>
+<a id="getIgnoreExistingResourcesConfigFile()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getIgnoreExistingResourcesConfigFile</h4>
+<pre class="methodSignature">@Input
+public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getIgnoreExistingResourcesConfigFile()</pre>
+<div class="block">If set to true, then if a classpath entry contains a META-INF/native-image
+ resources file, then we would still try to detect resources contained in
+ that classpath entry (e.g jar). By default, this behavior is set to false,
+ meaning that if such a file is present, detection is disabled for this
+ particular classpath entry.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the ignore property</dd>
+</dl>
 </li>
 </ul>
 <a id="getDetectionExclusionPatterns()">
