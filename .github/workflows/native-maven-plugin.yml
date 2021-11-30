@@ -34,3 +34,9 @@ jobs:
           pushd native-maven-plugin
             ./gradlew check --no-daemon
           popd
+      - name: Tests results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: functional-tests-results-${{ matrix.gradle-version }}
+          path: native-maven-plugin/build/reports/tests/
