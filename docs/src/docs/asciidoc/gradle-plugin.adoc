@@ -88,12 +88,13 @@ Follow the <<graalvm-setup.adoc#,following instructions>> to install it properly
 
 Alternatively, you may choose to:
 
-1. <<disabling-toolchains, Disable toolchain support>>
+1. <<configuration-toolchains-disabling, Disable toolchain support>>
 2. Run Gradle itself with a GraalVM SDK
 3. Set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
 
 Note that none of the above options is recommended as they are more fragile.
 
+[[configuration]]
 == Configuration
 
 This plugin works with the `application` plugin and will register a number of tasks and extensions for you to configure.
@@ -115,6 +116,7 @@ The main executable is configured by the image named `main`, while the test exec
 
 The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
 
+[[configuration-toolchains]]
 ==== Selecting the GraalVM toolchain
 
 By default, the plugin will select a Java 11 GraalVM toolchain.
@@ -131,8 +133,8 @@ include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
 ----
 
-[[disabling-toolchains]]
-==== Disabling toolchain detection
+[[configuration-toolchains-disabling]]
+===== Disabling toolchain detection
 
 Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
 This is the case if, for example, you want to use GraalVM Enterprise or you want to be able to select a particular version of GraalVM.
@@ -275,6 +277,7 @@ The plugin will then automatically create the following tasks:
 
 The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.
 
+[[agent-support]]
 == Reflection support and running with the native agent
 
 If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
@@ -298,6 +301,7 @@ The agent can also be enabled by setting the corresponding DSL flag; however, th
 The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
 Although those files will be automatically used if you run your build with the agent enabled, you should consider reviewing them and adding them to your sources instead.
 
+[[agent-support-configuring-options]]
 === Configuring agent options
 
 The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].

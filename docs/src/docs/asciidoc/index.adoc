@@ -19,14 +19,28 @@ If you are interested in contributing, please refer to our https://github.com/gr
 
 ==== Gradle plugin
 
-* [Breaking change] The `agent` option is now replaced with an `agent { ... }` configuration block which includes an `enabled` property.
-* Add an option to disable toolchain support altogether, which can be useful to use GraalVM Enterprise Edition, for example.
+* [Breaking change] The `agent` option has been replaced with an `agent { ... }` configuration block which includes an `enabled` property.
+* Toolchain support can now be disabled altogether, which can be useful when using GraalVM Enterprise Edition.
+  - See <<gradle-plugin.adoc#configuration-toolchains-disabling, Disabling toolchain detection>> for details.
 * Fixed a bug when using a _fat jar_ which assumed that all entries to be repackaged were jars.
-* Made agent options configurable. Note that the `experimental-class-loader-support` agent option is no longer added by default.
+* Agent options are now configurable.
+   - Note that the `experimental-class-loader-support` agent option is no longer added by default.
+   - See <<gradle-plugin.adoc#agent-support-configuring-options, Configuring agent options>> for details.
+
+==== Maven plugin
+
+* The agent can now be enabled in the POM.
+  - See <<maven-plugin.adoc#agent-support-enabling, Enabling the agent>> for details.
+* Agent options are now configurable.
+   - Note that the `experimental-class-loader-support` agent option is no longer added by default.
+   - See <<maven-plugin.adoc#agent-support-configuring-options, Configuring agent options>> for details.
 
 ==== JUnit Platform Native
 
-* Fixed builds failing when tests were aborted
+* Builds now correctly fail if a container-level extension or lifecycle method fails --
+  for example, if an `@BeforeAll` method in a JUnit Jupiter test class throws an exception.
+* Builds no longer fail when tests are aborted -- for example, via a failed assumption.
+* Improved documentation for JUnit Platform and Maven Surefire support in the plugins.
 
 === Release 0.9.7.1
 
