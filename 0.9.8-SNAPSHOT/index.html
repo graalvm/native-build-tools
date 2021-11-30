@@ -502,16 +502,63 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>[Breaking change] The <code>agent</code> option is now replaced with an <code>agent { &#8230;&#8203; }</code> configuration block which includes an <code>enabled</code> property.</p>
+<p>[Breaking change] The <code>agent</code> option has been replaced with an <code>agent { &#8230;&#8203; }</code> configuration block which includes an <code>enabled</code> property.</p>
 </li>
 <li>
-<p>Add an option to disable toolchain support altogether, which can be useful to use GraalVM Enterprise Edition, for example.</p>
+<p>Toolchain support can now be disabled altogether, which can be useful when using GraalVM Enterprise Edition.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See <a href="gradle-plugin.html#configuration-toolchains-disabling">Disabling toolchain detection</a> for details.</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
 <p>Fixed a bug when using a <em>fat jar</em> which assumed that all entries to be repackaged were jars.</p>
 </li>
 <li>
-<p>Made agent options configurable. Note that the <code>experimental-class-loader-support</code> agent option is no longer added by default.</p>
+<p>Agent options are now configurable.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Note that the <code>experimental-class-loader-support</code> agent option is no longer added by default.</p>
+</li>
+<li>
+<p>See <a href="gradle-plugin.html#agent-support-configuring-options">Configuring agent options</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>The agent can now be enabled in the POM.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See <a href="maven-plugin.html#agent-support-enabling">Enabling the agent</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Agent options are now configurable.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Note that the <code>experimental-class-loader-support</code> agent option is no longer added by default.</p>
+</li>
+<li>
+<p>See <a href="maven-plugin.html#agent-support-configuring-options">Configuring agent options</a> for details.</p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
@@ -521,7 +568,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p>Fixed builds failing when tests were aborted</p>
+<p>Builds now correctly fail if a container-level extension or lifecycle method fails&#8201;&#8212;&#8201;for example, if an <code>@BeforeAll</code> method in a JUnit Jupiter test class throws an exception.</p>
+</li>
+<li>
+<p>Builds no longer fail when tests are aborted&#8201;&#8212;&#8201;for example, via a failed assumption.</p>
+</li>
+<li>
+<p>Improved documentation for JUnit Platform and Maven Surefire support in the plugins.</p>
 </li>
 </ul>
 </div>

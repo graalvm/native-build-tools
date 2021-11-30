@@ -455,7 +455,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_installing_graalvm_native_image_tool">Installing GraalVM native image tool</a></li>
 </ul>
 </li>
-<li><a href="#_configuration">Configuration</a>
+<li><a href="#configuration">Configuration</a>
 <ul class="sectlevel2">
 <li><a href="#_available_tasks">Available tasks</a></li>
 <li><a href="#_native_image_options">Native image options</a></li>
@@ -467,9 +467,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#extra-test-suites">Configuring additional test suites</a></li>
 </ul>
 </li>
-<li><a href="#_reflection_support_and_running_with_the_native_agent">Reflection support and running with the native agent</a>
+<li><a href="#agent-support">Reflection support and running with the native agent</a>
 <ul class="sectlevel2">
-<li><a href="#_configuring_agent_options">Configuring agent options</a></li>
+<li><a href="#agent-support-configuring-options">Configuring agent options</a></li>
 </ul>
 </li>
 <li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
@@ -632,7 +632,7 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><a href="#disabling-toolchains">Disable toolchain support</a></p>
+<p><a href="#configuration-toolchains-disabling">Disable toolchain support</a></p>
 </li>
 <li>
 <p>Run Gradle itself with a GraalVM SDK</p>
@@ -649,7 +649,7 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuration"><a class="anchor" href="#_configuration"></a>Configuration</h2>
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>Configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This plugin works with the <code>application</code> plugin and will register a number of tasks and extensions for you to configure.</p>
@@ -688,7 +688,7 @@ Follow the <a href="graalvm-setup.html">following instructions</a> to install it
 <p>The <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a> allows you to tweak how the native image is going to be built.</p>
 </div>
 <div class="sect3">
-<h4 id="_selecting_the_graalvm_toolchain"><a class="anchor" href="#_selecting_the_graalvm_toolchain"></a>Selecting the GraalVM toolchain</h4>
+<h4 id="configuration-toolchains"><a class="anchor" href="#configuration-toolchains"></a>Selecting the GraalVM toolchain</h4>
 <div class="paragraph">
 <p>By default, the plugin will select a Java 11 GraalVM toolchain.
 If you want to use a different toolchain, for example a GraalVM Community Edition for Java 8, you can configure the toolchain like this:</p>
@@ -722,9 +722,8 @@ If you want to use a different toolchain, for example a GraalVM Community Editio
 }</code></pre>
 </div>
 </div>
-</div>
-<div class="sect3">
-<h4 id="disabling-toolchains"><a class="anchor" href="#disabling-toolchains"></a>Disabling toolchain detection</h4>
+<div class="sect4">
+<h5 id="configuration-toolchains-disabling"><a class="anchor" href="#configuration-toolchains-disabling"></a>Disabling toolchain detection</h5>
 <div class="paragraph">
 <p>Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
 This is the case if, for example, you want to use GraalVM Enterprise or you want to be able to select a particular version of GraalVM.</p>
@@ -751,6 +750,7 @@ This is the case if, for example, you want to use GraalVM Enterprise or you want
 <p>If you do this, the plugin will search for 2 environment variables: <code>GRAALVM_HOME</code> and <code>JAVA_HOME</code> <em>in that order</em>.
 If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
 Therefore, it becomes your responsibility to make sure that the environment variable points to a JDK that is compatible with your build script requirements (in particular, the language version).</p>
+</div>
 </div>
 </div>
 <div class="sect3">
@@ -1018,7 +1018,7 @@ In this case you can register a new native test binary via the <code>graalvmNati
 </div>
 </div>
 <div class="sect1">
-<h2 id="_reflection_support_and_running_with_the_native_agent"><a class="anchor" href="#_reflection_support_and_running_with_the_native_agent"></a>Reflection support and running with the native agent</h2>
+<h2 id="agent-support"><a class="anchor" href="#agent-support"></a>Reflection support and running with the native agent</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
@@ -1047,7 +1047,7 @@ In this case you can register a new native test binary via the <code>graalvmNati
 Although those files will be automatically used if you run your build with the agent enabled, you should consider reviewing them and adding them to your sources instead.</p>
 </div>
 <div class="sect2">
-<h3 id="_configuring_agent_options"><a class="anchor" href="#_configuring_agent_options"></a>Configuring agent options</h3>
+<h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h3>
 <div class="paragraph">
 <p>The native agent can be configured <a href="https://www.graalvm.org/reference-manual/native-image/Agent/">with additional options</a>.
 This can be done using the <code>agent</code> configuration block:</p>
