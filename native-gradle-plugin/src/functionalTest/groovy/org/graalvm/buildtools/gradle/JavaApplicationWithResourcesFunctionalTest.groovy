@@ -53,8 +53,8 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
 
         buildFile << config
         buildFile << """
-            nativeBuild {
-                verbose = true
+            graalvmNative {
+                binaries.all { verbose = true }
             }
         """
 

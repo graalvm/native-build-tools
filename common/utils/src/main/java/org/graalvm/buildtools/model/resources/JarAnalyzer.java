@@ -79,6 +79,6 @@ class JarAnalyzer extends ClassPathEntryAnalyzer {
                 }
             }
         }
-        return hasNativeImageResourceFile ? Collections.emptyList() : resources;
+        return hasNativeImageResourceFile && !ignoreExistingResourcesConfig ? Collections.emptyList() : resources;
     }
 }
