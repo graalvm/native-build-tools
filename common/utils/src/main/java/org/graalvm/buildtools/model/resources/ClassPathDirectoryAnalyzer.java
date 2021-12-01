@@ -64,9 +64,14 @@ class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
     }
 
     protected List<String> initialize() throws IOException {
-        DirectoryVisitor visitor = new DirectoryVisitor();
-        Files.walkFileTree(root, visitor);
-        return visitor.hasNativeImageResourceFile && !ignoreExistingResourcesConfig ? Collections.emptyList() : visitor.resources;
+        if (Files.exists(root)) {
+            DirectoryVisitor visitor = new DirectoryVisitor();
+            Files.walkFileTree(root, visitor);
+            return visitor.hasNativeImageResourceFile && !ignoreExistingResourcesConfig ? Collections.emptyList() : visitor.resources;
+        }
+        else {
+            return Collections.emptyList();
+        }
     }
 
     private class DirectoryVisitor extends SimpleFileVisitor<Path> {

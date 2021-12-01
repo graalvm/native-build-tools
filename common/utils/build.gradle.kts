@@ -52,6 +52,12 @@ maven {
 
 dependencies {
     implementation(libs.jackson.databind)
+    implementation(platform(libs.test.junit.bom))
+    implementation(libs.test.junit.jupiter.core)
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {

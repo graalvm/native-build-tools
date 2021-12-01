@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,51 +38,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.model.resources;
+package org.graalvm.buildtools.utils;
 
-import org.graalvm.buildtools.utils.FileUtils;
+import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.function.Function;
-import java.util.jar.JarInputStream;
-import java.util.zip.ZipEntry;
 
-class JarAnalyzer extends ClassPathEntryAnalyzer {
-    private final File jarFile;
-    private final boolean ignoreExistingResourcesConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    JarAnalyzer(File jarFile, Function<String, Boolean> resourceFilter, boolean ignoreExistingResourcesConfig) {
-        super(resourceFilter);
-        this.jarFile = jarFile;
-        this.ignoreExistingResourcesConfig = ignoreExistingResourcesConfig;
+public class ClassPathEntryAnalyzerTest {
+    @Test
+    @DisplayName("A non existent jar shouldn't cause an exception")
+    public void testShouldAllowNonExistentJar() throws IOException {
+        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(
+                new File("dummy.jar"),
+                s -> true,
+                false
+        );
+        assertEquals(Collections.emptyList(), analyzer.getResources());
     }
 
-    protected List<String> initialize() throws IOException {
-        if (jarFile.exists()) {
-            List<String> resources = new ArrayList<>();
-            boolean hasNativeImageResourceFile = false;
-            try (JarInputStream zin = new JarInputStream(new FileInputStream(jarFile))) {
-                ZipEntry entry;
-                while ((entry = zin.getNextEntry()) != null) {
-                    hasNativeImageResourceFile = FileUtils.normalizePathSeparators(entry.getName()).startsWith(Helper.META_INF_NATIVE_IMAGE + "/")
-                            && entry.getName().endsWith("resource-config.json");
-
-                    if (hasNativeImageResourceFile && !ignoreExistingResourcesConfig) {
-                        break;
-                    }
-                    if (!entry.isDirectory()) {
-                        maybeAddResource(entry.getName(), resources);
-                    }
-                }
-            }
-            return hasNativeImageResourceFile && !ignoreExistingResourcesConfig ? Collections.emptyList() : resources;
-        } else {
-            return Collections.emptyList();
-        }
+    @Test
+    @DisplayName("A non existent directory shouldn't cause an exception")
+    public void testShouldAllowNonExistentDir() throws IOException {
+        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(
+                new File("dummy-dir"),
+                s -> true,
+                false
+        );
+        assertEquals(Collections.emptyList(), analyzer.getResources());
     }
 }
