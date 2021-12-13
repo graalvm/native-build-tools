@@ -78,11 +78,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -191,7 +193,8 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Register Native Image tasks
         TaskContainer tasks = project.getTasks();
-        configureAutomaticTaskCreation(project, graalExtension, agents, tasks);
+        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        configureAutomaticTaskCreation(project, graalExtension, agents, tasks, javaConvention.getSourceSets());
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
         TaskProvider<Task> deprecatedTask = tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
@@ -206,16 +209,6 @@ public class NativeImagePlugin implements Plugin<Project> {
             mainOptions.getAgent().getInstrumentedTask().convention(runTask);
         });
 
-        TaskProvider<GenerateResourcesConfigFile> generateResourcesConfig = registerResourcesConfigTask(
-                graalExtension.getGeneratedResourcesDirectory(),
-                mainOptions,
-                tasks,
-                transitiveProjectArtifacts(project, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
-                GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME);
-        mainOptions.getConfigurationFileDirectories().from(generateResourcesConfig.map(t ->
-                t.getOutputFile().map(f -> f.getAsFile().getParentFile())
-        ));
-
         graalExtension.registerTestBinary("test", config -> {
             config.forTestTask(tasks.named("test", Test.class));
             config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
@@ -225,7 +218,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     private void configureAutomaticTaskCreation(Project project,
                                                 GraalVMExtension graalExtension,
                                                 Map<String, Provider<Boolean>> agents,
-                                                TaskContainer tasks) {
+                                                TaskContainer tasks,
+                                                SourceSetContainer sourceSets) {
         graalExtension.getBinaries().configureEach(options -> {
             String binaryName = options.getName();
             String compileTaskName = deriveTaskName(binaryName, "native", "Compile");
@@ -254,6 +248,16 @@ public class NativeImagePlugin implements Plugin<Project> {
                 task.getRuntimeArgs().convention(options.getRuntimeArgs());
             });
             configureClasspathJarFor(tasks, options, imageBuilder);
+            SourceSet sourceSet = "test".equals(binaryName) ? sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME) : sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            TaskProvider<GenerateResourcesConfigFile> generateResourcesConfig = registerResourcesConfigTask(
+                    graalExtension.getGeneratedResourcesDirectory(),
+                    options,
+                    tasks,
+                    transitiveProjectArtifacts(project, sourceSet.getRuntimeClasspathConfigurationName()),
+                    deriveTaskName(binaryName, "generate", "ResourcesConfigFile"));
+            options.getConfigurationFileDirectories().from(generateResourcesConfig.map(t ->
+                    t.getOutputFile().map(f -> f.getAsFile().getParentFile())
+            ));
         });
     }
 
@@ -351,16 +355,6 @@ public class NativeImagePlugin implements Plugin<Project> {
         if (isPrimaryTest) {
             deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
         }
-
-        TaskProvider<GenerateResourcesConfigFile> generateTestResourcesConfig = registerResourcesConfigTask(
-                graalExtension.getGeneratedResourcesDirectory(),
-                testOptions,
-                tasks,
-                transitiveProjectArtifacts(project, config.getSourceSet().getRuntimeClasspathConfigurationName()),
-                deriveTaskName(name, "generate", "ResourcesConfigFile"));
-        testOptions.getConfigurationFileDirectories().from(generateTestResourcesConfig.map(t ->
-                t.getOutputFile().map(f -> f.getAsFile().getParentFile())
-        ));
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testOptions.getAgent().getInstrumentedTask().set(testTask);
