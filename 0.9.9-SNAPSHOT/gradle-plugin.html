@@ -734,15 +734,15 @@ This is the case if, for example, you want to use GraalVM Enterprise or you want
 <div class="listingblock multi-language-sample">
 <div class="title">Disabling toolchain detection</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
-    disableToolchainDetection = true
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    toolchainDetection = false
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">tasks.withType&lt;org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask&gt;().configureEach {
-    disableToolchainDetection.set(true)
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    toolchainDetection.set(false)
 }</code></pre>
 </div>
 </div>
