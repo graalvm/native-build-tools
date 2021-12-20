@@ -76,26 +76,26 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.project = project;
         this.toolchainService = project.getExtensions().getByType(JavaToolchainService.class);
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
-        enableToolchainDetection();
+        getToolchainDetection().convention(true);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
+        configureToolchain();
     }
 
-    @Override
-    public void enableToolchainDetection() {
+    private void configureToolchain() {
         defaultJavaLauncher.convention(
-                toolchainService.launcherFor(spec -> {
-                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                    if (GradleUtils.isAtLeastGradle7()) {
-                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
+                getToolchainDetection().flatMap(enabled -> {
+                    if (enabled) {
+                        return toolchainService.launcherFor(spec -> {
+                            spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
+                            if (GradleUtils.isAtLeastGradle7()) {
+                                spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
+                            }
+                        });
                     }
+                    return null;
                 })
         );
-    }
-
-    @Override
-    public void disableToolchainDetection() {
-        defaultJavaLauncher.convention((JavaLauncher) null);
     }
 
     @Override

@@ -20,7 +20,7 @@ If you are interested in contributing, please refer to our https://github.com/gr
 ==== Gradle plugin
 
 * Fixed resource inference not working on custom binaries
-* Fixed `disableToolchainDetection` not working if a GraalVM installation isn't present. Please use `graalvmNative.disableToolchainDetection()` instead.
+* Fixed `disableToolchainDetection` not working if a GraalVM installation isn't present. Please use `graalvmNative.toolchainDetection.set(false)` instead.
 
 === Release 0.9.8
 

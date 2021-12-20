@@ -61,7 +61,7 @@ graalvmNative {
 if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
 // tag::disabling-toolchain[]
     graalvmNative {
-        disableToolchainDetection()
+        toolchainDetection.set(false)
     }
 // end::disabling-toolchain[]
 }

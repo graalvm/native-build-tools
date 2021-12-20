@@ -85,16 +85,11 @@ public interface GraalVMExtension {
     void registerTestBinary(String name, Action<? super TestBinaryConfig> spec);
 
     /**
-     * Enables detection of toolchains which support building native images.
-     * This is the default unless {@link #disableToolchainDetection()} was called.
+     * Property driving the detection of toolchains which support building native images.
+     * The default is true.
      */
-    void enableToolchainDetection();
+    Property<Boolean> getToolchainDetection();
 
-    /**
-     * Disables detection of toolchains, which is useful when the default detection
-     * mechanism isn't capable of handling your toolchain.
-     */
-    void disableToolchainDetection();
 
     interface TestBinaryConfig {
         /**
