@@ -45,9 +45,15 @@ import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -58,15 +64,39 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final NativeImagePlugin plugin;
     private final Project project;
     private final Map<String, Provider<Boolean>> agentProperties = new HashMap<>();
+    private final Property<JavaLauncher> defaultJavaLauncher;
+    private final JavaToolchainService toolchainService;
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
                                    NativeImagePlugin plugin,
-                                   Project project) {
+                                   Project project,
+                                   JavaToolchainService toolchains) {
         this.nativeImages = nativeImages;
         this.plugin = plugin;
         this.project = project;
+        this.toolchainService = toolchains;
+        this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
+        enableToolchainDetection();
+        nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
+    }
+
+    @Override
+    public void enableToolchainDetection() {
+        defaultJavaLauncher.convention(
+                toolchainService.launcherFor(spec -> {
+                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
+                    if (GradleUtils.isAtLeastGradle7()) {
+                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
+                    }
+                })
+        );
+    }
+
+    @Override
+    public void disableToolchainDetection() {
+        defaultJavaLauncher.convention((JavaLauncher) null);
     }
 
     @Override
