@@ -70,12 +70,11 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
                                    NativeImagePlugin plugin,
-                                   Project project,
-                                   JavaToolchainService toolchains) {
+                                   Project project) {
         this.nativeImages = nativeImages;
         this.plugin = plugin;
         this.project = project;
-        this.toolchainService = toolchains;
+        this.toolchainService = project.getExtensions().getByType(JavaToolchainService.class);
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         enableToolchainDetection();
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
