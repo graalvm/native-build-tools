@@ -65,7 +65,6 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final Project project;
     private final Map<String, Provider<Boolean>> agentProperties = new HashMap<>();
     private final Property<JavaLauncher> defaultJavaLauncher;
-    private final JavaToolchainService toolchainService;
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
@@ -74,7 +73,6 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.nativeImages = nativeImages;
         this.plugin = plugin;
         this.project = project;
-        this.toolchainService = project.getExtensions().getByType(JavaToolchainService.class);
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         getToolchainDetection().convention(true);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
@@ -86,12 +84,15 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         defaultJavaLauncher.convention(
                 getToolchainDetection().flatMap(enabled -> {
                     if (enabled) {
-                        return toolchainService.launcherFor(spec -> {
-                            spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                            if (GradleUtils.isAtLeastGradle7()) {
-                                spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
-                            }
-                        });
+                        JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
+                        if (toolchainService != null) {
+                            return toolchainService.launcherFor(spec -> {
+                                spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
+                                if (GradleUtils.isAtLeastGradle7()) {
+                                    spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
+                                }
+                            });
+                        }
                     }
                     return null;
                 })
