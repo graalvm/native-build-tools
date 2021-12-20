@@ -45,7 +45,6 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -60,10 +59,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -185,6 +182,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
      * to a Java launcher due to Gradle limitations.
      */
     @Nested
+    @Optional
     public abstract Property<JavaLauncher> getJavaLauncher();
 
     /**
@@ -218,14 +216,6 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(SharedConstants.IS_WINDOWS);
-        getJavaLauncher().convention(
-                toolchains.launcherFor(spec -> {
-                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                    if (GradleUtils.isAtLeastGradle7()) {
-                        spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
-                    }
-                })
-        );
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {

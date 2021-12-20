@@ -163,7 +163,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             logger.lifecycle("Args are: " + args);
         }
         File executablePath = null;
-        if (getDisableToolchainDetection().get()) {
+        if (getDisableToolchainDetection().get() || !options.getJavaLauncher().isPresent()) {
             if (getGraalVMHome().isPresent()) {
                 String graalvmHome = getGraalVMHome().get();
                 getLogger().lifecycle("Toolchain detection is disabled, will use GraalVM from {}.", graalvmHome);

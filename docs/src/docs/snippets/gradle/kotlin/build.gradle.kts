@@ -60,8 +60,8 @@ graalvmNative {
 
 if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
 // tag::disabling-toolchain[]
-    tasks.withType<org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask>().configureEach {
-        disableToolchainDetection.set(true)
+    graalvmNative {
+        disableToolchainDetection()
     }
 // end::disabling-toolchain[]
 }
