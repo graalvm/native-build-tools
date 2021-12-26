@@ -59,9 +59,11 @@ import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -86,16 +88,15 @@ public final class JUnitPlatformFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
-
         List<Path> classpathRoots = access.getApplicationClassPath();
-        List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
+        List<? extends DiscoverySelector> selectors = getSelectors(access, classpathRoots);
 
         Launcher launcher = LauncherFactory.create();
         TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
         ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
     }
 
-    private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
+    private List<? extends DiscoverySelector> getSelectors(BeforeAnalysisAccess access, List<Path> classpathRoots) {
         try {
             Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
             String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
@@ -115,6 +116,10 @@ public final class JUnitPlatformFeature implements Feature {
         }
 
         System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
+        List<UniqueIdSelector> selectors = new JUnitTestCaseScanner(this, access).tryDiscoverTestClasses();
+        if (selectors.size() != 0) {
+            return selectors;
+        }
         if (debug) {
             classpathRoots.forEach(entry -> debug("Selecting classpath root: " + entry));
         }
@@ -147,7 +152,7 @@ public final class JUnitPlatformFeature implements Feature {
         return testPlan;
     }
 
-    private void registerTestClassForReflection(Class<?> clazz) {
+    public void registerTestClassForReflection(Class<?> clazz) {
         debug("Registering test class for reflection: %s", clazz.getName());
         nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
         forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));

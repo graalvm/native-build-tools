@@ -59,7 +59,7 @@ dependencies {
     implementation libs.test.junit.platform.console
     implementation libs.test.junit.platform.launcher
     implementation libs.test.junit.jupiter.core
-    testImplementation libs.test.junit.vintage
+    implementation libs.test.junit.vintage
 }
 
 apply from: "gradle/native-image-testing.gradle"
