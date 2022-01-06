@@ -79,10 +79,14 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
         if (getEnabled().get()) {
             File outputDir = getOutputDirectory().getAsFile().get();
             List<String> agentOptions = new ArrayList<>(getAgentOptions().getOrElse(Collections.emptyList()));
-            if (agentOptions.stream().map(s -> s.split("=")[0]).anyMatch(s -> s.contains("config-output-dir"))) {
-                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
+
+            // Do not add config-output-dir when a conflicting option is already present. Otherwise, this happens:
+            // native-image-agent: can only once specify exactly one of trace-output=, config-output-dir= or config-merge-dir=.
+            final List<String> mutuallyExclusiveOptions = Arrays.asList("config-output-dir", "trace-output", "config-merge-dir");
+            if (agentOptions.stream().allMatch(option -> mutuallyExclusiveOptions.stream().noneMatch(option::startsWith))) {
+                agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath());
             }
-            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath());
+
             return Arrays.asList(
                     "-agentlib:native-image-agent=" + String.join(",", agentOptions),
                     "-Dorg.graalvm.nativeimage.imagecode=agent"

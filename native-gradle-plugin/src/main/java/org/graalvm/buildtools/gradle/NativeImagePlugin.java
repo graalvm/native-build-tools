@@ -97,7 +97,9 @@ import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -507,7 +509,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         Provider<Boolean> agent = agents.get(nativeImageOptions.getName());
         cliProvider.getEnabled().set(agent);
-        Provider<Directory> outputDir = project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
+        Provider<Directory> outputDir = agentOutputDirectoryFor(project, nativeImageOptions, instrumentedTask);
         cliProvider.getOutputDirectory().set(outputDir);
         cliProvider.getAgentOptions().set(nativeImageOptions.getAgent().getOptions());
         instrumentedTask.get().getJvmArgumentProviders().add(cliProvider);
@@ -526,6 +528,26 @@ public class NativeImagePlugin implements Plugin<Project> {
         files.from(agent.map(enabled -> enabled ? postProcessingTask : project.files()));
         files.builtBy((Callable<Task>) () -> agent.get() ? postProcessingTask.get() : null);
         nativeImageOptions.getConfigurationFileDirectories().from(files);
+    }
+
+    private static Provider<Directory> agentOutputDirectoryFor(Project project, NativeImageOptions nativeImageOptions, TaskProvider<? extends JavaForkOptions> instrumentedTask) {
+        String outputDirUnresolved = new ArrayList<>(nativeImageOptions.getAgent().getOptions().getOrElse(Collections.emptyList())).stream()
+            .filter(option -> option.startsWith("config-output-dir"))
+            .findFirst()
+            .map(option -> {
+                int firstEqualsPos = option.indexOf('=');
+                if (firstEqualsPos == -1) {
+                    throw new IllegalArgumentException("agent option 'config-output-dir' is missing its value assignment '=...'.");
+                }
+                final String path = option.substring(firstEqualsPos + 1).trim();
+                if (path.isEmpty()) {
+                    throw new IllegalArgumentException("value of agent option 'config-output-dir' must not be empty.");
+                }
+                return path;
+            })
+            .orElse(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
+
+        return project.getLayout().getBuildDirectory().dir(outputDirUnresolved);
     }
 
     private static void injectTestPluginDependencies(Project project, Property<Boolean> testSupportEnabled) {

@@ -41,6 +41,8 @@
 
 package org.graalvm.buildtools.maven;
 
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
+
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
@@ -55,6 +57,7 @@ import org.graalvm.buildtools.Utils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -85,12 +88,35 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
-        options.add("config-output-dir=" + agentOutputDirectoryFor(baseDir, context));
+        // Do not add config-output-dir when a conflicting option is already present. Otherwise, this happens:
+        // native-image-agent: can only once specify exactly one of trace-output=, config-output-dir= or config-merge-dir=.
+        final List<String> mutuallyExclusiveOptions = Arrays.asList("config-output-dir", "trace-output", "config-merge-dir");
+        if (agentOptions.stream().allMatch(option -> mutuallyExclusiveOptions.stream().noneMatch(option::startsWith))) {
+            options.add("config-output-dir=" + agentDefaultOutputDirectoryFor(baseDir, context));
+         }
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
-    private static String agentOutputDirectoryFor(String baseDir, Context context) {
-        return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
+    private static String agentDefaultOutputDirectoryFor(String baseDir, Context context) {
+        return (baseDir + "/" + AGENT_OUTPUT_FOLDER + "/" + context).replace('/', File.separatorChar);
+    }
+
+    private static String agentOutputDirectoryFor(List<String> agentOptions, String baseDir, Context context) {
+        return agentOptions.stream()
+            .filter(option -> option.startsWith("config-output-dir"))
+            .findFirst()
+            .map(option -> {
+                int firstEqualsPos = option.indexOf('=');
+                if (firstEqualsPos == -1) {
+                    throw new IllegalArgumentException("agent option 'config-output-dir' is missing its value assignment '=...'.");
+                }
+                final String path = option.substring(firstEqualsPos + 1).trim();
+                if (path.isEmpty()) {
+                    throw new IllegalArgumentException("value of agent option 'config-output-dir' must not be empty.");
+                }
+                return path;
+            })
+            .orElseGet(() -> agentDefaultOutputDirectoryFor(baseDir, context));
     }
 
     @Override
@@ -114,6 +140,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
                 // Main configuration
                 if (isAgentEnabled) {
+                    List<String> agentOptions = getAgentOptions(nativePlugin, Context.main, selectedOptionsName);
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if ("java-agent".equals(exec.getId())) {
@@ -127,7 +154,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
                                     // Agent argument
                                     Xpp3Dom arg = new Xpp3Dom("argument");
-                                    List<String> agentOptions = getAgentOptions(nativePlugin, Context.main, selectedOptionsName);
                                     arg.setValue(buildAgentArgument(target, Context.main, agentOptions));
                                     children.add(0, arg);
 
@@ -151,7 +177,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                     updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
                         Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
-                        agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
+                        agentResourceDirectory.setValue(agentOutputDirectoryFor(agentOptions, target, context));
                     });
                 }
             });
@@ -242,11 +268,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     private static void processOptionNodes(Xpp3Dom options, List<String> optionsList) {
         for (Xpp3Dom option : options.getChildren("option")) {
-            String value = assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value");
-            if (value.contains("config-output-dir")) {
-                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
-            }
-            optionsList.add(value);
+            optionsList.add(assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value"));
         }
     }
 
