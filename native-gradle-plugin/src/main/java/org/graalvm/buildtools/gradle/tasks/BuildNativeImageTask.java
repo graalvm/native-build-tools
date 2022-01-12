@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle.tasks;
 
+import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
@@ -49,12 +50,14 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -92,6 +95,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
+    @InputDirectory
+    @Optional
+    public abstract DirectoryProperty getTestListDirectory();
+
     @Optional
     @Input
     protected Provider<String> getGraalVMHome() {
@@ -116,6 +123,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Inject
     protected abstract ProviderFactory getProviders();
+
+    @Inject
+    protected abstract ObjectFactory getObjects();
 
     @InputFile
     @Optional
@@ -206,6 +216,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             getExecOperations().exec(spec -> {
                 spec.setWorkingDir(getWorkingDirectory());
+                if (getTestListDirectory().isPresent()) {
+                    NativeImagePlugin.TrackingDirectorySystemPropertyProvider directoryProvider = getObjects().newInstance(NativeImagePlugin.TrackingDirectorySystemPropertyProvider.class);
+                    directoryProvider.getDirectory().set(getTestListDirectory());
+                    spec.getArgumentProviders().add(directoryProvider);
+                }
                 spec.args(args);
                 getService().get();
                 spec.setExecutable(executable);
