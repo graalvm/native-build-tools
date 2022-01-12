@@ -82,7 +82,10 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.JavaExec;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -92,12 +95,14 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -363,7 +368,9 @@ public class NativeImagePlugin implements Plugin<Project> {
             test.getOutputs().dir(testResultsDir);
             // Set system property read by the UniqueIdTrackingListener.
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
-            test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR, testListDirectory.getAsFile().get());
+            TrackingDirectorySystemPropertyProvider directoryProvider = project.getObjects().newInstance(TrackingDirectorySystemPropertyProvider.class);
+            directoryProvider.getDirectory().set(testListDirectory);
+            test.getJvmArgumentProviders().add(directoryProvider);
             test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
         });
 
@@ -372,6 +379,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(deriveTaskName(name, "native", "Compile"), BuildNativeImageTask.class, task -> {
             task.setOnlyIf(t -> graalExtension.getTestSupport().get());
+            task.getTestListDirectory().set(testListDirectory);
             testTask.get();
             ConfigurableFileCollection testList = project.getObjects().fileCollection();
             // Later this will be replaced by a dedicated task not requiring execution of tests
@@ -489,8 +497,6 @@ public class NativeImagePlugin implements Plugin<Project> {
         runtimeArgs.add("--xml-output-dir");
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "-native").map(d -> d.getAsFile().getAbsolutePath()));
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
-        // Set system property read indirectly by the JUnitPlatformFeature.
-        testExtension.getBuildArgs().add(project.provider(() -> "-Djunit.platform.listeners.uid.tracking.output.dir=" + testListDirectory.getAsFile().get().getAbsolutePath()));
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(configs.getImageClasspathConfiguration());
         classpath.from(sourceSet.getOutput().getClassesDirs());
@@ -553,4 +559,17 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
     }
 
+    public abstract static class TrackingDirectorySystemPropertyProvider implements CommandLineArgumentProvider {
+        @InputFiles
+        @PathSensitive(PathSensitivity.RELATIVE)
+        public abstract DirectoryProperty getDirectory();
+
+        /**
+         * The arguments which will be provided to the process.
+         */
+        @Override
+        public Iterable<String> asArguments() {
+            return Collections.singleton("-D" + JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR + "=" + getDirectory().getAsFile().get().getAbsolutePath());
+        }
+    }
 }
