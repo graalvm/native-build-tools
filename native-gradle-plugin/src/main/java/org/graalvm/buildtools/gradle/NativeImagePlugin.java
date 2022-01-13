@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle;
 
+import java.util.List;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.AgentConfiguration;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
@@ -74,6 +75,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
@@ -531,23 +533,34 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static Provider<Directory> agentOutputDirectoryFor(Project project, NativeImageOptions nativeImageOptions, TaskProvider<? extends JavaForkOptions> instrumentedTask) {
-        String outputDirUnresolved = new ArrayList<>(nativeImageOptions.getAgent().getOptions().getOrElse(Collections.emptyList())).stream()
-            .filter(option -> option.startsWith("config-output-dir"))
-            .findFirst()
-            .map(option -> {
-                int firstEqualsPos = option.indexOf('=');
-                if (firstEqualsPos == -1) {
-                    throw new IllegalArgumentException("agent option 'config-output-dir' is missing its value assignment '=...'.");
-                }
-                final String path = option.substring(firstEqualsPos + 1).trim();
-                if (path.isEmpty()) {
-                    throw new IllegalArgumentException("value of agent option 'config-output-dir' must not be empty.");
-                }
-                return path;
-            })
-            .orElse(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
+        return new AbstractMinimalProvider<Directory>() {
+            @Override
+            public Class<Directory> getType() {
+                return Directory.class;
+            }
 
-        return project.getLayout().getBuildDirectory().dir(outputDirUnresolved);
+            @Override
+            protected Value<? extends Directory> calculateOwnValue(ValueConsumer consumer) {
+                final List<String> options = nativeImageOptions.getAgent().getOptions().getOrElse(Collections.emptyList());
+                final String outputDirUnresolved = new ArrayList<>(options).stream()
+                    .filter(option -> option.startsWith("config-output-dir"))
+                    .findFirst()
+                    .map(option -> {
+                        final int firstEqualsPos = option.indexOf('=');
+                        if (firstEqualsPos == -1) {
+                            throw new IllegalArgumentException("agent option 'config-output-dir' is missing its value assignment '=...'.");
+                        }
+                        final String path = option.substring(firstEqualsPos + 1).trim();
+                        if (path.isEmpty()) {
+                            throw new IllegalArgumentException("value of agent option 'config-output-dir' must not be empty.");
+                        }
+                        return path;
+                    })
+                    .orElse(AGENT_OUTPUT_FOLDER + "/" + instrumentedTask.getName());
+
+                return Value.of(project.getLayout().getBuildDirectory().dir(outputDirUnresolved).get());
+            }
+        };
     }
 
     private static void injectTestPluginDependencies(Project project, Property<Boolean> testSupportEnabled) {
