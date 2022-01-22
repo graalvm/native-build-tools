@@ -229,16 +229,21 @@ Currently, this feature requires the execution of the tests in the classic "JVM"
 
 NOTE: This plugin requires JUnit Platform 1.8 or higher.
 
-=== Disabling test support
+[[testing-support-disabling]]
+=== Disabling testing support
 
-There are cases where you might want to disable test support:
+There are cases where you might want to disable native testing support:
 
-- you don't actually want to run your tests in native mode
-- your library or application uses a testing framework that is not supported on the JUnit Platform
+- You don't actually want to run your tests in native mode.
+- Your library or application uses a testing framework that is not supported on the JUnit
+  Platform.
+- You need to use the <<agent-support, agent>> when running tests on the JVM but do not
+  wish to run those same tests in native mode.
 
-In this case, you can disable test support by configuring the `graalvmNative` extension:
+In this case, you can disable native testing support by configuring the `graalvmNative`
+extension as follows:
 
-.Disabling test support
+.Disabling testing support
 [source,groovy,role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=disable-test-support]

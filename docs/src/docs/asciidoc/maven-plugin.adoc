@@ -202,6 +202,25 @@ NOTE: This plugin requires JUnit Platform 1.8 or higher.
 
 NOTE: This plugin provides integration with Maven Surefire 2.22.0 or higher.
 
+[[testing-support-disabling]]
+=== Disabling testing support
+
+If you wish to disable tests on the JVM as well as tests within a native image, you can
+invoke Maven with the `-DskipTests` flag. This flag is supported by Maven Surefire and
+Native Build Tools. Several examples in <<agent-support-running-application>> demonstrate
+the use of this flag.
+
+If you wish to run tests on the JVM with Maven Surefire but skip testing within a native
+image, you can invoke Maven with the `-DskipNativeTests` flag. This flag is specific to
+Native Build Tools. For example, you might wish to disable only native testing support for
+use cases such as the following:
+
+- You don't actually want to run your tests in native mode.
+- Your library or application uses a testing framework that is not supported on the JUnit
+  Platform.
+- You need to use the <<agent-support, agent>> when running tests on the JVM but do not
+  wish to run those same tests in native mode.
+
 [[long_classpath_and_shading_support]]
 == Long classpath and shading support
 
@@ -404,7 +423,7 @@ include::../../../../samples/java-application-with-reflection/pom.xml[tag=java-a
 Then you can execute your application with the agent by running:
 
 ```bash
-mvn -Pnative -Dagent=true -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
+mvn -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
 ```
 
 To execute your application with custom agent options, supply the `-DagentOptions=<NAME>`
@@ -412,7 +431,7 @@ command-line argument to Maven as follows. See the documentation for
 <<agent-support-configuring-options, agent options>> for details.
 
 ```bash
-mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent
+mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
 ```
 
 Both of the above commands will generate configuration files in the
@@ -420,7 +439,7 @@ Both of the above commands will generate configuration files in the
 with those configuration files, you then need to execute the following command:
 
 ```bash
-mvn -Pnative -Dagent=true -DskipTests=true package exec:exec@native
+mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 ```
 
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is

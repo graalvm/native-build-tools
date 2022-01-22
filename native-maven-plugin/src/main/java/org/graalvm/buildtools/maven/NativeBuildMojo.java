@@ -102,9 +102,10 @@ public class NativeBuildMojo extends AbstractNativeMojo {
 
     private PluginParameterExpressionEvaluator evaluator;
 
+    @Override
     public void execute() throws MojoExecutionException {
         if (skip) {
-            getLog().info("Skipping native-image generation (parameter 'skip' is true).");
+            getLog().info("Skipping native-image generation (parameter 'skipNativeBuild' is true).");
             return;
         }
         evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);

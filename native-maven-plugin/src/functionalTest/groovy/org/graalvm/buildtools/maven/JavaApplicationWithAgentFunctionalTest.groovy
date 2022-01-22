@@ -46,6 +46,38 @@ import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/179")
+    def "agent is used for JVM tests when native image tests are skipped via -DskipNativeTests"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        // Run Maven in debug mode (-X) in order to capture the command line arguments
+        // used to launch Surefire with the agent.
+        mvn '-X', '-Pnative', 'test', '-DskipNativeTests'
+
+        then:
+        // Agent is used with Surefire
+        outputContains '-agentlib:native-image-agent='
+
+        and:
+        // Agent generates files
+        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
+            assert file("target/native/agent-output/test/${name}-config.json").exists()
+        }
+
+        and:
+        // Surefire / JVM tests run
+        buildSucceeded
+        outputContains "SurefirePlugin - Running org.graalvm.demo.ApplicationTest"
+        outputContains "SurefirePlugin - Running org.graalvm.demo.CalculatorTest"
+
+        and:
+        // Native tests do not run
+        outputContains "Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true)."
+        outputDoesNotContain "containers found"
+    }
+
     def "agent is used for tests when enabled in POM without custom options"() {
         given:
         withSample("java-application-with-reflection")
