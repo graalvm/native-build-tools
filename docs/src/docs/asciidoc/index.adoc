@@ -15,6 +15,13 @@ If you are interested in contributing, please refer to our https://github.com/gr
 [[changelog]]
 == Changelog
 
+=== Release 0.9.10
+
+==== Maven plugin
+
+* Native testing support can now be explicitly disabled via `skipNativeTests`.
+   - See <<maven-plugin.adoc#testing-support-disabling, Disabling testing support>> for details.
+
 === Release 0.9.9
 
 ==== Gradle plugin

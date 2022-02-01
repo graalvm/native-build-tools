@@ -41,7 +41,10 @@
 
 package org.graalvm.buildtools.maven
 
+import spock.lang.Issue
+
 class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+
     def "can run tests in a native image with the Maven plugin"() {
         withSample("java-application-with-tests")
 
@@ -91,4 +94,33 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 [         0 tests failed          ]
 """.trim()
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/179")
+    def "can skip JVM tests and native image tests with the Maven plugin with -DskipTests"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', 'test', '-DskipTests'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "SurefirePlugin - Running org.graalvm.demo.CalculatorTest"
+        outputContains "Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true)."
+        outputDoesNotContain "containers found"
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/179")
+    def "can skip native image tests with the Maven plugin with -DskipNativeTests"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', 'test', '-DskipNativeTests'
+
+        then:
+        buildSucceeded
+        outputContains "SurefirePlugin - Running org.graalvm.demo.CalculatorTest"
+        outputContains "Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true)."
+        outputDoesNotContain "containers found"
+    }
+
 }

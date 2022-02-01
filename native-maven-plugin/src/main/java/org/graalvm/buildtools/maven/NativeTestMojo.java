@@ -81,6 +81,9 @@ public class NativeTestMojo extends AbstractNativeMojo {
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
 
+    @Parameter(property = "skipNativeTests", defaultValue = "false")
+    private boolean skipNativeTests;
+
     @Parameter(property = "classpath")
     private List<String> classpath;
 
@@ -89,8 +92,8 @@ public class NativeTestMojo extends AbstractNativeMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        if (skipTests) {
-            logger.info("Tests are skipped.");
+        if (skipTests || skipNativeTests) {
+            logger.info("Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true).");
             return;
         }
         if (!hasTests()) {
