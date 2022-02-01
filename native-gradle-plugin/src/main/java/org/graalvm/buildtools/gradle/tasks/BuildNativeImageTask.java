@@ -45,8 +45,8 @@ import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
+import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
@@ -64,18 +64,14 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.process.ExecOperations;
-import org.gradle.process.ExecResult;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.List;
 
+import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
-import static org.graalvm.buildtools.utils.SharedConstants.GU_EXE;
-import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
 /**
  * This task is responsible for generating a native image by
@@ -145,9 +141,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         getOutputDirectory().convention(outputDir);
         ProviderFactory providers = getProject().getProviders();
-        this.graalvmHomeProvider = providers.environmentVariable("GRAALVM_HOME")
-                .forUseAtConfigurationTime()
-                .orElse(providers.environmentVariable("JAVA_HOME").forUseAtConfigurationTime());
+        this.graalvmHomeProvider = graalvmHomeProvider(providers);
         getDisableToolchainDetection().convention(false);
     }
 
@@ -178,43 +172,12 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         if (options.getVerbose().get()) {
             logger.lifecycle("Args are: " + args);
         }
-        File executablePath = null;
-        if (getDisableToolchainDetection().get() || !options.getJavaLauncher().isPresent()) {
-            if (getGraalVMHome().isPresent()) {
-                String graalvmHome = getGraalVMHome().get();
-                getLogger().lifecycle("Toolchain detection is disabled, will use GraalVM from {}.", graalvmHome);
-                executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
-            }
-        }
-        if (executablePath == null) {
-            JavaInstallationMetadata metadata = options.getJavaLauncher().get().getMetadata();
-            executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
-            if (!executablePath.exists() && getGraalVMHome().isPresent()) {
-                executablePath = Paths.get(getGraalVMHome().get()).resolve("bin").resolve(NATIVE_IMAGE_EXE).toFile();
-            }
-        }
-
-        try {
-            if (!executablePath.exists()) {
-                logger.log("Native Image executable wasn't found. We will now try to download it. ");
-                File graalVmHomeGuess = executablePath.getParentFile();
-
-                if (!graalVmHomeGuess.toPath().resolve(GU_EXE).toFile().exists()) {
-                    throw new GradleException("'" + GU_EXE + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
-                }
-                ExecResult res = getExecOperations().exec(spec -> {
-                    spec.args("install", "native-image");
-                    spec.setExecutable(Paths.get(graalVmHomeGuess.getAbsolutePath(), GU_EXE));
-                });
-                if (res.getExitValue() != 0) {
-                    throw new GradleException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.");
-                }
-            }
-        } catch (GradleException e) {
-            throw new GradleException("Determining GraalVM installation failed with message: " + e.getMessage() + "\n\n"
-            + "Make sure to declare the GRAALVM_HOME environment variable or install GraalVM with " +
-            "native-image in a standard location recognized by Gradle Java toolchain support");
-        }
+        File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
+                options,
+                getDisableToolchainDetection(),
+                getGraalVMHome(),
+                getExecOperations(),
+                logger);
 
         logger.lifecycle("Using executable path: " + executablePath);
         String executable = executablePath.getAbsolutePath();
@@ -234,4 +197,5 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             logger.lifecycle("Native Image written to: " + outputDir);
         }
     }
+
 }
