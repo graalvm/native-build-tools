@@ -74,6 +74,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.JavaApplication;
@@ -95,6 +96,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
@@ -110,6 +112,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
+import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
 
@@ -151,6 +154,17 @@ public class NativeImagePlugin implements Plugin<Project> {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    public ExecOperations getExecOperations() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public FileSystemOperations getFileOperations() {
+        throw new UnsupportedOperationException();
+    }
+
+
     @Override
     public void apply(Project project) {
         Provider<NativeImageService> nativeImageServiceProvider = NativeImageService.registerOn(project);
@@ -164,7 +178,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             graalExtension.getBinaries().all(options -> {
                 AgentConfiguration agentConfiguration = options.getAgent();
                 if (agentConfiguration.getInstrumentedTask().isPresent()) {
-                    configureAgent(p, agents, options);
+                    configureAgent(p, agents, graalExtension.getToolchainDetection().map(b -> !b), options, getExecOperations(), getFileOperations());
                 }
             });
         });
@@ -218,7 +232,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             config.forTestTask(tasks.named("test", Test.class));
             config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
         });
-     }
+    }
 
     private void configureAutomaticTaskCreation(Project project,
                                                 GraalVMExtension graalExtension,
@@ -342,8 +356,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     public void registerTestBinary(Project project,
-                            DefaultGraalVmExtension graalExtension,
-                            DefaultTestBinaryConfig config) {
+                                   DefaultGraalVmExtension graalExtension,
+                                   DefaultTestBinaryConfig config) {
         NativeImageOptions mainOptions = graalExtension.getBinaries().getByName("main");
         String name = config.getName();
         boolean isPrimaryTest = "test".equals(name);
@@ -506,7 +520,10 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static void configureAgent(Project project,
                                        Map<String, Provider<Boolean>> agents,
-                                       NativeImageOptions nativeImageOptions) {
+                                       Provider<Boolean> disableToolchainDetection,
+                                       NativeImageOptions nativeImageOptions,
+                                       ExecOperations execOperations,
+                                       FileSystemOperations fileOperations) {
         String postProcessTaskName = PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX + capitalize(nativeImageOptions.getName()) + PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX;
         TaskProvider<ProcessGeneratedGraalResourceFiles> postProcessingTask = registerProcessAgentFilesTask(project, postProcessTaskName);
         TaskProvider<? extends JavaForkOptions> instrumentedTask = nativeImageOptions.getAgent().getInstrumentedTask().get();
@@ -517,6 +534,15 @@ public class NativeImagePlugin implements Plugin<Project> {
         cliProvider.getOutputDirectory().set(outputDir);
         cliProvider.getAgentOptions().set(nativeImageOptions.getAgent().getOptions());
         instrumentedTask.get().getJvmArgumentProviders().add(cliProvider);
+        instrumentedTask.configure(task -> task.doLast(new MergeAgentFiles(
+                agent,
+                graalvmHomeProvider(project.getProviders()),
+                outputDir,
+                disableToolchainDetection,
+                nativeImageOptions,
+                execOperations,
+                fileOperations,
+                project.getLogger())));
         // Gradle won't let us configure from configure so we have to eagerly create the post-processing task :(
         postProcessingTask.get().getGeneratedFilesDir().set(
                 instrumentedTask.map(t -> outputDir.get())

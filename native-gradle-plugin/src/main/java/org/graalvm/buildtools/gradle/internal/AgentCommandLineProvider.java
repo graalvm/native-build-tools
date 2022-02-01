@@ -58,6 +58,8 @@ import java.util.List;
 
 public abstract class AgentCommandLineProvider implements CommandLineArgumentProvider {
 
+    public static final String SESSION_SUBDIR = "session-{pid}-{datetime}";
+
     @Inject
     @SuppressWarnings("checkstyle:redundantmodifier")
     public AgentCommandLineProvider() {
@@ -82,7 +84,7 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
             if (agentOptions.stream().map(s -> s.split("=")[0]).anyMatch(s -> s.contains("config-output-dir"))) {
                 throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
             }
-            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath());
+            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath() + File.separator + SESSION_SUBDIR);
             return Arrays.asList(
                     "-agentlib:native-image-agent=" + String.join(",", agentOptions),
                     "-Dorg.graalvm.nativeimage.imagecode=agent"

@@ -69,6 +69,10 @@ public final class GraalVMLogger {
         delegate.lifecycle("[native-image-plugin] {}", s);
     }
 
+    public void lifecycle(String pattern, Object... args) {
+        delegate.lifecycle("[native-image-plugin] " + pattern, args);
+    }
+
     public void error(String s) {
         delegate.error("[native-image-plugin] {}", s);
     }
