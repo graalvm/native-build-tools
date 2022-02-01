@@ -456,7 +456,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#configuration-options">Configuration options</a></li>
 </ul>
 </li>
-<li><a href="#testing-support">Testing support</a></li>
+<li><a href="#testing-support">Testing support</a>
+<ul class="sectlevel2">
+<li><a href="#testing-support-disabling">Disabling testing support</a></li>
+</ul>
+</li>
 <li><a href="#long_classpath_and_shading_support">Long classpath and shading support</a></li>
 <li><a href="#agent-support">Reflection support and running with the native agent</a>
 <ul class="sectlevel2">
@@ -771,6 +775,36 @@ This plugin provides integration with Maven Surefire 2.22.0 or higher.
 </td>
 </tr>
 </table>
+</div>
+<div class="sect2">
+<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
+<div class="paragraph">
+<p>If you wish to disable tests on the JVM as well as tests within a native image, you can
+invoke Maven with the <code>-DskipTests</code> flag. This flag is supported by Maven Surefire and
+Native Build Tools. Several examples in <a href="#agent-support-running-application">Running your application with the agent</a> demonstrate
+the use of this flag.</p>
+</div>
+<div class="paragraph">
+<p>If you wish to run tests on the JVM with Maven Surefire but skip testing within a native
+image, you can invoke Maven with the <code>-DskipNativeTests</code> flag. This flag is specific to
+Native Build Tools. For example, you might wish to disable only native testing support for
+use cases such as the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You don&#8217;t actually want to run your tests in native mode.</p>
+</li>
+<li>
+<p>Your library or application uses a testing framework that is not supported on the JUnit
+Platform.</p>
+</li>
+<li>
+<p>You need to use the <a href="#agent-support">agent</a> when running tests on the JVM but do not
+wish to run those same tests in native mode.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 </div>
@@ -1268,7 +1302,7 @@ separate mojo execution which allows forking the Java process.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1278,7 +1312,7 @@ command-line argument to Maven as follows. See the documentation for
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests=true -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1288,7 +1322,7 @@ with those configuration files, you then need to execute the following command:<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests=true package exec:exec@native</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests package exec:exec@native</code></pre>
 </div>
 </div>
 <div class="admonitionblock warning">
@@ -1323,7 +1357,7 @@ automatically added to your native build options.
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
-        <img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"> (c) 2021. Licensed under the Universal Permissive License (UPL), Version 1.0
+        <img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"> (c) 2022. Licensed under the Universal Permissive License (UPL), Version 1.0
     </div>
 </div>
 </body>

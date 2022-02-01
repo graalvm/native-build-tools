@@ -463,7 +463,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#testing-support">Testing support</a>
 <ul class="sectlevel2">
-<li><a href="#_disabling_test_support">Disabling test support</a></li>
+<li><a href="#testing-support-disabling">Disabling testing support</a></li>
 <li><a href="#extra-test-suites">Configuring additional test suites</a></li>
 </ul>
 </li>
@@ -933,25 +933,31 @@ This plugin requires JUnit Platform 1.8 or higher.
 </table>
 </div>
 <div class="sect2">
-<h3 id="_disabling_test_support"><a class="anchor" href="#_disabling_test_support"></a>Disabling test support</h3>
+<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
 <div class="paragraph">
-<p>There are cases where you might want to disable test support:</p>
+<p>There are cases where you might want to disable native testing support:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>you don&#8217;t actually want to run your tests in native mode</p>
+<p>You don&#8217;t actually want to run your tests in native mode.</p>
 </li>
 <li>
-<p>your library or application uses a testing framework that is not supported on the JUnit Platform</p>
+<p>Your library or application uses a testing framework that is not supported on the JUnit
+Platform.</p>
+</li>
+<li>
+<p>You need to use the <a href="#agent-support">agent</a> when running tests on the JVM but do not
+wish to run those same tests in native mode.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>In this case, you can disable test support by configuring the <code>graalvmNative</code> extension:</p>
+<p>In this case, you can disable native testing support by configuring the <code>graalvmNative</code>
+extension as follows:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Disabling test support</div>
+<div class="title">Disabling testing support</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     testSupport = false
@@ -1193,7 +1199,7 @@ configurations {
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
-        <img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"> (c) 2021. Licensed under the Universal Permissive License (UPL), Version 1.0
+        <img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"> (c) 2022. Licensed under the Universal Permissive License (UPL), Version 1.0
     </div>
 </div>
 </body>
