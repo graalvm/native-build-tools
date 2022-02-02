@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle.internal;
 
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -57,8 +58,6 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class AgentCommandLineProvider implements CommandLineArgumentProvider {
-
-    public static final String SESSION_SUBDIR = "session-{pid}-{datetime}";
 
     @Inject
     @SuppressWarnings("checkstyle:redundantmodifier")
@@ -84,7 +83,7 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
             if (agentOptions.stream().map(s -> s.split("=")[0]).anyMatch(s -> s.contains("config-output-dir"))) {
                 throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
             }
-            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath() + File.separator + SESSION_SUBDIR);
+            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath() + File.separator + SharedConstants.AGENT_SESSION_SUBDIR);
             return Arrays.asList(
                     "-agentlib:native-image-agent=" + String.join(",", agentOptions),
                     "-Dorg.graalvm.nativeimage.imagecode=agent"

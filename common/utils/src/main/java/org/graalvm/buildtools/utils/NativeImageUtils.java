@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,36 +38,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.utils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-/**
- * Utility class containing various native-image and JVM related methods.
- * Keep this file in sync across all build tool plugins.
- */
-public interface SharedConstants {
-    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    String GRAALVM_EXE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
-    String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
-    String NATIVE_IMAGE_EXE = "native-image" + GRAALVM_EXE_EXTENSION;
-    String GU_EXE = "gu" + GRAALVM_EXE_EXTENSION;
-    String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
-    String AGENT_PROPERTY = "agent";
-    String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
-    String NATIVE_TESTS_SUFFIX = "-tests";
-    List<String> DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION = Collections.unmodifiableList(Arrays.asList(
-            "META-INF/services/.*",
-            "META-INF/native-image/.*",
-            "META-INF/maven/.*",
-            "META-INF/LICENSE.*",
-            "META-INF/NOTICE.*",
-            "META-INF/.*[.](md|adoc)",
-            "META-INF/INDEX.LIST",
-            ".*/package.html"
-    ));
-    String AGENT_SESSION_SUBDIR = "session-{pid}-{datetime}";
+import static org.graalvm.buildtools.utils.SharedConstants.GRAALVM_EXE_EXTENSION;
+
+public class NativeImageUtils {
+    public static void maybeCreateConfigureUtilSymlink(File configureUtilFile, Path nativeImageExecutablePath) {
+        if (!configureUtilFile.exists()) {
+            // possibly the symlink is missing
+            Path target = configureUtilFile.toPath();
+            Path source = nativeImageExecutablePath.getParent().getParent().resolve("lib/svm/bin/" + nativeImageConfigureFileName());
+            if (Files.exists(source)) {
+                try {
+                    Files.createLink(target, source);
+                } catch (IOException e) {
+                    // ignore as this is handled by consumers
+                }
+            }
+        }
+    }
+
+    public static String nativeImageConfigureFileName() {
+        return "native-image-configure" + GRAALVM_EXE_EXTENSION;
+    }
 }

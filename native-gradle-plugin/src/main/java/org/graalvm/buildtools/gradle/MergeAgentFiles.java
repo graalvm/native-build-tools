@@ -42,6 +42,7 @@ package org.graalvm.buildtools.gradle;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
@@ -58,7 +59,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.findNativeImageExecutable;
-import static org.graalvm.buildtools.utils.SharedConstants.GRAALVM_EXE_EXTENSION;
+import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
 
 class MergeAgentFiles implements Action<Task> {
     private final Provider<Boolean> agent;
@@ -100,6 +101,7 @@ class MergeAgentFiles implements Action<Task> {
                     spec.executable(nativeImage);
                     spec.args("--macro:native-image-configure-launcher");
                 });
+                NativeImageUtils.maybeCreateConfigureUtilSymlink(launcher, nativeImage.toPath());
             }
             if (launcher.exists()) {
                 File[] files = outputDir.get().getAsFile().listFiles();
@@ -127,10 +129,6 @@ class MergeAgentFiles implements Action<Task> {
                 logger.warn("Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM.");
             }
         }
-    }
-
-    private String nativeImageConfigureFileName() {
-        return "native-image-configure" + GRAALVM_EXE_EXTENSION;
     }
 
     private Stream<File> sessionDirectoriesFrom(File[] files) {
