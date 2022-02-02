@@ -52,6 +52,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
      * and within the Maven POM as values of the {@code name} attribute in
      * {@code <options name="...">}.
      */
-    private enum Context { main, test };
+    enum Context { main, test };
 
     static String testIdsDirectory(String baseDir) {
         return baseDir + File.separator + "test-ids";
@@ -85,11 +86,11 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
-        options.add("config-output-dir=" + agentOutputDirectoryFor(baseDir, context));
+        options.add("config-output-dir=" + agentOutputDirectoryFor(baseDir, context) + File.separator + SharedConstants.AGENT_SESSION_SUBDIR);
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
-    private static String agentOutputDirectoryFor(String baseDir, Context context) {
+    static String agentOutputDirectoryFor(String baseDir, Context context) {
         return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
     }
 
@@ -152,6 +153,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                         Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
+                        List<String> goals = new ArrayList<>();
+                        goals.add("merge-agent-files");
+                        goals.addAll(exec.getGoals());
+                        exec.setGoals(goals);
+                        Xpp3Dom agentContext = findOrAppend(configuration, "context");
+                        agentContext.setValue(context.name());
                     });
                 }
             });
