@@ -78,10 +78,14 @@ public class MergeAgentFilesMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         String agentOutputDirectory = agentOutputDirectoryFor(target,  NativeExtension.Context.valueOf(context));
         File baseDir = new File(agentOutputDirectory);
-        Path nativeImageExecutable = Utils.getNativeImage();
-        File mergerExecutable = tryInstall(nativeImageExecutable);
-        List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
-        invokeMerge(mergerExecutable, sessionDirectories, baseDir);
+        if (baseDir.exists()) {
+            Path nativeImageExecutable = Utils.getNativeImage();
+            File mergerExecutable = tryInstall(nativeImageExecutable);
+            List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
+            invokeMerge(mergerExecutable, sessionDirectories, baseDir);
+        } else {
+            getLog().debug("Agent output directory " + baseDir + " doesn't exist. Skipping merge.");
+        }
     }
 
     private File tryInstall(Path nativeImageExecutablePath) {
