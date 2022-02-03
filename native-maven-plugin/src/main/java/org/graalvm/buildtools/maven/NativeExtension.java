@@ -78,7 +78,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
      * and within the Maven POM as values of the {@code name} attribute in
      * {@code <options name="...">}.
      */
-    enum Context { main, test };
+    enum Context {main, test}
 
     static String testIdsDirectory(String baseDir) {
         return baseDir + File.separator + "test-ids";
@@ -86,7 +86,18 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
-        options.add("config-output-dir=" + agentOutputDirectoryFor(baseDir, context) + File.separator + SharedConstants.AGENT_SESSION_SUBDIR);
+        String effectiveOutputDir = agentOutputDirectoryFor(baseDir, context);
+        if (context == Context.test) {
+            // We need to patch the config dir IF, and only IF, we are running tests, because
+            // test execution can be forked into a separate process and there's a race condition.
+            // We have to special case testing here instead of using a generic strategy THEN
+            // invoke the merging tool, because there's no way in Maven to do something as easy
+            // as finalizing a goal (that is, let me do the merge AFTER you're done executing tests,
+            // or invoking exec, or whatever, because what I need to do actually participates into
+            // the same unit of work !).
+            effectiveOutputDir = effectiveOutputDir + File.separator + SharedConstants.AGENT_SESSION_SUBDIR;
+        }
+        options.add("config-output-dir=" + effectiveOutputDir);
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
@@ -153,16 +164,22 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                         Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
-                        List<String> goals = new ArrayList<>();
-                        goals.add("merge-agent-files");
-                        goals.addAll(exec.getGoals());
-                        exec.setGoals(goals);
-                        Xpp3Dom agentContext = findOrAppend(configuration, "context");
-                        agentContext.setValue(context.name());
+                        if (context == Context.test) {
+                            setupMergeAgentFiles(exec, configuration, context);
+                        }
                     });
                 }
             });
         }
+    }
+
+    private static void setupMergeAgentFiles(PluginExecution exec, Xpp3Dom configuration, Context context) {
+        List<String> goals = new ArrayList<>();
+        goals.add("merge-agent-files");
+        goals.addAll(exec.getGoals());
+        exec.setGoals(goals);
+        Xpp3Dom agentContext = findOrAppend(configuration, "context");
+        agentContext.setValue(context.name());
     }
 
     private static void withPlugin(Build build, String artifactId, Consumer<? super Plugin> consumer) {
@@ -204,6 +221,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
      * {@code <options>} elements whose names match the name of the supplied {@code context}
      * or {@code selectedOptionsName} and for unnamed, shared {@code <options>} elements,
      * and returns a list of the collected agent options.
+     *
      * @param nativePlugin the {@code native-maven-plugin}; never null
      * @param context the current execution context; never null
      * @param selectedOptionsName the name of the set of custom agent options activated
@@ -260,9 +278,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
     private static boolean parseBoolean(String description, String value) {
         value = assertNotEmptyAndTrim(value, description + " must have a value").toLowerCase();
         switch (value) {
-            case "true": return true;
-            case "false": return false;
-            default: throw new IllegalStateException(description + " must have a value of 'true' or 'false'");
+            case "true":
+                return true;
+            case "false":
+                return false;
+            default:
+                throw new IllegalStateException(description + " must have a value of 'true' or 'false'");
         }
     }
 
@@ -304,13 +325,18 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
 
     private static void updatePluginConfiguration(Plugin plugin, BiConsumer<PluginExecution, ? super Xpp3Dom> consumer) {
         plugin.getExecutions().forEach(exec -> {
-            Xpp3Dom configuration = (Xpp3Dom) exec.getConfiguration();
-            if (configuration == null) {
-                configuration = new Xpp3Dom("configuration");
-                exec.setConfiguration(configuration);
-            }
+            Xpp3Dom configuration = configurationBlockOf(exec);
             consumer.accept(exec, configuration);
         });
+    }
+
+    private static Xpp3Dom configurationBlockOf(PluginExecution exec) {
+        Xpp3Dom configuration = (Xpp3Dom) exec.getConfiguration();
+        if (configuration == null) {
+            configuration = new Xpp3Dom("configuration");
+            exec.setConfiguration(configuration);
+        }
+        return configuration;
     }
 
     private static Xpp3Dom findOrAppend(Xpp3Dom parent, String childName) {
