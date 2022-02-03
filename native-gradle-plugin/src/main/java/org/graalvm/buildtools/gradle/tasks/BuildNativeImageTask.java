@@ -73,6 +73,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 import static org.graalvm.buildtools.utils.SharedConstants.GU_EXE;
 import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
@@ -107,7 +108,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Internal
     public Provider<String> getExecutableName() {
-        return getOptions().flatMap(NativeImageOptions::getImageName);
+        return getOptions().flatMap(options -> options.getImageName().map(name -> name + EXECUTABLE_EXTENSION));
     }
 
     @Internal
