@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -188,26 +188,33 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#buildClasspathString(org.graalvm.buildtools.gradle.dsl.NativeImageOptions)">buildClasspathString</a></span>&#8203;(<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&nbsp;options)</code></th>
+<td class="colLast">
+<div class="block">Builds a classpath string from the given classpath elements.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getAgentEnabled()">getAgentEnabled</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getClasspathJar()">getClasspathJar</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecutableName()">getExecutableName</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOptions()">getOptions</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOutputDirectory()">getOutputDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
@@ -311,13 +318,34 @@ public&nbsp;org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&
 <a id="asArguments()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>asArguments</h4>
 <pre class="methodSignature">public&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;asArguments()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code>asArguments</code>&nbsp;in interface&nbsp;<code>org.gradle.process.CommandLineArgumentProvider</code></dd>
+</dl>
+</li>
+</ul>
+<a id="buildClasspathString(org.graalvm.buildtools.gradle.dsl.NativeImageOptions)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>buildClasspathString</h4>
+<pre class="methodSignature">protected&nbsp;java.lang.String&nbsp;buildClasspathString&#8203;(<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&nbsp;options)</pre>
+<div class="block">Builds a classpath string from the given classpath elements.
+ This can be overridden by subclasses for special needs. For
+ example, the Micronaut plugin requires this because it's going
+ to build images within a docker container, which makes it so
+ that the paths in the options are invalid (they would be prefixed
+ by a Windows path).</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>options</code> - the native options</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the classpath string</dd>
 </dl>
 </li>
 </ul>
