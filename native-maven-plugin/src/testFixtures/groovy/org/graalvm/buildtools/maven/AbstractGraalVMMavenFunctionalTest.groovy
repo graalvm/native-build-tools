@@ -131,14 +131,18 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     boolean outputContains(String text) {
-        result.stdOut.contains(text)
+        normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
     boolean outputDoesNotContain(String text) {
-        !result.stdOut.contains(text)
+        !normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
     File file(String path) {
         testDirectory.resolve(path).toFile()
+    }
+
+    private static String normalizeString(String input) {
+        input.replace("\r\n", "\n")
     }
 }
