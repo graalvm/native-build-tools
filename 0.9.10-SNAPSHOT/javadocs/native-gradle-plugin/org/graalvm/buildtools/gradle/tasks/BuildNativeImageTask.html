@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":6,"i5":10,"i6":10,"i7":6,"i8":6,"i9":6,"i10":10,"i11":6,"i12":6,"i13":6,"i14":6};
+var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":6,"i5":10,"i6":10,"i7":10,"i8":6,"i9":6,"i10":6,"i11":10,"i12":6,"i13":6,"i14":6,"i15":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -254,46 +254,51 @@ extends org.gradle.api.DefaultTask</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecutableShortName()">getExecutableShortName</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getGraalVMHome()">getGraalVMHome</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.model.ObjectFactory</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getObjects()">getObjects</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOptions()">getOptions</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOutputDirectory()">getOutputDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOutputFile()">getOutputFile</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.provider.ProviderFactory</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getProviders()">getProviders</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Object&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getService()">getService</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getTestListDirectory()">getTestListDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWorkingDirectory()">getWorkingDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
@@ -421,6 +426,16 @@ public abstract&nbsp;org.gradle.api.file.DirectoryProperty&nbsp;getTestListDirec
 <pre class="methodSignature">@Optional
 @Input
 protected&nbsp;org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;getGraalVMHome()</pre>
+</li>
+</ul>
+<a id="getExecutableShortName()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getExecutableShortName</h4>
+<pre class="methodSignature">@Internal
+public&nbsp;org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;getExecutableShortName()</pre>
 </li>
 </ul>
 <a id="getExecutableName()">
