@@ -129,15 +129,15 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     void outputContains(String text) {
-        assert output.contains(text)
+        assert output.contains(normalizeString(text))
     }
 
     void outputDoesNotContain(String text) {
-        assert !output.contains(text)
+        assert !output.contains(normalizeString(text))
     }
 
     void errorOutputContains(String text) {
-        assert errorOutput.contains(text)
+        assert errorOutput.contains(normalizeString(text))
     }
 
     void tasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
@@ -148,8 +148,8 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     private void recordOutputs() {
-        output = outputWriter.toString()
-        errorOutput = errorOutputWriter.toString()
+        output = normalizeString(outputWriter.toString())
+        errorOutput = normalizeString(errorOutputWriter.toString())
     }
 
     private GradleRunner newRunner(String... args) {
@@ -242,5 +242,9 @@ abstract class AbstractFunctionalTest extends Specification {
                 assert result.task(task) == null: "Task $task should be missing from the task graph but it was found with an outcome of ${result.task(task).outcome}"
             }
         }
+    }
+
+    private static String normalizeString(String input) {
+        input.replace("\r\n", "\n")
     }
 }
