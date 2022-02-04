@@ -107,6 +107,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     }
 
     @Internal
+    public Provider<String> getExecutableShortName() {
+        return getOptions().flatMap(NativeImageOptions::getImageName);
+    }
+
+    @Internal
     public Provider<String> getExecutableName() {
         return getOptions().flatMap(options -> options.getImageName().map(name -> name + EXECUTABLE_EXTENSION));
     }
@@ -151,7 +156,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         return new NativeImageCommandLineProvider(
                 getOptions(),
                 getAgentEnabled(),
-                getExecutableName(),
+                getExecutableShortName(),
                 // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
                 // a mapped value before the task was called, when we are actually calling it...
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
