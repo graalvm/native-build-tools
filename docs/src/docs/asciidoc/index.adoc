@@ -22,6 +22,10 @@ If you are interested in contributing, please refer to our https://github.com/gr
 * Native testing support can now be explicitly disabled via `skipNativeTests`.
    - See <<maven-plugin.adoc#testing-support-disabling, Disabling testing support>> for details.
 
+==== Gradle plugin
+
+* Fixed `nativeRun` not working properly under Windows
+
 === Release 0.9.9
 
 ==== Gradle plugin
