@@ -109,12 +109,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         List<String> cliArgs = new ArrayList<>(20);
 
         cliArgs.add("-cp");
-        if (classpathJar.isPresent()) {
-            cliArgs.add(classpathJar.get().getAsFile().getAbsolutePath());
-        } else {
-            cliArgs.add(options.getClasspath().getAsPath());
-        }
-
+        String classpathString = buildClasspathString(options);
+        cliArgs.add(classpathString);
         appendBooleanOption(cliArgs, options.getDebug(), "-H:GenerateDebugInfo=1");
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
@@ -150,6 +146,26 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         }
         cliArgs.addAll(options.getBuildArgs().get());
         return Collections.unmodifiableList(cliArgs);
+    }
+
+    /**
+     * Builds a classpath string from the given classpath elements.
+     * This can be overridden by subclasses for special needs. For
+     * example, the Micronaut plugin requires this because it's going
+     * to build images within a docker container, which makes it so
+     * that the paths in the options are invalid (they would be prefixed
+     * by a Windows path).
+     * @param options the native options
+     * @return the classpath string
+     */
+    protected String buildClasspathString(NativeImageOptions options) {
+        String classpathString;
+        if (classpathJar.isPresent()) {
+            classpathString = classpathJar.get().getAsFile().getAbsolutePath();
+        } else {
+            classpathString = options.getClasspath().getAsPath();
+        }
+        return classpathString;
     }
 
     private static void appendBooleanOption(List<String> cliArgs, Provider<Boolean> provider, String whenTrue) {
