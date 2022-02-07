@@ -458,6 +458,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#testing-support">Testing support</a>
 <ul class="sectlevel2">
+<li><a href="#testing-support-version-compatibility">Version compatibility</a></li>
 <li><a href="#testing-support-disabling">Disabling testing support</a></li>
 </ul>
 </li>
@@ -752,29 +753,59 @@ extensions for the <code>native-maven-plugin</code> by adding <code>&lt;extensio
 <div class="paragraph">
 <p>Running <code>mvn -Pnative test</code> will then build and run native tests.</p>
 </div>
-<div class="admonitionblock note">
+<div class="sect2">
+<h3 id="testing-support-version-compatibility"><a class="anchor" href="#testing-support-version-compatibility"></a>Version compatibility</h3>
+<div class="paragraph">
+<p>This plugin requires JUnit Platform 1.8 or higher and Maven Surefire 2.22.0 or higher to
+run tests within a native image.</p>
+</div>
+<div class="paragraph">
+<p>Each version of the Maven Surefire plugin has a dependency on a particular version of the
+JUnit Platform. You therefore need to ensure that Maven Surefire is using at least version
+1.8 of the JUnit Platform. Beginning with version 3.0 M4, Maven Surefire will
+automatically align the JUnit Platform version used by Surefire with the version needed by
+the user&#8217;s configured version of JUnit Jupiter or JUnit Vintage. Since the examples in
+this document use Maven Surefire 3.0 M5, their maven POMs do not require any special
+configuration regarding the JUnit Platform version. However, if you are using a version of
+Maven Surefire prior to 3.0 M4 you will need to add an explicit dependency on the
+<code>junit-platform-launcher</code> artifact to the <code>dependencies</code> section of your <code>native</code> profile
+configuration as in the following example.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependencies&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.junit.platform&lt;/groupId&gt;
+		&lt;artifactId&gt;junit-platform-launcher&lt;/artifactId&gt;
+		&lt;version&gt;1.8.2&lt;/version&gt;
+		&lt;scope&gt;test&lt;/scope&gt;
+	&lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-This plugin requires JUnit Platform 1.8 or higher.
+If you have imported the <code>junit</code> BOM or are using a plugin that manages JUnit
+versions for you&#8201;&#8212;&#8201;for example, Spring Boot&#8201;&#8212;&#8201;you may want to omit the <code>&lt;version&gt;</code>
+configuration in the above example.
 </td>
 </tr>
 </table>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This plugin provides integration with Maven Surefire 2.22.0 or higher.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>If Maven Surefire is using an older version of the JUnit Platform, the build will fail
+with an error similar to the following when attempting to run tests in a native image.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.</pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
