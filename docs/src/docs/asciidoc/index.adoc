@@ -21,6 +21,8 @@ If you are interested in contributing, please refer to our https://github.com/gr
 
 * Native testing support can now be explicitly disabled via `skipNativeTests`.
    - See <<maven-plugin.adoc#testing-support-disabling, Disabling testing support>> for details.
+* Documented version compatibility for the JUnit Platform and Maven Surefire plugin.
+   - See <<maven-plugin.adoc#testing-support-version-compatibility, Version compatibility>> for details.
 
 ==== Gradle plugin
 

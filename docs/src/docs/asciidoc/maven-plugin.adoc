@@ -198,9 +198,45 @@ include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plug
 
 Running `mvn -Pnative test` will then build and run native tests.
 
-NOTE: This plugin requires JUnit Platform 1.8 or higher.
+[[testing-support-version-compatibility]]
+=== Version compatibility
 
-NOTE: This plugin provides integration with Maven Surefire 2.22.0 or higher.
+This plugin requires JUnit Platform 1.8 or higher and Maven Surefire 2.22.0 or higher to
+run tests within a native image.
+
+Each version of the Maven Surefire plugin has a dependency on a particular version of the
+JUnit Platform. You therefore need to ensure that Maven Surefire is using at least version
+1.8 of the JUnit Platform. Beginning with version 3.0 M4, Maven Surefire will
+automatically align the JUnit Platform version used by Surefire with the version needed by
+the user's configured version of JUnit Jupiter or JUnit Vintage. Since the examples in
+this document use Maven Surefire 3.0 M5, their maven POMs do not require any special
+configuration regarding the JUnit Platform version. However, if you are using a version of
+Maven Surefire prior to 3.0 M4 you will need to add an explicit dependency on the
+`junit-platform-launcher` artifact to the `dependencies` section of your `native` profile
+configuration as in the following example.
+
+[source,xml]
+----
+<dependencies>
+	<dependency>
+		<groupId>org.junit.platform</groupId>
+		<artifactId>junit-platform-launcher</artifactId>
+		<version>1.8.2</version>
+		<scope>test</scope>
+	</dependency>
+</dependencies>
+----
+
+TIP: If you have imported the `junit` BOM or are using a plugin that manages JUnit
+versions for you -- for example, Spring Boot -- you may want to omit the `<version>`
+configuration in the above example.
+
+If Maven Surefire is using an older version of the JUnit Platform, the build will fail
+with an error similar to the following when attempting to run tests in a native image.
+
+----
+[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.
+----
 
 [[testing-support-disabling]]
 === Disabling testing support
