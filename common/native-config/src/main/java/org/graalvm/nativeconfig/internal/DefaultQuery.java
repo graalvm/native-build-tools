@@ -38,54 +38,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.nativeconfig;
+package org.graalvm.nativeconfig.internal;
 
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Set;
+import org.graalvm.nativeconfig.Query;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-/**
- * Interface for accessing a native configuration repository.
- * The goal of this repository is to answer questions like:
- * "give me the configuration files for this artifact", where
- * an artifact is represented by its GAV coordinates.
- *
- * The repository query may be configured for multiple artifacts
- * and provide overrides for cases where configuration files
- * are missing.
- */
-public interface NativeConfigurationRepository {
-    /**
-     * Performs a generic query on the repository, returning a list of
-     * configuration directories. The query may be parameterized with
-     * a number of artifacts, and can be used to refine behavior, for
-     * example if a configuration directory isn't available for a
-     * particular artifact version.
-     * @param queryBuilder the query builder
-     * @return the set of configuration directories matching the query
-     */
-    Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder);
+public class DefaultQuery implements Query {
+    private boolean useLatest = false;
+    private final List<Consumer<? super ArtifactQuery>> artifactsQueries = new ArrayList<>();
 
-    /**
-     * Returns a list of configuration directories for the specified artifact.
-     * There may be more than one configuration directory for a given artifact,
-     * but the list may also be empty if the repository doesn't contain any.
-     * Never null.
-     * @param gavCoordinates the artifact GAV coordinates (group:artifact:version)
-     * @return a list of configuration directories
-     */
-    default Set<Path> findConfigurationDirectoriesFor(String gavCoordinates) {
-        return findConfigurationDirectoriesFor(q -> q.forArtifacts(gavCoordinates));
+    @Override
+    public void forArtifacts(String... gavCoordinates) {
+        for (String coordinates : gavCoordinates) {
+            forArtifact(q -> q.gav(coordinates));
+        }
     }
 
-    /**
-     * Returns the set of configuration directories for all the modules supplied
-     * as an argument.
-     * @param modules the list of modules
-     * @return the set of configuration directories
-     */
-    default Set<Path> findConfigurationDirectoriesFor(Collection<String> modules) {
-        return findConfigurationDirectoriesFor(q -> q.forArtifacts(modules));
+    @Override
+    public void forArtifact(Consumer<? super ArtifactQuery> config) {
+        artifactsQueries.add(config);
+    }
+
+    @Override
+    public void useLatestConfigWhenVersionIsUntested() {
+        useLatest = true;
+    }
+
+    List<DefaultArtifactQuery> getArtifacts() {
+        return artifactsQueries.stream()
+                .map(spec -> {
+                    DefaultArtifactQuery query = new DefaultArtifactQuery();
+                    if (useLatest) {
+                        query.useLatestConfigWhenVersionIsUntested();
+                    }
+                    spec.accept(query);
+                    return query;
+                })
+                .collect(Collectors.toList());
     }
 }

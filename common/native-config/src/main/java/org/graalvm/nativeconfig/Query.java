@@ -40,52 +40,23 @@
  */
 package org.graalvm.nativeconfig;
 
-import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Set;
 import java.util.function.Consumer;
 
-/**
- * Interface for accessing a native configuration repository.
- * The goal of this repository is to answer questions like:
- * "give me the configuration files for this artifact", where
- * an artifact is represented by its GAV coordinates.
- *
- * The repository query may be configured for multiple artifacts
- * and provide overrides for cases where configuration files
- * are missing.
- */
-public interface NativeConfigurationRepository {
-    /**
-     * Performs a generic query on the repository, returning a list of
-     * configuration directories. The query may be parameterized with
-     * a number of artifacts, and can be used to refine behavior, for
-     * example if a configuration directory isn't available for a
-     * particular artifact version.
-     * @param queryBuilder the query builder
-     * @return the set of configuration directories matching the query
-     */
-    Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder);
+public interface Query {
+    void forArtifacts(String... gavCoordinates);
 
-    /**
-     * Returns a list of configuration directories for the specified artifact.
-     * There may be more than one configuration directory for a given artifact,
-     * but the list may also be empty if the repository doesn't contain any.
-     * Never null.
-     * @param gavCoordinates the artifact GAV coordinates (group:artifact:version)
-     * @return a list of configuration directories
-     */
-    default Set<Path> findConfigurationDirectoriesFor(String gavCoordinates) {
-        return findConfigurationDirectoriesFor(q -> q.forArtifacts(gavCoordinates));
+    default void forArtifacts(Collection<String> gavCoordinates) {
+        forArtifacts(gavCoordinates.toArray(new String[0]));
     }
 
-    /**
-     * Returns the set of configuration directories for all the modules supplied
-     * as an argument.
-     * @param modules the list of modules
-     * @return the set of configuration directories
-     */
-    default Set<Path> findConfigurationDirectoriesFor(Collection<String> modules) {
-        return findConfigurationDirectoriesFor(q -> q.forArtifacts(modules));
+    void forArtifact(Consumer<? super ArtifactQuery> config);
+    void useLatestConfigWhenVersionIsUntested();
+
+    interface ArtifactQuery {
+        void gav(String gavCoordinates);
+        void useLatestConfigWhenVersionIsUntested();
+        void doNotUseLatestConfigWhenVersionIsUntested();
+        void forceConfigVersion(String version);
     }
 }

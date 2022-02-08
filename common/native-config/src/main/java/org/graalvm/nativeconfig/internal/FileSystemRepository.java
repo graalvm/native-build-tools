@@ -41,6 +41,7 @@
 package org.graalvm.nativeconfig.internal;
 
 import org.graalvm.nativeconfig.NativeConfigurationRepository;
+import org.graalvm.nativeconfig.Query;
 import org.graalvm.nativeconfig.internal.index.artifacts.SingleModuleJsonVersionToConfigDirectoryIndex;
 import org.graalvm.nativeconfig.internal.index.artifacts.VersionToConfigDirectoryIndex;
 import org.graalvm.nativeconfig.internal.index.modules.FileSystemModuleToConfigDirectoryIndex;
@@ -50,6 +51,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class FileSystemRepository implements NativeConfigurationRepository {
@@ -62,16 +64,31 @@ public class FileSystemRepository implements NativeConfigurationRepository {
     }
 
     @Override
-    public Set<Path> findConfigurationDirectoriesFor(String groupId, String artifactId, String version) {
-        return moduleIndex.findConfigurationDirectories(groupId, artifactId)
+    public Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder) {
+        DefaultQuery query = new DefaultQuery();
+        queryBuilder.accept(query);
+        return query.getArtifacts()
                 .stream()
-                .map(dir -> {
-                    VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
-                    return index.findConfigurationDirectory(groupId, artifactId, version);
+                .flatMap(artifactQuery -> {
+                    String groupId = artifactQuery.getGroupId();
+                    String artifactId = artifactQuery.getArtifactId();
+                    String version = artifactQuery.getVersion();
+                    return moduleIndex.findConfigurationDirectories(groupId, artifactId)
+                            .stream()
+                            .map(dir -> {
+                                VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
+                                if (artifactQuery.getForcedConfig().isPresent()) {
+                                    return index.findForcedConfiguration(artifactQuery.getForcedConfig().get());
+                                }
+                                Optional<Path> configurationDirectory = index.findConfigurationDirectory(groupId, artifactId, version);
+                                if (!configurationDirectory.isPresent() && artifactQuery.isUseLatestVersion()) {
+                                    configurationDirectory = index.findLatestConfigurationFor(groupId, artifactId);
+                                }
+                                return configurationDirectory;
+                            })
+                            .filter(Optional::isPresent)
+                            .map(Optional::get);
                 })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(Collectors.toSet());
     }
-
 }

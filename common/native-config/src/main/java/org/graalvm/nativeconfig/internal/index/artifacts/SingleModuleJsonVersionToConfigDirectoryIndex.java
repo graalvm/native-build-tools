@@ -80,6 +80,11 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
 
     }
 
+    @Override
+    public Optional<Path> findForcedConfiguration(String version) {
+        Path configDir = moduleRoot.resolve(version);
+        return Files.isDirectory(configDir) ? Optional.of(configDir) : Optional.empty();
+    }
 
     /**
      * Returns the configuration directory for the requested artifact.

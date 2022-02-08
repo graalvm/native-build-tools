@@ -44,6 +44,15 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public interface VersionToConfigDirectoryIndex {
+
+    /**
+     * Returns the specified configuration directory version, ignoring
+     * any existing configuration.
+     * @param version the requested version
+     * @return the configuration directory
+     */
+    Optional<Path> findForcedConfiguration(String version);
+
     /**
      * Returns the configuration directory for the requested artifact.
      * @param groupId the group ID of the artifact
