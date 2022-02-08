@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,16 +39,35 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+plugins {
+    checkstyle
+    id("org.graalvm.build.java")
+    id("org.graalvm.build.publishing")
 }
 
-rootProject.name = "native-build-tools"
+maven {
+    name.set("GraalVM Native Configuration support")
+    description.set("A library to help dealing with the GraaVM native configuration repository")
+}
 
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/native-config")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
+dependencies {
+    implementation(libs.jackson.databind)
+    implementation(platform(libs.test.junit.bom))
+    implementation(libs.test.junit.jupiter.core)
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
+}

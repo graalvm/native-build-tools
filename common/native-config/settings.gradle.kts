@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,15 +40,11 @@
  */
 
 pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+    includeBuild("../../build-logic")
 }
 
-rootProject.name = "native-build-tools"
+plugins {
+    id("org.graalvm.build.common")
+}
 
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/native-config")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
+rootProject.name = "native-config"

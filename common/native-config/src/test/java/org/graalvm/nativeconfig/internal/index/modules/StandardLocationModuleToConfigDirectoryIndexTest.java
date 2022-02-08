@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,16 +39,40 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+package org.graalvm.nativeconfig.internal.index.modules;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class StandardLocationModuleToConfigDirectoryIndexTest {
+    @TempDir
+    private Path tempDir;
+
+    private StandardLocationModuleToConfigDirectoryIndex index;
+
+    @BeforeEach
+    void setUp() {
+        index = new StandardLocationModuleToConfigDirectoryIndex(tempDir);
+    }
+
+    @Test
+    void returnsConventionalConfigLocation() throws IOException {
+        Path localDir = tempDir.resolve("org/module/foo");
+        Files.createDirectories(localDir);
+        Set<Path> configurationDirectories = index.findConfigurationDirectories("org.module", "foo");
+        assertEquals(singleton(localDir), configurationDirectories);
+
+        configurationDirectories = index.findConfigurationDirectories("org", "bar");
+        assertEquals(emptySet(), configurationDirectories);
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/native-config")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")

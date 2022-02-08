@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.nativeconfig.internal;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import org.graalvm.nativeconfig.NativeConfigurationRepository;
+import org.graalvm.nativeconfig.internal.index.artifacts.SingleModuleJsonVersionToConfigDirectoryIndex;
+import org.graalvm.nativeconfig.internal.index.artifacts.VersionToConfigDirectoryIndex;
+import org.graalvm.nativeconfig.internal.index.modules.FileSystemModuleToConfigDirectoryIndex;
+
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+public class FileSystemRepository implements NativeConfigurationRepository {
+    private final FileSystemModuleToConfigDirectoryIndex moduleIndex;
+    private final Map<Path, VersionToConfigDirectoryIndex> artifactIndexes;
+
+    public FileSystemRepository(Path rootDirectory) {
+        this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
+        this.artifactIndexes = new ConcurrentHashMap<>();
+    }
+
+    @Override
+    public Set<Path> findConfigurationDirectoriesFor(String groupId, String artifactId, String version) {
+        return moduleIndex.findConfigurationDirectories(groupId, artifactId)
+                .stream()
+                .map(dir -> {
+                    VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
+                    return index.findConfigurationDirectory(groupId, artifactId, version);
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+    }
+
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/native-config")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
