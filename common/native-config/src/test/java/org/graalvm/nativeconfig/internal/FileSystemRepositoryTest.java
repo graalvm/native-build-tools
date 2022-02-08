@@ -41,12 +41,14 @@
 
 package org.graalvm.nativeconfig.internal;
 
+import org.graalvm.nativeconfig.Query;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -87,6 +89,86 @@ class FileSystemRepositoryTest {
         result.hasSinglePath("org/foo/2");
     }
 
+    @Test
+    void canDefaultToLatestConfigDir() {
+        // when:
+        withRepo("repo1");
+        lookup(q -> {
+            q.useLatestConfigWhenVersionIsUntested();
+            q.forArtifacts("org:foo:1.2");
+        });
+
+        // then:
+        result.hasSinglePath("org/foo/2");
+
+        //when: "order of spec shouldn't matter"
+        lookup(q -> {
+            q.forArtifacts("org:foo:1.2");
+            q.useLatestConfigWhenVersionIsUntested();
+        });
+
+        // then:
+        result.hasSinglePath("org/foo/2");
+    }
+
+    @Test
+    void canForceToParticularConfigVersion() {
+        // when:
+        withRepo("repo1");
+
+        lookup(q -> q.forArtifact(artifact -> {
+            artifact.gav("org:foo:1.2");
+            artifact.forceConfigVersion("1");
+        }));
+
+        // then:
+        result.hasSinglePath("org/foo/1");
+    }
+
+    @Test
+    void forcingToNonExistentDirectoryReturnsEmpty() {
+        // when:
+        withRepo("repo1");
+
+        lookup(q -> q.forArtifact(artifact -> {
+            artifact.gav("org:foo:1.2");
+            artifact.forceConfigVersion("123");
+        }));
+
+        // then:
+        result.isEmpty();
+    }
+
+    @Test
+    void canUseLatestConfigDir() {
+        // when:
+        withRepo("repo1");
+        lookup(q -> q.forArtifact(artifact -> {
+            artifact.gav("org:foo:1.2");
+            artifact.useLatestConfigWhenVersionIsUntested();
+        }));
+
+        // then:
+        result.hasSinglePath("org/foo/2");
+
+        // when:
+        lookup(q -> {
+            q.useLatestConfigWhenVersionIsUntested();
+            q.forArtifact(artifact -> {
+                artifact.gav("org:foo:1.2");
+                // Can override default global
+                artifact.doNotUseLatestConfigWhenVersionIsUntested();
+            });
+        });
+
+        // then:
+        result.isEmpty();
+    }
+
+    private void lookup(Consumer<? super Query> builder) {
+        result = new Result(repository.findConfigurationDirectoriesFor(builder), repoPath);
+    }
+
     private void lookup(String gav) {
         result = new Result(repository.findConfigurationDirectoriesFor(gav), repoPath);
     }
@@ -100,7 +182,7 @@ class FileSystemRepositoryTest {
         }
     }
 
-    private static class Result {
+    private static final class Result {
         private final Path repoPath;
         private final Set<Path> configDirs;
 

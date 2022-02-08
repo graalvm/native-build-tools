@@ -1,0 +1,44 @@
+name: Native Configuration Repository
+
+on:
+  push:
+    paths:
+      - 'common/native-config/**'
+  pull_request:
+    paths:
+      - 'common/native-config/**'
+  workflow_dispatch:
+
+jobs:
+  test-native-config:
+    name:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source common/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Checkstyle
+        run: |
+          pushd common/native-config
+            ./gradlew checkstyleMain
+            ./gradlew checkstyleTest
+          popd
+      - name: JVM test
+        run: |
+          pushd common/native-config
+            ./gradlew test
+          popd
+      - name: Tests results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: tests-results
+          path: common/native-config/build/reports/tests/
