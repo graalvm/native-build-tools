@@ -1,0 +1,5 @@
+[
+  { "module": "org:foo", "tested-versions": ["1.0"], "config-version": "1" },
+  { "module": "org:foo", "tested-versions": ["1.1"], "config-version": "2" },
+  { "module": "org:bar", "tested-versions": ["2.1"], "config-version": "2" }
+]

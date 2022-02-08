@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.nativeconfig.internal.index.modules;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Collections;
+import java.util.List;
+
+public class ModuleEntry {
+    private final String module;
+    private final String moduleDirectory;
+    private final List<String> requires;
+
+    @JsonCreator
+    public ModuleEntry(@JsonProperty("module") String module,
+                       @JsonProperty("directory") String moduleDirectory,
+                       @JsonProperty("requires") List<String> requires) {
+        this.module = module;
+        this.moduleDirectory = moduleDirectory;
+        this.requires = requires == null ? Collections.emptyList() : requires;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public String getModuleDirectory() {
+        return moduleDirectory;
+    }
+
+    public List<String> getRequires() {
+        return requires;
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/native-config")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")

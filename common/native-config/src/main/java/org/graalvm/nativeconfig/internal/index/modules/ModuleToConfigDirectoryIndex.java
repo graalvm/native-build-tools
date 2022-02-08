@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.nativeconfig.internal.index.modules;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import java.nio.file.Path;
+import java.util.Set;
+
+public interface ModuleToConfigDirectoryIndex {
+    /**
+     * Returns the directories containing the candidate configurations for the given module.
+     * @param groupId the group of the module
+     * @param artifactId the artifact of the module
+     * @return the configuration directory
+     */
+    Set<Path> findConfigurationDirectories(String groupId, String artifactId);
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/native-config")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
