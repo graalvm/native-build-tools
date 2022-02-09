@@ -40,11 +40,11 @@
  */
 
 pluginManagement {
-    includeBuild("../settings-build-logic")
+    includeBuild("../settings-plugins")
 }
 
 plugins {
     id("org.graalvm.build.common")
 }
 
-rootProject.name = "main-build-logic"
+rootProject.name = "aggregator"

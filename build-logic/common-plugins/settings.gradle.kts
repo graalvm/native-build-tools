@@ -39,4 +39,4 @@
  * SOFTWARE.
  */
 
-rootProject.name = "shared-build-logic"
+rootProject.name = "common-plugins"
