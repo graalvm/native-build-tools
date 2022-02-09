@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.AgentConfiguration;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
+import org.graalvm.buildtools.gradle.dsl.NativeConfigurationRepositoryExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
@@ -52,6 +53,7 @@ import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.gradle.internal.NativeConfigurationService;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -65,6 +67,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ArchiveOperations;
@@ -77,6 +80,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
+import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -101,10 +105,14 @@ import org.gradle.util.GFileUtils;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -277,7 +285,41 @@ public class NativeImagePlugin implements Plugin<Project> {
             options.getConfigurationFileDirectories().from(generateResourcesConfig.map(t ->
                     t.getOutputFile().map(f -> f.getAsFile().getParentFile())
             ));
+            configureNativeConfigurationDirectories(project, graalExtension, options, sourceSet);
         });
+    }
+
+    private void configureNativeConfigurationDirectories(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
+        NativeConfigurationRepositoryExtension repositoryExtension = nativeConfiguration(graalExtension);
+        Provider<NativeConfigurationService> serviceProvider = project.getGradle()
+                .getSharedServices()
+                .registerIfAbsent("nativeConfigurationService", NativeConfigurationService.class, spec -> {
+                    spec.getParameters().getUri().set(repositoryExtension.getUri());
+                    spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
+                });
+        options.getConfigurationFileDirectories().from(repositoryExtension.getEnabled().flatMap(enabled -> {
+            if (enabled) {
+                if (repositoryExtension.getUri().isPresent()) {
+                    Configuration classpath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+                    Set<String> excludedModules = repositoryExtension.getExcludedModules().getOrElse(Collections.emptySet());
+                    return serviceProvider.map(repo -> repo.findConfigurationDirectoriesFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
+                                ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
+                                String module = moduleVersion.getGroup() + ":" + moduleVersion.getName();
+                                if (!excludedModules.contains(module)) {
+                                    query.forArtifact(artifact -> artifact.gav(module + ":" + moduleVersion.getVersion()));
+                                }
+                            })).stream()
+                            .map(Path::toAbsolutePath)
+                            .map(Path::toFile)
+                            .collect(Collectors.toList()));
+                }
+            }
+            return project.getProviders().provider(Collections::emptySet);
+        }));
+    }
+
+    private static NativeConfigurationRepositoryExtension nativeConfiguration(GraalVMExtension graalExtension) {
+        return ((ExtensionAware) graalExtension).getExtensions().getByType(NativeConfigurationRepositoryExtension.class);
     }
 
     private void deprecateExtension(Project project,
@@ -338,7 +380,22 @@ public class NativeImagePlugin implements Plugin<Project> {
         graalvmNative.getGeneratedResourcesDirectory().set(project.getLayout()
                 .getBuildDirectory()
                 .dir("native/generated/"));
+        configureNativeConfigurationRepo((ExtensionAware) graalvmNative);
         return graalvmNative;
+    }
+
+    private void configureNativeConfigurationRepo(ExtensionAware graalvmNative) {
+        NativeConfigurationRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("configurationRepository", NativeConfigurationRepositoryExtension.class);
+        configurationRepository.getEnabled().convention(false);
+        configurationRepository.getUri().convention(configurationRepository.getVersion().map(v -> {
+            try {
+                // TODO: replace with real URI
+                return new URI("https://github.com/graalvm/native-configuration/releases/download/" + v + "/native-configuration-" + v + ".zip");
+            } catch (URISyntaxException e) {
+                return null;
+            }
+        }));
+        configurationRepository.getExcludedModules().convention(Collections.emptySet());
     }
 
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,
