@@ -40,9 +40,7 @@
  */
 
 plugins {
-    checkstyle
-    id("org.graalvm.build.java")
-    id("org.graalvm.build.publishing")
+    id("org.graalvm.build.utils-module")
 }
 
 maven {
@@ -54,33 +52,4 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(platform(libs.test.junit.bom))
     implementation(libs.test.junit.jupiter.core)
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
-val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {
-    versions.put("junitPlatformNative", libs.versions.nativeBuildTools)
-    outputDirectory.set(layout.buildDirectory.dir("generated/sources/versions"))
-}
-
-sourceSets {
-    main {
-        java {
-            srcDir(generateVersionInfo)
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
-}
-
-tasks.withType<Checkstyle>().configureEach {
-    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
 }
