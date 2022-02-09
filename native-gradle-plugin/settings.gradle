@@ -40,7 +40,7 @@
  */
 
 pluginManagement {
-    includeBuild("../build-logic")
+    includeBuild("../shared-build-logic")
 }
 
 plugins {
