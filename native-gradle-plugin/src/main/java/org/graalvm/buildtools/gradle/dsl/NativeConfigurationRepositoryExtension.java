@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,49 +38,67 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.dsl;
 
-plugins {
-    id 'java-gradle-plugin'
-    id 'checkstyle'
-    id 'com.gradle.plugin-publish' version '0.15.0'
-    id 'java-test-fixtures'
-    id 'org.graalvm.build.java'
-    id 'org.graalvm.build.functional-testing'
-    id 'org.graalvm.build.publishing'
-}
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 
-maven {
-    name.set("GraalVM Native Gradle Plugin")
-    description.set("Plugin that provides support for building and testing of GraalVM native images (ahead-of-time compiled Java code)")
-}
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-dependencies {
-    implementation libs.utils
-    implementation libs.nativeConfig
-    testImplementation libs.test.spock
-    testFixturesImplementation libs.test.spock
-    testFixturesImplementation gradleTestKit()
-    functionalTestCommonRepository(libs.junitPlatformNative)
-}
+/**
+ * Extension used to configure the native configuration
+ * repository.
+ */
+public interface NativeConfigurationRepositoryExtension {
+    /**
+     * Property used to determine if the native configuration
+     * repository should be used.
+     * @return the enabled property
+     */
+    Property<Boolean> getEnabled();
 
-pluginBundle {
-    website = 'https://graalvm.org/'
-    vcsUrl = 'https://github.com/graalvm/native-build-tools'
-    tags = ['native', 'graalvm', 'graal', 'java']
-}
+    /**
+     * A URI pointing to a configuration repository. This must
+     * either be a local file or a remote URI. In case of remote
+     * files, only zip or tarballs are supported.
+     * @return the uri property
+     */
+    Property<URI> getUri();
 
-gradlePlugin {
-    // Define the plugin
-    plugins {
-        nativeImage {
-            id = 'org.graalvm.buildtools.native'
-            implementationClass = 'org.graalvm.buildtools.gradle.NativeImagePlugin'
-            displayName = maven.name.get()
-            description = maven.description.get()
-        }
+    /**
+     * An optional version of the remote repository: if specified,
+     * and that no URI is provided, it will automatically use a
+     * published repository from the official GraalVM configuration
+     * repository.
+     *
+     * @return the version of the repository to use
+     */
+    Property<String> getVersion();
+
+    /**
+     * The set of modules for which we don't want to use the
+     * configuration found in the repository. Modules must be
+     * declared with the `groupId:artifactId` syntax.
+     * @return the set of excluded modules
+     */
+    SetProperty<String> getExcludedModules();
+
+    /**
+     * Convenience method to use a String for the URI
+     * property
+     * @param uri the URI
+     */
+    default void uri(String uri) throws URISyntaxException {
+        getUri().set(new URI(uri));
     }
-}
 
-tasks.withType(Checkstyle).configureEach {
-    setConfigFile(layout.projectDirectory.dir("../config/checkstyle.xml").asFile)
+    /**
+     * Convenience method to use a URI for the property
+     * @param file a file
+     */
+    default void uri(File file) {
+        getUri().set(file.toURI());
+    }
 }
