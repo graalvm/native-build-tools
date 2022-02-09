@@ -39,8 +39,6 @@
  * SOFTWARE.
  */
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 val catalogFile = file(".").let {
     var baseDir = it
     var cur = File(baseDir, "gradle/libs.versions.toml")
