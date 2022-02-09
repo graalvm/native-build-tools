@@ -61,15 +61,16 @@ repositories {
     mavenCentral()
 }
 
-val versionFromCatalog = extensions.getByType<VersionCatalogsExtension>()
-        .named("libs")
-        .findVersion("nativeBuildTools")
-
 group = "org.graalvm.buildtools"
-if (versionFromCatalog.isPresent()) {
-    version = versionFromCatalog.get().requiredVersion
-} else {
-    throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+
+extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
+    val versionFromCatalog = catalogs.named("libs")
+            .findVersion("nativeBuildTools")
+    if (versionFromCatalog.isPresent()) {
+        version = versionFromCatalog.get().requiredVersion
+    } else {
+        throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+    }
 }
 
 tasks.javadoc {

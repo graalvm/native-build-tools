@@ -39,14 +39,16 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("../../build-logic/settings-plugins")
-    includeBuild("../../build-logic/common-plugins")
-    includeBuild("../../build-logic/utils-plugins")
-}
-
 plugins {
-    id("org.graalvm.build.common")
+    java
+    `kotlin-dsl`
 }
 
-rootProject.name = "utils"
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation(":common-plugins")
+}

@@ -1,3 +1,8 @@
+import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.*
+
 /*
  * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -40,5 +45,39 @@
  */
 
 plugins {
-    `java-gradle-plugin`
+    checkstyle
+    id("org.graalvm.build.java")
+    id("org.graalvm.build.publishing")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
+    val libs = catalogs.named("libs")
+    val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {
+        versions.put("junitPlatformNative", libs.findVersion("nativeBuildTools").get().requiredVersion)
+        outputDirectory.set(layout.buildDirectory.dir("generated/sources/versions"))
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDir(generateVersionInfo)
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
 }
