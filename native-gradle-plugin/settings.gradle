@@ -42,6 +42,7 @@
 pluginManagement {
     includeBuild("../build-logic/settings-plugins")
     includeBuild("../build-logic/common-plugins")
+    includeBuild("../build-logic/gradle-functional-testing")
 }
 
 plugins {
