@@ -39,17 +39,11 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("../settings-build-logic")
-    includeBuild("../shared-build-logic")
-    includeBuild("build-plugins")
-}
-
 plugins {
-    id("org.graalvm.build.common")
+    `kotlin-dsl`
 }
 
-rootProject.name = "native-maven-plugin"
-
-includeBuild("../common/junit-platform-native")
-includeBuild("../common/utils")
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}

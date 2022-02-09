@@ -39,6 +39,10 @@
  * SOFTWARE.
  */
 
+pluginManagement {
+    includeBuild("settings-build-logic")
+}
+
 rootProject.name = "native-build-tools"
 
 includeBuild("common/junit-platform-native")
