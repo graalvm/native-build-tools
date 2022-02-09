@@ -83,7 +83,7 @@ listOf(
         description = "Publishes all artifacts to the ${repo.decapitalize()} repository"
         group = PublishingPlugin.PUBLISH_TASK_GROUP
         gradle.includedBuilds.forEach {
-            if (it.name != "docs") {
+            if (it.name != "docs" && !it.projectDir.path.contains("build-logic")) {
                 dependsOn(it.task(":$taskPrefix$repo"))
             }
         }
