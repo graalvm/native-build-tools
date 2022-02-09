@@ -39,17 +39,4 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("../settings-build-logic")
-    includeBuild("../shared-build-logic")
-    includeBuild("build-plugins")
-}
-
-plugins {
-    id("org.graalvm.build.common")
-}
-
-rootProject.name = "native-maven-plugin"
-
-includeBuild("../common/junit-platform-native")
-includeBuild("../common/utils")
+rootProject.name = "settings-build-logic"
