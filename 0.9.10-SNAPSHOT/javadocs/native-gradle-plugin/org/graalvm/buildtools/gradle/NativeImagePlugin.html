@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -296,6 +296,16 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>org.gradle.process.ExecOperations</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecOperations()">getExecOperations</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>org.gradle.api.file.FileSystemOperations</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getFileOperations()">getFileOperations</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerTestBinary(org.gradle.api.Project,org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension,org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig)">registerTestBinary</a></span>&#8203;(org.gradle.api.Project&nbsp;project,
                   <a href="internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a>&nbsp;graalExtension,
@@ -532,6 +542,26 @@ implements org.gradle.api.Plugin&lt;org.gradle.api.Project&gt;</pre>
 <h4>getArchiveOperations</h4>
 <pre class="methodSignature">@Inject
 public&nbsp;org.gradle.api.file.ArchiveOperations&nbsp;getArchiveOperations()</pre>
+</li>
+</ul>
+<a id="getExecOperations()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getExecOperations</h4>
+<pre class="methodSignature">@Inject
+public&nbsp;org.gradle.process.ExecOperations&nbsp;getExecOperations()</pre>
+</li>
+</ul>
+<a id="getFileOperations()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getFileOperations</h4>
+<pre class="methodSignature">@Inject
+public&nbsp;org.gradle.api.file.FileSystemOperations&nbsp;getFileOperations()</pre>
 </li>
 </ul>
 <a id="apply(org.gradle.api.Project)">
