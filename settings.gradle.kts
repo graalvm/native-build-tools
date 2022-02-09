@@ -41,6 +41,7 @@
 
 pluginManagement {
     includeBuild("settings-build-logic")
+    includeBuild("main-build-logic")
 }
 
 rootProject.name = "native-build-tools"
