@@ -39,4 +39,4 @@
  * SOFTWARE.
  */
 
-rootProject.name = "settings-build-logic"
+rootProject.name = "settings-plugins"

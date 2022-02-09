@@ -40,8 +40,8 @@
  */
 
 pluginManagement {
-    includeBuild("settings-build-logic")
-    includeBuild("main-build-logic")
+    includeBuild("build-logic/settings-plugins")
+    includeBuild("build-logic/aggregator")
 }
 
 rootProject.name = "native-build-tools"
