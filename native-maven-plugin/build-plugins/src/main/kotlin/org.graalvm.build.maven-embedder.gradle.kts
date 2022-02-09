@@ -1,4 +1,3 @@
-import gradle.kotlin.dsl.accessors._c82c258a19f3f9db84b385a71a3d54fd.testFixturesImplementation
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.invoke
@@ -45,9 +44,6 @@ import org.gradle.kotlin.dsl.invoke
  */
 
 val mavenEmbedder by configurations.creating
+val testFixturesImplementation by configurations.getting
 
-configurations {
-    testFixturesImplementation {
-        extendsFrom(mavenEmbedder)
-    }
-}
+testFixturesImplementation.extendsFrom(mavenEmbedder)
