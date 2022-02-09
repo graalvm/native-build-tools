@@ -39,13 +39,12 @@
  * SOFTWARE.
  */
 
-
-enableFeaturePreview("VERSION_CATALOGS")
-
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            from(files("../gradle/libs.versions.toml"))
-        }
-    }
+pluginManagement {
+    includeBuild("../settings-build-logic")
 }
+
+plugins {
+    id("org.graalvm.build.common")
+}
+
+rootProject.name = "main-build-logic"
