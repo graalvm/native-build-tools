@@ -68,8 +68,7 @@ class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
             DirectoryVisitor visitor = new DirectoryVisitor();
             Files.walkFileTree(root, visitor);
             return visitor.hasNativeImageResourceFile && !ignoreExistingResourcesConfig ? Collections.emptyList() : visitor.resources;
-        }
-        else {
+        } else {
             return Collections.emptyList();
         }
     }
