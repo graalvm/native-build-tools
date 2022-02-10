@@ -57,7 +57,7 @@ class JavaLibraryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         def library = file("target/java-library" + libExt)
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package'
+        mvn '-Pnative', '-DskipTests', 'package', '-DuseArgFile=false'
 
         then:
         buildSucceeded

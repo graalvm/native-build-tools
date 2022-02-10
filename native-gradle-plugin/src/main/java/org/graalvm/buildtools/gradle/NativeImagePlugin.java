@@ -171,6 +171,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         logger = GraalVMLogger.of(project.getLogger());
         DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
+        graalExtension.getUseArgFile().convention(true);
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
         project.afterEvaluate(p -> {
@@ -253,6 +254,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                         builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                         builder.getOptions().convention(options);
                         builder.getAgentEnabled().set(agent);
+                        builder.getUseArgFile().convention(graalExtension.getUseArgFile());
                     });
             String runTaskName = deriveTaskName(binaryName, "native", "Run");
             if ("main".equals(binaryName)) {

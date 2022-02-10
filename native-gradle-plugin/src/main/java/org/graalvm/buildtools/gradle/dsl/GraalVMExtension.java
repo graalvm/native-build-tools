@@ -90,6 +90,14 @@ public interface GraalVMExtension {
      */
     Property<Boolean> getToolchainDetection();
 
+    /**
+     * Property driving the use of @-arg files when invoking native image.
+     * This is enabled by default. For older native-image versions, this
+     * needs to be disabled.
+     * @return the argument file property
+     */
+    Property<Boolean> getUseArgFile();
+
 
     interface TestBinaryConfig {
         /**

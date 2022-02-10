@@ -174,27 +174,25 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
 [[long_classpath_and_fat_jar_support]]
-==== Long classpath and fat jar support
+==== Long classpath, @argument file and fat jar support
 
-Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
-As a consequence, if you are running under Windows, the plugin will automatically shorten the classpath of your project by building a so called "fat jar", which includes all entries from the classpath automatically.
+Since release 0.9.10, the plugin will automatically pass arguments to the `native-image` tool using an argument file, which should prevent all https://github.com/graalvm/native-build-tools/issues/85[long classpath issues] under Windows.
+However, if you are using an older GraalVM release (older than 21.3) which doesn't support argument files, you will need to rely on creating a "fat jar", which includes all entries from the classpath automatically, to workaround the problem:
 
-In case this behavior is not required, you can disable the fat jar creation by calling:
-
-.Disabling the fat jar creation
+.Enabling the fat jar creation
 [source, groovy, role="multi-language-sample"]
 ----
-include::../snippets/gradle/groovy/build.gradle[tags=disable-fatjar]
+include::../snippets/gradle/groovy/build.gradle[tags=enable-fatjar]
 ----
 
 [source,kotlin,role="multi-language-sample"]
 ----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-fatjar]
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=enable-fatjar]
 ----
 
 Alternatively, it is possible to use your own fat jar (for example created using the https://imperceptiblethoughts.com/shadow/[Shadow plugin]) by setting the `classpathJar` property directly on the _task_:
 
-.Disabling the fat jar creation
+.Enabling a custom fat jar creation
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=custom-fatjar]

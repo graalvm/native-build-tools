@@ -133,6 +133,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Optional
     public abstract RegularFileProperty getClasspathJar();
 
+    @Input
+    @Optional
+    public abstract Property<Boolean> getUseArgFile();
+
     public BuildNativeImageTask() {
         DirectoryProperty buildDir = getProject().getLayout().getBuildDirectory();
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
@@ -154,7 +158,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
                 // a mapped value before the task was called, when we are actually calling it...
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
-                getClasspathJar()).asArguments();
+                getClasspathJar(),
+                getUseArgFile()).asArguments();
     }
 
     // This property provides access to the service instance

@@ -98,15 +98,16 @@ graalvmNative {
 }
 // end::all-config-options[]
 
-// tag::disable-fatjar[]
+// tag::enable-fatjar[]
 graalvmNative {
+    useArgFile = false // required for older GraalVM releases
     binaries {
         main {
-            useFatJar = false
+            useFatJar = true
         }
     }
 }
-// end::disable-fatjar[]
+// end::enable-fatjar[]
 
 def myFatJar = tasks.register("myFatJar", Jar)
 

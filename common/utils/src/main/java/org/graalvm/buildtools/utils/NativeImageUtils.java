@@ -42,8 +42,12 @@ package org.graalvm.buildtools.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Collections;
+import java.util.List;
 
 import static org.graalvm.buildtools.utils.SharedConstants.GRAALVM_EXE_EXTENSION;
 
@@ -65,5 +69,17 @@ public class NativeImageUtils {
 
     public static String nativeImageConfigureFileName() {
         return "native-image-configure" + GRAALVM_EXE_EXTENSION;
+    }
+
+    public static List<String> convertToArgsFile(List<String> cliArgs) {
+        try {
+            File tmpFile = File.createTempFile("native-image", "args");
+            tmpFile.deleteOnExit();
+            Files.write(tmpFile.toPath(), cliArgs, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+            return Collections.singletonList("@" + tmpFile.getAbsolutePath());
+        } catch (IOException e) {
+
+            return Collections.unmodifiableList(cliArgs);
+        }
     }
 }

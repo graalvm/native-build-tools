@@ -258,11 +258,15 @@ use cases such as the following:
   wish to run those same tests in native mode.
 
 [[long_classpath_and_shading_support]]
-== Long classpath and shading support
+== Long classpath, @argument file and shading support
 
 Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
 
-If this happens, one option is to use a https://maven.apache.org/plugins/maven-shade-plugin[shaded jar] and use it instead of individual jars on classpath.
+To avoid this, since release 0.9.10, the plugin will use an argument file to pass the arguments to the `native-image` tool, instead of passing them directly.
+
+In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn't supported.
+
+One option is to use a https://maven.apache.org/plugins/maven-shade-plugin[shaded jar] and use it instead of individual jars on classpath.
 
 First, you'll need to setup the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin]:
 

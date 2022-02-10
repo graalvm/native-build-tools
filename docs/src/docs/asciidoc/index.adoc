@@ -24,11 +24,13 @@ If you are interested in contributing, please refer to our https://github.com/gr
 * Fixed race condition which prevented the agent files to be generated properly if tests were executed concurrently
 * Documented version compatibility for the JUnit Platform and Maven Surefire plugin.
    - See <<maven-plugin.adoc#testing-support-version-compatibility, Version compatibility>> for details.
+* Add support for long classpath by using an argument file when invoking `native-image`
 
 ==== Gradle plugin
 
 * Fixed `nativeRun` not working properly under Windows
 * Fixed race condition which prevented the agent files to be generated properly if tests were executed concurrently
+* Add support for long classpath by using an argument file when invoking `native-image`
 
 === Release 0.9.9
 
