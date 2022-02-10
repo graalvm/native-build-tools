@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RegularFile;
@@ -65,17 +66,20 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<String> executableName;
     private final Provider<String> outputDirectory;
     private final Provider<RegularFile> classpathJar;
+    private final Provider<Boolean> useArgFile;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<Boolean> agentEnabled,
                                           Provider<String> executableName,
                                           Provider<String> outputDirectory,
-                                          Provider<RegularFile> classpathJar) {
+                                          Provider<RegularFile> classpathJar,
+                                          Provider<Boolean> useArgFile) {
         this.options = options;
         this.agentEnabled = agentEnabled;
         this.executableName = executableName;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
+        this.useArgFile = useArgFile;
     }
 
     @Nested
@@ -145,7 +149,11 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
             cliArgs.add("-H:Class=" + options.getMainClass().get());
         }
         cliArgs.addAll(options.getBuildArgs().get());
+        if (useArgFile.getOrElse(true)) {
+            return NativeImageUtils.convertToArgsFile(cliArgs);
+        }
         return Collections.unmodifiableList(cliArgs);
+
     }
 
     /**

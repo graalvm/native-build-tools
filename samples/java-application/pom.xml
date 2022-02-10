@@ -127,6 +127,7 @@
                         </executions>
                         <configuration>
                             <skip>false</skip>
+                            <useArgFile>false</useArgFile>
                             <imageName>${imageName}</imageName>
                             <buildArgs>
                                 <buildArg>--no-fallback</buildArg>

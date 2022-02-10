@@ -55,6 +55,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.utils.NativeImageUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,6 +99,9 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Parameter(property = "classpath")
     private List<String> classpath;
 
+    @Parameter(property = "useArgFile", defaultValue = "true")
+    private boolean useArgFile;
+
     private final List<Path> imageClasspath = new ArrayList<>();
 
     private PluginParameterExpressionEvaluator evaluator;
@@ -128,8 +132,15 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         maybeAddGeneratedResourcesConfig(buildArgs);
 
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString(), "-cp", classpathStr);
-            processBuilder.command().addAll(getBuildArgs());
+            List<String> cliArgs = new ArrayList<>();
+            cliArgs.add("-cp");
+            cliArgs.add(classpathStr);
+            cliArgs.addAll(getBuildArgs());
+            if (useArgFile) {
+                cliArgs = NativeImageUtils.convertToArgsFile(cliArgs);
+            }
+            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
+            processBuilder.command().addAll(cliArgs);
             processBuilder.directory(getWorkingDirectory().toFile());
             processBuilder.inheritIO();
 

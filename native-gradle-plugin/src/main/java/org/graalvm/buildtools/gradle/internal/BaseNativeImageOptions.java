@@ -43,7 +43,6 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
-import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -215,7 +214,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getAgent().getEnabled().convention(false);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
-        getUseFatJar().convention(SharedConstants.IS_WINDOWS);
+        getUseFatJar().convention(false);
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {

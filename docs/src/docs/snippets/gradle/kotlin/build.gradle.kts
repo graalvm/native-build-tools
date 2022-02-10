@@ -99,15 +99,16 @@ graalvmNative {
 }
 // end::all-config-options[]
 
-// tag::disable-fatjar[]
+// tag::enable-fatjar[]
 graalvmNative {
+    useFatJar.set(false) // required for older GraalVM releases
     binaries {
         named("main") {
-            useFatJar.set(false)
+            useFatJar.set(true)
         }
     }
 }
-// end::disable-fatjar[]
+// end::enable-fatjar[]
 
 val myFatJar = tasks.register<Jar>("myFatJar")
 
