@@ -462,7 +462,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#testing-support-disabling">Disabling testing support</a></li>
 </ul>
 </li>
-<li><a href="#long_classpath_and_shading_support">Long classpath and shading support</a></li>
+<li><a href="#long_classpath_and_shading_support">Long classpath, @argument file and shading support</a></li>
 <li><a href="#agent-support">Reflection support and running with the native agent</a>
 <ul class="sectlevel2">
 <li><a href="#agent-support-enabling">Enabling the agent</a></li>
@@ -840,13 +840,19 @@ wish to run those same tests in native mode.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath and shading support</h2>
+<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath, @argument file and shading support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.</p>
 </div>
 <div class="paragraph">
-<p>If this happens, one option is to use a <a href="https://maven.apache.org/plugins/maven-shade-plugin">shaded jar</a> and use it instead of individual jars on classpath.</p>
+<p>To avoid this, since release 0.9.10, the plugin will use an argument file to pass the arguments to the <code>native-image</code> tool, instead of passing them directly.</p>
+</div>
+<div class="paragraph">
+<p>In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn&#8217;t supported.</p>
+</div>
+<div class="paragraph">
+<p>One option is to use a <a href="https://maven.apache.org/plugins/maven-shade-plugin">shaded jar</a> and use it instead of individual jars on classpath.</p>
 </div>
 <div class="paragraph">
 <p>First, you&#8217;ll need to setup the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin</a>:</p>
@@ -907,6 +913,7 @@ wish to run those same tests in native mode.</p>
     &lt;/executions&gt;
     &lt;configuration&gt;
         &lt;skip&gt;false&lt;/skip&gt;
+        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
         &lt;imageName&gt;${imageName}&lt;/imageName&gt;
         &lt;buildArgs&gt;
             &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
@@ -1059,6 +1066,7 @@ wish to run those same tests in native mode.</p>
     &lt;/executions&gt;
     &lt;configuration&gt;
         &lt;skip&gt;false&lt;/skip&gt;
+        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
         &lt;imageName&gt;${imageName}&lt;/imageName&gt;
         &lt;buildArgs&gt;
             &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;

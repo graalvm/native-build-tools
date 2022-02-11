@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":6,"i5":10,"i6":10,"i7":10,"i8":6,"i9":6,"i10":6,"i11":10,"i12":6,"i13":6,"i14":6,"i15":6};
+var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":6,"i5":10,"i6":10,"i7":10,"i8":6,"i9":6,"i10":6,"i11":10,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -299,6 +299,11 @@ extends org.gradle.api.DefaultTask</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i15" class="rowColor">
+<td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUseArgFile()">getUseArgFile</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWorkingDirectory()">getWorkingDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
@@ -507,6 +512,17 @@ protected abstract&nbsp;org.gradle.api.model.ObjectFactory&nbsp;getObjects()</pr
 <pre class="methodSignature">@InputFile
 @Optional
 public abstract&nbsp;org.gradle.api.file.RegularFileProperty&nbsp;getClasspathJar()</pre>
+</li>
+</ul>
+<a id="getUseArgFile()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getUseArgFile</h4>
+<pre class="methodSignature">@Input
+@Optional
+public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getUseArgFile()</pre>
 </li>
 </ul>
 <a id="getService()">

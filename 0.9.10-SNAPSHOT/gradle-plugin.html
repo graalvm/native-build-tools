@@ -841,21 +841,19 @@ For options that can be set using command-line, if both DSL and command-line opt
 </div>
 </div>
 <div class="sect3">
-<h4 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath and fat jar support</h4>
+<h4 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath, @argument file and fat jar support</h4>
 <div class="paragraph">
-<p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.
-As a consequence, if you are running under Windows, the plugin will automatically shorten the classpath of your project by building a so called "fat jar", which includes all entries from the classpath automatically.</p>
-</div>
-<div class="paragraph">
-<p>In case this behavior is not required, you can disable the fat jar creation by calling:</p>
+<p>Since release 0.9.10, the plugin will automatically pass arguments to the <code>native-image</code> tool using an argument file, which should prevent all <a href="https://github.com/graalvm/native-build-tools/issues/85">long classpath issues</a> under Windows.
+However, if you are using an older GraalVM release (older than 21.3) which doesn&#8217;t support argument files, you will need to rely on creating a "fat jar", which includes all entries from the classpath automatically, to workaround the problem:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Disabling the fat jar creation</div>
+<div class="title">Enabling the fat jar creation</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    useArgFile = false // required for older GraalVM releases
     binaries {
         main {
-            useFatJar = false
+            useFatJar = true
         }
     }
 }</code></pre>
@@ -864,9 +862,10 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    useFatJar.set(false) // required for older GraalVM releases
     binaries {
         named("main") {
-            useFatJar.set(false)
+            useFatJar.set(true)
         }
     }
 }</code></pre>
@@ -876,7 +875,7 @@ As a consequence, if you are running under Windows, the plugin will automaticall
 <p>Alternatively, it is possible to use your own fat jar (for example created using the <a href="https://imperceptiblethoughts.com/shadow/">Shadow plugin</a>) by setting the <code>classpathJar</code> property directly on the <em>task</em>:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Disabling the fat jar creation</div>
+<div class="title">Enabling a custom fat jar creation</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.named("nativeCompile") {
     classpathJar = myFatJar
