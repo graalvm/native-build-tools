@@ -152,7 +152,7 @@ The `<buildArgs>` element can be combined between parent and children POMs. Supp
     <imageName>${project.artifactId}</imageName>
     <mainClass>${exec.mainClass}</mainClass>
     <buildArgs>
-      <buildArg>--no-fallback<buildArg>
+      <buildArg>--no-fallback</buildArg>
     </buildArgs>
   </configuration>
 </plugin>
