@@ -51,6 +51,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.junit.platform.JUnitPlatformFeature;
 
 import java.io.File;
@@ -139,7 +140,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
         Path nativeImageExecutable = Utils.getNativeImage();
 
         List<String> command = new ArrayList<>(Arrays.asList(
-                nativeImageExecutable.toString(),
                 "-cp", classpath,
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
                 "-Djunit.platform.listeners.uid.tracking.output.dir=" + NativeExtension.testIdsDirectory(buildDirectory.getAbsolutePath()),
@@ -151,10 +151,11 @@ public class NativeTestMojo extends AbstractNativeMojo {
             command.addAll(buildArgs);
         }
 
-        command.add("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            command = NativeImageUtils.convertToArgsFile(command);
+            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
+            processBuilder.command().addAll(command);
+            processBuilder.command().add("org.graalvm.junit.platform.NativeImageJUnitLauncher");
             processBuilder.directory(new File(project.getBuild().getDirectory()));
             processBuilder.inheritIO();
 

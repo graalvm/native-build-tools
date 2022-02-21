@@ -145,4 +145,14 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     private static String normalizeString(String input) {
         input.replace("\r\n", "\n")
     }
+
+    String getArgFileContents() {
+        result.stdOut.lines().filter {
+            it.contains('Executing:') && it.contains('bin/native-image')
+        }.map {
+            new File(it.substring(it.lastIndexOf('@') + 1))
+        }.findFirst()
+                .map { it.text }
+                .orElse("")
+    }
 }
