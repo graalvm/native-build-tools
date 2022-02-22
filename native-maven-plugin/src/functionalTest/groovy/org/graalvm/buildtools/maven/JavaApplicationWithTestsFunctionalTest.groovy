@@ -123,4 +123,21 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain "containers found"
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/215")
+    def "can pass environment variables to native test execution"() {
+        given:
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', '-Ptest-variables', 'test'
+
+        then:
+        buildSucceeded
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        def nativeImageExecResult = after("JUnit Platform on Native Image - report")
+        nativeImageExecResult.contains "TEST_ENV = test-value"
+        nativeImageExecResult.contains "test-property = test-value"
+
+    }
+
 }

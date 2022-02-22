@@ -83,7 +83,7 @@
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <extensions>true</extensions>
-                    <!-- end::native-plugin-extensions[] -->
+                        <!-- end::native-plugin-extensions[] -->
                         <executions>
                             <execution>
                                 <id>test-native</id>
@@ -213,6 +213,26 @@
                         </configuration>
                     </plugin>
                     <!-- end::native-plugin[] -->
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>test-variables</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <configuration>
+                            <environmentVariables>
+                                <TEST_ENV>test-value</TEST_ENV>
+                            </environmentVariables>
+                            <systemPropertyVariables>
+                                <test-property>test-value</test-property>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
