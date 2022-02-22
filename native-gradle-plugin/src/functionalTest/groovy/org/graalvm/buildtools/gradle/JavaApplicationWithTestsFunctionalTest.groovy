@@ -143,6 +143,38 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         junitVersion = System.getProperty('versions.junit')
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/215")
+    @Unroll("can pass environment variables to native test execution with JUnit Platform #junitVersion")
+    def "can pass environment variables to native test execution"() {
+        given:
+        withSample("java-application-with-tests")
+        buildFile << """
+            tasks.named("nativeTest") {
+                environment.put("TEST_ENV", "test-value")
+            }
+
+        """
+
+        when:
+        run 'nativeTest'
+
+        then:
+        tasks {
+            succeeded ':testClasses',
+                    ':nativeTestCompile',
+                    ':test', // there should probably not be a dependency here
+                    ':nativeTest'
+            doesNotContain ':build'
+        }
+
+        then:
+        outputDoesNotContain "Running in 'test discovery' mode. Note that this is a fallback mode."
+        outputContains "TEST_ENV = test-value"
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
     @Issue("https://github.com/graalvm/native-build-tools/issues/133")
     @Unroll("can disable test support with JUnit Platform #junitVersion")
     def "can disable test support"() {

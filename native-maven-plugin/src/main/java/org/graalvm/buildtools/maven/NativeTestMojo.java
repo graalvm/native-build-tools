@@ -44,12 +44,14 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.FileSet;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.junit.platform.JUnitPlatformFeature;
@@ -64,7 +66,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,12 +95,19 @@ public class NativeTestMojo extends AbstractNativeMojo {
     @Parameter(property = "project.build.directory")
     private File buildDirectory;
 
+    @Parameter(property = "environmentVariables")
+    private Map<String, String> environment;
+
+    @Parameter(property = "systemPropertyVariables")
+    private Map<String, String> systemProperties;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (skipTests || skipNativeTests) {
             logger.info("Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true).");
             return;
         }
+        configureEnvironment();
         if (!hasTests()) {
             return;
         }
@@ -122,6 +133,37 @@ public class NativeTestMojo extends AbstractNativeMojo {
         buildImage(classpath, targetFolder);
 
         runTests(targetFolder);
+    }
+
+    private void configureEnvironment() {
+            // inherit from surefire mojo
+            Plugin plugin = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
+            if (plugin != null) {
+                Object configuration = plugin.getConfiguration();
+                if (configuration instanceof Xpp3Dom) {
+                    Xpp3Dom dom = (Xpp3Dom) configuration;
+                    Xpp3Dom environmentVariables = dom.getChild("environmentVariables");
+                    if (environmentVariables != null) {
+                        Xpp3Dom[] children = environmentVariables.getChildren();
+                        if (environment == null) {
+                            environment = new HashMap<>(children.length);
+                        }
+                        for (Xpp3Dom child : children) {
+                            environment.put(child.getName(), child.getValue());
+                        }
+                    }
+                    Xpp3Dom systemProps = dom.getChild("systemPropertyVariables");
+                    if (systemProps != null) {
+                        Xpp3Dom[] children = systemProps.getChildren();
+                        if (systemProperties == null) {
+                            systemProperties = new HashMap<>(children.length);
+                        }
+                        for (Xpp3Dom child : children) {
+                            systemProperties.put(child.getName(), child.getValue());
+                        }
+                    }
+                }
+            }
     }
 
     private boolean hasTests() {
@@ -152,13 +194,13 @@ public class NativeTestMojo extends AbstractNativeMojo {
         }
 
         try {
-            command = NativeImageUtils.convertToArgsFile(command);
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
+            prepareVariables(processBuilder, command);
+            command = NativeImageUtils.convertToArgsFile(command);
             processBuilder.command().addAll(command);
             processBuilder.command().add("org.graalvm.junit.platform.NativeImageJUnitLauncher");
             processBuilder.directory(new File(project.getBuild().getDirectory()));
             processBuilder.inheritIO();
-
             String commandString = String.join(" ", processBuilder.command());
             getLog().info("Executing: " + commandString);
             Process imageBuildProcess = processBuilder.start();
@@ -176,10 +218,13 @@ public class NativeTestMojo extends AbstractNativeMojo {
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    targetFolder.resolve(NATIVE_TESTS_EXE).toAbsolutePath().toString(),
-                    "--xml-output-dir", xmlLocation.toString());
+                    targetFolder.resolve(NATIVE_TESTS_EXE).toAbsolutePath().toString());
             processBuilder.inheritIO();
-
+            List<String> command = new ArrayList<>();
+            prepareVariables(processBuilder, command);
+            command.add("--xml-output-dir");
+            command.add(xmlLocation.toString());
+            processBuilder.command().addAll(command);
             String commandString = String.join(" ", processBuilder.command());
             getLog().info("Executing: " + commandString);
             Process imageBuildProcess = processBuilder.start();
@@ -188,6 +233,17 @@ public class NativeTestMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("native-image test run failed");
+        }
+    }
+
+    private void prepareVariables(ProcessBuilder processBuilder, List<String> command) {
+        if (environment != null) {
+            processBuilder.environment().putAll(environment);
+        }
+        if (systemProperties != null) {
+            for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
+                command.add("-D" + entry.getKey() + "=" + entry.getValue());
+            }
         }
     }
 

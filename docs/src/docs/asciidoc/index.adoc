@@ -14,6 +14,16 @@ If you are interested in contributing, please refer to our https://github.com/gr
 
 [[changelog]]
 == Changelog
+=== Release 0.9.11
+
+==== Maven plugin
+
+* Fix long classpath issue under Windows when running native tests
+* Inherit environment variables and system properties from the surefire plugin configuration when executing tests
+
+==== Gradle plugin
+
+* Add support for environment variables in native test execution
 
 === Release 0.9.10
 

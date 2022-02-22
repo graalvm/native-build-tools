@@ -134,6 +134,11 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
+    String after(String text) {
+        def out = normalizeString(result.stdOut)
+        out.substring(out.indexOf(normalizeString(text)))
+    }
+
     boolean outputDoesNotContain(String text) {
         !normalizeString(result.stdOut).contains(normalizeString(text))
     }
