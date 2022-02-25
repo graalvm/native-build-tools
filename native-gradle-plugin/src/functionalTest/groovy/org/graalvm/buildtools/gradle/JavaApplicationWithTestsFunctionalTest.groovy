@@ -253,4 +253,38 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         where:
         junitVersion = System.getProperty('versions.junit')
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/218")
+    def "test list directory output is properly configured"() {
+        given:
+        withSample("java-application-with-tests")
+
+        buildFile << """
+            tasks.register("otherTest", Test) {
+                classpath = tasks.test.classpath
+                testClassesDirs = tasks.test.testClassesDirs
+            }
+        """
+
+        when:
+        run 'test'
+
+        then:
+        file("build/test-results/test/testlist").isDirectory()
+        !file("build/test-results/otherTest/testlist").isDirectory()
+
+        when:
+        run 'otherTest'
+
+        then:
+        !file("build/test-results/otherTest/testlist").isDirectory()
+
+        when:
+        run 'test'
+
+        then:
+        tasks {
+            upToDate(':test')
+        }
+    }
 }

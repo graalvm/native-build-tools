@@ -83,10 +83,8 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.JavaExec;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -96,8 +94,8 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.process.ExecOperations;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
 
@@ -380,8 +378,9 @@ public class NativeImagePlugin implements Plugin<Project> {
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testOptions.getAgent().getInstrumentedTask().set(testTask);
         testTask.configure(test -> {
-            testListDirectory.set(new File(testResultsDir, test.getName() + "/testlist"));
-            test.getOutputs().dir(testResultsDir);
+            File testList = new File(testResultsDir, test.getName() + "/testlist");
+            testListDirectory.set(testList);
+            test.getOutputs().dir(testList);
             // Set system property read by the UniqueIdTrackingListener.
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
             TrackingDirectorySystemPropertyProvider directoryProvider = project.getObjects().newInstance(TrackingDirectorySystemPropertyProvider.class);
@@ -588,8 +587,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     public abstract static class TrackingDirectorySystemPropertyProvider implements CommandLineArgumentProvider {
-        @InputFiles
-        @PathSensitive(PathSensitivity.RELATIVE)
+        @OutputDirectory
         public abstract DirectoryProperty getDirectory();
 
         /**
