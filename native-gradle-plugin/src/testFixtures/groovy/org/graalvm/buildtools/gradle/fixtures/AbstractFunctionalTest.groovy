@@ -231,6 +231,13 @@ abstract class AbstractFunctionalTest extends Specification {
             }
         }
 
+        void upToDate(String... tasks) {
+            tasks.each { task ->
+                contains(task)
+                assert result.task(task).outcome == TaskOutcome.UP_TO_DATE
+            }
+        }
+
         void contains(String... tasks) {
             tasks.each { task ->
                 assert result.task(task) != null: "Expected to find task $task in the graph but it was missing"
