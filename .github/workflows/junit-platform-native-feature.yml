@@ -26,21 +26,11 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Checkstyle
-        run: |
-          pushd common/junit-platform-native
-            ./gradlew checkstyleMain
-            ./gradlew checkstyleTest
-          popd
+        run: ./gradlew :junit-platform-native:checkstyleMain :junit-platform-native:checkstyleTest
       - name: JVM test
-        run: |
-          pushd common/junit-platform-native
-            ./gradlew test
-          popd
+        run: ./gradlew :junit-platform-native:test
       - name: Feature test
-        run: |
-          pushd common/junit-platform-native
-            ./gradlew nativeTest
-          popd
+        run: ./gradlew :junit-platform-native:nativeTest
       - name: Tests results
         if: always()
         uses: actions/upload-artifact@v2

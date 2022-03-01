@@ -52,15 +52,24 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FileSystemRepository implements NativeConfigurationRepository {
     private final FileSystemModuleToConfigDirectoryIndex moduleIndex;
+    private final Logger logger;
     private final Map<Path, VersionToConfigDirectoryIndex> artifactIndexes;
+    private final Path rootDirectory;
 
     public FileSystemRepository(Path rootDirectory) {
+        this(rootDirectory, new Logger() {});
+    }
+
+    public FileSystemRepository(Path rootDirectory, Logger logger) {
         this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
+        this.logger = logger;
         this.artifactIndexes = new ConcurrentHashMap<>();
+        this.rootDirectory = rootDirectory;
     }
 
     @Override
@@ -78,17 +87,44 @@ public class FileSystemRepository implements NativeConfigurationRepository {
                             .map(dir -> {
                                 VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
                                 if (artifactQuery.getForcedConfig().isPresent()) {
-                                    return index.findForcedConfiguration(artifactQuery.getForcedConfig().get());
+                                    String configVersion = artifactQuery.getForcedConfig().get();
+                                    logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
+                                    return index.findForcedConfiguration(configVersion);
                                 }
                                 Optional<Path> configurationDirectory = index.findConfigurationDirectory(groupId, artifactId, version);
                                 if (!configurationDirectory.isPresent() && artifactQuery.isUseLatestVersion()) {
+                                    logger.log(groupId, artifactId, version, "Configuration directory not found. Trying latest version.");
                                     configurationDirectory = index.findLatestConfigurationFor(groupId, artifactId);
+                                    if (!configurationDirectory.isPresent()) {
+                                        logger.log(groupId, artifactId, version, "Latest version not found!");
+                                    }
                                 }
+                                Optional<Path> finalConfigurationDirectory = configurationDirectory;
+                                logger.log(groupId, artifactId, version, () -> {
+                                    if (finalConfigurationDirectory.isPresent()) {
+                                        Path path = finalConfigurationDirectory.get();
+                                        return "Configuration directory is " + rootDirectory.relativize(path);
+                                    }
+                                    return "missing.";
+                                });
                                 return configurationDirectory;
                             })
                             .filter(Optional::isPresent)
                             .map(Optional::get);
                 })
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Allows getting insights about how configuration is picked.
+     */
+    public interface Logger {
+        default void log(String groupId, String artifactId, String version, String message) {
+            log(groupId, artifactId, version, () -> message);
+        }
+
+        default void log(String groupId, String artifactId, String version, Supplier<String> message) {
+
+        }
     }
 }

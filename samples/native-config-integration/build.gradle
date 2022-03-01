@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,67 +38,65 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.dsl;
 
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
+plugins {
+    id 'application'
+    id 'org.graalvm.buildtools.native'
+}
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+repositories {
+    mavenCentral()
+}
 
-/**
- * Extension used to configure the native configuration
- * repository.
- */
-public interface NativeConfigurationRepositoryExtension {
-    /**
-     * Property used to determine if the native configuration
-     * repository should be used.
-     * @return the enabled property
-     */
-    Property<Boolean> getEnabled();
+application {
+    mainClass.set('org.graalvm.example.Application')
+}
 
-    /**
-     * A URI pointing to a configuration repository. This must
-     * either be a local file or a remote URI. In case of remote
-     * files, only zip or tarballs are supported.
-     * @return the uri property
-     */
-    Property<URI> getUri();
+def junitVersion = providers.gradleProperty('junit.jupiter.version')
+        .forUseAtConfigurationTime()
+        .get()
 
-    /**
-     * An optional version of the remote repository: if specified,
-     * and that no URI is provided, it will automatically use a
-     * published repository from the official GraalVM configuration
-     * repository.
-     *
-     * @return the version of the repository to use
-     */
-    Property<String> getVersion();
+dependencies {
+    implementation("org.graalvm.internal:library-with-reflection:1.5")
 
-    /**
-     * The set of modules for which we don't want to use the
-     * configuration found in the repository. Modules must be
-     * declared with the `groupId:artifactId` syntax.
-     * @return the set of excluded modules
-     */
-    SetProperty<String> getExcludedModules();
+    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
 
-    /**
-     * Convenience method to use a String for the URI
-     * property.
-     * @param uri the URI
-     */
-    default void uri(String uri) throws URISyntaxException {
-        getUri().set(new URI(uri));
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+graalvmNative {
+    configurationRepository {
+        enabled = true
+        def extension = System.getProperty("extension", '')
+        def repo = file("config-directory${extension ? '.' + extension : ''}")
+        println("Using config repo: $repo")
+        uri(repo)
     }
-
-    /**
-     * Convenience method to use a URI for the property.
-     * @param file a file
-     */
-    default void uri(File file) {
-        getUri().set(file.toURI());
+    binaries.all {
+        verbose = true
+        runtimeArgs.add("-DmessageClass=org.graalvm.internal.reflect.Message")
     }
+}
+
+tasks.register("configZip", Zip) {
+    destinationDirectory = project.layout.projectDirectory
+    from(file("config-directory"))
+    archiveName = 'config-directory.zip'
+}
+
+tasks.register("configTarGz", Tar) {
+    destinationDirectory = project.layout.projectDirectory
+    compression = Compression.GZIP
+    from(file("config-directory"))
+    archiveName = 'config-directory.tar.gz'
+}
+
+tasks.register("configTarBz2", Tar) {
+    destinationDirectory = project.layout.projectDirectory
+    compression = Compression.BZIP2
+    from(file("config-directory"))
+    archiveName = 'config-directory.tar.bz2'
 }

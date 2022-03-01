@@ -1,0 +1,7 @@
+[
+  {
+    "name": "org.graalvm.internal.reflect.Message",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  }
+]
