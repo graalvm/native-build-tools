@@ -61,6 +61,7 @@ dependencies {
     testFixturesImplementation libs.test.spock
     testFixturesImplementation gradleTestKit()
     functionalTestCommonRepository(libs.junitPlatformNative)
+    functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 }
 
 pluginBundle {

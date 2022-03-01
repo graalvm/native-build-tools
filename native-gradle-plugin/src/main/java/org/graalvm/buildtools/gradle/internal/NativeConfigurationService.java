@@ -1,17 +1,42 @@
 /*
- * Copyright 2003-2021 the original author or authors.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * The Universal Permissive License (UPL), Version 1.0
  *
- *     https://www.apache.org/licenses/LICENSE-2.0
+ * Subject to the condition set forth below, permission is hereby granted to any
+ * person obtaining a copy of this software, associated documentation and/or
+ * data (collectively the "Software"), free of charge and under any and all
+ * copyright rights in the Software, and any and all patent rights owned or
+ * freely licensable by each licensor hereunder covering either (i) the
+ * unmodified Software as contributed to or provided by such licensor, or (ii)
+ * the Larger Works (as defined below), to deal in both
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * (a) the Software, and
+ *
+ * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if
+ * one is included with the Software each a "Larger Work" to which the Software
+ * is contributed by such licensors),
+ *
+ * without restriction, including without limitation the rights to copy, create
+ * derivative works of, display, perform, and distribute the Software and make,
+ * use, sell, offer for sale, import, export, have made, and have sold the
+ * Software and the Larger Work(s), and to sublicense the foregoing rights on
+ * either these or other terms.
+ *
+ * This license is subject to the following condition:
+ *
+ * The above copyright notice and either this complete permission notice or at a
+ * minimum a reference to the UPL must be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 package org.graalvm.buildtools.gradle.internal;
 
@@ -21,6 +46,7 @@ import org.graalvm.nativeconfig.internal.FileSystemRepository;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
@@ -44,6 +70,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public abstract class NativeConfigurationService implements BuildService<NativeConfigurationService.Params>, NativeConfigurationRepository {
     private static final Logger LOGGER = Logging.getLogger(NativeConfigurationService.class);
@@ -57,6 +84,8 @@ public abstract class NativeConfigurationService implements BuildService<NativeC
     protected abstract FileSystemOperations getFileOperations();
 
     public interface Params extends BuildServiceParameters {
+        Property<LogLevel> getLogLevel();
+
         Property<URI> getUri();
 
         DirectoryProperty getCacheDir();
@@ -85,12 +114,13 @@ public abstract class NativeConfigurationService implements BuildService<NativeC
     private NativeConfigurationRepository newRepository(URI uri) throws URISyntaxException {
         String cacheKey = hashFor(uri);
         String path = uri.getPath();
+        LogLevel logLevel = getParameters().getLogLevel().get();
         if (uri.getScheme().equals("file")) {
             File localFile = new File(uri);
             if (isSupportedZipFormat(path)) {
-                return newRepositoryFromZipFile(cacheKey, localFile);
+                return newRepositoryFromZipFile(cacheKey, localFile, logLevel);
             }
-            return newRepositoryFromDirectory(localFile.toPath());
+            return newRepositoryFromDirectory(localFile.toPath(), logLevel);
         }
         if (isSupportedZipFormat(path)) {
             File zipped = getParameters().getCacheDir().file(cacheKey + "/archive").get().getAsFile();
@@ -103,7 +133,7 @@ public abstract class NativeConfigurationService implements BuildService<NativeC
                     throw new RuntimeException(e);
                 }
             }
-            return newRepositoryFromZipFile(cacheKey, zipped);
+            return newRepositoryFromZipFile(cacheKey, zipped, logLevel);
         }
         throw new UnsupportedOperationException("Remote URI must point to a zip, a tar.gz or tar.bz2 file");
     }
@@ -112,7 +142,7 @@ public abstract class NativeConfigurationService implements BuildService<NativeC
         return path.endsWith(".zip") || path.endsWith(".tar.gz") || path.endsWith(".tar.bz2");
     }
 
-    private FileSystemRepository newRepositoryFromZipFile(String cacheKey, File localFile) {
+    private FileSystemRepository newRepositoryFromZipFile(String cacheKey, File localFile, LogLevel logLevel) {
         File explodedEntry = getParameters().getCacheDir().file(cacheKey + "/exploded").get().getAsFile();
         if (!explodedEntry.exists()) {
             if (explodedEntry.getParentFile().isDirectory() || explodedEntry.getParentFile().mkdirs()) {
@@ -129,12 +159,17 @@ public abstract class NativeConfigurationService implements BuildService<NativeC
                 });
             }
         }
-        return newRepositoryFromDirectory(explodedEntry.toPath());
+        return newRepositoryFromDirectory(explodedEntry.toPath(), logLevel);
     }
 
-    private FileSystemRepository newRepositoryFromDirectory(Path path) {
+    private FileSystemRepository newRepositoryFromDirectory(Path path, LogLevel logLevel) {
         if (Files.isDirectory(path)) {
-            return new FileSystemRepository(path);
+            return new FileSystemRepository(path, new FileSystemRepository.Logger() {
+                @Override
+                public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                    LOGGER.log(logLevel, "[configuration repository for {}:{}:{}]: {}", groupId, artifactId, version, message.get());
+                }
+            });
         } else {
             throw new IllegalArgumentException("Native configuration repository URI must point to a directory");
         }

@@ -30,10 +30,7 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Unit tests and inspections
-        run: |
-          pushd native-gradle-plugin
-            ./gradlew test inspections
-          popd
+        run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
       - name: Unit tests results
         uses: actions/upload-artifact@v1
         with:
@@ -57,10 +54,7 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
           echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Check and test the plugin
-        run: |
-          pushd native-gradle-plugin
-            ./gradlew functionalTest -DgradleVersion=${{ matrix.gradle-version }}
-          popd
+        run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }}
       - name: Functional tests results
         if: always()
         uses: actions/upload-artifact@v2

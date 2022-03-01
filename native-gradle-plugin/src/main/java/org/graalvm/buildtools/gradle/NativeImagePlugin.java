@@ -78,6 +78,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPlugin;
 import org.gradle.api.plugins.ExtensionAware;
@@ -141,6 +142,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String DEPRECATED_NATIVE_TEST_EXTENSION = "nativeTest";
     public static final String DEPRECATED_NATIVE_BUILD_TASK = "nativeBuild";
     public static final String DEPRECATED_NATIVE_TEST_BUILD_TASK = "nativeTestBuild";
+
+    public static final String CONFIG_REPO_LOGLEVEL = "org.graalvm.internal.gradle.configrepo.logging";
 
     /**
      * This looks strange, but it is used to force the configuration of a dependent
@@ -294,6 +297,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         Provider<NativeConfigurationService> serviceProvider = project.getGradle()
                 .getSharedServices()
                 .registerIfAbsent("nativeConfigurationService", NativeConfigurationService.class, spec -> {
+                    LogLevel logLevel = determineLogLevel();
+                    spec.getParameters().getLogLevel().set(logLevel);
                     spec.getParameters().getUri().set(repositoryExtension.getUri());
                     spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
                 });
@@ -308,6 +313,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 if (!excludedModules.contains(module)) {
                                     query.forArtifact(artifact -> artifact.gav(module + ":" + moduleVersion.getVersion()));
                                 }
+                                query.useLatestConfigWhenVersionIsUntested();
                             })).stream()
                             .map(Path::toAbsolutePath)
                             .map(Path::toFile)
@@ -316,6 +322,15 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
             return project.getProviders().provider(Collections::emptySet);
         }));
+    }
+
+    private static LogLevel determineLogLevel() {
+        LogLevel logLevel = LogLevel.DEBUG;
+        String loggingProperty = System.getProperty(CONFIG_REPO_LOGLEVEL);
+        if (loggingProperty != null) {
+            logLevel = LogLevel.valueOf(loggingProperty.toUpperCase(Locale.US));
+        }
+        return logLevel;
     }
 
     private static NativeConfigurationRepositoryExtension nativeConfiguration(GraalVMExtension graalExtension) {

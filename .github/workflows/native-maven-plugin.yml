@@ -30,10 +30,7 @@ jobs:
             echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
             echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Check and test the plugin
-        run: |
-          pushd native-maven-plugin
-            ./gradlew check --no-daemon
-          popd
+        run: ./gradlew :native-maven-plugin:check --no-daemon
       - name: Tests results
         if: always()
         uses: actions/upload-artifact@v2

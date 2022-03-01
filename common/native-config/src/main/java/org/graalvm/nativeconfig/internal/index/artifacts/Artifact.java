@@ -41,10 +41,12 @@
 package org.graalvm.nativeconfig.internal.index.artifacts;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Artifact {
     private final String module;
     private final Set<String> versions;

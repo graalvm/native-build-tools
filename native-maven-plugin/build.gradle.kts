@@ -101,6 +101,7 @@ val localRepositoryDir = project.layout.buildDirectory.dir("maven-seeded-repo")
 
 tasks {
     generatePluginDescriptor {
+        dependsOn(prepareMavenLocalRepo)
         commonRepository.set(repoDirectory)
         localRepository.set(localRepositoryDir)
     }

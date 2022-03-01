@@ -53,3 +53,4 @@ rootProject.name = 'native-gradle-plugin'
 
 includeBuild("../common/junit-platform-native")
 includeBuild("../common/utils")
+includeBuild("../test-support/library-with-reflection")

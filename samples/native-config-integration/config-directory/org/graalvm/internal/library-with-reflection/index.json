@@ -1,0 +1,13 @@
+[
+  {
+    "module": "org.graalvm.internal:library-with-reflection",
+    "tested-versions": [
+      "1.0",
+      "1.1",
+      "1.2",
+      "1.3"
+    ],
+    "config-version": "1",
+    "latest": true
+  }
+]

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,67 +38,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.dsl;
 
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
+package org.graalvm.buildtools.gradle
 
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.gradle.api.logging.LogLevel
+import spock.lang.Unroll
 
-/**
- * Extension used to configure the native configuration
- * repository.
- */
-public interface NativeConfigurationRepositoryExtension {
-    /**
-     * Property used to determine if the native configuration
-     * repository should be used.
-     * @return the enabled property
-     */
-    Property<Boolean> getEnabled();
+class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
 
-    /**
-     * A URI pointing to a configuration repository. This must
-     * either be a local file or a remote URI. In case of remote
-     * files, only zip or tarballs are supported.
-     * @return the uri property
-     */
-    Property<URI> getUri();
+    @Unroll
+    def "can build a native image using native configuration from a #label"() {
+        given:
+        withSample("native-config-integration")
 
-    /**
-     * An optional version of the remote repository: if specified,
-     * and that no URI is provided, it will automatically use a
-     * published repository from the official GraalVM configuration
-     * repository.
-     *
-     * @return the version of the repository to use
-     */
-    Property<String> getVersion();
+        switch (format) {
+            case 'dir':
+                break
+            case 'zip':
+                run 'configZip'
+                break
+            default:
+                run "config${format.split('[.]').collect {it.capitalize()}.join("")}"
+        }
 
-    /**
-     * The set of modules for which we don't want to use the
-     * configuration found in the repository. Modules must be
-     * declared with the `groupId:artifactId` syntax.
-     * @return the set of excluded modules
-     */
-    SetProperty<String> getExcludedModules();
+        when:
+        def extension = format == 'dir' ? '' : format
+        run 'nativeRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}", "-Dextension=$extension"
 
-    /**
-     * Convenience method to use a String for the URI
-     * property.
-     * @param uri the URI
-     */
-    default void uri(String uri) throws URISyntaxException {
-        getUri().set(new URI(uri));
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':nativeRun'
+        }
+
+        then:
+        outputContains "Hello, from reflection!"
+
+        and: "doesn't find a configuration directory for the current version"
+        outputContains "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+
+        and: "but finds one thanks to the latest configuration field"
+        outputContains "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+
+        where:
+        format   | label
+        'dir'  | "flat directory"
+        'zip'    | 'zip file'
+        'tar.gz' | 'tar.gz file'
+        'tar.bz2' | 'tar.bz2 file'
     }
 
-    /**
-     * Convenience method to use a URI for the property.
-     * @param file a file
-     */
-    default void uri(File file) {
-        getUri().set(file.toURI());
-    }
 }
