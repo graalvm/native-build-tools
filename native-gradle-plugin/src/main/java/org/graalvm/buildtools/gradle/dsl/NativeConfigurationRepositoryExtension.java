@@ -40,6 +40,7 @@
  */
 package org.graalvm.buildtools.gradle.dsl;
 
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 
@@ -84,6 +85,13 @@ public interface NativeConfigurationRepositoryExtension {
      * @return the set of excluded modules
      */
     SetProperty<String> getExcludedModules();
+
+    /**
+     * A map from a module (org.group:artifact) to configuration
+     * repository config version.
+     * @return the map of modules to forced configuration versions
+     */
+    MapProperty<String, String> getModuleToConfigVersion();
 
     /**
      * Convenience method to use a String for the URI
