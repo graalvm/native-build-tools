@@ -32,13 +32,21 @@ public class Greeter {
 
     public void greet() {
         System.out.println(Optional.ofNullable(message).orElseGet(() -> {
-            Method method;
-            try {
-                method = Class.forName(System.getProperty("messageClass")).getDeclaredMethod("getDefault");
-                return (String) method.invoke(null);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
-                return null;
+            String msg = defaultMessage();
+            if (msg == null) {
+                return "Reflection failed";
             }
+            return msg;
         }));
+    }
+
+    private String defaultMessage() {
+        Method method;
+        try {
+            method = Class.forName(System.getProperty("messageClass")).getDeclaredMethod("getDefault");
+            return (String) method.invoke(null);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+            return null;
+        }
     }
 }

@@ -307,11 +307,17 @@ public class NativeImagePlugin implements Plugin<Project> {
                 if (repositoryExtension.getUri().isPresent()) {
                     Configuration classpath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
                     Set<String> excludedModules = repositoryExtension.getExcludedModules().getOrElse(Collections.emptySet());
+                    Map<String, String> forcedVersions = repositoryExtension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
                     return serviceProvider.map(repo -> repo.findConfigurationDirectoriesFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
                                 ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
                                 String module = moduleVersion.getGroup() + ":" + moduleVersion.getName();
                                 if (!excludedModules.contains(module)) {
-                                    query.forArtifact(artifact -> artifact.gav(module + ":" + moduleVersion.getVersion()));
+                                    query.forArtifact(artifact -> {
+                                        artifact.gav(module + ":" + moduleVersion.getVersion());
+                                        if (forcedVersions.containsKey(module)) {
+                                            artifact.forceConfigVersion(forcedVersions.get(module));
+                                        }
+                                    });
                                 }
                                 query.useLatestConfigWhenVersionIsUntested();
                             })).stream()
@@ -411,6 +417,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
         }));
         configurationRepository.getExcludedModules().convention(Collections.emptySet());
+        configurationRepository.getModuleToConfigVersion().convention(Collections.emptyMap());
     }
 
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,

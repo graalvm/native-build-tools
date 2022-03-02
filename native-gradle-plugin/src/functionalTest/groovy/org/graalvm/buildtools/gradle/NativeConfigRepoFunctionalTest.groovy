@@ -88,4 +88,58 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         'tar.bz2' | 'tar.bz2 file'
     }
 
+    def "can exclude a dependency from native configuration"() {
+        given:
+        withSample("native-config-integration")
+
+        buildFile << """
+graalvmNative {
+    configurationRepository {
+        excludedModules.add("org.graalvm.internal:library-with-reflection")
+    }
+}
+        """
+
+        when:
+        run 'nativeRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':nativeRun'
+        }
+
+        then:
+        outputContains "Reflection failed"
+
+        and: "doesn't look for a configuration directory for the current version"
+        outputDoesNotContain "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+    }
+
+    def "can force a dependency to a specific config version"() {
+        given:
+        withSample("native-config-integration")
+
+        buildFile << """
+graalvmNative {
+    configurationRepository {
+        moduleToConfigVersion.put("org.graalvm.internal:library-with-reflection", "2")
+    }
+}
+        """
+
+        when:
+        run 'nativeRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':nativeRun'
+        }
+
+        then:
+        outputContains "Reflection failed"
+
+        and: "looks for specific configuration version"
+        outputContains "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+    }
+
 }
