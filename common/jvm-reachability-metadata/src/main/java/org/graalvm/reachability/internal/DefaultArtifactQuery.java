@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.reachability.internal;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import org.graalvm.reachability.Query;
+
+import java.util.Optional;
+
+public class DefaultArtifactQuery implements Query.ArtifactQuery {
+
+    private String groupId;
+    private String artifactId;
+    private String version;
+
+    private boolean useLatestVersion = false;
+    private String forcedConfig = null;
+
+    @Override
+    public void gav(String gavCoordinates) {
+        String[] gav = gavCoordinates.split(":");
+        if (gav.length != 3) {
+            throw new IllegalArgumentException("Invalid GAV coordinates: " + gavCoordinates + " (expected format: groupId:artifactId:version)");
+        }
+        groupId = gav[0];
+        artifactId = gav[1];
+        version = gav[2];
+    }
+
+    @Override
+    public void useLatestConfigWhenVersionIsUntested() {
+        useLatestVersion = true;
+        forcedConfig = null;
+    }
+
+    @Override
+    public void doNotUseLatestConfigWhenVersionIsUntested() {
+        useLatestVersion = false;
+    }
+
+    @Override
+    public void forceConfigVersion(String version) {
+        useLatestVersion = false;
+        forcedConfig = version;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public boolean isUseLatestVersion() {
+        return useLatestVersion;
+    }
+
+    public Optional<String> getForcedConfig() {
+        return Optional.ofNullable(forcedConfig);
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")

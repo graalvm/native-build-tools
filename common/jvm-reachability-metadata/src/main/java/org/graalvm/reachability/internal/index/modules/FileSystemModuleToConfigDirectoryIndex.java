@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.reachability.internal.index.modules;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import java.nio.file.Path;
+import java.util.Set;
+
+/**
+ * This is the default index from module to configuration directory, which first
+ * looks into the JSON index file, and if a module isn't found there, would try
+ * to find it in the standard FS location.
+ */
+public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDirectoryIndex {
+    private final JsonModuleToConfigDirectoryIndex jsonIndex;
+    private final StandardLocationModuleToConfigDirectoryIndex fsIndex;
+
+    public FileSystemModuleToConfigDirectoryIndex(Path rootPath) {
+        this.jsonIndex = new JsonModuleToConfigDirectoryIndex(rootPath);
+        this.fsIndex = new StandardLocationModuleToConfigDirectoryIndex(rootPath);
+    }
+
+    /**
+     * Returns the directory containing the candidate configurations for the given module.
+     *
+     * @param groupId the group of the module
+     * @param artifactId the artifact of the module
+     * @return the configuration directory
+     */
+    @Override
+    public Set<Path> findConfigurationDirectories(String groupId, String artifactId) {
+        Set<Path> fromIndex = jsonIndex.findConfigurationDirectories(groupId, artifactId);
+        if (!fromIndex.isEmpty()) {
+            return fromIndex;
+        }
+        return fsIndex.findConfigurationDirectories(groupId, artifactId);
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")

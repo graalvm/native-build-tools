@@ -23,7 +23,7 @@ nativeGradlePlugin = { module = "org.graalvm.buildtools:native-gradle-plugin", v
 nativeMavenPlugin = { module = "org.graalvm.buildtools:native-maven-plugin", version.ref = "nativeBuildTools" }
 junitPlatformNative = { module = "org.graalvm.buildtools:junit-platform-native", version.ref = "nativeBuildTools" }
 utils = { module = "org.graalvm.buildtools:utils", version.ref = "nativeBuildTools" }
-nativeConfig = { module = "org.graalvm.buildtools:native-config", version.ref = "nativeBuildTools" }
+jvmReachabilityMetadata = { module = "org.graalvm.buildtools:jvm-reachability-metadata", version.ref = "nativeBuildTools" }
 
 # External dependencies
 test-junit-platform-console = { module = "org.junit.platform:junit-platform-console", version.ref = "junitPlatform" }

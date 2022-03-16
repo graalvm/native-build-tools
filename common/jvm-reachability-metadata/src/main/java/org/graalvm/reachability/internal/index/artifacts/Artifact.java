@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.reachability.internal.index.artifacts;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Set;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Artifact {
+    private final String module;
+    private final Set<String> versions;
+    private final String directory;
+    private final boolean latest;
+
+    @JsonCreator
+    public Artifact(@JsonProperty("module") String module,
+                    @JsonProperty("tested-versions") Set<String> versions,
+                    @JsonProperty("config-version") String directory,
+                    @JsonProperty(value = "latest", defaultValue = "false") boolean latest) {
+        this.module = module;
+        this.versions = versions;
+        this.directory = directory;
+        this.latest = latest;
+    }
+
+    public String getModule() {
+        return module;
+    }
+
+    public Set<String> getVersions() {
+        return versions;
+    }
+
+    public String getDirectory() {
+        return directory;
+    }
+
+    public boolean isLatest() {
+        return latest;
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")

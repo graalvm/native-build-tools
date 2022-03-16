@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.reachability;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import java.util.Collection;
+import java.util.function.Consumer;
+
+public interface Query {
+    void forArtifacts(String... gavCoordinates);
+
+    default void forArtifacts(Collection<String> gavCoordinates) {
+        forArtifacts(gavCoordinates.toArray(new String[0]));
+    }
+
+    void forArtifact(Consumer<? super ArtifactQuery> config);
+    void useLatestConfigWhenVersionIsUntested();
+
+    interface ArtifactQuery {
+        void gav(String gavCoordinates);
+        void useLatestConfigWhenVersionIsUntested();
+        void doNotUseLatestConfigWhenVersionIsUntested();
+        void forceConfigVersion(String version);
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
