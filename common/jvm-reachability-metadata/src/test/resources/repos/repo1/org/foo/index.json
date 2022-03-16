@@ -4,14 +4,14 @@
     "tested-versions": [
       "1.0"
     ],
-    "config-version": "1"
+    "metadata-version": "1"
   },
   {
     "module": "org:foo",
     "tested-versions": [
       "1.1"
     ],
-    "config-version": "2",
+    "metadata-version": "2",
     "latest": true
   }
 ]

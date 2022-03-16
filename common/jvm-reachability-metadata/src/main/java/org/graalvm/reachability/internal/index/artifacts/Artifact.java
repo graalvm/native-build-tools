@@ -56,7 +56,7 @@ public class Artifact {
     @JsonCreator
     public Artifact(@JsonProperty("module") String module,
                     @JsonProperty("tested-versions") Set<String> versions,
-                    @JsonProperty("config-version") String directory,
+                    @JsonProperty("metadata-version") String directory,
                     @JsonProperty(value = "latest", defaultValue = "false") boolean latest) {
         this.module = module;
         this.versions = versions;

@@ -1,4 +1,4 @@
-name: Native Configuration Repository
+name: JVM Reachability Metadata Repository
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test-native-config:
+  test-jvm-reachability-metadata:
     name:
     runs-on: ubuntu-18.04
     strategy:
