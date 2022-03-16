@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.reachability.internal.index.artifacts;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import java.nio.file.Path;
+import java.util.Optional;
+
+public interface VersionToConfigDirectoryIndex {
+
+    /**
+     * Returns the specified configuration directory version, ignoring
+     * any existing configuration.
+     * @param version the requested version
+     * @return the configuration directory
+     */
+    Optional<Path> findForcedConfiguration(String version);
+
+    /**
+     * Returns the configuration directory for the requested artifact.
+     * @param groupId the group ID of the artifact
+     * @param artifactId the artifact ID of the artifact
+     * @param version the version of the artifact
+     * @return a configuration directory, or empty if no configuration directory is available
+     */
+    Optional<Path> findConfigurationDirectory(String groupId, String artifactId, String version);
+
+    /**
+     * Returns the latest configuration directory for the requested artifact.
+     * @param groupId the group ID of the artifact
+     * @param artifactId the artifact ID of the artifact
+     * @return a configuration directory, or empty if no configuration directory is available
+     */
+    Optional<Path> findLatestConfigurationFor(String groupId, String artifactId);
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")

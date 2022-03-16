@@ -1,0 +1,37 @@
+name: Native Configuration Repository
+
+on:
+  push:
+    paths:
+      - 'common/jvm-reachability-metadata/**'
+  pull_request:
+    paths:
+      - 'common/jvm-reachability-metadata/**'
+  workflow_dispatch:
+
+jobs:
+  test-native-config:
+    name:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Get GraalVM Nightly
+        run: |
+          source common/scripts/downloadGraalVM.sh
+          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
+          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - name: Checkstyle
+        run: ./gradlew :jvm-reachability-metadata:checkstyleMain :jvm-reachability-metadata:checkstyleTest
+      - name: JVM test
+        run: ./gradlew :jvm-reachability-metadata:test
+      - name: Tests results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: tests-results
+          path: common/jvm-reachability-metadata/build/reports/tests/

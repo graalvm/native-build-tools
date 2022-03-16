@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,64 +39,52 @@
  * SOFTWARE.
  */
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+package org.graalvm.reachability.internal.index.modules;
 
-repositories {
-    mavenCentral()
-}
+import org.junit.jupiter.api.Test;
 
-application {
-    mainClass.set('org.graalvm.example.Application')
-}
+import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .forUseAtConfigurationTime()
-        .get()
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-dependencies {
-    implementation("org.graalvm.internal:library-with-reflection:1.5")
+class JsonModuleToConfigDirectoryIndexTest {
+    private Path repoPath;
 
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-}
+    private JsonModuleToConfigDirectoryIndex index;
 
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
-}
+    @Test
+    void returnsSingleDirectory() throws URISyntaxException {
+        writeIndex("single-dir");
+        Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
+        assertEquals(singleton(repoPath.resolve("io/netty/netty-core")), configurationDirectories);
 
-graalvmNative {
-    jvmReachabilityMetadataRepository {
-        enabled = true
-        def extension = System.getProperty("extension", '')
-        def repo = file("config-directory${extension ? '.' + extension : ''}")
-        println("Using config repo: $repo")
-        uri(repo)
+        configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
+        assertEquals(singleton(repoPath.resolve("io/netty/netty-core")), configurationDirectories);
+
+        configurationDirectories = index.findConfigurationDirectories("org", "bar");
+        assertEquals(emptySet(), configurationDirectories);
     }
-    binaries.all {
-        verbose = true
-        runtimeArgs.add("-DmessageClass=org.graalvm.internal.reflect.Message")
+
+    @Test
+    void returnsMultipleDirectories() throws URISyntaxException {
+        writeIndex("multi-dirs");
+        Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
+        assertEquals(new HashSet<>(asList(
+                repoPath.resolve("io/netty/netty-core"),
+                repoPath.resolve("jline")
+                )), configurationDirectories);
+
     }
-}
 
-tasks.register("configZip", Zip) {
-    destinationDirectory = project.layout.projectDirectory
-    from(file("config-directory"))
-    archiveName = 'config-directory.zip'
-}
-
-tasks.register("configTarGz", Tar) {
-    destinationDirectory = project.layout.projectDirectory
-    compression = Compression.GZIP
-    from(file("config-directory"))
-    archiveName = 'config-directory.tar.gz'
-}
-
-tasks.register("configTarBz2", Tar) {
-    destinationDirectory = project.layout.projectDirectory
-    compression = Compression.BZIP2
-    from(file("config-directory"))
-    archiveName = 'config-directory.tar.bz2'
+    private void writeIndex(String json) throws URISyntaxException {
+        repoPath = new File(FileSystemModuleToConfigDirectoryIndexTest.class.getResource("/json/modules/" + json).toURI()).toPath();
+        index = new JsonModuleToConfigDirectoryIndex(repoPath);
+    }
 }

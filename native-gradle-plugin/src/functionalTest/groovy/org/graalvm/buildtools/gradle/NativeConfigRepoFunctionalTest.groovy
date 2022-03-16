@@ -75,10 +75,10 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         outputContains "Hello, from reflection!"
 
         and: "doesn't find a configuration directory for the current version"
-        outputContains "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but finds one thanks to the latest configuration field"
-        outputContains "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
 
         where:
         format   | label
@@ -94,7 +94,7 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
 
         buildFile << """
 graalvmNative {
-    configurationRepository {
+    jvmReachabilityMetadataRepository {
         excludedModules.add("org.graalvm.internal:library-with-reflection")
     }
 }
@@ -112,7 +112,7 @@ graalvmNative {
         outputContains "Reflection failed"
 
         and: "doesn't look for a configuration directory for the current version"
-        outputDoesNotContain "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputDoesNotContain "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
     }
 
     def "can force a dependency to a specific config version"() {
@@ -121,7 +121,7 @@ graalvmNative {
 
         buildFile << """
 graalvmNative {
-    configurationRepository {
+    jvmReachabilityMetadataRepository {
         moduleToConfigVersion.put("org.graalvm.internal:library-with-reflection", "2")
     }
 }
@@ -139,7 +139,7 @@ graalvmNative {
         outputContains "Reflection failed"
 
         and: "looks for specific configuration version"
-        outputContains "[configuration repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
     }
 
 }

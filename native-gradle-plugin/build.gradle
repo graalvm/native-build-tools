@@ -56,7 +56,7 @@ maven {
 
 dependencies {
     implementation libs.utils
-    implementation libs.nativeConfig
+    implementation libs.jvmReachabilityMetadata
     testImplementation libs.test.spock
     testFixturesImplementation libs.test.spock
     testFixturesImplementation gradleTestKit()

@@ -44,7 +44,7 @@ package org.graalvm.buildtools.gradle;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.gradle.dsl.AgentConfiguration;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
-import org.graalvm.buildtools.gradle.dsl.NativeConfigurationRepositoryExtension;
+import org.graalvm.buildtools.gradle.dsl.JvmReachabilityMetadataRepositoryExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
@@ -53,7 +53,7 @@ import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
-import org.graalvm.buildtools.gradle.internal.NativeConfigurationService;
+import org.graalvm.buildtools.gradle.internal.JvmReachabilityMetadataService;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.ProcessGeneratedGraalResourceFiles;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -288,15 +288,15 @@ public class NativeImagePlugin implements Plugin<Project> {
             options.getConfigurationFileDirectories().from(generateResourcesConfig.map(t ->
                     t.getOutputFile().map(f -> f.getAsFile().getParentFile())
             ));
-            configureNativeConfigurationDirectories(project, graalExtension, options, sourceSet);
+            configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
         });
     }
 
-    private void configureNativeConfigurationDirectories(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
-        NativeConfigurationRepositoryExtension repositoryExtension = nativeConfiguration(graalExtension);
-        Provider<NativeConfigurationService> serviceProvider = project.getGradle()
+    private void configureJvmReachabilityConfigurationDirectories(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
+        JvmReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
+        Provider<JvmReachabilityMetadataService> serviceProvider = project.getGradle()
                 .getSharedServices()
-                .registerIfAbsent("nativeConfigurationService", NativeConfigurationService.class, spec -> {
+                .registerIfAbsent("nativeConfigurationService", JvmReachabilityMetadataService.class, spec -> {
                     LogLevel logLevel = determineLogLevel();
                     spec.getParameters().getLogLevel().set(logLevel);
                     spec.getParameters().getUri().set(repositoryExtension.getUri());
@@ -339,8 +339,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         return logLevel;
     }
 
-    private static NativeConfigurationRepositoryExtension nativeConfiguration(GraalVMExtension graalExtension) {
-        return ((ExtensionAware) graalExtension).getExtensions().getByType(NativeConfigurationRepositoryExtension.class);
+    private static JvmReachabilityMetadataRepositoryExtension reachabilityExtensionOn(GraalVMExtension graalExtension) {
+        return ((ExtensionAware) graalExtension).getExtensions().getByType(JvmReachabilityMetadataRepositoryExtension.class);
     }
 
     private void deprecateExtension(Project project,
@@ -406,12 +406,11 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureNativeConfigurationRepo(ExtensionAware graalvmNative) {
-        NativeConfigurationRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("configurationRepository", NativeConfigurationRepositoryExtension.class);
+        JvmReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("jvmReachabilityMetadataRepository", JvmReachabilityMetadataRepositoryExtension.class);
         configurationRepository.getEnabled().convention(false);
         configurationRepository.getUri().convention(configurationRepository.getVersion().map(v -> {
             try {
-                // TODO: replace with real URI
-                return new URI("https://github.com/graalvm/native-configuration/releases/download/" + v + "/native-configuration-" + v + ".zip");
+                return new URI("https://github.com/graalvm/jvm-reachability-metadata/releases/download/" + v + "/jvm-reachability-metadata-" + v + ".zip");
             } catch (URISyntaxException e) {
                 return null;
             }

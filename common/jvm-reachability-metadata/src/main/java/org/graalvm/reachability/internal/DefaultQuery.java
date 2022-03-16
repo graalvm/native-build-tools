@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,17 +38,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.reachability.internal;
 
-pluginManagement {
-    includeBuild("build-logic/settings-plugins")
-    includeBuild("build-logic/aggregator")
+import org.graalvm.reachability.Query;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+public class DefaultQuery implements Query {
+    private boolean useLatest = false;
+    private final List<Consumer<? super ArtifactQuery>> artifactsQueries = new ArrayList<>();
+
+    @Override
+    public void forArtifacts(String... gavCoordinates) {
+        for (String coordinates : gavCoordinates) {
+            forArtifact(q -> q.gav(coordinates));
+        }
+    }
+
+    @Override
+    public void forArtifact(Consumer<? super ArtifactQuery> config) {
+        artifactsQueries.add(config);
+    }
+
+    @Override
+    public void useLatestConfigWhenVersionIsUntested() {
+        useLatest = true;
+    }
+
+    List<DefaultArtifactQuery> getArtifacts() {
+        return artifactsQueries.stream()
+                .map(spec -> {
+                    DefaultArtifactQuery query = new DefaultArtifactQuery();
+                    if (useLatest) {
+                        query.useLatestConfigWhenVersionIsUntested();
+                    }
+                    spec.accept(query);
+                    return query;
+                })
+                .collect(Collectors.toList());
+    }
 }
-
-rootProject.name = "native-build-tools"
-
-includeBuild("common/junit-platform-native")
-includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
-includeBuild("native-gradle-plugin")
-includeBuild("native-maven-plugin")
-includeBuild("docs")
