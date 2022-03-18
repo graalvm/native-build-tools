@@ -48,6 +48,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.utils.SharedConstants.GRAALVM_EXE_EXTENSION;
 
@@ -75,11 +76,20 @@ public class NativeImageUtils {
         try {
             File tmpFile = File.createTempFile("native-image", "args");
             tmpFile.deleteOnExit();
+            cliArgs = cliArgs.stream().map(NativeImageUtils::escapeArg).collect(Collectors.toList());
             Files.write(tmpFile.toPath(), cliArgs, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
             return Collections.singletonList("@" + tmpFile.getAbsolutePath());
         } catch (IOException e) {
 
             return Collections.unmodifiableList(cliArgs);
         }
+    }
+
+    private static String escapeArg(String arg) {
+        arg = arg.replace("\\", "\\\\");
+        if (arg.contains(" ")) {
+            arg = "\"" + arg + "\"";
+        }
+        return arg;
     }
 }
