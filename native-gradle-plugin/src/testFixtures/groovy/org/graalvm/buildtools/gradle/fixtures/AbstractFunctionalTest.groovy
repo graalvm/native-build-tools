@@ -49,6 +49,7 @@ import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class AbstractFunctionalTest extends Specification {
@@ -112,6 +113,11 @@ abstract class AbstractFunctionalTest extends Specification {
 
     File getSettingsFile() {
         groovySettingsFile
+    }
+
+    protected void withSpacesInProjectDir() {
+        testDirectory = testDirectory.resolve("with spaces")
+        Files.createDirectory(testDirectory)
     }
 
     protected void withSample(String name) {

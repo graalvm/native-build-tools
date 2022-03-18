@@ -155,4 +155,37 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/224")
+    def "handles spaces in file names"() {
+        given:
+        withSpacesInProjectDir()
+        withSample("java-application")
+
+        buildFile << """
+            // force realization of the run task to verify that it
+            // doesn't accidentally introduce a dependency
+            tasks.getByName('run')
+        """.stripIndent()
+
+        when:
+        run 'nativeCompile'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+            doesNotContain ':build', ':run'
+        }
+
+        and:
+        def nativeApp = file("build/native/nativeCompile/java-application")
+        nativeApp.exists()
+
+        when:
+        def process = execute(nativeApp)
+
+        then:
+        process.output.contains "Hello, native!"
+
+    }
+
 }
