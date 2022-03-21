@@ -406,7 +406,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureNativeConfigurationRepo(ExtensionAware graalvmNative) {
-        JvmReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("jvmReachabilityMetadataRepository", JvmReachabilityMetadataRepositoryExtension.class);
+        JvmReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("metadataRepository", JvmReachabilityMetadataRepositoryExtension.class);
         configurationRepository.getEnabled().convention(false);
         configurationRepository.getUri().convention(configurationRepository.getVersion().map(v -> {
             try {

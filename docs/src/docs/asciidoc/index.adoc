@@ -20,10 +20,13 @@ If you are interested in contributing, please refer to our https://github.com/gr
 
 * Fix long classpath issue under Windows when running native tests
 * Inherit environment variables and system properties from the surefire plugin configuration when executing tests
+* Fix invocation of `native-image` when classpath contains spaces
 
 ==== Gradle plugin
 
 * Add support for environment variables in native test execution
+* Fix invocation of `native-image` when classpath contains spaces
+* Add experimental support for the JVM reachability metadata repository
 
 === Release 0.9.10
 

@@ -94,7 +94,7 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
 
         buildFile << """
 graalvmNative {
-    jvmReachabilityMetadataRepository {
+    metadataRepository {
         excludedModules.add("org.graalvm.internal:library-with-reflection")
     }
 }
@@ -121,7 +121,7 @@ graalvmNative {
 
         buildFile << """
 graalvmNative {
-    jvmReachabilityMetadataRepository {
+    metadataRepository {
         moduleToConfigVersion.put("org.graalvm.internal:library-with-reflection", "2")
     }
 }
