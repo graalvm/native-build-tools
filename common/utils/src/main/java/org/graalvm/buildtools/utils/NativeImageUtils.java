@@ -85,7 +85,7 @@ public class NativeImageUtils {
         }
     }
 
-    private static String escapeArg(String arg) {
+    public static String escapeArg(String arg) {
         arg = arg.replace("\\", "\\\\");
         if (arg.contains(" ")) {
             arg = "\"" + arg + "\"";

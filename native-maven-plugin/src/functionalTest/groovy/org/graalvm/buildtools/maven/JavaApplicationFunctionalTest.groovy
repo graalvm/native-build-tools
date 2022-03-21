@@ -41,6 +41,8 @@
 
 package org.graalvm.buildtools.maven
 
+import spock.lang.Issue
+
 class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     def "can build and execute a native image with the Maven plugin"() {
         withSample("java-application")
@@ -63,4 +65,21 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         outputContains "Hello, native!"
     }
+
+    @Issue("")
+    def "supports spaces in file names (useArgFile = #argFile)"() {
+        withSpacesInProjectDir()
+        withSample("java-application")
+
+        when:
+        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native', "-DuseArgFile=${argFile}"
+
+        then:
+        buildSucceeded
+        outputContains "Hello, native!"
+
+        where:
+        argFile << [true, false]
+    }
+
 }
