@@ -149,3 +149,46 @@ graalvmNative {
     }
 }
 // end::add-agent-options-individual[]
+
+// tag::enable-metadata-repository[]
+graalvmNative {
+    metadataRepository {
+        enabled = true
+    }
+}
+// end::enable-metadata-repository[]
+
+// tag::specify-metadata-repository-version[]
+graalvmNative {
+    metadataRepository {
+        version = "1.0.0"
+    }
+}
+// end::specify-metadata-repository-version[]
+
+// tag::specify-metadata-repository-file[]
+graalvmNative {
+    metadataRepository {
+        uri(file("metadata-repository"))
+    }
+}
+// end::specify-metadata-repository-file[]
+
+// tag::exclude-module-from-metadata-repo[]
+graalvmNative {
+    metadataRepository {
+        // Exclude this library from automatic metadata
+        // repository search
+        excludes.add("com.company:some-library")
+    }
+}
+// end::exclude-module-from-metadata-repo[]
+
+// tag::specify-metadata-version-for-library[]
+graalvmNative {
+    metadataRepository {
+        // Force the version of the metadata for a particular library
+        moduleToConfigVersion.put("com.company:some-library", "3")
+    }
+}
+// end::specify-metadata-version-for-library[]
