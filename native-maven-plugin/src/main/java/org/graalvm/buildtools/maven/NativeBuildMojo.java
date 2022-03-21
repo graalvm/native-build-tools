@@ -123,7 +123,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             for (Artifact dependency : project.getArtifacts()) {
                 addClasspath(dependency);
             }
-            addClasspath(project.getArtifact());
+            addClasspath(project.getArtifact(), project.getPackaging());
         }
         String classpathStr = imageClasspath.stream().map(Path::toString).collect(Collectors.joining(File.pathSeparator));
 
@@ -156,7 +156,11 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     }
 
     private void addClasspath(Artifact artifact) throws MojoExecutionException {
-        if (!"jar".equals(artifact.getType())) {
+        addClasspath(artifact, "jar");
+    }
+
+    private void addClasspath(Artifact artifact, String artifactType) throws MojoExecutionException {
+        if (!artifactType.equals(artifact.getType())) {
             getLog().warn("Ignoring non-jar type ImageClasspath Entry " + artifact);
             return;
         }
