@@ -82,4 +82,16 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         argFile << [true, false]
     }
 
+    def "can build and execute a native image with the Maven plugin when the application has a custom packaging type"() {
+        withSample("java-application-with-custom-packaging")
+
+        when:
+        mvn 'package', '-Dpackaging=native-image', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "ImageClasspath Entry: org.graalvm.buildtools.examples:java-application-with-custom-packaging:native-image:0.1"
+        outputContains "Hello, native!"
+    }
+
 }
