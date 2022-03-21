@@ -72,6 +72,11 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         executor.debug = true
     }
 
+    protected void withSpacesInProjectDir() {
+        testDirectory = testDirectory.resolve("with spaces")
+        Files.createDirectory(testDirectory)
+    }
+
     protected void withReproducer(String name) {
         File sampleDir = new File("reproducers/$name")
         copySample(sampleDir.toPath(), testDirectory)
