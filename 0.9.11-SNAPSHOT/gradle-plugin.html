@@ -472,6 +472,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#agent-support-configuring-options">Configuring agent options</a></li>
 </ul>
 </li>
+<li><a href="#metadata-support">JVM Reachability Metadata support</a>
+<ul class="sectlevel2">
+<li><a href="#_enabling_the_metadata_repository">Enabling the metadata repository</a></li>
+<li><a href="#_configuring_the_metadata_repository">Configuring the metadata repository</a></li>
+</ul>
+</li>
 <li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
 <li><a href="#_javadocs">Javadocs</a></li>
 </ul>
@@ -1117,6 +1123,141 @@ In the following example, the agent used for instrumentation for the main image 
                 options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
             }
         }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>JVM Reachability Metadata support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since release 0.9.11, the plugin adds experimental support for the <a href="https://github.com/graalvm/jvm-reachability-metadata/">JVM reachability metadata repository</a>.
+This repository provides GraalVM configuration for libraries which do not officially support GraalVM native.</p>
+</div>
+<div class="sect2">
+<h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
+<div class="paragraph">
+<p>Support needs to be enabled explicitly:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Enabling the metadata repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        enabled = true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        enabled.set(true)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A metadata repository consists of configuration files for GraalVM.
+The plugin will automatically download the configuration metadata from the official repository if you supply the version of the repository you want to use:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Enabling the metadata repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        version = "1.0.0"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        version.set("1.0.0")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, it is possible to use a <em>local repository</em>, in which case you can specify the path to the repository:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Using a local repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        uri(file("metadata-repository"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        uri(file("metadata-repository"))
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
+<div class="paragraph">
+<p>Once activated, for each library included in the native image, the plugin will automatically search for GraalVM JVM reachability metadata in the repository.
+In some cases, you may need to exclude a particular module from the search.
+This can be done by adding it to the exclude list:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Excluding a module from search</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        // Exclude this library from automatic metadata
+        // repository search
+        excludes.add("com.company:some-library")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        // Exclude this library from automatic metadata
+        // repository search
+        excludes.add("com.company:some-library")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Last, it is possible for you to override the <em>metadata version</em> of a particular module.
+This may be interesting if there&#8217;s no specific metadata available for the particular version of the library that you use, but that you know that a version works:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Specifying the metadata version to use for a particular library</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        // Force the version of the metadata for a particular library
+        moduleToConfigVersion.put("com.company:some-library", "3")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        // Force the version of the metadata for a particular library
+        moduleToConfigVersion.put("com.company:some-library", "3")
     }
 }</code></pre>
 </div>
