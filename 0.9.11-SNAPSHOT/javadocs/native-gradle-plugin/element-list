@@ -1,4 +1,0 @@
-org.graalvm.buildtools.gradle
-org.graalvm.buildtools.gradle.dsl
-org.graalvm.buildtools.gradle.internal
-org.graalvm.buildtools.gradle.tasks
