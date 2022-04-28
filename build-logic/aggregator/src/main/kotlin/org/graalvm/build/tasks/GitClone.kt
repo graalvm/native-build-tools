@@ -42,9 +42,7 @@
 package org.graalvm.build.tasks
 
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.TransportConfigCallback
 import org.eclipse.jgit.transport.SshTransport
-import org.eclipse.jgit.transport.Transport
 import org.eclipse.jgit.util.FileUtils
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
