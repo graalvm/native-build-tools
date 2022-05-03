@@ -40,7 +40,7 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.buildtools.gradle.dsl.AgentConfiguration;
+import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.gradle.api.Action;
@@ -168,7 +168,7 @@ public abstract class DeprecatedNativeImageOptions implements NativeImageOptions
 
     @Override
     @Nested
-    public AgentConfiguration getAgent() {
+    public AgentOptions getAgent() {
         return warnAboutDeprecation(delegate::getAgent);
     }
 

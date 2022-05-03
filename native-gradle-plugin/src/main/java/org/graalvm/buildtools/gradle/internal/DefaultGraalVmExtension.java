@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -63,7 +64,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
     private final NativeImagePlugin plugin;
     private final Project project;
-    private final Map<String, Provider<Boolean>> agentProperties = new HashMap<>();
+    private final Map<String, Provider<AgentConfiguration>> agentProperties = new HashMap<>();
     private final Property<JavaLauncher> defaultJavaLauncher;
 
     @Inject
@@ -109,7 +110,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         spec.execute(nativeImages);
     }
 
-    public Map<String, Provider<Boolean>> getAgentProperties() {
+    public Map<String, Provider<AgentConfiguration>> getAgentProperties() {
         return agentProperties;
     }
 

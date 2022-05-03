@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.dsl;
+package org.graalvm.buildtools.agent;
 
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.process.JavaForkOptions;
+import java.util.Collections;
+import java.util.List;
 
-public interface AgentConfiguration {
-    /**
-     * Gets the value which toggles the native-image-agent usage.
-     *
-     * @return The value which toggles the native-image-agent usage.
-     */
-    @Input
-    Property<Boolean> getEnabled();
+public class DisabledAgentMode implements AgentMode {
+    @Override
+    public List<String> getAgentCommandLine() {
+        return Collections.emptyList();
+    }
 
-    /**
-     * Gets the native agent options. Only used when {@link #getEnabled()} is true.
-     * @return the native agent options.
-     */
-    @Input
-    @Optional
-    ListProperty<String> getOptions();
-
-    /**
-     * Configures the task which needs to be instrumented.
-     * @return the instrumented task.
-     */
-    @Internal
-    Property<TaskProvider<? extends JavaForkOptions>> getInstrumentedTask();
-
+    @Override
+    public List<String> getNativeImageConfigureOptions(List<String> inputDirectories, List<String> outputDirectories) {
+        return Collections.emptyList();
+    }
 }
