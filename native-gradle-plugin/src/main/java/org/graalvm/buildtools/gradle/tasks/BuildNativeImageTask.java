@@ -46,6 +46,7 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
+import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -118,7 +119,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     }
 
     @Input
-    public abstract Property<Boolean> getAgentEnabled();
+    public abstract Property<AgentConfiguration> getAgentConfiguration();
 
     @Input
     public abstract Property<Boolean> getDisableToolchainDetection();
@@ -153,7 +154,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
                 getOptions(),
-                getAgentEnabled(),
+                getAgentConfiguration(),
                 getExecutableShortName(),
                 // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
                 // a mapped value before the task was called, when we are actually calling it...

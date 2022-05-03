@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle.dsl;
 
+import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -158,13 +159,13 @@ public interface NativeImageOptions extends Named {
      * @return the configuration.
      */
     @Nested
-    AgentConfiguration getAgent();
+    AgentOptions getAgent();
 
     /**
      * Configures the GraalVM agent options.
      * @param spec the agent configuration.
      */
-    default void agent(Action<? super AgentConfiguration> spec) {
+    default void agent(Action<? super AgentOptions> spec) {
         spec.execute(getAgent());
     }
 

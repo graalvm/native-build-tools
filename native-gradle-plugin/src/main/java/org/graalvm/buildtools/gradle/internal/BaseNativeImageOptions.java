@@ -211,7 +211,9 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getDebug().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
+        getAgent().getDefaultMode().convention("standard");
         getAgent().getEnabled().convention(false);
+        getAgent().getModes().getConditional().getParallel().convention(true);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);

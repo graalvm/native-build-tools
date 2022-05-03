@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileSystemLocation;
@@ -62,20 +63,20 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private static final Transformer<Boolean, Boolean> NEGATE = b -> !b;
 
     private final Provider<NativeImageOptions> options;
-    private final Provider<Boolean> agentEnabled;
+    private final Provider<AgentConfiguration> agentConfiguration;
     private final Provider<String> executableName;
     private final Provider<String> outputDirectory;
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
-                                          Provider<Boolean> agentEnabled,
+                                          Provider<AgentConfiguration> agentConfiguration,
                                           Provider<String> executableName,
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile) {
         this.options = options;
-        this.agentEnabled = agentEnabled;
+        this.agentConfiguration = agentConfiguration;
         this.executableName = executableName;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
@@ -88,8 +89,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     }
 
     @Input
-    public Provider<Boolean> getAgentEnabled() {
-        return agentEnabled;
+    public Provider<AgentConfiguration> getAgentConfiguration() {
+        return agentConfiguration;
     }
 
     @Input
@@ -142,7 +143,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         if (!configFiles.isEmpty()) {
             cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
         }
-        if (getAgentEnabled().get()) {
+        if (getAgentConfiguration().get().isEnabled()) {
             cliArgs.add("--allow-incomplete-classpath");
         }
         if (options.getMainClass().isPresent()) {
