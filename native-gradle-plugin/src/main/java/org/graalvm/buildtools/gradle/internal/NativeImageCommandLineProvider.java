@@ -63,20 +63,17 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private static final Transformer<Boolean, Boolean> NEGATE = b -> !b;
 
     private final Provider<NativeImageOptions> options;
-    private final Provider<AgentConfiguration> agentConfiguration;
     private final Provider<String> executableName;
     private final Provider<String> outputDirectory;
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
-                                          Provider<AgentConfiguration> agentConfiguration,
                                           Provider<String> executableName,
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile) {
         this.options = options;
-        this.agentConfiguration = agentConfiguration;
         this.executableName = executableName;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
@@ -86,11 +83,6 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     @Nested
     public Provider<NativeImageOptions> getOptions() {
         return options;
-    }
-
-    @Input
-    public Provider<AgentConfiguration> getAgentConfiguration() {
-        return agentConfiguration;
     }
 
     @Input
@@ -142,9 +134,6 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                 .collect(Collectors.joining(","));
         if (!configFiles.isEmpty()) {
             cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
-        }
-        if (getAgentConfiguration().get().isEnabled()) {
-            cliArgs.add("--allow-incomplete-classpath");
         }
         if (options.getMainClass().isPresent()) {
             cliArgs.add("-H:Class=" + options.getMainClass().get());

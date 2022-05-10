@@ -42,9 +42,11 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.gradle.api.GradleException;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
@@ -62,13 +64,13 @@ public class NativeImageExecutableLocator {
                 .orElse(providers.environmentVariable("JAVA_HOME").forUseAtConfigurationTime());
     }
 
-    public static File findNativeImageExecutable(NativeImageOptions options,
+    public static File findNativeImageExecutable(Property<JavaLauncher> javaLauncher,
                                                  Provider<Boolean> disableToolchainDetection,
                                                  Provider<String> graalvmHomeProvider,
                                                  ExecOperations execOperations,
                                                  GraalVMLogger logger) {
         File executablePath = null;
-        if (disableToolchainDetection.get() || !options.getJavaLauncher().isPresent()) {
+        if (disableToolchainDetection.get() || !javaLauncher.isPresent()) {
             if (graalvmHomeProvider.isPresent()) {
                 String graalvmHome = graalvmHomeProvider.get();
                 logger.lifecycle("Toolchain detection is disabled, will use GraalVM from {}.", graalvmHome);
@@ -76,7 +78,7 @@ public class NativeImageExecutableLocator {
             }
         }
         if (executablePath == null) {
-            JavaInstallationMetadata metadata = options.getJavaLauncher().get().getMetadata();
+            JavaInstallationMetadata metadata = javaLauncher.get().getMetadata();
             executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
             if (!executablePath.exists() && graalvmHomeProvider.isPresent()) {
                 executablePath = Paths.get(graalvmHomeProvider.get()).resolve("bin").resolve(NATIVE_IMAGE_EXE).toFile();

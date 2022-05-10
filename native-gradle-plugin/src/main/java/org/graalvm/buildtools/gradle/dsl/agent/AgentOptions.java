@@ -43,23 +43,17 @@ package org.graalvm.buildtools.gradle.dsl.agent;
 import org.gradle.api.Action;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.process.JavaForkOptions;
 
 @SuppressWarnings({"unused"})
 public interface AgentOptions {
-    /**
-     * Gets the value which toggles the native-image-agent usage.
-     *
-     * @return The value which toggles the native-image-agent usage.
-     */
-    @Input
-    Property<Boolean> getEnabled();
-
     @Nested
     AgentModeOptions getModes();
 
@@ -84,7 +78,7 @@ public interface AgentOptions {
      *
      * @return the instrumented task.
      */
-    @Internal
-    Property<TaskProvider<? extends JavaForkOptions>> getInstrumentedTask();
+    @Input
+    Property<TaskCollection<? extends JavaForkOptions>> getInstrumentedTasks();
 
 }

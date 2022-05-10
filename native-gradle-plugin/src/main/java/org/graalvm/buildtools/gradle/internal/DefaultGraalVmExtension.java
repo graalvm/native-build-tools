@@ -44,28 +44,31 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
-import org.graalvm.buildtools.agent.AgentConfiguration;
+import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.process.JavaForkOptions;
 
 import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
     private final NativeImagePlugin plugin;
     private final Project project;
-    private final Map<String, Provider<AgentConfiguration>> agentProperties = new HashMap<>();
     private final Property<JavaLauncher> defaultJavaLauncher;
+
+    @SuppressWarnings("unchecked")
+    /* javac forced our hand */
+    private static <T, U> T iPromiseIKnowWhatImDoing(U u) {
+        return (T) u;
+    }
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
@@ -78,6 +81,10 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         getToolchainDetection().convention(true);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
+        /* Can't use withType here because JavaForkOptions is not a subtype of Task */
+        getAgent().getInstrumentedTasks().convention(project.provider(() -> iPromiseIKnowWhatImDoing(project.getTasks().matching(t -> t instanceof JavaForkOptions))));
+        getAgent().getDefaultMode().convention("standard");
+        getAgent().getModes().getConditional().getParallel().convention(true);
         configureToolchain();
     }
 
@@ -106,12 +113,13 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     }
 
     @Override
-    public void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
-        spec.execute(nativeImages);
+    public void agent(Action<? super AgentOptions> spec) {
+        spec.execute(getAgent());
     }
 
-    public Map<String, Provider<AgentConfiguration>> getAgentProperties() {
-        return agentProperties;
+    @Override
+    public void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
+        spec.execute(nativeImages);
     }
 
     @Override

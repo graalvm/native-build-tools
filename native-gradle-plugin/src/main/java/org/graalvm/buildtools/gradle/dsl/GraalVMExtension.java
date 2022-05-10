@@ -41,10 +41,12 @@
 
 package org.graalvm.buildtools.gradle.dsl;
 
+import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
@@ -63,6 +65,11 @@ public interface GraalVMExtension {
      *
      */
     Property<Boolean> getTestSupport();
+
+    @Nested
+    AgentOptions getAgent();
+
+    void agent(Action<? super AgentOptions> spec);
 
     DirectoryProperty getGeneratedResourcesDirectory();
 
