@@ -45,11 +45,15 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
@@ -67,16 +71,16 @@ class MergeAgentFiles implements Action<Task> {
     private final Provider<String> graalvmHomeProvider;
     private final Provider<Directory> outputDir;
     private final Provider<Boolean> disableToolchainDetection;
+    private final Property<JavaLauncher> noLauncherProperty;
     private final ExecOperations execOperations;
-    private final NativeImageOptions options;
     private final FileSystemOperations fileOperations;
     private final Logger logger;
 
     MergeAgentFiles(Provider<AgentConfiguration> agent,
+                    Project project,
                     Provider<String> graalvmHomeProvider,
                     Provider<Directory> outputDir,
                     Provider<Boolean> disableToolchainDetection,
-                    NativeImageOptions options,
                     ExecOperations execOperations,
                     FileSystemOperations fileOperations,
                     Logger logger) {
@@ -84,16 +88,16 @@ class MergeAgentFiles implements Action<Task> {
         this.graalvmHomeProvider = graalvmHomeProvider;
         this.outputDir = outputDir;
         this.disableToolchainDetection = disableToolchainDetection;
-        this.options = options;
         this.execOperations = execOperations;
         this.fileOperations = fileOperations;
         this.logger = logger;
+        this.noLauncherProperty = project.getObjects().property(JavaLauncher.class);
     }
 
     @Override
     public void execute(Task task) {
         if (agent.get().isEnabled()) {
-            File nativeImage = findNativeImageExecutable(options, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(logger));
+            File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(logger));
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
             if (!launcher.exists()) {

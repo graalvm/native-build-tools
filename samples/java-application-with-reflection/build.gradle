@@ -46,6 +46,7 @@ plugins {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 application {
@@ -66,13 +67,12 @@ test {
 }
 
 graalvmNative {
+    agent {
+
+    }
     binaries {
         test {
             verbose = true
-            agent {
-                enabled = true
-                options.add(providers.systemProperty("agentOptions").forUseAtConfigurationTime())
-            }
         }
     }
 }

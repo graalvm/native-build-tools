@@ -155,21 +155,6 @@ public interface NativeImageOptions extends Named {
     Property<Boolean> getVerbose();
 
     /**
-     * Returns the GraalVM agent configuration.
-     * @return the configuration.
-     */
-    @Nested
-    AgentOptions getAgent();
-
-    /**
-     * Configures the GraalVM agent options.
-     * @param spec the agent configuration.
-     */
-    default void agent(Action<? super AgentOptions> spec) {
-        spec.execute(getAgent());
-    }
-
-    /**
      * Gets the value which determines if shared library is being built.
      *
      * @return The value which determines if shared library is being built.

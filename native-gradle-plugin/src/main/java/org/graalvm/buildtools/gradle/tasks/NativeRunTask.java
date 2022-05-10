@@ -84,7 +84,7 @@ public abstract class NativeRunTask extends DefaultTask {
             spec.setExecutable(getImage().get().getAsFile().getAbsolutePath());
             spec.args(getRuntimeArgs().get());
             if (getEnvironment().isPresent()) {
-                Map<String, String> env = (Map<String, String>) getEnvironment().get();
+                Map<String, String> env = getEnvironment().get();
                 for (Map.Entry<String, String> entry : env.entrySet()) {
                     spec.environment(entry.getKey(), entry.getValue());
                 }

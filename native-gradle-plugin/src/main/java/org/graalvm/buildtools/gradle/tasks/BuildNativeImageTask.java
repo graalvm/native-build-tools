@@ -119,9 +119,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     }
 
     @Input
-    public abstract Property<AgentConfiguration> getAgentConfiguration();
-
-    @Input
     public abstract Property<Boolean> getDisableToolchainDetection();
 
     @Inject
@@ -154,7 +151,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
                 getOptions(),
-                getAgentConfiguration(),
                 getExecutableShortName(),
                 // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
                 // a mapped value before the task was called, when we are actually calling it...
@@ -179,7 +175,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             logger.lifecycle("Args are: " + args);
         }
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
-                options,
+                options.getJavaLauncher(),
                 getDisableToolchainDetection(),
                 getGraalVMHome(),
                 getExecOperations(),
