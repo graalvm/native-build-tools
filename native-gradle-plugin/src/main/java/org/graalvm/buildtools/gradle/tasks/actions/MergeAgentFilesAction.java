@@ -38,19 +38,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle;
+package org.graalvm.buildtools.gradle.tasks.actions;
 
-import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
-import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.file.Directory;
-import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -58,45 +54,55 @@ import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.findNativeImageExecutable;
 import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
 
-class MergeAgentFiles implements Action<Task> {
-    private final Provider<AgentConfiguration> agent;
+public class MergeAgentFilesAction implements Action<Task> {
+    private final Provider<Boolean> isMergingEnabled;
+    private final Provider<AgentMode> agentMode;
+    private final Provider<Boolean> mergeWithOutputs;
     private final Provider<String> graalvmHomeProvider;
-    private final Provider<Directory> outputDir;
+    private final Provider<List<String>> inputDirs;
+    private final Provider<List<String>> outputDirs;
     private final Provider<Boolean> disableToolchainDetection;
     private final Property<JavaLauncher> noLauncherProperty;
     private final ExecOperations execOperations;
-    private final FileSystemOperations fileOperations;
     private final Logger logger;
 
-    MergeAgentFiles(Provider<AgentConfiguration> agent,
-                    Project project,
-                    Provider<String> graalvmHomeProvider,
-                    Provider<Directory> outputDir,
-                    Provider<Boolean> disableToolchainDetection,
-                    ExecOperations execOperations,
-                    FileSystemOperations fileOperations,
-                    Logger logger) {
-        this.agent = agent;
+    public MergeAgentFilesAction(Provider<Boolean> isMergingEnabled,
+                                 Provider<AgentMode> agentMode,
+                                 Provider<Boolean> mergeWithOutputs,
+                                 Project project,
+                                 Provider<String> graalvmHomeProvider,
+                                 Provider<List<String>> inputDirs,
+                                 Provider<List<String>> outputDirs,
+                                 Provider<Boolean> disableToolchainDetection,
+                                 ExecOperations execOperations,
+                                 Logger logger) {
+        this.isMergingEnabled = isMergingEnabled;
+        this.agentMode = agentMode;
+        this.mergeWithOutputs = mergeWithOutputs;
         this.graalvmHomeProvider = graalvmHomeProvider;
-        this.outputDir = outputDir;
+        this.inputDirs = inputDirs;
+        this.outputDirs = outputDirs;
         this.disableToolchainDetection = disableToolchainDetection;
         this.execOperations = execOperations;
-        this.fileOperations = fileOperations;
         this.logger = logger;
         this.noLauncherProperty = project.getObjects().property(JavaLauncher.class);
     }
 
+    private static boolean isConfigDir(String dir) {
+        return Arrays.stream(new File(dir).listFiles()).anyMatch(file -> file.getName().equals("reflect-config.json"));
+    }
+
     @Override
     public void execute(Task task) {
-        if (agent.get().isEnabled()) {
+        if (isMergingEnabled.get()) {
             File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(logger));
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
@@ -109,25 +115,25 @@ class MergeAgentFiles implements Action<Task> {
                 NativeImageUtils.maybeCreateConfigureUtilSymlink(launcher, nativeImage.toPath());
             }
             if (launcher.exists()) {
-                List<File> nicInputDirectories = sessionDirectoriesFrom(outputDir.get().getAsFile().listFiles());
-                List<String> nicInputDirectoryPaths = nicInputDirectories.stream().map(File::getAbsolutePath).collect(Collectors.toList());
-                List<String> nicCommandLine = agent.get().getNativeImageConfigureOptions(nicInputDirectoryPaths, Collections.singletonList(outputDir.get().getAsFile().getAbsolutePath()));
+                if (mergeWithOutputs.get()) {
+                    List<String> inputs = inputDirs.get();
+                    List<String> leftoverOutputDirs = new ArrayList<>();
+                    for (String outputDir : outputDirs.get()) {
+                        if (isConfigDir(outputDir)) {
+                            List<String> newInputs = new ArrayList<>(inputs.size() + 1);
+                            newInputs.addAll(inputs);
+                            newInputs.add(outputDir);
+                            mergeAgentFiles(launcher, newInputs, Collections.singletonList(outputDir));
+                        } else {
+                            leftoverOutputDirs.add(outputDir);
+                        }
+                    }
 
-                if (nicCommandLine.size() > 0) {
-                    logger.info("Merging agent files");
-                    ExecResult exec = execOperations.exec(spec -> {
-                        spec.executable(launcher);
-                        spec.args(nicCommandLine);
-                        spec.setStandardOutput(System.out);
-                        spec.setErrorOutput(System.err);
-                    });
-                    if (exec.getExitValue() == 0) {
-                        fileOperations.delete(spec -> nicInputDirectories.forEach(spec::delete));
-                    } else {
-                        exec.rethrowFailure();
+                    if (leftoverOutputDirs.size() > 0) {
+                        mergeAgentFiles(launcher, inputs, leftoverOutputDirs);
                     }
                 } else {
-                    logger.info("Not merging agent files");
+                    mergeAgentFiles(launcher, inputDirs.get(), outputDirs.get());
                 }
             } else {
                 logger.warn("Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM.");
@@ -135,9 +141,17 @@ class MergeAgentFiles implements Action<Task> {
         }
     }
 
-    private List<File> sessionDirectoriesFrom(File[] files) {
-        return Arrays.stream(files)
-                .filter(File::isDirectory)
-                .filter(f -> f.getName().startsWith("session-")).collect(Collectors.toList());
+    private void mergeAgentFiles(File launcher, List<String> inputDirs, List<String> outputDirs) {
+        List<String> nicCommandLine = agentMode.get().getNativeImageConfigureOptions(inputDirs, outputDirs);
+
+        ExecResult exec = execOperations.exec(spec -> {
+            spec.executable(launcher);
+            spec.args(nicCommandLine);
+            spec.setStandardOutput(System.out);
+            spec.setErrorOutput(System.err);
+        });
+        if (exec.getExitValue() != 0) {
+            exec.rethrowFailure();
+        }
     }
 }

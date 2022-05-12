@@ -41,7 +41,6 @@
 
 package org.graalvm.buildtools.gradle.dsl;
 
-import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;

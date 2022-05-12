@@ -42,12 +42,17 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
@@ -70,6 +75,10 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
 
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getInputFiles();
 
     @Input
     @Optional

@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
+import org.graalvm.buildtools.gradle.dsl.agent.CopyMetadataOptions;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.DirectoryProperty;
@@ -68,6 +69,9 @@ public interface GraalVMExtension {
 
     @Nested
     AgentOptions getAgent();
+
+    @Nested
+    CopyMetadataOptions getCopyMetadata();
 
     void agent(Action<? super AgentOptions> spec);
 

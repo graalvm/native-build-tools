@@ -41,16 +41,16 @@
 package org.graalvm.buildtools.gradle.dsl.agent;
 
 import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskCollection;
-import org.gradle.api.tasks.TaskProvider;
-import org.gradle.process.JavaForkOptions;
+
+import java.util.function.Predicate;
 
 @SuppressWarnings({"unused"})
 public interface AgentOptions {
@@ -65,20 +65,20 @@ public interface AgentOptions {
     @Optional
     Property<String> getDefaultMode();
 
-    @Input
+    @InputFiles
     @Optional
-    ListProperty<String> getCallerFilterFiles();
+    ConfigurableFileCollection getCallerFilterFiles();
 
-    @Input
+    @InputFiles
     @Optional
-    ListProperty<String> getAccessFilterFiles();
+    ConfigurableFileCollection getAccessFilterFiles();
 
     /**
-     * Configures the task which needs to be instrumented.
+     * Configures the tasks which needs to be instrumented
      *
-     * @return the instrumented task.
+     * @return .
      */
     @Input
-    Property<TaskCollection<? extends JavaForkOptions>> getInstrumentedTasks();
+    Property<Predicate<? super Task>> getTasksToInstrumentPredicate();
 
 }

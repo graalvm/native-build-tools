@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,48 +38,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.agent;
+package org.graalvm.buildtools.gradle.dsl.agent;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
-public class AgentConfiguration implements Serializable {
+public interface CopyMetadataOptions {
 
-    private final Collection<String> callerFilterFiles;
-    private final Collection<String> accessFilterFiles;
-    private final AgentMode agentMode;
+    @Input
+    @Optional
+    ListProperty<String> getInputTaskNames();
 
-    public AgentConfiguration(Collection<String> callerFilterFiles, Collection<String> accessFilterFiles, AgentMode agentMode) {
-        this.callerFilterFiles = callerFilterFiles;
-        this.accessFilterFiles = accessFilterFiles;
-        this.agentMode = agentMode;
-    }
+    @Input
+    @Optional
+    ListProperty<String> getOutputDirectories();
 
-    public List<String> getAgentCommandLine() {
-        List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
-        appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
-        appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
-        return cmdLine;
-    }
-
-    public Collection<String> getAgentFiles() {
-        List<String> files = new ArrayList<>(callerFilterFiles.size() + accessFilterFiles.size());
-        files.addAll(callerFilterFiles);
-        files.addAll(accessFilterFiles);
-        return files;
-    }
-
-    public boolean isEnabled() {
-        return !(agentMode instanceof DisabledAgentMode);
-    }
-
-    public static void appendOptionToValues(String option, Collection<String> values, Collection<String> target) {
-        values.stream().map(value -> option + value).forEach(target::add);
-    }
-
-    public AgentMode getAgentMode() {
-        return agentMode;
-    }
+    @Input
+    @Optional
+    Property<Boolean> getMergeWithExisting();
 }
