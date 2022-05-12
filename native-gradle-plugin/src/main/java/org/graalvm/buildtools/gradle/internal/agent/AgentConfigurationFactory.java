@@ -49,17 +49,24 @@ import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.ConditionalAgentModeOptions;
 import org.gradle.api.GradleException;
+import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.provider.Provider;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
 
 public class AgentConfigurationFactory {
     public static Provider<AgentConfiguration> getAgentConfiguration(Provider<String> modeName, AgentOptions options) {
         return modeName.map(name -> {
             AgentMode agentMode;
-            List<String> callerFilterFiles = options.getCallerFilterFiles().getOrElse(Collections.emptyList());
-            List<String> accessFilterFiles = options.getAccessFilterFiles().getOrElse(Collections.emptyList());
+            ConfigurableFileCollection callerFilterFiles = options.getCallerFilterFiles();
+            ConfigurableFileCollection accessFilterFiles = options.getAccessFilterFiles();
             switch (name) {
                 case "standard":
                     agentMode = new StandardAgentMode();
@@ -80,8 +87,15 @@ public class AgentConfigurationFactory {
                 default:
                     throw new GradleException("Unknown agent mode selected: " + name);
             }
-            return new AgentConfiguration(callerFilterFiles, accessFilterFiles, agentMode);
+            return new AgentConfiguration(getFilePaths(callerFilterFiles), getFilePaths(accessFilterFiles), agentMode);
         });
     }
 
+    private static Collection<String> getFilePaths(ConfigurableFileCollection configurableFileCollection) {
+        return configurableFileCollection.getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList());
+    }
+
+    public static Provider<Directory> getAgentOutputDirectoryForTask(Project project, String taskName) {
+        return project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + taskName);
+    }
 }

@@ -54,7 +54,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
-import org.gradle.process.JavaForkOptions;
 
 import javax.inject.Inject;
 
@@ -63,12 +62,6 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final NativeImagePlugin plugin;
     private final Project project;
     private final Property<JavaLauncher> defaultJavaLauncher;
-
-    @SuppressWarnings("unchecked")
-    /* javac forced our hand */
-    private static <T, U> T iPromiseIKnowWhatImDoing(U u) {
-        return (T) u;
-    }
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
@@ -81,10 +74,10 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         getToolchainDetection().convention(true);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
-        /* Can't use withType here because JavaForkOptions is not a subtype of Task */
-        getAgent().getInstrumentedTasks().convention(project.provider(() -> iPromiseIKnowWhatImDoing(project.getTasks().matching(t -> t instanceof JavaForkOptions))));
+        getAgent().getTasksToInstrumentPredicate().convention(t -> true);
         getAgent().getDefaultMode().convention("standard");
         getAgent().getModes().getConditional().getParallel().convention(true);
+        getCopyMetadata().getMergeWithExisting().convention(false);
         configureToolchain();
     }
 

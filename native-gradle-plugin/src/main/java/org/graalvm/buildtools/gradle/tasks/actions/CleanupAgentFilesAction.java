@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,48 +38,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.agent;
+package org.graalvm.buildtools.gradle.tasks.actions;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.provider.Provider;
+
 import java.util.List;
 
-public class AgentConfiguration implements Serializable {
+public class CleanupAgentFilesAction implements Action<Task> {
 
-    private final Collection<String> callerFilterFiles;
-    private final Collection<String> accessFilterFiles;
-    private final AgentMode agentMode;
+    private final Provider<List<String>> directoriesToCleanup;
+    private final FileSystemOperations fileOperations;
 
-    public AgentConfiguration(Collection<String> callerFilterFiles, Collection<String> accessFilterFiles, AgentMode agentMode) {
-        this.callerFilterFiles = callerFilterFiles;
-        this.accessFilterFiles = accessFilterFiles;
-        this.agentMode = agentMode;
+    public CleanupAgentFilesAction(Provider<List<String>> directoriesToCleanup, FileSystemOperations fileOperations) {
+        this.directoriesToCleanup = directoriesToCleanup;
+        this.fileOperations = fileOperations;
     }
 
-    public List<String> getAgentCommandLine() {
-        List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
-        appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
-        appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
-        return cmdLine;
-    }
-
-    public Collection<String> getAgentFiles() {
-        List<String> files = new ArrayList<>(callerFilterFiles.size() + accessFilterFiles.size());
-        files.addAll(callerFilterFiles);
-        files.addAll(accessFilterFiles);
-        return files;
-    }
-
-    public boolean isEnabled() {
-        return !(agentMode instanceof DisabledAgentMode);
-    }
-
-    public static void appendOptionToValues(String option, Collection<String> values, Collection<String> target) {
-        values.stream().map(value -> option + value).forEach(target::add);
-    }
-
-    public AgentMode getAgentMode() {
-        return agentMode;
+    @Override
+    public void execute(Task task) {
+        fileOperations.delete(spec -> spec.delete(directoriesToCleanup.get()));
     }
 }
