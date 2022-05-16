@@ -459,6 +459,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#testing-support">Testing support</a>
 <ul class="sectlevel2">
 <li><a href="#testing-support-version-compatibility">Version compatibility</a></li>
+<li><a href="#mockito-bytebuddy-support">Mockito / Byte Buddy support</a></li>
 <li><a href="#testing-support-disabling">Disabling testing support</a></li>
 </ul>
 </li>
@@ -804,6 +805,24 @@ with an error similar to the following when attempting to run tests in a native 
 <div class="listingblock">
 <div class="content">
 <pre>[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="mockito-bytebuddy-support"><a class="anchor" href="#mockito-bytebuddy-support"></a>Mockito / Byte Buddy support</h3>
+<div class="paragraph">
+<p>Mockito is supported starting from version 4.5.0 (ByteBuddy &gt;= 1.12.9) with GraalVM &gt;= 22.1.
+However, you need to add the following configuration to make it work with GraalVM 22.1:</p>
+</div>
+<div class="listingblock">
+<div class="title">Enabling Mockito / Byte Buddy support on GraalVM 22.1</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+    &lt;buildArgs&gt;
+        &lt;arg&gt;--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher&lt;/arg&gt;
+        &lt;arg&gt;--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2 &lt;/arg&gt;
+    &lt;/buildArgs&gt;
+&lt;/configuration&gt;</code></pre>
 </div>
 </div>
 </div>
