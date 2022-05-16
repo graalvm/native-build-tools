@@ -18,6 +18,12 @@ jobs:
         with:
           fetch-depth: 1
           ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
+    - uses: graalvm/setup-graalvm@v1
+        with:
+          version: 'dev'
+          java-version: '11'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup git
         env:
           GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
@@ -33,11 +39,5 @@ jobs:
           ssh git@github.com || true
           git config --global user.name 'graalvm bot'
           git config --global user.email 'graalvmbot@users.noreply.github.com'
-      - name: Get GraalVM Nightly
-        run: |
-          source common/scripts/downloadGraalVM.sh
-          echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
-          echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-          echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
       - name: Run gradle
         run: ./gradlew publishAllPublicationsToSnapshotsRepository --no-parallel

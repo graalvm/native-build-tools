@@ -23,12 +23,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
-      - name: Get GraalVM Nightly
-        run: |
-            source common/scripts/downloadGraalVM.sh
-            echo "$GRAALVM_HOME/bin" >> $GITHUB_PATH
-            echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
-            echo "GRAALVM_HOME=$GRAALVM_HOME" >> $GITHUB_ENV
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: 'dev'
+          java-version: '11'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check and test the plugin
         run: ./gradlew :native-maven-plugin:check --no-daemon
       - name: Tests results
