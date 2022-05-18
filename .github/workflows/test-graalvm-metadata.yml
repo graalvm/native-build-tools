@@ -1,0 +1,48 @@
+name: "Test GraalVM Reachability Metadata Repository"
+
+on:
+  push:
+    paths:
+      - 'common/jvm-reachability-metadata/**'
+      - '.github/actions/prepare-environment'
+      - '.github/workflows/test-graalvm-metadata.yml'
+  pull_request:
+    paths:
+      - 'common/jvm-reachability-metadata/**'
+      - '.github/actions/prepare-environment'
+      - '.github/workflows/test-graalvm-metadata.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  test-graalvm-reachability-metadata:
+    name: "Test GraalVM Reachability Metadata"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v2
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Checkstyle"
+        run: ./gradlew :jvm-reachability-metadata:checkstyleMain :jvm-reachability-metadata:checkstyleTest
+      - name: "❓ GraalVM Reachability Metadata test"
+        run: ./gradlew :jvm-reachability-metadata:test
+      - name: "📜 Upload tests results"
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: tests-results
+          path: common/jvm-reachability-metadata/build/reports/tests/

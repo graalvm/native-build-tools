@@ -1,0 +1,42 @@
+name: "Deploy snapshots"
+
+on:
+  workflow_run:
+    workflows: [ "deploy-documentation", "test-native-gradle-plugin", "test-native-maven-plugin", "test-junit-platform-native" ]
+    branches: [ "master" ]
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  deploy-snapshots:
+    name: "Build and deploy snapshots"
+    if: ${{ github.repository == 'graalvm/native-build-tools' && false }}
+    # Disabled for now
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁  Checkout repository"
+        uses: actions/checkout@v2
+        with:
+          ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          push-access: 1
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: "🌍 Build and publish snapshots"
+        run: |
+          ./gradlew publishAllPublicationsToSnapshotsRepository --no-parallel

@@ -1,0 +1,76 @@
+name: "Test native-maven-plugin"
+
+on:
+  push:
+    paths:
+      - 'native-maven-plugin/**'
+      - 'samples/**'
+      - 'common/**'
+      - '.github/actions/prepare-environment'
+      - '.github/workflows/test-native-maven-plugin.yml'
+  pull_request:
+    paths:
+      - 'native-maven-plugin/**'
+      - 'samples/**'
+      - 'common/**'
+      - '.github/actions/prepare-environment'
+      - '.github/workflows/test-native-maven-plugin.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  test-native-maven-plugin:
+    name: "Maven plugin tests"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/prepare-environment
+        with:
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Check and test the plugin"
+        run: ./gradlew :native-maven-plugin:check --no-daemon
+      - name: "📜 Upload unit test results"
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: functional-tests-results-${{ matrix.gradle-version }}
+          path: native-maven-plugin/build/reports/tests/
+  test-native-maven-plugin-windows:
+    name: "Windows Minimal Tests for Maven plugin"
+    if: ${{ false }}
+    # Fails with "Illegal char <�> at index 3: C:\�Users\�RUNNER~1\�AppData\�Local\�Temp\�spock_supports_spaces_in__0_testDirectory18198684407774777428\�with spaces\�local-repo\�org\�apache\�commons\�commons-lang3\�3.8.1\�commons-lang3-3.8.1.jar"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ windows-latest ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/prepare-environment
+        with:
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Check and test the Maven plugin"
+        run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast
+      - name: "📜 Upload tests results"
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-maven-functional-tests-results
+          path: native-maven-plugin/build/reports/tests/

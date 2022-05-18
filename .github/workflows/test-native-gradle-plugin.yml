@@ -1,0 +1,102 @@
+name: "Test native-gradle-plugin"
+
+on:
+  push:
+    paths:
+      - 'native-gradle-plugin/**'
+      - 'samples/**'
+      - 'common/**'
+      - '.github/actions/prepare-environment'
+      - '.github/workflows/test-native-gradle-plugin.yml'
+  pull_request:
+    paths:
+      - 'native-gradle-plugin/**'
+      - 'samples/**'
+      - 'common/**'
+      - '.github/actions/prepare-environment'
+      - '.github/workflows/test-native-gradle-plugin.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  test-native-gradle-plugin:
+    name: "Sanity checks"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v2
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Unit tests and inspections"
+        run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
+      - name: "📜 Upload unit test results"
+        uses: actions/upload-artifact@v1
+        with:
+          name: unit-tests-results
+          path: native-gradle-plugin/build/reports/tests/test/
+  functional-testing-gradle-plugin:
+    name: "Functional testing"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        gradle-version: ["current", "7.3.3", "7.2", "7.1", "6.8.3","6.7.1"]
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/prepare-environment
+        with:
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Check and test the plugin"
+        run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }}
+      - name: "📜 Upload functional tests results"
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: functional-tests-results-${{ matrix.gradle-version }}
+          path: native-gradle-plugin/build/reports/tests/functionalTest/
+  functional-testing-gradle-plugin-windows:
+    name: "Windows Gradle plugin functional testing"
+    if: ${{ false }}
+    # Disabled due to https://github.com/gradle/native-platform/issues/274
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ windows-latest ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v2
+      - uses: ./.github/actions/prepare-environment
+        with:
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Check and test the Gradle plugin"
+        run: ./gradlew :native-gradle-plugin:functionalTest --no-daemon --fail-fast
+      - name: "📜 Upload tests results"
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-gradle-functional-tests-results
+          path: native-gradle-plugin/build/reports/tests/

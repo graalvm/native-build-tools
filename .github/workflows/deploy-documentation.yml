@@ -1,0 +1,39 @@
+name: "Deploy documentation to website"
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  generate_documentation:
+    name: "Regenerate documentation website"
+    if: github.repository == 'graalvm/native-build-tools'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        graalvm-version: [ dev ]
+        java-version: [ 11 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁  Checkout repository"
+        uses: actions/checkout@v2
+        with:
+          ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          graalvm-version: ${{ matrix.graalvm-version }}
+          java-version: ${{ matrix.java-version }}
+          push-access: 1
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: "🌍 Build and publish documentation"
+        run: |
+          ./gradlew :docs:gitPublishPush
