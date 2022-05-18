@@ -15,8 +15,7 @@ concurrency:
 jobs:
   deploy-snapshots:
     name: "Build and deploy snapshots"
-    if: ${{ github.repository == 'graalvm/native-build-tools' && false }}
-    # Disabled for now
+    if: ${{ github.repository == 'graalvm/native-build-tools' }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
