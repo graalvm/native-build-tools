@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Setting up GraalVM with native-image support</title>
+<title>Gradle and Maven Plugins for Native Image with Initial JUnit 5 Testing Support</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -439,110 +439,267 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>Setting up GraalVM with native-image support</h1>
-<div class="details">
-<span id="revnumber">version 0.9.12-SNAPSHOT</span>
-</div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_1_obtaining_distribution">1. Obtaining distribution</a></li>
-<li><a href="#_2_setting_up_environment_variables">2. Setting up environment variables</a></li>
-<li><a href="#_3_native_image_tool_instalation">3. <code>native-image</code> tool instalation</a></li>
+<ul class="sectlevel2">
+<li><a href="#_gradle_and_maven_plugins_for_native_image_with_initial_junit_5_testing_support">Gradle and Maven Plugins for Native Image with Initial JUnit 5 Testing Support</a></li>
+<li><a href="#_native_testing_the_way_you_are_used_to_it">Native Testing: The Way You Are Used to It</a></li>
+<li><a href="#_gradle_plugin">Gradle Plugin</a></li>
+<li><a href="#_maven_plugin">Maven Plugin</a></li>
+<li><a href="#_future_goals">Future Goals</a></li>
+<li><a href="#_built_with_love_through_collaboration">Built with Love Through Collaboration</a></li>
 </ul>
 </div>
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
-<div class="paragraph">
-<p><span class="image"><img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"></span></p>
+<div class="sect2">
+<h3 id="_gradle_and_maven_plugins_for_native_image_with_initial_junit_5_testing_support"><a class="anchor" href="#_gradle_and_maven_plugins_for_native_image_with_initial_junit_5_testing_support"></a>Gradle and Maven Plugins for Native Image with Initial JUnit 5 Testing Support</h3>
+<div class="imageblock">
+<div class="content">
+<img src="https://cdn-images-1.medium.com/max/800/1*xyDPne0XE1sK69i4wyHC6Q.png" alt="1*xyDPne0XE1sK69i4wyHC6Q">
 </div>
-<div class="paragraph">
-<p>Working GraalVM distribution with <code>native-image</code> installable and <code>GRAALVM_HOME</code> and/or <code>JAVA_HOME</code> environment variables set, is prequisite for successful <strong>native-image</strong> building.</p>
-</div>
-<div class="paragraph">
-<p>Following are the steps needed to obtain and setup GraalVM environment.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This is just a quick overview, and that user should consult <a href="https://www.graalvm.org/docs/getting-started/">Getting Started section</a> in official documentation before proceeding.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_1_obtaining_distribution"><a class="anchor" href="#_1_obtaining_distribution"></a>1. Obtaining distribution</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>GraalVM distributions can be obtained from <a href="https://www.graalvm.org/downloads/">official website</a>.
-Development builds might be available at <code>releases</code> section of <a href="https://github.com/graalvm/?q=graalvm-ce">official GraalVM Github page projects</a>.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_2_setting_up_environment_variables"><a class="anchor" href="#_2_setting_up_environment_variables"></a>2. Setting up environment variables</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>After obtaining GraalVM distribution environment variable <code>GRAALVM_HOME</code> should be set to point to it.</p>
 </div>
 <div class="paragraph">
-<p>This can be achieved using:</p>
+<p>We are pleased to announce the release of the new official <em>GraalVM Native Image</em> <em>Gradle</em> and <em>Maven</em> plugins.
+The plugins aim to make <a href="https://www.graalvm.org/reference-manual/native-image/"><em>GraalVM Native Image</em></a> a first-class citizen in the <em>JVM</em> ecosystem: it makes building, testing, and running <em>Java</em> applications as native executables a breeze.
+The key new feature is the <strong>out-of-the-box</strong> support for <em>native</em> <a href="https://junit.org/junit5/"><em>JUnit 5</em></a>  testing</p>
+</div>
+<div class="paragraph">
+<p>The native <em>JUnit</em> support allows libraries in the <em>JVM</em> ecosystem to run their test suites via <em>GraalVM Native Image</em>.
+With integrated testing, library configuration should be always up to date and ready for the end user.
+We believe that this is the biggest step towards making the <em>Java</em> ecosystem <em>native-ready</em>.</p>
+</div>
+<div class="paragraph">
+<p>Complete examples are available <a href="https://github.com/graalvm/native-build-tools/blob/master/samples/README.md">here</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_native_testing_the_way_you_are_used_to_it"><a class="anchor" href="#_native_testing_the_way_you_are_used_to_it"></a>Native Testing: The Way You Are Used to It</h3>
+<div class="paragraph">
+<p>We&#8217;ve made it: testing <em>Java</em> code with <em>JUnit 5</em> behaves exactly the same* in native execution as with the <em>JVM</em>.
+To make this work, we implemented a custom <code>junit-platform-native</code> <a href="https://github.com/graalvm/native-build-tools/tree/master/common/junit-platform-native">feature</a> that logs tests that are discovered during the previous execution of the standard <em>JVM</em> <code>test</code> task and registers them for native compilation and reflection.
+Based on this information, special test executable that contains all the tests (and their metadata) is built, and then invoked when using the corresponding build-tool task.</p>
+</div>
+<div class="paragraph">
+<p>Collection of metadata imposes the dependency to the <em>JVM</em> <code>test</code> task execution.
+The downside of this is <strong>increased testing time</strong>, but it also provides a suitable entry point for users to enable <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds"><code>native-image-agent</code></a> invocation that can be used to <strong>generate missing reflection configuration</strong> for the project.
+Note that the agent invocation is independent of the test-metadata collection&#8201;&#8212;&#8201;the test metadata is always collected.</p>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p><em>In the future we intend to work on removing the dependency on the</em> JVM <code>test</code> <em>execution.
+For this, we need modifications in the testing frameworks that will allow metadata collection without the execution of individual tests (a.k.a., dry-run support).</em></p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>For more information users should consult the plugin documentation for <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html"><em>Maven</em></a> or <a href="https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html"><em>Gradle</em></a>.</p>
+</div>
+<div class="paragraph">
+<p><em>* Given proper configuration, and given that the project under test doesn&#8217;t include native-specific code (e.g., build-time initialization, substitutions, and plugins).</em></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle Plugin</h3>
+<div class="paragraph">
+<p>Adding <code>native-gradle-plugin</code> to an existing <em>Gradle</em> project is as simple as including following to the <code>plugins</code> section of the <code>build.gradle</code></p>
 </div>
 <div class="listingblock">
-<div class="title">Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">export GRAALVM_HOME=/home/${current_user}/path/to/graalvm</code></pre>
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">plugins {
+  id 'org.graalvm.buildtools.native' version "0.9.0"  // or a newer version
+}</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>as well as adding the following to the <code>settings.gradle</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">macOS</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">export GRAALVM_HOME=/Users/${current_user}/path/to/graalvm/Contents/Home</code></pre>
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p><em>(this step will be redundant once this plugin is published to the Gradle Plugin Portal).</em></p>
+</div>
+<div class="paragraph">
+<p>After that, we can configure the image build by using a <code>graalvmNative</code> configuration block:</p>
 </div>
 <div class="listingblock">
-<div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="batch" class="language-batch hljs">setx /M GRAALVM_HOME "C:\path\to\graalvm"</code></pre>
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        main {
+            imageName = "my-app"
+            mainClass = "org.test.Main"
+            verbose = true
+            fallback = false
+        }
+    }
+}</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Preferably user would also set <code>JAVA_HOME</code> variable in the same manner (by replacing <code>GRAALVM_HOME</code> with <code>JAVA_HOME</code> in previous commands).
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>The plugin then adds <code>nativeCompile</code> and <code>nativeRun</code> tasks that respectively creates a native executable and runs the main class (as one might expect ☺).
+If the reflection configuration is necessary for the Native Image building, this plugin also provides a simple option that activates the <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds"><code>native-image-agent</code></a> without any additional user setup.
+More information (and <em>Kotlin</em> configuration syntax) is available in the <a href="https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html">documentation</a>.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_3_native_image_tool_instalation"><a class="anchor" href="#_3_native_image_tool_instalation"></a>3. <code>native-image</code> tool instalation</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">Linux / macOS</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$GRAALVM_HOME/bin/gu install native-image</code></pre>
-</div>
+<div class="sect3">
+<h4 id="_testing_in_gradle"><a class="anchor" href="#_testing_in_gradle"></a>Testing in <em>Gradle</em></h4>
+<div class="paragraph">
+<p>User can start Native Image testing by invoking the <code>nativeTest</code> task (with the ability to add additional <code>native-image</code> configuration using a <code>nativeTest</code> configuration block).</p>
 </div>
 <div class="listingblock">
-<div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="batch" class="language-batch hljs">%GRAALVM_HOME%/bin/gu install native-image</code></pre>
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">$ ./gradlew nativeTest
+
+&gt; Task :nativeTest
+JUnit Platform on Native Image - report
+----------------------------------------
+org.graalvm.buildtools.example.App2Test &gt; appHasAGreeting() SUCCESSFUL
+org.graalvm.buildtools.example.AppTest &gt; appHasAGreeting() SUCCESSFUL
+
+Test run finished after 3 ms
+[         3 containers found      ]
+[         0 containers skipped    ]
+[         3 containers started    ]
+[         0 containers aborted    ]
+[         3 containers successful ]
+[         0 containers failed     ]
+[         2 tests found           ]
+[         0 tests skipped         ]
+[         2 tests started         ]
+[         0 tests aborted         ]
+[         2 tests successful      ]
+[         0 tests failed          ]
+
+
+BUILD SUCCESSFUL in 771ms
+5 actionable tasks: 1 executed, 4 up-to-date</code></pre>
 </div>
 </div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Note that the native testing depends on running the standard <code>test</code> task in the JVM mode beforehand.</p>
+</div>
+</blockquote>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven Plugin</h3>
+<div class="paragraph">
+<p>We are releasing our existing plugin under the new maven coordinates&#8201;&#8212;&#8201;<code>org.graalvm.buildtools:native-maven-plugin</code>.
+This change was motivated by our intention to move faster with the plugin development by decoupling it from the <em>GraalVM</em> release cycle.
+Users of our existing <code>native-image-maven-plugin</code> only need to change the plugin&#8217;s <code>groupId</code>, <code>artifactId</code> and <code>version</code> in their <code>pom.xml</code>, as the new plugin is backwards compatible with the old one.
+Versioning of the new plugin will start at <code>0.9.0</code>.</p>
+</div>
+<div class="paragraph">
+<p>Adding our new plugin to the existing <em>Maven</em> project requires adding the following to the <code>pom.xml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;profiles&gt;
+  &lt;profile&gt;
+    &lt;id&gt;native&lt;/id&gt;
+    &lt;build&gt;
+      &lt;plugins&gt;
+        &lt;plugin&gt;
+          &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+          &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+          &lt;version&gt;0.9.0&lt;/version&gt; &lt;!-- or newer version --&gt;
+          &lt;executions&gt;
+            &lt;execution&gt;
+              &lt;id&gt;test-native&lt;/id&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;test&lt;/goal&gt;
+              &lt;/goals&gt;
+              &lt;phase&gt;test&lt;/phase&gt;
+            &lt;/execution&gt;
+            &lt;execution&gt;
+              &lt;id&gt;build-native&lt;/id&gt;
+              &lt;goals&gt;
+                &lt;goal&gt;build&lt;/goal&gt;
+              &lt;/goals&gt;
+              &lt;phase&gt;package&lt;/phase&gt;
+            &lt;/execution&gt;
+          &lt;/executions&gt;
+          &lt;configuration&gt;
+            &lt;imageName&gt;my-app&lt;/imageName&gt;
+            &lt;mainClass&gt;org.test.Main&lt;/mainClass&gt;
+            &lt;buildArgs&gt;
+            --no-fallback
+            --verbose
+            &lt;/buildArgs&gt;
+          &lt;/configuration&gt;
+        &lt;/plugin&gt;
+      &lt;/plugins&gt;
+    &lt;/build&gt;
+  &lt;/profile&gt;
+&lt;/profiles&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After that, the user can build native images by running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">mvn -Pnative -DskipTests package</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_testing_in_maven"><a class="anchor" href="#_testing_in_maven"></a>Testing in Maven</h4>
+<div class="paragraph">
+<p>The user can start <em>Native Image</em> testing by running:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">mvn -Pnative test</code></pre>
+</div>
+</div>
+<div class="quoteblock">
+<blockquote>
+<div class="paragraph">
+<p>Note that the native testing depends on running the standard test task in the JVM mode beforehand.</p>
+</div>
+</blockquote>
+</div>
+<div class="paragraph">
+<p>Documentation and more configuration options are available <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_future_goals"><a class="anchor" href="#_future_goals"></a>Future Goals</h3>
+<div class="paragraph">
+<p>The next step is creating a standardized repository with <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">configuration</a> that would be automatically added for legacy libraries.
+This should make the development for <em>Native Image</em> feels more frictionless even for libraries that don&#8217;t support it yet.
+We intend to follow up with patches and _PR_s for original libraries, working closely with the community in order to bring first party support to the most of the ecosystem.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_built_with_love_through_collaboration"><a class="anchor" href="#_built_with_love_through_collaboration"></a>Built with Love Through Collaboration</h3>
+<div class="paragraph">
+<p>Our testing support was developed in collaboration with <a href="https://junit.org/junit5/"><em>JUnit</em></a>, <a href="https://micronaut.io/">Micronaut</a>, and <a href="https://spring.io/"><em>Spring</em></a> teams.
+Many thanks to <a href="https://twitter.com/sam_brannen">Sam Brannen</a>, <a href="https://twitter.com/graemerocher">Graeme Rocher</a>, and <a href="https://twitter.com/sdeleuze">Sébastien Deleuze</a> for their contributions and advice.
+Moving forward, our new plugins are already landing in <a href="https://github.com/spring-projects-experimental/spring-native"><em>Spring Native 0.10.0</em></a>, and hopefully soon many more projects will follow.</p>
+</div>
+<div class="paragraph">
+<p>We are looking forwards to hearing about your experiences and/or potential issues.
+Contributions are also very welcome.</p>
+</div>
+<div class="paragraph">
+<p>The project repository is available at <a href="https://github.com/graalvm/native-build-tools/">github.com/graalvm/native-build-tools</a>.</p>
+</div>
+<div class="paragraph">
+<p>All projects mentioned here are released under the <a href="https://www.oracle.com/downloads/licenses/upl-license1.html"><em>Universal Permissive License</em></a>.</p>
 </div>
 </div>
 </div>
