@@ -2,7 +2,7 @@
 The GraalVM team
 :highlighjsdir: {gradle-relative-srcdir}/highlight
 
-image:https://github.com/graalvm/native-image-build-tools/actions/workflows/native-maven-plugin.yml/badge.svg[]
+image:https://github.com/graalvm/native-build-tools/actions/workflows/test-native-maven-plugin.yml/badge.svg[]
 
 [[introduction]]
 == Introduction

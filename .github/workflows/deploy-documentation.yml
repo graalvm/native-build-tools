@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
 
 jobs:
-  generate_documentation:
+  deploy-documentation:
     name: "Regenerate documentation website"
     if: github.repository == 'graalvm/native-build-tools'
     runs-on: ${{ matrix.os }}

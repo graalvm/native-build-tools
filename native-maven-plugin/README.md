@@ -1,6 +1,6 @@
 # Native Image Maven Plugin
 Maven plugin for GraalVM Native Image building
-![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-maven-plugin.yml/badge.svg)
+![](https://github.com/graalvm/native-build-tools/actions/workflows/test-native-maven-plugin.yml/badge.svg)
 
 End-user documentation about the plugins can be found [here](https://graalvm.github.io/native-build-tools/).
 

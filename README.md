@@ -1,6 +1,6 @@
 # Native Build Tools
-![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-gradle-plugin.yml/badge.svg)
-![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-maven-plugin.yml/badge.svg)
+![](https://github.com/graalvm/native-build-tools/actions/workflows/test-native-gradle-plugin.yml/badge.svg)
+![](https://github.com/graalvm/native-build-tools/actions/workflows/test-native-maven-plugin.yml/badge.svg)
 
 Repository which contains build tool plugins for interoperability with [GraalVM Native Image](https://www.graalvm.org/reference-manual/native-image/)
 

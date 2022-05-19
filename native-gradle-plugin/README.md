@@ -1,6 +1,6 @@
 # Native Image Gradle Plugin
 Gradle plugin for GraalVM Native Image building
-![](https://github.com/graalvm/native-image-build-tools/actions/workflows/native-gradle-plugin.yml/badge.svg)
+![](https://github.com/graalvm/native-build-tools/actions/workflows/test-native-gradle-plugin.yml/badge.svg)
 
 End-user documentation about the plugins can be found [here](https://graalvm.github.io/native-build-tools/).
 
