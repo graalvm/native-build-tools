@@ -45,7 +45,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: functional-tests-results-${{ matrix.gradle-version }}
+          name: maven-functional-tests-results-${{ matrix.os }}
           path: native-maven-plugin/build/reports/tests/
   test-native-maven-plugin-windows:
     name: "Windows Minimal Tests for Maven plugin"
