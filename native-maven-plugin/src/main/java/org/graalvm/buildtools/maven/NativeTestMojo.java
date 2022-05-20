@@ -60,7 +60,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -109,6 +108,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
         }
         configureEnvironment();
         if (!hasTests()) {
+            logger.info("Skipped native-image tests since there are no test classes.");
             return;
         }
 
@@ -169,8 +169,8 @@ public class NativeTestMojo extends AbstractNativeMojo {
     private boolean hasTests() {
         Path testOutputPath = Paths.get(project.getBuild().getTestOutputDirectory());
         if (Files.exists(testOutputPath) && Files.isDirectory(testOutputPath)) {
-            try (DirectoryStream<Path> directory = Files.newDirectoryStream(testOutputPath)) {
-                return directory.iterator().hasNext();
+            try (Stream<Path> testClasses = Files.walk(testOutputPath)) {
+                return testClasses.anyMatch(p -> p.getFileName().toString().endsWith(".class"));
             } catch (IOException ex) {
                 throw new IllegalStateException(ex);
             }

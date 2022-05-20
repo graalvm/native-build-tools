@@ -410,7 +410,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         configurationRepository.getEnabled().convention(false);
         configurationRepository.getUri().convention(configurationRepository.getVersion().map(v -> {
             try {
-                return new URI("https://github.com/graalvm/jvm-reachability-metadata/releases/download/" + v + "/jvm-reachability-metadata-" + v + ".zip");
+                return new URI("https://github.com/graalvm/graalvm-reachability-metadata/releases/download/" + v + "/graalvm-reachability-metadata-" + v + ".zip");
             } catch (URISyntaxException e) {
                 return null;
             }
@@ -471,7 +471,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         injectTestPluginDependencies(project, graalExtension.getTestSupport());
 
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(deriveTaskName(name, "native", "Compile"), BuildNativeImageTask.class, task -> {
-            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
+            task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
             task.getTestListDirectory().set(testListDirectory);
             testTask.get();
             ConfigurableFileCollection testList = project.getObjects().fileCollection();
@@ -488,7 +488,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         tasks.named(isPrimaryTest ? NATIVE_TEST_TASK_NAME : "native" + capitalize(name), NativeRunTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            task.setOnlyIf(t -> graalExtension.getTestSupport().get());
+            task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
         });
     }
 
