@@ -56,8 +56,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -71,49 +69,38 @@ import java.util.Map;
  */
 public class ProcessGeneratedGraalResourceFilesAction implements Action<Task> {
     private final Provider<Directory> inputDirectory;
-    private final Provider<Directory> outputDirectory;
     private final List<String> filterableEntries;
 
-    public ProcessGeneratedGraalResourceFilesAction(Provider<Directory> inputDirectory, Provider<Directory> outputDirectory, List<String> filterableEntries) {
+    public ProcessGeneratedGraalResourceFilesAction(Provider<Directory> inputDirectory, List<String> filterableEntries) {
         this.inputDirectory = inputDirectory;
-        this.outputDirectory = outputDirectory;
         this.filterableEntries = filterableEntries;
     }
 
     @Override
     public void execute(Task task) {
         try {
-            File outputDir = outputDirectory.get().getAsFile();
-            if (outputDir.isDirectory() || outputDir.mkdirs()) {
-                for (File resourceFile : inputDirectory.get().getAsFileTree()) {
-                    processFile(resourceFile, outputDir);
-                }
+            for (File resourceFile : inputDirectory.get().getAsFileTree()) {
+                processFile(resourceFile);
             }
         } catch (IOException e) {
             throw new GradleException("An IO error occured when processing the agent generated files", e);
         }
     }
 
-    protected void processFile(File file, File outputDir) throws IOException {
+    protected void processFile(File file) throws IOException {
         if (file.getName().endsWith(".json")) {
-            processJsonFile(file, outputDir);
-        } else {
-            copyFile(file, outputDir);
+            processJsonFile(file);
         }
     }
 
-    private static void copyFile(File file, File outputDir) throws IOException {
-        Files.copy(file.toPath(), outputDir.toPath().resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    protected void processJsonFile(File jsonFile, File outputDir) throws IOException {
+    protected void processJsonFile(File jsonFile) throws IOException {
         JsonSlurper json = new JsonSlurper();
         Object result = json.parse(jsonFile);
         Object filtered = filter(result);
         JsonGenerator generator = new JsonGenerator.Options()
                 .build();
         String processed = JsonOutput.prettyPrint(generator.toJson(filtered));
-        try (Writer writer = new OutputStreamWriter(new FileOutputStream(new File(outputDir, jsonFile.getName())), StandardCharsets.UTF_8)) {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(jsonFile), StandardCharsets.UTF_8)) {
             writer.write(processed);
         }
     }
