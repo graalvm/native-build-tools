@@ -178,11 +178,10 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void instrumentTasksWithAgent(Project project, DefaultGraalVmExtension graalExtension) {
         Provider<String> agentMode = agentProperty(project, graalExtension.getAgent());
-        Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
         Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().get();
         project.getTasks().configureEach(t -> {
             if (isTaskInstrumentableByAgent(t) && taskPredicate.test(t)) {
-                configureAgent(project, agentConfiguration, graalExtension.getToolchainDetection(), getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
+                configureAgent(project, agentMode, graalExtension, getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
             } else {
                 String reason;
                 if (isTaskInstrumentableByAgent(t)) {
@@ -594,17 +593,20 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureAgent(Project project,
-                                Provider<AgentConfiguration> agentConfiguration,
-                                Provider<Boolean> disableToolchainDetection,
+                                Provider<String> agentMode,
+                                GraalVMExtension graalExtension,
                                 ExecOperations execOperations,
                                 FileSystemOperations fileOperations,
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
         logger.lifecycle("Instrumenting task with the native-image-agent: " + taskToInstrument.getName());
+        Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
 
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         cliProvider.getInputFiles().from(agentConfiguration.map(AgentConfiguration::getAgentFiles));
         cliProvider.getEnabled().set(agentConfiguration.map(AgentConfiguration::isEnabled));
+        cliProvider.getFilterableEntries().set(graalExtension.getAgent().getFilterableEntries());
+        cliProvider.getAgentMode().set(agentMode);
 
         Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<Boolean> isMergingEnabled = agentConfiguration.map(AgentConfiguration::isEnabled);
@@ -623,7 +625,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 graalvmHomeProvider(project.getProviders()),
                 mergeInputDirs,
                 mergeOutputDirs,
-                disableToolchainDetection,
+                graalExtension.getToolchainDetection(),
                 execOperations,
                 project.getLogger()));
 
@@ -631,7 +633,8 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         taskToInstrument.doLast(new ProcessGeneratedGraalResourceFilesAction(
                 outputDir,
-                Arrays.asList("org.gradle.", "java.", "org.junit.")));
+                graalExtension.getAgent().getFilterableEntries()
+        ));
     }
 
     private static void injectTestPluginDependencies(Project project, Property<Boolean> testSupportEnabled) {

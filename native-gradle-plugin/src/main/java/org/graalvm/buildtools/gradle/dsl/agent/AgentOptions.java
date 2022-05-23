@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle.dsl.agent;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -78,6 +79,9 @@ public interface AgentOptions {
     default void metadataCopy(Action<? super MetadataCopyOptions> spec) {
         spec.execute(getMetadataCopy());
     }
+
+    @Input
+    ListProperty<String> getFilterableEntries();
 
     /**
      * Configures the tasks which needs to be instrumented

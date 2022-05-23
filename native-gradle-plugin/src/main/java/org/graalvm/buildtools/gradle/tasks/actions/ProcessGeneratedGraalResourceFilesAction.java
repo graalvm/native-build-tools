@@ -48,6 +48,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -69,9 +70,9 @@ import java.util.Map;
  */
 public class ProcessGeneratedGraalResourceFilesAction implements Action<Task> {
     private final Provider<Directory> inputDirectory;
-    private final List<String> filterableEntries;
+    private final ListProperty<String> filterableEntries;
 
-    public ProcessGeneratedGraalResourceFilesAction(Provider<Directory> inputDirectory, List<String> filterableEntries) {
+    public ProcessGeneratedGraalResourceFilesAction(Provider<Directory> inputDirectory, ListProperty<String> filterableEntries) {
         this.inputDirectory = inputDirectory;
         this.filterableEntries = filterableEntries;
     }
@@ -146,7 +147,7 @@ public class ProcessGeneratedGraalResourceFilesAction implements Action<Task> {
     private boolean shouldFilterString(Object value) {
         if (value instanceof CharSequence) {
             String string = value.toString();
-            return filterableEntries.stream().anyMatch(string::startsWith);
+            return filterableEntries.get().stream().anyMatch(string::startsWith);
         }
         return false;
     }
