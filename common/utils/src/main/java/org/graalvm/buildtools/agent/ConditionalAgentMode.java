@@ -44,6 +44,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_DIRECTORY_MARKER;
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_DIRECTORY_OPTION;
+
 public class ConditionalAgentMode implements AgentMode {
 
     private final String userCodeFilterPath;
@@ -59,6 +62,7 @@ public class ConditionalAgentMode implements AgentMode {
     @Override
     public List<String> getAgentCommandLine() {
         List<String> cmdLine = new ArrayList<>();
+        cmdLine.add(AGENT_OUTPUT_DIRECTORY_OPTION + AGENT_OUTPUT_DIRECTORY_MARKER);
         if (parallel) {
             cmdLine.add("experimental-conditional-config-part");
         } else {
@@ -90,5 +94,15 @@ public class ConditionalAgentMode implements AgentMode {
             return cmdLine;
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getInputFiles() {
+        List<String> files = new ArrayList<>();
+        files.add(userCodeFilterPath);
+        if (!extraFilterPath.isEmpty()) {
+            files.add(extraFilterPath);
+        }
+        return files;
     }
 }

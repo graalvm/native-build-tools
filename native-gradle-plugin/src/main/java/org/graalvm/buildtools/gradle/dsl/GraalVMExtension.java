@@ -42,7 +42,6 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
-import org.graalvm.buildtools.gradle.dsl.agent.CopyMetadataOptions;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.DirectoryProperty;
@@ -63,15 +62,11 @@ public interface GraalVMExtension {
      * to disable automatic test support, especially in cases
      * where the test framework doesn't allow testing within
      * a native image.
-     *
      */
     Property<Boolean> getTestSupport();
 
     @Nested
     AgentOptions getAgent();
-
-    @Nested
-    CopyMetadataOptions getCopyMetadata();
 
     void agent(Action<? super AgentOptions> spec);
 
@@ -91,6 +86,7 @@ public interface GraalVMExtension {
 
     /**
      * Registers a new native image binary with testing support.
+     *
      * @param spec the test image configuration
      */
     void registerTestBinary(String name, Action<? super TestBinaryConfig> spec);
@@ -105,6 +101,7 @@ public interface GraalVMExtension {
      * Property driving the use of @-arg files when invoking native image.
      * This is enabled by default. For older native-image versions, this
      * needs to be disabled.
+     *
      * @return the argument file property
      */
     Property<Boolean> getUseArgFile();
@@ -114,6 +111,7 @@ public interface GraalVMExtension {
         /**
          * Sets the JVM test task which corresponds to the
          * native test that we're configuring.
+         *
          * @param jvmTestTask an existing JVM test task
          */
         void forTestTask(TaskProvider<Test> jvmTestTask);

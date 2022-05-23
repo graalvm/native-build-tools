@@ -53,4 +53,9 @@ public class DisabledAgentMode implements AgentMode {
     public List<String> getNativeImageConfigureOptions(List<String> inputDirectories, List<String> outputDirectories) {
         return Collections.emptyList();
     }
+
+    @Override
+    public List<String> getInputFiles() {
+        return Collections.emptyList();
+    }
 }

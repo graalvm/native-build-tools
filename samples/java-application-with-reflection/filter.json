@@ -1,6 +1,7 @@
 {
     "rules": [
         {"excludeClasses": "**"},
+        {"includeClasses": "org.graalvm.demo.**"},
         {"includeClasses": "org.graalvm.demo.**"}
     ]
 }

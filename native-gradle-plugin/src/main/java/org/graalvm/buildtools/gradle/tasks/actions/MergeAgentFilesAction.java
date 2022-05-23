@@ -47,6 +47,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -77,7 +78,7 @@ public class MergeAgentFilesAction implements Action<Task> {
     public MergeAgentFilesAction(Provider<Boolean> isMergingEnabled,
                                  Provider<AgentMode> agentMode,
                                  Provider<Boolean> mergeWithOutputs,
-                                 Project project,
+                                 ObjectFactory objectFactory,
                                  Provider<String> graalvmHomeProvider,
                                  Provider<List<String>> inputDirs,
                                  Provider<List<String>> outputDirs,
@@ -93,7 +94,7 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.disableToolchainDetection = disableToolchainDetection;
         this.execOperations = execOperations;
         this.logger = logger;
-        this.noLauncherProperty = project.getObjects().property(JavaLauncher.class);
+        this.noLauncherProperty = objectFactory.property(JavaLauncher.class);
     }
 
     private static boolean isConfigDir(String dir) {
@@ -144,14 +145,16 @@ public class MergeAgentFilesAction implements Action<Task> {
     private void mergeAgentFiles(File launcher, List<String> inputDirs, List<String> outputDirs) {
         List<String> nicCommandLine = agentMode.get().getNativeImageConfigureOptions(inputDirs, outputDirs);
 
-        ExecResult exec = execOperations.exec(spec -> {
-            spec.executable(launcher);
-            spec.args(nicCommandLine);
-            spec.setStandardOutput(System.out);
-            spec.setErrorOutput(System.err);
-        });
-        if (exec.getExitValue() != 0) {
-            exec.rethrowFailure();
+        if (nicCommandLine.size() > 0) {
+            ExecResult exec = execOperations.exec(spec -> {
+                spec.executable(launcher);
+                spec.args(nicCommandLine);
+                spec.setStandardOutput(System.out);
+                spec.setErrorOutput(System.err);
+            });
+            if (exec.getExitValue() != 0) {
+                exec.rethrowFailure();
+            }
         }
     }
 }

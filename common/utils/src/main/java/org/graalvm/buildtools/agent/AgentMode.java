@@ -47,4 +47,6 @@ public interface AgentMode extends Serializable {
     List<String> getAgentCommandLine();
 
     List<String> getNativeImageConfigureOptions(List<String> inputDirectories, List<String> outputDirectories);
+
+    List<String> getInputFiles();
 }

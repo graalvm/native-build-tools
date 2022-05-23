@@ -44,10 +44,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_DIRECTORY_MARKER;
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_DIRECTORY_OPTION;
+
 public class StandardAgentMode implements AgentMode {
     @Override
     public List<String> getAgentCommandLine() {
-        return Collections.emptyList();
+        return Collections.singletonList(AGENT_OUTPUT_DIRECTORY_OPTION + AGENT_OUTPUT_DIRECTORY_MARKER);
     }
 
     @Override
@@ -61,6 +64,11 @@ public class StandardAgentMode implements AgentMode {
             AgentConfiguration.appendOptionToValues("--output-dir=", outputDirectories, cmdLine);
             return cmdLine;
         }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getInputFiles() {
         return Collections.emptyList();
     }
 }

@@ -68,6 +68,7 @@ public class AgentConfiguration implements Serializable {
         List<String> files = new ArrayList<>(callerFilterFiles.size() + accessFilterFiles.size());
         files.addAll(callerFilterFiles);
         files.addAll(accessFilterFiles);
+        files.addAll(agentMode.getInputFiles());
         return files;
     }
 

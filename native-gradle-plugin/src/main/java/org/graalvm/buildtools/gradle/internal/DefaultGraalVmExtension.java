@@ -77,7 +77,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         getAgent().getTasksToInstrumentPredicate().convention(t -> true);
         getAgent().getDefaultMode().convention("standard");
         getAgent().getModes().getConditional().getParallel().convention(true);
-        getCopyMetadata().getMergeWithExisting().convention(false);
+        getAgent().getMetadataCopy().getMergeWithExisting().convention(false);
         configureToolchain();
     }
 
