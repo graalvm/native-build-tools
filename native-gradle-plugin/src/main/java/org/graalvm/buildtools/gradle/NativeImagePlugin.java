@@ -44,7 +44,6 @@ package org.graalvm.buildtools.gradle;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.graalvm.buildtools.agent.AgentMode;
-import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.JvmReachabilityMetadataRepositoryExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
@@ -62,7 +61,7 @@ import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.ProcessGeneratedGraalResourceFilesAction;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
-import org.graalvm.buildtools.gradle.tasks.CopyMetadataTask;
+import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
@@ -202,7 +201,13 @@ public class NativeImagePlugin implements Plugin<Project> {
             if (isTaskInstrumentableByAgent(t) && taskPredicate.test(t)) {
                 configureAgent(project, agentConfiguration, graalExtension.getToolchainDetection(), getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
             } else {
-                logger.lifecycle("Skipping task: " + t.getName());
+                String reason;
+                if (isTaskInstrumentableByAgent(t)) {
+                    reason = "Not instrumentable by agent as it does not extend JavaForkOptions.";
+                } else {
+                    reason = "Task does not match user predicate";
+                }
+                logger.log("Not instrumenting task with native-image-agent: " + t.getName() + ". Reason: " + reason);
             }
         });
     }
@@ -251,32 +256,12 @@ public class NativeImagePlugin implements Plugin<Project> {
             config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
         });
 
-        TaskProvider<CopyMetadataTask> copyMetadataTask = project.getTasks().register("copyMetadata", CopyMetadataTask.class, task -> {
+        TaskProvider<MetadataCopyTask> copyMetadataTask = project.getTasks().register("copyMetadata", MetadataCopyTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             task.setDescription("Copies metadata collected from tasks instrumented with the agent into target directories.");
-            task.getInputTaskNames().set(graalExtension.getCopyMetadata().getInputTaskNames());
-            task.getOutputDirectories().set(graalExtension.getCopyMetadata().getOutputDirectories());
-            task.getMergeWithExisting().set(graalExtension.getCopyMetadata().getMergeWithExisting());
-            Provider<Boolean> isMergeEnabled = project.provider(() -> true);
-            Provider<AgentMode> agentModeProvider = project.provider(StandardAgentMode::new);
-
-            Provider<List<String>> inputDirectories = task.getInputTaskNames().map(list ->
-                    list.stream()
-                            .map(taskName -> AgentConfigurationFactory.getAgentOutputDirectoryForTask(project, taskName))
-                            .map(dir -> dir.get().getAsFile().getAbsolutePath())
-                            .collect(Collectors.toList()));
-
-            task.doLast(new MergeAgentFilesAction(
-                    isMergeEnabled,
-                    agentModeProvider,
-                    task.getMergeWithExisting(),
-                    project,
-                    graalvmHomeProvider(project.getProviders()),
-                    inputDirectories,
-                    task.getOutputDirectories(),
-                    graalExtension.getToolchainDetection(),
-                    getExecOperations(),
-                    task.getLogger()));
+            task.getInputTaskNames().set(graalExtension.getAgent().getMetadataCopy().getInputTaskNames());
+            task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
+            task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
         });
     }
 
@@ -341,18 +326,18 @@ public class NativeImagePlugin implements Plugin<Project> {
                     Set<String> excludedModules = repositoryExtension.getExcludedModules().getOrElse(Collections.emptySet());
                     Map<String, String> forcedVersions = repositoryExtension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
                     return serviceProvider.map(repo -> repo.findConfigurationDirectoriesFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
-                                ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
-                                String module = moduleVersion.getGroup() + ":" + moduleVersion.getName();
-                                if (!excludedModules.contains(module)) {
-                                    query.forArtifact(artifact -> {
-                                        artifact.gav(module + ":" + moduleVersion.getVersion());
-                                        if (forcedVersions.containsKey(module)) {
-                                            artifact.forceConfigVersion(forcedVersions.get(module));
-                                        }
-                                    });
+                        ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
+                        String module = moduleVersion.getGroup() + ":" + moduleVersion.getName();
+                        if (!excludedModules.contains(module)) {
+                            query.forArtifact(artifact -> {
+                                artifact.gav(module + ":" + moduleVersion.getVersion());
+                                if (forcedVersions.containsKey(module)) {
+                                    artifact.forceConfigVersion(forcedVersions.get(module));
                                 }
-                                query.useLatestConfigWhenVersionIsUntested();
-                            })).stream()
+                            });
+                        }
+                        query.useLatestConfigWhenVersionIsUntested();
+                    })).stream()
                             .map(Path::toAbsolutePath)
                             .map(Path::toFile)
                             .collect(Collectors.toList()));
@@ -639,13 +624,13 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 FileSystemOperations fileOperations,
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
-        logger.lifecycle("Instrumenting task: " + taskToInstrument.getName());
+        logger.lifecycle("Instrumenting task with the native-image-agent: " + taskToInstrument.getName());
 
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
         cliProvider.getInputFiles().from(agentConfiguration.map(AgentConfiguration::getAgentFiles));
         cliProvider.getEnabled().set(agentConfiguration.map(AgentConfiguration::isEnabled));
 
-        Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project, taskToInstrument.getName());
+        Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<Boolean> isMergingEnabled = agentConfiguration.map(AgentConfiguration::isEnabled);
         Provider<AgentMode> agentModeProvider = agentConfiguration.map(AgentConfiguration::getAgentMode);
         Provider<List<String>> mergeOutputDirs = outputDir.map(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath()));
@@ -658,7 +643,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 isMergingEnabled,
                 agentModeProvider,
                 project.provider(() -> false),
-                project,
+                project.getObjects(),
                 graalvmHomeProvider(project.getProviders()),
                 mergeInputDirs,
                 mergeOutputDirs,

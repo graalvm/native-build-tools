@@ -70,4 +70,6 @@ public interface SharedConstants {
             ".*/package.html"
     ));
     String AGENT_SESSION_SUBDIR = "session-{pid}-{datetime}";
+    String AGENT_OUTPUT_DIRECTORY_MARKER = "{output_dir}";
+    String AGENT_OUTPUT_DIRECTORY_OPTION = "config-output-dir=";
 }

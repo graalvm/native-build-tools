@@ -47,7 +47,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -57,17 +56,18 @@ import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_DIRECTORY_MARKER;
 
 public abstract class AgentCommandLineProvider implements CommandLineArgumentProvider {
 
     @Inject
     @SuppressWarnings("checkstyle:redundantmodifier")
     public AgentCommandLineProvider() {
-
     }
 
     @Input
@@ -87,12 +87,8 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
     @Override
     public Iterable<String> asArguments() {
         if (getEnabled().get()) {
-            File outputDir = getOutputDirectory().getAsFile().get();
-            List<String> agentOptions = new ArrayList<>(getAgentOptions().getOrElse(Collections.emptyList()));
-            if (agentOptions.stream().map(s -> s.split("=")[0]).anyMatch(s -> s.contains("config-output-dir"))) {
-                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
-            }
-            agentOptions.add("config-output-dir=" + outputDir.getAbsolutePath() + File.separator + SharedConstants.AGENT_SESSION_SUBDIR);
+            String outputDirPath = getOutputDirectory().getAsFile().get().getAbsolutePath() + File.separator + SharedConstants.AGENT_SESSION_SUBDIR;
+            List<String> agentOptions = getAgentOptions().get().stream().map(opt -> opt.replace(AGENT_OUTPUT_DIRECTORY_MARKER, outputDirPath)).collect(Collectors.toList());
             return Arrays.asList(
                     "-agentlib:native-image-agent=" + String.join(",", agentOptions),
                     "-Dorg.graalvm.nativeimage.imagecode=agent"

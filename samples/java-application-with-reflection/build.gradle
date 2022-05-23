@@ -69,17 +69,19 @@ test {
 graalvmNative {
     agent {
         defaultMode = "standard"
+        accessFilterFiles.from('test.json')
+
         modes {
             conditional {
                 userCodeFilterPath = "filter.json"
             }
         }
-        accessFilterFiles.from('test.json')
-    }
-    copyMetadata {
-        mergeWithExisting = true
-        inputTaskNames.add("test")
-        outputDirectories.add("src/main/resources/META-INF/native-image")
+
+        metadataCopy {
+            mergeWithExisting = true
+            inputTaskNames.add("test")
+            outputDirectories.add("src/main/resources/META-INF/native-image")
+        }
     }
     binaries {
         test {

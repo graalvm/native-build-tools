@@ -45,7 +45,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 
-public interface CopyMetadataOptions {
+public interface MetadataCopyOptions {
 
     @Input
     @Optional

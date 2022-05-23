@@ -40,27 +40,55 @@
  */
 package org.graalvm.buildtools.gradle.tasks;
 
+import org.graalvm.buildtools.agent.AgentMode;
+import org.graalvm.buildtools.agent.StandardAgentMode;
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
+import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.process.ExecOperations;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-public abstract class CopyMetadataTask extends DefaultTask {
+import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
+
+public abstract class MetadataCopyTask extends DefaultTask {
 
     private final GraalVMLogger logger;
 
-    public CopyMetadataTask() {
+    private final ProjectLayout layout;
+    private final ProviderFactory providerFactory;
+    private final ObjectFactory objectFactory;
+    private final GraalVMExtension graalExtension;
+    private final ExecOperations execOperations;
+
+    @Inject
+    public MetadataCopyTask(ProjectLayout layout,
+                            ProviderFactory providerFactory,
+                            ObjectFactory objectFactory,
+                            GraalVMExtension graalExtension,
+                            ExecOperations execOperations) {
         this.logger = GraalVMLogger.of(getLogger());
+        this.layout = layout;
+        this.providerFactory = providerFactory;
+        this.objectFactory = objectFactory;
+        this.graalExtension = graalExtension;
+        this.execOperations = execOperations;
     }
 
     @Internal
@@ -85,13 +113,16 @@ public abstract class CopyMetadataTask extends DefaultTask {
     @TaskAction
     public void exec() {
         StringBuilder builder = new StringBuilder();
+        ListProperty<String> inputDirectories = objectFactory.listProperty(String.class);
+
         for (String taskName : getInputTaskNames().get()) {
-            File dir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(getProject(), taskName).get().getAsFile();
+            File dir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(layout, taskName).get().getAsFile();
             if (!dir.exists()) {
                 builder.append("Could not find configuration for task: ").append(taskName).append(". Please run the task with the agent.");
             } else if (!dir.isDirectory()) {
                 builder.append("Expected a directory with configuration for task: ").append(taskName).append(" but found a regular file at ").append(dir.getAbsolutePath()).append(". Was the output directory manually modified?");
             }
+            inputDirectories.add(dir.getAbsolutePath());
         }
         String errorString = builder.toString();
         if (!errorString.isEmpty()) {
@@ -99,7 +130,7 @@ public abstract class CopyMetadataTask extends DefaultTask {
         }
 
         for (String dirName : getOutputDirectories().get()) {
-            File dir = getProject().getLayout().dir(getProject().provider(() -> new File(dirName))).get().getAsFile();
+            File dir = layout.dir(providerFactory.provider(() -> new File(dirName))).get().getAsFile();
             if (dir.exists()) {
                 if (!dir.isDirectory()) {
                     builder.append("Specified output path must either not exist or be a directory: ").append(dirName);
@@ -113,5 +144,20 @@ public abstract class CopyMetadataTask extends DefaultTask {
                 }
             }
         }
+
+        Provider<Boolean> isMergeEnabled = providerFactory.provider(() -> true);
+        Provider<AgentMode> agentModeProvider = providerFactory.provider(StandardAgentMode::new);
+
+        new MergeAgentFilesAction(
+                isMergeEnabled,
+                agentModeProvider,
+                getMergeWithExisting(),
+                objectFactory,
+                graalvmHomeProvider(providerFactory),
+                inputDirectories,
+                getOutputDirectories(),
+                graalExtension.getToolchainDetection(),
+                execOperations,
+                getLogger()).execute(this);
     }
 }

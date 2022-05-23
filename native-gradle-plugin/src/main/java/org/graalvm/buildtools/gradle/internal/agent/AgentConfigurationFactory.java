@@ -52,6 +52,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -95,7 +96,7 @@ public class AgentConfigurationFactory {
         return configurableFileCollection.getFiles().stream().map(File::getAbsolutePath).collect(Collectors.toList());
     }
 
-    public static Provider<Directory> getAgentOutputDirectoryForTask(Project project, String taskName) {
-        return project.getLayout().getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + taskName);
+    public static Provider<Directory> getAgentOutputDirectoryForTask(ProjectLayout layout, String taskName) {
+        return layout.getBuildDirectory().dir(AGENT_OUTPUT_FOLDER + "/" + taskName);
     }
 }
