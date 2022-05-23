@@ -57,14 +57,14 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.JvmReachabilityMetadataService;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
-import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
-import org.graalvm.buildtools.gradle.tasks.actions.ProcessGeneratedGraalResourceFilesAction;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
-import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
+import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
+import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
+import org.graalvm.buildtools.gradle.tasks.actions.ProcessGeneratedGraalResourceFilesAction;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -119,7 +119,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -130,17 +129,11 @@ import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
 /**
  * Gradle plugin for GraalVM Native Image.
  */
-@SuppressWarnings("unused")
 public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_COMPILE_TASK_NAME = "nativeCompile";
     public static final String NATIVE_TEST_COMPILE_TASK_NAME = "nativeTestCompile";
     public static final String NATIVE_TEST_TASK_NAME = "nativeTest";
-    public static final String NATIVE_TEST_EXTENSION = "test";
     public static final String NATIVE_MAIN_EXTENSION = "main";
-    public static final String PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX = "filterAgent";
-    public static final String PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX = "Resources";
-    public static final String GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME = "generateResourcesConfigFile";
-    public static final String GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME = "generateTestResourcesConfigFile";
 
     public static final String DEPRECATED_NATIVE_BUILD_EXTENSION = "nativeBuild";
     public static final String DEPRECATED_NATIVE_TEST_EXTENSION = "nativeTest";
@@ -149,14 +142,6 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     public static final String CONFIG_REPO_LOGLEVEL = "org.graalvm.internal.gradle.configrepo.logging";
 
-    /**
-     * This looks strange, but it is used to force the configuration of a dependent
-     * task during the configuration of another one. This is a workaround for a bug
-     * when applying the Kotlin plugin, where the test task is configured too late
-     * for some reason.
-     */
-    private static final Consumer<Object> FORCE_CONFIG = t -> {
-    };
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
 
@@ -188,9 +173,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
 
-        project.afterEvaluate(p -> {
-            instrumentTasksWithAgent(project, graalExtension);
-        });
+        project.afterEvaluate(p -> instrumentTasksWithAgent(project, graalExtension));
     }
 
     private void instrumentTasksWithAgent(Project project, DefaultGraalVmExtension graalExtension) {
@@ -246,7 +229,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         configureAutomaticTaskCreation(project, graalExtension, tasks, javaConvention.getSourceSets());
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
-        TaskProvider<Task> deprecatedTask = tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
+        tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
             t.dependsOn(imageBuilder);
             t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_COMPILE_TASK_NAME + " instead."));
         });
@@ -256,7 +239,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
         });
 
-        TaskProvider<MetadataCopyTask> copyMetadataTask = project.getTasks().register("copyMetadata", MetadataCopyTask.class, task -> {
+        project.getTasks().register("copyMetadata", MetadataCopyTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             task.setDescription("Copies metadata collected from tasks instrumented with the agent into target directories.");
             task.getInputTaskNames().set(graalExtension.getAgent().getMetadataCopy().getInputTaskNames());
@@ -364,7 +347,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                                     NativeImageOptions delegate,
                                     String name,
                                     String substitute) {
-        JavaToolchainService toolchains = project.getExtensions().findByType(JavaToolchainService.class);
         ObjectFactory objects = project.getObjects();
         project.getExtensions().add(name, objects.newInstance(DeprecatedNativeImageOptions.class,
                 name,
@@ -465,7 +447,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
 
         // Add DSL extension for testing
-        NativeImageOptions testOptions = createTestOptions(graalExtension, name, project, mainOptions, testListDirectory, config.getSourceSet());
+        NativeImageOptions testOptions = createTestOptions(graalExtension, name, project, mainOptions, config.getSourceSet());
         if (isPrimaryTest) {
             deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
         }
@@ -491,7 +473,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getTestListDirectory().set(testListDirectory);
             testTask.get();
             if (!agentProperty(project, graalExtension.getAgent()).get().equals("disabled")) {
-                testOptions.getConfigurationFileDirectories().from(getProcessedAgentOutputFilesDirectory(project, testTask.get()));
+                testOptions.getConfigurationFileDirectories().from(AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), testTask.getName()));
             }
             ConfigurableFileCollection testList = project.getObjects().fileCollection();
             // Later this will be replaced by a dedicated task not requiring execution of tests
@@ -528,7 +510,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .orElse(project.provider(() -> "disabled"));
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     private static void registerServiceProvider(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
         project.getTasks()
                 .withType(BuildNativeImageTask.class)
@@ -587,7 +568,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                         String binaryName,
                                                         Project project,
                                                         NativeImageOptions mainExtension,
-                                                        DirectoryProperty testListDirectory,
                                                         SourceSet sourceSet) {
         NativeImageOptions testExtension = graalExtension.getBinaries().create(binaryName);
         NativeConfigurations configs = createNativeConfigurations(
@@ -607,10 +587,6 @@ public class NativeImagePlugin implements Plugin<Project> {
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
         return testExtension;
-    }
-
-    private static String postProcessTaskName(String taskName) {
-        return PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX + capitalize(taskName) + PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX;
     }
 
     private static List<String> agentSessionDirectories(Directory outputDirectory) {
@@ -650,18 +626,12 @@ public class NativeImagePlugin implements Plugin<Project> {
                 disableToolchainDetection,
                 execOperations,
                 project.getLogger()));
+
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
 
-        Provider<Directory> processedOutputDirectory = getProcessedAgentOutputFilesDirectory(project, taskToInstrument);
         taskToInstrument.doLast(new ProcessGeneratedGraalResourceFilesAction(
                 outputDir,
-                processedOutputDirectory,
                 Arrays.asList("org.gradle.", "java.", "org.junit.")));
-    }
-
-    private static Provider<Directory> getProcessedAgentOutputFilesDirectory(Project project, Task taskToInstrument) {
-        String name = postProcessTaskName(taskToInstrument.getName());
-        return project.getLayout().getBuildDirectory().dir("native/processed/agent/" + name);
     }
 
     private static void injectTestPluginDependencies(Project project, Property<Boolean> testSupportEnabled) {
