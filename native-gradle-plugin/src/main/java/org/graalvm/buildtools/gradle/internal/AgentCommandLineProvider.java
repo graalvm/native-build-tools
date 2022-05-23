@@ -81,6 +81,12 @@ public abstract class AgentCommandLineProvider implements CommandLineArgumentPro
     public abstract ConfigurableFileCollection getInputFiles();
 
     @Input
+    public abstract ListProperty<String> getFilterableEntries();
+
+    @Input
+    public abstract Property<String> getAgentMode();
+
+    @Input
     @Optional
     public abstract ListProperty<String> getAgentOptions();
 

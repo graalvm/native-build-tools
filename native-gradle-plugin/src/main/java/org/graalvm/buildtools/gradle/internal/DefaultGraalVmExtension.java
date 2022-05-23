@@ -56,6 +56,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
@@ -78,6 +79,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         getAgent().getDefaultMode().convention("standard");
         getAgent().getModes().getConditional().getParallel().convention(true);
         getAgent().getMetadataCopy().getMergeWithExisting().convention(false);
+        getAgent().getFilterableEntries().convention(Arrays.asList("org.gradle.", "java.", "org.junit."));
         configureToolchain();
     }
 
