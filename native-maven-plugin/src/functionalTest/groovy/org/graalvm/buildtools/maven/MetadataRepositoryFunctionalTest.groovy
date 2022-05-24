@@ -39,18 +39,27 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("../build-logic/settings-plugins")
-    includeBuild("../build-logic/common-plugins")
-    includeBuild("build-plugins")
+package org.graalvm.buildtools.maven
+
+class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+
+    void "it can use a metadata repository"() {
+        withSample("native-config-integration")
+
+        when:
+        mvn '-Pnative,metadataEnabled', '-DskipTests', 'package', 'exec:exec@native', '-Dexec.args="-DmessageClass=org.graalvm.internal.reflect.Message"'
+
+        then:
+
+        then:
+        buildSucceeded
+        outputContains "Hello, from reflection!"
+
+        and: "it doesn't find a configuration directory for the current version"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+
+        and: "but it finds one thanks to the latest configuration field"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+    }
+
 }
-
-plugins {
-    id("org.graalvm.build.common")
-}
-
-rootProject.name = "native-maven-plugin"
-
-includeBuild("../common/junit-platform-native")
-includeBuild("../common/utils")
-includeBuild("../common/jvm-reachability-metadata")

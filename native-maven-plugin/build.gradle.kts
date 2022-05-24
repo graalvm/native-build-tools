@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.junitPlatformNative)
     implementation(libs.utils)
     implementation(libs.jackson.databind)
+    implementation(libs.jvmReachabilityMetadata)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
@@ -81,6 +82,8 @@ dependencies {
 
     functionalTestCommonRepository(libs.utils)
     functionalTestCommonRepository(libs.junitPlatformNative)
+    functionalTestCommonRepository(libs.jvmReachabilityMetadata)
+    functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 
     functionalTestImplementation(libs.test.spock)
     functionalTestRuntimeOnly(libs.slf4j.simple)
