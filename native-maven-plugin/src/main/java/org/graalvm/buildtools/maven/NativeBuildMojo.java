@@ -124,17 +124,29 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
 
+        //TODO refactor to a method
         if (isMetadataRepositoryEnabled()) {
-            Path repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
-            if (!Files.exists(repoPath)) {
-                getLog().error("JVM reachability metadata repository path does not exist: " + repoPath);
+            Path repoPath = null;
+            if (metadataRepositoryConfiguration.getVersion() != null) {
+                getLog().warn("The official JVM reachability metadata repository is not released yet. Only local repositories are supported");
+            }
+            if (metadataRepositoryConfiguration.getLocalPath() != null) {
+                repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+            }
+
+            if (repoPath == null) {
+                getLog().warn("JVM reachability metadata repository is enabled, but no repository has been configured");
             } else {
-                metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
-                    @Override
-                    public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                        getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
-                    }
-                });
+                if (!Files.exists(repoPath)) {
+                    getLog().error("JVM reachability metadata repository path does not exist: " + repoPath);
+                } else {
+                    metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                        @Override
+                        public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                            getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                        }
+                    });
+                }
             }
         }
         Set<Path> metadataRepositoryPaths = new HashSet<>();
