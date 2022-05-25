@@ -75,11 +75,17 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         getToolchainDetection().convention(true);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
-        getAgent().getTasksToInstrumentPredicate().convention(t -> true);
-        getAgent().getDefaultMode().convention("standard");
-        getAgent().getModes().getConditional().getParallel().convention(true);
-        getAgent().getMetadataCopy().getMergeWithExisting().convention(false);
-        getAgent().getFilterableEntries().convention(Arrays.asList("org.gradle.", "java.", "org.junit."));
+        AgentOptions agentOpts = getAgent();
+        agentOpts.getTasksToInstrumentPredicate().convention(t -> true);
+        agentOpts.getDefaultMode().convention("standard");
+        agentOpts.getModes().getConditional().getParallel().convention(true);
+        agentOpts.getMetadataCopy().getMergeWithExisting().convention(false);
+        agentOpts.getFilterableEntries().convention(Arrays.asList("org.gradle.", "java.", "org.junit."));
+        agentOpts.getBuiltinHeuristicFilter().convention(true);
+        agentOpts.getBuiltinCallerFilter().convention(true);
+        agentOpts.getEnableExperimentalPredefinedClasses().convention(false);
+        agentOpts.getEnableExperimentalUnsafeAllocationTracing().convention(true);
+        agentOpts.getTrackReflectionMetadata().convention(true);
         configureToolchain();
     }
 

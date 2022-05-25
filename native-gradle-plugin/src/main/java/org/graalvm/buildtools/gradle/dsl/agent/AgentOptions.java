@@ -54,6 +54,9 @@ import java.util.function.Predicate;
 
 @SuppressWarnings({"unused"})
 public interface AgentOptions {
+    /**
+     * Contains configuration of supported agent modes.
+     */
     @Nested
     AgentModeOptions getModes();
 
@@ -61,18 +64,63 @@ public interface AgentOptions {
         spec.execute(getModes());
     }
 
+    /**
+     * The default agent mode name when the agent is in use.
+     */
     @Input
     @Optional
     Property<String> getDefaultMode();
 
+    /**
+     * Caller-filter files that will be passed to the agent.
+     */
     @InputFiles
     @Optional
     ConfigurableFileCollection getCallerFilterFiles();
 
+    /**
+     * Access-filter files that will be passed to the agent.
+     */
     @InputFiles
     @Optional
     ConfigurableFileCollection getAccessFilterFiles();
 
+    /**
+     * Toggles the builtin agent caller filter.
+     */
+    @Optional
+    Property<Boolean> getBuiltinCallerFilter();
+
+    /**
+     * Toggles the builtin agent heuristic filter.
+     */
+    @Optional
+    Property<Boolean> getBuiltinHeuristicFilter();
+
+
+    /**
+     * Toggles the experimental support for predefined classes.
+     */
+    @Optional
+    Property<Boolean> getEnableExperimentalPredefinedClasses();
+
+
+    /**
+     * Toggles the experimental support for unsafe allocation tracing.
+     */
+    @Optional
+    Property<Boolean> getEnableExperimentalUnsafeAllocationTracing();
+
+
+    /**
+     * Toggles the distinction between queried and used metadata.
+     */
+    @Optional
+    Property<Boolean> getTrackReflectionMetadata();
+
+    /**
+     * Configuration of the metadata copy task.
+     */
     @Nested
     MetadataCopyOptions getMetadataCopy();
 
@@ -80,7 +128,11 @@ public interface AgentOptions {
         spec.execute(getMetadataCopy());
     }
 
+    /**
+     * Specifies prefixes that will be used to further filter files produced by the agent.
+     */
     @Input
+    @Optional
     ListProperty<String> getFilterableEntries();
 
     /**

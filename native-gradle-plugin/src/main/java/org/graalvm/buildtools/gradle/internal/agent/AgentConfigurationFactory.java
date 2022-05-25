@@ -87,7 +87,14 @@ public class AgentConfigurationFactory {
                 default:
                     throw new GradleException("Unknown agent mode selected: " + name);
             }
-            return new AgentConfiguration(getFilePaths(callerFilterFiles), getFilePaths(accessFilterFiles), agentMode);
+            return new AgentConfiguration(getFilePaths(callerFilterFiles),
+                    getFilePaths(accessFilterFiles),
+                    options.getBuiltinCallerFilter().get(),
+                    options.getBuiltinHeuristicFilter().get(),
+                    options.getEnableExperimentalPredefinedClasses().get(),
+                    options.getEnableExperimentalUnsafeAllocationTracing().get(),
+                    options.getTrackReflectionMetadata().get(),
+                    agentMode);
         });
     }
 

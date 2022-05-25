@@ -14,6 +14,16 @@ If you are interested in contributing, please refer to our https://github.com/gr
 
 [[changelog]]
 == Changelog
+=== Release 0.9.12
+
+==== Gradle plugin
+* Completely reworked agent support - **BREAKING CHANGE**
+* The agent block is no longer tied to the target binary.
+* The agent can now instrument any task that extends `JavaForkOptions`.
+* Introduced the `metadataCopy` task.
+* Introduced the concept of agent modes.
+** Under the hood, the agent mode dictates what options are passed to the agent and how metadata produced by multiple runs get merged.
+
 === Release 0.9.11
 
 ==== Maven plugin

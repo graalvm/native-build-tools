@@ -88,11 +88,6 @@ graalvmNative {
             // Runtime options
             runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
 
-            // Development options
-            agent {
-                enabled.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
-            }
-
             useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
         }
     }
@@ -138,30 +133,11 @@ graalvmNative {
 
 // tag::add-agent-options[]
 graalvmNative {
-    binaries.configureEach {
-        agent {
-            options.add("experimental-class-loader-support")
-        }
+    agent {
+        enableExperimentalPredefinedClasses = true
     }
 }
 // end::add-agent-options[]
-
-// tag::add-agent-options-individual[]
-graalvmNative {
-    binaries {
-        named("main") {
-            agent {
-                options.add("experimental-class-loader-support")
-            }
-        }
-        named("test") {
-            agent {
-                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
-            }
-        }
-    }
-}
-// end::add-agent-options-individual[]
 
 // tag::enable-metadata-repository[]
 graalvmNative {
