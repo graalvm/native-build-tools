@@ -43,13 +43,22 @@ package org.graalvm.buildtools.maven
 
 class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
+    void "if metadata is disabled, reflection fails"() {
+        withSample("native-config-integration")
+
+        when:
+        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "Reflection failed"
+    }
+
     void "it can use a metadata repository"() {
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataEnabled', '-DskipTests', 'package', 'exec:exec@native', '-Dexec.args="-DmessageClass=org.graalvm.internal.reflect.Message"'
-
-        then:
+        mvn '-Pnative,metadataEnabled', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -60,6 +69,18 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         and: "but it finds one thanks to the latest configuration field"
         outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+    }
+
+    void "if the path doesn't exist it throws an error"() {
+        withSample("native-config-integration")
+
+        when:
+        mvn '-Pnative,metadataMissing', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "JVM reachability metadata repository path does not exist"
+        outputContains "Reflection failed"
     }
 
 }

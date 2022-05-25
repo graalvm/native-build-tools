@@ -124,14 +124,18 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
 
-
         if (isMetadataRepositoryEnabled()) {
-            metadataRepository = new FileSystemRepository(metadataRepositoryConfiguration.getLocalPath().toPath(), new FileSystemRepository.Logger() {
-                @Override
-                public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                    getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
-                }
-            });
+            Path repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+            if (!Files.exists(repoPath)) {
+                getLog().error("JVM reachability metadata repository path does not exist: " + repoPath);
+            } else {
+                metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                    @Override
+                    public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                        getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                    }
+                });
+            }
         }
         Set<Path> metadataRepositoryPaths = new HashSet<>();
 
@@ -143,7 +147,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
             for (Artifact dependency : project.getArtifacts()) {
                 addClasspath(dependency);
-                if (isMetadataRepositoryEnabled()) {
+                if (isMetadataRepositoryEnabled() && metadataRepository != null) {
                     metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
                         q.useLatestConfigWhenVersionIsUntested();
                         q.forArtifact(artifact -> artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion())));
