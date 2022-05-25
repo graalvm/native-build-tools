@@ -47,19 +47,33 @@ import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
-    @Unroll("agent is passed and generates resources files with JUnit Platform #junitVersion")
+    @Unroll("agent is not passed and the application fails with JUnit Platform #junitVersion")
+    def "agent is not passed"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        fails 'nativeTest'
+
+        then:
+        outputContains "expected: <Hello, native!> but was: <null>"
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Unroll("agent is passed, generates metadata files and copies metadata with JUnit Platform #junitVersion")
     def "agent is passed"() {
         debug = true
         given:
         withSample("java-application-with-reflection")
 
         when:
-        run 'nativeTest'
+        run 'nativeTest', '-Pagent'
 
         then:
         tasks {
             succeeded ':jar',
-                    ':filterAgentTestResources',
                     ':nativeTest'
             doesNotContain ':build'
         }
@@ -85,6 +99,15 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
             assert file("build/native/agent-output/test/${name}-config.json").exists()
         }
 
+        when:
+        run 'metadataCopy'
+
+        then:
+        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
+            assert file("build/native/metadataCopyTest/${name}-config.json").exists()
+        }
+
+
         where:
         junitVersion = System.getProperty('versions.junit')
     }
@@ -95,24 +118,29 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         withSample("java-application-with-reflection")
 
         when:
-        fails 'nativeTest', '-Pagent=false'
+        run 'nativeTest', '-Pagent=conditional'
 
         then:
-        outputContains """org.graalvm.demo.ApplicationTest > message is hello native FAILED"""
+        tasks {
+            succeeded ':nativeTest'
+        }
+
+        and:
+        assert file("build/native/agent-output/test/reflect-config.json").text.contains("\"condition\"")
 
         where:
         junitVersion = System.getProperty('versions.junit')
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/134")
-    @Unroll("generated agent files are added when building native image with JUnit Platform #junitVersion")
-    def "generated agent files are used when building native image"() {
+    @Unroll("agent instruments run task, metadata is copied and merged, and the app runs JUnit Platform #junitVersion")
+    def "agent instruments run task"() {
         debug = true
+        var metadata_dir = 'src/main/resources/META-INF/native-image'
         given:
         withSample("java-application-with-reflection")
 
         when:
-        run '-Pagent=true', 'run'
+        run 'run', '-Pagent=standard'
 
         then:
         tasks {
@@ -126,55 +154,23 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         }
 
         when:
-        run '-Pagent=true', 'nativeRun'
+        run'metadataCopy', '--task', 'run', '--dir', metadata_dir
+
+        then:
+        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
+            assert file("${metadata_dir}/${name}-config.json").exists()
+        }
+
+        and:
+        var reflect_config = file("${metadata_dir}/reflect-config.json")
+        var reflect_config_contents = reflect_config.text
+        assert reflect_config_contents.contains("DummyClass") && reflect_config_contents.contains("org.graalvm.demo.Message")
+
+        when:
+        run 'nativeRun'
 
         then:
         outputContains "Application message: Hello, native!"
-
-        where:
-        junitVersion = System.getProperty('versions.junit')
-    }
-
-    def "can configure extra options to the agent"() {
-        debug = true
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        fails 'nativeTest', '-DagentOptions=will-fail'
-
-        then:
-        errorOutputContains "native-image-agent: unknown option: 'will-fail'."
-
-        where:
-        junitVersion = System.getProperty('versions.junit')
-    }
-
-    def "reasonable error message if the user provides themselves an output directory"() {
-        debug = true
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        fails 'nativeTest', '-DagentOptions=config-output-dir'
-
-        then:
-        errorOutputContains "config-output-dir cannot be supplied as an agent option"
-
-        where:
-        junitVersion = System.getProperty('versions.junit')
-    }
-
-    def "reasonable error message if the user provides themselves an output directory value"() {
-        debug = true
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        fails 'nativeTest', '-DagentOptions=config-output-dir=nope!'
-
-        then:
-        errorOutputContains "config-output-dir cannot be supplied as an agent option"
 
         where:
         junitVersion = System.getProperty('versions.junit')

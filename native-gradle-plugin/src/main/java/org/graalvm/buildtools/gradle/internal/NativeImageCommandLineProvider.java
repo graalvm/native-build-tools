@@ -42,7 +42,6 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
-import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileSystemLocation;
@@ -153,6 +152,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
      * to build images within a docker container, which makes it so
      * that the paths in the options are invalid (they would be prefixed
      * by a Windows path).
+     *
      * @param options the native options
      * @return the classpath string
      */

@@ -49,7 +49,6 @@ import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.ConditionalAgentModeOptions;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;

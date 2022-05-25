@@ -84,9 +84,9 @@ public interface AgentOptions {
     ListProperty<String> getFilterableEntries();
 
     /**
-     * Configures the tasks which needs to be instrumented
+     * Selects tasks that should be instrumented with the agent.
      *
-     * @return .
+     * @return Task predicate that accepts tasks during task configuration.
      */
     @Input
     Property<Predicate<? super Task>> getTasksToInstrumentPredicate();

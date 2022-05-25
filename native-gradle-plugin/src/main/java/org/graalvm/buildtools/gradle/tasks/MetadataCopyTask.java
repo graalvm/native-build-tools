@@ -42,7 +42,6 @@ package org.graalvm.buildtools.gradle.tasks;
 
 import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.agent.StandardAgentMode;
-import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
@@ -74,20 +73,17 @@ public abstract class MetadataCopyTask extends DefaultTask {
     private final ProjectLayout layout;
     private final ProviderFactory providerFactory;
     private final ObjectFactory objectFactory;
-    private final GraalVMExtension graalExtension;
     private final ExecOperations execOperations;
 
     @Inject
     public MetadataCopyTask(ProjectLayout layout,
                             ProviderFactory providerFactory,
                             ObjectFactory objectFactory,
-                            GraalVMExtension graalExtension,
                             ExecOperations execOperations) {
         this.logger = GraalVMLogger.of(getLogger());
         this.layout = layout;
         this.providerFactory = providerFactory;
         this.objectFactory = objectFactory;
-        this.graalExtension = graalExtension;
         this.execOperations = execOperations;
     }
 
@@ -100,12 +96,15 @@ public abstract class MetadataCopyTask extends DefaultTask {
     @Internal
     public abstract Property<Boolean> getMergeWithExisting();
 
+    @Internal
+    public abstract Property<Boolean> getToolchainDetection();
+
     @Option(option = "task", description = "Executed task previously instrumented with the agent whose metadata should be copied.")
     public void overrideInputTaskNames(List<String> inputTaskNames) {
         getInputTaskNames().set(inputTaskNames);
     }
 
-    @Option(option = "dir", description = "")
+    @Option(option = "dir", description = "Directory to which the metadata will be copied.")
     public void overrideOutputDirectories(List<String> outputDirectories) {
         getOutputDirectories().set(outputDirectories);
     }
@@ -129,8 +128,10 @@ public abstract class MetadataCopyTask extends DefaultTask {
             throw new GradleException(errorString);
         }
 
+        ListProperty<String> outputDirectories = objectFactory.listProperty(String.class);
         for (String dirName : getOutputDirectories().get()) {
             File dir = layout.dir(providerFactory.provider(() -> new File(dirName))).get().getAsFile();
+            outputDirectories.add(dir.getAbsolutePath());
             if (dir.exists()) {
                 if (!dir.isDirectory()) {
                     builder.append("Specified output path must either not exist or be a directory: ").append(dirName);
@@ -155,8 +156,8 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 objectFactory,
                 graalvmHomeProvider(providerFactory),
                 inputDirectories,
-                getOutputDirectories(),
-                graalExtension.getToolchainDetection(),
+                outputDirectories,
+                getToolchainDetection(),
                 execOperations,
                 getLogger()).execute(this);
     }

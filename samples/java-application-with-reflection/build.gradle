@@ -46,7 +46,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 application {
@@ -69,18 +68,17 @@ test {
 graalvmNative {
     agent {
         defaultMode = "standard"
-        accessFilterFiles.from('test.json')
 
         modes {
             conditional {
-                userCodeFilterPath = "filter.json"
+                userCodeFilterPath = "user-code-filter.json"
             }
         }
 
         metadataCopy {
             mergeWithExisting = true
             inputTaskNames.add("test")
-            outputDirectories.add("src/main/resources/META-INF/native-image")
+            outputDirectories.add("build/native/metadataCopyTest")
         }
     }
     binaries {

@@ -40,7 +40,6 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -103,8 +102,8 @@ public class NativeImageExecutableLocator {
             }
         } catch (GradleException e) {
             throw new GradleException("Determining GraalVM installation failed with message: " + e.getMessage() + "\n\n"
-            + "Make sure to declare the GRAALVM_HOME environment variable or install GraalVM with " +
-            "native-image in a standard location recognized by Gradle Java toolchain support");
+                    + "Make sure to declare the GRAALVM_HOME environment variable or install GraalVM with " +
+                    "native-image in a standard location recognized by Gradle Java toolchain support");
         }
         return executablePath;
     }
