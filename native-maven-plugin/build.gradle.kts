@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.utils)
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
+    implementation(libs.plexus.archiver)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)

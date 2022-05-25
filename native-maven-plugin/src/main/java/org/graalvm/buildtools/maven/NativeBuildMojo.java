@@ -49,9 +49,14 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.archiver.UnArchiver;
+import org.codehaus.plexus.archiver.tar.TarBZip2UnArchiver;
+import org.codehaus.plexus.archiver.tar.TarGZipUnArchiver;
+import org.codehaus.plexus.archiver.zip.ZipUnArchiver;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
@@ -105,6 +110,16 @@ public class NativeBuildMojo extends AbstractNativeMojo {
 
     @Parameter(alias = "metadataRepository")
     private MetadataRepositoryConfiguration metadataRepositoryConfiguration;
+
+    @Component(role = UnArchiver.class, hint = "zip")
+    private ZipUnArchiver zipUnArchiver;
+
+    @Component(role = UnArchiver.class, hint = "tar.gz")
+    private TarGZipUnArchiver tarGzUnArchiver;
+
+
+    @Component(role = UnArchiver.class, hint = "tar.bz2")
+    private TarBZip2UnArchiver tarBz2UnArchiver;
 
     private final List<Path> imageClasspath;
 
@@ -177,7 +192,24 @@ public class NativeBuildMojo extends AbstractNativeMojo {
                 getLog().warn("The official JVM reachability metadata repository is not released yet. Only local repositories are supported");
             }
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
-                repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+                Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+                if (FileSystemRepository.isSupportedArchiveFormat(localPath.toString())) {
+                    File destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata").toFile();
+                    if (!destination.exists()) {
+                        destination.mkdirs();
+                    }
+                    UnArchiver unArchiver = getUnArchiverFor(localPath.getFileName().toString());
+                    if (unArchiver != null) {
+                        unArchiver.setSourceFile(localPath.toFile());
+                        unArchiver.setDestDirectory(destination);
+                        unArchiver.extract();
+                        repoPath = destination.toPath();
+                    } else {
+                        getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2");
+                    }
+                } else {
+                    repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+                }
             }
 
             if (repoPath == null) {
@@ -195,6 +227,18 @@ public class NativeBuildMojo extends AbstractNativeMojo {
                 }
             }
         }
+    }
+
+    private UnArchiver getUnArchiverFor(String filename) {
+        String normalizedFilename = filename.toLowerCase();
+        if (normalizedFilename.endsWith(".zip")) {
+            return this.zipUnArchiver;
+        } else if (normalizedFilename.endsWith(".tar.gz")) {
+            return this.tarGzUnArchiver;
+        } else if (normalizedFilename.endsWith(".tar.bz2")) {
+            return this.tarBz2UnArchiver;
+        }
+        return null;
     }
 
     private void maybeAddDependencyMetadata(Set<Path> metadataRepositoryPaths, Artifact dependency) {

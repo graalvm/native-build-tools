@@ -131,4 +131,25 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Reflection failed"
     }
 
+    void "it can use a #format metadata repository"(String format) {
+        withSample("native-config-integration")
+        withDebug()
+
+        when:
+        mvn '-e', '-Pnative,metadataArchive', '-DrepoFormat=' + format, '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "Hello, from reflection!"
+
+        and: "it doesn't find a configuration directory for the current version"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+
+        and: "but it finds one thanks to the latest configuration field"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+
+        where:
+        format << ['zip', 'tar.gz', 'tar.bz2']
+    }
+
 }
