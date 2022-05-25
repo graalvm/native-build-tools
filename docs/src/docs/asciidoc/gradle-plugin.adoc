@@ -285,24 +285,33 @@ The same mechanism can be used if you have multiple test tasks for a single test
 
 If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
 
-The Native Image Gradle plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
+The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
 
-This should be as easy as appending `-Pagent` to the `run` and `nativeBuild`, or `test` and `nativeTest` task invocations:
+Any task that extends `JavaForkOptions` (like `test`, `run` etc) can be instrumented by passing `-Pagent` to gradle when running said tasks.
+
+The agent can run in multiple modes that dictate how the metadata is collected and merged.
+
+Once the metadata is collected, it can be copied into the project using the `metadataCopy` task.
 
 [source,bash]
 ----
 ./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
+./gradlew metadataCopy --task run --dir src/main/resources/META-INF/native-image # Copies the metadata collected by the agent into the project sources
+./gradlew nativeCompile # Builds image using metadata acquired by the agent.
 
 # For testing
-./gradlew -Pagent test # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.
+./gradlew -Pagent nativeTest # Runs on JVM with the native-image agent, collects the metadata and uses it for testing on native-image.
 ----
 
-The agent can also be enabled by setting the corresponding DSL flag; however, that is not recommended since this is a development mode feature only.
+The agent can run in multiple modes:
+* Standard - Collects metadata without conditions. This is recommended if you are building an executable.
+* Conditional - Collects metadata with conditions. This is recommended if you are creating conditional metadata for a library intended for further use.
+* Direct - For advanced users only. This mode allows directly controlling the command line passed to the agent.
+
+The default mode is specified in the DSL but can be changed by passing the mode name to Gradle when using the agent: `-Pagent=conditional`
 
 The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
-Although those files will be automatically used if you run your build with the agent enabled, you should consider reviewing them and adding them to your sources instead.
+The plugin will also substitute `{output_dir}` in the agent options to point to this directory during the agent run.
 
 [[agent-support-configuring-options]]
 === Configuring agent options
@@ -310,7 +319,7 @@ Although those files will be automatically used if you run your build with the a
 The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
 This can be done using the `agent` configuration block:
 
-.Configuring agent options for every binary
+.Configuring agent options
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
@@ -319,20 +328,6 @@ include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
 [source, kotlin, role="multi-language-sample"]
 ----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
-----
-
-You may also define distinct agent options for different images.
-In the following example, the agent used for instrumentation for the main image has distinct options from the test ones:
-
-.Configuring agent options specifically
-[source, groovy, role="multi-language-sample"]
-----
-include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options-individual]
-----
-
-[source, kotlin, role="multi-language-sample"]
-----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options-individual]
 ----
 
 [[metadata-support]]

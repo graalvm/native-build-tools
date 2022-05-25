@@ -49,11 +49,29 @@ public class AgentConfiguration implements Serializable {
 
     private final Collection<String> callerFilterFiles;
     private final Collection<String> accessFilterFiles;
+    private final boolean builtinCallerFilter;
+    private final boolean builtinHeuristicFilter;
+    private final boolean experimentalPredefinedClasses;
+    private final boolean experimentalUnsafeAllocationTracing;
+    private final boolean trackReflectionMetadata;
+
     private final AgentMode agentMode;
 
-    public AgentConfiguration(Collection<String> callerFilterFiles, Collection<String> accessFilterFiles, AgentMode agentMode) {
+    public AgentConfiguration(Collection<String> callerFilterFiles,
+                              Collection<String> accessFilterFiles,
+                              boolean builtinCallerFilter,
+                              boolean builtinHeuristicFilter,
+                              boolean experimentalPredefinedClasses,
+                              boolean experimentalUnsafeAllocationTracing,
+                              boolean trackReflectionMetadata,
+                              AgentMode agentMode) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
+        this.builtinCallerFilter = builtinCallerFilter;
+        this.builtinHeuristicFilter = builtinHeuristicFilter;
+        this.experimentalPredefinedClasses = experimentalPredefinedClasses;
+        this.experimentalUnsafeAllocationTracing = experimentalUnsafeAllocationTracing;
+        this.trackReflectionMetadata = trackReflectionMetadata;
         this.agentMode = agentMode;
     }
 
@@ -61,6 +79,11 @@ public class AgentConfiguration implements Serializable {
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
+        cmdLine.add("builtin-caller-filter=" + builtinCallerFilter);
+        cmdLine.add("builtin-heuristic-filter=" + builtinHeuristicFilter);
+        cmdLine.add("experimental-class-define-support=" + experimentalPredefinedClasses);
+        cmdLine.add("experimental-unsafe-allocation-support=" + experimentalUnsafeAllocationTracing);
+        cmdLine.add("track-reflection-metadata=" + trackReflectionMetadata);
         return cmdLine;
     }
 

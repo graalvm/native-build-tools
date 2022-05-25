@@ -67,6 +67,49 @@ if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
 
 // tag::all-config-options[]
 graalvmNative {
+    // Injects the native-image-agent into supported tasks if `-Pagent` is specified
+    agent {
+        defaultMode = "standard" // Default agent mode if one isn't specified using `-Pagent=mode_name`
+
+        modes {
+            // The standard agent mode generates metadata without conditions.
+            standard {
+            }
+            // The conditional agent mode generates metadata with conditions.
+            conditional {
+                userCodeFilterPath = "path-to-filter.json" // Path to a filter file that determines classes which will be used in the metadata conditions.
+                extrFilterPath = "path-to-another-filter.json" // Optional, extra filter used to further filter the collected metadata.
+            }
+            // The direct agent mode allows users to directly pass options to the agent.
+            direct {
+                // {output_dir} is a special string expanded by the plugin to where the agent files would usually be output.
+                options.add("config-output-dir={output_dir}")
+                options.add("experimental-configuration-with-origins")
+            }
+        }
+
+        callerFilterFiles.from("filter.json")
+        accessFilterFiles.from("filter.json")
+        builtinCallerFilter = true
+        builtinHeuristicFilter = true
+        enableExperimentalPredefinedClasses = false
+        enableExperimentalUnsafeAllocationTracing = false
+        trackReflectionMetadata = true
+
+        // Copies metadata collected from tasks into the specified directories.
+        metadataCopy {
+            inputTaskNames.add("test") // Tasks previously executed with the agent attached.
+            outputDirectories.add("src/main/resources/META-INF/native-image")
+            mergeWithExisting = true // Instead of copying, merge with existing metadata in the output directories.
+        }
+
+        /*
+        By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
+        This can be limited to only specific tasks that match this predicate.
+         */
+        tasksToInstrumentPredicate = t -> true
+    }
+
     binaries {
         main {
             // Main options
@@ -86,11 +129,6 @@ graalvmNative {
 
             // Runtime options
             runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
-
-            // Development options
-            agent {
-                enabled = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
-            }
 
             useFatJar = true // Instead of passing each jar individually, builds a fat jar
         }
