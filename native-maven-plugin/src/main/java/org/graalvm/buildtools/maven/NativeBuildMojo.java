@@ -43,6 +43,7 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.ConfigurationContainer;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
@@ -159,7 +160,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
             for (Artifact dependency : project.getArtifacts()) {
                 addClasspath(dependency);
-                if (isMetadataRepositoryEnabled() && metadataRepository != null) {
+                if (isMetadataRepositoryEnabled() && metadataRepository != null && !isExcluded(dependency)) {
                     metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
                         q.useLatestConfigWhenVersionIsUntested();
                         q.forArtifact(artifact -> artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion())));
@@ -196,6 +197,15 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    private boolean isExcluded(Artifact dependency) {
+        List<Dependency> excludes = metadataRepositoryConfiguration.getExcludes();
+        if (excludes == null || excludes.isEmpty()) {
+            return false;
+        } else {
+            return excludes.stream().anyMatch(e -> e.getGroupId().equals(dependency.getGroupId()) && e.getArtifactId().equals(dependency.getArtifactId()));
         }
     }
 

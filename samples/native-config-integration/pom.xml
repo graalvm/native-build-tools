@@ -230,6 +230,31 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>metadataExclude</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <configuration>
+                            <useArgFile>false</useArgFile>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                                <localPath>${project.basedir}/config-directory</localPath>
+                                <excludes>
+                                    <exclude>
+                                        <groupId>org.graalvm.internal</groupId>
+                                        <artifactId>library-with-reflection</artifactId>
+                                    </exclude>
+                                </excludes>
+                            </metadataRepository>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>

@@ -108,4 +108,15 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Reflection failed"
     }
 
+    void "it can exclude dependencies"() {
+        withSample("native-config-integration")
+
+        when:
+        mvn '-Pnative,metadataExclude', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "Reflection failed"
+    }
+
 }
