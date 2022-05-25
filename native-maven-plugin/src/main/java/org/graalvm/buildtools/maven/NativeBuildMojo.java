@@ -280,7 +280,6 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             if (!arg.isEmpty()) {
                 buildArgs.add("-H:ConfigurationFileDirectories=" + arg);
             }
-
         }
     }
 

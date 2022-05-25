@@ -57,10 +57,6 @@ import java.util.stream.Collectors;
 
 public class FileSystemRepository implements JvmReachabilityMetadataRepository {
 
-    public static final String[] SUPPORTED_ARCHIVE_FORMATS = new String[] {
-            "zip", "tar.gz", "tar.bz2"
-    };
-
     private final FileSystemModuleToConfigDirectoryIndex moduleIndex;
     private final Logger logger;
     private final Map<Path, VersionToConfigDirectoryIndex> artifactIndexes;
@@ -79,7 +75,6 @@ public class FileSystemRepository implements JvmReachabilityMetadataRepository {
 
     public static boolean isSupportedArchiveFormat(String path) {
         String normalizedPath = path.toLowerCase();
-
         return normalizedPath.endsWith(".zip") || normalizedPath.endsWith(".tar.gz") || normalizedPath.endsWith(".tar.bz2");
     }
 
