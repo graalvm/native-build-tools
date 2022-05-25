@@ -124,31 +124,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
 
-        //TODO refactor to a method
-        if (isMetadataRepositoryEnabled()) {
-            Path repoPath = null;
-            if (metadataRepositoryConfiguration.getVersion() != null) {
-                getLog().warn("The official JVM reachability metadata repository is not released yet. Only local repositories are supported");
-            }
-            if (metadataRepositoryConfiguration.getLocalPath() != null) {
-                repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
-            }
-
-            if (repoPath == null) {
-                getLog().warn("JVM reachability metadata repository is enabled, but no repository has been configured");
-            } else {
-                if (!Files.exists(repoPath)) {
-                    getLog().error("JVM reachability metadata repository path does not exist: " + repoPath);
-                } else {
-                    metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
-                        @Override
-                        public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                            getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
-                        }
-                    });
-                }
-            }
-        }
+        configureMetadataRepository();
         Set<Path> metadataRepositoryPaths = new HashSet<>();
 
         imageClasspath.clear();
@@ -159,16 +135,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
             for (Artifact dependency : project.getArtifacts()) {
                 addClasspath(dependency);
-                //TODO refactor to a method
-                if (isMetadataRepositoryEnabled() && metadataRepository != null && !isExcluded(dependency)) {
-                    metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
-                        q.useLatestConfigWhenVersionIsUntested();
-                        q.forArtifact(artifact -> {
-                            artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
-                            getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
-                        });
-                    }));
-                }
+                maybeAddDependencyMetadata(metadataRepositoryPaths, dependency);
             }
             addClasspath(project.getArtifact(), project.getPackaging());
         }
@@ -200,6 +167,45 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    private void configureMetadataRepository() {
+        if (isMetadataRepositoryEnabled()) {
+            Path repoPath = null;
+            if (metadataRepositoryConfiguration.getVersion() != null) {
+                getLog().warn("The official JVM reachability metadata repository is not released yet. Only local repositories are supported");
+            }
+            if (metadataRepositoryConfiguration.getLocalPath() != null) {
+                repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+            }
+
+            if (repoPath == null) {
+                getLog().warn("JVM reachability metadata repository is enabled, but no repository has been configured");
+            } else {
+                if (!Files.exists(repoPath)) {
+                    getLog().error("JVM reachability metadata repository path does not exist: " + repoPath);
+                } else {
+                    metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                        @Override
+                        public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                            getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    private void maybeAddDependencyMetadata(Set<Path> metadataRepositoryPaths, Artifact dependency) {
+        if (isMetadataRepositoryEnabled() && metadataRepository != null && !isExcluded(dependency)) {
+            metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
+                q.useLatestConfigWhenVersionIsUntested();
+                q.forArtifact(artifact -> {
+                    artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
+                    getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
+                });
+            }));
         }
     }
 
