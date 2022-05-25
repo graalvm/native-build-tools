@@ -105,7 +105,6 @@
             <id>shaded</id>
             <build>
                 <plugins>
-                    <!-- tag::shade-plugin[] -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
@@ -122,9 +121,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!-- end::shade-plugin[] -->
-
-                    <!-- tag::native-plugin[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
@@ -159,18 +155,19 @@
             <id>metadataLocal</id>
             <build>
                 <plugins>
+                    <!-- tag::metadata-local[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <configuration>
-                            <useArgFile>false</useArgFile>
                             <metadataRepository>
                                 <enabled>true</enabled>
-                                <localPath>${project.basedir}/config-directory</localPath>
+                                <localPath>${project.basedir}/config-directory</localPath> <!--1-->
                             </metadataRepository>
                         </configuration>
                     </plugin>
+                    <!-- end::metadata-local[] -->
                 </plugins>
             </build>
         </profile>
@@ -234,12 +231,12 @@
             <id>metadataExclude</id>
             <build>
                 <plugins>
+                    <!-- tag::metadata-exclude[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <configuration>
-                            <useArgFile>false</useArgFile>
                             <metadataRepository>
                                 <enabled>true</enabled>
                                 <localPath>${project.basedir}/config-directory</localPath>
@@ -253,6 +250,7 @@
                             </metadataRepository>
                         </configuration>
                     </plugin>
+                    <!-- end::metadata-exclude[] -->
                 </plugins>
             </build>
         </profile>
@@ -260,6 +258,7 @@
             <id>metadataForceVersion</id>
             <build>
                 <plugins>
+                    <!-- tag::metadata-force-version[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
@@ -279,6 +278,7 @@
                             </metadataRepository>
                         </configuration>
                     </plugin>
+                    <!-- end::metadata-force-version[] -->
                 </plugins>
             </build>
         </profile>

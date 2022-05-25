@@ -502,6 +502,50 @@ mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is
 automatically added to your native build options.
 
+[[metadata-support]]
+== JVM Reachability Metadata support
+
+Since release 0.9.12, the plugin adds experimental support for the https://github.com/graalvm/jvm-reachability-metadata/[JVM reachability metadata repository].
+This repository provides GraalVM configuration for libraries which do not officially support GraalVM native.
+
+A metadata repository consists of configuration files for GraalVM.
+
+=== Enabling the metadata repository
+
+Support needs to be enabled explicitly:. It is possible to use a _local repository_, in which case you can specify the path to the repository:
+
+.Enabling the metadata repository
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=metadata-local]
+----
+<1> The local path can point to an _exploded_ directory, or to a compressed archive in the following formats: `.zip`, `.tar.gz` or `.tar.bz2`.
+
+The local repository path indicated by `<localPath>` can be in exploded format (an uncompressed directory, or )
+
+=== Configuring the metadata repository
+
+Once activated, for each library included in the native image, the plugin will automatically search for GraalVM JVM reachability metadata in the repository.
+In some cases, you may need to exclude a particular module from the search.
+This can be done by configuring that particular dependency:
+
+.Excluding a module from search
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=metadata-exclude]
+----
+
+Last, it is possible for you to override the _metadata version_ of a particular module.
+This may be interesting if there's no specific metadata available for the particular version of the library that you use, but that you know that a version works:
+
+.Specifying the metadata version to use for a particular library
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=metadata-force-version]
+----
+
+
+
 [[javadocs]]
 == Javadocs
 
