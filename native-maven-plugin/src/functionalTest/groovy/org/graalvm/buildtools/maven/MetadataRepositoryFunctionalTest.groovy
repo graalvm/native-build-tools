@@ -119,4 +119,16 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Reflection failed"
     }
 
+    void "it can force metadata versions"() {
+        withSample("native-config-integration")
+
+        when:
+        mvn '-Pnative,metadataForceVersion', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+        outputContains "Reflection failed"
+    }
+
 }

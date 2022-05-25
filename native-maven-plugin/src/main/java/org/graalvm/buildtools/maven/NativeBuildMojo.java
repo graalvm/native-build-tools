@@ -43,7 +43,6 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.ConfigurationContainer;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecution;
@@ -160,10 +159,14 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
             for (Artifact dependency : project.getArtifacts()) {
                 addClasspath(dependency);
+                //TODO refactor to a method
                 if (isMetadataRepositoryEnabled() && metadataRepository != null && !isExcluded(dependency)) {
                     metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
                         q.useLatestConfigWhenVersionIsUntested();
-                        q.forArtifact(artifact -> artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion())));
+                        q.forArtifact(artifact -> {
+                            artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
+                            getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
+                        });
                     }));
                 }
             }
@@ -200,12 +203,19 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
     }
 
+    private Optional<String> getMetadataVersion(Artifact dependency) {
+        if (metadataRepositoryConfiguration == null) {
+            return Optional.empty();
+        } else {
+            return metadataRepositoryConfiguration.getMetadataVersion(dependency);
+        }
+    }
+
     private boolean isExcluded(Artifact dependency) {
-        List<Dependency> excludes = metadataRepositoryConfiguration.getExcludes();
-        if (excludes == null || excludes.isEmpty()) {
+        if (metadataRepositoryConfiguration == null) {
             return false;
         } else {
-            return excludes.stream().anyMatch(e -> e.getGroupId().equals(dependency.getGroupId()) && e.getArtifactId().equals(dependency.getArtifactId()));
+            return metadataRepositoryConfiguration.isArtifactExcluded(dependency);
         }
     }
 

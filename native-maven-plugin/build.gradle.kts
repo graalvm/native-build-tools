@@ -78,6 +78,10 @@ dependencies {
     mavenEmbedder(libs.maven.compat)
     mavenEmbedder(libs.slf4j.simple)
 
+    testImplementation(libs.test.spock)
+    testImplementation(libs.maven.core)
+    testImplementation(libs.maven.artifact)
+
     testFixturesImplementation(libs.test.spock)
 
     functionalTestCommonRepository(libs.utils)

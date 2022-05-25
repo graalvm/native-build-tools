@@ -243,12 +243,39 @@
                             <metadataRepository>
                                 <enabled>true</enabled>
                                 <localPath>${project.basedir}/config-directory</localPath>
-                                <excludes>
-                                    <exclude>
+                                <dependencies>
+                                    <dependency>
                                         <groupId>org.graalvm.internal</groupId>
                                         <artifactId>library-with-reflection</artifactId>
-                                    </exclude>
-                                </excludes>
+                                        <excluded>true</excluded>
+                                    </dependency>
+                                </dependencies>
+                            </metadataRepository>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>metadataForceVersion</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <configuration>
+                            <useArgFile>false</useArgFile>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                                <localPath>${project.basedir}/config-directory</localPath>
+                                <dependencies>
+                                    <dependency>
+                                        <groupId>org.graalvm.internal</groupId>
+                                        <artifactId>library-with-reflection</artifactId>
+                                        <metadataVersion>2</metadataVersion>
+                                    </dependency>
+                                </dependencies>
                             </metadataRepository>
                         </configuration>
                     </plugin>

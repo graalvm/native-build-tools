@@ -41,11 +41,14 @@
 
 package org.graalvm.buildtools.maven.config;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class MetadataRepositoryConfiguration {
 
@@ -59,7 +62,7 @@ public class MetadataRepositoryConfiguration {
     private File localPath;
 
     @Parameter
-    private List<Dependency> excludes;
+    private List<DependencyConfiguration> dependencies;
 
     public boolean isEnabled() {
         return enabled;
@@ -85,11 +88,73 @@ public class MetadataRepositoryConfiguration {
         this.localPath = localPath;
     }
 
-    public List<Dependency> getExcludes() {
-        return excludes;
+    public List<DependencyConfiguration> getDependencies() {
+        return dependencies;
     }
 
-    public void setExcludes(List<Dependency> excludes) {
-        this.excludes = excludes;
+    public void setDependencies(List<DependencyConfiguration> dependencies) {
+        this.dependencies = dependencies;
+    }
+
+    public boolean isArtifactExcluded(Artifact artifact) {
+        if (this.dependencies == null || this.dependencies.isEmpty()) {
+            return false;
+        } else {
+            return dependencies.stream()
+                    .filter(MetadataRepositoryConfiguration.DependencyConfiguration::isExcluded)
+                    .anyMatch(d -> d.getGroupId().equals(artifact.getGroupId()) && d.getArtifactId().equals(artifact.getArtifactId()));
+        }
+    }
+
+    public Optional<String> getMetadataVersion(Artifact artifact) {
+        if (this.dependencies == null || this.dependencies.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return dependencies.stream()
+                    .filter(d -> d.getGroupId().equals(artifact.getGroupId()) && d.getArtifactId().equals(artifact.getArtifactId()))
+                    .map(DependencyConfiguration::getMetadataVersion)
+                    .filter(Objects::nonNull)
+                    .findFirst();
+        }
+    }
+
+    public static class DependencyConfiguration extends Dependency {
+
+        public DependencyConfiguration() {
+        }
+
+        public DependencyConfiguration(String groupId, String artifactId, boolean excluded) {
+            setGroupId(groupId);
+            setArtifactId(artifactId);
+            this.excluded = excluded;
+        }
+
+        public DependencyConfiguration(String groupId, String artifactId, String metadataVersion) {
+            setGroupId(groupId);
+            setArtifactId(artifactId);
+            this.metadataVersion = metadataVersion;
+        }
+
+        @Parameter(defaultValue = "false")
+        private boolean excluded;
+
+        @Parameter
+        private String metadataVersion;
+
+        public boolean isExcluded() {
+            return excluded;
+        }
+
+        public void setExcluded(boolean excluded) {
+            this.excluded = excluded;
+        }
+
+        public String getMetadataVersion() {
+            return metadataVersion;
+        }
+
+        public void setMetadataVersion(String metadataVersion) {
+            this.metadataVersion = metadataVersion;
+        }
     }
 }
