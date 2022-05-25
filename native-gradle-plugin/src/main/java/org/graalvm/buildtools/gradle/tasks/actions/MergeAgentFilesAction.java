@@ -44,7 +44,6 @@ import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;

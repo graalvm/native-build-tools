@@ -238,12 +238,13 @@ public class NativeImagePlugin implements Plugin<Project> {
             config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
         });
 
-        project.getTasks().register("copyMetadata", MetadataCopyTask.class, task -> {
+        project.getTasks().register("metadataCopy", MetadataCopyTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             task.setDescription("Copies metadata collected from tasks instrumented with the agent into target directories.");
             task.getInputTaskNames().set(graalExtension.getAgent().getMetadataCopy().getInputTaskNames());
             task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
+            task.getToolchainDetection().set(graalExtension.getToolchainDetection());
         });
     }
 
