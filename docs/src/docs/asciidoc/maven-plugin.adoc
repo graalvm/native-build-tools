@@ -503,7 +503,7 @@ WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is
 automatically added to your native build options.
 
 [[metadata-support]]
-== JVM Reachability Metadata support
+== JVM Reachability Metadata Support
 
 Since release 0.9.12, the plugin adds experimental support for the https://github.com/graalvm/jvm-reachability-metadata/[JVM reachability metadata repository].
 This repository provides GraalVM configuration for libraries which do not officially support GraalVM native.
@@ -525,7 +525,7 @@ The local repository path indicated by `<localPath>` can be in exploded format (
 
 === Configuring the metadata repository
 
-Once activated, for each library included in the native image, the plugin will automatically search for GraalVM JVM reachability metadata in the repository.
+Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
 In some cases, you may need to exclude a particular module from the search.
 This can be done by configuring that particular dependency:
 
