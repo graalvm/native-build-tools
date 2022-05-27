@@ -17,6 +17,7 @@ aether = "1.1.0"
 slf4j = "1.7.9"
 groovy = "3.0.8"
 jgit = "5.12.0.202106070339-r"
+jetty = "11.0.9"
 
 [libraries]
 # Local projects
@@ -57,3 +58,5 @@ slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
 jsch = { module = "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch", version.ref="jgit" }
+
+jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }

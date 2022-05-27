@@ -41,8 +41,58 @@
 
 package org.graalvm.buildtools.utils;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.function.Consumer;
+
 public class FileUtils {
+
+    public static final int CONNECT_TIMEOUT = 5000;
+    public static final int READ_TIMEOUT = 5000;
+
     public static String normalizePathSeparators(String path) {
         return path.replace('\\', '/');
+    }
+
+    public static Optional<Path> download(URL url, Path destination, Consumer<String> errorLogger) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(CONNECT_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
+
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                errorLogger.accept("Failed to download from " + url + ": " + connection.getResponseCode() + " " + connection.getResponseMessage());
+            } else {
+                String fileName = "";
+                String disposition = connection.getHeaderField("Content-Disposition");
+
+                if (disposition != null) {
+                    int index = disposition.indexOf("filename=");
+                    if (index > 0) {
+                        fileName = disposition.substring(index + 9);
+                    }
+                } else {
+                    fileName = url.getFile().substring(url.getFile().lastIndexOf("/") + 1);
+                }
+
+                if (!Files.exists(destination)) {
+                    Files.createDirectories(destination);
+                }
+                Path result = destination.resolve(fileName);
+                Files.copy(connection.getInputStream(), result);
+
+                connection.disconnect();
+                return Optional.of(result);
+            }
+        } catch (IOException e) {
+            errorLogger.accept("Failed to download from " + url + ": " + e.getMessage());
+        }
+
+        return Optional.empty();
     }
 }

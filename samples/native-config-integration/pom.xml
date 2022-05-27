@@ -321,6 +321,47 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>metadataUrl</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.3.0</version>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <finalName>repo</finalName>
+                            <descriptors>
+                                <descriptor>${project.basedir}/src/main/assembly/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>archive-repo</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- tag::metadata-url[] -->
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <configuration>
+                            <useArgFile>false</useArgFile>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                                <url>${metadata.url}</url>
+                            </metadataRepository>
+                        </configuration>
+                    </plugin>
+                    <!-- end::metadata-url[] -->
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>

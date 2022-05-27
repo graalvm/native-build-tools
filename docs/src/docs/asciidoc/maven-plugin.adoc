@@ -503,7 +503,7 @@ WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is
 automatically added to your native build options.
 
 [[metadata-support]]
-== JVM Reachability Metadata Support
+== GraalVM Reachability Metadata Support
 
 Since release 0.9.12, the plugin adds experimental support for the https://github.com/graalvm/jvm-reachability-metadata/[JVM reachability metadata repository].
 This repository provides GraalVM configuration for libraries which do not officially support GraalVM native.
@@ -521,7 +521,13 @@ include::../../../../samples/native-config-integration/pom.xml[tag=metadata-loca
 ----
 <1> The local path can point to an _exploded_ directory, or to a compressed archive in the following formats: `.zip`, `.tar.gz` or `.tar.bz2`.
 
-The local repository path indicated by `<localPath>` can be in exploded format (an uncompressed directory, or )
+Alternatively, you can use a _remote repository_, in which case you can specify the URL of the repository:
+
+.Enabling a remote repository
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=metadata-url]
+----
 
 === Configuring the metadata repository
 

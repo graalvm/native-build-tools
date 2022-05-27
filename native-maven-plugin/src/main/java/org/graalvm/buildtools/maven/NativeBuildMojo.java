@@ -61,6 +61,7 @@ import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluatio
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
+import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.reachability.JvmReachabilityMetadataRepository;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -68,6 +69,7 @@ import org.graalvm.reachability.internal.FileSystemRepository;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -199,22 +201,12 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             }
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
                 Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
-                if (FileSystemRepository.isSupportedArchiveFormat(localPath.toString())) {
-                    File destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata").toFile();
-                    if (!destination.exists()) {
-                        destination.mkdirs();
-                    }
-                    UnArchiver unArchiver = getUnArchiverFor(localPath.getFileName().toString());
-                    if (unArchiver != null) {
-                        unArchiver.setSourceFile(localPath.toFile());
-                        unArchiver.setDestDirectory(destination);
-                        unArchiver.extract();
-                        repoPath = destination.toPath();
-                    } else {
-                        getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2");
-                    }
-                } else {
-                    repoPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+                repoPath = unzipLocalPath(localPath);
+            } else if (metadataRepositoryConfiguration.getUrl() != null) {
+                Optional<Path> download = download(metadataRepositoryConfiguration.getUrl());
+                if (download.isPresent()) {
+                    getLog().info("Downloaded GraalVM reachability metadata repository from " + metadataRepositoryConfiguration.getUrl());
+                    repoPath = unzipLocalPath(download.get());
                 }
             }
 
@@ -233,6 +225,34 @@ public class NativeBuildMojo extends AbstractNativeMojo {
                 }
             }
         }
+    }
+
+    private Optional<Path> download(URL url) {
+        Path destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
+        return FileUtils.download(url, destination, getLog()::error);
+    }
+
+    private Path unzipLocalPath(Path localPath) {
+        if (FileSystemRepository.isSupportedArchiveFormat(localPath.toString())) {
+            File destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata").toFile();
+            if (!destination.exists()) {
+                destination.mkdirs();
+            }
+            UnArchiver unArchiver = getUnArchiverFor(localPath.getFileName().toString());
+            if (unArchiver != null) {
+                unArchiver.setSourceFile(localPath.toFile());
+                unArchiver.setDestDirectory(destination);
+                unArchiver.extract();
+                return destination.toPath();
+            } else {
+                getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2");
+            }
+        } else if (Files.isDirectory(localPath)) {
+            return localPath;
+        } else {
+            getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2, or an exploded directory");
+        }
+        return null;
     }
 
     private UnArchiver getUnArchiverFor(String filename) {

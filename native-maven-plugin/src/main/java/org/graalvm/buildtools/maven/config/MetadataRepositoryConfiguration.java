@@ -46,6 +46,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.plugins.annotations.Parameter;
 
 import java.io.File;
+import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -60,6 +61,9 @@ public class MetadataRepositoryConfiguration {
 
     @Parameter
     private File localPath;
+
+    @Parameter
+    private URL url;
 
     @Parameter
     private List<DependencyConfiguration> dependencies;
@@ -86,6 +90,14 @@ public class MetadataRepositoryConfiguration {
 
     public void setLocalPath(File localPath) {
         this.localPath = localPath;
+    }
+
+    public URL getUrl() {
+        return url;
+    }
+
+    public void setUrl(URL url) {
+        this.url = url;
     }
 
     public List<DependencyConfiguration> getDependencies() {

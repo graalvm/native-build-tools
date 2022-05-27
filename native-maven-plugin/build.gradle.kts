@@ -82,8 +82,10 @@ dependencies {
     testImplementation(libs.test.spock)
     testImplementation(libs.maven.core)
     testImplementation(libs.maven.artifact)
+    testImplementation(libs.jetty.server)
 
     testFixturesImplementation(libs.test.spock)
+    testFixturesImplementation(libs.jetty.server)
 
     functionalTestCommonRepository(libs.utils)
     functionalTestCommonRepository(libs.junitPlatformNative)

@@ -41,6 +41,10 @@
 
 package org.graalvm.buildtools.maven
 
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.handler.ContextHandler
+import org.eclipse.jetty.server.handler.ResourceHandler
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -56,6 +60,9 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
 
     MavenExecutionResult result
 
+    Server server
+    ServerConnector connector
+
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
     boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
     boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
@@ -66,6 +73,13 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
                 testDirectory.resolve("m2-home").toFile(),
                 System.getProperty("maven.classpath")
         )
+    }
+
+    def cleanup() {
+        if (server != null) {
+            server.stop()
+            server.destroy()
+        }
     }
 
     protected void withDebug() {
@@ -85,6 +99,25 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     protected void withSample(String name) {
         File sampleDir = new File("../samples/$name")
         copySample(sampleDir.toPath(), testDirectory)
+    }
+
+    protected void withLocalServer() {
+        if (server == null) {
+            server = new Server()
+            connector = new ServerConnector(server)
+            server.addConnector(connector)
+            def handler = new ResourceHandler()
+            handler.resourceBase = testDirectory.toString()
+            handler.directoriesListed = true
+            def ctx = new ContextHandler("/")
+            ctx.handler = handler
+            server.handler = ctx
+            server.start()
+        }
+    }
+
+    protected int getLocalServerPort() {
+        return connector.getLocalPort()
     }
 
     private static void copySample(Path from, Path into) {

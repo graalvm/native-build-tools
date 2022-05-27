@@ -44,6 +44,7 @@ package org.graalvm.buildtools.maven
 class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
     void "if metadata is disabled, reflection fails"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -55,6 +56,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "it produces a warning if enabled but no repository is configured"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -67,6 +69,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "it produces a warning if repository version is defined"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -80,6 +83,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "it can use a metadata repository"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -97,6 +101,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "if the path doesn't exist it throws an error"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -109,6 +114,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "it can exclude dependencies"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -120,6 +126,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "it can force metadata versions"() {
+        given:
         withSample("native-config-integration")
 
         when:
@@ -132,8 +139,8 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     void "it can use a #format metadata repository"(String format) {
+        given:
         withSample("native-config-integration")
-        withDebug()
 
         when:
         mvn '-e', '-Pnative,metadataArchive', '-DrepoFormat=' + format, '-DskipTests', 'package', 'exec:exec@native'
@@ -150,6 +157,43 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         where:
         format << ['zip', 'tar.gz', 'tar.bz2']
+    }
+
+    void "it can download a remote repository"(String format) {
+        given:
+        withSample("native-config-integration")
+        withLocalServer()
+
+        when:
+        mvn '-e', '-Pnative,metadataUrl', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.${format}", '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "Hello, from reflection!"
+        outputContains "Downloaded GraalVM reachability metadata repository from http://localhost:${localServerPort}/target/repo.${format}"
+
+        and: "it doesn't find a configuration directory for the current version"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+
+        and: "but it finds one thanks to the latest configuration field"
+        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+
+        where:
+        format << ['zip', 'tar.gz', 'tar.bz2']
+    }
+
+    void "when pointing to a missing URL, reflection fails"() {
+        given:
+        withSample("native-config-integration")
+        withLocalServer()
+
+        when:
+        mvn '-e', '-Pnative,metadataUrl', "-Dmetadata.url=https://httpstat.us/404", '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+        outputContains "Reflection failed"
+        outputContains "Failed to download from https://httpstat.us/404: 404 Not Found"
     }
 
 }
