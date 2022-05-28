@@ -88,6 +88,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
+import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.ListProperty;
@@ -172,6 +173,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         graalExtension.getUseArgFile().convention(true);
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
+
+        project.getPlugins().withType(JavaLibraryPlugin.class, javaLibraryPlugin -> graalExtension.getAgent().getDefaultMode().convention("conditional"));
 
         project.afterEvaluate(p -> instrumentTasksWithAgent(project, graalExtension));
     }
