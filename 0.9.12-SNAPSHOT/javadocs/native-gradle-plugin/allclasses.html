@@ -21,12 +21,17 @@
 <main role="main" class="indexContainer">
 <ul>
 <li><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></li>
-<li><a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html" title="interface in org.graalvm.buildtools.gradle.dsl"><span class="interfaceName">AgentConfiguration</span></a></li>
+<li><a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html" title="class in org.graalvm.buildtools.gradle.internal.agent">AgentConfigurationFactory</a></li>
+<li><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="interfaceName">AgentModeOptions</span></a></li>
+<li><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="interfaceName">AgentOptions</span></a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/BaseNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">BaseNativeImageOptions</a></li>
 <li><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></li>
+<li><a href="org/graalvm/buildtools/gradle/tasks/actions/CleanupAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">CleanupAgentFilesAction</a></li>
+<li><a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="interfaceName">ConditionalAgentModeOptions</span></a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/DefaultTestBinaryConfig.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultTestBinaryConfig</a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/DeprecatedNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">DeprecatedNativeImageOptions</a></li>
+<li><a href="org/graalvm/buildtools/gradle/dsl/agent/DirectAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="interfaceName">DirectAgentModeOptions</span></a></li>
 <li><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></li>
 <li><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl"><span class="interfaceName">GraalVMExtension</span></a></li>
 <li><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.TestBinaryConfig.html" title="interface in org.graalvm.buildtools.gradle.dsl"><span class="interfaceName">GraalVMExtension.TestBinaryConfig</span></a></li>
@@ -35,6 +40,9 @@
 <li><a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl"><span class="interfaceName">JvmReachabilityMetadataRepositoryExtension</span></a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.html" title="class in org.graalvm.buildtools.gradle.internal">JvmReachabilityMetadataService</a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.Params.html" title="interface in org.graalvm.buildtools.gradle.internal"><span class="interfaceName">JvmReachabilityMetadataService.Params</span></a></li>
+<li><a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">MergeAgentFilesAction</a></li>
+<li><a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="interfaceName">MetadataCopyOptions</span></a></li>
+<li><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/NativeConfigurations.html" title="class in org.graalvm.buildtools.gradle.internal">NativeConfigurations</a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></li>
 <li><a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageExecutableLocator</a></li>
@@ -44,8 +52,9 @@
 <li><a href="org/graalvm/buildtools/gradle/NativeImageService.html" title="class in org.graalvm.buildtools.gradle">NativeImageService</a></li>
 <li><a href="org/graalvm/buildtools/gradle/dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></li>
 <li><a href="org/graalvm/buildtools/gradle/tasks/NativeRunTask.html" title="class in org.graalvm.buildtools.gradle.tasks">NativeRunTask</a></li>
-<li><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></li>
+<li><a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">ProcessGeneratedGraalResourceFilesAction</a></li>
 <li><a href="org/graalvm/buildtools/gradle/dsl/ResourceDetectionOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">ResourceDetectionOptions</a></li>
+<li><a href="org/graalvm/buildtools/gradle/dsl/agent/StandardAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="interfaceName">StandardAgentModeOptions</span></a></li>
 </ul>
 </main>
 </body>

@@ -199,15 +199,15 @@ implements <a href="../dsl/GraalVMExtension.html" title="interface in org.graalv
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#agent(org.gradle.api.Action)">agent</a></span>&#8203;(org.gradle.api.Action&lt;? super <a href="../dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a>&gt;&nbsp;spec)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#binaries(org.gradle.api.Action)">binaries</a></span>&#8203;(org.gradle.api.Action&lt;? super org.gradle.api.NamedDomainObjectContainer&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&gt;&nbsp;spec)</code></th>
 <td class="colLast">
 <div class="block">Configures the native image options.</div>
 </td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.util.Map&lt;java.lang.String,&#8203;org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getAgentProperties()">getAgentProperties</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>org.gradle.api.NamedDomainObjectContainer&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;</code></td>
@@ -237,7 +237,7 @@ implements <a href="../dsl/GraalVMExtension.html" title="interface in org.graalv
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.graalvm.buildtools.gradle.dsl.<a href="../dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></h3>
-<code><a href="../dsl/GraalVMExtension.html#getGeneratedResourcesDirectory()">getGeneratedResourcesDirectory</a>, <a href="../dsl/GraalVMExtension.html#getTestSupport()">getTestSupport</a>, <a href="../dsl/GraalVMExtension.html#getToolchainDetection()">getToolchainDetection</a>, <a href="../dsl/GraalVMExtension.html#getUseArgFile()">getUseArgFile</a></code></li>
+<code><a href="../dsl/GraalVMExtension.html#getAgent()">getAgent</a>, <a href="../dsl/GraalVMExtension.html#getGeneratedResourcesDirectory()">getGeneratedResourcesDirectory</a>, <a href="../dsl/GraalVMExtension.html#getTestSupport()">getTestSupport</a>, <a href="../dsl/GraalVMExtension.html#getToolchainDetection()">getToolchainDetection</a>, <a href="../dsl/GraalVMExtension.html#getUseArgFile()">getUseArgFile</a></code></li>
 </ul>
 </li>
 </ul>
@@ -294,6 +294,19 @@ public&nbsp;DefaultGraalVmExtension&#8203;(org.gradle.api.NamedDomainObjectConta
 </dl>
 </li>
 </ul>
+<a id="agent(org.gradle.api.Action)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>agent</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;agent&#8203;(org.gradle.api.Action&lt;? super <a href="../dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a>&gt;&nbsp;spec)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../dsl/GraalVMExtension.html#agent(org.gradle.api.Action)">agent</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></code></dd>
+</dl>
+</li>
+</ul>
 <a id="binaries(org.gradle.api.Action)">
 <!--   -->
 </a>
@@ -307,15 +320,6 @@ public&nbsp;DefaultGraalVmExtension&#8203;(org.gradle.api.NamedDomainObjectConta
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../dsl/GraalVMExtension.html#binaries(org.gradle.api.Action)">binaries</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></code></dd>
 </dl>
-</li>
-</ul>
-<a id="getAgentProperties()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getAgentProperties</h4>
-<pre class="methodSignature">public&nbsp;java.util.Map&lt;java.lang.String,&#8203;org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&gt;&nbsp;getAgentProperties()</pre>
 </li>
 </ul>
 <a id="registerTestBinary(java.lang.String,org.gradle.api.Action)">

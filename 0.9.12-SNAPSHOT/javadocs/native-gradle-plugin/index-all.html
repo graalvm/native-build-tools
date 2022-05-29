@@ -91,7 +91,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </nav>
 </header>
 <main role="main">
-<div class="contentContainer"><a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:G">G</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes</a>&nbsp;<a href="allpackages-index.html">All&nbsp;Packages</a><a id="I:A">
+<div class="contentContainer"><a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:G">G</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:M">M</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes</a>&nbsp;<a href="allpackages-index.html">All&nbsp;Packages</a><a id="I:A">
 <!--   -->
 </a>
 <h2 class="title">A</h2>
@@ -102,15 +102,21 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  you want to add more excludes but still want the conventional ones to be
  added.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#agent(org.gradle.api.Action)">agent(Action&lt;? super AgentConfiguration&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
-<dd>
-<div class="block">Configures the GraalVM agent options.</div>
-</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html#agent(org.gradle.api.Action)">agent(Action&lt;? super AgentOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html#agent(org.gradle.api.Action)">agent(Action&lt;? super AgentOptions&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal"><span class="typeNameLink">AgentCommandLineProvider</span></a> - Class in <a href="org/graalvm/buildtools/gradle/internal/package-summary.html">org.graalvm.buildtools.gradle.internal</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#%3Cinit%3E()">AgentCommandLineProvider()</a></span> - Constructor for class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html" title="interface in org.graalvm.buildtools.gradle.dsl"><span class="typeNameLink">AgentConfiguration</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/package-summary.html">org.graalvm.buildtools.gradle.dsl</a></dt>
+<dt><a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html" title="class in org.graalvm.buildtools.gradle.internal.agent"><span class="typeNameLink">AgentConfigurationFactory</span></a> - Class in <a href="org/graalvm/buildtools/gradle/internal/agent/package-summary.html">org.graalvm.buildtools.gradle.internal.agent</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html#%3Cinit%3E()">AgentConfigurationFactory()</a></span> - Constructor for class org.graalvm.buildtools.gradle.internal.agent.<a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html" title="class in org.graalvm.buildtools.gradle.internal.agent">AgentConfigurationFactory</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">AgentModeOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">AgentOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#apply(org.gradle.api.Project)">apply(Project)</a></span> - Method in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
 <dd>&nbsp;</dd>
@@ -199,6 +205,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/tasks/actions/CleanupAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions"><span class="typeNameLink">CleanupAgentFilesAction</span></a> - Class in <a href="org/graalvm/buildtools/gradle/tasks/actions/package-summary.html">org.graalvm.buildtools.gradle.tasks.actions</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/CleanupAgentFilesAction.html#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.file.FileSystemOperations)">CleanupAgentFilesAction(Provider&lt;List&lt;String&gt;&gt;, FileSystemOperations)</a></span> - Constructor for class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/CleanupAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">CleanupAgentFilesAction</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html#conditional(org.gradle.api.Action)">conditional(Action&lt;? super ConditionalAgentModeOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">ConditionalAgentModeOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#CONFIG_REPO_LOGLEVEL">CONFIG_REPO_LOGLEVEL</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
 <dd>&nbsp;</dd>
 </dl>
@@ -231,6 +245,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html#direct(org.gradle.api.Action)">direct(Action&lt;? super DirectAgentModeOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/DirectAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">DirectAgentModeOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <a id="I:E">
 <!--   -->
@@ -241,7 +259,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#exec()">exec()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#exec()">exec()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/NativeRunTask.html#exec()">exec()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/NativeRunTask.html" title="class in org.graalvm.buildtools.gradle.tasks">NativeRunTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/CleanupAgentFilesAction.html#execute(org.gradle.api.Task)">execute(Task)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/CleanupAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">CleanupAgentFilesAction</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html#execute(org.gradle.api.Task)">execute(Task)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">MergeAgentFilesAction</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html#execute(org.gradle.api.Task)">execute(Task)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">ProcessGeneratedGraalResourceFilesAction</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a id="I:F">
@@ -249,8 +275,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </a>
 <h2 class="title">F</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#filterResources(org.gradle.work.InputChanges)">filterResources(InputChanges)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html#findConfiguration(org.gradle.api.Project,java.lang.String)">findConfiguration(Project, String)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html" title="class in org.graalvm.buildtools.gradle.internal">GradleUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.html#findConfigurationDirectoriesFor(java.lang.String)">findConfigurationDirectoriesFor(String)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.html" title="class in org.graalvm.buildtools.gradle.internal">JvmReachabilityMetadataService</a></dt>
@@ -269,7 +293,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html#findMainArtifacts(org.gradle.api.Project)">findMainArtifacts(Project)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html" title="class in org.graalvm.buildtools.gradle.internal">GradleUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html#findNativeImageExecutable(org.graalvm.buildtools.gradle.dsl.NativeImageOptions,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations,org.graalvm.buildtools.gradle.internal.GraalVMLogger)">findNativeImageExecutable(NativeImageOptions, Provider&lt;Boolean&gt;, Provider&lt;String&gt;, ExecOperations, GraalVMLogger)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageExecutableLocator</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html#findNativeImageExecutable(org.gradle.api.provider.Property,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations,org.graalvm.buildtools.gradle.internal.GraalVMLogger)">findNativeImageExecutable(Property&lt;JavaLauncher&gt;, Provider&lt;Boolean&gt;, Provider&lt;String&gt;, ExecOperations, GraalVMLogger)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageExecutableLocator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html#findSourceSet(org.gradle.api.Project,java.lang.String)">findSourceSet(Project, String)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html" title="class in org.graalvm.buildtools.gradle.internal">GradleUtils</a></dt>
 <dd>&nbsp;</dd>
@@ -288,29 +312,23 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dl>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html#generate()">generate()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME">GENERATE_RESOURCES_CONFIG_FILE_TASK_NAME</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME">GENERATE_TEST_RESOURCES_CONFIG_FILE_TASK_NAME</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks"><span class="typeNameLink">GenerateResourcesConfigFile</span></a> - Class in <a href="org/graalvm/buildtools/gradle/tasks/package-summary.html">org.graalvm.buildtools.gradle.tasks</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html#%3Cinit%3E()">GenerateResourcesConfigFile()</a></span> - Constructor for class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getAgent()">getAgent()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getAccessFilterFiles()">getAccessFilterFiles()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
 <dd>
-<div class="block">Returns the GraalVM agent configuration.</div>
+<div class="block">Access-filter files that will be passed to the agent.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/DeprecatedNativeImageOptions.html#getAgent()">getAgent()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/DeprecatedNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">DeprecatedNativeImageOptions</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
-&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html#getAgentEnabled()">getAgentEnabled()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html#getAgent()">getAgent()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getAgentEnabled()">getAgentEnabled()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html#getAgentConfiguration(org.gradle.api.provider.Provider,org.graalvm.buildtools.gradle.dsl.agent.AgentOptions)">getAgentConfiguration(Provider&lt;String&gt;, AgentOptions)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.agent.<a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html" title="class in org.graalvm.buildtools.gradle.internal.agent">AgentConfigurationFactory</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#getAgentMode()">getAgentMode()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#getAgentOptions()">getAgentOptions()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html#getAgentProperties()">getAgentProperties()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html#getAgentOutputDirectoryForTask(org.gradle.api.file.ProjectLayout,java.lang.String)">getAgentOutputDirectoryForTask(ProjectLayout, String)</a></span> - Static method in class org.graalvm.buildtools.gradle.internal.agent.<a href="org/graalvm/buildtools/gradle/internal/agent/AgentConfigurationFactory.html" title="class in org.graalvm.buildtools.gradle.internal.agent">AgentConfigurationFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.html#getArchiveOperations()">getArchiveOperations()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.html" title="class in org.graalvm.buildtools.gradle.internal">JvmReachabilityMetadataService</a></dt>
 <dd>&nbsp;</dd>
@@ -334,12 +352,24 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getBuiltinCallerFilter()">getBuiltinCallerFilter()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Toggles the builtin agent caller filter.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getBuiltinHeuristicFilter()">getBuiltinHeuristicFilter()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Toggles the builtin agent heuristic filter.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeResourcesOptions.html#getBundles()">getBundles()</a></span> - Method in class org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></dt>
 <dd>
 <div class="block">The list of bundles to include in the generated resources file.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.Params.html#getCacheDir()">getCacheDir()</a></span> - Method in interface org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/JvmReachabilityMetadataService.Params.html" title="interface in org.graalvm.buildtools.gradle.internal">JvmReachabilityMetadataService.Params</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getCallerFilterFiles()">getCallerFilterFiles()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Caller-filter files that will be passed to the agent.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getClasspath()">getClasspath()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>
 <div class="block">Returns the classpath for the native-image building.</div>
@@ -357,6 +387,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html#getClasspathJar()">getClasspathJar()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getClasspathJar()">getClasspathJar()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html#getConditional()">getConditional()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getConfigurationFileDirectories()">getConfigurationFileDirectories()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>
@@ -384,6 +416,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getDefaultMode()">getDefaultMode()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">The default agent mode name when the agent is in use.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/ResourceDetectionOptions.html#getDetectionExclusionPatterns()">getDetectionExclusionPatterns()</a></span> - Method in class org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/ResourceDetectionOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">ResourceDetectionOptions</a></dt>
 <dd>
 <div class="block">Returns the list of regular expressions which will be used to exclude
@@ -391,14 +427,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeResourcesOptions.html#getDetectionOptions()">getDetectionOptions()</a></span> - Method in class org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html#getDirect()">getDirect()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.TrackingDirectorySystemPropertyProvider.html#getDirectory()">getDirectory()</a></span> - Method in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.TrackingDirectorySystemPropertyProvider.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin.TrackingDirectorySystemPropertyProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getDisableToolchainDetection()">getDisableToolchainDetection()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html#getEnabled()">getEnabled()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html" title="interface in org.graalvm.buildtools.gradle.dsl">AgentConfiguration</a></dt>
-<dd>
-<div class="block">Gets the value which toggles the native-image-agent usage.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html#getEnabled()">getEnabled()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">JvmReachabilityMetadataRepositoryExtension</a></dt>
 <dd>
 <div class="block">Property used to determine if the native configuration
@@ -410,6 +444,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#getEnabled()">getEnabled()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getEnableExperimentalPredefinedClasses()">getEnableExperimentalPredefinedClasses()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Toggles the experimental support for predefined classes.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getEnableExperimentalUnsafeAllocationTracing()">getEnableExperimentalUnsafeAllocationTracing()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Toggles the experimental support for unsafe allocation tracing.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/NativeRunTask.html#getEnvironment()">getEnvironment()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/NativeRunTask.html" title="class in org.graalvm.buildtools.gradle.tasks">NativeRunTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html#getExcludedModules()">getExcludedModules()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">JvmReachabilityMetadataRepositoryExtension</a></dt>
@@ -433,6 +475,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getExecutableShortName()">getExecutableShortName()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html#getExtraFilterPath()">getExtraFilterPath()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">ConditionalAgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getFallback()">getFallback()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/BaseNativeImageOptions.html#getFallback()">getFallback()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/BaseNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">BaseNativeImageOptions</a></dt>
@@ -445,12 +489,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#getFileOperations()">getFileOperations()</a></span> - Method in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#getFilterableEntries()">getFilterableEntries()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#getGeneratedFilesDir()">getGeneratedFilesDir()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getFilterableEntries()">getFilterableEntries()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
 <dd>
-<div class="block">The directory which contains the files generated by the GraalVM agent.</div>
+<div class="block">Specifies prefixes that will be used to further filter files produced by the agent.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#getFilterableEntries()">getFilterableEntries()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html#getGeneratedResourcesDirectory()">getGeneratedResourcesDirectory()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getGraalVMHome()">getGraalVMHome()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
@@ -483,10 +527,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The list of resources to include, as Java regular expressions.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html#getInstrumentedTask()">getInstrumentedTask()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html" title="interface in org.graalvm.buildtools.gradle.dsl">AgentConfiguration</a></dt>
-<dd>
-<div class="block">Configures the task which needs to be instrumented.</div>
-</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#getInputFiles()">getInputFiles()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html#getInputTaskNames()">getInputTaskNames()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">MetadataCopyOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#getInputTaskNames()">getInputTaskNames()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getJavaLauncher()">getJavaLauncher()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>
 <div class="block">Returns the toolchain used to invoke native-image.</div>
@@ -527,6 +573,18 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html#getMergeWithExisting()">getMergeWithExisting()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">MetadataCopyOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#getMergeWithExisting()">getMergeWithExisting()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getMetadataCopy()">getMetadataCopy()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Configuration of the metadata copy task.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getModes()">getModes()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Contains configuration of supported agent modes.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html#getModuleToConfigVersion()">getModuleToConfigVersion()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/JvmReachabilityMetadataRepositoryExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">JvmReachabilityMetadataRepositoryExtension</a></dt>
 <dd>
 <div class="block">A map from a module (org.group:artifact) to configuration
@@ -544,27 +602,29 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 &nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getObjects()">getObjects()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html#getOptions()">getOptions()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/AgentConfiguration.html" title="interface in org.graalvm.buildtools.gradle.dsl">AgentConfiguration</a></dt>
-<dd>
-<div class="block">Gets the native agent options.</div>
-</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/DirectAgentModeOptions.html#getOptions()">getOptions()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/DirectAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">DirectAgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html#getOptions()">getOptions()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getOptions()">getOptions()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html#getOptions()">getOptions()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html#getOutputDirectories()">getOutputDirectories()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">MetadataCopyOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#getOutputDirectories()">getOutputDirectories()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html#getOutputDirectory()">getOutputDirectory()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/AgentCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">AgentCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html#getOutputDirectory()">getOutputDirectory()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#getOutputDirectory()">getOutputDirectory()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getOutputDirectory()">getOutputDirectory()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getOutputFile()">getOutputFile()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html#getOutputFile()">getOutputFile()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html#getParallel()">getParallel()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">ConditionalAgentModeOptions</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getProviders()">getProviders()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
@@ -611,6 +671,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 &nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/DefaultTestBinaryConfig.html#getSourceSet()">getSourceSet()</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/DefaultTestBinaryConfig.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultTestBinaryConfig</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html#getStandard()">getStandard()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getSystemProperties()">getSystemProperties()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>
 <div class="block">Returns the system properties which will be used by the native-image builder process.</div>
@@ -623,6 +685,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getTasksToInstrumentPredicate()">getTasksToInstrumentPredicate()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Selects tasks that should be instrumented with the agent.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#getTestListDirectory()">getTestListDirectory()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html#getTestSupport()">getTestSupport()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></dt>
@@ -634,6 +700,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html#getToolchainDetection()">getToolchainDetection()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></dt>
 <dd>
 <div class="block">Property driving the detection of toolchains which support building native images.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#getToolchainDetection()">getToolchainDetection()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#getTrackReflectionMetadata()">getTrackReflectionMetadata()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>
+<div class="block">Toggles the distinction between queried and used metadata.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html#getTransitiveProjectArtifacts()">getTransitiveProjectArtifacts()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/GenerateResourcesConfigFile.html" title="class in org.graalvm.buildtools.gradle.tasks">GenerateResourcesConfigFile</a></dt>
 <dd>&nbsp;</dd>
@@ -654,6 +726,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">If set to true, this will build a fat jar of the image classpath
  instead of passing each jar individually to the classpath.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html#getUserCodeFilterPath()">getUserCodeFilterPath()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/ConditionalAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">ConditionalAgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#getVerbose()">getVerbose()</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>
 <div class="block">Gets the value which toggles native-image verbose output.</div>
@@ -757,6 +831,26 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/GraalVMLogger.html#log(java.lang.String,java.lang.Object...)">log(String, Object...)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GraalVMLogger.html" title="class in org.graalvm.buildtools.gradle.internal">GraalVMLogger</a></dt>
 <dd>&nbsp;</dd>
 </dl>
+<a id="I:M">
+<!--   -->
+</a>
+<h2 class="title">M</h2>
+<dl>
+<dt><a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions"><span class="typeNameLink">MergeAgentFilesAction</span></a> - Class in <a href="org/graalvm/buildtools/gradle/tasks/actions/package-summary.html">org.graalvm.buildtools.gradle.tasks.actions</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations,org.gradle.api.logging.Logger)">MergeAgentFilesAction(Provider&lt;Boolean&gt;, Provider&lt;AgentMode&gt;, Provider&lt;Boolean&gt;, ObjectFactory, Provider&lt;String&gt;, Provider&lt;List&lt;String&gt;&gt;, Provider&lt;List&lt;String&gt;&gt;, Provider&lt;Boolean&gt;, ExecOperations, Logger)</a></span> - Constructor for class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">MergeAgentFilesAction</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#metadataCopy(org.gradle.api.Action)">metadataCopy(Action&lt;? super MetadataCopyOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">MetadataCopyOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks"><span class="typeNameLink">MetadataCopyTask</span></a> - Class in <a href="org/graalvm/buildtools/gradle/tasks/package-summary.html">org.graalvm.buildtools.gradle.tasks</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#%3Cinit%3E(org.gradle.api.file.ProjectLayout,org.gradle.api.provider.ProviderFactory,org.gradle.api.model.ObjectFactory,org.gradle.process.ExecOperations)">MetadataCopyTask(ProjectLayout, ProviderFactory, ObjectFactory, ExecOperations)</a></span> - Constructor for class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html#modes(org.gradle.api.Action)">modes(Action&lt;? super AgentModeOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></dt>
+<dd>&nbsp;</dd>
+</dl>
 <a id="I:N">
 <!--   -->
 </a>
@@ -768,8 +862,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#NATIVE_TEST_COMPILE_TASK_NAME">NATIVE_TEST_COMPILE_TASK_NAME</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#NATIVE_TEST_EXTENSION">NATIVE_TEST_EXTENSION</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#NATIVE_TEST_TASK_NAME">NATIVE_TEST_TASK_NAME</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/internal/NativeConfigurations.html" title="class in org.graalvm.buildtools.gradle.internal"><span class="typeNameLink">NativeConfigurations</span></a> - Class in <a href="org/graalvm/buildtools/gradle/internal/package-summary.html">org.graalvm.buildtools.gradle.internal</a></dt>
@@ -778,7 +870,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal"><span class="typeNameLink">NativeImageCommandLineProvider</span></a> - Class in <a href="org/graalvm/buildtools/gradle/internal/package-summary.html">org.graalvm.buildtools.gradle.internal</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">NativeImageCommandLineProvider(Provider&lt;NativeImageOptions&gt;, Provider&lt;Boolean&gt;, Provider&lt;String&gt;, Provider&lt;String&gt;, Provider&lt;RegularFile&gt;, Provider&lt;Boolean&gt;)</a></span> - Constructor for class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">NativeImageCommandLineProvider(Provider&lt;NativeImageOptions&gt;, Provider&lt;String&gt;, Provider&lt;String&gt;, Provider&lt;RegularFile&gt;, Provider&lt;Boolean&gt;)</a></span> - Constructor for class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html" title="class in org.graalvm.buildtools.gradle.internal"><span class="typeNameLink">NativeImageExecutableLocator</span></a> - Class in <a href="org/graalvm/buildtools/gradle/internal/package-summary.html">org.graalvm.buildtools.gradle.internal</a></dt>
 <dd>&nbsp;</dd>
@@ -820,9 +912,19 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/dsl/package-summary.html">org.graalvm.buildtools.gradle.dsl</a> - package org.graalvm.buildtools.gradle.dsl</dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a> - package org.graalvm.buildtools.gradle.dsl.agent</dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/internal/package-summary.html">org.graalvm.buildtools.gradle.internal</a> - package org.graalvm.buildtools.gradle.internal</dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/internal/agent/package-summary.html">org.graalvm.buildtools.gradle.internal.agent</a> - package org.graalvm.buildtools.gradle.internal.agent</dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/tasks/package-summary.html">org.graalvm.buildtools.gradle.tasks</a> - package org.graalvm.buildtools.gradle.tasks</dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/tasks/actions/package-summary.html">org.graalvm.buildtools.gradle.tasks.actions</a> - package org.graalvm.buildtools.gradle.tasks.actions</dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#overrideInputTaskNames(java.util.List)">overrideInputTaskNames(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#overrideOutputDirectories(java.util.List)">overrideOutputDirectories(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a id="I:P">
@@ -830,21 +932,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </a>
 <h2 class="title">P</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX">PROCESS_AGENT_RESOURCES_TASK_NAME_PREFIX</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html#processFile(java.io.File)">processFile(File)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">ProcessGeneratedGraalResourceFilesAction</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX">PROCESS_AGENT_RESOURCES_TASK_NAME_SUFFIX</a></span> - Static variable in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#processFile(java.io.File,java.io.File)">processFile(File, File)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal"><span class="typeNameLink">ProcessGeneratedGraalResourceFiles</span></a> - Class in <a href="org/graalvm/buildtools/gradle/internal/package-summary.html">org.graalvm.buildtools.gradle.internal</a></dt>
+<dt><a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions"><span class="typeNameLink">ProcessGeneratedGraalResourceFilesAction</span></a> - Class in <a href="org/graalvm/buildtools/gradle/tasks/actions/package-summary.html">org.graalvm.buildtools.gradle.tasks.actions</a></dt>
 <dd>
 <div class="block">This task is responsible for processing the JSON files generated by
  the GraalVM agent, in particular to filter out entries which are
  inherited from the Gradle environment itself.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#%3Cinit%3E()">ProcessGeneratedGraalResourceFiles()</a></span> - Constructor for class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.ListProperty)">ProcessGeneratedGraalResourceFilesAction(Provider&lt;Directory&gt;, ListProperty&lt;String&gt;)</a></span> - Constructor for class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">ProcessGeneratedGraalResourceFilesAction</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html#processJsonFile(java.io.File,java.io.File)">processJsonFile(File, File)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/ProcessGeneratedGraalResourceFiles.html" title="class in org.graalvm.buildtools.gradle.internal">ProcessGeneratedGraalResourceFiles</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html#processJsonFile(java.io.File)">processJsonFile(File)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/ProcessGeneratedGraalResourceFilesAction.html" title="class in org.graalvm.buildtools.gradle.tasks.actions">ProcessGeneratedGraalResourceFilesAction</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a id="I:R">
@@ -904,6 +1002,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </a>
 <h2 class="title">S</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html#standard(org.gradle.api.Action)">standard(Action&lt;? super StandardAgentModeOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/gradle/dsl/agent/StandardAgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">StandardAgentModeOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html#systemProperties(java.util.Map)">systemProperties(Map&lt;String, ?&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></dt>
 <dd>
 <div class="block">Adds some system properties to be used by the native-image builder process.</div>
@@ -976,7 +1078,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/GraalVMLogger.html#warn(java.lang.String)">warn(String)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GraalVMLogger.html" title="class in org.graalvm.buildtools.gradle.internal">GraalVMLogger</a></dt>
 <dd>&nbsp;</dd>
 </dl>
-<a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:G">G</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes</a>&nbsp;<a href="allpackages-index.html">All&nbsp;Packages</a></div>
+<a href="#I:A">A</a>&nbsp;<a href="#I:B">B</a>&nbsp;<a href="#I:C">C</a>&nbsp;<a href="#I:D">D</a>&nbsp;<a href="#I:E">E</a>&nbsp;<a href="#I:F">F</a>&nbsp;<a href="#I:G">G</a>&nbsp;<a href="#I:I">I</a>&nbsp;<a href="#I:J">J</a>&nbsp;<a href="#I:L">L</a>&nbsp;<a href="#I:M">M</a>&nbsp;<a href="#I:N">N</a>&nbsp;<a href="#I:O">O</a>&nbsp;<a href="#I:P">P</a>&nbsp;<a href="#I:R">R</a>&nbsp;<a href="#I:S">S</a>&nbsp;<a href="#I:T">T</a>&nbsp;<a href="#I:U">U</a>&nbsp;<a href="#I:V">V</a>&nbsp;<a href="#I:W">W</a>&nbsp;<br><a href="allclasses-index.html">All&nbsp;Classes</a>&nbsp;<a href="allpackages-index.html">All&nbsp;Packages</a></div>
 </main>
 <footer role="contentinfo">
 <nav role="navigation">

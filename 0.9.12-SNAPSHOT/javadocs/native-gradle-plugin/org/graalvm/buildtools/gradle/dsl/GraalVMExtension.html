@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6};
+var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -174,45 +174,55 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#agent(org.gradle.api.Action)">agent</a></span>&#8203;(org.gradle.api.Action&lt;? super <a href="agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a>&gt;&nbsp;spec)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#binaries(org.gradle.api.Action)">binaries</a></span>&#8203;(org.gradle.api.Action&lt;? super org.gradle.api.NamedDomainObjectContainer&lt;<a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&gt;&nbsp;spec)</code></th>
 <td class="colLast">
 <div class="block">Configures the native image options.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
+<td class="colFirst"><code><a href="agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getAgent()">getAgent</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.NamedDomainObjectContainer&lt;<a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getBinaries()">getBinaries</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the native image configurations used to generate images.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getGeneratedResourcesDirectory()">getGeneratedResourcesDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getTestSupport()">getTestSupport</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Determines if test support is active.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getToolchainDetection()">getToolchainDetection</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Property driving the detection of toolchains which support building native images.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUseArgFile()">getUseArgFile</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Property driving the use of @-arg files when invoking native image.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerTestBinary(java.lang.String,org.gradle.api.Action)">registerTestBinary</a></span>&#8203;(java.lang.String&nbsp;name,
                   org.gradle.api.Action&lt;? super <a href="GraalVMExtension.TestBinaryConfig.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension.TestBinaryConfig</a>&gt;&nbsp;spec)</code></th>
@@ -248,6 +258,24 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  to disable automatic test support, especially in cases
  where the test framework doesn't allow testing within
  a native image.</div>
+</li>
+</ul>
+<a id="getAgent()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getAgent</h4>
+<pre class="methodSignature"><a href="agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a>&nbsp;getAgent()</pre>
+</li>
+</ul>
+<a id="agent(org.gradle.api.Action)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>agent</h4>
+<pre class="methodSignature">void&nbsp;agent&#8203;(org.gradle.api.Action&lt;? super <a href="agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentOptions</a>&gt;&nbsp;spec)</pre>
 </li>
 </ul>
 <a id="getGeneratedResourcesDirectory()">

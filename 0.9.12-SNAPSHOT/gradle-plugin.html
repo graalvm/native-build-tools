@@ -769,6 +769,49 @@ Therefore, it becomes your responsibility to make sure that the environment vari
 <div class="title">NativeImageOption configuration</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    // Injects the native-image-agent into supported tasks if `-Pagent` is specified
+    agent {
+        defaultMode = "standard" // Default agent mode if one isn't specified using `-Pagent=mode_name`
+
+        modes {
+            // The standard agent mode generates metadata without conditions.
+            standard {
+            }
+            // The conditional agent mode generates metadata with conditions.
+            conditional {
+                userCodeFilterPath = "path-to-filter.json" // Path to a filter file that determines classes which will be used in the metadata conditions.
+                extrFilterPath = "path-to-another-filter.json" // Optional, extra filter used to further filter the collected metadata.
+            }
+            // The direct agent mode allows users to directly pass options to the agent.
+            direct {
+                // {output_dir} is a special string expanded by the plugin to where the agent files would usually be output.
+                options.add("config-output-dir={output_dir}")
+                options.add("experimental-configuration-with-origins")
+            }
+        }
+
+        callerFilterFiles.from("filter.json")
+        accessFilterFiles.from("filter.json")
+        builtinCallerFilter = true
+        builtinHeuristicFilter = true
+        enableExperimentalPredefinedClasses = false
+        enableExperimentalUnsafeAllocationTracing = false
+        trackReflectionMetadata = true
+
+        // Copies metadata collected from tasks into the specified directories.
+        metadataCopy {
+            inputTaskNames.add("test") // Tasks previously executed with the agent attached.
+            outputDirectories.add("src/main/resources/META-INF/native-image")
+            mergeWithExisting = true // Instead of copying, merge with existing metadata in the output directories.
+        }
+
+        /*
+        By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
+        This can be limited to only specific tasks that match this predicate.
+         */
+        tasksToInstrumentPredicate = t -&gt; true
+    }
+
     binaries {
         main {
             // Main options
@@ -788,11 +831,6 @@ Therefore, it becomes your responsibility to make sure that the environment vari
 
             // Runtime options
             runtimeArgs.add('--help') // Passes '--help' to built image, during "nativeRun" task
-
-            // Development options
-            agent {
-                enabled = true // Enables the reflection agent. Can be also set on command line using '-Pagent'
-            }
 
             useFatJar = true // Instead of passing each jar individually, builds a fat jar
         }
@@ -822,11 +860,6 @@ Therefore, it becomes your responsibility to make sure that the environment vari
 
             // Runtime options
             runtimeArgs.add("--help") // Passes '--help' to built image, during "nativeRun" task
-
-            // Development options
-            agent {
-                enabled.set(true) // Enables the reflection agent. Can be also set on command line using '-Pagent'
-            }
 
             useFatJar.set(true) // Instead of passing each jar individually, builds a fat jar
         }
@@ -1068,27 +1101,39 @@ In this case you can register a new native test binary via the <code>graalvmNati
 <p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
 </div>
 <div class="paragraph">
-<p>The Native Image Gradle plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
+<p>The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
 </div>
 <div class="paragraph">
-<p>This should be as easy as appending <code>-Pagent</code> to the <code>run</code> and <code>nativeBuild</code>, or <code>test</code> and <code>nativeTest</code> task invocations:</p>
+<p>Any task that extends <code>JavaForkOptions</code> (like <code>test</code>, <code>run</code> etc) can be instrumented by passing <code>-Pagent</code> to gradle when running said tasks.</p>
+</div>
+<div class="paragraph">
+<p>The agent can run in multiple modes that dictate how the metadata is collected and merged.</p>
+</div>
+<div class="paragraph">
+<p>Once the metadata is collected, it can be copied into the project using the <code>metadataCopy</code> task.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent run # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeCompile # Builds image using configuration acquired by agent.
+./gradlew metadataCopy --task run --dir src/main/resources/META-INF/native-image # Copies the metadata collected by the agent into the project sources
+./gradlew nativeCompile # Builds image using metadata acquired by the agent.
 
 # For testing
-./gradlew -Pagent test # Runs on JVM with native-image-agent.
-./gradlew -Pagent nativeTest # Builds image using configuration acquired by agent.</code></pre>
+./gradlew -Pagent nativeTest # Runs on JVM with the native-image agent, collects the metadata and uses it for testing on native-image.</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The agent can also be enabled by setting the corresponding DSL flag; however, that is not recommended since this is a development mode feature only.</p>
+<p>The agent can run in multiple modes:
+* Standard - Collects metadata without conditions. This is recommended if you are building an executable.
+* Conditional - Collects metadata with conditions. This is recommended if you are creating conditional metadata for a library intended for further use.
+* Direct - For advanced users only. This mode allows directly controlling the command line passed to the agent.</p>
+</div>
+<div class="paragraph">
+<p>The default mode is specified in the DSL but can be changed by passing the mode name to Gradle when using the agent: <code>-Pagent=conditional</code></p>
 </div>
 <div class="paragraph">
 <p>The generated configuration files will be found in the <code>${buildDir}/native/agent-output/${taskName}</code> directory, for example, <code>build/native/agent-output/run</code>.
-Although those files will be automatically used if you run your build with the agent enabled, you should consider reviewing them and adding them to your sources instead.</p>
+The plugin will also substitute <code>{output_dir}</code> in the agent options to point to this directory during the agent run.</p>
 </div>
 <div class="sect2">
 <h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h3>
@@ -1097,7 +1142,7 @@ Although those files will be automatically used if you run your build with the a
 This can be done using the <code>agent</code> configuration block:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Configuring agent options for every binary</div>
+<div class="title">Configuring agent options</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     binaries.configureEach {
@@ -1111,51 +1156,8 @@ This can be done using the <code>agent</code> configuration block:</p>
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries.configureEach {
-        agent {
-            options.add("experimental-class-loader-support")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You may also define distinct agent options for different images.
-In the following example, the agent used for instrumentation for the main image has distinct options from the test ones:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="title">Configuring agent options specifically</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries {
-        main {
-            agent {
-                options.add("experimental-class-loader-support")
-            }
-        }
-        test {
-            agent {
-                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
-            }
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries {
-        named("main") {
-            agent {
-                options.add("experimental-class-loader-support")
-            }
-        }
-        named("test") {
-            agent {
-                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
-            }
-        }
+    agent {
+        enableExperimentalPredefinedClasses = true
     }
 }</code></pre>
 </div>
