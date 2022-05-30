@@ -8,7 +8,6 @@ maven = "3.3.9"
 mavenAnnotations = "3.5.1"
 mavenEmbedder = "3.8.1"
 mavenWagon = "3.4.3"
-plexusArchiver = "4.2.7"
 graalvm = "21.1.0"
 jackson = "2.12.4"
 junitPlatform = "1.8.1"
@@ -52,7 +51,6 @@ maven-aether-wagon = { module = "org.eclipse.aether:aether-transport-wagon", ver
 maven-wagon-file = { module = "org.apache.maven.wagon:wagon-file", version.ref = "mavenWagon" }
 maven-wagon-http = { module = "org.apache.maven.wagon:wagon-http", version.ref = "mavenWagon" }
 maven-wagon-provider = { module = "org.apache.maven.wagon:wagon-provider-api", version.ref = "mavenWagon" }
-plexus-archiver = { module = "org.codehaus.plexus:plexus-archiver", version.ref = "plexusArchiver" }
 
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 

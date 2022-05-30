@@ -100,8 +100,7 @@ public final class FileUtils {
     }
 
     public static void extract(Path archive, Path destination, Consumer<String> errorLogger) {
-        String normalizedPath = archive.toString().toLowerCase();
-        if (normalizedPath.endsWith(".zip")) {
+        if (isZip(archive)) {
             try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(archive.toFile().toPath()))) {
                 for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
                     Optional<Path> sanitizedPath = sanitizePath(entry, destination);
@@ -127,6 +126,10 @@ public final class FileUtils {
         } else {
             errorLogger.accept("Unsupported archive format: " + archive + ". Only ZIP files are supported");
         }
+    }
+
+    public static boolean isZip(Path archive) {
+        return archive.toString().toLowerCase().endsWith(".zip");
     }
 
     private static Optional<Path> sanitizePath(ZipEntry entry, Path destination) {

@@ -138,12 +138,12 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Reflection failed"
     }
 
-    void "it can use a #format metadata repository"(String format) {
+    void "it can use a ZIP metadata repository"() {
         given:
         withSample("native-config-integration")
 
         when:
-        mvn '-e', '-Pnative,metadataArchive', '-DrepoFormat=' + format, '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataArchive', '-DrepoFormat=zip', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -154,9 +154,6 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         and: "but it finds one thanks to the latest configuration field"
         outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
-
-        where:
-        format << ['zip', 'tar.gz', 'tar.bz2']
     }
 
     void "it can download a remote repository"(String format) {
@@ -165,7 +162,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withLocalServer()
 
         when:
-        mvn '-e', '-Pnative,metadataUrl', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.${format}", '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataUrl', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.${format}", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -188,7 +185,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withLocalServer()
 
         when:
-        mvn '-e', '-Pnative,metadataUrl', "-Dmetadata.url=https://httpstat.us/404", '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataUrl', "-Dmetadata.url=https://httpstat.us/404", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
