@@ -213,16 +213,12 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             if (repoPath == null) {
                 getLog().warn("JVM reachability metadata repository is enabled, but no repository has been configured");
             } else {
-                if (!Files.exists(repoPath)) {
-                    getLog().error("JVM reachability metadata repository path does not exist: " + repoPath);
-                } else {
-                    metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
-                        @Override
-                        public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                            getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
-                        }
-                    });
-                }
+                metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                    @Override
+                    public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                        getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                    }
+                });
             }
         }
     }
@@ -233,24 +229,28 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     }
 
     private Path unzipLocalPath(Path localPath) {
-        if (FileSystemRepository.isSupportedArchiveFormat(localPath.toString())) {
-            File destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata").toFile();
-            if (!destination.exists()) {
-                destination.mkdirs();
-            }
-            UnArchiver unArchiver = getUnArchiverFor(localPath.getFileName().toString());
-            if (unArchiver != null) {
-                unArchiver.setSourceFile(localPath.toFile());
-                unArchiver.setDestDirectory(destination);
-                unArchiver.extract();
-                return destination.toPath();
+        if (Files.exists(localPath)) {
+            if (FileSystemRepository.isSupportedArchiveFormat(localPath.toString())) {
+                File destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata").toFile();
+                if (!destination.exists()) {
+                    destination.mkdirs();
+                }
+                UnArchiver unArchiver = getUnArchiverFor(localPath.getFileName().toString());
+                if (unArchiver != null) {
+                    unArchiver.setSourceFile(localPath.toFile());
+                    unArchiver.setDestDirectory(destination);
+                    unArchiver.extract();
+                    return destination.toPath();
+                } else {
+                    getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2");
+                }
+            } else if (Files.isDirectory(localPath)) {
+                return localPath;
             } else {
-                getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2");
+                getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2, or an exploded directory");
             }
-        } else if (Files.isDirectory(localPath)) {
-            return localPath;
         } else {
-            getLog().warn("Unable to extract metadata repository from " + localPath + ". Supported formats are zip, tar.gz and tar.bz2, or an exploded directory");
+            getLog().error("JVM reachability metadata repository path does not exist: " + localPath);
         }
         return null;
     }
