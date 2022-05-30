@@ -46,10 +46,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-public class FileUtils {
+public final class FileUtils {
 
     public static final int CONNECT_TIMEOUT = 5000;
     public static final int READ_TIMEOUT = 5000;
@@ -94,5 +97,44 @@ public class FileUtils {
         }
 
         return Optional.empty();
+    }
+
+    public static void extract(Path archive, Path destination, Consumer<String> errorLogger) {
+        String normalizedPath = archive.toString().toLowerCase();
+        if (normalizedPath.endsWith(".zip")) {
+            try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(archive.toFile().toPath()))) {
+                for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
+                    Optional<Path> sanitizedPath = sanitizePath(entry, destination);
+                    if (sanitizedPath.isPresent()) {
+                        Path zipEntryPath = sanitizedPath.get();
+                        if (entry.isDirectory()) {
+                            Files.createDirectories(zipEntryPath);
+                        } else {
+                            if (zipEntryPath.getParent() != null && !Files.exists(zipEntryPath.getParent())) {
+                                Files.createDirectories(zipEntryPath.getParent());
+                            }
+
+                            Files.copy(zis, zipEntryPath, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    } else {
+                        errorLogger.accept("Wrong entry " + entry.getName() + " in " + archive);
+                    }
+                    zis.closeEntry();
+                }
+            } catch (IOException e) {
+                errorLogger.accept("Failed to extract " + archive + ": " + e.getMessage());
+            }
+        } else {
+            errorLogger.accept("Unsupported archive format: " + archive + ". Only ZIP files are supported");
+        }
+    }
+
+    private static Optional<Path> sanitizePath(ZipEntry entry, Path destination) {
+        Path normalized = destination.resolve(entry.getName()).normalize();
+        if (normalized.startsWith(destination)) {
+            return Optional.of(normalized);
+        } else {
+            return Optional.empty();
+        }
     }
 }
