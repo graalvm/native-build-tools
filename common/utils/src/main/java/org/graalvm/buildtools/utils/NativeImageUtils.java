@@ -74,7 +74,7 @@ public class NativeImageUtils {
 
     public static List<String> convertToArgsFile(List<String> cliArgs) {
         try {
-            File tmpFile = File.createTempFile("native-image", "args");
+            File tmpFile = Files.createTempFile("native-image", "args").toFile();
             tmpFile.deleteOnExit();
             cliArgs = cliArgs.stream().map(NativeImageUtils::escapeArg).collect(Collectors.toList());
             Files.write(tmpFile.toPath(), cliArgs, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
