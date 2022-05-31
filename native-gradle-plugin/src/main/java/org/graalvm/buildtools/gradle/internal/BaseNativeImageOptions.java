@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
+import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -339,5 +340,14 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
                         .collect(Collectors.toList())
         );
         return this;
+    }
+
+    @Override
+    @Nested
+    public abstract DeprecatedAgentOptions getAgent();
+
+    @Override
+    public void agent(Action<? super DeprecatedAgentOptions> spec) {
+        spec.execute(getAgent());
     }
 }

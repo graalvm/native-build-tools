@@ -176,7 +176,15 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         project.getPlugins().withType(JavaLibraryPlugin.class, javaLibraryPlugin -> graalExtension.getAgent().getDefaultMode().convention("conditional"));
 
-        project.afterEvaluate(p -> instrumentTasksWithAgent(project, graalExtension));
+        project.afterEvaluate(p -> {
+            instrumentTasksWithAgent(project, graalExtension);
+            for (NativeImageOptions options : graalExtension.getBinaries()) {
+                if (options.getAgent().getOptions().get().size() > 0 || options.getAgent().getEnabled().isPresent()) {
+                    logger.warn("The agent block in binary configuration '" + options.getName() + "' is deprecated.");
+                    logger.warn("Such agent configuration has no effect and will become an error in the future.");
+                }
+            }
+        });
     }
 
     private void instrumentTasksWithAgent(Project project, DefaultGraalVmExtension graalExtension) {
