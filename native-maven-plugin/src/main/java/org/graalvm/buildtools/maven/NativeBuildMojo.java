@@ -222,6 +222,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
                 }
 
                 FileUtils.extract(localPath, destination, getLog()::error);
+                return destination;
             } else if (Files.isDirectory(localPath)) {
                 return localPath;
             } else {

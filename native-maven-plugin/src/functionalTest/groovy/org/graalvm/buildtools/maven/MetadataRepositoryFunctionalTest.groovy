@@ -156,27 +156,24 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
     }
 
-    void "it can download a remote repository"(String format) {
+    void "it can download a remote repository"() {
         given:
         withSample("native-config-integration")
         withLocalServer()
 
         when:
-        mvn '-Pnative,metadataUrl', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.${format}", '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataUrl', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.zip", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
         outputContains "Hello, from reflection!"
-        outputContains "Downloaded GraalVM reachability metadata repository from http://localhost:${localServerPort}/target/repo.${format}"
+        outputContains "Downloaded GraalVM reachability metadata repository from http://localhost:${localServerPort}/target/repo.zip"
 
         and: "it doesn't find a configuration directory for the current version"
         outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
         outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
-
-        where:
-        format << ['zip', 'tar.gz', 'tar.bz2']
     }
 
     void "when pointing to a missing URL, reflection fails"() {
