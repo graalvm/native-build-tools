@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle.dsl;
 
+import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -267,4 +268,9 @@ public interface NativeImageOptions extends Named {
      */
     @Input
     Property<Boolean> getUseFatJar();
+
+    @Nested
+    DeprecatedAgentOptions getAgent();
+
+    void agent(Action<? super DeprecatedAgentOptions> spec);
 }
