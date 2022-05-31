@@ -519,9 +519,9 @@ Support needs to be enabled explicitly:. It is possible to use a _local reposito
 ----
 include::../../../../samples/native-config-integration/pom.xml[tag=metadata-local]
 ----
-<1> The local path can point to an _exploded_ directory, or to a compressed archive in the following formats: `.zip`, `.tar.gz` or `.tar.bz2`.
+<1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 
-Alternatively, you can use a _remote repository_, in which case you can specify the URL of the repository:
+Alternatively, you can use a _remote repository_, in which case you can specify the URL of the ZIP file:
 
 .Enabling a remote repository
 [source,xml,indent=0]
