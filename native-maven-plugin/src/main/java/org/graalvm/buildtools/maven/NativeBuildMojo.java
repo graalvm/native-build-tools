@@ -55,11 +55,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
+import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.reachability.JvmReachabilityMetadataRepository;
+import org.graalvm.reachability.internal.FileSystemRepository;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -68,8 +73,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
@@ -102,9 +111,18 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Parameter(property = "useArgFile", defaultValue = "true")
     private boolean useArgFile;
 
-    private final List<Path> imageClasspath = new ArrayList<>();
+    @Parameter(alias = "metadataRepository")
+    private MetadataRepositoryConfiguration metadataRepositoryConfiguration;
+
+    private final List<Path> imageClasspath;
 
     private PluginParameterExpressionEvaluator evaluator;
+
+    private JvmReachabilityMetadataRepository metadataRepository;
+
+    public NativeBuildMojo() {
+        this.imageClasspath = new ArrayList<>();
+    }
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -114,6 +132,9 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         }
         evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
 
+        configureMetadataRepository();
+        Set<Path> metadataRepositoryPaths = new HashSet<>();
+
         imageClasspath.clear();
         if (classpath != null && !classpath.isEmpty()) {
             imageClasspath.addAll(classpath.stream().map(Paths::get).collect(Collectors.toList()));
@@ -122,6 +143,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             project.setArtifactFilter(artifact -> imageClasspathScopes.contains(artifact.getScope()));
             for (Artifact dependency : project.getArtifacts()) {
                 addClasspath(dependency);
+                maybeAddDependencyMetadata(metadataRepositoryPaths, dependency);
             }
             addClasspath(project.getArtifact(), project.getPackaging());
         }
@@ -130,6 +152,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         Path nativeImageExecutable = Utils.getNativeImage();
 
         maybeAddGeneratedResourcesConfig(buildArgs);
+        maybeAddReachabilityMetadata(buildArgs, metadataRepositoryPaths);
 
         try {
             List<String> cliArgs = new ArrayList<>();
@@ -153,6 +176,108 @@ public class NativeBuildMojo extends AbstractNativeMojo {
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
         }
+    }
+
+    private void configureMetadataRepository() {
+        if (isMetadataRepositoryEnabled()) {
+            Path repoPath = null;
+            if (metadataRepositoryConfiguration.getVersion() != null) {
+                getLog().warn("The official JVM reachability metadata repository is not released yet. Only local repositories are supported");
+            }
+            if (metadataRepositoryConfiguration.getLocalPath() != null) {
+                Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+                repoPath = unzipLocalPath(localPath);
+            } else if (metadataRepositoryConfiguration.getUrl() != null) {
+                Optional<Path> download = download(metadataRepositoryConfiguration.getUrl());
+                if (download.isPresent()) {
+                    getLog().info("Downloaded GraalVM reachability metadata repository from " + metadataRepositoryConfiguration.getUrl());
+                    repoPath = unzipLocalPath(download.get());
+                }
+            }
+
+            if (repoPath == null) {
+                getLog().warn("JVM reachability metadata repository is enabled, but no repository has been configured");
+            } else {
+                metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                    @Override
+                    public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                        getLog().info(String.format("[jvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                    }
+                });
+            }
+        }
+    }
+
+    private Optional<Path> download(URL url) {
+        Path destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
+        return FileUtils.download(url, destination, getLog()::error);
+    }
+
+    private Path unzipLocalPath(Path localPath) {
+        if (Files.exists(localPath)) {
+            if (FileUtils.isZip(localPath)) {
+                Path destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
+                if (!Files.exists(destination)) {
+                    destination.toFile().mkdirs();
+                }
+
+                FileUtils.extract(localPath, destination, getLog()::error);
+                return destination;
+            } else if (Files.isDirectory(localPath)) {
+                return localPath;
+            } else {
+                getLog().warn("Unable to extract metadata repository from " + localPath + ". It needs to be either a ZIP file or an exploded directory");
+            }
+        } else {
+            getLog().error("JVM reachability metadata repository path does not exist: " + localPath);
+        }
+        return null;
+    }
+
+    private void maybeAddDependencyMetadata(Set<Path> metadataRepositoryPaths, Artifact dependency) {
+        if (isMetadataRepositoryEnabled() && metadataRepository != null && !isExcluded(dependency)) {
+            metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
+                q.useLatestConfigWhenVersionIsUntested();
+                q.forArtifact(artifact -> {
+                    artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
+                    getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
+                });
+            }));
+        }
+    }
+
+    private Optional<String> getMetadataVersion(Artifact dependency) {
+        if (metadataRepositoryConfiguration == null) {
+            return Optional.empty();
+        } else {
+            return metadataRepositoryConfiguration.getMetadataVersion(dependency);
+        }
+    }
+
+    private boolean isExcluded(Artifact dependency) {
+        if (metadataRepositoryConfiguration == null) {
+            return false;
+        } else {
+            return metadataRepositoryConfiguration.isArtifactExcluded(dependency);
+        }
+    }
+
+    private void maybeAddReachabilityMetadata(List<String> buildArgs, Set<Path> paths) {
+        if (isMetadataRepositoryEnabled() && !paths.isEmpty()) {
+            String arg = paths.stream()
+                    .map(Path::toAbsolutePath)
+                    .map(Path::toFile)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.joining(","));
+
+            if (!arg.isEmpty()) {
+                buildArgs.add("-H:ConfigurationFileDirectories=" + arg);
+            }
+        }
+    }
+
+    private boolean isMetadataRepositoryEnabled() {
+        return metadataRepositoryConfiguration != null && metadataRepositoryConfiguration.isEnabled();
     }
 
     private void addClasspath(Artifact artifact) throws MojoExecutionException {

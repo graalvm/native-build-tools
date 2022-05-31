@@ -41,8 +41,103 @@
 
 package org.graalvm.buildtools.utils;
 
-public class FileUtils {
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+public final class FileUtils {
+
+    public static final int CONNECT_TIMEOUT = 5000;
+    public static final int READ_TIMEOUT = 5000;
+
     public static String normalizePathSeparators(String path) {
         return path.replace('\\', '/');
+    }
+
+    public static Optional<Path> download(URL url, Path destination, Consumer<String> errorLogger) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(CONNECT_TIMEOUT);
+            connection.setReadTimeout(READ_TIMEOUT);
+
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                errorLogger.accept("Failed to download from " + url + ": " + connection.getResponseCode() + " " + connection.getResponseMessage());
+            } else {
+                String fileName = "";
+                String disposition = connection.getHeaderField("Content-Disposition");
+
+                if (disposition != null) {
+                    int index = disposition.indexOf("filename=");
+                    if (index > 0) {
+                        fileName = disposition.substring(index + 9);
+                    }
+                } else {
+                    fileName = url.getFile().substring(url.getFile().lastIndexOf("/") + 1);
+                }
+
+                if (!Files.exists(destination)) {
+                    Files.createDirectories(destination);
+                }
+                Path result = destination.resolve(fileName);
+                Files.copy(connection.getInputStream(), result);
+
+                connection.disconnect();
+                return Optional.of(result);
+            }
+        } catch (IOException e) {
+            errorLogger.accept("Failed to download from " + url + ": " + e.getMessage());
+        }
+
+        return Optional.empty();
+    }
+
+    public static void extract(Path archive, Path destination, Consumer<String> errorLogger) {
+        if (isZip(archive)) {
+            try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(archive.toFile().toPath()))) {
+                for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
+                    Optional<Path> sanitizedPath = sanitizePath(entry, destination);
+                    if (sanitizedPath.isPresent()) {
+                        Path zipEntryPath = sanitizedPath.get();
+                        if (entry.isDirectory()) {
+                            Files.createDirectories(zipEntryPath);
+                        } else {
+                            if (zipEntryPath.getParent() != null && !Files.exists(zipEntryPath.getParent())) {
+                                Files.createDirectories(zipEntryPath.getParent());
+                            }
+
+                            Files.copy(zis, zipEntryPath, StandardCopyOption.REPLACE_EXISTING);
+                        }
+                    } else {
+                        errorLogger.accept("Wrong entry " + entry.getName() + " in " + archive);
+                    }
+                    zis.closeEntry();
+                }
+            } catch (IOException e) {
+                errorLogger.accept("Failed to extract " + archive + ": " + e.getMessage());
+            }
+        } else {
+            errorLogger.accept("Unsupported archive format: " + archive + ". Only ZIP files are supported");
+        }
+    }
+
+    public static boolean isZip(Path archive) {
+        return archive.toString().toLowerCase().endsWith(".zip");
+    }
+
+    private static Optional<Path> sanitizePath(ZipEntry entry, Path destination) {
+        Path normalized = destination.resolve(entry.getName()).normalize();
+        if (normalized.startsWith(destination)) {
+            return Optional.of(normalized);
+        } else {
+            return Optional.empty();
+        }
     }
 }

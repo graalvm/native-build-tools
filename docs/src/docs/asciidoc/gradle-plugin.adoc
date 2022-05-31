@@ -362,7 +362,7 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
 ----
 
 [[metadata-support]]
-== JVM Reachability Metadata support
+== JVM Reachability Metadata Support
 
 Since release 0.9.11, the plugin adds experimental support for the https://github.com/graalvm/jvm-reachability-metadata/[JVM reachability metadata repository].
 This repository provides GraalVM configuration for libraries which do not officially support GraalVM native.
@@ -411,7 +411,7 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-reposi
 
 === Configuring the metadata repository
 
-Once activated, for each library included in the native image, the plugin will automatically search for GraalVM JVM reachability metadata in the repository.
+Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
 In some cases, you may need to exclude a particular module from the search.
 This can be done by adding it to the exclude list:
 

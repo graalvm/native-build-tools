@@ -117,12 +117,12 @@ public abstract class JvmReachabilityMetadataService implements BuildService<Jvm
         LogLevel logLevel = getParameters().getLogLevel().get();
         if (uri.getScheme().equals("file")) {
             File localFile = new File(uri);
-            if (isSupportedZipFormat(path)) {
+            if (FileSystemRepository.isSupportedArchiveFormat(path)) {
                 return newRepositoryFromZipFile(cacheKey, localFile, logLevel);
             }
             return newRepositoryFromDirectory(localFile.toPath(), logLevel);
         }
-        if (isSupportedZipFormat(path)) {
+        if (FileSystemRepository.isSupportedArchiveFormat(path)) {
             File zipped = getParameters().getCacheDir().file(cacheKey + "/archive").get().getAsFile();
             if (!zipped.exists()) {
                 try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
@@ -136,10 +136,6 @@ public abstract class JvmReachabilityMetadataService implements BuildService<Jvm
             return newRepositoryFromZipFile(cacheKey, zipped, logLevel);
         }
         throw new UnsupportedOperationException("Remote URI must point to a zip, a tar.gz or tar.bz2 file");
-    }
-
-    private static boolean isSupportedZipFormat(String path) {
-        return path.endsWith(".zip") || path.endsWith(".tar.gz") || path.endsWith(".tar.bz2");
     }
 
     private FileSystemRepository newRepositoryFromZipFile(String cacheKey, File localFile, LogLevel logLevel) {

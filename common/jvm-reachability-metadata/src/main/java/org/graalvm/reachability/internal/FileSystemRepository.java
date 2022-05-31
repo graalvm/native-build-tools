@@ -56,6 +56,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class FileSystemRepository implements JvmReachabilityMetadataRepository {
+
     private final FileSystemModuleToConfigDirectoryIndex moduleIndex;
     private final Logger logger;
     private final Map<Path, VersionToConfigDirectoryIndex> artifactIndexes;
@@ -70,6 +71,11 @@ public class FileSystemRepository implements JvmReachabilityMetadataRepository {
         this.logger = logger;
         this.artifactIndexes = new ConcurrentHashMap<>();
         this.rootDirectory = rootDirectory;
+    }
+
+    public static boolean isSupportedArchiveFormat(String path) {
+        String normalizedPath = path.toLowerCase();
+        return normalizedPath.endsWith(".zip") || normalizedPath.endsWith(".tar.gz") || normalizedPath.endsWith(".tar.bz2");
     }
 
     @Override
