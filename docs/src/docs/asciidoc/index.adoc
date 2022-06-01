@@ -23,6 +23,10 @@ If you are interested in contributing, please refer to our https://github.com/gr
 * Introduced the `metadataCopy` task.
 * Introduced the concept of agent modes.
 ** Under the hood, the agent mode dictates what options are passed to the agent and how metadata produced by multiple runs get merged.
+* `useArgFile` is now set to true by default only on Windows.
+
+==== Maven plugin
+* `useArgFile` is now set to true by default only on Windows.
 
 === Release 0.9.11
 
