@@ -41,36 +41,36 @@
 
 package org.graalvm.build.tasks
 
-import com.jcraft.jsch.JSch
-import org.eclipse.jgit.transport.SshSessionFactory
-import org.eclipse.jgit.transport.JschConfigSessionFactory
-import org.eclipse.jgit.transport.OpenSshConfig
-
-import com.jcraft.jsch.Session
-import org.eclipse.jgit.util.FS
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Internal
 
 abstract class AbstractGitTask : DefaultTask() {
-    @get:Internal
-    val sshSessionFactory: SshSessionFactory = object : JschConfigSessionFactory() {
-        override fun configure(host: OpenSshConfig.Host, session: Session) {
-            session.setConfig("StrictHostKeyChecking", "no")
-            session.setConfig("PreferredAuthentications", "publickey")
-            session.setConfig("IdentitiesOnly", "yes")
-        }
-
-        override fun createDefaultJSch(fs: FS?): JSch {
-            return super.createDefaultJSch(fs).also {
-                val identityFile = System.getProperty("user.home") + "/.ssh/id_rsa"
-                it.addIdentity(identityFile)
-            }
-        }
-    }
 
     @get:InputDirectory
     abstract val repositoryDirectory: DirectoryProperty
+
+    protected fun runGit(vararg args: String) {
+        runGit(args.asList())
+    }
+
+    protected fun runGit(args: List<String>) {
+        val command = ArrayList<String>()
+        command.add(0, "git")
+        command.addAll(args)
+        println("Running git with `${command.joinToString(separator=" ")}`")
+
+        val pb = ProcessBuilder(command)
+                .directory(repositoryDirectory.asFile.get())
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
+        pb.environment()["GIT_SSH_COMMAND"] = "ssh " +
+                "-o StrictHostKeyChecking=no " +
+                "-o PreferredAuthentications=publickey " +
+                "-o IdentitiesOnly=yes"
+        val retCode = pb.start().waitFor()
+        if (retCode != 0) {
+            throw RuntimeException("Git process exited with return code $retCode")
+        }
+    }
 }

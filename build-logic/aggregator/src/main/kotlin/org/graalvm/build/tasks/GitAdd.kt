@@ -41,7 +41,6 @@
 
 package org.graalvm.build.tasks
 
-import org.eclipse.jgit.api.Git
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -52,8 +51,6 @@ abstract class GitAdd : AbstractGitTask() {
 
     @TaskAction
     fun execute() {
-        Git.open(repositoryDirectory.asFile.get()).use {
-            it.add().addFilepattern(pattern.get()).call()
-        }
+        runGit("add", pattern.get())
     }
 }
