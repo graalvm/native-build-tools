@@ -47,8 +47,3 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
 }
-
-dependencies {
-    implementation(libs.jgit)
-    implementation(libs.jsch)
-}

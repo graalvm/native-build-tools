@@ -41,8 +41,6 @@
 
 package org.graalvm.build.tasks
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.transport.SshTransport
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -53,14 +51,11 @@ abstract class GitPush : AbstractGitTask() {
 
     @TaskAction
     fun execute() {
-        Git.open(repositoryDirectory.asFile.get()).use {
-            it.push()
-                    .setTransportConfigCallback { transport ->
-                        val sshTransport: SshTransport = transport as SshTransport
-                        sshTransport.sshSessionFactory = sshSessionFactory
-                    }
-                    .setForce(force.get())
-                    .call()
+        val cmd = arrayListOf("push")
+        if (force.get()) {
+            cmd.add("-f")
         }
+        println("Pushing to remote Git repository")
+        runGit(cmd)
     }
 }

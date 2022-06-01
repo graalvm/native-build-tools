@@ -153,6 +153,6 @@ plugins.withId("java-test-fixtures") {
 
 // Get a handle on the software component factory
 interface Services {
-    @javax.inject.Inject
+    @Inject
     fun getSoftwareComponentFactory(): SoftwareComponentFactory
 }

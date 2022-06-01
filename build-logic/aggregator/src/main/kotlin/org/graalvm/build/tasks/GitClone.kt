@@ -41,9 +41,6 @@
 
 package org.graalvm.build.tasks
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.transport.SshTransport
-import org.eclipse.jgit.util.FileUtils
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -52,7 +49,7 @@ import org.gradle.api.tasks.TaskAction
 
 abstract class GitClone : AbstractGitTask() {
     @get:OutputDirectory
-    override abstract val repositoryDirectory: DirectoryProperty
+    abstract override val repositoryDirectory: DirectoryProperty
 
     @get:Input
     abstract val repositoryUri: Property<String>
@@ -63,23 +60,16 @@ abstract class GitClone : AbstractGitTask() {
     @TaskAction
     fun execute() {
         val repoDir = repositoryDirectory.asFile.get()
-        if (repoDir.exists()) {
+        while (repoDir.exists()) {
+            // TODO: There seems to be a task ordering / race condition issue here since `deleteRecursively` fails
+            // several times in a row.
             println("Deleting $repoDir")
-            FileUtils.delete(repoDir, FileUtils.RECURSIVE)
+            repoDir.deleteRecursively()
         }
         repoDir.mkdirs()
         val repo = repositoryUri.get()
         val branch = this.branch.get()
         println("Cloning $repo branch '$branch' into '${repoDir}'...")
-        Git.cloneRepository()
-                .setURI(repo)
-                .setBranch(branch)
-                .setDirectory(repoDir)
-                .setTransportConfigCallback { transport ->
-                    val sshTransport: SshTransport = transport as SshTransport
-                    sshTransport.sshSessionFactory = sshSessionFactory
-                }
-                .call()
-                .close()
+        runGit("clone", "--branch", branch, repo, ".")
     }
 }

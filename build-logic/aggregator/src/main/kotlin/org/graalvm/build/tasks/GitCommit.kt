@@ -41,7 +41,6 @@
 
 package org.graalvm.build.tasks
 
-import org.eclipse.jgit.api.Git
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -55,13 +54,10 @@ abstract class GitCommit : AbstractGitTask() {
 
     @TaskAction
     fun execute() {
-        Git.open(repositoryDirectory.asFile.get()).use {
-            it.commit()
-                    .setAll(true)
-                    .setMessage(message.get())
-                    .setAmend(amend.get())
-                    .setSign(false)
-                    .call()
+        val cmd = arrayListOf("commit", "-a", "-m", message.get())
+        if (amend.get()) {
+            cmd.add("--amend")
         }
+        runGit(cmd)
     }
 }
