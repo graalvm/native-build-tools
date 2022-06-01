@@ -99,7 +99,7 @@ public interface GraalVMExtension {
 
     /**
      * Property driving the use of @-arg files when invoking native image.
-     * This is enabled by default. For older native-image versions, this
+     * This is enabled by default on Windows. For older native-image versions, this
      * needs to be disabled.
      *
      * @return the argument file property

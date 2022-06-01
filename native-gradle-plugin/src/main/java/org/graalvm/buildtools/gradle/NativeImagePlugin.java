@@ -126,6 +126,7 @@ import java.util.stream.Collectors;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
+import static org.graalvm.buildtools.utils.SharedConstants.IS_WINDOWS;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -170,7 +171,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         logger = GraalVMLogger.of(project.getLogger());
         DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
-        graalExtension.getUseArgFile().convention(true);
+        graalExtension.getUseArgFile().convention(IS_WINDOWS);
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
 

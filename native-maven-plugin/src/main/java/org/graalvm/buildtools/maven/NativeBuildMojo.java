@@ -81,6 +81,8 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.graalvm.buildtools.utils.SharedConstants.IS_WINDOWS;
+
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE)
 public class NativeBuildMojo extends AbstractNativeMojo {
 
@@ -108,8 +110,8 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Parameter(property = "classpath")
     private List<String> classpath;
 
-    @Parameter(property = "useArgFile", defaultValue = "true")
-    private boolean useArgFile;
+    @Parameter(property = "useArgFile")
+    private Boolean useArgFile;
 
     @Parameter(alias = "metadataRepository")
     private MetadataRepositoryConfiguration metadataRepositoryConfiguration;
@@ -159,6 +161,9 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             cliArgs.add("-cp");
             cliArgs.add(classpathStr);
             cliArgs.addAll(getBuildArgs());
+            if (useArgFile == null) {
+                useArgFile = IS_WINDOWS;
+            }
             if (useArgFile) {
                 cliArgs = NativeImageUtils.convertToArgsFile(cliArgs);
             }
