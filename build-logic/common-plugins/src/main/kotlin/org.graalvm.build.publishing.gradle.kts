@@ -94,6 +94,18 @@ publishing {
             name = "snapshots"
             url = uri(snapshotsDirectory)
         }
+        val nexusUrl = providers.gradleProperty("graalvm.nexus.url")
+        if (nexusUrl.isPresent) {
+            maven {
+                name = "nexus"
+                url = uri(nexusUrl.get())
+                isAllowInsecureProtocol = true
+                credentials {
+                    username = providers.gradleProperty("graalvm.nexus.username").get()
+                    password = providers.gradleProperty("graalvm.nexus.password").get()
+                }
+            }
+        }
     }
     publications.withType<MavenPublication>().configureEach {
         pom {

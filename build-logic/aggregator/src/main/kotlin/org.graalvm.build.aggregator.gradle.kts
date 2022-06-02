@@ -77,6 +77,7 @@ listOf(
         "publishTo" to "MavenLocal",
         "publishAllPublicationsTo" to "CommonRepository",
         "publishAllPublicationsTo" to "SnapshotsRepository",
+        "publishAllPublicationsTo" to "NexusRepository",
 ).forEach { entry ->
     val (taskPrefix, repo) = entry
     tasks.register("$taskPrefix$repo") {
