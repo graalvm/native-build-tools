@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -126,6 +126,7 @@ import java.util.stream.Collectors;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
+import static org.graalvm.buildtools.utils.SharedConstants.IS_WINDOWS;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -170,7 +171,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         logger = GraalVMLogger.of(project.getLogger());
         DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
-        graalExtension.getUseArgFile().convention(true);
+        graalExtension.getUseArgFile().convention(IS_WINDOWS);
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
 

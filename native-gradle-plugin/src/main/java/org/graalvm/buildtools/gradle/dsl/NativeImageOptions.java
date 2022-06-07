@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -171,13 +171,23 @@ public interface NativeImageOptions extends Named {
     Property<JavaLauncher> getJavaLauncher();
 
     /**
-     * Returns the list of configuration file directories (e.g resource-config.json, ...) which need
+     * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
      * to be passed to native-image.
      *
      * @return a collection of directories
      */
     @InputFiles
     ConfigurableFileCollection getConfigurationFileDirectories();
+
+    /**
+     * Returns the map that as contains information about configuration that should be excluded
+     * during image building. It consists of a jar regular expression as a key and a resource
+     * regular expression as a value.
+     *
+     * @return a map of filters for configuration exclusion
+     */
+    @Input
+    MapProperty<String, String> getExcludeConfig();
 
     @Nested
     NativeResourcesOptions getResources();

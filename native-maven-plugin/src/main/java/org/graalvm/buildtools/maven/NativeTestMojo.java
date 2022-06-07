@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -42,18 +42,15 @@
 package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
-import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.junit.platform.JUnitPlatformFeature;
 
 import java.io.File;
@@ -67,9 +64,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.Utils.NATIVE_TESTS_EXE;
@@ -88,82 +83,102 @@ public class NativeTestMojo extends AbstractNativeMojo {
     @Parameter(property = "skipNativeTests", defaultValue = "false")
     private boolean skipNativeTests;
 
-    @Parameter(property = "classpath")
-    private List<String> classpath;
-
-    @Parameter(property = "project.build.directory")
-    private File buildDirectory;
-
-    @Parameter(property = "environmentVariables")
-    private Map<String, String> environment;
-
-    @Parameter(property = "systemPropertyVariables")
-    private Map<String, String> systemProperties;
+    @Override
+    protected void populateApplicationClasspath() throws MojoExecutionException {
+        super.populateApplicationClasspath();
+        imageClasspath.add(Paths.get(project.getBuild().getTestOutputDirectory()));
+        project.getBuild()
+                .getTestResources()
+                .stream()
+                .map(FileSet::getDirectory)
+                .map(Paths::get)
+                .forEach(imageClasspath::add);
+    }
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    protected List<String> getDependencyScopes() {
+        return Arrays.asList(
+                Artifact.SCOPE_COMPILE,
+                Artifact.SCOPE_RUNTIME,
+                Artifact.SCOPE_TEST,
+                Artifact.SCOPE_COMPILE_PLUS_RUNTIME
+        );
+    }
+
+    @Override
+    protected void addDependenciesToClasspath() throws MojoExecutionException {
+        super.addDependenciesToClasspath();
+        pluginArtifacts.stream()
+                .filter(it -> it.getGroupId().startsWith(Utils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
+                .map(it -> it.getFile().toPath())
+                .forEach(imageClasspath::add);
+        findNativePlatformJar().ifPresent(imageClasspath::add);
+    }
+
+    @Override
+    public void execute() throws MojoExecutionException {
         if (skipTests || skipNativeTests) {
             logger.info("Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true).");
             return;
         }
-        configureEnvironment();
         if (!hasTests()) {
             logger.info("Skipped native-image tests since there are no test classes.");
             return;
         }
-
-        String classpath = getClassPath();
-        Optional<Path> nativePlatformJar = findNativePlatformJar();
-        if (nativePlatformJar.isPresent()) {
-            classpath += File.pathSeparator + nativePlatformJar.get().toFile().getAbsolutePath();
-        }
-        Path targetFolder = new File(project.getBuild().getDirectory()).toPath();
-        targetFolder.toFile().mkdirs();
-
-        logger.info("====================");
-        logger.info("Initializing project: " + project.getName());
-        logger.info("====================");
-
         if (!hasTestIds()) {
             logger.error("Test configuration file wasn't found. Make sure that test execution wasn't skipped.");
             throw new IllegalStateException("Test configuration file wasn't found.");
         }
 
-        logger.debug("Classpath: " + classpath);
-        buildImage(classpath, targetFolder);
+        logger.info("====================");
+        logger.info("Initializing project: " + project.getName());
+        logger.info("====================");
 
-        runTests(targetFolder);
+        configureEnvironment();
+        buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+
+        if (systemProperties == null) {
+            systemProperties = new HashMap<>();
+        }
+        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
+                NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
+
+        imageName = NATIVE_TESTS_EXE;
+        mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
+
+        buildImage();
+        runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
     }
 
     private void configureEnvironment() {
-            // inherit from surefire mojo
-            Plugin plugin = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
-            if (plugin != null) {
-                Object configuration = plugin.getConfiguration();
-                if (configuration instanceof Xpp3Dom) {
-                    Xpp3Dom dom = (Xpp3Dom) configuration;
-                    Xpp3Dom environmentVariables = dom.getChild("environmentVariables");
-                    if (environmentVariables != null) {
-                        Xpp3Dom[] children = environmentVariables.getChildren();
-                        if (environment == null) {
-                            environment = new HashMap<>(children.length);
-                        }
-                        for (Xpp3Dom child : children) {
-                            environment.put(child.getName(), child.getValue());
-                        }
+        // inherit from surefire mojo
+        Plugin plugin = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
+        if (plugin != null) {
+            Object configuration = plugin.getConfiguration();
+            if (configuration instanceof Xpp3Dom) {
+                Xpp3Dom dom = (Xpp3Dom) configuration;
+                Xpp3Dom environmentVariables = dom.getChild("environmentVariables");
+                if (environmentVariables != null) {
+                    Xpp3Dom[] children = environmentVariables.getChildren();
+                    if (environment == null) {
+                        environment = new HashMap<>(children.length);
                     }
-                    Xpp3Dom systemProps = dom.getChild("systemPropertyVariables");
-                    if (systemProps != null) {
-                        Xpp3Dom[] children = systemProps.getChildren();
-                        if (systemProperties == null) {
-                            systemProperties = new HashMap<>(children.length);
-                        }
-                        for (Xpp3Dom child : children) {
-                            systemProperties.put(child.getName(), child.getValue());
-                        }
+                    for (Xpp3Dom child : children) {
+                        environment.put(child.getName(), child.getValue());
+                    }
+                }
+                Xpp3Dom systemProps = dom.getChild("systemPropertyVariables");
+                if (systemProps != null) {
+                    Xpp3Dom[] children = systemProps.getChildren();
+                    if (systemProperties == null) {
+                        systemProperties = new HashMap<>(children.length);
+                    }
+                    for (Xpp3Dom child : children) {
+                        systemProperties.put(child.getName(), child.getValue());
                     }
                 }
             }
+        }
     }
 
     private boolean hasTests() {
@@ -178,53 +193,22 @@ public class NativeTestMojo extends AbstractNativeMojo {
         return false;
     }
 
-    private void buildImage(String classpath, Path targetFolder) throws MojoExecutionException {
-        Path nativeImageExecutable = Utils.getNativeImage();
-
-        List<String> command = new ArrayList<>(Arrays.asList(
-                "-cp", classpath,
-                "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
-                "-Djunit.platform.listeners.uid.tracking.output.dir=" + NativeExtension.testIdsDirectory(buildDirectory.getAbsolutePath()),
-                "-H:Path=" + targetFolder.toAbsolutePath(),
-                "-H:Name=" + NATIVE_TESTS_EXE));
-        maybeAddGeneratedResourcesConfig(command);
-
-        if (buildArgs != null) {
-            command.addAll(buildArgs);
+    private void runNativeTests(Path executable) throws MojoExecutionException {
+        Path xmlLocation = outputDirectory.toPath().resolve("native-test-reports");
+        if (!xmlLocation.toFile().exists() && !xmlLocation.toFile().mkdirs()) {
+            throw new MojoExecutionException("Failed creating xml output directory");
         }
-
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
-            prepareVariables(processBuilder, command);
-            command = NativeImageUtils.convertToArgsFile(command);
-            processBuilder.command().addAll(command);
-            processBuilder.command().add("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-            processBuilder.directory(new File(project.getBuild().getDirectory()));
+            ProcessBuilder processBuilder = new ProcessBuilder(executable.toAbsolutePath().toString());
             processBuilder.inheritIO();
-            String commandString = String.join(" ", processBuilder.command());
-            getLog().info("Executing: " + commandString);
-            Process imageBuildProcess = processBuilder.start();
-            if (imageBuildProcess.waitFor() != 0) {
-                throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
-        }
-    }
 
-    private void runTests(Path targetFolder) throws MojoExecutionException {
-        Path xmlLocation = targetFolder.resolve("native-test-reports");
-        xmlLocation.toFile().mkdirs();
-
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    targetFolder.resolve(NATIVE_TESTS_EXE).toAbsolutePath().toString());
-            processBuilder.inheritIO();
             List<String> command = new ArrayList<>();
-            prepareVariables(processBuilder, command);
             command.add("--xml-output-dir");
             command.add(xmlLocation.toString());
+            systemProperties.forEach((key, value) -> command.add("-D" + key + "=" + value));
             processBuilder.command().addAll(command);
+            processBuilder.environment().putAll(environment);
+
             String commandString = String.join(" ", processBuilder.command());
             getLog().info("Executing: " + commandString);
             Process imageBuildProcess = processBuilder.start();
@@ -233,48 +217,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("native-image test run failed");
-        }
-    }
-
-    private void prepareVariables(ProcessBuilder processBuilder, List<String> command) {
-        if (environment != null) {
-            processBuilder.environment().putAll(environment);
-        }
-        if (systemProperties != null) {
-            for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
-                command.add("-D" + entry.getKey() + "=" + entry.getValue());
-            }
-        }
-    }
-
-    private String getClassPath() throws MojoFailureException {
-        if (classpath != null && !classpath.isEmpty()) {
-            return String.join(File.pathSeparator, classpath);
-        }
-        try {
-            List<Artifact> pluginDependencies = pluginArtifacts.stream()
-                    .filter(it -> it.getGroupId().startsWith(Utils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
-                    .collect(Collectors.toList());
-
-            List<String> projectClassPath = new ArrayList<>(project
-                    .getTestClasspathElements());
-
-            Stream<String> allResources = Stream.concat(
-                    project.getBuild()
-                            .getResources()
-                            .stream()
-                            .map(FileSet::getDirectory),
-                    project.getBuild()
-                            .getTestResources()
-                            .stream()
-                            .map(FileSet::getDirectory)
-            );
-
-            return Stream.concat(Stream.concat(projectClassPath.stream(), allResources), pluginDependencies.stream()
-                    .map(it -> it.getFile().toString()))
-                    .collect(Collectors.joining(File.pathSeparator));
-        } catch (DependencyResolutionRequiredException e) {
-            throw new MojoFailureException(e.getMessage(), e);
         }
     }
 
@@ -288,6 +230,7 @@ public class NativeTestMojo extends AbstractNativeMojo {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
         return findFiles(dir, prefix).map(outputFile -> {
             try {
@@ -307,7 +250,6 @@ public class NativeTestMojo extends AbstractNativeMojo {
                         && path.getFileName().toString().startsWith(prefix)));
     }
 
-
     private static Optional<Path> findNativePlatformJar() {
         try {
             return Optional.of(new File(JUnitPlatformFeature.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toPath());
@@ -315,5 +257,4 @@ public class NativeTestMojo extends AbstractNativeMojo {
             return Optional.empty();
         }
     }
-
 }

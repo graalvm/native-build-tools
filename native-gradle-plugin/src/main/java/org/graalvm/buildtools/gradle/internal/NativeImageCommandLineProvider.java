@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -103,6 +103,12 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     public List<String> asArguments() {
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
+
+        options.getExcludeConfig().get().forEach((jarPath, resourcePattern) -> {
+            cliArgs.add("--exclude-config");
+            cliArgs.add(jarPath);
+            cliArgs.add(resourcePattern);
+        });
 
         cliArgs.add("-cp");
         String classpathString = buildClasspathString(options);

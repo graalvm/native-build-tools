@@ -64,7 +64,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         then:
         buildSucceeded
-        outputContains "JVM reachability metadata repository is enabled, but no repository has been configured"
+        outputContains "GraalVM reachability metadata repository is enabled, but no repository has been configured"
         outputContains "Reflection failed"
     }
 
@@ -77,8 +77,8 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         then:
         buildSucceeded
-        outputContains "The official JVM reachability metadata repository is not released yet. Only local repositories are supported"
-        outputContains "JVM reachability metadata repository is enabled, but no repository has been configured"
+        outputContains "The official GraalVM reachability metadata repository is not released yet. Only local repositories are supported"
+        outputContains "GraalVM reachability metadata repository is enabled, but no repository has been configured"
         outputContains "Reflection failed"
     }
 
@@ -94,10 +94,10 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Hello, from reflection!"
 
         and: "it doesn't find a configuration directory for the current version"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
     }
 
     void "if the path doesn't exist it throws an error"() {
@@ -109,7 +109,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         then:
         buildSucceeded
-        outputContains "JVM reachability metadata repository path does not exist"
+        outputContains "GraalVM reachability metadata repository path does not exist"
         outputContains "Reflection failed"
     }
 
@@ -134,7 +134,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         then:
         buildSucceeded
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
         outputContains "Reflection failed"
     }
 
@@ -150,10 +150,10 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Hello, from reflection!"
 
         and: "it doesn't find a configuration directory for the current version"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
     }
 
     void "it can download a remote repository"() {
@@ -170,10 +170,10 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Downloaded GraalVM reachability metadata repository from http://localhost:${localServerPort}/target/repo.zip"
 
         and: "it doesn't find a configuration directory for the current version"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
     }
 
     void "when pointing to a missing URL, reflection fails"() {
