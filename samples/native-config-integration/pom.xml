@@ -92,10 +92,8 @@
                         <configuration>
                             <skip>false</skip>
                             <imageName>${imageName}</imageName>
-                            <buildArgs>
-                                <buildArg>--no-fallback</buildArg>
-                                <buildArg>-Ob</buildArg>
-                            </buildArgs>
+                            <fallback>false</fallback>
+                            <quickBuild>true</quickBuild>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -139,9 +137,7 @@
                             <skip>false</skip>
                             <useArgFile>false</useArgFile>
                             <imageName>${imageName}</imageName>
-                            <buildArgs>
-                                <buildArg>--no-fallback</buildArg>
-                            </buildArgs>
+                            <fallback>false</fallback>
                             <classpath>
                                 <param>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</param>
                             </classpath>
@@ -362,6 +358,26 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>excludeConfigTest</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <configuration>
+                            <excludeConfig>
+                                <entry>
+                                    <jarPath>dummy/path/to/file.jar</jarPath>
+                                    <resourcePattern>*</resourcePattern>
+                                </entry>
+                            </excludeConfig>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <build>
@@ -380,6 +396,14 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

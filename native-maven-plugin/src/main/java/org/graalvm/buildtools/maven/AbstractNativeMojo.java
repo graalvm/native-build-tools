@@ -120,7 +120,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(property = "classpath")
     protected List<String> classpath;
 
-    @Parameter
+    @Parameter(property = "classesDirectory")
     protected File classesDirectory;
 
     @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true, required = true)
@@ -141,6 +141,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Parameter(property = "sharedLibrary", defaultValue = "false")
     protected boolean sharedLibrary;
+
+    @Parameter(property = "quickBuild", defaultValue = "false")
+    protected boolean quickBuild;
 
     @Parameter(property = "useArgFile")
     protected Boolean useArgFile;
@@ -172,6 +175,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(alias = "metadataRepository")
     protected MetadataRepositoryConfiguration metadataRepositoryConfiguration;
 
+    @Parameter(property = NATIVE_IMAGE_DRY_RUN, defaultValue = "false")
+    protected boolean dryRun;
+
     protected JvmReachabilityMetadataRepository metadataRepository;
 
     @Component
@@ -194,7 +200,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             excludeConfig.forEach(entry -> {
                 cliArgs.add("--exclude-config");
                 cliArgs.add(entry.getJarPath());
-                cliArgs.add(entry.getResourcePattern());
+                cliArgs.add(String.format("\"%s\"", entry.getResourcePattern()));
             });
         }
 
@@ -202,7 +208,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         cliArgs.add(getClasspath());
 
         if (debug) {
-            cliArgs.add("-H:GenerateDebugInfo=1");
+            cliArgs.add("-g");
         }
         if (!fallback) {
             cliArgs.add("--no-fallback");
@@ -212,6 +218,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
         if (sharedLibrary) {
             cliArgs.add("--shared");
+        }
+        if (quickBuild) {
+            cliArgs.add("-Ob");
         }
 
         cliArgs.add("-H:Path=" + outputDirectory.toPath().toAbsolutePath());
@@ -228,7 +237,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
 
         maybeAddGeneratedResourcesConfig(buildArgs);
-        maybeAddReachabilityMetadata(cliArgs);
+        maybeAddReachabilityMetadata(configFiles);
 
         if (configFiles != null && !configFiles.isEmpty()) {
             cliArgs.add("-H:ConfigurationFileDirectories=" +
@@ -356,12 +365,10 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected String getClasspath() throws MojoExecutionException {
         populateClasspath();
-
         if (imageClasspath.isEmpty()) {
             throw new MojoExecutionException("Image classpath is empty. " +
                     "Check if your classpath configuration is correct.");
         }
-
         return imageClasspath.stream()
                 .map(Path::toString)
                 .collect(Collectors.joining(File.pathSeparator));
@@ -387,7 +394,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             String commandString = String.join(" ", processBuilder.command());
             logger.info("Executing: " + commandString);
 
-            if (System.getProperty(NATIVE_IMAGE_DRY_RUN) != null) {
+            if (dryRun) {
                 logger.warn("Skipped native-image building due to `" + NATIVE_IMAGE_DRY_RUN + "` being specified.");
                 return;
             }
@@ -408,12 +415,15 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                     Stream.concat(dirs == null ? Stream.empty() : Arrays.stream(dirs),
                             agentResourceDirectory == null ? Stream.empty() : Stream.of(agentResourceDirectory).filter(File::isDirectory));
 
-            into.add("-H:ConfigurationFileDirectories=" + configDirs.map(File::getAbsolutePath).collect(Collectors.joining(",")));
-            if (agentResourceDirectory != null && agentResourceDirectory.isDirectory()) {
-                // The generated reflect config file contains references to java.*
-                // and org.apache.maven.surefire that we'd need to remove using
-                // a proper JSON parser/writer instead
-                into.add("-H:+AllowIncompleteClasspath");
+            String value = configDirs.map(File::getAbsolutePath).collect(Collectors.joining(","));
+            if (!value.isEmpty()) {
+                into.add("-H:ConfigurationFileDirectories=" + value);
+                if (agentResourceDirectory != null && agentResourceDirectory.isDirectory()) {
+                    // The generated reflect config file contains references to java.*
+                    // and org.apache.maven.surefire that we'd need to remove using
+                    // a proper JSON parser/writer instead
+                    into.add("-H:+AllowIncompleteClasspath");
+                }
             }
         }
     }
@@ -460,16 +470,15 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
     }
 
-    protected void maybeAddReachabilityMetadata(List<String> args) {
+    protected void maybeAddReachabilityMetadata(List<String> configDirs) {
         if (isMetadataRepositoryEnabled() && !metadataRepositoryPaths.isEmpty()) {
             String arg = metadataRepositoryPaths.stream()
                     .map(Path::toAbsolutePath)
                     .map(Path::toFile)
                     .map(File::getAbsolutePath)
                     .collect(Collectors.joining(","));
-
             if (!arg.isEmpty()) {
-                args.add("-H:ConfigurationFileDirectories=" + arg);
+                configDirs.add(arg);
             }
         }
     }

@@ -140,9 +140,7 @@
                         <configuration>
                             <!-- end::native-plugin-agent-options[] -->
                             <imageName>${imageName}</imageName>
-                            <buildArgs>
-                                <buildArg>--no-fallback</buildArg>
-                            </buildArgs>
+                            <fallback>false</fallback>
                             <!-- tag::native-plugin-agent-options[] -->
                             <agent>
                                 <!-- end::native-plugin-agent-options[] -->
@@ -202,6 +200,14 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

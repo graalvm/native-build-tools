@@ -155,7 +155,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 // a mapped value before the task was called, when we are actually calling it...
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
                 getClasspathJar(),
-                getUseArgFile()).asArguments();
+                getUseArgFile(),
+                getProject()
+        ).asArguments();
     }
 
     // This property provides access to the service instance
@@ -165,7 +167,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     public abstract Property<Object> getService();
 
     @TaskAction
-    @SuppressWarnings("ConstantConditions")
     public void exec() {
         List<String> args = buildActualCommandLineArgs();
         NativeImageOptions options = getOptions().get();

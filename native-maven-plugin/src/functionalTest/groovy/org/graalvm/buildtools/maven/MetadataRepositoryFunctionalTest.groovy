@@ -100,6 +100,18 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
     }
 
+    void "if excludeConfig is set it is added to the command line invocation"() {
+        given:
+        withSample("native-config-integration")
+
+        when:
+        mvn '-Pnative,metadataLocal,excludeConfigTest', '-DnativeDryRun', 'package'
+
+        then:
+        buildSucceeded
+        outputContains "native-image --exclude-config dummy/path/to/file.jar \"*\""
+   }
+
     void "if the path doesn't exist it throws an error"() {
         given:
         withSample("native-config-integration")

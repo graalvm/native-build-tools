@@ -78,6 +78,7 @@ graalvmNative {
     binaries.all {
         verbose = true
         runtimeArgs.add("-DmessageClass=org.graalvm.internal.reflect.Message")
+        excludeConfig.put("org.graalvm.internal:library-with-reflection:1.5", ["*"])
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -64,6 +64,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -178,7 +179,15 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     public abstract Property<Boolean> getSharedLibrary();
 
     /**
-     * Returns the toolchain used to invoke native-image. Currently pointing
+     * Gets the value which determines if image is being built in quick build mode.
+     *
+     * @return The value which determines if image is being built in quick build mode.
+     */
+    @Input
+    public abstract Property<Boolean> getQuickBuild();
+
+    /**
+     * Returns the toolchain used to invoke native-image. Currently, pointing
      * to a Java launcher due to Gradle limitations.
      */
     @Nested
@@ -193,6 +202,16 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
      */
     @InputFiles
     public abstract ConfigurableFileCollection getConfigurationFileDirectories();
+
+    /**
+     * Returns the MapProperty that contains information about configuration that should be excluded
+     * during image building. It consists of a dependency coordinates and a list of
+     * regular expressions that match resources that should be excluded as a value.
+     *
+     * @return a map of filters for configuration exclusion
+     */
+    @Input
+    public abstract MapProperty<String, List<String>> getExcludeConfig();
 
     @Nested
     public abstract NativeResourcesOptions getResources();
@@ -212,6 +231,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getDebug().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
+        getQuickBuild().convention(false);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);

@@ -87,9 +87,7 @@
                         <configuration>
                             <skip>false</skip>
                             <imageName>${imageName}</imageName>
-                            <buildArgs>
-                                <buildArg>--no-fallback</buildArg>
-                            </buildArgs>
+                            <fallback>false</fallback>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -137,9 +135,7 @@
                             <skip>false</skip>
                             <useArgFile>false</useArgFile>
                             <imageName>${imageName}</imageName>
-                            <buildArgs>
-                                <buildArg>--no-fallback</buildArg>
-                            </buildArgs>
+                            <fallback>false</fallback>
                             <classpath>
                                 <param>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</param>
                             </classpath>
@@ -167,6 +163,14 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

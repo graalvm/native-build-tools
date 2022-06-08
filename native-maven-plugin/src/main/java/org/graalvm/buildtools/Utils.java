@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -60,14 +60,17 @@ public abstract class Utils implements SharedConstants {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
 
+    public static Path nativeImageCache;
+
     public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) throws MojoExecutionException {
         String graalHome = System.getenv(javaHomeVariable);
         if (graalHome == null) {
             return null;
         }
 
-        Path graalExe = Paths.get(graalHome).resolve("bin").resolve(NATIVE_IMAGE_EXE);
-        Path guExe = Paths.get(graalHome).resolve("bin").resolve(GU_EXE);
+        Path graalHomePath = Paths.get(graalHome);
+        Path graalExe = graalHomePath.resolve("bin").resolve(NATIVE_IMAGE_EXE);
+        Path guExe = graalHomePath.resolve("bin").resolve(GU_EXE);
 
         if (!Files.exists(graalExe)) {
             if (Files.exists(guExe)) {
@@ -95,6 +98,7 @@ public abstract class Utils implements SharedConstants {
                 return null;
             }
         }
+        System.out.println("Found GraalVM installation from " + javaHomeVariable + " variable.");
         return graalExe;
     }
 
@@ -107,14 +111,21 @@ public abstract class Utils implements SharedConstants {
     }
 
     public static Path getNativeImage() throws MojoExecutionException {
-        Path nativeImage = getJavaHomeNativeImage("JAVA_HOME", false);
+        if (nativeImageCache != null) {
+            return nativeImageCache;
+        }
+
+        Path nativeImage = getJavaHomeNativeImage("GRAALVM_HOME", false);
 
         if (nativeImage == null) {
-            nativeImage = getNativeImageFromPath();
+            nativeImage = getJavaHomeNativeImage("JAVA_HOME", true);
         }
 
         if (nativeImage == null) {
-            nativeImage = getJavaHomeNativeImage("GRAALVM_HOME", true);
+            nativeImage = getNativeImageFromPath();
+            if (nativeImage != null) {
+                System.out.println("Found GraalVM installation from PATH variable.");
+            }
         }
 
         if (nativeImage == null) {
@@ -122,6 +133,7 @@ public abstract class Utils implements SharedConstants {
                     "Make sure that GRAALVM_HOME environment variable is present.");
         }
 
+        nativeImageCache = nativeImage;
         return nativeImage;
     }
 }

@@ -114,10 +114,118 @@ Build Configuration]. It is also possible to customize the plugin within a
    image name is not supplied, the artifact ID of the project will be used by default.
 `<buildArgs>`::
    If you want to pass additional arguments to the native image builder, use `<buildArgs>`
-   in the configuration of the plugin.
+   in the configuration of the plugin:
+[source,xml]
+----
+<buildArgs>
+    <arg>--argument</arg>
+</buildArgs>
+----
 `<skipNativeBuild>`::
-   To skip generation of the native image, supply
-   `<skipNativeBuild>true</skipNativeBuild>` in the configuration of the plugin.
+   To skip generation of the native image, supply the following in the configuration of the plugin:
+[source,xml]
+----
+<skipNativeBuild>true</skipNativeBuild>
+----
+`<skipNativeTests>`::
+   To skip generation and execution of the native image compiled tests, supply the following in the configuration of the plugin:
+[source,xml]
+----
+<skipNativeTests>true</skipNativeTests>
+----
+`<debug>`::
+   If you want to enable generation of debugging information supply the following in the configuration of the plugin:
+[source,xml]
+----
+<debug>true</debug>
+----
+`<verbose>`::
+   If you want to enable verbose output during native-image building supply the following in the configuration of the plugin:
+[source,xml]
+----
+<verbose>true</verbose>
+----
+`<sharedLibrary>`::
+   If you want to build image as a shared library supply the following in the configuration of the plugin:
+[source,xml]
+----
+<sharedLibrary>true</sharedLibrary>
+----
+`<useArgFile>`::
+   If you want to use argument file for native-image building supply the following in the configuration of the plugin:
+[source,xml]
+----
+<useArgFile>true</useArgFile>
+----
+`<quickBuild>`::
+   If you want to build the image using https://blogs.oracle.com/java/post/graalvm-enterprise-221--faster-smarter-leaner[quick build mode], supply the following in the configuration of the plugin:
+[source,xml]
+----
+<quickBuild>true</quickBuild>
+----
+`<excludeConfig>`::
+   In order to exclude configuration from present jar files, specify:
+[source,xml]
+----
+<excludeConfig>
+    <entry>
+        <jarPath>dummy/path/to/file.jar</jarPath>
+        <resourcePattern>*</resourcePattern>
+    </entry>
+</excludeConfig>
+----
+`<environment>`::
+   To set environment options for native-image building supply the following in the configuration of the plugin:
+[source,xml]
+----
+<environment>
+    <variable>value</variable>
+</environment>
+----
+`<systemPropertyVariables>`::
+   To specify system properties used for native-image building supply the following in the configuration of the plugin:
+[source,xml]
+----
+<systemPropertyVariables>
+    <propertyName>value</propertyName>
+</systemPropertyVariables>
+----
+`<jvmArgs>`::
+   To specify JVM arguments used for native-image building supply the following in the configuration of the plugin:
+[source,xml]
+----
+<jvmArgs>
+    <arg>argument1</arg>
+    <arg>argument2</arg>
+</jvmArgs>
+----
+`<configurationFileDirectories>`::
+   If you want to specify custom directories where configuration files should be looked up, supply the following in the configuration of the plugin:
+[source,xml]
+----
+<configurationFileDirectories>
+    <dir>path/to/dir</dir>
+</configurationFileDirectories>
+----
+`<classpath`::
+   Sets a custom classpath instead of plugin generated one. Usage:
+[source,xml]
+----
+<classpath>
+    <entry>path/to/file.jar</entry>
+    <entry>path/to/classes</entry>
+</classpath>
+----
+`<classesDirectory>`::
+   If you want to specify custom path to packed JAR, or a custom directory that contains
+only application classes, but want the plugin to still automatically add classpath entries for
+dependencies, simply add:
+[source,xml]
+----
+<classesDirectory>
+    path/to/dir
+</classesDirectory>
+----
 `<agent>`::
    Configuration of the <<agent-support, native agent>>. See <<agent-support-enabling>>
    and <<agent-support-configuring-options>> for details.
@@ -126,15 +234,17 @@ For example, to build a native image named `executable-name` that uses
 `org.example.ClassName` as its main class with assertions enabled, add the following
 `<configuration>` block for the `native-maven-plugin`.
 
-```xml
+[source,xml]
+----
 <configuration>
   <imageName>executable-name</imageName>
   <mainClass>org.example.ClassName</mainClass>
-  <buildArgs>
-    <buildArg>--no-fallback</buildArg>
-  </buildArgs>
+  <fallback>false</fallback>
+  <verbose>true</verbose>
 </configuration>
-```
+----
+
+NOTE: Most of the aforementioned properties can also be set from command line as a part of Maven invocation -- for example if you want to temporarily enable verbose mode you can append `-Dverbose` to your Maven invocation.
 
 NOTE: If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with enterprise features enabled -- for example, an executable will automatically be built with https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e[compressed references] and other optimizations enabled.
 
@@ -152,7 +262,7 @@ The `<buildArgs>` element can be combined between parent and children POMs. Supp
     <imageName>${project.artifactId}</imageName>
     <mainClass>${exec.mainClass}</mainClass>
     <buildArgs>
-      <buildArg>--no-fallback<buildArg>
+      <buildArg>--no-fallback</buildArg>
     </buildArgs>
   </configuration>
 </plugin>
@@ -322,7 +432,6 @@ Depending on the other plugins your build uses (typically the Spring Boot plugin
 		</classpath>
 ...
 ----
-
 
 To be able to <<testing-support,execute tests in native mode>>, you will need more setup:
 

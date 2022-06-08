@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -77,9 +77,11 @@ graalvmNative {
             verbose.set(true) // Add verbose output, defaults to false
             fallback.set(true) // Sets the fallback mode of native-image, defaults to false
             sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+            quickBuild.set(false) // Determines if image is being built in quick build mode
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder
             configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
+            excludeConfig.put("org.example.test", listOf("META-INF/native-image/*", "config/*")) // Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
 
             // Advanced options
             buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension

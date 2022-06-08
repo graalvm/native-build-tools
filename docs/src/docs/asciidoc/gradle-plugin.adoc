@@ -67,7 +67,7 @@ include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=
 ----
 ====
 
-=== Installing GraalVM native image tool
+=== Installing GraalVM Native Image tool
 
 The plugin relies on Gradle's https://docs.gradle.org/7.1.1/userguide/toolchains.html[JVM toolchain support], allowing to decorrelate the tool used to run Gradle, the compiler used to build your application, and eventually the SDK used to generate a native image.
 

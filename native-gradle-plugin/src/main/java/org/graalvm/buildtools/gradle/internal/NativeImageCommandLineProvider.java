@@ -43,7 +43,9 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.gradle.api.Project;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
@@ -66,17 +68,20 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<String> outputDirectory;
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
+    private final Project project;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
-                                          Provider<Boolean> useArgFile) {
+                                          Provider<Boolean> useArgFile,
+                                          Project project) {
         this.options = options;
         this.executableName = executableName;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
+        this.project = project;
     }
 
     @Nested
@@ -104,19 +109,36 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
 
-        options.getExcludeConfig().get().forEach((jarPath, resourcePattern) -> {
-            cliArgs.add("--exclude-config");
-            cliArgs.add(jarPath);
-            cliArgs.add(resourcePattern);
+        options.getExcludeConfig().get().forEach((dependency, listOfResourcePatterns) -> {
+            // Resolve jar for this dependency.
+            project.getConfigurations().getByName("runtimeClasspath").getIncoming().artifactView(view -> {
+                view.setLenient(true);
+                view.componentFilter(id -> {
+                    if (id instanceof ModuleComponentIdentifier) {
+                        ModuleComponentIdentifier mid = (ModuleComponentIdentifier) id;
+                        String gav = String.format("%s:%s",
+                                mid.getGroup(),
+                                mid.getModule()
+                        );
+                        return dependency.startsWith(gav);
+                    }
+                    return false;
+                });
+            }).getFiles().forEach(jarPath -> listOfResourcePatterns.forEach(resourcePattern -> {
+                cliArgs.add("--exclude-config");
+                cliArgs.add(jarPath.toPath().toAbsolutePath().toString());
+                cliArgs.add(String.format("\"%s\"", resourcePattern));
+            }));
         });
 
         cliArgs.add("-cp");
         String classpathString = buildClasspathString(options);
         cliArgs.add(classpathString);
-        appendBooleanOption(cliArgs, options.getDebug(), "-H:GenerateDebugInfo=1");
+        appendBooleanOption(cliArgs, options.getDebug(), "-g");
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
+        appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
         if (getOutputDirectory().isPresent()) {
             cliArgs.add("-H:Path=" + getOutputDirectory().get());
         }
