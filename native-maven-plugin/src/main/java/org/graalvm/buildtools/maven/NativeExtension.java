@@ -42,7 +42,6 @@
 package org.graalvm.buildtools.maven;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
-import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -50,6 +49,8 @@ import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.component.annotations.Component;
+import org.codehaus.plexus.logging.LogEnabled;
+import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.utils.SharedConstants;
@@ -66,11 +67,18 @@ import java.util.function.Consumer;
  * the JUnit Platform test listener and registering the native dependency transparently.
  */
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "native-build-tools")
-public class NativeExtension extends AbstractMavenLifecycleParticipant {
+public class NativeExtension extends AbstractMavenLifecycleParticipant implements LogEnabled {
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
+
+    private Logger logger;
+
+    @Override
+    public void enableLogging(Logger logger) {
+        this.logger = logger;
+    }
 
     /**
      * Enumeration of execution contexts.
@@ -106,7 +114,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
     }
 
     @Override
-    public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
+    public void afterProjectsRead(MavenSession session) {
         for (MavenProject project : session.getProjects()) {
             Build build = project.getBuild();
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
@@ -153,7 +161,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant {
                                     }
                                     Xpp3Dom executable = findOrAppend(config, "executable");
                                     try {
-                                        executable.setValue(Utils.getNativeImage().getParent().resolve("java").toString());
+                                        executable.setValue(Utils.getNativeImage(logger).getParent().resolve("java").toString());
                                     } catch (MojoExecutionException e) {
                                         throw new RuntimeException(e);
                                     }

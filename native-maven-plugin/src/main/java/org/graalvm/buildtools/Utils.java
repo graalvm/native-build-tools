@@ -42,6 +42,7 @@
 package org.graalvm.buildtools;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
@@ -59,10 +60,9 @@ import java.util.stream.Stream;
 public abstract class Utils implements SharedConstants {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
-
     public static Path nativeImageCache;
 
-    public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast) throws MojoExecutionException {
+    public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast, Logger logger) throws MojoExecutionException {
         String graalHome = System.getenv(javaHomeVariable);
         if (graalHome == null) {
             return null;
@@ -98,7 +98,7 @@ public abstract class Utils implements SharedConstants {
                 return null;
             }
         }
-        System.out.println("Found GraalVM installation from " + javaHomeVariable + " variable.");
+        logger.info("Found GraalVM installation from " + javaHomeVariable + " variable.");
         return graalExe;
     }
 
@@ -110,21 +110,21 @@ public abstract class Utils implements SharedConstants {
         return exePath.map(path -> path.resolve(NATIVE_IMAGE_EXE)).orElse(null);
     }
 
-    public static Path getNativeImage() throws MojoExecutionException {
+    public static Path getNativeImage(Logger logger) throws MojoExecutionException {
         if (nativeImageCache != null) {
             return nativeImageCache;
         }
 
-        Path nativeImage = getJavaHomeNativeImage("GRAALVM_HOME", false);
+        Path nativeImage = getJavaHomeNativeImage("GRAALVM_HOME", false, logger);
 
         if (nativeImage == null) {
-            nativeImage = getJavaHomeNativeImage("JAVA_HOME", true);
+            nativeImage = getJavaHomeNativeImage("JAVA_HOME", true, logger);
         }
 
         if (nativeImage == null) {
             nativeImage = getNativeImageFromPath();
             if (nativeImage != null) {
-                System.out.println("Found GraalVM installation from PATH variable.");
+                logger.info("Found GraalVM installation from PATH variable.");
             }
         }
 

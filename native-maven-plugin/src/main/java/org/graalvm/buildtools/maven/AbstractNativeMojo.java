@@ -88,7 +88,6 @@ import java.util.stream.Stream;
  */
 
 public abstract class AbstractNativeMojo extends AbstractMojo {
-
     protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
@@ -219,6 +218,14 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         if (sharedLibrary) {
             cliArgs.add("--shared");
         }
+
+        // Let's allow user to specify environment option to toggle quick build.
+        String quickBuildEnv = System.getenv("GRAALVM_QUICK_BUILD");
+        if (quickBuildEnv != null) {
+            logger.info("Quick build environment variable is set.");
+            quickBuild = quickBuildEnv.isEmpty() || Boolean.parseBoolean(quickBuildEnv);
+        }
+
         if (quickBuild) {
             cliArgs.add("-Ob");
         }
@@ -375,7 +382,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     }
 
     protected void buildImage() throws MojoExecutionException {
-        Path nativeImageExecutable = Utils.getNativeImage();
+        Path nativeImageExecutable = Utils.getNativeImage(logger);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
