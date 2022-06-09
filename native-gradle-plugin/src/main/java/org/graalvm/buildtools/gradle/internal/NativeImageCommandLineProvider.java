@@ -104,11 +104,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         return classpathJar;
     }
 
-    @Override
-    public List<String> asArguments() {
-        NativeImageOptions options = getOptions().get();
-        List<String> cliArgs = new ArrayList<>(20);
-
+    private List<String> buildExcludeConfigArgs(NativeImageOptions options) {
+        List<String> args = new ArrayList<>();
         options.getExcludeConfig().get().forEach((dependency, listOfResourcePatterns) -> {
             // Resolve jar for this dependency.
             project.getConfigurations().getByName("runtimeClasspath").getIncoming().artifactView(view -> {
@@ -125,12 +122,19 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                     return false;
                 });
             }).getFiles().forEach(jarPath -> listOfResourcePatterns.forEach(resourcePattern -> {
-                cliArgs.add("--exclude-config");
-                cliArgs.add(jarPath.toPath().toAbsolutePath().toString());
-                cliArgs.add(String.format("\"%s\"", resourcePattern));
+                args.add("--exclude-config");
+                args.add(jarPath.toPath().toAbsolutePath().toString());
+                args.add(String.format("\"%s\"", resourcePattern));
             }));
         });
+        return args;
+    }
 
+    @Override
+    public List<String> asArguments() {
+        NativeImageOptions options = getOptions().get();
+        List<String> cliArgs = new ArrayList<>(20);
+        cliArgs.addAll(buildExcludeConfigArgs(options));
         cliArgs.add("-cp");
         String classpathString = buildClasspathString(options);
         cliArgs.add(classpathString);
