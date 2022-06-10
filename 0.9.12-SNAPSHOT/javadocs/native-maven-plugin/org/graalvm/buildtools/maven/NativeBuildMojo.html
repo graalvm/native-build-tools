@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10};
+var data = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -145,7 +145,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <hr>
 <pre>@Mojo(name="build",
-      defaultPhase=PACKAGE)
+      defaultPhase=PACKAGE,
+      requiresDependencyResolution=RUNTIME,
+      requiresDependencyCollection=RUNTIME)
 public class <span class="typeNameLabel">NativeBuildMojo</span>
 extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></pre>
 </li>
@@ -166,7 +168,7 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 <!--   -->
 </a>
 <h3>Fields inherited from class&nbsp;org.graalvm.buildtools.maven.<a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></h3>
-<code><a href="AbstractNativeMojo.html#buildArgs">buildArgs</a>, <a href="AbstractNativeMojo.html#logger">logger</a>, <a href="AbstractNativeMojo.html#pluginArtifacts">pluginArtifacts</a>, <a href="AbstractNativeMojo.html#project">project</a>, <a href="AbstractNativeMojo.html#session">session</a>, <a href="AbstractNativeMojo.html#toolchainManager">toolchainManager</a></code></li>
+<code><a href="AbstractNativeMojo.html#agentResourceDirectory">agentResourceDirectory</a>, <a href="AbstractNativeMojo.html#buildArgs">buildArgs</a>, <a href="AbstractNativeMojo.html#classesDirectory">classesDirectory</a>, <a href="AbstractNativeMojo.html#classpath">classpath</a>, <a href="AbstractNativeMojo.html#configFiles">configFiles</a>, <a href="AbstractNativeMojo.html#debug">debug</a>, <a href="AbstractNativeMojo.html#defaultClassesDirectory">defaultClassesDirectory</a>, <a href="AbstractNativeMojo.html#dryRun">dryRun</a>, <a href="AbstractNativeMojo.html#environment">environment</a>, <a href="AbstractNativeMojo.html#excludeConfig">excludeConfig</a>, <a href="AbstractNativeMojo.html#fallback">fallback</a>, <a href="AbstractNativeMojo.html#imageClasspath">imageClasspath</a>, <a href="AbstractNativeMojo.html#imageName">imageName</a>, <a href="AbstractNativeMojo.html#jvmArgs">jvmArgs</a>, <a href="AbstractNativeMojo.html#logger">logger</a>, <a href="AbstractNativeMojo.html#mainClass">mainClass</a>, <a href="AbstractNativeMojo.html#metadataRepository">metadataRepository</a>, <a href="AbstractNativeMojo.html#metadataRepositoryConfiguration">metadataRepositoryConfiguration</a>, <a href="AbstractNativeMojo.html#metadataRepositoryPaths">metadataRepositoryPaths</a>, <a href="AbstractNativeMojo.html#mojoExecution">mojoExecution</a>, <a href="AbstractNativeMojo.html#NATIVE_IMAGE_DRY_RUN">NATIVE_IMAGE_DRY_RUN</a>, <a href="AbstractNativeMojo.html#NATIVE_IMAGE_META_INF">NATIVE_IMAGE_META_INF</a>, <a href="AbstractNativeMojo.html#NATIVE_IMAGE_PROPERTIES_FILENAME">NATIVE_IMAGE_PROPERTIES_FILENAME</a>, <a href="AbstractNativeMojo.html#outputDirectory">outputDirectory</a>, <a href="AbstractNativeMojo.html#plugin">plugin</a>, <a href="AbstractNativeMojo.html#pluginArtifacts">pluginArtifacts</a>, <a href="AbstractNativeMojo.html#project">project</a>, <a href="AbstractNativeMojo.html#quickBuild">quickBuild</a>, <a href="AbstractNativeMojo.html#resourcesConfigDirectory">resourcesConfigDirectory</a>, <a href="AbstractNativeMojo.html#session">session</a>, <a href="AbstractNativeMojo.html#sharedLibrary">sharedLibrary</a>, <a href="AbstractNativeMojo.html#systemProperties">systemProperties</a>, <a href="AbstractNativeMojo.html#toolchainManager">toolchainManager</a>, <a href="AbstractNativeMojo.html#useArgFile">useArgFile</a>, <a href="AbstractNativeMojo.html#verbose">verbose</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="fields.inherited.from.class.org.apache.maven.plugin.Mojo">
@@ -218,13 +220,18 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#execute()">execute</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected java.util.List&lt;java.lang.String&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDependencyScopes()">getDependencyScopes</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.graalvm.buildtools.maven.AbstractNativeMojo">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.graalvm.buildtools.maven.<a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></h3>
-<code><a href="AbstractNativeMojo.html#maybeAddGeneratedResourcesConfig(java.util.List)">maybeAddGeneratedResourcesConfig</a></code></li>
+<code><a href="AbstractNativeMojo.html#addArtifactToClasspath(org.apache.maven.artifact.Artifact)">addArtifactToClasspath</a>, <a href="AbstractNativeMojo.html#addDependenciesToClasspath()">addDependenciesToClasspath</a>, <a href="AbstractNativeMojo.html#buildImage()">buildImage</a>, <a href="AbstractNativeMojo.html#configureMetadataRepository()">configureMetadataRepository</a>, <a href="AbstractNativeMojo.html#downloadMetadata(java.net.URL)">downloadMetadata</a>, <a href="AbstractNativeMojo.html#getBuildArgs()">getBuildArgs</a>, <a href="AbstractNativeMojo.html#getClasspath()">getClasspath</a>, <a href="AbstractNativeMojo.html#getMainBuildPath()">getMainBuildPath</a>, <a href="AbstractNativeMojo.html#getMetadataVersion(org.apache.maven.artifact.Artifact)">getMetadataVersion</a>, <a href="AbstractNativeMojo.html#isArtifactExcludedFromMetadataRepository(org.apache.maven.artifact.Artifact)">isArtifactExcludedFromMetadataRepository</a>, <a href="AbstractNativeMojo.html#isMetadataRepositoryEnabled()">isMetadataRepositoryEnabled</a>, <a href="AbstractNativeMojo.html#maybeAddDependencyMetadata(org.apache.maven.artifact.Artifact)">maybeAddDependencyMetadata</a>, <a href="AbstractNativeMojo.html#maybeAddGeneratedResourcesConfig(java.util.List)">maybeAddGeneratedResourcesConfig</a>, <a href="AbstractNativeMojo.html#maybeAddReachabilityMetadata(java.util.List)">maybeAddReachabilityMetadata</a>, <a href="AbstractNativeMojo.html#populateApplicationClasspath()">populateApplicationClasspath</a>, <a href="AbstractNativeMojo.html#populateClasspath()">populateClasspath</a>, <a href="AbstractNativeMojo.html#processArtifact(org.apache.maven.artifact.Artifact,java.lang.String)">processArtifact</a>, <a href="AbstractNativeMojo.html#unzipLocalMetadata(java.nio.file.Path)">unzipLocalMetadata</a>, <a href="AbstractNativeMojo.html#warnIfWrongMetaInfLayout(java.nio.file.Path,org.apache.maven.artifact.Artifact)">warnIfWrongMetaInfLayout</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.apache.maven.plugin.AbstractMojo">
@@ -275,6 +282,19 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a id="getDependencyScopes()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDependencyScopes</h4>
+<pre class="methodSignature">protected&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getDependencyScopes()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="AbstractNativeMojo.html#getDependencyScopes()">getDependencyScopes</a></code>&nbsp;in class&nbsp;<code><a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></code></dd>
+</dl>
+</li>
+</ul>
 <a id="execute()">
 <!--   -->
 </a>

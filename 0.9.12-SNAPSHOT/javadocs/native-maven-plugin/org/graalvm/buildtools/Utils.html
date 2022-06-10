@@ -168,6 +168,11 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#NATIVE_TESTS_EXE">NATIVE_TESTS_EXE</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.nio.file.Path</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#nativeImageCache">nativeImageCache</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="fields.inherited.from.class.org.graalvm.buildtools.utils.SharedConstants">
@@ -216,13 +221,14 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static java.nio.file.Path</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getJavaHomeNativeImage(java.lang.String,java.lang.Boolean)">getJavaHomeNativeImage</a></span>&#8203;(java.lang.String&nbsp;javaHomeVariable,
-                      java.lang.Boolean&nbsp;failFast)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getJavaHomeNativeImage(java.lang.String,java.lang.Boolean,org.codehaus.plexus.logging.Logger)">getJavaHomeNativeImage</a></span>&#8203;(java.lang.String&nbsp;javaHomeVariable,
+                      java.lang.Boolean&nbsp;failFast,
+                      org.codehaus.plexus.logging.Logger&nbsp;logger)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.nio.file.Path</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNativeImage()">getNativeImage</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNativeImage(org.codehaus.plexus.logging.Logger)">getNativeImage</a></span>&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
@@ -266,7 +272,7 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <a id="MAVEN_GROUP_ID">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>MAVEN_GROUP_ID</h4>
 <pre>public static final&nbsp;java.lang.String MAVEN_GROUP_ID</pre>
@@ -274,6 +280,15 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../constant-values.html#org.graalvm.buildtools.Utils.MAVEN_GROUP_ID">Constant Field Values</a></dd>
 </dl>
+</li>
+</ul>
+<a id="nativeImageCache">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>nativeImageCache</h4>
+<pre>public static&nbsp;java.nio.file.Path nativeImageCache</pre>
 </li>
 </ul>
 </li>
@@ -305,14 +320,15 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getJavaHomeNativeImage(java.lang.String,java.lang.Boolean)">
+<a id="getJavaHomeNativeImage(java.lang.String,java.lang.Boolean,org.codehaus.plexus.logging.Logger)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getJavaHomeNativeImage</h4>
 <pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getJavaHomeNativeImage&#8203;(java.lang.String&nbsp;javaHomeVariable,
-                                                        java.lang.Boolean&nbsp;failFast)
+                                                        java.lang.Boolean&nbsp;failFast,
+                                                        org.codehaus.plexus.logging.Logger&nbsp;logger)
                                                  throws org.apache.maven.plugin.MojoExecutionException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -329,13 +345,13 @@ implements org.graalvm.buildtools.utils.SharedConstants</pre>
 <pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getNativeImageFromPath()</pre>
 </li>
 </ul>
-<a id="getNativeImage()">
+<a id="getNativeImage(org.codehaus.plexus.logging.Logger)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getNativeImage</h4>
-<pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getNativeImage()
+<pre class="methodSignature">public static&nbsp;java.nio.file.Path&nbsp;getNativeImage&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)
                                          throws org.apache.maven.plugin.MojoExecutionException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>

@@ -527,6 +527,40 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 </li>
+<li>
+<p>Added <code>excludeConfig</code> configuration option that allows skipping of configuration files that are present in dependencies.</p>
+</li>
+<li>
+<p><code>useArgFile</code> is now set to true by default only on Windows.</p>
+</li>
+<li>
+<p>Added <code>quickBuild</code> configuration option.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Added support for GraalVM Reachability Metadata Repository.</p>
+</li>
+<li>
+<p>Completely reworked Maven plugin (should fix many of previous issues and inconsistencies between main and test builds).</p>
+</li>
+<li>
+<p>Added <code>classesDirectory</code>, <code>debug</code>, <code>fallback</code>, <code>verbose</code>, <code>sharedLibrary</code>, <code>configurationFileDirectories</code>, <code>excludeConfig</code>, <code>quickBuild</code>, and <code>jvmArgs</code> properties in order to match those present in the Gradle plugin.</p>
+<div class="paragraph">
+<p>See <a href="maven-plugin.html">docs</a> for more information.</p>
+</div>
+</li>
+<li>
+<p><code>useArgFile</code> is now set to true by default only on Windows.</p>
+</li>
+<li>
+<p>Changed lookup order for <code>native-image</code> discovery&#8201;&#8212;&#8201;<code>GRAALVM_HOME</code>, <code>JAVA_HOME</code>, <code>PATH</code>.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -534,7 +568,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_11"><a class="anchor" href="#_release_0_9_11"></a>Release 0.9.11</h3>
 <div class="sect3">
-<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -569,7 +603,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_10"><a class="anchor" href="#_release_0_9_10"></a>Release 0.9.10</h3>
 <div class="sect3">
-<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -676,7 +710,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_4"><a class="anchor" href="#_maven_plugin_4"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>

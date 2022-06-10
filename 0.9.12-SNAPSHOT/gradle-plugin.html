@@ -452,7 +452,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_quickstart">Quickstart</a>
 <ul class="sectlevel2">
 <li><a href="#_adding_the_plugin">Adding the plugin</a></li>
-<li><a href="#_installing_graalvm_native_image_tool">Installing GraalVM native image tool</a></li>
+<li><a href="#_installing_graalvm_native_image_tool">Installing GraalVM Native Image tool</a></li>
 </ul>
 </li>
 <li><a href="#configuration">Configuration</a>
@@ -600,7 +600,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_installing_graalvm_native_image_tool"><a class="anchor" href="#_installing_graalvm_native_image_tool"></a>Installing GraalVM native image tool</h3>
+<h3 id="_installing_graalvm_native_image_tool"><a class="anchor" href="#_installing_graalvm_native_image_tool"></a>Installing GraalVM Native Image tool</h3>
 <div class="paragraph">
 <p>The plugin relies on Gradle&#8217;s <a href="https://docs.gradle.org/7.1.1/userguide/toolchains.html">JVM toolchain support</a>, allowing to decorrelate the tool used to run Gradle, the compiler used to build your application, and eventually the SDK used to generate a native image.</p>
 </div>
@@ -821,9 +821,12 @@ Therefore, it becomes your responsibility to make sure that the environment vari
             verbose = true // Add verbose output, defaults to false
             fallback = true // Sets the fallback mode of native-image, defaults to false
             sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+            quickBuild = false // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable)
 
             systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
             configurationFileDirectories.from(file('src/my-config')) // Adds a native image configuration file directory, containing files like reflection configuration
+            excludeConfig.put("org.example.test", ["META-INF/native-image/*", "config/*"]) // Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("META-INF/native-image/*", "config/*"))
 
             // Advanced options
             buildArgs.add('-H:Extra') // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
@@ -850,9 +853,12 @@ Therefore, it becomes your responsibility to make sure that the environment vari
             verbose.set(true) // Add verbose output, defaults to false
             fallback.set(true) // Sets the fallback mode of native-image, defaults to false
             sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
+            quickBuild.set(false) // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable)
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder
             configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
+            excludeConfig.put("org.example.test", listOf("META-INF/native-image/*", "config/*")) // Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("META-INF/native-image/*", "config/*"))
 
             // Advanced options
             buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension

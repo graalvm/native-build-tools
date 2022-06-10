@@ -638,13 +638,222 @@ image name is not supplied, the artifact ID of the project will be used by defau
 <dt class="hdlist1"><code>&lt;buildArgs&gt;</code></dt>
 <dd>
 <p>If you want to pass additional arguments to the native image builder, use <code>&lt;buildArgs&gt;</code>
-in the configuration of the plugin.</p>
+in the configuration of the plugin:</p>
 </dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;buildArgs&gt;
+    &lt;arg&gt;--argument&lt;/arg&gt;
+&lt;/buildArgs&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
 <dt class="hdlist1"><code>&lt;skipNativeBuild&gt;</code></dt>
 <dd>
-<p>To skip generation of the native image, supply
-<code>&lt;skipNativeBuild&gt;true&lt;/skipNativeBuild&gt;</code> in the configuration of the plugin.</p>
+<p>To skip generation of the native image, supply the following in the configuration of the plugin:</p>
 </dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeBuild&gt;true&lt;/skipNativeBuild&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;skipNativeTests&gt;</code></dt>
+<dd>
+<p>To skip generation and execution of the native image compiled tests, supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeTests&gt;true&lt;/skipNativeTests&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;debug&gt;</code></dt>
+<dd>
+<p>If you want to enable generation of debugging information supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;debug&gt;true&lt;/debug&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;verbose&gt;</code></dt>
+<dd>
+<p>If you want to enable verbose output during native-image building supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;verbose&gt;true&lt;/verbose&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;sharedLibrary&gt;</code></dt>
+<dd>
+<p>If you want to build image as a shared library supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;sharedLibrary&gt;true&lt;/sharedLibrary&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;useArgFile&gt;</code></dt>
+<dd>
+<p>If you want to use argument file for native-image building supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;useArgFile&gt;true&lt;/useArgFile&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;quickBuild&gt;</code></dt>
+<dd>
+<p>If you want to build the image using <a href="https://blogs.oracle.com/java/post/graalvm-enterprise-221&#8212;&#8203;faster-smarter-leaner">quick build mode</a>, supply the following in the configuration of the plugin (alternatively set the <code>GRAALVM_QUICK_BUILD</code> environment variable to <code>true</code>):</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;quickBuild&gt;true&lt;/quickBuild&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;excludeConfig&gt;</code></dt>
+<dd>
+<p>In order to exclude configuration from present jar files, specify:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;excludeConfig&gt;
+    &lt;entry&gt;
+        &lt;jarPath&gt;dummy/path/to/file.jar&lt;/jarPath&gt;
+        &lt;resourcePattern&gt;*&lt;/resourcePattern&gt;
+    &lt;/entry&gt;
+&lt;/excludeConfig&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;environment&gt;</code></dt>
+<dd>
+<p>To set environment options for native-image building supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;environment&gt;
+    &lt;variable&gt;value&lt;/variable&gt;
+&lt;/environment&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;systemPropertyVariables&gt;</code></dt>
+<dd>
+<p>To specify system properties used for native-image building supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;systemPropertyVariables&gt;
+    &lt;propertyName&gt;value&lt;/propertyName&gt;
+&lt;/systemPropertyVariables&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;jvmArgs&gt;</code></dt>
+<dd>
+<p>To specify JVM arguments used for native-image building supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;jvmArgs&gt;
+    &lt;arg&gt;argument1&lt;/arg&gt;
+    &lt;arg&gt;argument2&lt;/arg&gt;
+&lt;/jvmArgs&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;configurationFileDirectories&gt;</code></dt>
+<dd>
+<p>If you want to specify custom directories where configuration files should be looked up, supply the following in the configuration of the plugin:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configurationFileDirectories&gt;
+    &lt;dir&gt;path/to/dir&lt;/dir&gt;
+&lt;/configurationFileDirectories&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;classpath</code></dt>
+<dd>
+<p>Sets a custom classpath instead of plugin generated one. Usage:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;classpath&gt;
+    &lt;entry&gt;path/to/file.jar&lt;/entry&gt;
+    &lt;entry&gt;path/to/classes&lt;/entry&gt;
+&lt;/classpath&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;classesDirectory&gt;</code></dt>
+<dd>
+<p>   If you want to specify custom path to packed JAR, or a custom directory that contains
+only application classes, but want the plugin to still automatically add classpath entries for
+dependencies, simply add:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;classesDirectory&gt;
+    path/to/dir
+&lt;/classesDirectory&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
 <dt class="hdlist1"><code>&lt;agent&gt;</code></dt>
 <dd>
 <p>Configuration of the <a href="#agent-support">native agent</a>. See <a href="#agent-support-enabling">Enabling the agent</a>
@@ -662,11 +871,22 @@ and <a href="#agent-support-configuring-options">Configuring agent options</a> f
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
   &lt;imageName&gt;executable-name&lt;/imageName&gt;
   &lt;mainClass&gt;org.example.ClassName&lt;/mainClass&gt;
-  &lt;buildArgs&gt;
-    &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
-  &lt;/buildArgs&gt;
+  &lt;fallback&gt;false&lt;/fallback&gt;
+  &lt;verbose&gt;true&lt;/verbose&gt;
 &lt;/configuration&gt;</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Most of the aforementioned properties can also be set from command line as a part of Maven invocation&#8201;&#8212;&#8201;for example if you want to temporarily enable verbose mode you can append <code>-Dverbose</code> to your Maven invocation.
+</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -695,7 +915,7 @@ If you use GraalVM Enterprise as the <code>JAVA_HOME</code> environment, the plu
     &lt;imageName&gt;${project.artifactId}&lt;/imageName&gt;
     &lt;mainClass&gt;${exec.mainClass}&lt;/mainClass&gt;
     &lt;buildArgs&gt;
-      &lt;buildArg&gt;--no-fallback&lt;buildArg&gt;
+      &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
     &lt;/buildArgs&gt;
   &lt;/configuration&gt;
 &lt;/plugin&gt;</code></pre>
@@ -940,9 +1160,7 @@ wish to run those same tests in native mode.</p>
         &lt;skip&gt;false&lt;/skip&gt;
         &lt;useArgFile&gt;false&lt;/useArgFile&gt;
         &lt;imageName&gt;${imageName}&lt;/imageName&gt;
-        &lt;buildArgs&gt;
-            &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
-        &lt;/buildArgs&gt;
+        &lt;fallback&gt;false&lt;/fallback&gt;
         &lt;classpath&gt;
             &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar&lt;/param&gt;
         &lt;/classpath&gt;
@@ -1093,9 +1311,7 @@ wish to run those same tests in native mode.</p>
         &lt;skip&gt;false&lt;/skip&gt;
         &lt;useArgFile&gt;false&lt;/useArgFile&gt;
         &lt;imageName&gt;${imageName}&lt;/imageName&gt;
-        &lt;buildArgs&gt;
-            &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
-        &lt;/buildArgs&gt;
+        &lt;fallback&gt;false&lt;/fallback&gt;
     &lt;/configuration&gt;
 &lt;/plugin&gt;</code></pre>
 </div>

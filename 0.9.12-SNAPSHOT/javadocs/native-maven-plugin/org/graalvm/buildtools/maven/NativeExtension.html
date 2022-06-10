@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10};
+var data = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -134,11 +134,16 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
+<dl>
+<dt>All Implemented Interfaces:</dt>
+<dd><code>org.codehaus.plexus.logging.LogEnabled</code></dd>
+</dl>
 <hr>
 <pre>@Component(role=org.apache.maven.AbstractMavenLifecycleParticipant.class,
            hint="native-build-tools")
 public class <span class="typeNameLabel">NativeExtension</span>
-extends org.apache.maven.AbstractMavenLifecycleParticipant</pre>
+extends org.apache.maven.AbstractMavenLifecycleParticipant
+implements org.codehaus.plexus.logging.LogEnabled</pre>
 <div class="block">This extension is responsible for configuring the Surefire plugin to enable
  the JUnit Platform test listener and registering the native dependency transparently.</div>
 </li>
@@ -185,6 +190,11 @@ extends org.apache.maven.AbstractMavenLifecycleParticipant</pre>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#afterProjectsRead(org.apache.maven.execution.MavenSession)">afterProjectsRead</a></span>&#8203;(org.apache.maven.execution.MavenSession&nbsp;session)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#enableLogging(org.codehaus.plexus.logging.Logger)">enableLogging</a></span>&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </table>
@@ -237,19 +247,29 @@ extends org.apache.maven.AbstractMavenLifecycleParticipant</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a id="enableLogging(org.codehaus.plexus.logging.Logger)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>enableLogging</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;enableLogging&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code>enableLogging</code>&nbsp;in interface&nbsp;<code>org.codehaus.plexus.logging.LogEnabled</code></dd>
+</dl>
+</li>
+</ul>
 <a id="afterProjectsRead(org.apache.maven.execution.MavenSession)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>afterProjectsRead</h4>
-<pre class="methodSignature">public&nbsp;void&nbsp;afterProjectsRead&#8203;(org.apache.maven.execution.MavenSession&nbsp;session)
-                       throws org.apache.maven.MavenExecutionException</pre>
+<pre class="methodSignature">public&nbsp;void&nbsp;afterProjectsRead&#8203;(org.apache.maven.execution.MavenSession&nbsp;session)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>afterProjectsRead</code>&nbsp;in class&nbsp;<code>org.apache.maven.AbstractMavenLifecycleParticipant</code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>org.apache.maven.MavenExecutionException</code></dd>
 </dl>
 </li>
 </ul>
