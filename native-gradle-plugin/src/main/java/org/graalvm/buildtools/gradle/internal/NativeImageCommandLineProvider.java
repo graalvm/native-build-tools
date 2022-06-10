@@ -43,9 +43,7 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.utils.NativeImageUtils;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
@@ -68,20 +66,17 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<String> outputDirectory;
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
-    private final Project project;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
-                                          Provider<Boolean> useArgFile,
-                                          Project project) {
+                                          Provider<Boolean> useArgFile) {
         this.options = options;
         this.executableName = executableName;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
-        this.project = project;
     }
 
     @Nested
@@ -104,37 +99,11 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         return classpathJar;
     }
 
-    private List<String> buildExcludeConfigArgs(NativeImageOptions options) {
-        List<String> args = new ArrayList<>();
-        options.getExcludeConfig().get().forEach((dependency, listOfResourcePatterns) -> {
-            // Resolve jar for this dependency.
-            project.getConfigurations().getByName("runtimeClasspath").getIncoming().artifactView(view -> {
-                view.setLenient(true);
-                view.componentFilter(id -> {
-                    if (id instanceof ModuleComponentIdentifier) {
-                        ModuleComponentIdentifier mid = (ModuleComponentIdentifier) id;
-                        String gav = String.format("%s:%s",
-                                mid.getGroup(),
-                                mid.getModule()
-                        );
-                        return dependency.startsWith(gav);
-                    }
-                    return false;
-                });
-            }).getFiles().forEach(jarPath -> listOfResourcePatterns.forEach(resourcePattern -> {
-                args.add("--exclude-config");
-                args.add(jarPath.toPath().toAbsolutePath().toString());
-                args.add(String.format("\"%s\"", resourcePattern));
-            }));
-        });
-        return args;
-    }
-
     @Override
     public List<String> asArguments() {
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
-        cliArgs.addAll(buildExcludeConfigArgs(options));
+        cliArgs.addAll(options.getExcludeConfigArgs().get());
         cliArgs.add("-cp");
         String classpathString = buildClasspathString(options);
         cliArgs.add(classpathString);
@@ -143,6 +112,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
         appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
+
         if (getOutputDirectory().isPresent()) {
             cliArgs.add("-H:Path=" + getOutputDirectory().get());
         }

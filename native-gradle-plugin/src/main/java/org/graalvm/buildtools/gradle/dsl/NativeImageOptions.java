@@ -196,7 +196,7 @@ public interface NativeImageOptions extends Named {
      * @return a map of filters for configuration exclusion
      */
     @Input
-    MapProperty<String, List<String>> getExcludeConfig();
+    MapProperty<Object, List<String>> getExcludeConfig();
 
     @Nested
     NativeResourcesOptions getResources();
@@ -292,4 +292,7 @@ public interface NativeImageOptions extends Named {
     DeprecatedAgentOptions getAgent();
 
     void agent(Action<? super DeprecatedAgentOptions> spec);
+
+    @Input
+    ListProperty<String> getExcludeConfigArgs();
 }

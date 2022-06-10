@@ -155,9 +155,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 // a mapped value before the task was called, when we are actually calling it...
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
                 getClasspathJar(),
-                getUseArgFile(),
-                getProject()
-        ).asArguments();
+                getUseArgFile()).asArguments();
     }
 
     // This property provides access to the service instance
@@ -168,9 +166,16 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @TaskAction
     public void exec() {
-        List<String> args = buildActualCommandLineArgs();
         NativeImageOptions options = getOptions().get();
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
+
+        String quickBuildEnv = System.getenv("GRAALVM_QUICK_BUILD");
+        if (quickBuildEnv != null) {
+            logger.warn("Quick build environment variable is set.");
+            options.getQuickBuild().set(quickBuildEnv.isEmpty() || Boolean.parseBoolean(quickBuildEnv));
+        }
+
+        List<String> args = buildActualCommandLineArgs();
         if (options.getVerbose().get()) {
             logger.lifecycle("Args are: " + args);
         }

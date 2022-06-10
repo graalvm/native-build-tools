@@ -205,13 +205,13 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
 
     /**
      * Returns the MapProperty that contains information about configuration that should be excluded
-     * during image building. It consists of a dependency coordinates and a list of
-     * regular expressions that match resources that should be excluded as a value.
+     * during image building. It consists of dependency coordinates and a list of
+     * regular expressions that match resources that should be excluded.
      *
      * @return a map of filters for configuration exclusion
      */
     @Input
-    public abstract MapProperty<String, List<String>> getExcludeConfig();
+    public abstract MapProperty<Object, List<String>> getExcludeConfig();
 
     @Nested
     public abstract NativeResourcesOptions getResources();

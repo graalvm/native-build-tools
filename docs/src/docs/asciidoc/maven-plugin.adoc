@@ -158,11 +158,12 @@ Build Configuration]. It is also possible to customize the plugin within a
 <useArgFile>true</useArgFile>
 ----
 `<quickBuild>`::
-   If you want to build the image using https://blogs.oracle.com/java/post/graalvm-enterprise-221--faster-smarter-leaner[quick build mode], supply the following in the configuration of the plugin:
+   If you want to build the image using https://blogs.oracle.com/java/post/graalvm-enterprise-221--faster-smarter-leaner[quick build mode], supply the following in the configuration of the plugin (alternatively set the `GRAALVM_QUICK_BUILD` environment variable to `true`):
 [source,xml]
 ----
 <quickBuild>true</quickBuild>
 ----
+
 `<excludeConfig>`::
    In order to exclude configuration from present jar files, specify:
 [source,xml]

@@ -222,7 +222,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         // Let's allow user to specify environment option to toggle quick build.
         String quickBuildEnv = System.getenv("GRAALVM_QUICK_BUILD");
         if (quickBuildEnv != null) {
-            logger.info("Quick build environment variable is set.");
+            logger.warn("Quick build environment variable is set.");
             quickBuild = quickBuildEnv.isEmpty() || Boolean.parseBoolean(quickBuildEnv);
         }
 

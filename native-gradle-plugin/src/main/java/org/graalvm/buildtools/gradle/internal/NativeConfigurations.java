@@ -58,4 +58,5 @@ public class NativeConfigurations {
     public Configuration getImageClasspathConfiguration() {
         return imageClasspath;
     }
+
 }
