@@ -87,10 +87,8 @@
                         <configuration>
                             <skip>false</skip>
                             <imageName>${imageName}</imageName>
-                            <buildArgs>
-                                <buildArg>--no-fallback</buildArg>
-                                <buildArg>--shared</buildArg>
-                            </buildArgs>
+                            <fallback>false</fallback>
+                            <sharedLibrary>true</sharedLibrary>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -114,6 +112,14 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

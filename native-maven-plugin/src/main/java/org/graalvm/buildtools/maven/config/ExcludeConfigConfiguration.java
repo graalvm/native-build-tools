@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,48 +38,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.maven.config;
 
-plugins {
-    groovy
-    `java-test-fixtures`
-    id("org.graalvm.build.maven-embedder")
-}
+import org.apache.maven.plugins.annotations.Parameter;
 
-val functionalTest by sourceSets.creating
+public class ExcludeConfigConfiguration {
+    @Parameter
+    private String jarPath;
+    @Parameter
+    private String resourcePattern;
 
-val functionalTestCommonRepository by configurations.creating {
-    // This configuration will trigger the composite build
-    // which builds the JUnit native library, and publish it to a repository
-    // which can then be injected into tests
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("repository"))
+    public String getJarPath() {
+        return jarPath;
     }
-}
 
-configurations {
-    "functionalTestImplementation" {
-        extendsFrom(testImplementation.get())
+    public void setJarPath(String jarPath) {
+        this.jarPath = jarPath;
     }
-}
 
-// Add a task to run the functional tests
-tasks.register<Test>("functionalTest") {
-    // Any change to samples invalidates functional tests
-    inputs.files(files("../samples"))
-    inputs.files(files("reproducers"))
-    inputs.files(functionalTestCommonRepository)
-    systemProperty("common.repo.url", functionalTestCommonRepository.incoming.files.files.first())
-    testClassesDirs = functionalTest.output.classesDirs
-    classpath = functionalTest.runtimeClasspath
-}
+    public String getResourcePattern() {
+        return resourcePattern;
+    }
 
-tasks.named("check") {
-    // Run the functional tests as part of `check`
-    dependsOn(tasks.named("functionalTest"))
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
+    public void setResourcePattern(String resourcePattern) {
+        this.resourcePattern = resourcePattern;
+    }
 }

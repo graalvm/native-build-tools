@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -74,6 +74,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.ArchiveOperations;
@@ -114,6 +115,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -126,6 +128,7 @@ import java.util.stream.Collectors;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
+import static org.graalvm.buildtools.utils.SharedConstants.IS_WINDOWS;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -170,7 +173,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         logger = GraalVMLogger.of(project.getLogger());
         DefaultGraalVmExtension graalExtension = (DefaultGraalVmExtension) registerGraalVMExtension(project);
-        graalExtension.getUseArgFile().convention(true);
+        graalExtension.getUseArgFile().convention(IS_WINDOWS);
         project.getPlugins()
                 .withType(JavaPlugin.class, javaPlugin -> configureJavaProject(project, nativeImageServiceProvider, graalExtension));
 
@@ -571,9 +574,11 @@ public class NativeImagePlugin implements Plugin<Project> {
                 "main",
                 JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME
         );
+        setupExtensionConfigExcludes(buildExtension, configs);
         buildExtension.getClasspath().from(configs.getImageClasspathConfiguration());
         return buildExtension;
     }
+
 
     private static NativeImageOptions createTestOptions(GraalVMExtension graalExtension,
                                                         String binaryName,
@@ -586,6 +591,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                 binaryName,
                 JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME
         );
+        setupExtensionConfigExcludes(testExtension, configs);
+
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
@@ -598,6 +605,48 @@ public class NativeImagePlugin implements Plugin<Project> {
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
         return testExtension;
+    }
+
+    private static void addExcludeConfigArg(List<String> args, Path jarPath, List<String> listOfResourcePatterns) {
+        listOfResourcePatterns.forEach(resourcePattern -> {
+            args.add("--exclude-config");
+            args.add(jarPath.toAbsolutePath().toString());
+            args.add(String.format("\"%s\"", resourcePattern));
+        });
+    }
+
+    private static void setupExtensionConfigExcludes(NativeImageOptions options, NativeConfigurations configs) {
+        options.getExcludeConfigArgs().set(options.getExcludeConfig().map(excludedConfig -> {
+            List<String> args = new ArrayList<>();
+            excludedConfig.forEach((entry, listOfResourcePatterns) -> {
+                if (entry instanceof File) {
+                    addExcludeConfigArg(args, ((File) entry).toPath(), listOfResourcePatterns);
+                } else if (entry instanceof String) {
+                    String dependency = (String) entry;
+                    // Resolve jar for this dependency.
+                    configs.getImageClasspathConfiguration().getIncoming().artifactView(view -> {
+                                view.setLenient(true);
+                                view.componentFilter(id -> {
+                                    if (id instanceof ModuleComponentIdentifier) {
+                                        ModuleComponentIdentifier mid = (ModuleComponentIdentifier) id;
+                                        String gav = String.format("%s:%s:%s",
+                                                mid.getGroup(),
+                                                mid.getModule(),
+                                                mid.getVersion()
+                                        );
+                                        return gav.startsWith(dependency);
+                                    }
+                                    return false;
+                                });
+                            }).getFiles().getFiles().stream()
+                            .map(File::toPath)
+                            .forEach(jarPath -> addExcludeConfigArg(args, jarPath, listOfResourcePatterns));
+                } else {
+                    throw new UnsupportedOperationException("Expected File or GAV coordinate for excludeConfig option, got " + entry.getClass());
+                }
+            });
+            return args;
+        }));
     }
 
     private static List<String> agentSessionDirectories(Directory outputDirectory) {

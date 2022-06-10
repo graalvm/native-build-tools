@@ -44,6 +44,20 @@ package org.graalvm.buildtools.maven
 import spock.lang.Issue
 
 class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    def "proper options are added to the native-image invocation"() {
+        withSample("java-application")
+
+        when:
+        mvn '-Pnative', '-DskipTests', '-DnativeDryRun', '-DuseArgFile=false',
+                '-Dclasspath=/testcp', '-Ddebug', '-Dfallback=false', '-Dverbose', '-DsharedLibrary',
+                '-DquickBuild',
+                'package'
+
+        then:
+        buildSucceeded
+        outputContains "native-image -cp /testcp -g --no-fallback --verbose --shared -Ob"
+    }
+
     def "can build and execute a native image with the Maven plugin"() {
         withSample("java-application")
 

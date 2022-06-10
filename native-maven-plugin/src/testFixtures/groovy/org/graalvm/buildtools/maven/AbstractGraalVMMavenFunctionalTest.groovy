@@ -56,6 +56,8 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     @TempDir
     Path testDirectory
 
+    Path testOrigin;
+
     private IsolatedMavenExecutor executor
 
     MavenExecutionResult result
@@ -92,13 +94,13 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     protected void withReproducer(String name) {
-        File sampleDir = new File("reproducers/$name")
-        copySample(sampleDir.toPath(), testDirectory)
+        testOrigin = new File("reproducers/$name").toPath()
+        copySample(testOrigin, testDirectory)
     }
 
     protected void withSample(String name) {
-        File sampleDir = new File("../samples/$name")
-        copySample(sampleDir.toPath(), testDirectory)
+        testOrigin = new File("../samples/$name").toPath()
+        copySample(testOrigin, testDirectory)
     }
 
     protected void withLocalServer() {
@@ -141,6 +143,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     void mvn(String... args) {
+        System.out.println("Running copy of maven project `" + testOrigin + "` with `" + args + "`");
         result = executor.execute(
                 testDirectory.toFile(),
                 [

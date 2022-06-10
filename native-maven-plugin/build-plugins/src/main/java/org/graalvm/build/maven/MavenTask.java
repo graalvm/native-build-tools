@@ -88,7 +88,7 @@ public abstract class MavenTask extends DefaultTask {
         File projectdir = getProjectDirectory().getAsFile().get();
         getExecOperations().javaexec(spec -> {
             spec.setClasspath(getMavenEmbedderClasspath());
-            spec.setMain("org.apache.maven.cli.MavenCli");
+            spec.getMainClass().set("org.apache.maven.cli.MavenCli");
             spec.systemProperty("maven.multiModuleProjectDirectory", projectdir.getAbsolutePath());
             prepareSpec(spec);
             List<String> arguments = new ArrayList<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -103,14 +103,16 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     public List<String> asArguments() {
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
-
+        cliArgs.addAll(options.getExcludeConfigArgs().get());
         cliArgs.add("-cp");
         String classpathString = buildClasspathString(options);
         cliArgs.add(classpathString);
-        appendBooleanOption(cliArgs, options.getDebug(), "-H:GenerateDebugInfo=1");
+        appendBooleanOption(cliArgs, options.getDebug(), "-g");
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
+        appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
+
         if (getOutputDirectory().isPresent()) {
             cliArgs.add("-H:Path=" + getOutputDirectory().get());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -99,7 +99,7 @@ public interface GraalVMExtension {
 
     /**
      * Property driving the use of @-arg files when invoking native image.
-     * This is enabled by default. For older native-image versions, this
+     * This is enabled by default on Windows. For older native-image versions, this
      * needs to be disabled.
      *
      * @return the argument file property

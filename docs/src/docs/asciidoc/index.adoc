@@ -23,6 +23,18 @@ If you are interested in contributing, please refer to our https://github.com/gr
 * Introduced the `metadataCopy` task.
 * Introduced the concept of agent modes.
 ** Under the hood, the agent mode dictates what options are passed to the agent and how metadata produced by multiple runs get merged.
+* Added `excludeConfig` configuration option that allows skipping of configuration files that are present in dependencies.
+* `useArgFile` is now set to true by default only on Windows.
+* Added `quickBuild` configuration option.
+
+==== Maven plugin
+* Added support for GraalVM Reachability Metadata Repository.
+* Completely reworked Maven plugin (should fix many of previous issues and inconsistencies between main and test builds).
+* Added `classesDirectory`, `debug`, `fallback`, `verbose`, `sharedLibrary`, `configurationFileDirectories`, `excludeConfig`, `quickBuild`, and `jvmArgs` properties in order to match those present in the Gradle plugin.
++
+See <<maven-plugin.adoc#,docs>> for more information.
+* `useArgFile` is now set to true by default only on Windows.
+* Changed lookup order for `native-image` discovery -- `GRAALVM_HOME`, `JAVA_HOME`, `PATH`.
 
 === Release 0.9.11
 

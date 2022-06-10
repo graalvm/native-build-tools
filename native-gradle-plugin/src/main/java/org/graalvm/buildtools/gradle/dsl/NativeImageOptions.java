@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -56,6 +56,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.jvm.toolchain.JavaLauncher;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -163,6 +164,14 @@ public interface NativeImageOptions extends Named {
     Property<Boolean> getSharedLibrary();
 
     /**
+     * Gets the value which determines if image is being built in quick build mode.
+     *
+     * @return The value which determines if image is being built in quick build mode.
+     */
+    @Input
+    Property<Boolean> getQuickBuild();
+
+    /**
      * Returns the toolchain used to invoke native-image. Currently pointing
      * to a Java launcher due to Gradle limitations.
      */
@@ -171,13 +180,23 @@ public interface NativeImageOptions extends Named {
     Property<JavaLauncher> getJavaLauncher();
 
     /**
-     * Returns the list of configuration file directories (e.g resource-config.json, ...) which need
+     * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
      * to be passed to native-image.
      *
      * @return a collection of directories
      */
     @InputFiles
     ConfigurableFileCollection getConfigurationFileDirectories();
+
+    /**
+     * Returns the MapProperty that contains information about configuration that should be excluded
+     * during image building. It consists of a dependency coordinates and a list of
+     * regular expressions that match resources that should be excluded as a value.
+     *
+     * @return a map of filters for configuration exclusion
+     */
+    @Input
+    MapProperty<Object, List<String>> getExcludeConfig();
 
     @Nested
     NativeResourcesOptions getResources();
@@ -273,4 +292,7 @@ public interface NativeImageOptions extends Named {
     DeprecatedAgentOptions getAgent();
 
     void agent(Action<? super DeprecatedAgentOptions> spec);
+
+    @Input
+    ListProperty<String> getExcludeConfigArgs();
 }
