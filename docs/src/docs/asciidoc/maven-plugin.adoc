@@ -208,7 +208,7 @@ Build Configuration]. It is also possible to customize the plugin within a
     <dir>path/to/dir</dir>
 </configurationFileDirectories>
 ----
-`<classpath`::
+`<classpath>`::
    Sets a custom classpath instead of plugin generated one. Usage:
 [source,xml]
 ----
