@@ -40,7 +40,7 @@
  */
 package org.graalvm.reachability.internal;
 
-import org.graalvm.reachability.JvmReachabilityMetadataRepository;
+import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.index.artifacts.SingleModuleJsonVersionToConfigDirectoryIndex;
 import org.graalvm.reachability.internal.index.artifacts.VersionToConfigDirectoryIndex;
@@ -55,7 +55,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class FileSystemRepository implements JvmReachabilityMetadataRepository {
+public class FileSystemRepository implements GraalVMReachabilityMetadataRepository {
 
     private final FileSystemModuleToConfigDirectoryIndex moduleIndex;
     private final Logger logger;

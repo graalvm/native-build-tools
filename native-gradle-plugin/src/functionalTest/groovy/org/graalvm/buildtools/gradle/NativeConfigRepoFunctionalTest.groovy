@@ -75,10 +75,10 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         outputContains "Hello, from reflection!"
 
         and: "doesn't find a configuration directory for the current version"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but finds one thanks to the latest configuration field"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
 
         where:
         format   | label
@@ -112,7 +112,7 @@ graalvmNative {
         outputContains "Reflection failed"
 
         and: "doesn't look for a configuration directory for the current version"
-        outputDoesNotContain "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
+        outputDoesNotContain "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
     }
 
     def "can force a dependency to a specific config version"() {
@@ -139,7 +139,7 @@ graalvmNative {
         outputContains "Reflection failed"
 
         and: "looks for specific configuration version"
-        outputContains "[jvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
     }
 
 }

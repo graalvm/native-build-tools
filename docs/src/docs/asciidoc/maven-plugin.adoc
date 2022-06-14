@@ -615,7 +615,7 @@ automatically added to your native build options.
 [[metadata-support]]
 == GraalVM Reachability Metadata Support
 
-Since release 0.9.12, the plugin adds experimental support for the https://github.com/graalvm/jvm-reachability-metadata/[JVM reachability metadata repository].
+Since release 0.9.12, the plugin adds experimental support for the https://github.com/graalvm/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
 This repository provides GraalVM metadata for libraries which do not officially support GraalVM native.
 
 A metadata repository consists of configuration files for GraalVM.

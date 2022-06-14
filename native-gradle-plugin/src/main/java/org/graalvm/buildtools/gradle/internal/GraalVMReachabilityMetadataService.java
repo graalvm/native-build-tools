@@ -40,7 +40,7 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
-import org.graalvm.reachability.JvmReachabilityMetadataRepository;
+import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.FileSystemRepository;
 import org.gradle.api.file.ArchiveOperations;
@@ -57,12 +57,12 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -72,10 +72,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class JvmReachabilityMetadataService implements BuildService<JvmReachabilityMetadataService.Params>, JvmReachabilityMetadataRepository {
-    private static final Logger LOGGER = Logging.getLogger(JvmReachabilityMetadataService.class);
+public abstract class GraalVMReachabilityMetadataService implements BuildService<GraalVMReachabilityMetadataService.Params>, GraalVMReachabilityMetadataRepository {
+    private static final Logger LOGGER = Logging.getLogger(GraalVMReachabilityMetadataService.class);
 
-    private final JvmReachabilityMetadataRepository repository;
+    private final GraalVMReachabilityMetadataRepository repository;
 
     @Inject
     protected abstract ArchiveOperations getArchiveOperations();
@@ -91,7 +91,7 @@ public abstract class JvmReachabilityMetadataService implements BuildService<Jvm
         DirectoryProperty getCacheDir();
     }
 
-    public JvmReachabilityMetadataService() throws URISyntaxException {
+    public GraalVMReachabilityMetadataService() throws URISyntaxException {
         URI uri = getParameters().getUri().get();
         this.repository = newRepository(uri);
     }
@@ -99,19 +99,19 @@ public abstract class JvmReachabilityMetadataService implements BuildService<Jvm
     private static String hashFor(URI uri) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] messageDigest = md.digest(md.digest(uri.toString().getBytes("utf-8")));
+            byte[] messageDigest = md.digest(md.digest(uri.toString().getBytes(StandardCharsets.UTF_8)));
             BigInteger no = new BigInteger(1, messageDigest);
             StringBuilder digest = new StringBuilder(no.toString(16));
             while (digest.length() < 32) {
                 digest.insert(0, "0");
             }
             return digest.toString();
-        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new UnsupportedOperationException(e);
         }
     }
 
-    private JvmReachabilityMetadataRepository newRepository(URI uri) throws URISyntaxException {
+    private GraalVMReachabilityMetadataRepository newRepository(URI uri) throws URISyntaxException {
         String cacheKey = hashFor(uri);
         String path = uri.getPath();
         LogLevel logLevel = getParameters().getLogLevel().get();
@@ -163,11 +163,11 @@ public abstract class JvmReachabilityMetadataService implements BuildService<Jvm
             return new FileSystemRepository(path, new FileSystemRepository.Logger() {
                 @Override
                 public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                    LOGGER.log(logLevel, "[jvm reachability metadata repository for {}:{}:{}]: {}", groupId, artifactId, version, message.get());
+                    LOGGER.log(logLevel, "[graalvm reachability metadata repository for {}:{}:{}]: {}", groupId, artifactId, version, message.get());
                 }
             });
         } else {
-            throw new IllegalArgumentException("JVM reachability metadata repository URI must point to a directory");
+            throw new IllegalArgumentException("GraalVM reachability metadata repository URI must point to a directory");
         }
     }
 

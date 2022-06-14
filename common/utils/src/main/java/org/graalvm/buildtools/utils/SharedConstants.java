@@ -51,6 +51,9 @@ import java.util.List;
  */
 public interface SharedConstants {
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
+    boolean IS_CI = System.getenv("CI") != null;
+    boolean IS_DUMB_TERM = Arrays.asList(null, "", "dumb", "unknown").contains(System.getenv("TERM"));
+    boolean NO_COLOR = System.getenv("NO_COLOR") != null; // https://no-color.org/
     String GRAALVM_EXE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
     String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
     String NATIVE_IMAGE_EXE = "native-image" + GRAALVM_EXE_EXTENSION;
@@ -72,4 +75,5 @@ public interface SharedConstants {
     String AGENT_SESSION_SUBDIR = "session-{pid}-{datetime}";
     String AGENT_OUTPUT_DIRECTORY_MARKER = "{output_dir}";
     String AGENT_OUTPUT_DIRECTORY_OPTION = "config-output-dir=";
+    String METADATA_REPO_URL_TEMPLATE = "https://github.com/graalvm/graalvm-reachability-metadata/releases/download/%1$s/graalvm-reachability-metadata-%1$s.zip";
 }
