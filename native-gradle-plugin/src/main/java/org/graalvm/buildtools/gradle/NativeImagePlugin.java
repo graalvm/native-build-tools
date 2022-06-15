@@ -45,7 +45,7 @@ import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.agent.AgentConfiguration;
 import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
-import org.graalvm.buildtools.gradle.dsl.JvmReachabilityMetadataRepositoryExtension;
+import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
@@ -55,7 +55,7 @@ import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
-import org.graalvm.buildtools.gradle.internal.JvmReachabilityMetadataService;
+import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -129,6 +129,7 @@ import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProje
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
 import static org.graalvm.buildtools.utils.SharedConstants.IS_WINDOWS;
+import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEMPLATE;
 
 /**
  * Gradle plugin for GraalVM Native Image.
@@ -307,10 +308,10 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureJvmReachabilityConfigurationDirectories(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
-        JvmReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
-        Provider<JvmReachabilityMetadataService> serviceProvider = project.getGradle()
+        GraalVMReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
+        Provider<GraalVMReachabilityMetadataService> serviceProvider = project.getGradle()
                 .getSharedServices()
-                .registerIfAbsent("nativeConfigurationService", JvmReachabilityMetadataService.class, spec -> {
+                .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
                     LogLevel logLevel = determineLogLevel();
                     spec.getParameters().getLogLevel().set(logLevel);
                     spec.getParameters().getUri().set(repositoryExtension.getUri());
@@ -353,8 +354,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         return logLevel;
     }
 
-    private static JvmReachabilityMetadataRepositoryExtension reachabilityExtensionOn(GraalVMExtension graalExtension) {
-        return ((ExtensionAware) graalExtension).getExtensions().getByType(JvmReachabilityMetadataRepositoryExtension.class);
+    private static GraalVMReachabilityMetadataRepositoryExtension reachabilityExtensionOn(GraalVMExtension graalExtension) {
+        return ((ExtensionAware) graalExtension).getExtensions().getByType(GraalVMReachabilityMetadataRepositoryExtension.class);
     }
 
     private void deprecateExtension(Project project,
@@ -419,11 +420,11 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureNativeConfigurationRepo(ExtensionAware graalvmNative) {
-        JvmReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("metadataRepository", JvmReachabilityMetadataRepositoryExtension.class);
+        GraalVMReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("metadataRepository", GraalVMReachabilityMetadataRepositoryExtension.class);
         configurationRepository.getEnabled().convention(false);
         configurationRepository.getUri().convention(configurationRepository.getVersion().map(v -> {
             try {
-                return new URI("https://github.com/graalvm/graalvm-reachability-metadata/releases/download/" + v + "/graalvm-reachability-metadata-" + v + ".zip");
+                return new URI(String.format(METADATA_REPO_URL_TEMPLATE, v));
             } catch (URISyntaxException e) {
                 return null;
             }

@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
+import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -187,6 +188,14 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     public abstract Property<Boolean> getQuickBuild();
 
     /**
+     * Gets the value which determines if image is being built with rich output.
+     *
+     * @return The value which determines if image is being built with rich output.
+     */
+    @Input
+    public abstract Property<Boolean> getRichOutput();
+
+    /**
      * Returns the toolchain used to invoke native-image. Currently, pointing
      * to a Java launcher due to Gradle limitations.
      */
@@ -195,7 +204,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     public abstract Property<JavaLauncher> getJavaLauncher();
 
     /**
-     * Returns the list of configuration file directories (e.g resource-config.json, ...) which need
+     * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
      * to be passed to native-image.
      *
      * @return a collection of directories
@@ -232,6 +241,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getFallback().convention(false);
         getVerbose().convention(false);
         getQuickBuild().convention(false);
+        getRichOutput().convention(!SharedConstants.IS_CI && !SharedConstants.IS_WINDOWS && !SharedConstants.IS_DUMB_TERM && !SharedConstants.NO_COLOR);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);
@@ -239,7 +249,6 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
         return providers.gradleProperty(name)
-                .forUseAtConfigurationTime()
                 .map(Boolean::valueOf)
                 .orElse(false);
     }

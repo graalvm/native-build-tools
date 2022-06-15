@@ -38,74 +38,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.dsl;
+package org.graalvm.reachability;
 
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
-
-import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Set;
+import java.util.function.Consumer;
 
 /**
- * Extension used to configure the JVM reachability metadata repository.
+ * Interface for accessing a reachability metadata repository.
+ * The goal of this repository is to answer questions like:
+ * "give me the configuration files for this artifact", where
+ * an artifact is represented by its GAV coordinates.
+ *
+ * The repository query may be configured for multiple artifacts
+ * and provide overrides for cases where configuration files
+ * are missing.
  */
-public interface JvmReachabilityMetadataRepositoryExtension {
+public interface GraalVMReachabilityMetadataRepository {
     /**
-     * Property used to determine if the native configuration
-     * repository should be used.
-     * @return the enabled property
+     * Performs a generic query on the repository, returning a list of
+     * configuration directories. The query may be parameterized with
+     * a number of artifacts, and can be used to refine behavior, for
+     * example if a configuration directory isn't available for a
+     * particular artifact version.
+     * @param queryBuilder the query builder
+     * @return the set of configuration directories matching the query
      */
-    Property<Boolean> getEnabled();
+    Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder);
 
     /**
-     * A URI pointing to a jvm reachability metadata repository. This must
-     * either be a local file or a remote URI. In case of remote
-     * files, only zip or tarballs are supported.
-     * @return the uri property
+     * Returns a list of configuration directories for the specified artifact.
+     * There may be more than one configuration directory for a given artifact,
+     * but the list may also be empty if the repository doesn't contain any.
+     * Never null.
+     * @param gavCoordinates the artifact GAV coordinates (group:artifact:version)
+     * @return a list of configuration directories
      */
-    Property<URI> getUri();
-
-    /**
-     * An optional version of the remote repository: if specified,
-     * and that no URI is provided, it will automatically use a
-     * published repository from the official GraalVM configuration
-     * repository.
-     *
-     * @return the version of the repository to use
-     */
-    Property<String> getVersion();
-
-    /**
-     * The set of modules for which we don't want to use the
-     * configuration found in the repository. Modules must be
-     * declared with the `groupId:artifactId` syntax.
-     * @return the set of excluded modules
-     */
-    SetProperty<String> getExcludedModules();
-
-    /**
-     * A map from a module (org.group:artifact) to configuration
-     * repository config version.
-     * @return the map of modules to forced configuration versions
-     */
-    MapProperty<String, String> getModuleToConfigVersion();
-
-    /**
-     * Convenience method to use a String for the URI
-     * property.
-     * @param uri the URI
-     */
-    default void uri(String uri) throws URISyntaxException {
-        getUri().set(new URI(uri));
+    default Set<Path> findConfigurationDirectoriesFor(String gavCoordinates) {
+        return findConfigurationDirectoriesFor(q -> q.forArtifacts(gavCoordinates));
     }
 
     /**
-     * Convenience method to use a URI for the property.
-     * @param file a file
+     * Returns the set of configuration directories for all the modules supplied
+     * as an argument.
+     * @param modules the list of modules
+     * @return the set of configuration directories
      */
-    default void uri(File file) {
-        getUri().set(file.toURI());
+    default Set<Path> findConfigurationDirectoriesFor(Collection<String> modules) {
+        return findConfigurationDirectoriesFor(q -> q.forArtifacts(modules));
     }
 }

@@ -172,6 +172,14 @@ public interface NativeImageOptions extends Named {
     Property<Boolean> getQuickBuild();
 
     /**
+     * Gets the value which determines if image is being built with rich output.
+     *
+     * @return The value which determines if image is being built with rich output.
+     */
+    @Input
+    Property<Boolean> getRichOutput();
+
+    /**
      * Returns the toolchain used to invoke native-image. Currently pointing
      * to a Java launcher due to Gradle limitations.
      */

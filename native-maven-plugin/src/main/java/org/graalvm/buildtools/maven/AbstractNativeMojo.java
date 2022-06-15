@@ -58,13 +58,15 @@ import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
-import org.graalvm.reachability.JvmReachabilityMetadataRepository;
+import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.internal.FileSystemRepository;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -82,6 +84,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEMPLATE;
 
 /**
  * @author Sebastien Deleuze
@@ -177,7 +181,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(property = NATIVE_IMAGE_DRY_RUN, defaultValue = "false")
     protected boolean dryRun;
 
-    protected JvmReachabilityMetadataRepository metadataRepository;
+    protected GraalVMReachabilityMetadataRepository metadataRepository;
 
     @Component
     protected Logger logger;
@@ -442,8 +446,13 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected void configureMetadataRepository() {
         if (isMetadataRepositoryEnabled()) {
             Path repoPath = null;
-            if (metadataRepositoryConfiguration.getVersion() != null) {
-                logger.warn("The official GraalVM reachability metadata repository is not released yet. Only local repositories are supported");
+            if (metadataRepositoryConfiguration.getVersion() != null && metadataRepositoryConfiguration.getUrl() == null) {
+                String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, metadataRepositoryConfiguration.getVersion());
+                try {
+                    metadataRepositoryConfiguration.setUrl(new URI(metadataUrl).toURL());
+                } catch (URISyntaxException | MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
             }
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
                 Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
