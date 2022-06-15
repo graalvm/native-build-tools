@@ -50,6 +50,6 @@ maven {
 
 dependencies {
     implementation(libs.jackson.databind)
-    implementation(platform(libs.test.junit.bom))
-    implementation(libs.test.junit.jupiter.core)
+    testImplementation(platform(libs.test.junit.bom))
+    testImplementation(libs.test.junit.jupiter.core)
 }
