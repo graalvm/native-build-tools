@@ -137,10 +137,55 @@ graalvmNative {
 // tag::add-agent-options[]
 graalvmNative {
     agent {
-        enableExperimentalPredefinedClasses = true
+        enableExperimentalPredefinedClasses.set(true)
     }
 }
 // end::add-agent-options[]
+
+// tag::agent-modes[]
+graalvmNative {
+    agent {
+        defaultMode.set("conditional")
+        modes {
+            conditional {
+                userCodeFilterPath.set("user-code-filter.json")
+                extraFilterPath.set("extra-code-filter.json")
+                // Filter file structure:
+                /*
+                    {
+                      "rules": [
+                        {"excludeClasses": "**"},
+                        {"includeClasses": "com.acme.**"}
+                      ]
+                    }
+                */
+            }
+        }
+        metadataCopy {
+            mergeWithExisting.set(true)
+            inputTaskNames.add("test")
+            outputDirectories.add("src/main/resources/META-INF/native-image/acme")
+        }
+    }
+}
+// end::agent-modes[]
+
+// tag::add-agent-options-individual[]
+graalvmNative {
+    binaries {
+        named("main") {
+            agent {
+                options.add("experimental-class-loader-support")
+            }
+        }
+        named("test") {
+            agent {
+                options.add("access-filter-file=${projectDir}/src/test/resources/access-filter.json")
+            }
+        }
+    }
+}
+// end::add-agent-options-individual[]
 
 // tag::enable-metadata-repository[]
 graalvmNative {

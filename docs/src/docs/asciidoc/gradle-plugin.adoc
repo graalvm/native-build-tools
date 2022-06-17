@@ -345,6 +345,21 @@ The default mode is specified in the DSL but can be changed by passing the mode 
 The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
 The plugin will also substitute `{output_dir}` in the agent options to point to this directory during the agent run.
 
+Agent modes are configured from DSL in the following manner:
+
+.Configuring agent modes
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=agent-modes]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=agent-modes]
+----
+
+Consult link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html[AgentOptions javadoc] for more configurable options.
+
 [[agent-support-configuring-options]]
 === Configuring agent options
 
@@ -360,6 +375,19 @@ include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
 [source, kotlin, role="multi-language-sample"]
 ----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
+----
+
+You can also configure agent options per individual binary:
+
+.Configuring agent options per binary
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options-individual]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options-individual]
 ----
 
 [[metadata-support]]
