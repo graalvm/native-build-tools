@@ -239,8 +239,8 @@ However, you need to add the following configuration to make it work with GraalV
 graalvmNative {
     binaries {
         test {
-            buildArgs.add("--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher")
-            buildArgs.add("--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2")
+            buildArgs.add("--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker\$Dispatcher")
+            buildArgs.add("--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription\$InDefinedShape\$AbstractBase\$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription\$AbstractBase,net.bytebuddy.description.type.TypeDescription\$ForLoadedType,net.bytebuddy.description.method.MethodDescription\$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument\$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument\$BindingMechanic\$1,net.bytebuddy.implementation.bind.annotation.Argument\$BindingMechanic\$2,net.bytebuddy.implementation.bind.annotation.Super\$Instantiation\$2")
         }
     }
 }
@@ -251,8 +251,8 @@ graalvmNative {
 graalvmNative {
     binaries {
         named("test") {
-            buildArgs.add("--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher")
-            buildArgs.add("--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2")
+            buildArgs.add("--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker\$Dispatcher")
+            buildArgs.add("--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription\$InDefinedShape\$AbstractBase\$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription\$AbstractBase,net.bytebuddy.description.type.TypeDescription\$ForLoadedType,net.bytebuddy.description.method.MethodDescription\$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument\$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument\$BindingMechanic\$1,net.bytebuddy.implementation.bind.annotation.Argument\$BindingMechanic\$2,net.bytebuddy.implementation.bind.annotation.Super\$Instantiation\$2")
         }
     }
 }
