@@ -12,6 +12,8 @@ Please refer to the following pages for build tool specific documentation:
 
 If you are interested in contributing, please refer to our https://github.com/graalvm/native-build-tools[Git repository].
 
+If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>
+
 [[changelog]]
 == Changelog
 === Release 0.9.12
