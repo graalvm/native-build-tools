@@ -1,0 +1,3 @@
+org.graalvm.buildtools
+org.graalvm.buildtools.maven
+org.graalvm.buildtools.maven.config
