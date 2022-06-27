@@ -54,7 +54,7 @@ public class StandardLocationModuleToConfigDirectoryIndex implements ModuleToCon
 
     @Override
     public Set<Path> findConfigurationDirectories(String groupId, String artifactId) {
-        Path candidate = rootPath.resolve(groupId.replace('.', '/') + "/" + artifactId);
+        Path candidate = rootPath.resolve(groupId + "/" + artifactId);
         if (Files.isDirectory(candidate)) {
             return Collections.singleton(candidate);
         }
