@@ -139,6 +139,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_TEST_COMPILE_TASK_NAME = "nativeTestCompile";
     public static final String NATIVE_TEST_TASK_NAME = "nativeTest";
     public static final String NATIVE_MAIN_EXTENSION = "main";
+    public static final String NATIVE_TEST_EXTENSION = "test";
 
     public static final String DEPRECATED_NATIVE_BUILD_EXTENSION = "nativeBuild";
     public static final String DEPRECATED_NATIVE_TEST_EXTENSION = "nativeTest";
@@ -248,7 +249,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_COMPILE_TASK_NAME + " instead."));
         });
 
-        graalExtension.registerTestBinary("test", config -> {
+        graalExtension.registerTestBinary(NATIVE_TEST_EXTENSION, config -> {
             config.forTestTask(tasks.named("test", Test.class));
             config.usingSourceSet(GradleUtils.findSourceSet(project, SourceSet.TEST_SOURCE_SET_NAME));
         });
