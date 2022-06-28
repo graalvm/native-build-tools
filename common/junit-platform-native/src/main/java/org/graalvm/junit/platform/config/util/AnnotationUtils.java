@@ -42,7 +42,6 @@
 package org.graalvm.junit.platform.config.util;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
-import org.graalvm.util.GuardedAnnotationAccess;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 import java.lang.annotation.Annotation;
@@ -96,7 +95,7 @@ public class AnnotationUtils {
     }
 
     private static <A extends Annotation> List<A> getAnnotations(AnnotatedElement element, Class<A> annotation) {
-        if (GuardedAnnotationAccess.getAnnotation(annotation, Repeatable.class) != null) {
+        if (annotation.getAnnotation(Repeatable.class) != null) {
             return AnnotationSupport.findRepeatableAnnotations(element, annotation);
         } else {
             Optional<A> optionalAnnotation = AnnotationSupport.findAnnotation(element, annotation);

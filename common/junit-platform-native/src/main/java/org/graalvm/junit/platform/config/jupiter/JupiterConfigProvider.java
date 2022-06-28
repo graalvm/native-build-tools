@@ -79,7 +79,8 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 "org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor",
                 "org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor",
                 "org.junit.jupiter.engine.execution.ConditionEvaluator",
-                "org.junit.jupiter.engine.execution.ExecutableInvoker"
+                "org.junit.jupiter.engine.execution.ExecutableInvoker",
+                "org.junit.jupiter.params.provider.EnumSource$Mode",
         };
         for (String className : buildTimeInitializedClasses) {
             config.initializeAtBuildTime(className);
