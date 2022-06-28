@@ -16,6 +16,14 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 [[changelog]]
 == Changelog
+=== Release 0.9.13
+
+=== Gradle plugin
+* Reverted a change in the `NativeImagePlugin` that removed publicly accessible constants. This should prevent breakage of external plugins.
+
+=== JUnit testing support
+* Adapted the JUnit automatic metadata registration to changes in annotation handling on newer native image versions.
+
 === Release 0.9.12
 
 ==== Gradle plugin
