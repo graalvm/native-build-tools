@@ -63,29 +63,29 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
 
         Optional<Path> configDir = index.findConfigurationDirectory("com.foo", "bar", "1.0");
         assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("1"), configDir.get());
+        assertEquals(repoPath.resolve("1.0"), configDir.get());
 
         configDir = index.findConfigurationDirectory("com.foo", "bar", "1.3");
         assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("1"), configDir.get());
+        assertEquals(repoPath.resolve("1.0"), configDir.get());
 
         configDir = index.findConfigurationDirectory("com.foo", "bar", "2.0");
         assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("2"), configDir.get());
+        assertEquals(repoPath.resolve("2.0"), configDir.get());
 
         configDir = index.findConfigurationDirectory("com.foo", "bar", "2.5");
         assertFalse(configDir.isPresent());
 
         configDir = index.findConfigurationDirectory("com.foo", "bar-all", "2.0");
         assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("2"), configDir.get());
+        assertEquals(repoPath.resolve("2.0"), configDir.get());
 
         configDir = index.findConfigurationDirectory("com.foo", "nope", "1.0");
         assertFalse(configDir.isPresent());
 
         Optional<Path> latest = index.findLatestConfigurationFor("com.foo", "bar");
         assertTrue(latest.isPresent());
-        assertEquals(repoPath.resolve("2"), latest.get());
+        assertEquals(repoPath.resolve("2.0"), latest.get());
 
     }
 

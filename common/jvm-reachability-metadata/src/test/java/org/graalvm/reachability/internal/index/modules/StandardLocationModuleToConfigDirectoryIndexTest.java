@@ -67,7 +67,7 @@ class StandardLocationModuleToConfigDirectoryIndexTest {
 
     @Test
     void returnsConventionalConfigLocation() throws IOException {
-        Path localDir = tempDir.resolve("org/module/foo");
+        Path localDir = tempDir.resolve("org.module/foo");
         Files.createDirectories(localDir);
         Set<Path> configurationDirectories = index.findConfigurationDirectories("org.module", "foo");
         assertEquals(singleton(localDir), configurationDirectories);
