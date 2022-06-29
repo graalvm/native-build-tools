@@ -90,14 +90,14 @@ class FileUtilsTest {
         assertEquals("[]", String.join("\n", Files.readAllLines(tempDir.resolve("index.json"))));
 
         assertTrue(Files.isDirectory(tempDir.resolve("org")));
-        assertTrue(Files.isDirectory(tempDir.resolve("org/graalvm")));
-        assertTrue(Files.isDirectory(tempDir.resolve("org/graalvm/internal")));
-        assertTrue(Files.isDirectory(tempDir.resolve("org/graalvm/internal/library-with-reflection")));
-        assertTrue(Files.exists(tempDir.resolve("org/graalvm/internal/library-with-reflection/index.json")));
-        assertTrue(Files.isDirectory(tempDir.resolve("org/graalvm/internal/library-with-reflection/1")));
+        assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm")));
+        assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm.internal")));
+        assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm.internal/library-with-reflection")));
+        assertTrue(Files.exists(tempDir.resolve("org.graalvm.internal/library-with-reflection/index.json")));
+        assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm.internal/library-with-reflection/1")));
 
-        assertTrue(Files.exists(tempDir.resolve("org/graalvm/internal/library-with-reflection/1/reflect-config.json")));
-        assertEquals("[  {    \"name\": \"org.graalvm.internal.reflect.Message\",    \"allDeclaredFields\": true,    \"allDeclaredMethods\": true  }]", String.join("", Files.readAllLines(tempDir.resolve("org/graalvm/internal/library-with-reflection/1/reflect-config.json"))));
+        assertTrue(Files.exists(tempDir.resolve("org.graalvm.internal/library-with-reflection/1/reflect-config.json")));
+        assertEquals("[  {    \"name\": \"org.graalvm.internal.reflect.Message\",    \"allDeclaredFields\": true,    \"allDeclaredMethods\": true  }]", String.join("", Files.readAllLines(tempDir.resolve("org.graalvm.internal/library-with-reflection/1/reflect-config.json"))));
     }
     @Test
     @DisplayName("It is protected against ZIP slip attacks")

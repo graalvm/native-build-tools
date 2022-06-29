@@ -83,7 +83,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
     }
 
     void "if excludeConfig is set it is added to the command line invocation"() {
@@ -151,7 +151,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
     }
 
     void "it can download a remote repository"() {
@@ -171,7 +171,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org/graalvm/internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
     }
 
     void "when pointing to a missing URL, reflection fails"() {
