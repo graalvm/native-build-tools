@@ -64,13 +64,13 @@ class FileSystemRepositoryTest {
         lookup("org:foo:1.0");
 
         // then:
-        result.hasSinglePath("org/foo/1");
+        result.hasSinglePath("org/foo/1.0");
 
         // when:
         lookup("org:foo:1.1");
 
         // then:
-        result.hasSinglePath("org/foo/2");
+        result.hasSinglePath("org/foo/1.1");
 
         // when:
         lookup("org:foo:1.2");
@@ -86,7 +86,7 @@ class FileSystemRepositoryTest {
         lookup("org:bar:2.1");
 
         // then:
-        result.hasSinglePath("org/foo/2");
+        result.hasSinglePath("org/foo/1.1");
     }
 
     @Test
@@ -99,7 +99,7 @@ class FileSystemRepositoryTest {
         });
 
         // then:
-        result.hasSinglePath("org/foo/2");
+        result.hasSinglePath("org/foo/1.1");
 
         //when: "order of spec shouldn't matter"
         lookup(q -> {
@@ -108,7 +108,7 @@ class FileSystemRepositoryTest {
         });
 
         // then:
-        result.hasSinglePath("org/foo/2");
+        result.hasSinglePath("org/foo/1.1");
     }
 
     @Test
@@ -118,11 +118,11 @@ class FileSystemRepositoryTest {
 
         lookup(q -> q.forArtifact(artifact -> {
             artifact.gav("org:foo:1.2");
-            artifact.forceConfigVersion("1");
+            artifact.forceConfigVersion("1.0");
         }));
 
         // then:
-        result.hasSinglePath("org/foo/1");
+        result.hasSinglePath("org/foo/1.0");
     }
 
     @Test
@@ -149,7 +149,7 @@ class FileSystemRepositoryTest {
         }));
 
         // then:
-        result.hasSinglePath("org/foo/2");
+        result.hasSinglePath("org/foo/1.1");
 
         // when:
         lookup(q -> {

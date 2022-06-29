@@ -63,10 +63,10 @@ class JsonModuleToConfigDirectoryIndexTest {
     void returnsSingleDirectory() throws URISyntaxException {
         writeIndex("single-dir");
         Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
-        assertEquals(singleton(repoPath.resolve("io/netty/netty-core")), configurationDirectories);
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
-        assertEquals(singleton(repoPath.resolve("io/netty/netty-core")), configurationDirectories);
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("org", "bar");
         assertEquals(emptySet(), configurationDirectories);
@@ -77,7 +77,7 @@ class JsonModuleToConfigDirectoryIndexTest {
         writeIndex("multi-dirs");
         Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
         assertEquals(new HashSet<>(asList(
-                repoPath.resolve("io/netty/netty-core"),
+                repoPath.resolve("io.netty/netty-core"),
                 repoPath.resolve("jline")
                 )), configurationDirectories);
 

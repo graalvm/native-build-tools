@@ -63,10 +63,10 @@ class FileSystemModuleToConfigDirectoryIndexTest {
     void returnsSingleDirectory() throws IOException, URISyntaxException {
         writeIndex("single-dir");
         Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
-        assertEquals(singleton(repoPath.resolve("io/netty/netty-core")), configurationDirectories);
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
-        assertEquals(singleton(repoPath.resolve("io/netty/netty-core")), configurationDirectories);
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("org", "bar");
         assertEquals(singleton(repoPath.resolve("org/bar")), configurationDirectories);
@@ -77,7 +77,7 @@ class FileSystemModuleToConfigDirectoryIndexTest {
         writeIndex("multi-dirs");
         Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
         assertEquals(new HashSet<>(asList(
-                repoPath.resolve("io/netty/netty-core"),
+                repoPath.resolve("io.netty/netty-core"),
                 repoPath.resolve("jline")
                 )), configurationDirectories);
 
