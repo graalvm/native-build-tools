@@ -156,6 +156,7 @@ If you do this, the plugin will search for 2 environment variables: `GRAALVM_HOM
 If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
 Therefore, it becomes your responsibility to make sure that the environment variable points to a JDK that is compatible with your build script requirements (in particular, the language version).
 
+[[configuration-options]]
 ==== Configuration options
 
 The following configuration options are available for building images:
@@ -349,18 +350,10 @@ The plugin will also substitute `{output_dir}` in the agent options to point to 
 === Configuring agent options
 
 The native agent can be configured https://www.graalvm.org/reference-manual/native-image/Agent/[with additional options].
-This can be done using the `agent` configuration block:
+This can be done using the `agent` configuration block.
+Each agent option has a corresponding field in the DSL.
+See <<configuration-options>> for the full list of available options.
 
-.Configuring agent options
-[source, groovy, role="multi-language-sample"]
-----
-include::../snippets/gradle/groovy/build.gradle[tags=add-agent-options]
-----
-
-[source, kotlin, role="multi-language-sample"]
-----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=add-agent-options]
-----
 
 [[metadata-support]]
 == GraalVM Reachability Metadata Support
