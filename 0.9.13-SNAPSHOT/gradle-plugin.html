@@ -761,7 +761,7 @@ Therefore, it becomes your responsibility to make sure that the environment vari
 </div>
 </div>
 <div class="sect3">
-<h4 id="_configuration_options"><a class="anchor" href="#_configuration_options"></a>Configuration options</h4>
+<h4 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Configuration options</h4>
 <div class="paragraph">
 <p>The following configuration options are available for building images:</p>
 </div>
@@ -769,9 +769,9 @@ Therefore, it becomes your responsibility to make sure that the environment vari
 <div class="title">NativeImageOption configuration</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    // Injects the native-image-agent into supported tasks if `-Pagent` is specified
     agent {
         defaultMode = "standard" // Default agent mode if one isn't specified using `-Pagent=mode_name`
+        enabled = true // Enables the agent
 
         modes {
             // The standard agent mode generates metadata without conditions.
@@ -780,7 +780,7 @@ Therefore, it becomes your responsibility to make sure that the environment vari
             // The conditional agent mode generates metadata with conditions.
             conditional {
                 userCodeFilterPath = "path-to-filter.json" // Path to a filter file that determines classes which will be used in the metadata conditions.
-                extrFilterPath = "path-to-another-filter.json" // Optional, extra filter used to further filter the collected metadata.
+                extraFilterPath = "path-to-another-filter.json" // Optional, extra filter used to further filter the collected metadata.
             }
             // The direct agent mode allows users to directly pass options to the agent.
             direct {
@@ -845,6 +845,49 @@ Therefore, it becomes your responsibility to make sure that the environment vari
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    agent {
+        defaultMode.set("standard") // Default agent mode if one isn't specified using `-Pagent=mode_name`
+        enabled.set(true) // Enables the agent
+
+        modes {
+            // The standard agent mode generates metadata without conditions.
+            standard {
+            }
+            // The conditional agent mode generates metadata with conditions.
+            conditional {
+                userCodeFilterPath.set("path-to-filter.json") // Path to a filter file that determines classes which will be used in the metadata conditions.
+                extraFilterPath.set("path-to-another-filter.json") // Optional, extra filter used to further filter the collected metadata.
+            }
+            // The direct agent mode allows users to directly pass options to the agent.
+            direct {
+                // {output_dir} is a special string expanded by the plugin to where the agent files would usually be output.
+                options.add("config-output-dir={output_dir}")
+                options.add("experimental-configuration-with-origins")
+            }
+        }
+
+        callerFilterFiles.from("filter.json")
+        accessFilterFiles.from("filter.json")
+        builtinCallerFilter.set(true)
+        builtinHeuristicFilter.set(true)
+        enableExperimentalPredefinedClasses.set(false)
+        enableExperimentalUnsafeAllocationTracing.set(false)
+        trackReflectionMetadata.set(true)
+
+        // Copies metadata collected from tasks into the specified directories.
+        metadataCopy {
+            inputTaskNames.add("test") // Tasks previously executed with the agent attached.
+            outputDirectories.add("src/main/resources/META-INF/native-image")
+            mergeWithExisting.set(true) // Instead of copying, merge with existing metadata in the output directories.
+        }
+
+        /*
+        By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
+        This can be limited to only specific tasks that match this predicate.
+         */
+        tasksToInstrumentPredicate.set(t -&gt; true)
+    }
+
     binaries {
         named("main") {
             // Main options
@@ -1157,28 +1200,9 @@ The plugin will also substitute <code>{output_dir}</code> in the agent options t
 <h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h3>
 <div class="paragraph">
 <p>The native agent can be configured <a href="https://www.graalvm.org/reference-manual/native-image/Agent/">with additional options</a>.
-This can be done using the <code>agent</code> configuration block:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="title">Configuring agent options</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries.configureEach {
-        agent {
-            options.add("experimental-class-loader-support")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    agent {
-        enableExperimentalPredefinedClasses = true
-    }
-}</code></pre>
-</div>
+This can be done using the <code>agent</code> configuration block.
+Each agent option has a corresponding field in the DSL.
+See <a href="#configuration-options">Configuration options</a> for the full list of available options.</p>
 </div>
 </div>
 </div>
