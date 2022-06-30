@@ -3,20 +3,20 @@
 nativeBuildTools = "0.9.13-SNAPSHOT"
 
 # External dependencies
-spock = "2.0-groovy-3.0"
-maven = "3.3.9"
-mavenAnnotations = "3.5.1"
-mavenEmbedder = "3.8.1"
+spock = "2.1-groovy-3.0"
+maven = "3.8.5"
+mavenAnnotations = "3.6.4"
+mavenEmbedder = "3.8.3"
 mavenWagon = "3.4.3"
-graalvm = "21.1.0"
-jackson = "2.12.4"
+graalvm = "22.0.0"
+jackson = "2.13.3"
 junitPlatform = "1.8.1"
 junitJupiter = "5.8.1"
 aether = "1.1.0"
 slf4j = "1.7.9"
-groovy = "3.0.8"
+groovy = "3.0.11"
 jgit = "5.12.0.202106070339-r"
-jetty = "11.0.9"
+jetty = "11.0.11"
 
 [libraries]
 # Local projects
