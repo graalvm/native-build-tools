@@ -523,7 +523,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     }
                     return options.getDefaultMode().get();
                 })
-                .orElse(project.provider(() -> "disabled"));
+                .orElse(options.getEnabled().map(enabled -> enabled ? options.getDefaultMode().get() : "disabled"));
     }
 
     private static void registerServiceProvider(Project project, Provider<NativeImageService> nativeImageServiceProvider) {

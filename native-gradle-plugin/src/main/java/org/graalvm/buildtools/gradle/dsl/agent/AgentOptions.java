@@ -73,6 +73,13 @@ public interface AgentOptions {
     Property<String> getDefaultMode();
 
     /**
+     * Enables the agent.
+     */
+    @Input
+    @Optional
+    Property<Boolean> getEnabled();
+
+    /**
      * Caller-filter files that will be passed to the agent.
      */
     @InputFiles

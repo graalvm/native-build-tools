@@ -78,6 +78,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         AgentOptions agentOpts = getAgent();
         agentOpts.getTasksToInstrumentPredicate().convention(t -> true);
         agentOpts.getDefaultMode().convention("standard");
+        agentOpts.getEnabled().convention(false);
         agentOpts.getModes().getConditional().getParallel().convention(true);
         agentOpts.getMetadataCopy().getMergeWithExisting().convention(false);
         agentOpts.getFilterableEntries().convention(Arrays.asList("org.gradle.", "java.", "org.junit."));
