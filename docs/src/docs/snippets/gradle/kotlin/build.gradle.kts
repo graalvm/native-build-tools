@@ -68,6 +68,49 @@ if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
 
 // tag::all-config-options[]
 graalvmNative {
+    agent {
+        defaultMode.set("standard") // Default agent mode if one isn't specified using `-Pagent=mode_name`
+        enabled.set(true) // Enables the agent
+
+        modes {
+            // The standard agent mode generates metadata without conditions.
+            standard {
+            }
+            // The conditional agent mode generates metadata with conditions.
+            conditional {
+                userCodeFilterPath.set("path-to-filter.json") // Path to a filter file that determines classes which will be used in the metadata conditions.
+                extraFilterPath.set("path-to-another-filter.json") // Optional, extra filter used to further filter the collected metadata.
+            }
+            // The direct agent mode allows users to directly pass options to the agent.
+            direct {
+                // {output_dir} is a special string expanded by the plugin to where the agent files would usually be output.
+                options.add("config-output-dir={output_dir}")
+                options.add("experimental-configuration-with-origins")
+            }
+        }
+
+        callerFilterFiles.from("filter.json")
+        accessFilterFiles.from("filter.json")
+        builtinCallerFilter.set(true)
+        builtinHeuristicFilter.set(true)
+        enableExperimentalPredefinedClasses.set(false)
+        enableExperimentalUnsafeAllocationTracing.set(false)
+        trackReflectionMetadata.set(true)
+
+        // Copies metadata collected from tasks into the specified directories.
+        metadataCopy {
+            inputTaskNames.add("test") // Tasks previously executed with the agent attached.
+            outputDirectories.add("src/main/resources/META-INF/native-image")
+            mergeWithExisting.set(true) // Instead of copying, merge with existing metadata in the output directories.
+        }
+
+        /*
+        By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
+        This can be limited to only specific tasks that match this predicate.
+         */
+        tasksToInstrumentPredicate.set(t -> true)
+    }
+
     binaries {
         named("main") {
             // Main options
@@ -134,14 +177,6 @@ graalvmNative {
     }
 }
 // end::custom-binary[]
-
-// tag::add-agent-options[]
-graalvmNative {
-    agent {
-        enableExperimentalPredefinedClasses = true
-    }
-}
-// end::add-agent-options[]
 
 // tag::enable-metadata-repository[]
 graalvmNative {
