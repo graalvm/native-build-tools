@@ -3,12 +3,12 @@ name: "Test GraalVM Reachability Metadata Repository"
 on:
   push:
     paths:
-      - 'common/jvm-reachability-metadata/**'
+      - 'common/graalvm-reachability-metadata/**'
       - '.github/actions/prepare-environment'
       - '.github/workflows/test-graalvm-metadata.yml'
   pull_request:
     paths:
-      - 'common/jvm-reachability-metadata/**'
+      - 'common/graalvm-reachability-metadata/**'
       - '.github/actions/prepare-environment'
       - '.github/workflows/test-graalvm-metadata.yml'
   workflow_dispatch:
@@ -37,12 +37,12 @@ jobs:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Checkstyle"
-        run: ./gradlew :jvm-reachability-metadata:checkstyleMain :jvm-reachability-metadata:checkstyleTest
+        run: ./gradlew :graalvm-reachability-metadata:checkstyleMain :graalvm-reachability-metadata:checkstyleTest
       - name: "❓ GraalVM Reachability Metadata test"
-        run: ./gradlew :jvm-reachability-metadata:test
+        run: ./gradlew :graalvm-reachability-metadata:test
       - name: "📜 Upload tests results"
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: tests-results
-          path: common/jvm-reachability-metadata/build/reports/tests/
+          path: common/graalvm-reachability-metadata/build/reports/tests/

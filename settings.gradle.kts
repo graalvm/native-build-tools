@@ -48,7 +48,7 @@ rootProject.name = "native-build-tools"
 
 includeBuild("common/junit-platform-native")
 includeBuild("common/utils")
-includeBuild("common/jvm-reachability-metadata")
+includeBuild("common/graalvm-reachability-metadata")
 includeBuild("native-gradle-plugin")
 includeBuild("native-maven-plugin")
 includeBuild("docs")
