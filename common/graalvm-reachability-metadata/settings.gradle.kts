@@ -48,4 +48,4 @@ plugins {
     id("org.graalvm.build.common")
 }
 
-rootProject.name = "jvm-reachability-metadata"
+rootProject.name = "graalvm-reachability-metadata"
