@@ -75,5 +75,5 @@ public interface SharedConstants {
     String AGENT_SESSION_SUBDIR = "session-{pid}-{datetime}";
     String AGENT_OUTPUT_DIRECTORY_MARKER = "{output_dir}";
     String AGENT_OUTPUT_DIRECTORY_OPTION = "config-output-dir=";
-    String METADATA_REPO_URL_TEMPLATE = "https://github.com/graalvm/graalvm-reachability-metadata/releases/download/%1$s/graalvm-reachability-metadata-%1$s.zip";
+    String METADATA_REPO_URL_TEMPLATE = "https://github.com/oracle/graalvm-reachability-metadata/releases/download/%1$s/graalvm-reachability-metadata-%1$s.zip";
 }

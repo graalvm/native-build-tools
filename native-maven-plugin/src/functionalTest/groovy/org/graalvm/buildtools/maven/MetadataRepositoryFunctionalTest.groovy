@@ -73,7 +73,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataLocal', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataDefault', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -91,7 +91,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataLocal,excludeConfigTest', '-DnativeDryRun', 'package'
+        mvn '-Pnative,metadataDefault,excludeConfigTest', '-DnativeDryRun', 'package'
 
         then:
         buildSucceeded

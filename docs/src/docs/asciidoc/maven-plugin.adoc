@@ -349,23 +349,6 @@ with an error similar to the following when attempting to run tests in a native 
 [ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.
 ----
 
-[[mockito-bytebuddy-support]]
-=== Mockito / Byte Buddy support
-
-Mockito is supported starting from version 4.5.0 (ByteBuddy >= 1.12.9) with GraalVM >= 22.1.
-However, you need to add the following configuration to make it work with GraalVM 22.1:
-
-.Enabling Mockito / Byte Buddy support on GraalVM 22.1
-[source,xml]
-----
-<configuration>
-    <buildArgs>
-        <arg>--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher</arg>
-        <arg>--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2 </arg>
-    </buildArgs>
-</configuration>
-----
-
 [[testing-support-disabling]]
 === Disabling testing support
 
@@ -609,25 +592,20 @@ with those configuration files, you then need to execute the following command:
 mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 ```
 
-WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is
-automatically added to your native build options.
-
 [[metadata-support]]
 == GraalVM Reachability Metadata Support
 
-Since release 0.9.12, the plugin adds experimental support for the https://github.com/graalvm/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
-This repository provides GraalVM metadata for libraries which do not officially support GraalVM native.
-
-A metadata repository consists of configuration files for GraalVM.
+Since release 0.9.12, the plugin adds experimental support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
+This repository provides https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
 
 === Enabling the metadata repository
 
-Support needs to be enabled explicitly:. It is possible to use a _local repository_, in which case you can specify the path to the repository:
+Support needs to be enabled explicitly:
 
 .Enabling the metadata repository
 [source,xml,indent=0]
 ----
-include::../../../../samples/native-config-integration/pom.xml[tag=metadata-local]
+include::../../../../samples/native-config-integration/pom.xml[tag=metadata-default]
 ----
 <1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 

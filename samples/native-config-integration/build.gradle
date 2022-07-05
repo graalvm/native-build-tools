@@ -70,10 +70,6 @@ tasks.withType(Test).configureEach {
 graalvmNative {
     metadataRepository {
         enabled = true
-        def extension = System.getProperty("extension", '')
-        def repo = file("config-directory${extension ? '.' + extension : ''}")
-        println("Using config repo: $repo")
-        uri(repo)
     }
     binaries.all {
         verbose = true
