@@ -44,6 +44,7 @@ package org.graalvm.buildtools.maven.config;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
 import java.net.URL;
@@ -56,7 +57,7 @@ public class MetadataRepositoryConfiguration {
     @Parameter(defaultValue = "false")
     private boolean enabled;
 
-    @Parameter
+    @Parameter(defaultValue = SharedConstants.METADATA_REPO_DEFAULT_VERSION)
     private String version;
 
     @Parameter
