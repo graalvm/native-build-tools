@@ -11,9 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author Moritz Halbritter
- */
+
 public class H2Example {
 
     public static final String JDBC_CONNECTION_URL = "jdbc:h2:./data/test";

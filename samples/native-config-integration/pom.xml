@@ -148,10 +148,10 @@
             </build>
         </profile>
         <profile>
-            <id>metadataDefault</id>
+            <id>metadataLocal</id>
             <build>
                 <plugins>
-                    <!-- tag::metadata-default[] -->
+                    <!-- tag::metadata-local[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
@@ -159,10 +159,11 @@
                         <configuration>
                             <metadataRepository>
                                 <enabled>true</enabled>
+                                <localPath>${project.basedir}/config-directory</localPath> <!--1-->
                             </metadataRepository>
                         </configuration>
                     </plugin>
-                    <!-- end::metadata-default[] -->
+                    <!-- end::metadata-local[] -->
                 </plugins>
             </build>
         </profile>
