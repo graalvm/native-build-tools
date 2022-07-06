@@ -122,9 +122,23 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
             }
             return newRepositoryFromDirectory(localFile.toPath(), logLevel);
         }
-        if (FileSystemRepository.isSupportedArchiveFormat(path)) {
-            File zipped = getParameters().getCacheDir().file(cacheKey + "/archive").get().getAsFile();
+        String format = FileSystemRepository.getArchiveFormat(path);
+        if (format != null) {
+            File zipped = getParameters().getCacheDir().file(cacheKey + "/archive" + format).get().getAsFile();
             if (!zipped.exists()) {
+                File cacheDirParent = zipped.getParentFile();
+                if (cacheDirParent.exists()) {
+                    if (!cacheDirParent.isDirectory()) {
+                        throw new RuntimeException("Cache directory path must not exist or must be a directory: " + cacheDirParent.getAbsolutePath());
+                    }
+                } else {
+                    try {
+                        Files.createDirectories(cacheDirParent.toPath());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(zipped)) {
                         fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);

@@ -73,9 +73,20 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
         this.rootDirectory = rootDirectory;
     }
 
-    public static boolean isSupportedArchiveFormat(String path) {
+    private static final String[] SUPPORTED_FORMATS = {".zip", ".tar.gz", ".tar.bz2"};
+
+    public static String getArchiveFormat(String path) {
         String normalizedPath = path.toLowerCase();
-        return normalizedPath.endsWith(".zip") || normalizedPath.endsWith(".tar.gz") || normalizedPath.endsWith(".tar.bz2");
+        for (String format : SUPPORTED_FORMATS) {
+            if (normalizedPath.endsWith(format)) {
+                return format;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isSupportedArchiveFormat(String path) {
+        return getArchiveFormat(path) != null;
     }
 
     @Override
