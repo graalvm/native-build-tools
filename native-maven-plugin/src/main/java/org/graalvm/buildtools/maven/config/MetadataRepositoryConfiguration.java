@@ -44,7 +44,6 @@ package org.graalvm.buildtools.maven.config;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
 import java.net.URL;
