@@ -556,9 +556,6 @@ command-line argument to Maven as follows. See the documentation for
 mvn -Pnative -Dagent=true -DagentOptions=periodic-config test
 ```
 
-WARNING: If the agent is enabled, the `--allow-incomplete-classpath` option is
-automatically added to your native build options.
-
 [[agent-support-running-application]]
 === Running your application with the agent
 
@@ -595,19 +592,18 @@ mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 [[metadata-support]]
 == GraalVM Reachability Metadata Support
 
-Since release 0.9.12, the plugin adds experimental support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
+Since release 0.9.12, the plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
 This repository provides https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
 
 === Enabling the metadata repository
 
-Support needs to be enabled explicitly:
+Support needs to be enabled explicitly by including the following into the `<configuration>` element:
 
 .Enabling the metadata repository
 [source,xml,indent=0]
 ----
-include::../../../../samples/native-config-integration/pom.xml[tag=metadata-default]
+include::../../../../samples/metadata-repo-integration/pom.xml[tag=metadata-default]
 ----
-<1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 
 Alternatively, you can use a _remote repository_, in which case you can specify the URL of the ZIP file:
 
@@ -617,9 +613,27 @@ Alternatively, you can use a _remote repository_, in which case you can specify 
 include::../../../../samples/native-config-integration/pom.xml[tag=metadata-url]
 ----
 
+For debugging purposes you can use a local repository:
+
+.Enabling a local repository
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=metadata-local]
+----
+<1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
+
 === Configuring the metadata repository
 
-Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
+Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
+In case you want to use another verion of the metadata use:
+
+.Choosing a version for the metadata repository
+[source,xml,indent=0]
+----
+include::../../../../samples/metadata-repo-integration/pom.xml[tag=metadata-versioned]
+----
+
+
 In some cases, you may need to exclude a particular module from the search.
 This can be done by configuring that particular dependency:
 

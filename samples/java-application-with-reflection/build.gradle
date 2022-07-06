@@ -84,7 +84,6 @@ graalvmNative {
     binaries {
         test {
             verbose = true
-            buildArgs('--allow-incomplete-classpath')
         }
     }
 }

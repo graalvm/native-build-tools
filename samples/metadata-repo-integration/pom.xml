@@ -86,19 +86,47 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <skip>false</skip>
-                            <imageName>${imageName}</imageName>
-                            <fallback>false</fallback>
+                            <!-- tag::metadata-default[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
                             </metadataRepository>
+                            <!-- end::metadata-default[] -->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>nativeVersioned</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- tag::metadata-versioned[] -->
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                                <version>0.1.0</version>
+                            </metadataRepository>
+                            <!-- end::metadata-versioned[] -->
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
     </profiles>
-
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>

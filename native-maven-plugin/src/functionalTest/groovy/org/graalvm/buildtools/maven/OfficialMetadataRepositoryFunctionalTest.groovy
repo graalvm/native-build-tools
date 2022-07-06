@@ -58,4 +58,21 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         and: "finds metadata in the remote repository"
         outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
     }
+
+    void "the application runs when using the versioned official metadata repository"() {
+        given:
+        withSample("metadata-repo-integration")
+
+        when:
+        mvn '-PnativeVersioned', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+
+        and: "the run succeeded and retrieved data from the database"
+        outputContains "Customers in the database"
+
+        and: "finds metadata in the remote repository"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+    }
 }
