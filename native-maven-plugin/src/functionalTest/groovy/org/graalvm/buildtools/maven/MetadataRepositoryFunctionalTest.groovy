@@ -55,25 +55,12 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Reflection failed"
     }
 
-    void "it produces a warning if enabled but no repository is configured"() {
-        given:
-        withSample("native-config-integration")
-
-        when:
-        mvn '-Pnative,metadataEnabled', '-DskipTests', 'package', 'exec:exec@native'
-
-        then:
-        buildSucceeded
-        outputContains "GraalVM reachability metadata repository is enabled, but no repository has been configured"
-        outputContains "Reflection failed"
-    }
-
     void "it can use a metadata repository"() {
         given:
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataDefault', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataLocal', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
