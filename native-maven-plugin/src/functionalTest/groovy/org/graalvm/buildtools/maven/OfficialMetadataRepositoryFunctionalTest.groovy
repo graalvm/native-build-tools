@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,28 +39,23 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.gradle
+package org.graalvm.buildtools.maven
 
-import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-import org.gradle.api.logging.LogLevel
-import spock.lang.Unroll
-
-class RemoteMetadataRepoFunctionalTest extends AbstractFunctionalTest {
-
-    def "can build and run a native-image using metadata from the remote repository"() {
+class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    void "the application runs when using the official metadata repository"() {
         given:
         withSample("metadata-repo-integration")
 
         when:
-        run 'nativeRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
+        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
-        tasks {
-            succeeded ':jar', ':nativeCompile', ':nativeRun'
-        }
+        buildSucceeded
+
+        and: "the run succeeded and retrieved data from the database"
+        outputContains "Customers in the database"
 
         and: "finds metadata in the remote repository"
         outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
     }
-
 }
