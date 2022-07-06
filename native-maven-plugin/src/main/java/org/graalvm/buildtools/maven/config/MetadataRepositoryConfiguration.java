@@ -57,7 +57,7 @@ public class MetadataRepositoryConfiguration {
     @Parameter(defaultValue = "false")
     private boolean enabled;
 
-    @Parameter(defaultValue = SharedConstants.METADATA_REPO_DEFAULT_VERSION)
+    @Parameter
     private String version;
 
     @Parameter

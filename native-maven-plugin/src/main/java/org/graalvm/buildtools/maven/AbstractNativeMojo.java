@@ -446,18 +446,24 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected void configureMetadataRepository() {
         if (isMetadataRepositoryEnabled()) {
             Path repoPath = null;
-            if (metadataRepositoryConfiguration.getVersion() != null && metadataRepositoryConfiguration.getUrl() == null) {
-                String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, metadataRepositoryConfiguration.getVersion());
-                try {
-                    metadataRepositoryConfiguration.setUrl(new URI(metadataUrl).toURL());
-                } catch (URISyntaxException | MalformedURLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
                 Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
                 repoPath = unzipLocalMetadata(localPath);
-            } else if (metadataRepositoryConfiguration.getUrl() != null) {
+            } else {
+                URL targetUrl = metadataRepositoryConfiguration.getUrl();
+                if (targetUrl == null) {
+                    String version = metadataRepositoryConfiguration.getVersion();
+                    if (version == null) {
+                        version = SharedConstants.METADATA_REPO_DEFAULT_VERSION;
+                    }
+                    String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
+                    try {
+                        targetUrl = new URI(metadataUrl).toURL();
+                        metadataRepositoryConfiguration.setUrl(targetUrl);
+                    } catch (URISyntaxException | MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
                 Optional<Path> download = downloadMetadata(metadataRepositoryConfiguration.getUrl());
                 if (download.isPresent()) {
                     logger.info("Downloaded GraalVM reachability metadata repository from " + metadataRepositoryConfiguration.getUrl());
