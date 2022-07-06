@@ -42,11 +42,16 @@
 package org.graalvm.buildtools.utils;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -138,6 +143,21 @@ public final class FileUtils {
             return Optional.of(normalized);
         } else {
             return Optional.empty();
+        }
+    }
+
+    public static String hashFor(URI uri) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            byte[] messageDigest = md.digest(md.digest(uri.toString().getBytes(StandardCharsets.UTF_8)));
+            BigInteger no = new BigInteger(1, messageDigest);
+            StringBuilder digest = new StringBuilder(no.toString(16));
+            while (digest.length() < 32) {
+                digest.insert(0, "0");
+            }
+            return digest.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new UnsupportedOperationException(e);
         }
     }
 }
