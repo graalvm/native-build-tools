@@ -189,7 +189,7 @@ graalvmNative {
 // tag::specify-metadata-repository-version[]
 graalvmNative {
     metadataRepository {
-        version.set("1.0.0")
+        version.set("0.1.0")
     }
 }
 // end::specify-metadata-repository-version[]

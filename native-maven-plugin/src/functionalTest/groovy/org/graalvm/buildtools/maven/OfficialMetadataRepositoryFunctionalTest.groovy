@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,42 +39,40 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.utils;
+package org.graalvm.buildtools.maven
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    void "the application runs when using the official metadata repository"() {
+        given:
+        withSample("metadata-repo-integration")
 
-/**
- * Utility class containing various native-image and JVM related methods.
- * Keep this file in sync across all build tool plugins.
- */
-public interface SharedConstants {
-    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    boolean IS_CI = System.getenv("CI") != null;
-    boolean IS_DUMB_TERM = Arrays.asList(null, "", "dumb", "unknown").contains(System.getenv("TERM"));
-    boolean NO_COLOR = System.getenv("NO_COLOR") != null; // https://no-color.org/
-    String GRAALVM_EXE_EXTENSION = (IS_WINDOWS ? ".cmd" : "");
-    String EXECUTABLE_EXTENSION = (IS_WINDOWS ? ".exe" : "");
-    String NATIVE_IMAGE_EXE = "native-image" + GRAALVM_EXE_EXTENSION;
-    String GU_EXE = "gu" + GRAALVM_EXE_EXTENSION;
-    String NATIVE_IMAGE_OUTPUT_FOLDER = "native";
-    String AGENT_PROPERTY = "agent";
-    String AGENT_OUTPUT_FOLDER = NATIVE_IMAGE_OUTPUT_FOLDER + "/agent-output";
-    String NATIVE_TESTS_SUFFIX = "-tests";
-    List<String> DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION = Collections.unmodifiableList(Arrays.asList(
-            "META-INF/services/.*",
-            "META-INF/native-image/.*",
-            "META-INF/maven/.*",
-            "META-INF/LICENSE.*",
-            "META-INF/NOTICE.*",
-            "META-INF/.*[.](md|adoc)",
-            "META-INF/INDEX.LIST",
-            ".*/package.html"
-    ));
-    String AGENT_SESSION_SUBDIR = "session-{pid}-{datetime}";
-    String AGENT_OUTPUT_DIRECTORY_MARKER = "{output_dir}";
-    String AGENT_OUTPUT_DIRECTORY_OPTION = "config-output-dir=";
-    String METADATA_REPO_URL_TEMPLATE = "https://github.com/oracle/graalvm-reachability-metadata/releases/download/%1$s/graalvm-reachability-metadata-%1$s.zip";
-    String METADATA_REPO_DEFAULT_VERSION = "0.1.0";
+        when:
+        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+
+        and: "the run succeeded and retrieved data from the database"
+        outputContains "Customers in the database"
+
+        and: "finds metadata in the remote repository"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+    }
+
+    void "the application runs when using the versioned official metadata repository"() {
+        given:
+        withSample("metadata-repo-integration")
+
+        when:
+        mvn '-PnativeVersioned', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+
+        and: "the run succeeded and retrieved data from the database"
+        outputContains "Customers in the database"
+
+        and: "finds metadata in the remote repository"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+    }
 }

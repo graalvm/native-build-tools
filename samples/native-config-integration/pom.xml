@@ -151,19 +151,19 @@
             <id>metadataLocal</id>
             <build>
                 <plugins>
-                    <!-- tag::metadata-local[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <configuration>
+                        <!-- tag::metadata-local[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
                                 <localPath>${project.basedir}/config-directory</localPath> <!--1-->
                             </metadataRepository>
+                        <!-- end::metadata-local[] -->
                         </configuration>
                     </plugin>
-                    <!-- end::metadata-local[] -->
                 </plugins>
             </build>
         </profile>
@@ -227,12 +227,12 @@
             <id>metadataExclude</id>
             <build>
                 <plugins>
-                    <!-- tag::metadata-exclude[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <configuration>
+                            <!-- tag::metadata-exclude[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
                                 <localPath>${project.basedir}/config-directory</localPath>
@@ -244,9 +244,9 @@
                                     </dependency>
                                 </dependencies>
                             </metadataRepository>
+                            <!-- end::metadata-exclude[] -->
                         </configuration>
                     </plugin>
-                    <!-- end::metadata-exclude[] -->
                 </plugins>
             </build>
         </profile>
@@ -254,13 +254,13 @@
             <id>metadataForceVersion</id>
             <build>
                 <plugins>
-                    <!-- tag::metadata-force-version[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <configuration>
                             <useArgFile>false</useArgFile>
+                            <!-- tag::metadata-force-version[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
                                 <localPath>${project.basedir}/config-directory</localPath>
@@ -272,9 +272,9 @@
                                     </dependency>
                                 </dependencies>
                             </metadataRepository>
+                            <!-- end::metadata-force-version[] -->
                         </configuration>
                     </plugin>
-                    <!-- end::metadata-force-version[] -->
                 </plugins>
             </build>
         </profile>
@@ -341,20 +341,20 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!-- tag::metadata-url[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <configuration>
                             <useArgFile>false</useArgFile>
+                            <!-- tag::metadata-url[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
                                 <url>${metadata.url}</url>
                             </metadataRepository>
+                            <!-- end::metadata-url[] -->
                         </configuration>
                     </plugin>
-                    <!-- end::metadata-url[] -->
                 </plugins>
             </build>
         </profile>

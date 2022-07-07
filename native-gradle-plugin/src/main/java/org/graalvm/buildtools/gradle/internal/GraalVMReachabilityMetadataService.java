@@ -40,6 +40,7 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
+import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -57,16 +58,12 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -96,23 +93,8 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
         this.repository = newRepository(uri);
     }
 
-    private static String hashFor(URI uri) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            byte[] messageDigest = md.digest(md.digest(uri.toString().getBytes(StandardCharsets.UTF_8)));
-            BigInteger no = new BigInteger(1, messageDigest);
-            StringBuilder digest = new StringBuilder(no.toString(16));
-            while (digest.length() < 32) {
-                digest.insert(0, "0");
-            }
-            return digest.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new UnsupportedOperationException(e);
-        }
-    }
-
     private GraalVMReachabilityMetadataRepository newRepository(URI uri) throws URISyntaxException {
-        String cacheKey = hashFor(uri);
+        String cacheKey = FileUtils.hashFor(uri);
         String path = uri.getPath();
         LogLevel logLevel = getParameters().getLogLevel().get();
         if (uri.getScheme().equals("file")) {
@@ -122,9 +104,23 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
             }
             return newRepositoryFromDirectory(localFile.toPath(), logLevel);
         }
-        if (FileSystemRepository.isSupportedArchiveFormat(path)) {
-            File zipped = getParameters().getCacheDir().file(cacheKey + "/archive").get().getAsFile();
+        String format = FileSystemRepository.getArchiveFormat(path);
+        if (format != null) {
+            File zipped = getParameters().getCacheDir().file(cacheKey + "/archive" + format).get().getAsFile();
             if (!zipped.exists()) {
+                File cacheDirParent = zipped.getParentFile();
+                if (cacheDirParent.exists()) {
+                    if (!cacheDirParent.isDirectory()) {
+                        throw new RuntimeException("Cache directory path must not exist or must be a directory: " + cacheDirParent.getAbsolutePath());
+                    }
+                } else {
+                    try {
+                        Files.createDirectories(cacheDirParent.toPath());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
                 try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(zipped)) {
                         fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);

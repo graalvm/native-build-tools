@@ -7,7 +7,7 @@ End-user documentation about the plugins can be found [here](https://graalvm.git
 ## Building
 Building of plugin itself should be as simple as:
 ```bash
-./gradlew publishToMavenLocal
+./gradlew publishToMavenLocal --no-parallel
 ```
 
 In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-native` artifact.

@@ -446,22 +446,49 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected void configureMetadataRepository() {
         if (isMetadataRepositoryEnabled()) {
             Path repoPath = null;
-            if (metadataRepositoryConfiguration.getVersion() != null && metadataRepositoryConfiguration.getUrl() == null) {
-                String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, metadataRepositoryConfiguration.getVersion());
-                try {
-                    metadataRepositoryConfiguration.setUrl(new URI(metadataUrl).toURL());
-                } catch (URISyntaxException | MalformedURLException e) {
-                    throw new RuntimeException(e);
-                }
+            Path destinationRoot = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
+            if (Files.exists(destinationRoot) && !Files.isDirectory(destinationRoot)) {
+                throw new RuntimeException("Metadata repository must be a directory, please remove regular file at: " + destinationRoot);
             }
+            try {
+                Files.createDirectories(destinationRoot);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
                 Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
-                repoPath = unzipLocalMetadata(localPath);
-            } else if (metadataRepositoryConfiguration.getUrl() != null) {
-                Optional<Path> download = downloadMetadata(metadataRepositoryConfiguration.getUrl());
-                if (download.isPresent()) {
-                    logger.info("Downloaded GraalVM reachability metadata repository from " + metadataRepositoryConfiguration.getUrl());
-                    repoPath = unzipLocalMetadata(download.get());
+                Path destination = outputDirectory.toPath().resolve(FileUtils.hashFor(localPath.toUri()));
+                repoPath = unzipLocalMetadata(localPath, destination);
+            } else {
+                URL targetUrl = metadataRepositoryConfiguration.getUrl();
+                if (targetUrl == null) {
+                    String version = metadataRepositoryConfiguration.getVersion();
+                    if (version == null) {
+                        version = SharedConstants.METADATA_REPO_DEFAULT_VERSION;
+                    }
+                    String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
+                    try {
+                        targetUrl = new URI(metadataUrl).toURL();
+                        metadataRepositoryConfiguration.setUrl(targetUrl);
+                    } catch (URISyntaxException | MalformedURLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                Path destination;
+                try {
+                    destination = destinationRoot.resolve(FileUtils.hashFor(targetUrl.toURI()));
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+                if (Files.exists(destination)) {
+                    repoPath = destination;
+                } else {
+                    Optional<Path> download = downloadMetadata(targetUrl, destination);
+                    if (download.isPresent()) {
+                        logger.info("Downloaded GraalVM reachability metadata repository from " + targetUrl);
+                        repoPath = unzipLocalMetadata(download.get(), destination);
+                    }
                 }
             }
 
@@ -522,15 +549,13 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
     }
 
-    protected Optional<Path> downloadMetadata(URL url) {
-        Path destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
+    protected Optional<Path> downloadMetadata(URL url, Path destination) {
         return FileUtils.download(url, destination, logger::error);
     }
 
-    protected Path unzipLocalMetadata(Path localPath) {
+    protected Path unzipLocalMetadata(Path localPath, Path destination) {
         if (Files.exists(localPath)) {
             if (FileUtils.isZip(localPath)) {
-                Path destination = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
                 if (!Files.exists(destination) && !destination.toFile().mkdirs()) {
                     throw new RuntimeException("Failed creating destination directory");
                 }
