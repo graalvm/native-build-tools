@@ -463,7 +463,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#testing-support">Testing support</a>
 <ul class="sectlevel2">
-<li><a href="#mockito-bytebuddy-support">Mockito / Byte Buddy support</a></li>
 <li><a href="#testing-support-disabling">Disabling testing support</a></li>
 <li><a href="#extra-test-suites">Configuring additional test suites</a></li>
 </ul>
@@ -1023,38 +1022,6 @@ This plugin requires JUnit Platform 1.8 or higher.
 </table>
 </div>
 <div class="sect2">
-<h3 id="mockito-bytebuddy-support"><a class="anchor" href="#mockito-bytebuddy-support"></a>Mockito / Byte Buddy support</h3>
-<div class="paragraph">
-<p>Mockito is supported starting from version 4.5.0 (ByteBuddy &gt;= 1.12.9) with GraalVM &gt;= 22.1.
-However, you need to add the following configuration to make it work with GraalVM 22.1:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="title">Enabling Mockito / Byte Buddy support on GraalVM 22.1</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries {
-        test {
-            buildArgs.add("--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher")
-            buildArgs.add("--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries {
-        named("test") {
-            buildArgs.add("--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher")
-            buildArgs.add("--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
 <h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
 <div class="paragraph">
 <p>There are cases where you might want to disable native testing support:</p>
@@ -1211,8 +1178,8 @@ See <a href="#configuration-options">Configuration options</a> for the full list
 <h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Since release 0.9.11, the plugin adds experimental support for the <a href="https://github.com/graalvm/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
-This repository provides GraalVM configuration for libraries which do not officially support GraalVM native.</p>
+<p>Since release 0.9.11, the plugin adds experimental support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
+This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/">reachability metadata</a> for libraries that do not support GraalVM Native Image.</p>
 </div>
 <div class="sect2">
 <h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
@@ -1247,7 +1214,7 @@ The plugin will automatically download the configuration metadata from the offic
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     metadataRepository {
-        version = "1.0.0"
+        version = "0.1.0"
     }
 }</code></pre>
 </div>
@@ -1256,7 +1223,7 @@ The plugin will automatically download the configuration metadata from the offic
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
     metadataRepository {
-        version.set("1.0.0")
+        version.set("0.1.0")
     }
 }</code></pre>
 </div>

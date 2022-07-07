@@ -410,7 +410,8 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>protected java.util.Optional&lt;java.nio.file.Path&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#downloadMetadata(java.net.URL)">downloadMetadata</a></span>&#8203;(java.net.URL&nbsp;url)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#downloadMetadata(java.net.URL,java.nio.file.Path)">downloadMetadata</a></span>&#8203;(java.net.URL&nbsp;url,
+                java.nio.file.Path&nbsp;destination)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -483,7 +484,8 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 </tr>
 <tr id="i18" class="altColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#unzipLocalMetadata(java.nio.file.Path)">unzipLocalMetadata</a></span>&#8203;(java.nio.file.Path&nbsp;localPath)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#unzipLocalMetadata(java.nio.file.Path,java.nio.file.Path)">unzipLocalMetadata</a></span>&#8203;(java.nio.file.Path&nbsp;localPath,
+                  java.nio.file.Path&nbsp;destination)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i19" class="rowColor">
@@ -1152,22 +1154,24 @@ protected&nbsp;AbstractNativeMojo()</pre>
 <pre class="methodSignature">protected&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getMetadataVersion&#8203;(org.apache.maven.artifact.Artifact&nbsp;dependency)</pre>
 </li>
 </ul>
-<a id="downloadMetadata(java.net.URL)">
+<a id="downloadMetadata(java.net.URL,java.nio.file.Path)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>downloadMetadata</h4>
-<pre class="methodSignature">protected&nbsp;java.util.Optional&lt;java.nio.file.Path&gt;&nbsp;downloadMetadata&#8203;(java.net.URL&nbsp;url)</pre>
+<pre class="methodSignature">protected&nbsp;java.util.Optional&lt;java.nio.file.Path&gt;&nbsp;downloadMetadata&#8203;(java.net.URL&nbsp;url,
+                                                                  java.nio.file.Path&nbsp;destination)</pre>
 </li>
 </ul>
-<a id="unzipLocalMetadata(java.nio.file.Path)">
+<a id="unzipLocalMetadata(java.nio.file.Path,java.nio.file.Path)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>unzipLocalMetadata</h4>
-<pre class="methodSignature">protected&nbsp;java.nio.file.Path&nbsp;unzipLocalMetadata&#8203;(java.nio.file.Path&nbsp;localPath)</pre>
+<pre class="methodSignature">protected&nbsp;java.nio.file.Path&nbsp;unzipLocalMetadata&#8203;(java.nio.file.Path&nbsp;localPath,
+                                                java.nio.file.Path&nbsp;destination)</pre>
 </li>
 </ul>
 </li>

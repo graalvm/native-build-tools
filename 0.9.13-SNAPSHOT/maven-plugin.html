@@ -459,7 +459,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#testing-support">Testing support</a>
 <ul class="sectlevel2">
 <li><a href="#testing-support-version-compatibility">Version compatibility</a></li>
-<li><a href="#mockito-bytebuddy-support">Mockito / Byte Buddy support</a></li>
 <li><a href="#testing-support-disabling">Disabling testing support</a></li>
 </ul>
 </li>
@@ -1035,24 +1034,6 @@ with an error similar to the following when attempting to run tests in a native 
 </div>
 </div>
 <div class="sect2">
-<h3 id="mockito-bytebuddy-support"><a class="anchor" href="#mockito-bytebuddy-support"></a>Mockito / Byte Buddy support</h3>
-<div class="paragraph">
-<p>Mockito is supported starting from version 4.5.0 (ByteBuddy &gt;= 1.12.9) with GraalVM &gt;= 22.1.
-However, you need to add the following configuration to make it work with GraalVM 22.1:</p>
-</div>
-<div class="listingblock">
-<div class="title">Enabling Mockito / Byte Buddy support on GraalVM 22.1</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
-    &lt;buildArgs&gt;
-        &lt;arg&gt;--rerun-class-initialization-at-runtime=net.bytebuddy.ClassFileVersion,net.bytebuddy.utility.dispatcher.JavaDispatcher,net.bytebuddy.utility.Invoker$Dispatcher&lt;/arg&gt;
-        &lt;arg&gt;--initialize-at-build-time=net.bytebuddy.description.method.MethodDescription$InDefinedShape$AbstractBase$ForLoadedExecutable,net.bytebuddy.description.type.TypeDescription$AbstractBase,net.bytebuddy.description.type.TypeDescription$ForLoadedType,net.bytebuddy.description.method.MethodDescription$ForLoadedMethod,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$1,net.bytebuddy.implementation.bind.annotation.Argument$BindingMechanic$2,net.bytebuddy.implementation.bind.annotation.Super$Instantiation$2 &lt;/arg&gt;
-    &lt;/buildArgs&gt;
-&lt;/configuration&gt;</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
 <h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
 <div class="paragraph">
 <p>If you wish to disable tests on the JVM as well as tests within a native image, you can
@@ -1528,19 +1509,6 @@ command-line argument to Maven as follows. See the documentation for
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config test</code></pre>
 </div>
 </div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
-automatically added to your native build options.
-</td>
-</tr>
-</table>
-</div>
 </div>
 <div class="sect2">
 <h3 id="agent-support-running-application"><a class="anchor" href="#agent-support-running-application"></a>Running your application with the agent</h3>
@@ -1605,19 +1573,6 @@ with those configuration files, you then need to execute the following command:<
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests package exec:exec@native</code></pre>
 </div>
 </div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-If the agent is enabled, the <code>--allow-incomplete-classpath</code> option is
-automatically added to your native build options.
-</td>
-</tr>
-</table>
-</div>
 </div>
 </div>
 </div>
@@ -1625,31 +1580,44 @@ automatically added to your native build options.
 <h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Since release 0.9.12, the plugin adds experimental support for the <a href="https://github.com/graalvm/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
-This repository provides GraalVM metadata for libraries which do not officially support GraalVM native.</p>
-</div>
-<div class="paragraph">
-<p>A metadata repository consists of configuration files for GraalVM.</p>
+<p>Since release 0.9.12, the plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
+This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/">reachability metadata</a> for libraries that do not support GraalVM Native Image.</p>
 </div>
 <div class="sect2">
 <h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
 <div class="paragraph">
-<p>Support needs to be enabled explicitly:. It is possible to use a <em>local repository</em>, in which case you can specify the path to the repository:</p>
+<p>Support needs to be enabled explicitly by including the following into the <code>&lt;configuration&gt;</code> element:</p>
 </div>
 <div class="listingblock">
 <div class="title">Enabling the metadata repository</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;metadataRepository&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-            &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-        &lt;/metadataRepository&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use a <em>remote repository</em>, in which case you can specify the URL of the ZIP file:</p>
+</div>
+<div class="listingblock">
+<div class="title">Enabling a remote repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;url&gt;${metadata.url}&lt;/url&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For debugging purposes you can use a local repository:</p>
+</div>
+<div class="listingblock">
+<div class="title">Enabling a local repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/metadataRepository&gt;</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1660,55 +1628,40 @@ This repository provides GraalVM metadata for libraries which do not officially 
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>Alternatively, you can use a <em>remote repository</em>, in which case you can specify the URL of the ZIP file:</p>
-</div>
-<div class="listingblock">
-<div class="title">Enabling a remote repository</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
-        &lt;metadataRepository&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-            &lt;url&gt;${metadata.url}&lt;/url&gt;
-        &lt;/metadataRepository&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
 </div>
 <div class="sect2">
 <h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
 <div class="paragraph">
-<p>Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
-In some cases, you may need to exclude a particular module from the search.
+<p>Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
+In case you want to use another verion of the metadata use:</p>
+</div>
+<div class="listingblock">
+<div class="title">Choosing a version for the metadata repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;version&gt;0.1.0&lt;/version&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In some cases, you may need to exclude a particular module from the search.
 This can be done by configuring that particular dependency:</p>
 </div>
 <div class="listingblock">
 <div class="title">Excluding a module from search</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;metadataRepository&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-            &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
-            &lt;dependencies&gt;
-                &lt;dependency&gt;
-                    &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
-                    &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
-                    &lt;excluded&gt;true&lt;/excluded&gt;
-                &lt;/dependency&gt;
-            &lt;/dependencies&gt;
-        &lt;/metadataRepository&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
+            &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
+            &lt;excluded&gt;true&lt;/excluded&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/metadataRepository&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1718,25 +1671,17 @@ This may be interesting if there&#8217;s no specific metadata available for the 
 <div class="listingblock">
 <div class="title">Specifying the metadata version to use for a particular library</div>
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
-        &lt;metadataRepository&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-            &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
-            &lt;dependencies&gt;
-                &lt;dependency&gt;
-                    &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
-                    &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
-                    &lt;metadataVersion&gt;2&lt;/metadataVersion&gt;
-                &lt;/dependency&gt;
-            &lt;/dependencies&gt;
-        &lt;/metadataRepository&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
+            &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
+            &lt;metadataVersion&gt;2&lt;/metadataVersion&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/metadataRepository&gt;</code></pre>
 </div>
 </div>
 </div>
