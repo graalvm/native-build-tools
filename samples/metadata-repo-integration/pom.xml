@@ -51,8 +51,8 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <native.maven.plugin.version>0.9.13-SNAPSHOT</native.maven.plugin.version>
-        <junit.platform.native.version>0.9.13-SNAPSHOT</junit.platform.native.version>
+        <native.maven.plugin.version>0.9.13</native.maven.plugin.version>
+        <junit.platform.native.version>0.9.13</junit.platform.native.version>
         <h2.version>2.1.210</h2.version>
         <imageName>h2-demo</imageName>
         <mainClass>org.graalvm.example.H2Example</mainClass>
