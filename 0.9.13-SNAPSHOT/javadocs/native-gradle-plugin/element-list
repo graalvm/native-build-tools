@@ -1,7 +1,0 @@
-org.graalvm.buildtools.gradle
-org.graalvm.buildtools.gradle.dsl
-org.graalvm.buildtools.gradle.dsl.agent
-org.graalvm.buildtools.gradle.internal
-org.graalvm.buildtools.gradle.internal.agent
-org.graalvm.buildtools.gradle.tasks
-org.graalvm.buildtools.gradle.tasks.actions
