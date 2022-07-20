@@ -124,7 +124,7 @@ val updateSamples by tasks.registering
 mapOf(
         "updateSamplesDir" to "samples",
         "updateMavenReprosDir" to "native-maven-plugin/reproducers"
-).forEach { taskName, dir ->
+).forEach { (taskName, dir) ->
     val t = tasks.register<org.graalvm.build.samples.SamplesUpdateTask>(taskName) {
         inputDirectory.set(layout.projectDirectory.dir(dir))
         versions.put("native.gradle.plugin.version", nativeBuildToolsVersion)
@@ -149,7 +149,7 @@ val cloneSnapshots = tasks.register<org.graalvm.build.tasks.GitClone>("cloneSnap
 val prepareRepository = tasks.register<org.graalvm.build.tasks.GitReset>("resetHead") {
     dependsOn(cloneSnapshots)
     repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
-    mode.set(org.eclipse.jgit.api.ResetCommand.ResetType.HARD)
+    mode.set("hard")
     ref.set("25ecdec020f57dbe980eeb052c71659ccd0d9bcc")
 }
 

@@ -38,4 +38,4 @@ jobs:
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: "🌍 Build and publish snapshots"
         run: |
-          ./gradlew publishAllPublicationsToSnapshotsRepository --no-parallel
+          ./gradlew publishAllPublicationsToSnapshotsRepository --no-parallel --no-build-cache
