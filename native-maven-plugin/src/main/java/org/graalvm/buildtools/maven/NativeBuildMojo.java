@@ -41,114 +41,21 @@
 
 package org.graalvm.buildtools.maven;
 
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.ConfigurationContainer;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginExecution;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.BiFunction;
 
+/**
+ * This goal builds and runs native images.
+ * It can be invoked using `mvn native:build`.
+ */
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class NativeBuildMojo extends AbstractNativeMojo {
-
-    @Parameter(property = "skipNativeBuild", defaultValue = "false")
-    private boolean skip;
-
-    private PluginParameterExpressionEvaluator evaluator;
-
-    @Override
-    protected List<String> getDependencyScopes() {
-        return Arrays.asList(Artifact.SCOPE_COMPILE,
-                Artifact.SCOPE_RUNTIME,
-                Artifact.SCOPE_COMPILE_PLUS_RUNTIME
-        );
-    }
-
-    @Override
-    public void execute() throws MojoExecutionException {
-        if (skip) {
-            getLog().info("Skipping native-image generation (parameter 'skipNativeBuild' is true).");
-            return;
-        }
-
-        evaluator = new PluginParameterExpressionEvaluator(session, mojoExecution);
-        maybeSetMainClassFromPlugin(this::consumeExecutionsNodeValue, "org.apache.maven.plugins:maven-shade-plugin", "transformers", "transformer", "mainClass");
-        maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-assembly-plugin", "archive", "manifest", "mainClass");
-        maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-jar-plugin", "archive", "manifest", "mainClass");
-        maybeAddGeneratedResourcesConfig(buildArgs);
-        buildImage();
-    }
-
-    private String consumeConfigurationNodeValue(String pluginKey, String... nodeNames) {
-        Plugin selectedPlugin = project.getPlugin(pluginKey);
-        if (selectedPlugin == null) {
-            return null;
-        }
-        return getConfigurationNodeValue(selectedPlugin, nodeNames);
-    }
-
-    private String consumeExecutionsNodeValue(String pluginKey, String... nodeNames) {
-        Plugin selectedPlugin = project.getPlugin(pluginKey);
-        if (selectedPlugin == null) {
-            return null;
-        }
-        for (PluginExecution execution : selectedPlugin.getExecutions()) {
-            String value = getConfigurationNodeValue(execution, nodeNames);
-            if (value != null) {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    private String getConfigurationNodeValue(ConfigurationContainer container, String... nodeNames) {
-        if (container != null && container.getConfiguration() instanceof Xpp3Dom) {
-            Xpp3Dom node = (Xpp3Dom) container.getConfiguration();
-            for (String nodeName : nodeNames) {
-                node = node.getChild(nodeName);
-                if (node == null) {
-                    return null;
-                }
-            }
-            String value = node.getValue();
-            return evaluateValue(value);
-        }
-        return null;
-    }
-
-    private String evaluateValue(String value) {
-        if (value != null) {
-            try {
-                Object evaluatedValue = evaluator.evaluate(value);
-                if (evaluatedValue instanceof String) {
-                    return (String) evaluatedValue;
-                }
-            } catch (ExpressionEvaluationException ignored) {
-            }
-        }
-
-        return null;
-    }
-
-    private void maybeSetMainClassFromPlugin(BiFunction<String, String[], String> mainClassProvider, String pluginName, String... nodeNames) {
-        if (mainClass == null) {
-            mainClass = mainClassProvider.apply(pluginName, nodeNames);
-
-            if (mainClass != null) {
-                getLog().info("Obtained main class from plugin " + pluginName + " with the following path: " + String.join(" -> ", nodeNames));
-            }
-        }
-    }
+@Execute(phase = LifecyclePhase.COMPILE)
+@SuppressWarnings("unused")
+public class NativeBuildMojo extends NativeBuildNoForkMojo {
+    // no-op
 }

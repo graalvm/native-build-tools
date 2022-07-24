@@ -173,5 +173,5 @@ tasks {
 }
 
 tasks.withType<Checkstyle>().configureEach {
-    setConfigFile(layout.projectDirectory.dir("../config/checkstyle.xml").asFile)
+    configFile = layout.projectDirectory.dir("../config/checkstyle.xml").asFile
 }
