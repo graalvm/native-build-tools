@@ -278,6 +278,12 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected Path processArtifact(Artifact artifact, String artifactType) throws MojoExecutionException {
         File artifactFile = artifact.getFile();
+
+        if (artifactFile == null) {
+            logger.debug("Missing artifact file for artifact " + artifact + " (type: " + artifact.getType() + ")");
+            return null;
+        }
+
         if (!artifactType.equals(artifact.getType())) {
             logger.warn("Ignoring non-jar type ImageClasspath Entry " + artifact);
             return null;
@@ -288,7 +294,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
 
         Path jarFilePath = artifactFile.toPath();
-        logger.info("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");
+        logger.debug("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");
 
         warnIfWrongMetaInfLayout(jarFilePath, artifact);
         return jarFilePath;
@@ -300,7 +306,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected void warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
         if (jarFilePath.toFile().isDirectory()) {
-            logger.warn("Artifact `" + jarFilePath + "` is a directory.");
+            logger.debug("Artifact `" + jarFilePath + "` is a directory.");
             return;
         }
         URI jarFileURI = URI.create("jar:" + jarFilePath.toUri());
