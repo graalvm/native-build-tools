@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
@@ -72,15 +73,24 @@ public class NativeImageUtils {
         return "native-image-configure" + GRAALVM_EXE_EXTENSION;
     }
 
-    public static List<String> convertToArgsFile(List<String> cliArgs) {
+    public static List<String> convertToArgsFile(List<String> cliArgs, Path outputDir) {
+        return convertToArgsFile(cliArgs, outputDir, Paths.get(""));
+    }
+
+    public static List<String> convertToArgsFile(List<String> cliArgs, Path outputDir, Path projectDir) {
         try {
-            File tmpFile = Files.createTempFile("native-image", "args").toFile();
-            tmpFile.deleteOnExit();
+            boolean ignored = outputDir.toFile().mkdirs();
+            File tmpFile = Files.createTempFile(outputDir, "native-image-", ".args").toFile();
+            // tmpFile.deleteOnExit();
             cliArgs = cliArgs.stream().map(NativeImageUtils::escapeArg).collect(Collectors.toList());
             Files.write(tmpFile.toPath(), cliArgs, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
-            return Collections.singletonList("@" + tmpFile.getAbsolutePath());
-        } catch (IOException e) {
 
+            Path resultingPath = tmpFile.toPath().toAbsolutePath();
+            if (projectDir != null) { // We know where the project dir is, so want to use relative paths
+                resultingPath = projectDir.toAbsolutePath().relativize(resultingPath);
+            }
+            return Collections.singletonList("@" + resultingPath);
+        } catch (IOException e) {
             return Collections.unmodifiableList(cliArgs);
         }
     }

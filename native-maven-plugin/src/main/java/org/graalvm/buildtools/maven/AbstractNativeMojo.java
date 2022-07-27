@@ -271,7 +271,8 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
 
         if (useArgFile) {
-            return NativeImageUtils.convertToArgsFile(cliArgs);
+            Path tmpDir = Paths.get("target", "tmp");
+            return NativeImageUtils.convertToArgsFile(cliArgs, tmpDir);
         }
         return Collections.unmodifiableList(cliArgs);
     }
@@ -405,7 +406,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
                 throw new MojoExecutionException("Failed creating output directory");
             }
-            processBuilder.directory(outputDirectory);
             processBuilder.inheritIO();
 
             String commandString = String.join(" ", processBuilder.command());
