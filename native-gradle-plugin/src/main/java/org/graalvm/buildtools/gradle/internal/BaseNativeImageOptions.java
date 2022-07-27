@@ -47,6 +47,7 @@ import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -78,6 +79,8 @@ import java.util.stream.StreamSupport;
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public abstract class BaseNativeImageOptions implements NativeImageOptions {
+    private static final GraalVMLogger LOGGER = GraalVMLogger.of(Logging.getLogger(BaseNativeImageOptions.class));
+
     private final String name;
 
     @Override
@@ -240,7 +243,13 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getDebug().convention(false);
         getFallback().convention(false);
         getVerbose().convention(false);
-        getQuickBuild().convention(false);
+        getQuickBuild().convention(providers.environmentVariable("GRAALVM_QUICK_BUILD").map(env -> {
+            LOGGER.warn("Quick build environment variable is set.");
+            if (env.isEmpty()) {
+                return true;
+            }
+            return Boolean.parseBoolean(env);
+        }).orElse(false));
         getRichOutput().convention(!SharedConstants.IS_CI && !SharedConstants.IS_WINDOWS && !SharedConstants.IS_DUMB_TERM && !SharedConstants.NO_COLOR);
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
