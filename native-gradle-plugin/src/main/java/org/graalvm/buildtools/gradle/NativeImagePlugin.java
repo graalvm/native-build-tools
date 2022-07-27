@@ -663,7 +663,13 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 FileSystemOperations fileOperations,
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
-        logger.lifecycle("Instrumenting task with the native-image-agent: " + taskToInstrument.getName());
+        //noinspection Convert2Lambda
+        taskToInstrument.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                logger.logOnce("Instrumenting task with the native-image-agent: " + task.getName());
+            }
+        });
         Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
 
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);

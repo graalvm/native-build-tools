@@ -244,7 +244,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getFallback().convention(false);
         getVerbose().convention(false);
         getQuickBuild().convention(providers.environmentVariable("GRAALVM_QUICK_BUILD").map(env -> {
-            LOGGER.warn("Quick build environment variable is set.");
+            LOGGER.logOnce("Quick build environment variable is set.");
             if (env.isEmpty()) {
                 return true;
             }
