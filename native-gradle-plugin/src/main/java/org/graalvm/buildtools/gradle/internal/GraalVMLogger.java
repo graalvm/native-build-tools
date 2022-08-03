@@ -43,10 +43,21 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.gradle.api.logging.Logger;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Wraps the Gradle logger with a minimal API surface.
  */
 public final class GraalVMLogger {
+    private static final Set<String> LOGGED_MESSAGES = new HashSet<>();
+
+    public static void newBuild() {
+        synchronized (LOGGED_MESSAGES) {
+            LOGGED_MESSAGES.clear();
+        }
+    }
+
     private final Logger delegate;
 
     public static GraalVMLogger of(Logger delegate) {
@@ -79,5 +90,13 @@ public final class GraalVMLogger {
 
     public void warn(String s) {
         delegate.warn("[native-image-plugin] {}", s);
+    }
+
+    public void logOnce(String message) {
+        synchronized (LOGGED_MESSAGES) {
+            if (LOGGED_MESSAGES.add(message)) {
+                lifecycle(message);
+            }
+        }
     }
 }
