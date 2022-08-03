@@ -139,24 +139,61 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     void mvn(List<String> args) {
-        mvn(args as String[])
+        Map<String, String> systemProperties = [
+            "org.apache.http" : "off",
+            "org.apache.http.wire" : "off",
+        ].collectEntries { key, value ->
+            ["org.slf4j.simpleLogger.log.${key}".toString(), value]
+        }
+        mvn(args, systemProperties)
     }
 
     void mvn(String... args) {
-        System.out.println("Running copy of maven project `" + testOrigin + "` with `" + args + "`");
+        mvn(args.toList())
+    }
+
+    void mvn(List<String> args, Map<String, String> systemProperties) {
+        System.out.println("Running copy of maven project `" + testOrigin + "` with " + args);
+        var resultingSystemProperties = [
+                "common.repo.uri": System.getProperty("common.repo.uri"),
+                "seed.repo.uri": System.getProperty("seed.repo.uri"),
+                "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
+        ]
+        resultingSystemProperties.putAll(systemProperties)
+
         result = executor.execute(
                 testDirectory.toFile(),
-                [
-                        "org.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener": "warn",
-                        "common.repo.uri": System.getProperty("common.repo.uri"),
-                        "seed.repo.uri": System.getProperty("seed.repo.uri"),
-                        "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
-                ],
+                resultingSystemProperties,
                 [*injectedSystemProperties,
                  *args],
                 new File(System.getProperty("maven.settings"))
         )
         System.out.println("Exit code is ${result.exitCode}")
+
+    }
+
+    void mvnDebug(String... args) {
+        Map<String, String> systemProperties = [
+            "org.apache.http"                                                    : "off",
+            "org.apache.http.wire"                                               : "off",
+            "org.apache.maven.cli.transfer.Slf4jMavenTransferListener"           : "warn",
+            "org.eclipse.aether.internal.impl.DefaultTransporterProvider"        : "error",
+            "org.eclipse.aether.internal.impl.DefaultRepositoryConnectorProvider": "error",
+            "org.eclipse.aether.internal.impl.TrackingFileManager"               : "error",
+            "org.eclipse.aether.internal.impl.DefaultArtifactResolver"           : "error",
+            "org.codehaus.plexus.PlexusContainer"                                : "error",
+            "org.apache.maven.plugin.internal.DefaultPluginDependenciesResolver" : "error",
+            "org.apache.maven.shared.filtering.DefaultMavenFileFilter"           : "error",
+            "org.codehaus.mojo.exec.ExecMojo"                                    : "debug",
+            // This is THE logger we need for checking java execution
+            "org.apache.maven.lifecycle.internal.LifecycleDebugLogger"           : "error"
+        ].collectEntries { key, value ->
+            ["org.slf4j.simpleLogger.log.${key}".toString(), value]
+        }
+
+        ArrayList<String> resultingArgs = args.toList()
+        resultingArgs.add(0, "-X")
+        mvn(resultingArgs, systemProperties)
     }
 
     boolean isDidNotCrash() {

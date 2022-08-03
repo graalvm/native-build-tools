@@ -323,8 +323,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                         valid = valid && relativeSubDir.getName(0).toString().equals(artifact.getGroupId());
                         valid = valid && relativeSubDir.getName(1).toString().equals(artifact.getArtifactId());
                         if (!valid) {
-                            String example = NATIVE_IMAGE_META_INF + "/${groupId}/${artifactId}/" + NATIVE_IMAGE_PROPERTIES_FILENAME;
-                            logger.warn(nativeImageProperty.toUri() + " does not match recommended " + example + " layout.");
+                            String example = NATIVE_IMAGE_META_INF + "/%s/%s/" + NATIVE_IMAGE_PROPERTIES_FILENAME;
+                            example = String.format(example, artifact.getGroupId(), artifact.getArtifactId());
+                            logger.warn("Properties file at '" + nativeImageProperty.toUri() + "' does not match the recommended '" + example + "' layout.");
                         }
                     }
                 }

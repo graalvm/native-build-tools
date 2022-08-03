@@ -54,7 +54,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvn '-X', '-Pnative', 'test', '-DskipNativeTests'
+        mvnDebug '-Pnative', 'test', '-DskipNativeTests'
 
         then:
         // Agent is used with Surefire
@@ -85,7 +85,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvn '-X', '-Pnative', 'test'
+        mvnDebug '-Pnative', 'test'
 
         then:
         outputContains """
@@ -162,7 +162,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvn '-X', '-Pnative', '-DagentOptions=periodic-config', 'test'
+        mvnDebug '-Pnative', '-DagentOptions=periodic-config', 'test'
 
         then:
         outputContains """
@@ -214,7 +214,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-X', '-Pnative', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvnDebug '-Pnative', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         then:
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
@@ -246,7 +246,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-X', '-Pnative', '-Dagent=false', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvnDebug '-Pnative', '-Dagent=false', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         then:
         outputDoesNotContain '-agentlib:native-image-agent'
@@ -263,7 +263,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-X', '-Pnative', '-DagentOptions=periodic-config', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvnDebug '-Pnative', '-DagentOptions=periodic-config', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         then:
         ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->

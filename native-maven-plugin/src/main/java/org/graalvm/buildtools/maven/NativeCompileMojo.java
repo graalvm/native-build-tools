@@ -49,7 +49,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * This goal builds native images.
- * It can be invoked using `mvn native:compile`.
+ * It should be invoked from the command line as a single goal (`mvn native:compile`).
  */
 @Mojo(name = "compile", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
@@ -57,5 +57,4 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Execute(phase = LifecyclePhase.PACKAGE)
 @SuppressWarnings("unused")
 public class NativeCompileMojo extends NativeCompileNoForkMojo {
-    // no-op
 }

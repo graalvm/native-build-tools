@@ -73,7 +73,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
 
-    private Logger logger;
+    private static Logger logger;
 
     @Override
     public void enableLogging(Logger logger) {
@@ -91,6 +91,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     static String testIdsDirectory(String baseDir) {
         return baseDir + File.separator + "test-ids";
     }
+
+    private static String graalvmJava;
 
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
@@ -115,6 +117,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     @Override
     public void afterProjectsRead(MavenSession session) {
+        try {
+            graalvmJava = Utils.getNativeImage(logger).getParent().resolve("java").toString();
+        } catch (MojoExecutionException e) {
+            throw new RuntimeException(e);
+        }
+
         for (MavenProject project : session.getProjects()) {
             Build build = project.getBuild();
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
@@ -159,12 +167,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                                     for (Xpp3Dom child : children) {
                                         commandlineArgs.addChild(child);
                                     }
-                                    Xpp3Dom executable = findOrAppend(config, "executable");
-                                    try {
-                                        executable.setValue(Utils.getNativeImage(logger).getParent().resolve("java").toString());
-                                    } catch (MojoExecutionException e) {
-                                        throw new RuntimeException(e);
-                                    }
+                                    findOrAppend(config, "executable").setValue(graalvmJava);
                                 }
                             })
                     );
@@ -318,6 +321,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             Xpp3Dom argLine = new Xpp3Dom("argLine");
             argLine.setValue(agentArgument);
             configuration.addChild(argLine);
+            findOrAppend(configuration, "jvm").setValue(graalvmJava);
         });
     }
 

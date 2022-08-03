@@ -16,17 +16,26 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 [[changelog]]
 == Changelog
+
 === Release 0.9.14
 
-=== Gradle plugin
+==== Gradle plugin
 * Add ability to set environment variables to the native image builder process
+* Argument files are now stored in the `build` directory (workaround for absolute path issue on Windows with older GraalVM versions)
+
+==== Maven plugin
+* Added `native:compile` forking goal that can be started from the command line as `mvn native:compile`.
+* Argument files are now stored in the `target` directory (workaround for absolute path issue on Windows with older GraalVM versions).
+* Default and test outputs are now much less noisy.
+* When running tests in JVM mode with the native-image-agent, GraalVM's `java` executable is now always used.
+* Maven plugin now shouldn't require that JVM running it must be GraalVM.
 
 === Release 0.9.13
 
-=== Gradle plugin
+==== Gradle plugin
 * Reverted a change in the `NativeImagePlugin` that removed publicly accessible constants. This should prevent breakage of external plugins.
 
-=== JUnit testing support
+==== JUnit testing support
 * Adapted the JUnit automatic metadata registration to changes in annotation handling on newer native image versions.
 
 === Release 0.9.12

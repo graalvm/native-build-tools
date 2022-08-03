@@ -52,6 +52,7 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.8.1</junit.jupiter.version>
+        <graalvm.version>22.0.0</graalvm.version>
         <mainClass>org.graalvm.demo.Application</mainClass>
     </properties>
 
@@ -61,6 +62,11 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.graalvm.nativeimage</groupId>
+            <artifactId>svm</artifactId>
+            <version>${graalvm.version}</version>
         </dependency>
     </dependencies>
 
