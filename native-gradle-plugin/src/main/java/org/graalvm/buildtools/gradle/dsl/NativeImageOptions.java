@@ -108,6 +108,15 @@ public interface NativeImageOptions extends Named {
     MapProperty<String, Object> getSystemProperties();
 
     /**
+     * Returns the environment variables which will be used by the native-image builder process.
+     * @return the environment variables. Returns an empty map when there are no environment variables.
+     *
+     * @since 0.9.14
+     */
+    @Input
+    MapProperty<String, Object> getEnvironmentVariables();
+
+    /**
      * Returns the classpath for the native-image building.
      *
      * @return classpath The classpath for the native-image building.

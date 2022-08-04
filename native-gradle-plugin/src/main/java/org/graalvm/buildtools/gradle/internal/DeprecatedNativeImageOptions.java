@@ -130,6 +130,11 @@ public abstract class DeprecatedNativeImageOptions implements NativeImageOptions
     }
 
     @Override
+    public MapProperty<String, Object> getEnvironmentVariables() {
+        return warnAboutDeprecation(delegate::getEnvironmentVariables);
+    }
+
+    @Override
     @Classpath
     @InputFiles
     public ConfigurableFileCollection getClasspath() {

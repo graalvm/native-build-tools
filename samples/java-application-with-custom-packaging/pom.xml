@@ -41,7 +41,7 @@
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.graalvm.buildtools.examples</groupId>
     <artifactId>java-application-with-custom-packaging</artifactId>
@@ -61,7 +61,7 @@
         <micronaut.version>3.3.4</micronaut.version>
         <exec.mainClass>org.graalvm.demo.Application</exec.mainClass>
         <micronaut.runtime>netty</micronaut.runtime>
-        <maven.native.plugin.version>0.9.13-SNAPSHOT</maven.native.plugin.version>
+        <native.maven.plugin.version>0.9.14-SNAPSHOT</native.maven.plugin.version>
     </properties>
 
     <repositories>
@@ -140,7 +140,12 @@
                 <groupId>io.micronaut.build</groupId>
                 <artifactId>micronaut-maven-plugin</artifactId>
             </plugin>
-
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>${native.maven.plugin.version}</version>
+                <extensions>true</extensions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
