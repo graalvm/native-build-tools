@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":42,"i1":42,"i2":42,"i3":42,"i4":42,"i5":42,"i6":42,"i7":42,"i8":42,"i9":42,"i10":42,"i11":42,"i12":42,"i13":42,"i14":42,"i15":42,"i16":42,"i17":42,"i18":42,"i19":42,"i20":42,"i21":42,"i22":42,"i23":42,"i24":42,"i25":42,"i26":42};
+var data = {"i0":42,"i1":42,"i2":42,"i3":42,"i4":42,"i5":42,"i6":42,"i7":42,"i8":42,"i9":42,"i10":42,"i11":42,"i12":42,"i13":42,"i14":42,"i15":42,"i16":42,"i17":42,"i18":42,"i19":42,"i20":42,"i21":42,"i22":42,"i23":42,"i24":42,"i25":42,"i26":42,"i27":42};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -273,13 +273,21 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 </td>
 </tr>
 <tr id="i9" class="rowColor">
+<td class="colFirst"><code>org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getEnvironmentVariables()">getEnvironmentVariables</a></span>()</code></th>
+<td class="colLast">
+<div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
+<div class="block">Returns the environment variables which will be used by the native-image builder process.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getFallback()">getFallback</a></span>()</code></th>
 <td class="colLast">
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getImageName()">getImageName</a></span>()</code></th>
 <td class="colLast">
@@ -287,7 +295,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Gets the name of the native executable to be generated.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;org.gradle.jvm.toolchain.JavaLauncher&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getJavaLauncher()">getJavaLauncher</a></span>()</code></th>
 <td class="colLast">
@@ -295,7 +303,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Returns the toolchain used to invoke native-image.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getJvmArgs()">getJvmArgs</a></span>()</code></th>
 <td class="colLast">
@@ -303,7 +311,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Returns the extra arguments to use when launching the JVM for the native-image building process.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMainClass()">getMainClass</a></span>()</code></th>
 <td class="colLast">
@@ -311,21 +319,21 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Returns the fully qualified name of the Main class to be executed.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getName()">getName</a></span>()</code></th>
 <td class="colLast">
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code><a href="../dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getResources()">getResources</a></span>()</code></th>
 <td class="colLast">
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRuntimeArgs()">getRuntimeArgs</a></span>()</code></th>
 <td class="colLast">
@@ -333,7 +341,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Returns the arguments to use when launching the built image.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSharedLibrary()">getSharedLibrary</a></span>()</code></th>
 <td class="colLast">
@@ -341,7 +349,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Gets the value which determines if shared library is being built.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSystemProperties()">getSystemProperties</a></span>()</code></th>
 <td class="colLast">
@@ -349,7 +357,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Returns the system properties which will be used by the native-image builder process.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getVerbose()">getVerbose</a></span>()</code></th>
 <td class="colLast">
@@ -357,7 +365,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Gets the value which toggles native-image verbose output.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#jvmArgs(java.lang.Iterable)">jvmArgs</a></span>&#8203;(java.lang.Iterable&lt;?&gt;&nbsp;arguments)</code></th>
 <td class="colLast">
@@ -365,7 +373,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Adds some arguments to use when launching the JVM for the native-image building process.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#jvmArgs(java.lang.Object...)">jvmArgs</a></span>&#8203;(java.lang.Object...&nbsp;arguments)</code></th>
 <td class="colLast">
@@ -373,14 +381,14 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Adds some arguments to use when launching the JVM for the native-image building process.</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#resources(org.gradle.api.Action)">resources</a></span>&#8203;(org.gradle.api.Action&lt;? super <a href="../dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a>&gt;&nbsp;spec)</code></th>
 <td class="colLast">
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 &nbsp;</td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#runtimeArgs(java.lang.Iterable)">runtimeArgs</a></span>&#8203;(java.lang.Iterable&lt;?&gt;&nbsp;arguments)</code></th>
 <td class="colLast">
@@ -388,7 +396,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Adds some arguments to use when launching the built image.</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#runtimeArgs(java.lang.Object...)">runtimeArgs</a></span>&#8203;(java.lang.Object...&nbsp;arguments)</code></th>
 <td class="colLast">
@@ -396,7 +404,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Adds some arguments to use when launching the built image.</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#systemProperties(java.util.Map)">systemProperties</a></span>&#8203;(java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">
@@ -404,7 +412,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <div class="block">Adds some system properties to be used by the native-image builder process.</div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#systemProperty(java.lang.String,java.lang.Object)">systemProperty</a></span>&#8203;(java.lang.String&nbsp;name,
               java.lang.Object&nbsp;value)</code></th>
@@ -562,6 +570,24 @@ public&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.
 <dd><code><a href="../dsl/NativeImageOptions.html#getSystemProperties()">getSystemProperties</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The system properties. Returns an empty map when there are no system properties.</dd>
+</dl>
+</li>
+</ul>
+<a id="getEnvironmentVariables()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getEnvironmentVariables</h4>
+<pre class="methodSignature">public&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;&nbsp;getEnvironmentVariables()</pre>
+<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../dsl/NativeImageOptions.html#getEnvironmentVariables()">NativeImageOptions</a></code></span></div>
+<div class="block">Returns the environment variables which will be used by the native-image builder process.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../dsl/NativeImageOptions.html#getEnvironmentVariables()">getEnvironmentVariables</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the environment variables. Returns an empty map when there are no environment variables.</dd>
 </dl>
 </li>
 </ul>
