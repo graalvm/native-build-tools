@@ -157,8 +157,9 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">NativeImageCommandLineProvider</a></span>&#8203;(org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;options,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">NativeImageCommandLineProvider</a></span>&#8203;(org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;options,
                               org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;executableName,
+                              org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;workingDirectory,
                               org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;outputDirectory,
                               org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;&nbsp;classpathJar,
                               org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;useArgFile)</code></th>
@@ -238,7 +239,7 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">
+<a id="&lt;init&gt;(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -246,6 +247,7 @@ implements org.gradle.process.CommandLineArgumentProvider</pre>
 <h4>NativeImageCommandLineProvider</h4>
 <pre>public&nbsp;NativeImageCommandLineProvider&#8203;(org.gradle.api.provider.Provider&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;options,
                                       org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;executableName,
+                                      org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;workingDirectory,
                                       org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;outputDirectory,
                                       org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;&nbsp;classpathJar,
                                       org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;useArgFile)</pre>

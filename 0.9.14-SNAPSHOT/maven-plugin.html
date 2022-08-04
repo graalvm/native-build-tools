@@ -565,6 +565,18 @@ If the heuristics fail with the <code>no main manifest attribute, in target/&lt;
 specified in the <code>&lt;configuration&gt;</code> node of the plugin.
 When <code>mvn -Pnative package</code> completes, an executable is ready for use, generated in the <code>target</code> directory of the project.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Building native image without attaching to the <code>package</code> phase can be done by invoking the forking <code>compile</code> goal directly, e.g. <code>mvn native:compile</code>
+</td>
+</tr>
+</table>
+</div>
 <div class="admonitionblock tip">
 <table>
 <tr>

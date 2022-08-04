@@ -180,7 +180,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/MergeAgentFilesMojo.html#execute()">execute()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/MergeAgentFilesMojo.html" title="class in org.graalvm.buildtools.maven">MergeAgentFilesMojo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeBuildMojo.html#execute()">execute()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeBuildMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildMojo</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html#execute()">execute()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileNoForkMojo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeTestMojo.html#execute()">execute()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeTestMojo.html" title="class in org.graalvm.buildtools.maven">NativeTestMojo</a></dt>
 <dd>&nbsp;</dd>
@@ -206,7 +206,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/AbstractNativeMojo.html#getDependencyScopes()">getDependencyScopes()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeBuildMojo.html#getDependencyScopes()">getDependencyScopes()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeBuildMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildMojo</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html#getDependencyScopes()">getDependencyScopes()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileNoForkMojo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeTestMojo.html#getDependencyScopes()">getDependencyScopes()</a></span> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeTestMojo.html" title="class in org.graalvm.buildtools.maven">NativeTestMojo</a></dt>
 <dd>&nbsp;</dd>
@@ -328,10 +328,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/Utils.html#NATIVE_TESTS_EXE">NATIVE_TESTS_EXE</a></span> - Static variable in class org.graalvm.buildtools.<a href="org/graalvm/buildtools/Utils.html" title="class in org.graalvm.buildtools">Utils</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="org/graalvm/buildtools/maven/NativeBuildMojo.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeBuildMojo</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeBuildMojo.html#%3Cinit%3E()">NativeBuildMojo()</a></span> - Constructor for class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeBuildMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildMojo</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/NativeBuildResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeBuildResourceConfigMojo</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeBuildResourceConfigMojo.html#%3Cinit%3E()">NativeBuildResourceConfigMojo()</a></span> - Constructor for class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeBuildResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildResourceConfigMojo</a></dt>
@@ -339,6 +335,18 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><a href="org/graalvm/buildtools/maven/NativeBuildTestResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeBuildTestResourceConfigMojo</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeBuildTestResourceConfigMojo.html#%3Cinit%3E()">NativeBuildTestResourceConfigMojo()</a></span> - Constructor for class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeBuildTestResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildTestResourceConfigMojo</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/maven/NativeCompileMojo.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeCompileMojo</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
+<dd>
+<div class="block">This goal builds native images.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeCompileMojo.html#%3Cinit%3E()">NativeCompileMojo()</a></span> - Constructor for class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeCompileMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileMojo</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeCompileNoForkMojo</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
+<dd>
+<div class="block">This goal runs native builds.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html#%3Cinit%3E()">NativeCompileNoForkMojo()</a></span> - Constructor for class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileNoForkMojo</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/NativeExtension.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeExtension</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
 <dd>
@@ -350,7 +358,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/Utils.html#nativeImageCache">nativeImageCache</a></span> - Static variable in class org.graalvm.buildtools.<a href="org/graalvm/buildtools/Utils.html" title="class in org.graalvm.buildtools">Utils</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/NativeTestMojo.html" title="class in org.graalvm.buildtools.maven"><span class="typeNameLink">NativeTestMojo</span></a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">This goal builds and runs native tests.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/maven/NativeTestMojo.html#%3Cinit%3E()">NativeTestMojo()</a></span> - Constructor for class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeTestMojo.html" title="class in org.graalvm.buildtools.maven">NativeTestMojo</a></dt>
 <dd>&nbsp;</dd>
 </dl>

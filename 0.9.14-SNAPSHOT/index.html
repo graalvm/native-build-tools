@@ -451,10 +451,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#changelog">Changelog</a>
 <ul class="sectlevel2">
 <li><a href="#_release_0_9_14">Release 0.9.14</a></li>
-<li><a href="#_gradle_plugin">Gradle plugin</a></li>
 <li><a href="#_release_0_9_13">Release 0.9.13</a></li>
-<li><a href="#_gradle_plugin_2">Gradle plugin</a></li>
-<li><a href="#_junit_testing_support">JUnit testing support</a></li>
 <li><a href="#_release_0_9_12">Release 0.9.12</a></li>
 <li><a href="#_release_0_9_11">Release 0.9.11</a></li>
 <li><a href="#_release_0_9_10">Release 0.9.10</a></li>
@@ -509,24 +506,46 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_release_0_9_14"><a class="anchor" href="#_release_0_9_14"></a>Release 0.9.14</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
 <p>Add ability to set environment variables to the native image builder process</p>
 </li>
+<li>
+<p>Argument files are now stored in the <code>build</code> directory (workaround for absolute path issue on Windows with older GraalVM versions)</p>
+</li>
 </ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Added <code>native:compile</code> forking goal that can be started from the command line as <code>mvn native:compile</code>.</p>
+</li>
+<li>
+<p>Argument files are now stored in the <code>target</code> directory (workaround for absolute path issue on Windows with older GraalVM versions).</p>
+</li>
+<li>
+<p>Default and test outputs are now much less noisy.</p>
+</li>
+<li>
+<p>When running tests in JVM mode with the native-image-agent, GraalVM&#8217;s <code>java</code> executable is now always used.</p>
+</li>
+<li>
+<p>Maven plugin now shouldn&#8217;t require that JVM running it must be GraalVM.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_release_0_9_13"><a class="anchor" href="#_release_0_9_13"></a>Release 0.9.13</h3>
-
-</div>
-<div class="sect2">
-<h3 id="_gradle_plugin_2"><a class="anchor" href="#_gradle_plugin_2"></a>Gradle plugin</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_2"><a class="anchor" href="#_gradle_plugin_2"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -535,14 +554,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_junit_testing_support"><a class="anchor" href="#_junit_testing_support"></a>JUnit testing support</h3>
+<div class="sect3">
+<h4 id="_junit_testing_support"><a class="anchor" href="#_junit_testing_support"></a>JUnit testing support</h4>
 <div class="ulist">
 <ul>
 <li>
 <p>Adapted the JUnit automatic metadata registration to changes in annotation handling on newer native image versions.</p>
 </li>
 </ul>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -586,7 +606,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -614,7 +634,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_11"><a class="anchor" href="#_release_0_9_11"></a>Release 0.9.11</h3>
 <div class="sect3">
-<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -649,7 +669,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_10"><a class="anchor" href="#_release_0_9_10"></a>Release 0.9.10</h3>
 <div class="sect3">
-<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_4"><a class="anchor" href="#_maven_plugin_4"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -756,7 +776,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_4"><a class="anchor" href="#_maven_plugin_4"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_5"><a class="anchor" href="#_maven_plugin_5"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
