@@ -16,6 +16,11 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 [[changelog]]
 == Changelog
+=== Release 0.9.14
+
+=== Gradle plugin
+* Add ability to set environment variables to the native image builder process
+
 === Release 0.9.13
 
 === Gradle plugin

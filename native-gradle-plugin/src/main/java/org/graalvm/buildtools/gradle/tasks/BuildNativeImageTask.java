@@ -53,6 +53,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -185,6 +186,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         File outputDir = getOutputDirectory().getAsFile().get();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             getExecOperations().exec(spec -> {
+                MapProperty<String, Object> environmentVariables = options.getEnvironmentVariables();
+                if (environmentVariables.isPresent() && !environmentVariables.get().isEmpty()) {
+                    spec.environment(environmentVariables.get());
+                }
                 spec.setWorkingDir(getWorkingDirectory());
                 if (getTestListDirectory().isPresent()) {
                     NativeImagePlugin.TrackingDirectorySystemPropertyProvider directoryProvider = getObjects().newInstance(NativeImagePlugin.TrackingDirectorySystemPropertyProvider.class);

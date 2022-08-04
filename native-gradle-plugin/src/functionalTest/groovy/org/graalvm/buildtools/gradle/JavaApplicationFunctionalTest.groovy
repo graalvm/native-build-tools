@@ -188,4 +188,32 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/275")
+    def "can pass environment variables to the builder process"() {
+        def nativeApp = file("build/native/nativeCompile/java-application")
+
+        given:
+        withSample("java-application")
+
+        buildFile << """
+            graalvmNative.binaries.all {
+                buildArgs.add("--initialize-at-build-time=org.graalvm.demo.Application")
+                environmentVariables.put('CUSTOM_MESSAGE', 'Hello, custom message!')
+            }
+        """.stripIndent()
+
+        when:
+        run 'nativeCompile'
+
+        then:
+        nativeApp.exists()
+
+        when:
+        def process = execute(nativeApp)
+
+        then:
+        process.output.contains "Hello, custom message!"
+
+    }
+
 }
