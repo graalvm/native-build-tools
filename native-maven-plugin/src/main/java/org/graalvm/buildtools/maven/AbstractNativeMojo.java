@@ -271,13 +271,20 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
 
         if (useArgFile) {
-            return NativeImageUtils.convertToArgsFile(cliArgs);
+            Path tmpDir = Paths.get("target", "tmp");
+            return NativeImageUtils.convertToArgsFile(cliArgs, tmpDir);
         }
         return Collections.unmodifiableList(cliArgs);
     }
 
     protected Path processArtifact(Artifact artifact, String artifactType) throws MojoExecutionException {
         File artifactFile = artifact.getFile();
+
+        if (artifactFile == null) {
+            logger.debug("Missing artifact file for artifact " + artifact + " (type: " + artifact.getType() + ")");
+            return null;
+        }
+
         if (!artifactType.equals(artifact.getType())) {
             logger.warn("Ignoring non-jar type ImageClasspath Entry " + artifact);
             return null;
@@ -288,7 +295,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
 
         Path jarFilePath = artifactFile.toPath();
-        logger.info("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");
+        logger.debug("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");
 
         warnIfWrongMetaInfLayout(jarFilePath, artifact);
         return jarFilePath;
@@ -300,7 +307,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected void warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
         if (jarFilePath.toFile().isDirectory()) {
-            logger.warn("Artifact `" + jarFilePath + "` is a directory.");
+            logger.debug("Artifact `" + jarFilePath + "` is a directory.");
             return;
         }
         URI jarFileURI = URI.create("jar:" + jarFilePath.toUri());
@@ -316,8 +323,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                         valid = valid && relativeSubDir.getName(0).toString().equals(artifact.getGroupId());
                         valid = valid && relativeSubDir.getName(1).toString().equals(artifact.getArtifactId());
                         if (!valid) {
-                            String example = NATIVE_IMAGE_META_INF + "/${groupId}/${artifactId}/" + NATIVE_IMAGE_PROPERTIES_FILENAME;
-                            logger.warn(nativeImageProperty.toUri() + " does not match recommended " + example + " layout.");
+                            String example = NATIVE_IMAGE_META_INF + "/%s/%s/" + NATIVE_IMAGE_PROPERTIES_FILENAME;
+                            example = String.format(example, artifact.getGroupId(), artifact.getArtifactId());
+                            logger.warn("Properties file at '" + nativeImageProperty.toUri() + "' does not match the recommended '" + example + "' layout.");
                         }
                     }
                 }
@@ -399,7 +407,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
                 throw new MojoExecutionException("Failed creating output directory");
             }
-            processBuilder.directory(outputDirectory);
             processBuilder.inheritIO();
 
             String commandString = String.join(" ", processBuilder.command());

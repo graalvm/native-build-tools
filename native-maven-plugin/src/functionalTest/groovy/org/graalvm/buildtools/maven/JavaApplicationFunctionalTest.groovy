@@ -100,7 +100,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application-with-custom-packaging")
 
         when:
-        mvn 'package', '-Dpackaging=native-image', 'exec:exec@native'
+        mvnDebug 'package', '-Dpackaging=native-image', 'exec:exec@native'
 
         then:
         buildSucceeded

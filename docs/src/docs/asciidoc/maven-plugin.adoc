@@ -70,6 +70,8 @@ If the heuristics fail with the `no main manifest attribute, in target/<name>.ja
 specified in the `<configuration>` node of the plugin.
 When `mvn -Pnative package` completes, an executable is ready for use, generated in the `target` directory of the project.
 
+NOTE: Building native image without attaching to the `package` phase can be done by invoking the forking `compile` goal directly, e.g. `mvn native:compile`
+
 [TIP]
 .Testing pre-releases
 ====

@@ -70,6 +70,7 @@ import java.util.stream.Stream;
 import static org.graalvm.buildtools.Utils.NATIVE_TESTS_EXE;
 
 /**
+ * This goal builds and runs native tests.
  * @author Sebastien Deleuze
  */
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,

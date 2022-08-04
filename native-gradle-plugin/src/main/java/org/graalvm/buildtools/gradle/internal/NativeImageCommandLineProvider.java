@@ -53,6 +53,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.process.CommandLineArgumentProvider;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,16 +66,19 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<NativeImageOptions> options;
     private final Provider<String> executableName;
     private final Provider<String> outputDirectory;
+    private final Provider<String> workingDirectory;
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
+                                          Provider<String> workingDirectory,
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile) {
         this.options = options;
         this.executableName = executableName;
+        this.workingDirectory = workingDirectory;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
@@ -142,7 +147,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         }
         cliArgs.addAll(options.getBuildArgs().get());
         if (useArgFile.getOrElse(true)) {
-            return NativeImageUtils.convertToArgsFile(cliArgs);
+            Path argFileDir = Paths.get(workingDirectory.get());
+            return NativeImageUtils.convertToArgsFile(cliArgs, argFileDir, argFileDir);
         }
         return Collections.unmodifiableList(cliArgs);
 

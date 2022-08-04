@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.utils)
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
+    implementation(libs.graalvm.svm)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
@@ -173,5 +174,5 @@ tasks {
 }
 
 tasks.withType<Checkstyle>().configureEach {
-    setConfigFile(layout.projectDirectory.dir("../config/checkstyle.xml").asFile)
+    configFile = layout.projectDirectory.dir("../config/checkstyle.xml").asFile
 }

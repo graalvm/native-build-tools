@@ -58,10 +58,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 
+
+/**
+ * This goal runs native builds. It functions the same as the native:compile goal, but it
+ * does not fork the build, so it is suitable for attaching to the build lifecycle.
+ */
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class NativeBuildMojo extends AbstractNativeMojo {
+public class NativeCompileNoForkMojo extends AbstractNativeMojo {
 
     @Parameter(property = "skipNativeBuild", defaultValue = "false")
     private boolean skip;
@@ -79,7 +84,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if (skip) {
-            getLog().info("Skipping native-image generation (parameter 'skipNativeBuild' is true).");
+            logger.info("Skipping native-image generation (parameter 'skipNativeBuild' is true).");
             return;
         }
 
@@ -147,7 +152,7 @@ public class NativeBuildMojo extends AbstractNativeMojo {
             mainClass = mainClassProvider.apply(pluginName, nodeNames);
 
             if (mainClass != null) {
-                getLog().info("Obtained main class from plugin " + pluginName + " with the following path: " + String.join(" -> ", nodeNames));
+                logger.info("Obtained main class from plugin " + pluginName + " with the following path: " + String.join(" -> ", nodeNames));
             }
         }
     }

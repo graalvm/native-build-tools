@@ -90,12 +90,12 @@ public abstract class MavenTask extends DefaultTask {
             spec.setClasspath(getMavenEmbedderClasspath());
             spec.getMainClass().set("org.apache.maven.cli.MavenCli");
             spec.systemProperty("maven.multiModuleProjectDirectory", projectdir.getAbsolutePath());
+            spec.systemProperty("org.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener", "warn");
             prepareSpec(spec);
             List<String> arguments = new ArrayList<>();
             arguments.addAll(Arrays.asList(
                     "--errors",
                     "-U",
-                    "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn",
                     "--batch-mode",
                     "--settings", settingsFile.getAbsolutePath(),
                     "--file", pomFile.getAbsolutePath()
