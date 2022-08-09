@@ -49,13 +49,13 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
         when:
         mvn '-Pnative', '-DskipTests', '-DnativeDryRun', '-DuseArgFile=false',
-                '-Dclasspath=/testcp', '-Ddebug', '-Dfallback=false', '-Dverbose', '-DsharedLibrary',
+                '-Dclasspath=/', '-Ddebug', '-Dfallback=false', '-Dverbose', '-DsharedLibrary',
                 '-DquickBuild',
                 'package'
 
         then:
         buildSucceeded
-        outputContains "native-image -cp /testcp -g --no-fallback --verbose --shared -Ob"
+        outputContains "native-image -cp / -g --no-fallback --verbose --shared -Ob"
     }
 
     def "can build and execute a native image with the Maven plugin"() {
