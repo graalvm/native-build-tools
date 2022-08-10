@@ -533,7 +533,7 @@ It will then make use of Maven profiles to enable building and testing of native
               &lt;execution&gt;
                 &lt;id&gt;build-native&lt;/id&gt;
                 &lt;goals&gt;
-                  &lt;goal&gt;build&lt;/goal&gt;
+                  &lt;goal&gt;compile-no-fork&lt;/goal&gt;
                 &lt;/goals&gt;
                 &lt;phase&gt;package&lt;/phase&gt;
               &lt;/execution&gt;
@@ -1144,7 +1144,7 @@ wish to run those same tests in native mode.</p>
         &lt;execution&gt;
             &lt;id&gt;build-native&lt;/id&gt;
             &lt;goals&gt;
-                &lt;goal&gt;build&lt;/goal&gt;
+                &lt;goal&gt;compile-no-fork&lt;/goal&gt;
             &lt;/goals&gt;
             &lt;phase&gt;package&lt;/phase&gt;
         &lt;/execution&gt;
@@ -1290,7 +1290,7 @@ wish to run those same tests in native mode.</p>
         &lt;execution&gt;
             &lt;id&gt;build-native&lt;/id&gt;
             &lt;goals&gt;
-                &lt;goal&gt;build&lt;/goal&gt;
+                &lt;goal&gt;compile-no-fork&lt;/goal&gt;
             &lt;/goals&gt;
             &lt;phase&gt;package&lt;/phase&gt;
             &lt;configuration&gt;

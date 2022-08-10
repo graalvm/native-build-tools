@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":6,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":6,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -478,17 +478,22 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 </tr>
 <tr id="i17" class="rowColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processArtifact(org.apache.maven.artifact.Artifact,java.lang.String)">processArtifact</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact,
-               java.lang.String&nbsp;artifactType)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processArtifact(org.apache.maven.artifact.Artifact,java.lang.String...)">processArtifact</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact,
+               java.lang.String...&nbsp;artifactTypes)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i18" class="altColor">
+<td class="colFirst"><code>protected java.nio.file.Path</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processSupportedArtifacts(org.apache.maven.artifact.Artifact)">processSupportedArtifacts</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#unzipLocalMetadata(java.nio.file.Path,java.nio.file.Path)">unzipLocalMetadata</a></span>&#8203;(java.nio.file.Path&nbsp;localPath,
                   java.nio.file.Path&nbsp;destination)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#warnIfWrongMetaInfLayout(java.nio.file.Path,org.apache.maven.artifact.Artifact)">warnIfWrongMetaInfLayout</a></span>&#8203;(java.nio.file.Path&nbsp;jarFilePath,
                         org.apache.maven.artifact.Artifact&nbsp;artifact)</code></th>
@@ -951,14 +956,28 @@ protected&nbsp;AbstractNativeMojo()</pre>
 </dl>
 </li>
 </ul>
-<a id="processArtifact(org.apache.maven.artifact.Artifact,java.lang.String)">
+<a id="processSupportedArtifacts(org.apache.maven.artifact.Artifact)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>processSupportedArtifacts</h4>
+<pre class="methodSignature">protected&nbsp;java.nio.file.Path&nbsp;processSupportedArtifacts&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact)
+                                                throws org.apache.maven.plugin.MojoExecutionException</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
+</li>
+</ul>
+<a id="processArtifact(org.apache.maven.artifact.Artifact,java.lang.String...)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>processArtifact</h4>
 <pre class="methodSignature">protected&nbsp;java.nio.file.Path&nbsp;processArtifact&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact,
-                                             java.lang.String&nbsp;artifactType)
+                                             java.lang.String...&nbsp;artifactTypes)
                                       throws org.apache.maven.plugin.MojoExecutionException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
