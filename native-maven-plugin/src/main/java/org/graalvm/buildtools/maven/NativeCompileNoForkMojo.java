@@ -63,7 +63,7 @@ import java.util.function.BiFunction;
  * This goal runs native builds. It functions the same as the native:compile goal, but it
  * does not fork the build, so it is suitable for attaching to the build lifecycle.
  */
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
+@Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeCompileNoForkMojo extends AbstractNativeMojo {

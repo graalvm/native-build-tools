@@ -277,7 +277,11 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         return Collections.unmodifiableList(cliArgs);
     }
 
-    protected Path processArtifact(Artifact artifact, String artifactType) throws MojoExecutionException {
+    protected Path processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
+        return processArtifact(artifact, "jar", "test-jar", "war");
+    }
+
+    protected Path processArtifact(Artifact artifact, String... artifactTypes) throws MojoExecutionException {
         File artifactFile = artifact.getFile();
 
         if (artifactFile == null) {
@@ -285,8 +289,8 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             return null;
         }
 
-        if (!artifactType.equals(artifact.getType())) {
-            logger.warn("Ignoring non-jar type ImageClasspath Entry " + artifact);
+        if (Arrays.stream(artifactTypes).noneMatch(a -> a.equals(artifact.getType()))) {
+            logger.warn("Ignoring ImageClasspath Entry '" + artifact + "' with unsupported type '" + artifact.getType() + "'");
             return null;
         }
         if (!artifactFile.exists()) {
@@ -302,7 +306,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     }
 
     protected void addArtifactToClasspath(Artifact artifact) throws MojoExecutionException {
-        Optional.ofNullable(processArtifact(artifact, "jar")).ifPresent(imageClasspath::add);
+        Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(imageClasspath::add);
     }
 
     protected void warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
@@ -380,6 +384,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             populateApplicationClasspath();
             addDependenciesToClasspath();
         }
+        imageClasspath.removeIf(entry -> !entry.toFile().exists());
     }
 
     protected String getClasspath() throws MojoExecutionException {

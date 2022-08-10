@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ dev ]
+        graalvm-version: [ latest ] # dev
         java-version: [ 11 ]
         os: [ ubuntu-20.04 ]
     steps:
@@ -53,8 +53,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gradle-version: ["current", "7.3.3", "7.2", "7.1", "6.8.3", "6.7.1"]
-        graalvm-version: [ dev ]
+        gradle-version: ["current", "6.7.1"]
+        # Following versions are disabled temporarily in order to speed up PR testing
+        # "7.3.3", "7.2", "7.1", "6.8.3"
+        graalvm-version: [ latest ] # dev
         java-version: [ 11 ]
         os: [ ubuntu-20.04 ]
     steps:
@@ -81,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ dev ]
+        graalvm-version: [ latest ]
         java-version: [ 11 ]
         os: [ windows-latest ]
     steps:

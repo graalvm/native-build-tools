@@ -40,7 +40,7 @@ Add the following profile to your `pom.xml` file to register the `native-maven-p
               <execution>
                 <id>build-native</id>
                 <goals>
-                  <goal>build</goal>
+                  <goal>compile-no-fork</goal>
                 </goals>
                 <phase>package</phase>
               </execution>

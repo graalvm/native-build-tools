@@ -144,7 +144,7 @@ Adding our new plugin to the existing _Maven_ project requires adding the follow
             <execution>
               <id>build-native</id>
               <goals>
-                <goal>build</goal>
+                <goal>compile-no-fork</goal>
               </goals>
               <phase>package</phase>
             </execution>

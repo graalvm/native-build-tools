@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ dev ]
+        graalvm-version: [ latest ]
         java-version: [ 11 ]
         os: [ ubuntu-20.04 ]
     steps:

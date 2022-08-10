@@ -100,7 +100,7 @@
                                 <id>build-native</id>
                                 <goals>
                                     <goal>generateResourceConfig</goal>
-                                    <goal>build</goal>
+                                    <goal>compile-no-fork</goal>
                                 </goals>
                                 <phase>package</phase>
                             </execution>
