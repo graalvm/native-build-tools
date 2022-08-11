@@ -531,6 +531,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 }</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This plugin supplements and heavily relies on regular Java plugins (e.g. <code>application</code>, <code>java-library</code>, <code>java</code> etc). Not having them included in your project will most probably cause errors.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>The plugin isn&#8217;t available on the <a href="https://plugins.gradle.org">Gradle Plugin Portal</a> yet, so you will need to declare a plugin repository in addition:</p>
 </div>
@@ -565,7 +577,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-<div class="title">Testing pre-releases</div>
+<div class="title">Testing pre-releases (BROKEN AT THE MOMENT!)</div>
 <div class="paragraph">
 <p>You can use development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.</p>
 </div>
@@ -816,11 +828,11 @@ Therefore, it becomes your responsibility to make sure that the environment vari
             // Main options
             imageName = 'application' // The name of the native image, defaults to the project name
             mainClass = 'org.test.Main' // The main class to use, defaults to the application.mainClass
-            debug = true // Determines if debug info should be generated, defaults to false
+            debug = true // Determines if debug info should be generated, defaults to false (alternatively add --debug-native to the CLI)
             verbose = true // Add verbose output, defaults to false
             fallback = true // Sets the fallback mode of native-image, defaults to false
             sharedLibrary = false // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
-            quickBuild = false // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable)
+            quickBuild = false // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable, or add --native-quick-build to the CLI)
             richOutput = false // Determines if native-image building should be done with rich output
 
             systemProperties = [name1: 'value1', name2: 'value2'] // Sets the system properties to use for the native image builder
@@ -892,11 +904,11 @@ Therefore, it becomes your responsibility to make sure that the environment vari
             // Main options
             imageName.set("application") // The name of the native image, defaults to the project name
             mainClass.set("org.test.Main") // The main class to use, defaults to the application.mainClass
-            debug.set(true) // Determines if debug info should be generated, defaults to false
+            debug.set(true) // Determines if debug info should be generated, defaults to false (alternatively add --debug-native to the CLI)
             verbose.set(true) // Add verbose output, defaults to false
             fallback.set(true) // Sets the fallback mode of native-image, defaults to false
             sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
-            quickBuild.set(false) // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable)
+            quickBuild.set(false) // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable, or add --native-quick-build to the CLI)
             richOutput.set(false) // Determines if native-image building should be done with rich output
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder

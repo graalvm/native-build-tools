@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":10,"i5":10,"i6":10,"i7":6,"i8":6,"i9":6,"i10":10,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6};
+var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":10,"i5":10,"i6":10,"i7":6,"i8":6,"i9":6,"i10":10,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":10,"i17":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -303,6 +303,16 @@ extends org.gradle.api.DefaultTask</pre>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWorkingDirectory()">getWorkingDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr id="i16" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideDebugBuild()">overrideDebugBuild</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i17" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideQuickBuild()">overrideQuickBuild</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.gradle.api.DefaultTask">
@@ -374,6 +384,24 @@ extends org.gradle.api.DefaultTask</pre>
 <li class="blockList">
 <h4>getOptions</h4>
 <pre class="methodSignature">public abstract&nbsp;org.gradle.api.provider.Property&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&nbsp;getOptions()</pre>
+</li>
+</ul>
+<a id="overrideQuickBuild()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideQuickBuild</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideQuickBuild()</pre>
+</li>
+</ul>
+<a id="overrideDebugBuild()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideDebugBuild</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideDebugBuild()</pre>
 </li>
 </ul>
 <a id="getExecOperations()">
