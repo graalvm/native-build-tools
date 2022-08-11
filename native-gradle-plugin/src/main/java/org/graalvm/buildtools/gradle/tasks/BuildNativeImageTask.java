@@ -65,6 +65,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
@@ -83,6 +84,16 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Nested
     public abstract Property<NativeImageOptions> getOptions();
+
+    @Option(option = "quick-build-native", description = "Enables quick build mode")
+    public void overrideQuickBuild() {
+        getOptions().get().getQuickBuild().set(true);
+    }
+
+    @Option(option = "debug-native", description = "Enables debug mode")
+    public void overrideDebugBuild() {
+        getOptions().get().getDebug().set(true);
+    }
 
     @Inject
     protected abstract ExecOperations getExecOperations();
