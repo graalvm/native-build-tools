@@ -527,6 +527,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Added <code>native:compile</code> forking goal that can be started from the command line as <code>mvn native:compile</code>.</p>
 </li>
 <li>
+<p>Deprecated <code>build</code> goal in favour of <code>compile-no-fork</code> goal. This goal should now be used for attaching to the <code>package</code> phase in <code>pom.xml</code>. Attaching the <code>build</code> goal will (for now) produce a runtime warning.</p>
+</li>
+<li>
 <p>Argument files are now stored in the <code>target</code> directory (workaround for absolute path issue on Windows with older GraalVM versions).</p>
 </li>
 <li>
