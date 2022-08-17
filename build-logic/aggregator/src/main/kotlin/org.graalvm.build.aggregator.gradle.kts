@@ -3,6 +3,7 @@ import org.gradle.api.publish.plugins.PublishingPlugin
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.kotlin.dsl.*
+import java.nio.file.Files.createTempDirectory
 
 /*
  * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
@@ -124,7 +125,7 @@ val updateSamples by tasks.registering
 mapOf(
         "updateSamplesDir" to "samples",
         "updateMavenReprosDir" to "native-maven-plugin/reproducers"
-).forEach { taskName, dir ->
+).forEach { (taskName, dir) ->
     val t = tasks.register<org.graalvm.build.samples.SamplesUpdateTask>(taskName) {
         inputDirectory.set(layout.projectDirectory.dir(dir))
         versions.put("native.gradle.plugin.version", nativeBuildToolsVersion)
@@ -138,37 +139,46 @@ mapOf(
     }
 }
 
+val snapshotDir: File = createTempDirectory("snapshot-repo").toFile()
+// val snapshotDir: File = snapshotsRepo.get().asFile.toPath().resolve("native-build-tools").toFile()
+// Having nested git directories tend to break for me, so for now we'll use temp directory every time.
 
 val cloneSnapshots = tasks.register<org.graalvm.build.tasks.GitClone>("cloneSnapshotRepository") {
     repositoryUri.set("git@github.com:graalvm/native-build-tools.git")
-//    repositoryUri.set(file(".").absolutePath)
-    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    repositoryDirectory.set(snapshotDir)
     branch.set("snapshots")
 }
 
 val prepareRepository = tasks.register<org.graalvm.build.tasks.GitReset>("resetHead") {
     dependsOn(cloneSnapshots)
-    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
-    mode.set(org.eclipse.jgit.api.ResetCommand.ResetType.HARD)
+    repositoryDirectory.set(snapshotDir)
+    mode.set("hard")
     ref.set("25ecdec020f57dbe980eeb052c71659ccd0d9bcc")
 }
 
-val addSnapshots = tasks.register<org.graalvm.build.tasks.GitAdd>("addSnapshots") {
+val copySnapshots = tasks.register<Copy>("copySnapshots") {
     dependsOn(prepareRepository)
-    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
-    pattern.set("org/")
+    from(snapshotsRepo.get().asFile.toPath())
+    into(snapshotDir)
+    include("org/**")
+}
+
+val addSnapshots = tasks.register<org.graalvm.build.tasks.GitAdd>("addSnapshots") {
+    dependsOn(copySnapshots)
+    repositoryDirectory.set(snapshotDir)
+    pattern.set("*")
 }
 
 val commitSnapshots = tasks.register<org.graalvm.build.tasks.GitCommit>("commitSnapshots") {
     dependsOn(addSnapshots)
-    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    repositoryDirectory.set(snapshotDir)
     message.set("Publishing new snapshot")
     amend.set(false)
 }
 
 val pushSnapshots = tasks.register<org.graalvm.build.tasks.GitPush>("pushSnapshots") {
     dependsOn(commitSnapshots)
-    repositoryDirectory.set(layout.buildDirectory.dir("snapshots"))
+    repositoryDirectory.set(snapshotDir)
     force.set(true)
 }
 

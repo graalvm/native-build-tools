@@ -41,8 +41,6 @@
 
 package org.graalvm.build.tasks
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.ResetCommand
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
@@ -52,15 +50,16 @@ abstract class GitReset : AbstractGitTask() {
     abstract val ref: Property<String>
 
     @get:Input
-    abstract val mode: Property<ResetCommand.ResetType>
+    abstract val mode: Property<String>
+
 
     @TaskAction
     fun execute() {
-        Git.open(repositoryDirectory.asFile.get()).use {
-            it.reset()
-                    .setRef(ref.get())
-                    .setMode(mode.get())
-                    .call()
+        val cmd = arrayListOf("reset")
+        if (mode.isPresent) {
+            cmd.add("--${mode.get().toLowerCase()}")
         }
+        cmd.add(ref.get())
+        runGit(cmd)
     }
 }
