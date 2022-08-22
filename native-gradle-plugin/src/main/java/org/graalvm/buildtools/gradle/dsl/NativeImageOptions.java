@@ -191,6 +191,8 @@ public interface NativeImageOptions extends Named {
     /**
      * Returns the toolchain used to invoke native-image. Currently pointing
      * to a Java launcher due to Gradle limitations.
+     *
+     * @return the detected java launcher
      */
     @Nested
     @Optional

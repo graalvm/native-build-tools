@@ -57,6 +57,7 @@ import java.util.function.Predicate;
 public interface AgentOptions {
     /**
      * Contains configuration of supported agent modes.
+     * @return agent modes
      */
     @Nested
     AgentModeOptions getModes();
@@ -67,6 +68,7 @@ public interface AgentOptions {
 
     /**
      * The default agent mode name when the agent is in use.
+     * @return default agent mode
      */
     @Input
     @Optional
@@ -74,6 +76,7 @@ public interface AgentOptions {
 
     /**
      * Enables the agent.
+     * @return is the agent enabled
      */
     @Input
     @Optional
@@ -81,6 +84,7 @@ public interface AgentOptions {
 
     /**
      * Caller-filter files that will be passed to the agent.
+     * @return caller filter files
      */
     @InputFiles
     @Optional
@@ -88,6 +92,7 @@ public interface AgentOptions {
 
     /**
      * Access-filter files that will be passed to the agent.
+     * @return access filter files
      */
     @InputFiles
     @Optional
@@ -95,12 +100,14 @@ public interface AgentOptions {
 
     /**
      * Toggles the builtin agent caller filter.
+     * @return builtin caller filter
      */
     @Optional
     Property<Boolean> getBuiltinCallerFilter();
 
     /**
      * Toggles the builtin agent heuristic filter.
+     * @return is builtin heuristic filter enabled
      */
     @Optional
     Property<Boolean> getBuiltinHeuristicFilter();
@@ -108,6 +115,7 @@ public interface AgentOptions {
 
     /**
      * Toggles the experimental support for predefined classes.
+     * @return is experimental support for predefined classes enabled
      */
     @Optional
     Property<Boolean> getEnableExperimentalPredefinedClasses();
@@ -115,6 +123,7 @@ public interface AgentOptions {
 
     /**
      * Toggles the experimental support for unsafe allocation tracing.
+     * @return is experimental support for unsafe allocation tracing enabled
      */
     @Optional
     Property<Boolean> getEnableExperimentalUnsafeAllocationTracing();
@@ -122,12 +131,14 @@ public interface AgentOptions {
 
     /**
      * Toggles the distinction between queried and used metadata.
+     * @return queried or used metadata
      */
     @Optional
     Property<Boolean> getTrackReflectionMetadata();
 
     /**
      * Configuration of the metadata copy task.
+     * @return configuration of the metadata copy task
      */
     @Nested
     MetadataCopyOptions getMetadataCopy();
@@ -138,6 +149,7 @@ public interface AgentOptions {
 
     /**
      * Specifies prefixes that will be used to further filter files produced by the agent.
+     * @return filterable entries
      */
     @Input
     @Optional

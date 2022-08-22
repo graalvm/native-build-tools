@@ -110,6 +110,7 @@ import org.gradle.process.ExecOperations;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
@@ -121,6 +122,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -170,7 +172,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
 
     @Override
-    public void apply(Project project) {
+    public void apply(@Nonnull Project project) {
         Provider<NativeImageService> nativeImageServiceProvider = NativeImageService.registerOn(project);
 
         logger = GraalVMLogger.of(project.getLogger());
@@ -231,7 +233,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         deprecateExtension(project, mainOptions, DEPRECATED_NATIVE_BUILD_EXTENSION, "main");
 
         project.getPlugins().withId("application", p -> mainOptions.getMainClass().convention(
-                project.getExtensions().findByType(JavaApplication.class).getMainClass()
+                Objects.requireNonNull(project.getExtensions().findByType(JavaApplication.class)).getMainClass()
         ));
 
         project.getPlugins().withId("java-library", p -> mainOptions.getSharedLibrary().convention(true));
@@ -326,7 +328,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     Map<String, String> forcedVersions = repositoryExtension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
                     return serviceProvider.map(repo -> repo.findConfigurationDirectoriesFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
                         ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
-                        String module = moduleVersion.getGroup() + ":" + moduleVersion.getName();
+                        String module = Objects.requireNonNull(moduleVersion).getGroup() + ":" + moduleVersion.getName();
                         if (!excludedModules.contains(module)) {
                             query.forArtifact(artifact -> {
                                 artifact.gav(module + ":" + moduleVersion.getVersion());
@@ -428,7 +430,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             try {
                 return new URI(String.format(METADATA_REPO_URL_TEMPLATE, v));
             } catch (URISyntaxException e) {
-                return null;
+                throw new RuntimeException(e);
             }
         }));
         configurationRepository.getExcludedModules().convention(Collections.emptySet());
@@ -562,7 +564,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 for (Attribute<?> attribute : baseAttributes.keySet()) {
                     Attribute<Object> attr = (Attribute<Object>) attribute;
                     Object value = baseAttributes.getAttribute(attr);
-                    attrs.attribute(attr, value);
+                    attrs.attribute(attr, Objects.requireNonNull(value));
                 }
             });
         });
@@ -653,7 +655,12 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static List<String> agentSessionDirectories(Directory outputDirectory) {
-        return Arrays.stream(outputDirectory.getAsFile().listFiles(file -> file.isDirectory() && file.getName().startsWith("session-"))).map(File::getAbsolutePath).collect(Collectors.toList());
+        return Arrays.stream(Objects.requireNonNull(
+                    outputDirectory.getAsFile()
+                        .listFiles(file -> file.isDirectory() && file.getName().startsWith("session-"))
+                    )
+                ).map(File::getAbsolutePath)
+                .collect(Collectors.toList());
     }
 
     private void configureAgent(Project project,
@@ -667,7 +674,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         //noinspection Convert2Lambda
         taskToInstrument.doFirst(new Action<Task>() {
             @Override
-            public void execute(Task task) {
+            public void execute(@Nonnull Task task) {
                 if (agentConfiguration.get().isEnabled()) {
                     logger.logOnce("Instrumenting task with the native-image-agent: " + task.getName());
                 }
@@ -725,7 +732,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
 
         @Override
-        public void execute(Task task) {
+        public void execute(@Nonnull Task task) {
             File dir = directory.getAsFile().get();
             if (dir.exists()) {
                 GFileUtils.deleteDirectory(dir);

@@ -55,6 +55,7 @@ public interface GraalVMReachabilityMetadataRepositoryExtension {
     /**
      * Property used to determine if the reachability metadata
      * repository should be used.
+     *
      * @return the enabled property
      */
     Property<Boolean> getEnabled();
@@ -81,6 +82,7 @@ public interface GraalVMReachabilityMetadataRepositoryExtension {
      * The set of modules for which we don't want to use the
      * configuration found in the repository. Modules must be
      * declared with the `groupId:artifactId` syntax.
+     *
      * @return the set of excluded modules
      */
     SetProperty<String> getExcludedModules();
@@ -88,6 +90,7 @@ public interface GraalVMReachabilityMetadataRepositoryExtension {
     /**
      * A map from a module (org.group:artifact) to configuration
      * repository config version.
+     *
      * @return the map of modules to forced configuration versions
      */
     MapProperty<String, String> getModuleToConfigVersion();
@@ -95,7 +98,9 @@ public interface GraalVMReachabilityMetadataRepositoryExtension {
     /**
      * Convenience method to use a String for the URI
      * property.
+     *
      * @param uri the URI
+     * @throws URISyntaxException if URL is malformed
      */
     default void uri(String uri) throws URISyntaxException {
         getUri().set(new URI(uri));
@@ -103,6 +108,7 @@ public interface GraalVMReachabilityMetadataRepositoryExtension {
 
     /**
      * Convenience method to use a URI for the property.
+     *
      * @param file a file
      */
     default void uri(File file) {

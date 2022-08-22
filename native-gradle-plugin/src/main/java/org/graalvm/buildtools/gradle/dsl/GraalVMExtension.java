@@ -62,6 +62,8 @@ public interface GraalVMExtension {
      * to disable automatic test support, especially in cases
      * where the test framework doesn't allow testing within
      * a native image.
+     *
+     * @return is the test support active
      */
     Property<Boolean> getTestSupport();
 
@@ -76,17 +78,22 @@ public interface GraalVMExtension {
      * Returns the native image configurations used to generate images.
      * By default, this plugin creates two images, one called "main" for
      * the main application and another one called "test" for tests.
+     *
+     * @return configuration for binaries
      */
     NamedDomainObjectContainer<NativeImageOptions> getBinaries();
 
     /**
      * Configures the native image options.
+     *
+     * @param spec specification for binary
      */
     void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec);
 
     /**
      * Registers a new native image binary with testing support.
      *
+     * @param name the name of the binary
      * @param spec the test image configuration
      */
     void registerTestBinary(String name, Action<? super TestBinaryConfig> spec);
@@ -94,6 +101,8 @@ public interface GraalVMExtension {
     /**
      * Property driving the detection of toolchains which support building native images.
      * The default is true.
+     *
+     * @return is toolchain detection on
      */
     Property<Boolean> getToolchainDetection();
 
