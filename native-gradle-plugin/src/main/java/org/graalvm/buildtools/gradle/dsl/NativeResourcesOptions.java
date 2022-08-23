@@ -66,6 +66,8 @@ public abstract class NativeResourcesOptions {
      * The list of bundles to include in the generated resources file.
      * The contents of this property is used to generate the "bundles"
      * section of the resource-config.json file
+     *
+     * @return the list of bundles
      */
     @Input
     public abstract ListProperty<String> getBundles();
@@ -74,9 +76,9 @@ public abstract class NativeResourcesOptions {
      * The list of resources to include, as Java regular expressions.
      * The contents of this property is used to generate the "resources" : "includes"
      * section of the resource-config.json file.
-     *
      * It will be merged with detected resources, if any.
      *
+     * @return the list of resources to include
      */
     @Input
     public abstract ListProperty<String> getIncludedPatterns();
@@ -85,9 +87,9 @@ public abstract class NativeResourcesOptions {
      * The list of resources to exclude, as Java regular expressions.
      * The contents of this property is used to generate the "resources" : "excludes"
      * section of the resource-config.json file.
-     *
      * It will be merged with detected resources, if any.
      *
+     * @return the list of resources to exclude
      */
     @Input
     public abstract ListProperty<String> getExcludedPatterns();

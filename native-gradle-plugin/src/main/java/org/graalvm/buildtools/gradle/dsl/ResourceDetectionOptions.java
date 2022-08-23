@@ -50,6 +50,8 @@ public abstract class ResourceDetectionOptions {
      * Determines if the resources should be detected from classpath.
      * If this property is set to true, then Gradle will automatically
      * detect resources to include from conventional places like src/main/resources.
+     *
+     * @return if resources should be detected from the classpath
      */
     @Input
     public abstract Property<Boolean> getEnabled();
@@ -57,8 +59,9 @@ public abstract class ResourceDetectionOptions {
     /**
      * Determines if detection should be limited to project dependencies, in
      * which case external dependencies will not be scanned.
-     *
      * Default value is true.
+     *
+     * @return if detection should be limited to the project dependencies
      */
     @Input
     public abstract Property<Boolean> getRestrictToProjectDependencies();
@@ -69,6 +72,7 @@ public abstract class ResourceDetectionOptions {
      * that classpath entry (e.g jar). By default, this behavior is set to false,
      * meaning that if such a file is present, detection is disabled for this
      * particular classpath entry.
+     *
      * @return the ignore property
      */
     @Input
@@ -77,6 +81,8 @@ public abstract class ResourceDetectionOptions {
     /**
      * Returns the list of regular expressions which will be used to exclude
      * resources from detection.
+     *
+     * @return a list of regular expressions for resources exclusion
      */
     @Input
     public abstract SetProperty<String> getDetectionExclusionPatterns();
@@ -85,6 +91,8 @@ public abstract class ResourceDetectionOptions {
      * Adds the default resource excludes for detection, which can be useful if
      * you want to add more excludes but still want the conventional ones to be
      * added.
+     *
+     * @return resource detection options
      */
     public ResourceDetectionOptions addDefaultDetectionExclusions() {
         getDetectionExclusionPatterns().addAll(SharedConstants.DEFAULT_EXCLUDES_FOR_RESOURCE_DETECTION);
