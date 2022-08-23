@@ -258,6 +258,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  to disable automatic test support, especially in cases
  where the test framework doesn't allow testing within
  a native image.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>is the test support active</dd>
+</dl>
 </li>
 </ul>
 <a id="getAgent()">
@@ -297,6 +301,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns the native image configurations used to generate images.
  By default, this plugin creates two images, one called "main" for
  the main application and another one called "test" for tests.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>configuration for binaries</dd>
+</dl>
 </li>
 </ul>
 <a id="binaries(org.gradle.api.Action)">
@@ -307,6 +315,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <h4>binaries</h4>
 <pre class="methodSignature">void&nbsp;binaries&#8203;(org.gradle.api.Action&lt;? super org.gradle.api.NamedDomainObjectContainer&lt;<a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;&gt;&nbsp;spec)</pre>
 <div class="block">Configures the native image options.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>spec</code> - specification for binary</dd>
+</dl>
 </li>
 </ul>
 <a id="registerTestBinary(java.lang.String,org.gradle.api.Action)">
@@ -320,6 +332,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Registers a new native image binary with testing support.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>name</code> - the name of the binary</dd>
 <dd><code>spec</code> - the test image configuration</dd>
 </dl>
 </li>
@@ -333,6 +346,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <pre class="methodSignature">org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getToolchainDetection()</pre>
 <div class="block">Property driving the detection of toolchains which support building native images.
  The default is true.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>is toolchain detection on</dd>
+</dl>
 </li>
 </ul>
 <a id="getUseArgFile()">

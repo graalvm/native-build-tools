@@ -269,6 +269,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <h4>getModes</h4>
 <pre class="methodSignature"><a href="AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">AgentModeOptions</a>&nbsp;getModes()</pre>
 <div class="block">Contains configuration of supported agent modes.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>agent modes</dd>
+</dl>
 </li>
 </ul>
 <a id="modes(org.gradle.api.Action)">
@@ -290,6 +294,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 @Optional
 org.gradle.api.provider.Property&lt;java.lang.String&gt;&nbsp;getDefaultMode()</pre>
 <div class="block">The default agent mode name when the agent is in use.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>default agent mode</dd>
+</dl>
 </li>
 </ul>
 <a id="getEnabled()">
@@ -302,6 +310,10 @@ org.gradle.api.provider.Property&lt;java.lang.String&gt;&nbsp;getDefaultMode()</
 @Optional
 org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getEnabled()</pre>
 <div class="block">Enables the agent.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>is the agent enabled</dd>
+</dl>
 </li>
 </ul>
 <a id="getCallerFilterFiles()">
@@ -314,6 +326,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getEnabled()</pre
 @Optional
 org.gradle.api.file.ConfigurableFileCollection&nbsp;getCallerFilterFiles()</pre>
 <div class="block">Caller-filter files that will be passed to the agent.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>caller filter files</dd>
+</dl>
 </li>
 </ul>
 <a id="getAccessFilterFiles()">
@@ -326,6 +342,10 @@ org.gradle.api.file.ConfigurableFileCollection&nbsp;getCallerFilterFiles()</pre>
 @Optional
 org.gradle.api.file.ConfigurableFileCollection&nbsp;getAccessFilterFiles()</pre>
 <div class="block">Access-filter files that will be passed to the agent.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>access filter files</dd>
+</dl>
 </li>
 </ul>
 <a id="getBuiltinCallerFilter()">
@@ -337,6 +357,10 @@ org.gradle.api.file.ConfigurableFileCollection&nbsp;getAccessFilterFiles()</pre>
 <pre class="methodSignature">@Optional
 org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getBuiltinCallerFilter()</pre>
 <div class="block">Toggles the builtin agent caller filter.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>builtin caller filter</dd>
+</dl>
 </li>
 </ul>
 <a id="getBuiltinHeuristicFilter()">
@@ -348,6 +372,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getBuiltinCallerF
 <pre class="methodSignature">@Optional
 org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getBuiltinHeuristicFilter()</pre>
 <div class="block">Toggles the builtin agent heuristic filter.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>is builtin heuristic filter enabled</dd>
+</dl>
 </li>
 </ul>
 <a id="getEnableExperimentalPredefinedClasses()">
@@ -359,6 +387,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getBuiltinHeurist
 <pre class="methodSignature">@Optional
 org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getEnableExperimentalPredefinedClasses()</pre>
 <div class="block">Toggles the experimental support for predefined classes.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>is experimental support for predefined classes enabled</dd>
+</dl>
 </li>
 </ul>
 <a id="getEnableExperimentalUnsafeAllocationTracing()">
@@ -370,6 +402,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getEnableExperime
 <pre class="methodSignature">@Optional
 org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getEnableExperimentalUnsafeAllocationTracing()</pre>
 <div class="block">Toggles the experimental support for unsafe allocation tracing.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>is experimental support for unsafe allocation tracing enabled</dd>
+</dl>
 </li>
 </ul>
 <a id="getTrackReflectionMetadata()">
@@ -381,6 +417,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getEnableExperime
 <pre class="methodSignature">@Optional
 org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getTrackReflectionMetadata()</pre>
 <div class="block">Toggles the distinction between queried and used metadata.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>queried or used metadata</dd>
+</dl>
 </li>
 </ul>
 <a id="getMetadataCopy()">
@@ -391,6 +431,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getTrackReflectio
 <h4>getMetadataCopy</h4>
 <pre class="methodSignature"><a href="MetadataCopyOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">MetadataCopyOptions</a>&nbsp;getMetadataCopy()</pre>
 <div class="block">Configuration of the metadata copy task.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>configuration of the metadata copy task</dd>
+</dl>
 </li>
 </ul>
 <a id="metadataCopy(org.gradle.api.Action)">
@@ -412,6 +456,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getTrackReflectio
 @Optional
 org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;&nbsp;getFilterableEntries()</pre>
 <div class="block">Specifies prefixes that will be used to further filter files produced by the agent.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>filterable entries</dd>
+</dl>
 </li>
 </ul>
 <a id="getTasksToInstrumentPredicate()">

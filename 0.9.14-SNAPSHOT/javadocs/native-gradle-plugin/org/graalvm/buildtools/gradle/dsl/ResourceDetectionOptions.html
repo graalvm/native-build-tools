@@ -268,6 +268,10 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 <div class="block">Determines if the resources should be detected from classpath.
  If this property is set to true, then Gradle will automatically
  detect resources to include from conventional places like src/main/resources.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>if resources should be detected from the classpath</dd>
+</dl>
 </li>
 </ul>
 <a id="getRestrictToProjectDependencies()">
@@ -280,8 +284,11 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getRestrictToProjectDependencies()</pre>
 <div class="block">Determines if detection should be limited to project dependencies, in
  which case external dependencies will not be scanned.
-
  Default value is true.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>if detection should be limited to the project dependencies</dd>
+</dl>
 </li>
 </ul>
 <a id="getIgnoreExistingResourcesConfigFile()">
@@ -313,6 +320,10 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 public abstract&nbsp;org.gradle.api.provider.SetProperty&lt;java.lang.String&gt;&nbsp;getDetectionExclusionPatterns()</pre>
 <div class="block">Returns the list of regular expressions which will be used to exclude
  resources from detection.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a list of regular expressions for resources exclusion</dd>
+</dl>
 </li>
 </ul>
 <a id="addDefaultDetectionExclusions()">
@@ -325,6 +336,10 @@ public abstract&nbsp;org.gradle.api.provider.SetProperty&lt;java.lang.String&gt;
 <div class="block">Adds the default resource excludes for detection, which can be useful if
  you want to add more excludes but still want the conventional ones to be
  added.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>resource detection options</dd>
+</dl>
 </li>
 </ul>
 </li>
