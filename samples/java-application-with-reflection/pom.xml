@@ -146,19 +146,10 @@
                                 <!-- end::native-plugin-agent-options[] -->
                                 <enabled>true</enabled>
                                 <!-- tag::native-plugin-agent-options[] -->
-                                <options><!-- shared options -->
-                                    <option>experimental-class-loader-support</option>
-                                </options>
-                                <options name="main"><!-- main options -->
-                                    <option>access-filter-file=${basedir}/src/main/resources/access-filter.json</option>
-                                </options>
-                                <options name="test"><!-- test options -->
-                                    <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
-                                </options>
-                                <options name="periodic-config"><!-- periodic-config options -->
-                                    <option>config-write-period-secs=30</option>
-                                    <option>config-write-initial-delay-secs=5</option>
-                                </options>
+                                <defaultMode>standard</defaultMode>
+                                <disabledPhases>
+                                    <phase>test</phase>
+                                </disabledPhases>
                             </agent>
                         </configuration>
                         <!-- end::native-plugin-agent-options[] -->

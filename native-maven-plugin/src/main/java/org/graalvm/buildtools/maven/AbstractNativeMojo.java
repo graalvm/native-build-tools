@@ -55,6 +55,7 @@ import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
+import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
 import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
@@ -182,6 +183,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Parameter(property = NATIVE_IMAGE_DRY_RUN, defaultValue = "false")
     protected boolean dryRun;
+
+    @Parameter(property = "agent")
+    protected AgentConfiguration agent;
 
     protected GraalVMReachabilityMetadataRepository metadataRepository;
 

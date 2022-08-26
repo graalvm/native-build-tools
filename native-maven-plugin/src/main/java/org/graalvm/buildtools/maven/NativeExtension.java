@@ -53,6 +53,7 @@ import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.maven.config.ExtensionTimeConfigurationUtility;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
@@ -172,6 +173,10 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                             })
                     );
                     updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
+                        AbstractNativeMojo mojo = new NativeCompileMojo();
+                        ExtensionTimeConfigurationUtility.loadFromXml(configuration, mojo);
+                        ExtensionTimeConfigurationUtility.debugPrint(mojo);
+                        System.out.println("HERE!");
                         Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
@@ -204,6 +209,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static boolean isAgentEnabled(MavenSession session, Plugin nativePlugin) {
         String systemProperty = session.getSystemProperties().getProperty("agent");
         if (systemProperty != null) {
+            System.clearProperty("agent");
             // -Dagent=[true|false] overrides configuration in the POM.
             return parseBoolean("agent system property", systemProperty);
         }

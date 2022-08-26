@@ -64,11 +64,11 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
     implementation(libs.graalvm.svm)
+    implementation(libs.maven.pluginAnnotations)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
     compileOnly(libs.maven.artifact)
-    compileOnly(libs.maven.pluginAnnotations)
 
     mavenEmbedder(libs.maven.embedder)
     mavenEmbedder(libs.maven.aether.connector)
