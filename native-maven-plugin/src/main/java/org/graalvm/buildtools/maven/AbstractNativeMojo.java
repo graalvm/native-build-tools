@@ -527,14 +527,11 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected void maybeAddReachabilityMetadata(List<String> configDirs) {
         if (isMetadataRepositoryEnabled() && !metadataRepositoryPaths.isEmpty()) {
-            String arg = metadataRepositoryPaths.stream()
+            metadataRepositoryPaths.stream()
                     .map(Path::toAbsolutePath)
                     .map(Path::toFile)
                     .map(File::getAbsolutePath)
-                    .collect(Collectors.joining(","));
-            if (!arg.isEmpty()) {
-                configDirs.add(arg);
-            }
+                    .forEach(configDirs::add);
         }
     }
 
