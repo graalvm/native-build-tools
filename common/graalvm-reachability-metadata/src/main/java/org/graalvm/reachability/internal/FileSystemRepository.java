@@ -40,6 +40,7 @@
  */
 package org.graalvm.reachability.internal;
 
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.index.artifacts.SingleModuleJsonVersionToConfigDirectoryIndex;
@@ -90,7 +91,7 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
     }
 
     @Override
-    public Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder) {
+    public Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder) {
         DefaultQuery query = new DefaultQuery();
         queryBuilder.accept(query);
         return query.getArtifacts()
@@ -106,25 +107,25 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
                                 if (artifactQuery.getForcedConfig().isPresent()) {
                                     String configVersion = artifactQuery.getForcedConfig().get();
                                     logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
-                                    return index.findForcedConfiguration(configVersion);
+                                    return index.findConfiguration(groupId, artifactId, configVersion);
                                 }
-                                Optional<Path> configurationDirectory = index.findConfigurationDirectory(groupId, artifactId, version);
-                                if (!configurationDirectory.isPresent() && artifactQuery.isUseLatestVersion()) {
+                                Optional<DirectoryConfiguration> configuration = index.findConfiguration(groupId, artifactId, version);
+                                if (!configuration.isPresent() && artifactQuery.isUseLatestVersion()) {
                                     logger.log(groupId, artifactId, version, "Configuration directory not found. Trying latest version.");
-                                    configurationDirectory = index.findLatestConfigurationFor(groupId, artifactId);
-                                    if (!configurationDirectory.isPresent()) {
+                                    configuration = index.findLatestConfigurationFor(groupId, artifactId);
+                                    if (!configuration.isPresent()) {
                                         logger.log(groupId, artifactId, version, "Latest version not found!");
                                     }
                                 }
-                                Optional<Path> finalConfigurationDirectory = configurationDirectory;
+                                Optional<DirectoryConfiguration> finalConfigurationDirectory = configuration;
                                 logger.log(groupId, artifactId, version, () -> {
                                     if (finalConfigurationDirectory.isPresent()) {
-                                        Path path = finalConfigurationDirectory.get();
+                                        Path path = finalConfigurationDirectory.get().getDirectory();
                                         return "Configuration directory is " + rootDirectory.relativize(path);
                                     }
                                     return "missing.";
                                 });
-                                return configurationDirectory;
+                                return configuration;
                             })
                             .filter(Optional::isPresent)
                             .map(Optional::get);

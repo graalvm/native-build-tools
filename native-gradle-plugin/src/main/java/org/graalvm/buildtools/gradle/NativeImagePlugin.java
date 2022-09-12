@@ -66,6 +66,7 @@ import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.ProcessGeneratedGraalResourceFilesAction;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
@@ -116,6 +117,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -126,6 +128,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
@@ -307,6 +310,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     t.getOutputFile().map(f -> f.getAsFile().getParentFile())
             ));
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
+            configureJvmReachabilityExcludeConfigArgs(project, graalExtension, options, sourceSet);
         });
     }
 
@@ -326,7 +330,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     Configuration classpath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
                     Set<String> excludedModules = repositoryExtension.getExcludedModules().getOrElse(Collections.emptySet());
                     Map<String, String> forcedVersions = repositoryExtension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
-                    return serviceProvider.map(repo -> repo.findConfigurationDirectoriesFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
+                    return serviceProvider.map(repo -> repo.findConfigurationsFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
                         ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
                         String module = Objects.requireNonNull(moduleVersion).getGroup() + ":" + moduleVersion.getName();
                         if (!excludedModules.contains(module)) {
@@ -339,12 +343,53 @@ public class NativeImagePlugin implements Plugin<Project> {
                         }
                         query.useLatestConfigWhenVersionIsUntested();
                     })).stream()
-                            .map(Path::toAbsolutePath)
+                            .map(configuration -> configuration.getDirectory().toAbsolutePath())
                             .map(Path::toFile)
                             .collect(Collectors.toList()));
                 }
             }
             return project.getProviders().provider(Collections::emptySet);
+        }));
+    }
+
+    private void configureJvmReachabilityExcludeConfigArgs(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
+        GraalVMReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
+        Provider<GraalVMReachabilityMetadataService> serviceProvider = project.getGradle()
+                .getSharedServices()
+                .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
+                    LogLevel logLevel = determineLogLevel();
+                    spec.getParameters().getLogLevel().set(logLevel);
+                    spec.getParameters().getUri().set(repositoryExtension.getUri());
+                    spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
+                });
+        options.getExcludeConfig().putAll(repositoryExtension.getEnabled().flatMap(enabled -> {
+            if (enabled) {
+                if (repositoryExtension.getUri().isPresent()) {
+                    Configuration classpath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+                    Set<String> excludedModules = repositoryExtension.getExcludedModules().getOrElse(Collections.emptySet());
+                    Map<String, String> forcedVersions = repositoryExtension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
+                    return serviceProvider.map(repo -> classpath.getIncoming().getResolutionResult().getAllComponents().stream().flatMap(component -> {
+                        ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
+                        return repo.findConfigurationsFor(query -> {
+                                    String module = Objects.requireNonNull(moduleVersion).getGroup() + ":" + moduleVersion.getName();
+                                    if (!excludedModules.contains(module)) {
+                                        query.forArtifact(artifact -> {
+                                            artifact.gav(module + ":" + moduleVersion.getVersion());
+                                            if (forcedVersions.containsKey(module)) {
+                                                artifact.forceConfigVersion(forcedVersions.get(module));
+                                            }
+                                        });
+                                    }
+                                    query.useLatestConfigWhenVersionIsUntested();
+                                }).stream()
+                                .filter(DirectoryConfiguration::isOverride)
+                                .map(configuration -> new AbstractMap.SimpleEntry<>(
+                                        moduleVersion.getGroup() + ":" + moduleVersion.getName() + ":" + moduleVersion.getVersion(),
+                                        Arrays.asList("^/META-INF/native-image/")));
+                    }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                }
+            }
+            return project.getProviders().provider(Collections::emptyMap);
         }));
     }
 

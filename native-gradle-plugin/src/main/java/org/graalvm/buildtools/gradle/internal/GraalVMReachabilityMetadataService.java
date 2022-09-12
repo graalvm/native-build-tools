@@ -41,6 +41,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.utils.FileUtils;
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -169,17 +170,17 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
 
     /**
      * Performs a generic query on the repository, returning a list of
-     * configuration directories. The query may be parameterized with
+     * configurations. The query may be parameterized with
      * a number of artifacts, and can be used to refine behavior, for
      * example if a configuration directory isn't available for a
      * particular artifact version.
      *
      * @param queryBuilder the query builder
-     * @return the set of configuration directories matching the query
+     * @return the set of configurations matching the query
      */
     @Override
-    public Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder) {
-        return repository.findConfigurationDirectoriesFor(queryBuilder);
+    public Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder) {
+        return repository.findConfigurationsFor(queryBuilder);
     }
 
     /**
@@ -189,11 +190,11 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
      * Never null.
      *
      * @param gavCoordinates the artifact GAV coordinates (group:artifact:version)
-     * @return a list of configuration directories
+     * @return a list of configurations
      */
     @Override
-    public Set<Path> findConfigurationDirectoriesFor(String gavCoordinates) {
-        return repository.findConfigurationDirectoriesFor(gavCoordinates);
+    public Set<DirectoryConfiguration> findConfigurationsFor(String gavCoordinates) {
+        return repository.findConfigurationsFor(gavCoordinates);
     }
 
     /**
@@ -201,10 +202,10 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
      * as an argument.
      *
      * @param modules the list of modules
-     * @return the set of configuration directories
+     * @return the set of configurations
      */
     @Override
-    public Set<Path> findConfigurationDirectoriesFor(Collection<String> modules) {
-        return repository.findConfigurationDirectoriesFor(modules);
+    public Set<DirectoryConfiguration> findConfigurationsFor(Collection<String> modules) {
+        return repository.findConfigurationsFor(modules);
     }
 }

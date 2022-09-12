@@ -58,6 +58,7 @@ import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.internal.FileSystemRepository;
 
@@ -82,6 +83,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -131,7 +133,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected final List<Path> imageClasspath;
 
-    protected final Set<Path> metadataRepositoryPaths;
+    protected final Set<DirectoryConfiguration> metadataRepositoryConfigurations;
 
     @Parameter(property = "debug", defaultValue = "false")
     protected boolean debug;
@@ -192,7 +194,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Inject
     protected AbstractNativeMojo() {
         imageClasspath = new ArrayList<>();
-        metadataRepositoryPaths = new HashSet<>();
+        metadataRepositoryConfigurations = new HashSet<>();
         useArgFile = SharedConstants.IS_WINDOWS;
     }
 
@@ -526,9 +528,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     }
 
     protected void maybeAddReachabilityMetadata(List<String> configDirs) {
-        if (isMetadataRepositoryEnabled() && !metadataRepositoryPaths.isEmpty()) {
-            metadataRepositoryPaths.stream()
-                    .map(Path::toAbsolutePath)
+        if (isMetadataRepositoryEnabled() && !metadataRepositoryConfigurations.isEmpty()) {
+            metadataRepositoryConfigurations.stream()
+                    .map(configuration -> configuration.getDirectory().toAbsolutePath())
                     .map(Path::toFile)
                     .map(File::getAbsolutePath)
                     .forEach(configDirs::add);
@@ -537,7 +539,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     protected void maybeAddDependencyMetadata(Artifact dependency) {
         if (isMetadataRepositoryEnabled() && metadataRepository != null && !isArtifactExcludedFromMetadataRepository(dependency)) {
-            metadataRepositoryPaths.addAll(metadataRepository.findConfigurationDirectoriesFor(q -> {
+            Set<DirectoryConfiguration> configurations = metadataRepository.findConfigurationsFor(q -> {
                 q.useLatestConfigWhenVersionIsUntested();
                 q.forArtifact(artifact -> {
                     artifact.gav(String.join(":",
@@ -546,7 +548,13 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                             dependency.getVersion()));
                     getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
                 });
-            }));
+            });
+            metadataRepositoryConfigurations.addAll(configurations);
+            if (configurations.stream().anyMatch(DirectoryConfiguration::isOverride)) {
+                buildArgs.add("--exclude-config");
+                buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
+                buildArgs.add("^/META-INF/native-image/");
+            }
         }
     }
 

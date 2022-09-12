@@ -42,6 +42,7 @@ package org.graalvm.reachability.internal.index.artifacts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.internal.UncheckedIOException;
 
 import java.io.BufferedReader;
@@ -80,12 +81,6 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
 
     }
 
-    @Override
-    public Optional<Path> findForcedConfiguration(String version) {
-        Path configDir = moduleRoot.resolve(version);
-        return Files.isDirectory(configDir) ? Optional.of(configDir) : Optional.empty();
-    }
-
     /**
      * Returns the configuration directory for the requested artifact.
      *
@@ -95,7 +90,7 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      * @return a configuration directory, or empty if no configuration directory is available
      */
     @Override
-    public Optional<Path> findConfigurationDirectory(String groupId, String artifactId, String version) {
+    public Optional<DirectoryConfiguration> findConfiguration(String groupId, String artifactId, String version) {
         return findConfigurationFor(groupId, artifactId, artifact -> artifact.getVersions().contains(version));
     }
 
@@ -107,11 +102,11 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      * @return a configuration directory, or empty if no configuration directory is available
      */
     @Override
-    public Optional<Path> findLatestConfigurationFor(String groupId, String artifactId) {
+    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId) {
         return findConfigurationFor(groupId, artifactId, Artifact::isLatest);
     }
 
-    private Optional<Path> findConfigurationFor(String groupId, String artifactId, Predicate<? super Artifact> predicate) {
+    private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, Predicate<? super Artifact> predicate) {
         String module = groupId + ":" + artifactId;
         List<Artifact> artifacts = index.get(module);
         if (artifacts == null) {
@@ -121,6 +116,7 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
                 .filter(artifact -> artifact.getModule().equals(module))
                 .filter(predicate)
                 .findFirst()
-                .map(artifact -> moduleRoot.resolve(artifact.getDirectory()));
+                .map(artifact -> new DirectoryConfiguration(moduleRoot.resolve(artifact.getDirectory()), artifact.isOverride()));
     }
+
 }
