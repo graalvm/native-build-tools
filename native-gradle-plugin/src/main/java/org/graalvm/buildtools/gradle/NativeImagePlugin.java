@@ -127,6 +127,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -385,7 +386,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 .filter(DirectoryConfiguration::isOverride)
                                 .map(configuration -> new AbstractMap.SimpleEntry<>(
                                         moduleVersion.getGroup() + ":" + moduleVersion.getName() + ":" + moduleVersion.getVersion(),
-                                        Arrays.asList("^/META-INF/native-image/")));
+                                        Arrays.asList("^/META-INF/native-image/.*")));
                     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
                 }
             }
@@ -660,8 +661,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static void addExcludeConfigArg(List<String> args, Path jarPath, List<String> listOfResourcePatterns) {
         listOfResourcePatterns.forEach(resourcePattern -> {
             args.add("--exclude-config");
-            args.add(jarPath.toAbsolutePath().toString());
-            args.add(String.format("\"%s\"", resourcePattern));
+            args.add(Pattern.quote(jarPath.toAbsolutePath().toString()));
+            args.add(String.format("%s", resourcePattern));
         });
     }
 
