@@ -59,9 +59,9 @@ import javax.inject.Inject;
 import java.util.Arrays;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
-    private final NamedDomainObjectContainer<NativeImageOptions> nativeImages;
-    private final NativeImagePlugin plugin;
-    private final Project project;
+    private final transient NamedDomainObjectContainer<NativeImageOptions> nativeImages;
+    private final transient NativeImagePlugin plugin;
+    private final transient Project project;
     private final Property<JavaLauncher> defaultJavaLauncher;
 
     @Inject

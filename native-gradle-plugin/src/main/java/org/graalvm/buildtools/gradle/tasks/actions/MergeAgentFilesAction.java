@@ -45,7 +45,6 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -58,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.findNativeImageExecutable;
 import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
@@ -67,23 +67,21 @@ public class MergeAgentFilesAction implements Action<Task> {
     private final Provider<AgentMode> agentMode;
     private final Provider<Boolean> mergeWithOutputs;
     private final Provider<String> graalvmHomeProvider;
-    private final Provider<List<String>> inputDirs;
-    private final Provider<List<String>> outputDirs;
+    private final Supplier<List<String>> inputDirs;
+    private final Supplier<List<String>> outputDirs;
     private final Provider<Boolean> disableToolchainDetection;
     private final Property<JavaLauncher> noLauncherProperty;
     private final ExecOperations execOperations;
-    private final Logger logger;
 
     public MergeAgentFilesAction(Provider<Boolean> isMergingEnabled,
                                  Provider<AgentMode> agentMode,
                                  Provider<Boolean> mergeWithOutputs,
                                  ObjectFactory objectFactory,
                                  Provider<String> graalvmHomeProvider,
-                                 Provider<List<String>> inputDirs,
-                                 Provider<List<String>> outputDirs,
+                                 Supplier<List<String>> inputDirs,
+                                 Supplier<List<String>> outputDirs,
                                  Provider<Boolean> disableToolchainDetection,
-                                 ExecOperations execOperations,
-                                 Logger logger) {
+                                 ExecOperations execOperations) {
         this.isMergingEnabled = isMergingEnabled;
         this.agentMode = agentMode;
         this.mergeWithOutputs = mergeWithOutputs;
@@ -92,7 +90,6 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.outputDirs = outputDirs;
         this.disableToolchainDetection = disableToolchainDetection;
         this.execOperations = execOperations;
-        this.logger = logger;
         this.noLauncherProperty = objectFactory.property(JavaLauncher.class);
     }
 
@@ -103,11 +100,11 @@ public class MergeAgentFilesAction implements Action<Task> {
     @Override
     public void execute(Task task) {
         if (isMergingEnabled.get()) {
-            File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(logger));
+            File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(task.getLogger()));
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
             if (!launcher.exists()) {
-                logger.info("Installing native-image-configure");
+                task.getLogger().info("Installing native-image-configure");
                 execOperations.exec(spec -> {
                     spec.executable(nativeImage);
                     spec.args("--macro:native-image-configure-launcher");
@@ -136,7 +133,7 @@ public class MergeAgentFilesAction implements Action<Task> {
                     mergeAgentFiles(launcher, inputDirs.get(), outputDirs.get());
                 }
             } else {
-                logger.warn("Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM.");
+                task.getLogger().warn("Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM.");
             }
         }
     }

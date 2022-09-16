@@ -43,16 +43,16 @@ package org.graalvm.buildtools.gradle.tasks.actions;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.provider.Provider;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class CleanupAgentFilesAction implements Action<Task> {
 
-    private final Provider<List<String>> directoriesToCleanup;
+    private final Supplier<List<String>> directoriesToCleanup;
     private final FileSystemOperations fileOperations;
 
-    public CleanupAgentFilesAction(Provider<List<String>> directoriesToCleanup, FileSystemOperations fileOperations) {
+    public CleanupAgentFilesAction(Supplier<List<String>> directoriesToCleanup, FileSystemOperations fileOperations) {
         this.directoriesToCleanup = directoriesToCleanup;
         this.fileOperations = fileOperations;
     }

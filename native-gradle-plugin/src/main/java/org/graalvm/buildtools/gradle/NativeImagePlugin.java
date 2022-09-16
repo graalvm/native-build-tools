@@ -54,8 +54,8 @@ import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
 import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
-import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
+import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -125,6 +125,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
@@ -689,8 +690,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<Boolean> isMergingEnabled = agentConfiguration.map(AgentConfiguration::isEnabled);
         Provider<AgentMode> agentModeProvider = agentConfiguration.map(AgentConfiguration::getAgentMode);
-        Provider<List<String>> mergeOutputDirs = outputDir.map(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath()));
-        Provider<List<String>> mergeInputDirs = outputDir.map(NativeImagePlugin::agentSessionDirectories);
+        Supplier<List<String>> mergeInputDirs = () -> outputDir.map(NativeImagePlugin::agentSessionDirectories).get();
+        Supplier<List<String>> mergeOutputDirs = () -> outputDir.map(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath())).get();
         cliProvider.getOutputDirectory().set(outputDir);
         cliProvider.getAgentOptions().set(agentConfiguration.map(AgentConfiguration::getAgentCommandLine));
         javaForkOptions.getJvmArgumentProviders().add(cliProvider);
@@ -704,8 +705,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 mergeInputDirs,
                 mergeOutputDirs,
                 graalExtension.getToolchainDetection(),
-                execOperations,
-                project.getLogger()));
+                execOperations));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
 
