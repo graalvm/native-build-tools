@@ -210,7 +210,8 @@ abstract class AbstractFunctionalTest extends Specification {
 
     private void assertInitScript() {
         initScript = file("init.gradle")
-        initScript << """
+        if (!initScript.exists()) {
+            initScript << """
             allprojects {
                 repositories {
                     maven {
@@ -220,6 +221,7 @@ abstract class AbstractFunctionalTest extends Specification {
                 }
             }
         """
+        }
     }
 
     private class TaskExecutionGraph {

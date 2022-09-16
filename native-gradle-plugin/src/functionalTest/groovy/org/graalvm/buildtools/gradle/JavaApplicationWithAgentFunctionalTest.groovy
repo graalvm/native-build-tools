@@ -42,7 +42,6 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
@@ -171,6 +170,41 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
         then:
         outputContains "Application message: Hello, native!"
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Unroll("plugin supports configuration cache (JUnit Platform #junitVersion)")
+    def "supports configuration cache"() {
+        debug = true
+        var metadata_dir = 'src/main/resources/META-INF/native-image'
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        run 'run', '-Pagent', '--configuration-cache'
+
+        then:
+        tasks {
+            succeeded ':run'
+            doesNotContain ':jar'
+        }
+
+        and:
+        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
+            assert file("build/native/agent-output/run/${name}-config.json").exists()
+        }
+
+        when:
+        run'run', '-Pagent', '--configuration-cache', '--rerun-tasks'
+
+        then:
+        tasks {
+            succeeded ':run'
+            doesNotContain ':jar'
+        }
+        outputContains "Reusing configuration cache"
 
         where:
         junitVersion = System.getProperty('versions.junit')

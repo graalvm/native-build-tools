@@ -41,7 +41,10 @@
 
 package org.graalvm.buildtools.gradle.internal;
 
+import org.gradle.api.Transformer;
+
 import java.io.Serializable;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -58,7 +61,37 @@ public class ConfigurationCacheSupport {
         return supplier;
     }
 
+    /**
+     * Generates a serializable predicate lambda.
+     * @param predicate the predicate
+     * @return a serializable predicate
+     * @param <T> the type of the predicate
+     */
+    public static <T> Predicate<T> serializablePredicateOf(SerializablePredicate<T> predicate) {
+        return predicate;
+    }
+
+    /**
+     * Generates a serializable transformer lambda.
+     * @param transformer the transformer
+     * @return a serializable transformer
+     * @param <OUT> the output type of the transformer
+     * @param <IN> the input type of the transformer
+     */
+    public static <OUT, IN> Transformer<OUT, IN> serializableTransformerOf(SerializableTransformer<OUT, IN> transformer) {
+        return transformer;
+    }
+
     public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
 
     }
+
+    public interface SerializablePredicate<T> extends Predicate<T>, Serializable {
+
+    }
+
+    public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
+
+    }
+
 }
