@@ -1128,7 +1128,7 @@ In this case you can register a new native test binary via the <code>graalvmNati
 <h2 id="agent-support"><a class="anchor" href="#agent-support"></a>Reflection support and running with the native agent</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/Agent/"><code>native-image-agent</code></a>.</p>
+<p>If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/"><code>native-image-agent</code></a>.</p>
 </div>
 <div class="paragraph">
 <p>The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
