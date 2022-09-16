@@ -76,7 +76,6 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
         AgentOptions agentOpts = getAgent();
-        agentOpts.getTasksToInstrumentPredicate().convention(t -> true);
         agentOpts.getDefaultMode().convention("standard");
         agentOpts.getEnabled().convention(false);
         agentOpts.getModes().getConditional().getParallel().convention(true);

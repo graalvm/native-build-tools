@@ -128,6 +128,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableSupplierOf;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
@@ -197,7 +198,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void instrumentTasksWithAgent(Project project, DefaultGraalVmExtension graalExtension) {
         Provider<String> agentMode = agentProperty(project, graalExtension.getAgent());
-        Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().get();
+        Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().getOrElse(t -> true);
         project.getTasks().configureEach(t -> {
             if (isTaskInstrumentableByAgent(t) && taskPredicate.test(t)) {
                 configureAgent(project, agentMode, graalExtension, getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
@@ -690,8 +691,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<Boolean> isMergingEnabled = agentConfiguration.map(AgentConfiguration::isEnabled);
         Provider<AgentMode> agentModeProvider = agentConfiguration.map(AgentConfiguration::getAgentMode);
-        Supplier<List<String>> mergeInputDirs = () -> outputDir.map(NativeImagePlugin::agentSessionDirectories).get();
-        Supplier<List<String>> mergeOutputDirs = () -> outputDir.map(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath())).get();
+        Supplier<List<String>> mergeInputDirs = serializableSupplierOf(() -> outputDir.map(NativeImagePlugin::agentSessionDirectories).get());
+        Supplier<List<String>> mergeOutputDirs = serializableSupplierOf(() -> outputDir.map(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath())).get());
         cliProvider.getOutputDirectory().set(outputDir);
         cliProvider.getAgentOptions().set(agentConfiguration.map(AgentConfiguration::getAgentCommandLine));
         javaForkOptions.getJvmArgumentProviders().add(cliProvider);
