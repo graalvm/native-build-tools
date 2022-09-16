@@ -287,7 +287,7 @@ The same mechanism can be used if you have multiple test tasks for a single test
 [[agent-support]]
 == Reflection support and running with the native agent
 
-If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
+If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[`native-image-agent`].
 
 The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
 
