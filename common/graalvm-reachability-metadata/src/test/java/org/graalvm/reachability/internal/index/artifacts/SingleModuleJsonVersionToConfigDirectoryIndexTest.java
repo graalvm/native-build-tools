@@ -41,6 +41,7 @@
 
 package org.graalvm.reachability.internal.index.artifacts;
 
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -61,31 +62,36 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
     void checkIndex() throws URISyntaxException {
         withIndex("artifact-1");
 
-        Optional<Path> configDir = index.findConfigurationDirectory("com.foo", "bar", "1.0");
-        assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("1.0"), configDir.get());
+        Optional<DirectoryConfiguration> config = index.findConfiguration("com.foo", "bar", "1.0");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("1.0"), config.get().getDirectory());
+        assertFalse(config.get().isOverride());
 
-        configDir = index.findConfigurationDirectory("com.foo", "bar", "1.3");
-        assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("1.0"), configDir.get());
+        config = index.findConfiguration("com.foo", "bar", "1.3");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("1.0"), config.get().getDirectory());
+        assertFalse(config.get().isOverride());
 
-        configDir = index.findConfigurationDirectory("com.foo", "bar", "2.0");
-        assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("2.0"), configDir.get());
+        config = index.findConfiguration("com.foo", "bar", "2.0");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("2.0"), config.get().getDirectory());
+        assertTrue(config.get().isOverride());
 
-        configDir = index.findConfigurationDirectory("com.foo", "bar", "2.5");
-        assertFalse(configDir.isPresent());
+        config = index.findConfiguration("com.foo", "bar", "2.5");
+        assertFalse(config.isPresent());
 
-        configDir = index.findConfigurationDirectory("com.foo", "bar-all", "2.0");
-        assertTrue(configDir.isPresent());
-        assertEquals(repoPath.resolve("2.0"), configDir.get());
+        config = index.findConfiguration("com.foo", "bar-all", "2.0");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("2.0"), config.get().getDirectory());
+        assertFalse(config.get().isOverride());
 
-        configDir = index.findConfigurationDirectory("com.foo", "nope", "1.0");
-        assertFalse(configDir.isPresent());
+        config = index.findConfiguration("com.foo", "nope", "1.0");
+        assertFalse(config.isPresent());
 
-        Optional<Path> latest = index.findLatestConfigurationFor("com.foo", "bar");
+        Optional<DirectoryConfiguration> latest = index.findLatestConfigurationFor("com.foo", "bar");
         assertTrue(latest.isPresent());
-        assertEquals(repoPath.resolve("2.0"), latest.get());
+        assertEquals(repoPath.resolve("2.0"), latest.get().getDirectory());
+        assertTrue(latest.get().isOverride());
 
     }
 

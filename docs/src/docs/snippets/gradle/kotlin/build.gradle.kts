@@ -125,8 +125,8 @@ graalvmNative {
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder
             configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
-            excludeConfig.put("org.example.test", listOf("META-INF/native-image/*", "config/*")) // Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
-            excludeConfig.put(file("path/to/artifact.jar"), listOf("META-INF/native-image/*", "config/*"))
+            excludeConfig.put("org.example.test:artifact:version", listOf("^/META-INF/native-image/.*", "^/config/.*")) // Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
 
             // Advanced options
             buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension

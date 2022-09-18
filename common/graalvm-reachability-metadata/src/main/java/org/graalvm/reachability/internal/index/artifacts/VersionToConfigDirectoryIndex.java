@@ -40,33 +40,26 @@
  */
 package org.graalvm.reachability.internal.index.artifacts;
 
-import java.nio.file.Path;
 import java.util.Optional;
+
+import org.graalvm.reachability.DirectoryConfiguration;
 
 public interface VersionToConfigDirectoryIndex {
 
     /**
-     * Returns the specified configuration directory version, ignoring
-     * any existing configuration.
-     * @param version the requested version
-     * @return the configuration directory
-     */
-    Optional<Path> findForcedConfiguration(String version);
-
-    /**
-     * Returns the configuration directory for the requested artifact.
+     * Returns the configuration for the requested artifact.
      * @param groupId the group ID of the artifact
      * @param artifactId the artifact ID of the artifact
      * @param version the version of the artifact
-     * @return a configuration directory, or empty if no configuration directory is available
+     * @return a configuration, or empty if no configuration directory is available
      */
-    Optional<Path> findConfigurationDirectory(String groupId, String artifactId, String version);
+    Optional<DirectoryConfiguration> findConfiguration(String groupId, String artifactId, String version);
 
     /**
-     * Returns the latest configuration directory for the requested artifact.
+     * Returns the latest configuration for the requested artifact.
      * @param groupId the group ID of the artifact
      * @param artifactId the artifact ID of the artifact
-     * @return a configuration directory, or empty if no configuration directory is available
+     * @return a configuration, or empty if no configuration directory is available
      */
-    Optional<Path> findLatestConfigurationFor(String groupId, String artifactId);
+    Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId);
 }
