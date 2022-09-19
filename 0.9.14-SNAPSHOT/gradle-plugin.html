@@ -1018,8 +1018,19 @@ However, if you are using an older GraalVM release (older than 21.3) which doesn
 <div class="paragraph">
 <p>This plugin supports running tests on the
 <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images. This
-means that tests will be compiled and executed as native code.
-The minimal supported version is JUnit Platform 5.8.1.</p>
+means that tests will be compiled and executed as native code.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1)
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>In theory, any <code>TestEngine</code> supported on the JUnit Platform should be supported by this
@@ -1035,18 +1046,6 @@ support for additional test engines should be possible with custom native config
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeTest</code></pre>
 </div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This plugin requires JUnit Platform 1.8 or higher.
-</td>
-</tr>
-</table>
 </div>
 <div class="sect2">
 <h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
