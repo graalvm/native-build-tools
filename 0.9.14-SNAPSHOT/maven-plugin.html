@@ -503,6 +503,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="quickstart"><a class="anchor" href="#quickstart"></a>Quickstart</h2>
 <div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can find full samples in <a href="https://github.com/graalvm/native-build-tools/tree/master/samples">the source repository</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>This plugin first requires that you <a href="graalvm-setup.html">setup GraalVM and <code>native-image</code> properly</a>.
 It will then make use of Maven profiles to enable building and testing of native images.</p>
@@ -966,7 +980,8 @@ If you use GraalVM Enterprise as the <code>JAVA_HOME</code> environment, the plu
 <div class="paragraph">
 <p>This plugin supports running tests on the
 <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images. This
-means that tests will be compiled and executed as native code.</p>
+means that tests will be compiled and executed as native code.
+The minimal supported version is JUnit Platform 5.8.1.</p>
 </div>
 <div class="paragraph">
 <p>In theory, any <code>TestEngine</code> supported on the JUnit Platform should be supported by this
