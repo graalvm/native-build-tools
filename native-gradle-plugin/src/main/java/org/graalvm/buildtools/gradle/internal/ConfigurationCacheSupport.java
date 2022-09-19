@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,27 +38,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.tasks.actions;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileSystemOperations;
+package org.graalvm.buildtools.gradle.internal;
 
-import java.util.List;
+import org.gradle.api.Transformer;
+
+import java.io.Serializable;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class CleanupAgentFilesAction implements Action<Task> {
-
-    private final Supplier<List<String>> directoriesToCleanup;
-    private final FileSystemOperations fileOperations;
-
-    public CleanupAgentFilesAction(Supplier<List<String>> directoriesToCleanup, FileSystemOperations fileOperations) {
-        this.directoriesToCleanup = directoriesToCleanup;
-        this.fileOperations = fileOperations;
+/**
+ * Helper class to deal with Gradle configuration cache.
+ */
+public class ConfigurationCacheSupport {
+    /**
+     * Generates a serializable supplier lambda.
+     * @param supplier the supplier
+     * @return a serializable supplier
+     * @param <T> the type of the supplier
+     */
+    public static <T> Supplier<T> serializableSupplierOf(SerializableSupplier<T> supplier) {
+        return supplier;
     }
 
-    @Override
-    public void execute(Task task) {
-        fileOperations.delete(spec -> spec.delete(directoriesToCleanup.get()));
+    /**
+     * Generates a serializable predicate lambda.
+     * @param predicate the predicate
+     * @return a serializable predicate
+     * @param <T> the type of the predicate
+     */
+    public static <T> Predicate<T> serializablePredicateOf(SerializablePredicate<T> predicate) {
+        return predicate;
     }
+
+    /**
+     * Generates a serializable transformer lambda.
+     * @param transformer the transformer
+     * @return a serializable transformer
+     * @param <OUT> the output type of the transformer
+     * @param <IN> the input type of the transformer
+     */
+    public static <OUT, IN> Transformer<OUT, IN> serializableTransformerOf(SerializableTransformer<OUT, IN> transformer) {
+        return transformer;
+    }
+
+    public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
+
+    }
+
+    public interface SerializablePredicate<T> extends Predicate<T>, Serializable {
+
+    }
+
+    public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
+
+    }
+
 }

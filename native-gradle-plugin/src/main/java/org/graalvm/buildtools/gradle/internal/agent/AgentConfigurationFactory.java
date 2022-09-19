@@ -59,11 +59,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
 
 public class AgentConfigurationFactory {
     public static Provider<AgentConfiguration> getAgentConfiguration(Provider<String> modeName, AgentOptions options) {
-        return modeName.map(name -> {
+        return modeName.map(serializableTransformerOf(name -> {
             AgentMode agentMode;
             ConfigurableFileCollection callerFilterFiles = options.getCallerFilterFiles();
             ConfigurableFileCollection accessFilterFiles = options.getAccessFilterFiles();
@@ -95,7 +96,7 @@ public class AgentConfigurationFactory {
                     options.getEnableExperimentalUnsafeAllocationTracing().get(),
                     options.getTrackReflectionMetadata().get(),
                     agentMode);
-        });
+        }));
     }
 
     private static Collection<String> getFilePaths(ConfigurableFileCollection configurableFileCollection) {

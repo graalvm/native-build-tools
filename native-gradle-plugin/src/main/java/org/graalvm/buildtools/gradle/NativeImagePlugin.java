@@ -54,8 +54,8 @@ import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
 import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
-import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
+import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -127,9 +127,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializablePredicateOf;
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableSupplierOf;
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
 import static org.graalvm.buildtools.gradle.internal.GradleUtils.transitiveProjectArtifacts;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_PROPERTY;
@@ -199,7 +203,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void instrumentTasksWithAgent(Project project, DefaultGraalVmExtension graalExtension) {
         Provider<String> agentMode = agentProperty(project, graalExtension.getAgent());
-        Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().get();
+        Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().getOrElse(serializablePredicateOf(t -> true));
         project.getTasks().configureEach(t -> {
             if (isTaskInstrumentableByAgent(t) && taskPredicate.test(t)) {
                 configureAgent(project, agentMode, graalExtension, getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
@@ -565,13 +569,13 @@ public class NativeImagePlugin implements Plugin<Project> {
         return project.getProviders()
                 .gradleProperty(AGENT_PROPERTY)
                 .forUseAtConfigurationTime()
-                .map(v -> {
+                .map(serializableTransformerOf(v -> {
                     if (!v.isEmpty()) {
                         return v;
                     }
                     return options.getDefaultMode().get();
-                })
-                .orElse(options.getEnabled().map(enabled -> enabled ? options.getDefaultMode().get() : "disabled"));
+                }))
+                .orElse(options.getEnabled().map(serializableTransformerOf(enabled -> enabled ? options.getDefaultMode().get() : "disabled")));
     }
 
     private static void registerServiceProvider(Project project, Provider<NativeImageService> nativeImageServiceProvider) {
@@ -726,18 +730,18 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
         });
         AgentCommandLineProvider cliProvider = project.getObjects().newInstance(AgentCommandLineProvider.class);
-        cliProvider.getInputFiles().from(agentConfiguration.map(AgentConfiguration::getAgentFiles));
-        cliProvider.getEnabled().set(agentConfiguration.map(AgentConfiguration::isEnabled));
+        cliProvider.getInputFiles().from(agentConfiguration.map(serializableTransformerOf(AgentConfiguration::getAgentFiles)));
+        cliProvider.getEnabled().set(agentConfiguration.map(serializableTransformerOf(AgentConfiguration::isEnabled)));
         cliProvider.getFilterableEntries().set(graalExtension.getAgent().getFilterableEntries());
         cliProvider.getAgentMode().set(agentMode);
 
         Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
-        Provider<Boolean> isMergingEnabled = agentConfiguration.map(AgentConfiguration::isEnabled);
-        Provider<AgentMode> agentModeProvider = agentConfiguration.map(AgentConfiguration::getAgentMode);
-        Provider<List<String>> mergeOutputDirs = outputDir.map(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath()));
-        Provider<List<String>> mergeInputDirs = outputDir.map(NativeImagePlugin::agentSessionDirectories);
+        Provider<Boolean> isMergingEnabled = agentConfiguration.map(serializableTransformerOf(AgentConfiguration::isEnabled));
+        Provider<AgentMode> agentModeProvider = agentConfiguration.map(serializableTransformerOf(AgentConfiguration::getAgentMode));
+        Supplier<List<String>> mergeInputDirs = serializableSupplierOf(() -> outputDir.map(serializableTransformerOf(NativeImagePlugin::agentSessionDirectories)).get());
+        Supplier<List<String>> mergeOutputDirs = serializableSupplierOf(() -> outputDir.map(serializableTransformerOf(dir -> Collections.singletonList(dir.getAsFile().getAbsolutePath()))).get());
         cliProvider.getOutputDirectory().set(outputDir);
-        cliProvider.getAgentOptions().set(agentConfiguration.map(AgentConfiguration::getAgentCommandLine));
+        cliProvider.getAgentOptions().set(agentConfiguration.map(serializableTransformerOf(AgentConfiguration::getAgentCommandLine)));
         javaForkOptions.getJvmArgumentProviders().add(cliProvider);
 
         taskToInstrument.doLast(new MergeAgentFilesAction(
@@ -749,8 +753,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 mergeInputDirs,
                 mergeOutputDirs,
                 graalExtension.getToolchainDetection(),
-                execOperations,
-                project.getLogger()));
+                execOperations));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
 

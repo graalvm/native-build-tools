@@ -62,6 +62,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
@@ -112,7 +113,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
     @TaskAction
     public void exec() {
         StringBuilder builder = new StringBuilder();
-        ListProperty<String> inputDirectories = objectFactory.listProperty(String.class);
+        List<String> inputDirectories = new ArrayList<>();
 
         for (String taskName : getInputTaskNames().get()) {
             File dir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(layout, taskName).get().getAsFile();
@@ -128,7 +129,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
             throw new GradleException(errorString);
         }
 
-        ListProperty<String> outputDirectories = objectFactory.listProperty(String.class);
+        List<String> outputDirectories = new ArrayList<>();
         for (String dirName : getOutputDirectories().get()) {
             File dir = layout.dir(providerFactory.provider(() -> new File(dirName))).get().getAsFile();
             outputDirectories.add(dir.getAbsolutePath());
@@ -155,10 +156,9 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 getMergeWithExisting(),
                 objectFactory,
                 graalvmHomeProvider(providerFactory),
-                inputDirectories,
-                outputDirectories,
+                () -> inputDirectories,
+                () -> outputDirectories,
                 getToolchainDetection(),
-                execOperations,
-                getLogger()).execute(this);
+                execOperations).execute(this);
     }
 }
