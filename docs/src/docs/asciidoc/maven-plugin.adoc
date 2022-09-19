@@ -450,7 +450,7 @@ Please refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Sh
 If your project requires reflection, classpath resources, dynamic proxies or other
 features requiring explicit native configuration, it may prove helpful to first run your
 application or tests using the
-https://www.graalvm.org/reference-manual/native-image/Agent/[`native-image-agent`].
+https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[`native-image-agent`].
 
 The Native Image Maven plugin simplifies generation of the required configuration files by
 injecting the agent automatically for you (this includes, but is not limited to the

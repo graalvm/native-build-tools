@@ -38,49 +38,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.reachability.internal.index.artifacts;
+package org.graalvm.reachability;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.nio.file.Path;
 
-import java.util.Set;
+public class DirectoryConfiguration {
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Artifact {
-    private final String module;
-    private final Set<String> versions;
-    private final String directory;
-    private final boolean latest;
+    private final Path directory;
+
     private final boolean override;
 
-    @JsonCreator
-    public Artifact(@JsonProperty("module") String module,
-                    @JsonProperty("tested-versions") Set<String> versions,
-                    @JsonProperty("metadata-version") String directory,
-                    @JsonProperty(value = "latest", defaultValue = "false") boolean latest,
-                    @JsonProperty(value = "override", defaultValue = "false") boolean override) {
-        this.module = module;
-        this.versions = versions;
+    public DirectoryConfiguration(Path directory, boolean override) {
         this.directory = directory;
-        this.latest = latest;
         this.override = override;
     }
 
-    public String getModule() {
-        return module;
-    }
-
-    public Set<String> getVersions() {
-        return versions;
-    }
-
-    public String getDirectory() {
+    public Path getDirectory() {
         return directory;
-    }
-
-    public boolean isLatest() {
-        return latest;
     }
 
     public boolean isOverride() {

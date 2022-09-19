@@ -131,8 +131,6 @@ class FileUtilsTest {
         assertTrue(Files.exists(tempDir.resolve("index.json")));
         assertEquals("[]", String.join("\n", Files.readAllLines(tempDir.resolve("index.json"))));
 
-        assertTrue(Files.isDirectory(tempDir.resolve("org")));
-        assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm")));
         assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm.internal")));
         assertTrue(Files.isDirectory(tempDir.resolve("org.graalvm.internal/library-with-reflection")));
         assertTrue(Files.exists(tempDir.resolve("org.graalvm.internal/library-with-reflection/index.json")));

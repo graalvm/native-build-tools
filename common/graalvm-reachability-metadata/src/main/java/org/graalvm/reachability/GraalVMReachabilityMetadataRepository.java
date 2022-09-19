@@ -40,7 +40,6 @@
  */
 package org.graalvm.reachability;
 
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -63,9 +62,9 @@ public interface GraalVMReachabilityMetadataRepository {
      * example if a configuration directory isn't available for a
      * particular artifact version.
      * @param queryBuilder the query builder
-     * @return the set of configuration directories matching the query
+     * @return the set of configuration matching the query
      */
-    Set<Path> findConfigurationDirectoriesFor(Consumer<? super Query> queryBuilder);
+    Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder);
 
     /**
      * Returns a list of configuration directories for the specified artifact.
@@ -73,19 +72,19 @@ public interface GraalVMReachabilityMetadataRepository {
      * but the list may also be empty if the repository doesn't contain any.
      * Never null.
      * @param gavCoordinates the artifact GAV coordinates (group:artifact:version)
-     * @return a list of configuration directories
+     * @return a list of configuration
      */
-    default Set<Path> findConfigurationDirectoriesFor(String gavCoordinates) {
-        return findConfigurationDirectoriesFor(q -> q.forArtifacts(gavCoordinates));
+    default Set<DirectoryConfiguration> findConfigurationsFor(String gavCoordinates) {
+        return findConfigurationsFor(q -> q.forArtifacts(gavCoordinates));
     }
 
     /**
      * Returns the set of configuration directories for all the modules supplied
      * as an argument.
      * @param modules the list of modules
-     * @return the set of configuration directories
+     * @return the set of configuration
      */
-    default Set<Path> findConfigurationDirectoriesFor(Collection<String> modules) {
-        return findConfigurationDirectoriesFor(q -> q.forArtifacts(modules));
+    default Set<DirectoryConfiguration> findConfigurationsFor(Collection<String> modules) {
+        return findConfigurationsFor(q -> q.forArtifacts(modules));
     }
 }

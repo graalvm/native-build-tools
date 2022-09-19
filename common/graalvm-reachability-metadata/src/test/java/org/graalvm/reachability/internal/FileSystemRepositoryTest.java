@@ -41,6 +41,7 @@
 
 package org.graalvm.reachability.internal;
 
+import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.Query;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +52,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FileSystemRepositoryTest {
     private FileSystemRepository repository;
@@ -65,9 +68,11 @@ class FileSystemRepositoryTest {
 
         // then:
         result.hasSinglePath("org/foo/1.0");
+        result.hasNoOverride();
 
         // when:
         lookup("org:foo:1.1");
+        result.hasOverride();
 
         // then:
         result.hasSinglePath("org/foo/1.1");
@@ -87,6 +92,7 @@ class FileSystemRepositoryTest {
 
         // then:
         result.hasSinglePath("org/foo/1.1");
+        result.hasNoOverride();
     }
 
     @Test
@@ -166,11 +172,11 @@ class FileSystemRepositoryTest {
     }
 
     private void lookup(Consumer<? super Query> builder) {
-        result = new Result(repository.findConfigurationDirectoriesFor(builder), repoPath);
+        result = new Result(repository.findConfigurationsFor(builder), repoPath);
     }
 
     private void lookup(String gav) {
-        result = new Result(repository.findConfigurationDirectoriesFor(gav), repoPath);
+        result = new Result(repository.findConfigurationsFor(gav), repoPath);
     }
 
     private void withRepo(String id) {
@@ -184,20 +190,32 @@ class FileSystemRepositoryTest {
 
     private static final class Result {
         private final Path repoPath;
-        private final Set<Path> configDirs;
+        private final Set<DirectoryConfiguration> configs;
 
-        private Result(Set<Path> configDirs, Path repoPath) {
-            this.configDirs = configDirs;
+        private Result(Set<DirectoryConfiguration> configs, Path repoPath) {
+            this.configs = configs;
             this.repoPath = repoPath;
         }
 
         public void isEmpty() {
-            assertEquals(0, configDirs.size());
+            assertEquals(0, configs.size());
         }
 
         public void hasSinglePath(String path) {
-            assertEquals(1, configDirs.size());
-            assertEquals(repoPath.resolve(path), configDirs.iterator().next());
+            assertEquals(1, configs.size());
+            assertEquals(repoPath.resolve(path), configs.iterator().next().getDirectory());
+        }
+
+        public void hasOverride() {
+            for (DirectoryConfiguration config : configs) {
+                assertTrue(config.isOverride());
+            }
+        }
+
+        public void hasNoOverride() {
+            for (DirectoryConfiguration config : configs) {
+                assertFalse(config.isOverride());
+            }
         }
     }
 }
