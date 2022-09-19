@@ -157,16 +157,15 @@ implements org.gradle.api.Action&lt;org.gradle.api.Task&gt;</pre>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations,org.gradle.api.logging.Logger)">MergeAgentFilesAction</a></span>&#8203;(org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;isMergingEnabled,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.Provider,java.util.function.Supplier,java.util.function.Supplier,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations)">MergeAgentFilesAction</a></span>&#8203;(org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;isMergingEnabled,
                      org.gradle.api.provider.Provider&lt;org.graalvm.buildtools.agent.AgentMode&gt;&nbsp;agentMode,
                      org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;mergeWithOutputs,
                      org.gradle.api.model.ObjectFactory&nbsp;objectFactory,
                      org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;graalvmHomeProvider,
-                     org.gradle.api.provider.Provider&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;inputDirs,
-                     org.gradle.api.provider.Provider&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;outputDirs,
+                     java.util.function.Supplier&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;inputDirs,
+                     java.util.function.Supplier&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;outputDirs,
                      org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;disableToolchainDetection,
-                     org.gradle.process.ExecOperations&nbsp;execOperations,
-                     org.gradle.api.logging.Logger&nbsp;logger)</code></th>
+                     org.gradle.process.ExecOperations&nbsp;execOperations)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </table>
@@ -216,7 +215,7 @@ implements org.gradle.api.Action&lt;org.gradle.api.Task&gt;</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations,org.gradle.api.logging.Logger)">
+<a id="&lt;init&gt;(org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.provider.Provider,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.Provider,java.util.function.Supplier,java.util.function.Supplier,org.gradle.api.provider.Provider,org.gradle.process.ExecOperations)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -227,11 +226,10 @@ implements org.gradle.api.Action&lt;org.gradle.api.Task&gt;</pre>
                              org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;mergeWithOutputs,
                              org.gradle.api.model.ObjectFactory&nbsp;objectFactory,
                              org.gradle.api.provider.Provider&lt;java.lang.String&gt;&nbsp;graalvmHomeProvider,
-                             org.gradle.api.provider.Provider&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;inputDirs,
-                             org.gradle.api.provider.Provider&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;outputDirs,
+                             java.util.function.Supplier&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;inputDirs,
+                             java.util.function.Supplier&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;outputDirs,
                              org.gradle.api.provider.Provider&lt;java.lang.Boolean&gt;&nbsp;disableToolchainDetection,
-                             org.gradle.process.ExecOperations&nbsp;execOperations,
-                             org.gradle.api.logging.Logger&nbsp;logger)</pre>
+                             org.gradle.process.ExecOperations&nbsp;execOperations)</pre>
 </li>
 </ul>
 </li>
