@@ -301,7 +301,8 @@ In this case, the arguments that will be passed to the `native-image` executable
 This plugin supports running tests on the
 https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] as native images. This
 means that tests will be compiled and executed as native code.
-The minimal supported version is JUnit Platform 5.8.1.
+
+NOTE: The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1)
 
 In theory, any `TestEngine` supported on the JUnit Platform should be supported by this
 plugin as long as the programming language used by the `TestEngine` and the programming
@@ -320,8 +321,7 @@ Running `mvn -Pnative test` will then build and run native tests.
 [[testing-support-version-compatibility]]
 === Version compatibility
 
-This plugin requires JUnit Platform 1.8 or higher and Maven Surefire 2.22.0 or higher to
-run tests within a native image.
+This plugin requires Maven Surefire 2.22.0 or higher to run tests within a native image.
 
 Each version of the Maven Surefire plugin has a dependency on a particular version of the
 JUnit Platform. You therefore need to ensure that Maven Surefire is using at least version

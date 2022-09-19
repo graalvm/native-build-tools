@@ -220,7 +220,8 @@ When the `classpathJar` property is set, the `classpath` property is _ignored_.
 This plugin supports running tests on the
 https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] as native images. This
 means that tests will be compiled and executed as native code.
-The minimal supported version is JUnit Platform 5.8.1.
+
+NOTE: The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1)
 
 In theory, any `TestEngine` supported on the JUnit Platform should be supported by this
 plugin as long as the programming language used by the `TestEngine` and the programming
@@ -234,8 +235,6 @@ Currently, this feature requires the execution of the tests in the classic "JVM"
 ----
 ./gradlew nativeTest
 ----
-
-NOTE: This plugin requires JUnit Platform 1.8 or higher.
 
 [[testing-support-disabling]]
 === Disabling testing support
