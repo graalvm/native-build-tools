@@ -85,6 +85,13 @@ public class JupiterConfigProvider implements PluginConfigProvider {
         for (String className : buildTimeInitializedClasses) {
             config.initializeAtBuildTime(className);
         }
+
+        try {
+            Class <?> executor = Class.forName("org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource");
+            config.registerAllClassMembersForReflection(executor);
+        } catch (ClassNotFoundException e) {
+            debug("Failed to register class for reflection. Reason: %s", e);
+        }
     }
 
     @Override
@@ -100,13 +107,6 @@ public class JupiterConfigProvider implements PluginConfigProvider {
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, MethodSource.class, JupiterConfigProvider::handleMethodSource);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, EnabledIf.class, JupiterConfigProvider::handleEnabledIf);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisabledIf.class, JupiterConfigProvider::handleDisabledIf);
-
-        try {
-            Class <?> executor = Class.forName("org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource");
-            registry.registerAllClassMembersForReflection(executor);
-        } catch (ClassNotFoundException e) {
-            debug("Failed to register class for reflection. Reason: %s", e);
-        }
     }
 
     private static Class<?>[] handleMethodSource(MethodSource annotation) {
