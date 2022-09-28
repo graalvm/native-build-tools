@@ -207,3 +207,9 @@ graalvmNative {
     }
 }
 // end::specify-metadata-version-for-library[]
+
+// tag::include-metadata[]
+tasks.named("jar") {
+    from collectReachabilityMetadata
+}
+// end::include-metadata[]

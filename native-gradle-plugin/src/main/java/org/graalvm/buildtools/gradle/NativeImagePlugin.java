@@ -59,6 +59,7 @@ import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.NativeConfigurations;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
+import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
@@ -99,6 +100,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -271,6 +273,26 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
             task.getToolchainDetection().set(graalExtension.getToolchainDetection());
         });
+
+        project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
+            task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+            task.setDescription("Obtains native reachability metdata for the runtime classpath configuration");
+        });
+
+        GraalVMReachabilityMetadataRepositoryExtension metadataRepositoryExtension = reachabilityExtensionOn(graalExtension);
+        TaskCollection<CollectReachabilityMetadata> reachabilityMetadataCopyTasks = project.getTasks()
+                .withType(CollectReachabilityMetadata.class);
+         reachabilityMetadataCopyTasks.configureEach(task -> {
+             Provider<GraalVMReachabilityMetadataService> reachabilityMetadataService = graalVMReachabilityMetadataService(
+                     project, metadataRepositoryExtension);
+            task.getMetadataService().set(reachabilityMetadataService);
+            task.usesService(reachabilityMetadataService);
+            task.getUri().convention(task.getVersion().map(this::getReachabilityMetadataRepositoryUrlForVersion)
+                    .orElse(metadataRepositoryExtension.getUri()));
+            task.getExcludedModules().convention(metadataRepositoryExtension.getExcludedModules());
+            task.getModuleToConfigVersion().convention(metadataRepositoryExtension.getModuleToConfigVersion());
+            task.getInto().convention(project.getLayout().getBuildDirectory().dir("native-reachability-metadata"));
+        });
     }
 
     private void configureAutomaticTaskCreation(Project project,
@@ -320,14 +342,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void configureJvmReachabilityConfigurationDirectories(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
         GraalVMReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
-        Provider<GraalVMReachabilityMetadataService> serviceProvider = project.getGradle()
-                .getSharedServices()
-                .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
-                    LogLevel logLevel = determineLogLevel();
-                    spec.getParameters().getLogLevel().set(logLevel);
-                    spec.getParameters().getUri().set(repositoryExtension.getUri());
-                    spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
-                });
+        Provider<GraalVMReachabilityMetadataService> serviceProvider = graalVMReachabilityMetadataService(project, repositoryExtension);
         options.getConfigurationFileDirectories().from(repositoryExtension.getEnabled().flatMap(enabled -> {
             if (enabled) {
                 if (repositoryExtension.getUri().isPresent()) {
@@ -358,14 +373,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void configureJvmReachabilityExcludeConfigArgs(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
         GraalVMReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
-        Provider<GraalVMReachabilityMetadataService> serviceProvider = project.getGradle()
-                .getSharedServices()
-                .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
-                    LogLevel logLevel = determineLogLevel();
-                    spec.getParameters().getLogLevel().set(logLevel);
-                    spec.getParameters().getUri().set(repositoryExtension.getUri());
-                    spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
-                });
+        Provider<GraalVMReachabilityMetadataService> serviceProvider = graalVMReachabilityMetadataService(project, repositoryExtension);
         options.getExcludeConfig().putAll(repositoryExtension.getEnabled().flatMap(enabled -> {
             if (enabled) {
                 if (repositoryExtension.getUri().isPresent()) {
@@ -395,6 +403,18 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
             return project.getProviders().provider(Collections::emptyMap);
         }));
+    }
+
+    private Provider<GraalVMReachabilityMetadataService> graalVMReachabilityMetadataService(Project project,
+            GraalVMReachabilityMetadataRepositoryExtension repositoryExtension) {
+        return project.getGradle()
+                .getSharedServices()
+                .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
+                    LogLevel logLevel = determineLogLevel();
+                    spec.getParameters().getLogLevel().set(logLevel);
+                    spec.getParameters().getUri().set(repositoryExtension.getUri());
+                    spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
+                });
     }
 
     private static LogLevel determineLogLevel() {
@@ -475,15 +495,17 @@ public class NativeImagePlugin implements Plugin<Project> {
         GraalVMReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("metadataRepository", GraalVMReachabilityMetadataRepositoryExtension.class);
         configurationRepository.getEnabled().convention(false);
         configurationRepository.getVersion().convention(SharedConstants.METADATA_REPO_DEFAULT_VERSION);
-        configurationRepository.getUri().convention(configurationRepository.getVersion().map(v -> {
-            try {
-                return new URI(String.format(METADATA_REPO_URL_TEMPLATE, v));
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-        }));
+        configurationRepository.getUri().convention(configurationRepository.getVersion().map(this::getReachabilityMetadataRepositoryUrlForVersion));
         configurationRepository.getExcludedModules().convention(Collections.emptySet());
         configurationRepository.getModuleToConfigVersion().convention(Collections.emptyMap());
+    }
+
+    private URI getReachabilityMetadataRepositoryUrlForVersion(String version) {
+        try {
+            return new URI(String.format(METADATA_REPO_URL_TEMPLATE, version));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,

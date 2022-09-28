@@ -39,35 +39,40 @@
  * SOFTWARE.
  */
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+package org.graalvm.buildtools.gradle
 
-repositories {
-    mavenCentral()
-}
+import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.gradle.api.logging.LogLevel
+import spock.lang.Unroll
 
-application {
-    mainClass.set('org.graalvm.example.H2Example')
-}
+class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
-String h2_version = getProperty("h2.version")
+    def "the application runs when using the official metadata repository"() {
+        given:
+        withSample("metadata-repo-integration")
 
+        when:
+        run 'jar', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
 
-dependencies {
-    implementation("com.h2database:h2:$h2_version")
-}
+        then:
+        tasks {
+            succeeded ':jar', ':collectReachabilityMetadata'
+        }
 
-graalvmNative {
-    agent {
-        defaultMode = "standard"
+        and: "has copied metadata file"
+        file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.1.210/resource-config.json").text.trim() == '''{
+  "bundles": [],
+  "resources": {
+    "includes": [
+      {
+        "condition": {
+          "typeReachable": "org.h2.util.Utils"
+        },
+        "pattern": "\\\\Qorg/h2/util/data.zip\\\\E"
+      }
+    ]
+  }
+}'''
     }
-    metadataRepository {
-        enabled = true
-    }
-}
 
-tasks.named("jar") {
-    from collectReachabilityMetadata
 }
