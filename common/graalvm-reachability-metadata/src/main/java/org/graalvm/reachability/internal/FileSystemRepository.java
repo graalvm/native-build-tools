@@ -112,7 +112,7 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
                                 Optional<DirectoryConfiguration> configuration = index.findConfiguration(groupId, artifactId, version);
                                 if (!configuration.isPresent() && artifactQuery.isUseLatestVersion()) {
                                     logger.log(groupId, artifactId, version, "Configuration directory not found. Trying latest version.");
-                                    configuration = index.findLatestConfigurationFor(groupId, artifactId);
+                                    configuration = index.findLatestConfigurationFor(groupId, artifactId, version);
                                     if (!configuration.isPresent()) {
                                         logger.log(groupId, artifactId, version, "Latest version not found!");
                                     }

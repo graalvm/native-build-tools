@@ -91,7 +91,13 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      */
     @Override
     public Optional<DirectoryConfiguration> findConfiguration(String groupId, String artifactId, String version) {
-        return findConfigurationFor(groupId, artifactId, artifact -> artifact.getVersions().contains(version));
+        return findConfigurationFor(groupId, artifactId, version, artifact -> artifact.getVersions().contains(version));
+    }
+
+    @Override
+    @Deprecated
+    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId) {
+        return findConfigurationFor(groupId, artifactId, null, Artifact::isLatest);
     }
 
     /**
@@ -102,11 +108,12 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      * @return a configuration directory, or empty if no configuration directory is available
      */
     @Override
-    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId) {
-        return findConfigurationFor(groupId, artifactId, Artifact::isLatest);
+    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId, String version) {
+        return findConfigurationFor(groupId, artifactId, version, Artifact::isLatest);
     }
 
-    private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, Predicate<? super Artifact> predicate) {
+    private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, String version,
+            Predicate<? super Artifact> predicate) {
         String module = groupId + ":" + artifactId;
         List<Artifact> artifacts = index.get(module);
         if (artifacts == null) {
@@ -116,7 +123,8 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
                 .filter(artifact -> artifact.getModule().equals(module))
                 .filter(predicate)
                 .findFirst()
-                .map(artifact -> new DirectoryConfiguration(moduleRoot.resolve(artifact.getDirectory()), artifact.isOverride()));
+                .map(artifact -> new DirectoryConfiguration(groupId, artifactId, version,
+                        moduleRoot.resolve(artifact.getDirectory()), artifact.isOverride()));
     }
 
 }
