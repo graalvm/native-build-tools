@@ -175,4 +175,23 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "Failed to download from https://httpstat.us/404: 404 Not Found"
     }
 
+    void "it can include hints in jar"() {
+        given:
+        withSample("native-config-integration")
+
+        when:
+        mvn '-X', '-PaddMetadataHints', '-DskipTests', 'package'
+
+        then:
+        buildSucceeded
+
+        and:
+        file("target/classes/META-INF/native-image/org.graalvm.internal/library-with-reflection/1.5/reflect-config.json").text.trim() == '''[
+  {
+    "name": "org.graalvm.internal.reflect.Message",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  }
+]'''
+    }
 }
