@@ -117,6 +117,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
         appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
+        appendBooleanOption(cliArgs, options.getRichOutput(), "-H:+BuildOutputProgress");
         appendBooleanOption(cliArgs, options.getRichOutput(), "-H:+BuildOutputColorful");
 
         if (getOutputDirectory().isPresent()) {
