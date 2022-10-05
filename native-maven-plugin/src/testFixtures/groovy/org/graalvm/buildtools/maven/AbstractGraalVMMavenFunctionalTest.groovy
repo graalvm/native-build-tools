@@ -43,6 +43,7 @@ package org.graalvm.buildtools.maven
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.SymlinkAllowedResourceAliasChecker
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.server.handler.ResourceHandler
 import spock.lang.Specification
@@ -109,7 +110,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
             connector = new ServerConnector(server)
             server.addConnector(connector)
             def handler = new ResourceHandler()
-            handler.resourceBase = testDirectory.toString()
+            handler.resourceBase = testDirectory.toRealPath().toString()
             handler.directoriesListed = true
             def ctx = new ContextHandler("/")
             ctx.handler = handler
