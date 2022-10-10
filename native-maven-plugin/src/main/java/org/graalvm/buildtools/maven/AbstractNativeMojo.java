@@ -53,6 +53,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.FileUtils;
@@ -479,7 +480,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 if (targetUrl == null) {
                     String version = metadataRepositoryConfiguration.getVersion();
                     if (version == null) {
-                        version = SharedConstants.METADATA_REPO_DEFAULT_VERSION;
+                        version = VersionInfo.METADATA_REPO_VERSION;
                     }
                     String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
                     try {
