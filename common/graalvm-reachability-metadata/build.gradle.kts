@@ -1,3 +1,5 @@
+import org.graalvm.build.FetchRepositoryMetadata
+
 /*
  * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -40,9 +42,7 @@
  */
 
 plugins {
-    checkstyle
-    id("org.graalvm.build.java")
-    id("org.graalvm.build.publishing")
+    id("org.graalvm.build.reachability-module")
 }
 
 maven {
@@ -56,18 +56,6 @@ dependencies {
     testImplementation(libs.test.junit.jupiter.core)
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
-}
-
-tasks.withType<Checkstyle>().configureEach {
-    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
+tasks.withType<FetchRepositoryMetadata>().configureEach {
+    version.set(libs.versions.metadataRepository)
 }

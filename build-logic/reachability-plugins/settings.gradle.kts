@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,14 +39,14 @@
  * SOFTWARE.
  */
 
+rootProject.name = "reachability-plugins"
+
 pluginManagement {
-    includeBuild("../../build-logic/settings-plugins")
-    includeBuild("../../build-logic/common-plugins")
-    includeBuild("../../build-logic/reachability-plugins")
+    includeBuild("../settings-plugins")
 }
+
+includeBuild("../common-plugins")
 
 plugins {
     id("org.graalvm.build.common")
 }
-
-rootProject.name = "graalvm-reachability-metadata"
