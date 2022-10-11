@@ -10,6 +10,8 @@ Please refer to the following pages for build tool specific documentation:
 - The <<gradle-plugin.adoc#,Gradle plugin documentation>>
 - The <<maven-plugin.adoc#,Maven plugin documentation>>
 
+This release of Native Build Tools ships with the GraalVM reachability metadata repository release {metadata-repository-version}.
+
 If you are interested in contributing, please refer to our https://github.com/graalvm/native-build-tools[Git repository].
 
 If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>

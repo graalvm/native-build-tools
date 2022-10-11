@@ -338,7 +338,7 @@ See <<configuration-options>> for the full list of available options.
 Since release 0.9.11, the plugin adds experimental support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
 This repository provides https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
 
-NOTE: This version of the plugin defaults to the using the metadata repository in version {metadata-repository-version}. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates: `org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata` with the `repository` classifier and `zip` extension, e.g. `graalvm-reachability-metadata-{metadata-repository-version}-repository.zip`.
+NOTE: This version of the plugin defaults to the using the metadata repository in version {metadata-repository-version}. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates: `org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata` with the `repository` classifier and `zip` extension, e.g. `graalvm-reachability-metadata-{gradle-plugin-version}-repository.zip`.
 
 === Enabling the metadata repository
 

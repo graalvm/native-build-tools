@@ -52,6 +52,17 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyFilter;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.util.artifact.JavaScopes;
+import org.eclipse.aether.util.filter.DependencyFilterUtils;
 import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
@@ -98,6 +109,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
+    private static final String GROUP_ID = "org.graalvm.buildtools";
+    private static final String GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID = "graalvm-reachability-metadata";
+    private static final String REPOSITORY_FORMAT = "zip";
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -191,6 +205,12 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Component
     protected ToolchainManager toolchainManager;
+
+    @Component
+    protected MavenSession mavenSession;
+
+    @Component
+    protected RepositorySystem repositorySystem;
 
     @Inject
     protected AbstractNativeMojo() {
@@ -480,14 +500,23 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 if (targetUrl == null) {
                     String version = metadataRepositoryConfiguration.getVersion();
                     if (version == null) {
-                        version = VersionInfo.METADATA_REPO_VERSION;
+                        // Both the URL and version are unset, so we want to use
+                        // the version from Maven Central
+                        targetUrl = resolveDefaultMetadataRepositoryUrl();
+                        if (targetUrl == null) {
+                            logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                                        "Falling back to the default repository.");
+                            version = VersionInfo.METADATA_REPO_VERSION;
+                        }
                     }
-                    String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
-                    try {
-                        targetUrl = new URI(metadataUrl).toURL();
-                        metadataRepositoryConfiguration.setUrl(targetUrl);
-                    } catch (URISyntaxException | MalformedURLException e) {
-                        throw new RuntimeException(e);
+                    if (version != null) {
+                        String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
+                        try {
+                            targetUrl = new URI(metadataUrl).toURL();
+                            metadataRepositoryConfiguration.setUrl(targetUrl);
+                        } catch (URISyntaxException | MalformedURLException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
                 Path destination;
@@ -518,6 +547,48 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 });
             }
         }
+    }
+
+    /**
+     * Downloads the metadata repository from Maven Central and returns the path to the downloaded file.
+     * @return the path to the downloaded repository file, or null if not found
+     */
+    private URL resolveDefaultMetadataRepositoryUrl() {
+        RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
+        DependencyFilter classpathFilter = DependencyFilterUtils.classpathFilter(JavaScopes.RUNTIME);
+        CollectRequest collectRequest = new CollectRequest();
+        collectRequest.setRepositories(project.getRemoteProjectRepositories());
+        Dependency repository = new Dependency(new DefaultArtifact(
+                GROUP_ID,
+                GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID,
+                "repository",
+                REPOSITORY_FORMAT,
+                VersionInfo.NBT_VERSION
+        ), "runtime");
+        collectRequest.addDependency(
+                repository
+        );
+        DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFilter);
+
+        DependencyResult dependencyResult = null;
+        try {
+            dependencyResult = repositorySystem.resolveDependencies(repositorySession, dependencyRequest);
+        } catch (DependencyResolutionException e) {
+            return null;
+        }
+        return dependencyResult.getArtifactResults()
+                .stream()
+                .filter(result -> result.getArtifact().getGroupId().equals(GROUP_ID) &&
+                        result.getArtifact().getArtifactId().equals(GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID)
+                ).findFirst()
+                .map(r -> {
+                    try {
+                        return r.getArtifact().getFile().toURI().toURL();
+                    } catch (MalformedURLException e) {
+                        return null;
+                    }
+                })
+                .orElse(null);
     }
 
     public boolean isArtifactExcludedFromMetadataRepository(Artifact dependency) {
