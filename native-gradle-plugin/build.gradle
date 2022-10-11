@@ -61,6 +61,7 @@ dependencies {
     testFixturesImplementation libs.test.spock
     testFixturesImplementation gradleTestKit()
     functionalTestCommonRepository(libs.junitPlatformNative)
+    functionalTestCommonRepository(libs.jvmReachabilityMetadata)
     functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 }
 

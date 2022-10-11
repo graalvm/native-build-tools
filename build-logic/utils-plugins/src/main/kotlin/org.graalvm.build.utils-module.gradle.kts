@@ -59,6 +59,7 @@ extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
     val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {
         versions.put("junitPlatformNative", libs.findVersion("nativeBuildTools").get().requiredVersion)
         versions.put("metadataRepo", libs.findVersion("metadataRepository").get().requiredVersion)
+        versions.put("nbt", libs.findVersion("nativeBuildTools").get().requiredVersion)
         outputDirectory.set(layout.buildDirectory.dir("generated/sources/versions"))
     }
 

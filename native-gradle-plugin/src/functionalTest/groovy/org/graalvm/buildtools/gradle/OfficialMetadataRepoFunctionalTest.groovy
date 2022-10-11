@@ -43,7 +43,6 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
-import spock.lang.Unroll
 
 class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
 
@@ -61,6 +60,7 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
 
         and: "finds metadata in the remote repository"
         outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+        outputDoesNotContain "Falling back to the default repository at"
     }
 
 }

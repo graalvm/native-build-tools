@@ -74,6 +74,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
@@ -159,6 +160,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
+    private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
 
     private GraalVMLogger logger;
 
@@ -325,7 +327,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
                     LogLevel logLevel = determineLogLevel();
                     spec.getParameters().getLogLevel().set(logLevel);
-                    spec.getParameters().getUri().set(repositoryExtension.getUri());
+                    spec.getParameters().getUri().set(repositoryExtension.getUri().map(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, configuredUri, GraalVMLogger.of(project.getLogger()))));
                     spec.getParameters().getCacheDir().set(new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
                 });
         options.getConfigurationFileDirectories().from(repositoryExtension.getEnabled().flatMap(enabled -> {
@@ -335,18 +337,18 @@ public class NativeImagePlugin implements Plugin<Project> {
                     Set<String> excludedModules = repositoryExtension.getExcludedModules().getOrElse(Collections.emptySet());
                     Map<String, String> forcedVersions = repositoryExtension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
                     return serviceProvider.map(repo -> repo.findConfigurationsFor(query -> classpath.getIncoming().getResolutionResult().allComponents(component -> {
-                        ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
-                        String module = Objects.requireNonNull(moduleVersion).getGroup() + ":" + moduleVersion.getName();
-                        if (!excludedModules.contains(module)) {
-                            query.forArtifact(artifact -> {
-                                artifact.gav(module + ":" + moduleVersion.getVersion());
-                                if (forcedVersions.containsKey(module)) {
-                                    artifact.forceConfigVersion(forcedVersions.get(module));
+                                ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
+                                String module = Objects.requireNonNull(moduleVersion).getGroup() + ":" + moduleVersion.getName();
+                                if (!excludedModules.contains(module)) {
+                                    query.forArtifact(artifact -> {
+                                        artifact.gav(module + ":" + moduleVersion.getVersion());
+                                        if (forcedVersions.containsKey(module)) {
+                                            artifact.forceConfigVersion(forcedVersions.get(module));
+                                        }
+                                    });
                                 }
-                            });
-                        }
-                        query.useLatestConfigWhenVersionIsUntested();
-                    })).stream()
+                                query.useLatestConfigWhenVersionIsUntested();
+                            })).stream()
                             .map(configuration -> configuration.getDirectory().toAbsolutePath())
                             .map(Path::toFile)
                             .collect(Collectors.toList()));
@@ -354,6 +356,36 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
             return project.getProviders().provider(Collections::emptySet);
         }));
+    }
+
+    private static URI computeMetadataRepositoryUri(Project project,
+                                                    GraalVMReachabilityMetadataRepositoryExtension repositoryExtension,
+                                                    URI configuredUri,
+                                                    GraalVMLogger logger) {
+        URI defaultUri;
+        try {
+            defaultUri = new URI(String.format(METADATA_REPO_URL_TEMPLATE, repositoryExtension.getVersion().get()));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Unable to convert repository path to URI", e);
+        }
+        if (defaultUri.equals(configuredUri)) {
+            // The user didn't configure any custom URI or repo version, so we're going to
+            // use the Maven artifact instead
+            Configuration configuration = project.getConfigurations().detachedConfiguration();
+            Dependency e = project.getDependencies().create(REPOSITORY_COORDINATES);
+            configuration.getDependencies().add(e);
+            Set<File> files = configuration.getIncoming()
+                    .artifactView(view -> view.setLenient(true))
+                    .getFiles()
+                    .getFiles();
+            if (files.size() == 1) {
+                return files.iterator().next().toURI();
+            } else {
+                logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                        "Falling back to the default repository at " + defaultUri);
+            }
+        }
+        return configuredUri;
     }
 
     private void configureJvmReachabilityExcludeConfigArgs(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
@@ -705,9 +737,9 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static List<String> agentSessionDirectories(Directory outputDirectory) {
         return Arrays.stream(Objects.requireNonNull(
-                    outputDirectory.getAsFile()
-                        .listFiles(file -> file.isDirectory() && file.getName().startsWith("session-"))
-                    )
+                                outputDirectory.getAsFile()
+                                        .listFiles(file -> file.isDirectory() && file.getName().startsWith("session-"))
+                        )
                 ).map(File::getAbsolutePath)
                 .collect(Collectors.toList());
     }
@@ -767,7 +799,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         project.afterEvaluate(p -> {
             if (testSupportEnabled.get()) {
                 project.getDependencies().add("testImplementation", "org.graalvm.buildtools:junit-platform-native:"
-                        + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
+                                                                    + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
             }
         });
     }
