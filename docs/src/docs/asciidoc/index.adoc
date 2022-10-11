@@ -19,6 +19,11 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.15
+
+* Upgrade to GraalVM metadata repository {metadata-repository-version}
+* Ship the metadata repository as an artifact alongside the plugin
+
 === Release 0.9.14
 
 ==== Gradle plugin
