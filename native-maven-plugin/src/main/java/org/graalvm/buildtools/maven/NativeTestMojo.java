@@ -76,7 +76,7 @@ import static org.graalvm.buildtools.Utils.NATIVE_TESTS_EXE;
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,
         requiresDependencyResolution = ResolutionScope.TEST,
         requiresDependencyCollection = ResolutionScope.TEST)
-public class NativeTestMojo extends AbstractNativeMojo {
+public class NativeTestMojo extends AbstractNativeImageMojo {
 
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;

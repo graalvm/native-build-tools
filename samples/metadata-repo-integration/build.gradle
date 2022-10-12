@@ -38,6 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 plugins {
     id 'application'
     id 'org.graalvm.buildtools.native'
@@ -65,4 +66,8 @@ graalvmNative {
     metadataRepository {
         enabled = true
     }
+}
+
+tasks.named("jar") {
+    from collectReachabilityMetadata
 }

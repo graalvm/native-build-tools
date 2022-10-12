@@ -88,7 +88,7 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
         config = index.findConfiguration("com.foo", "nope", "1.0");
         assertFalse(config.isPresent());
 
-        Optional<DirectoryConfiguration> latest = index.findLatestConfigurationFor("com.foo", "bar");
+        Optional<DirectoryConfiguration> latest = index.findLatestConfigurationFor("com.foo", "bar", "123");
         assertTrue(latest.isPresent());
         assertEquals(repoPath.resolve("2.0"), latest.get().getDirectory());
         assertTrue(latest.get().isOverride());

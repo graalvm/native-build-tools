@@ -359,6 +359,34 @@
             </build>
         </profile>
         <profile>
+            <id>addMetadataHints</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <configuration>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                                <localPath>${project.basedir}/config-directory</localPath> <!--1-->
+                            </metadataRepository>
+                        </configuration>
+                        <!-- tag::add-reachability-metadata-execution[] -->
+                        <executions>
+                            <execution>
+                                <id>add-reachability-metadata</id>
+                                <goals>
+                                    <goal>add-reachability-metadata</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <!-- end::add-reachability-metadata-execution[] -->
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>excludeConfigTest</id>
             <build>
                 <plugins>

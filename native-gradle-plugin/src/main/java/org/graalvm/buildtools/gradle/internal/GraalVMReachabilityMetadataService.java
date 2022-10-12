@@ -45,6 +45,7 @@ import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.FileSystemRepository;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -66,6 +67,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -207,5 +210,21 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
     @Override
     public Set<DirectoryConfiguration> findConfigurationsFor(Collection<String> modules) {
         return repository.findConfigurationsFor(modules);
+    }
+
+    public Set<DirectoryConfiguration> findConfigurationsFor(Set<String> excludedModules, Map<String, String> forcedVersions, ModuleVersionIdentifier moduleVersion) {
+        Objects.requireNonNull(moduleVersion);
+        String groupAndArtifact = moduleVersion.getGroup() + ":" + moduleVersion.getName();
+        return findConfigurationsFor(query -> {
+            if (!excludedModules.contains(groupAndArtifact)) {
+                query.forArtifact(artifact -> {
+                    artifact.gav(groupAndArtifact + ":" + moduleVersion.getVersion());
+                    if (forcedVersions.containsKey(groupAndArtifact)) {
+                        artifact.forceConfigVersion(forcedVersions.get(groupAndArtifact));
+                    }
+                });
+            }
+            query.useLatestConfigWhenVersionIsUntested();
+        });
     }
 }

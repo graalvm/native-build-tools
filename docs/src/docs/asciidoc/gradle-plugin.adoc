@@ -413,6 +413,32 @@ include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-version-fo
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-version-for-library]
 ----
 
+=== Including metadata repository files
+
+By default, reachability metadata will be used only when your native image is generated.
+In some situations, you may want a copy of the reachability metadata to use directly.
+
+For example, copying the reachability metadata into your jar can be useful when some other process is responsible for converting your jar into a native image.
+You might be generating a shaded jar and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
+
+To download a copy of the metadata into the `build/native-reachability-metadata` directory you can the `collectReachabilityMetadata` task.
+Files will be downloaded into `META-INF/native-image/<groupId>/<versionId>` subdirectories.
+
+To include metadata repository inside your jar you can link to the task using the `jar` DSL `from` directive:
+
+.Including metadata repository files
+[source, groovy, role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=include-metadata]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=include-metadata]
+----
+
+For more advanced configurations you can declare a `org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata` task and set the appropriate properties.
+
 [[plugin-configurations]]
 == Configurations defined by the plugin
 

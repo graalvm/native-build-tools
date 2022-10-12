@@ -40,15 +40,34 @@
  */
 package org.graalvm.reachability;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
 
 public class DirectoryConfiguration {
+
+    private static final String PROPERTIES = "reachability-metadata.properties";
+
+    private final String groupId;
+
+    private final String artifactId;
+
+    private final String version;
 
     private final Path directory;
 
     private final boolean override;
 
-    public DirectoryConfiguration(Path directory, boolean override) {
+    public DirectoryConfiguration(String groupId, String artifactId, String version, Path directory, boolean override) {
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.version = version;
         this.directory = directory;
         this.override = override;
     }
@@ -60,4 +79,49 @@ public class DirectoryConfiguration {
     public boolean isOverride() {
         return override;
     }
+
+    public static void copy(Collection<DirectoryConfiguration> configurations, Path destinationDirectory) throws IOException {
+        Path nativeImageDestination = destinationDirectory.resolve("META-INF").resolve("native-image");
+        for (DirectoryConfiguration configuration : configurations) {
+            Path target = nativeImageDestination
+                    .resolve(configuration.groupId)
+                    .resolve(configuration.artifactId)
+                    .resolve((configuration.version != null) ? configuration.version :
+                            configuration.getDirectory().getFileName().toString());
+            copyFileTree(configuration.directory, target);
+            writeConfigurationProperties(configuration, target);
+        }
+    }
+
+    private static void copyFileTree(Path source, Path target) throws IOException {
+        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attrs) throws IOException {
+                Files.createDirectories(target.resolve(source.relativize(directory)));
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (!"index.json".equalsIgnoreCase(file.getFileName().toString())) {
+                    Files.copy(file, target.resolve(source.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    private static void writeConfigurationProperties(DirectoryConfiguration configuration, Path target)
+            throws IOException {
+        StringBuilder content = new StringBuilder();
+        if (configuration.isOverride()) {
+            content.append("override=true\n");
+        }
+        if (content.length() > 0) {
+            Files.write(target.resolve(PROPERTIES), content.toString().getBytes(StandardCharsets.ISO_8859_1));
+        }
+    }
 }
+
+
