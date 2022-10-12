@@ -26,7 +26,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":6,"i4":6};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":6,"i5":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -225,11 +225,18 @@ implements org.gradle.api.services.BuildService&lt;<a href="GraalVMReachabilityM
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Set&lt;org.graalvm.reachability.DirectoryConfiguration&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#findConfigurationsFor(java.util.Set,java.util.Map,org.gradle.api.artifacts.ModuleVersionIdentifier)">findConfigurationsFor</a></span>&#8203;(java.util.Set&lt;java.lang.String&gt;&nbsp;excludedModules,
+                     java.util.Map&lt;java.lang.String,&#8203;java.lang.String&gt;&nbsp;forcedVersions,
+                     org.gradle.api.artifacts.ModuleVersionIdentifier&nbsp;moduleVersion)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.file.ArchiveOperations</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getArchiveOperations()">getArchiveOperations</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.file.FileSystemOperations</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getFileOperations()">getFileOperations</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
@@ -355,7 +362,7 @@ protected abstract&nbsp;org.gradle.api.file.FileSystemOperations&nbsp;getFileOpe
 <a id="findConfigurationsFor(java.util.Collection)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>findConfigurationsFor</h4>
 <pre class="methodSignature">public&nbsp;java.util.Set&lt;org.graalvm.reachability.DirectoryConfiguration&gt;&nbsp;findConfigurationsFor&#8203;(java.util.Collection&lt;java.lang.String&gt;&nbsp;modules)</pre>
@@ -369,6 +376,17 @@ protected abstract&nbsp;org.gradle.api.file.FileSystemOperations&nbsp;getFileOpe
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the set of configurations</dd>
 </dl>
+</li>
+</ul>
+<a id="findConfigurationsFor(java.util.Set,java.util.Map,org.gradle.api.artifacts.ModuleVersionIdentifier)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>findConfigurationsFor</h4>
+<pre class="methodSignature">public&nbsp;java.util.Set&lt;org.graalvm.reachability.DirectoryConfiguration&gt;&nbsp;findConfigurationsFor&#8203;(java.util.Set&lt;java.lang.String&gt;&nbsp;excludedModules,
+                                                                                            java.util.Map&lt;java.lang.String,&#8203;java.lang.String&gt;&nbsp;forcedVersions,
+                                                                                            org.gradle.api.artifacts.ModuleVersionIdentifier&nbsp;moduleVersion)</pre>
 </li>
 </ul>
 </li>
