@@ -66,7 +66,7 @@ import java.util.function.BiFunction;
 @Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class NativeCompileNoForkMojo extends AbstractNativeMojo {
+public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
 
     @Parameter(property = "skipNativeBuild", defaultValue = "false")
     private boolean skip;

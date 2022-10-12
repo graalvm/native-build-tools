@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,39 +38,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.reachability.internal.index.artifacts;
 
-import java.util.Optional;
+package org.graalvm.buildtools.gradle
 
-import org.graalvm.reachability.DirectoryConfiguration;
+import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.gradle.api.logging.LogLevel
+import spock.lang.Unroll
 
-public interface VersionToConfigDirectoryIndex {
+class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
-    /**
-     * Returns the configuration for the requested artifact.
-     * @param groupId the group ID of the artifact
-     * @param artifactId the artifact ID of the artifact
-     * @param version the version of the artifact
-     * @return a configuration, or empty if no configuration directory is available
-     */
-    Optional<DirectoryConfiguration> findConfiguration(String groupId, String artifactId, String version);
+    def "the application runs when using the official metadata repository"() {
+        given:
+        withSample("metadata-repo-integration")
 
-    /**
-     * Returns the latest configuration for the requested artifact.
-     * @param groupId the group ID of the artifact
-     * @param artifactId the artifact ID of the artifact
-     * @return a configuration, or empty if no configuration directory is available
-     * @deprecated in favor of {@link #findLatestConfigurationFor(String, String, String)}
-     */
-    @Deprecated
-    Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId);
+        when:
+        run 'jar', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
 
-    /**
-     * Returns the latest configuration for the requested artifact.
-     * @param groupId the group ID of the artifact
-     * @param artifactId the artifact ID of the artifact
-     * @param version the version of the artifact
-     * @return a configuration, or empty if no configuration directory is available
-     */
-    Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId, String version);
+        then:
+        tasks {
+            succeeded ':jar', ':collectReachabilityMetadata'
+        }
+
+        and: "has copied metadata file"
+        file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.1.210/resource-config.json").text.trim() == '''{
+  "bundles": [],
+  "resources": {
+    "includes": [
+      {
+        "condition": {
+          "typeReachable": "org.h2.util.Utils"
+        },
+        "pattern": "\\\\Qorg/h2/util/data.zip\\\\E"
+      }
+    ]
+  }
+}'''
+    }
+
 }

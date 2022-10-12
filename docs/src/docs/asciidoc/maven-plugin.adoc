@@ -660,6 +660,23 @@ This may be interesting if there's no specific metadata available for the partic
 include::../../../../samples/native-config-integration/pom.xml[tag=metadata-force-version]
 ----
 
+=== Adding metadata respoistory files
+
+By default, repository metadata will be used only when your native image is generated.
+In some situations, you may want to include the metadata directly inside your jar.
+
+Adding metadata to your jar can be useful when some other process is responsible for converting your jar into a native image.
+For example, you might be generating a shaded jar and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
+
+To include metadata repository inside your jar you can use the `add-reachability-metadata` goal.
+Typically the goal will be included in an execution step where by default it will be bound to the `generate-resources` phase:
+
+.Configuring the `add-reachability-metadata` goal to execute with the `generate-resources` phase
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=add-reachability-metadata-execution]
+----
+
 [[javadocs]]
 == Javadocs
 
