@@ -603,6 +603,21 @@ mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 Since release 0.9.12, the plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
 This repository provides https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
 
+[NOTE]
+====
+This version of the plugin defaults to the using the metadata repository in version {metadata-repository-version}. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates:
+```xml
+<dependency>
+   <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>graalvm-reachability-metadata</artifactId>
+    <version>{maven-plugin-version}</version>
+    <classifier>repository</classifier>
+    <type>zip</type>
+</dependency>
+```
+e.g. `graalvm-reachability-metadata-{maven-plugin-version}-repository.zip`.
+====
+
 === Enabling the metadata repository
 
 Support needs to be enabled explicitly by including the following into the `<configuration>` element:

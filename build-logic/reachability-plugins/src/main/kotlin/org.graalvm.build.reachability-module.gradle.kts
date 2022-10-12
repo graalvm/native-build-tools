@@ -1,3 +1,5 @@
+import org.graalvm.build.FetchRepositoryMetadata
+
 /*
  * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -39,14 +41,31 @@
  * SOFTWARE.
  */
 
-pluginManagement {
-    includeBuild("../../build-logic/settings-plugins")
-    includeBuild("../../build-logic/common-plugins")
-    includeBuild("../../build-logic/reachability-plugins")
-}
-
 plugins {
-    id("org.graalvm.build.common")
+    checkstyle
+    id("org.graalvm.build.java")
+    id("org.graalvm.build.publishing")
 }
 
-rootProject.name = "graalvm-reachability-metadata"
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+}
+
+val fetchRepository = tasks.register<FetchRepositoryMetadata>("fetchMetadataRepository") {
+    outputDirectory.convention(layout.buildDirectory.dir("repository"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            artifact(fetchRepository.flatMap { it.outputFile }) {
+                classifier = "repository"
+            }
+        }
+    }
+}
+
+tasks.withType<Checkstyle>().configureEach {
+    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
+}

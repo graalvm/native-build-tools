@@ -70,7 +70,8 @@ asciidoctorj {
             "highlightjsdir" to "highlight",
             "gradle-plugin-version" to libs.versions.nativeBuildTools.get(),
             "gradle-plugin-version" to libs.versions.nativeBuildTools.get(),
-            "maven-plugin-version" to libs.versions.nativeBuildTools.get()
+            "maven-plugin-version" to libs.versions.nativeBuildTools.get(),
+            "metadata-repository-version" to libs.versions.metadataRepository.get(),
     ))
 }
 

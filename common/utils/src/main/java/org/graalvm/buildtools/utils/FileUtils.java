@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -67,6 +68,13 @@ public final class FileUtils {
     }
 
     public static Optional<Path> download(URL url, Path destination, Consumer<String> errorLogger) {
+        if ("file".equals(url.getProtocol())) {
+            try {
+                return Optional.of(new java.io.File(url.toURI()).toPath());
+            } catch (URISyntaxException e) {
+                return Optional.empty();
+            }
+        }
         try {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
