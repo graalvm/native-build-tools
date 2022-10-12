@@ -1621,6 +1621,34 @@ with those configuration files, you then need to execute the following command:<
 <p>Since release 0.9.12, the plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
 This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/">reachability metadata</a> for libraries that do not support GraalVM Native Image.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>This version of the plugin defaults to the using the metadata repository in version 0.2.2. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
+   &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+    &lt;artifactId&gt;graalvm-reachability-metadata&lt;/artifactId&gt;
+    &lt;version&gt;{maven-plugin-version}&lt;/version&gt;
+    &lt;classifier&gt;repository&lt;/classifier&gt;
+    &lt;type&gt;zip&lt;/type&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>e.g. <code>graalvm-reachability-metadata-0.9.15-SNAPSHOT-repository.zip</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
 <h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
 <div class="paragraph">

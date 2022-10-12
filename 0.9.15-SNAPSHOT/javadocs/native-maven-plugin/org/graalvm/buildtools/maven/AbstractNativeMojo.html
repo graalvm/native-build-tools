@@ -171,18 +171,28 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>protected org.apache.maven.execution.MavenSession</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#mavenSession">mavenSession</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>protected org.graalvm.reachability.GraalVMReachabilityMetadataRepository</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepository">metadataRepository</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="config/MetadataRepositoryConfiguration.html" title="class in org.graalvm.buildtools.maven.config">MetadataRepositoryConfiguration</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepositoryConfiguration">metadataRepositoryConfiguration</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected java.util.Set&lt;org.graalvm.reachability.DirectoryConfiguration&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepositoryConfigurations">metadataRepositoryConfigurations</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected org.apache.maven.plugin.descriptor.PluginDescriptor</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#plugin">plugin</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
@@ -193,6 +203,16 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <tr class="rowColor">
 <td class="colFirst"><code>protected java.io.File</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#reachabilityMetadataOutputDirectory">reachabilityMetadataOutputDirectory</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected org.eclipse.aether.RepositorySystem</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#repositorySystem">repositorySystem</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected org.apache.maven.execution.MavenSession</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#session">session</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </table>
@@ -319,6 +339,28 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
+<a id="plugin">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>plugin</h4>
+<pre>@Parameter(defaultValue="${plugin}",
+           readonly=true)
+protected&nbsp;org.apache.maven.plugin.descriptor.PluginDescriptor plugin</pre>
+</li>
+</ul>
+<a id="session">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>session</h4>
+<pre>@Parameter(defaultValue="${session}",
+           readonly=true)
+protected&nbsp;org.apache.maven.execution.MavenSession session</pre>
+</li>
+</ul>
 <a id="project">
 <!--   -->
 </a>
@@ -373,11 +415,31 @@ protected&nbsp;<a href="config/MetadataRepositoryConfiguration.html" title="clas
 <a id="logger">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>logger</h4>
 <pre>@Component
 protected&nbsp;org.codehaus.plexus.logging.Logger logger</pre>
+</li>
+</ul>
+<a id="mavenSession">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>mavenSession</h4>
+<pre>@Component
+protected&nbsp;org.apache.maven.execution.MavenSession mavenSession</pre>
+</li>
+</ul>
+<a id="repositorySystem">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>repositorySystem</h4>
+<pre>@Component
+protected&nbsp;org.eclipse.aether.RepositorySystem repositorySystem</pre>
 </li>
 </ul>
 </li>

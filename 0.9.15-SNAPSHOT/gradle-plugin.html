@@ -1208,6 +1208,18 @@ See <a href="#configuration-options">Configuration options</a> for the full list
 <p>Since release 0.9.11, the plugin adds experimental support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
 This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/">reachability metadata</a> for libraries that do not support GraalVM Native Image.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This version of the plugin defaults to the using the metadata repository in version 0.2.2. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates: <code>org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata</code> with the <code>repository</code> classifier and <code>zip</code> extension, e.g. <code>graalvm-reachability-metadata-0.9.15-SNAPSHOT-repository.zip</code>.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
 <h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
 <div class="paragraph">
@@ -1237,7 +1249,7 @@ This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/
 The plugin will automatically download the configuration metadata from the official repository if you supply the version of the repository you want to use:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Enabling the metadata repository</div>
+<div class="title">Overriding the repository version</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     metadataRepository {
