@@ -73,6 +73,8 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
     ]
   }
 }'''
+        and: "has copied reachability-metadata.properties file"
+        file("build/native-reachability-metadata/META-INF/native-image/io.netty/netty-codec-http/4.1.80.Final/reachability-metadata.properties").text.trim() == 'override=true'
     }
 
 }
