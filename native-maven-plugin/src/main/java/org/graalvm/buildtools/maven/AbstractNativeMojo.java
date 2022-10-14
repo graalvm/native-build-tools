@@ -54,12 +54,9 @@ import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.graph.DependencyFilter;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
-import org.eclipse.aether.util.artifact.JavaScopes;
-import org.eclipse.aether.util.filter.DependencyFilterUtils;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.FileUtils;
@@ -67,6 +64,7 @@ import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.internal.FileSystemRepository;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -80,8 +78,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import javax.inject.Inject;
 
 import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEMPLATE;
 
@@ -207,7 +203,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
      */
     private URL resolveDefaultMetadataRepositoryUrl() {
         RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
-        DependencyFilter classpathFilter = DependencyFilterUtils.classpathFilter(JavaScopes.RUNTIME);
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRepositories(project.getRemoteProjectRepositories());
         Dependency repository = new Dependency(new DefaultArtifact(
@@ -220,7 +215,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         collectRequest.addDependency(
                 repository
         );
-        DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, classpathFilter);
+        DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
 
         DependencyResult dependencyResult = null;
         try {
