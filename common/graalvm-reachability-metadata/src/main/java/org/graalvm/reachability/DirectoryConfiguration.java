@@ -94,6 +94,9 @@ public class DirectoryConfiguration {
     }
 
     private static void copyFileTree(Path source, Path target) throws IOException {
+        if (Files.notExists(source)) {
+            return;
+        }
         Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
 
             @Override
@@ -114,6 +117,9 @@ public class DirectoryConfiguration {
 
     private static void writeConfigurationProperties(DirectoryConfiguration configuration, Path target)
             throws IOException {
+        if (Files.notExists(target)) {
+            Files.createDirectories(target);
+        }
         StringBuilder content = new StringBuilder();
         if (configuration.isOverride()) {
             content.append("override=true\n");

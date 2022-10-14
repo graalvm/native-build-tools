@@ -53,10 +53,12 @@ application {
 }
 
 String h2_version = getProperty("h2.version")
+String netty_version = getProperty("netty.version")
 
 
 dependencies {
     implementation("com.h2database:h2:$h2_version")
+    implementation("io.netty:netty-codec-http:$netty_version")
 }
 
 graalvmNative {
