@@ -57,7 +57,9 @@ import org.gradle.util.GradleVersion;
  */
 @SuppressWarnings("unused")
 public class GradleUtils {
+    private static final GradleVersion GRADLE_68 = GradleVersion.version("6.8");
     private static final GradleVersion GRADLE_7 = GradleVersion.version("7.0");
+    private static final GradleVersion GRADLE_71 = GradleVersion.version("7.1");
 
     public static SourceSet findSourceSet(Project project, String sourceSetName) {
         SourceSetContainer sourceSetContainer = getJavaPluginConvention(project).getSourceSets();
@@ -70,6 +72,14 @@ public class GradleUtils {
 
     public static boolean isAtLeastGradle7() {
         return GradleVersion.current().compareTo(GRADLE_7) >= 0;
+    }
+
+    public static boolean isAtLeastGradle6dot8() {
+        return GradleVersion.current().compareTo(GRADLE_68) >= 0;
+    }
+
+    public static boolean isAtLeastGradle7dot1() {
+        return GradleVersion.current().compareTo(GRADLE_71) >= 0;
     }
 
     public static Configuration findConfiguration(Project project, String name) {

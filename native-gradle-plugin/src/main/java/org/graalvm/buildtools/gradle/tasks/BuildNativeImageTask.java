@@ -81,6 +81,7 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
+    private final NativeImageExecutableLocator.Diagnostics diagnostics;
 
     @Nested
     public abstract Property<NativeImageOptions> getOptions();
@@ -154,7 +155,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         getOutputDirectory().convention(outputDir);
         ProviderFactory providers = getProject().getProviders();
-        this.graalvmHomeProvider = graalvmHomeProvider(providers);
+        this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
+        this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);
         getDisableToolchainDetection().convention(false);
     }
 
@@ -191,9 +193,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 getDisableToolchainDetection(),
                 getGraalVMHome(),
                 getExecOperations(),
-                logger);
-
-        logger.lifecycle("Using executable path: " + executablePath);
+                logger,
+                diagnostics);
+        for (String diagnostic : diagnostics.getDiagnostics()) {
+            logger.lifecycle(diagnostic);
+        }
         String executable = executablePath.getAbsolutePath();
         File outputDir = getOutputDirectory().getAsFile().get();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {

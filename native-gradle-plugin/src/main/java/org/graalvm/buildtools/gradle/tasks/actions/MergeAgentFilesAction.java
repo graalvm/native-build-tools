@@ -42,6 +42,7 @@ package org.graalvm.buildtools.gradle.tasks.actions;
 
 import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -100,7 +101,7 @@ public class MergeAgentFilesAction implements Action<Task> {
     @Override
     public void execute(Task task) {
         if (isMergingEnabled.get()) {
-            File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(task.getLogger()));
+            File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(task.getLogger()), new NativeImageExecutableLocator.Diagnostics());
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
             if (!launcher.exists()) {

@@ -25,6 +25,10 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 * Ship the metadata repository as an artifact alongside the plugin
 * Add ability to collect GraalVM metadata of dependencies to a custom location
 
+==== Gradle plugin
+
+* Improved diagnostics to help users figure out what GraalVM toolchain was selected
+
 === Release 0.9.14
 
 ==== Gradle plugin
