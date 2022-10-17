@@ -21,7 +21,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.9.15
 
-* Upgrade to GraalVM metadata repository {metadata-repository-version}
+* Upgrade to GraalVM metadata repository 0.2.3.
 * Ship the metadata repository as an artifact alongside the plugin
 * Add ability to collect GraalVM metadata of dependencies to a custom location
 
