@@ -49,16 +49,21 @@ repositories {
 }
 
 application {
-    mainClass.set('org.graalvm.example.H2Example')
+    mainClass.set('org.graalvm.example.Example')
 }
 
 String h2_version = getProperty("h2.version")
 String netty_version = getProperty("netty.version")
-
+String logback_version = getProperty("logback.version")
+String log4j_version = getProperty("log4j.version")
+String slf4j_version = getProperty("slf4j.version")
 
 dependencies {
     implementation("com.h2database:h2:$h2_version")
     implementation("io.netty:netty-codec-http:$netty_version")
+    implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("org.apache.logging.log4j:log4j-to-slf4j:$log4j_version")
+    implementation("org.slf4j:jul-to-slf4j:$slf4j_version")
 }
 
 graalvmNative {
