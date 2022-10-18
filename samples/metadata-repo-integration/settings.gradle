@@ -8,4 +8,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'h2-demo'
+rootProject.name = 'metadata-repo-demo'

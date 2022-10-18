@@ -121,6 +121,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -424,8 +425,11 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureJvmReachabilityExcludeConfigArgs(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
+        options.getExcludeConfig().putAll(graalVMReachabilityQuery(project, graalExtension, sourceSet,
+                DirectoryConfiguration::isOverride, this::getExclusionConfig,
+                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         GraalVMReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
-        Provider<GraalVMReachabilityMetadataService> serviceProvider = project.getGradle()
+        project.getGradle()
                 .getSharedServices()
                 .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
                     LogLevel logLevel = determineLogLevel();
@@ -434,6 +438,12 @@ public class NativeImagePlugin implements Plugin<Project> {
                     spec.getParameters().getCacheDir().set(
                             new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
                 });
+    }
+
+    private Map.Entry<String, List<String>> getExclusionConfig(ModuleVersionIdentifier moduleVersion,
+            DirectoryConfiguration configuration) {
+        String gav = moduleVersion.getGroup() + ":" + moduleVersion.getName() + ":" + moduleVersion.getVersion();
+        return new AbstractMap.SimpleEntry<>(gav, Arrays.asList("^/META-INF/native-image/.*"));
     }
 
     private static LogLevel determineLogLevel() {
