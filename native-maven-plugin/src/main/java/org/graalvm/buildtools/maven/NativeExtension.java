@@ -53,6 +53,7 @@ import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.Xpp3DomParser;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
@@ -130,6 +131,10 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 String testIdsDir = testIdsDirectory(target);
                 boolean isAgentEnabled = isAgentEnabled(session, nativePlugin);
                 String selectedOptionsName = getSelectedOptionsName(session);
+                Xpp3Dom x = Xpp3DomParser.getTagByName((Xpp3Dom) nativePlugin.getConfiguration(), "agent");
+                System.out.println("\n\n\n\n\n\n*****************************************************************************\n\n\n\n\n\n");
+                assert x != null;
+                System.out.println(x.getName() + " ------- " + x.getParent().getName());
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
