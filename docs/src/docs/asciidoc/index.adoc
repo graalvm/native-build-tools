@@ -19,6 +19,10 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.16
+
+* Fixed regression with a reachability-metadata repository
+
 === Release 0.9.15
 
 * Upgrade to GraalVM metadata repository 0.2.3.
