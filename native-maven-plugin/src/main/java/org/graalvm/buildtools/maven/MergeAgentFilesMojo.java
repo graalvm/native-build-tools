@@ -49,7 +49,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
-import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 
 import java.io.File;
@@ -84,7 +84,7 @@ public class MergeAgentFilesMojo extends AbstractMojo {
         String agentOutputDirectory = agentOutputDirectoryFor(target, NativeExtension.Context.valueOf(context));
         File baseDir = new File(agentOutputDirectory);
         if (baseDir.exists()) {
-            Path nativeImageExecutable = Utils.getNativeImage(logger);
+            Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
             File mergerExecutable = tryInstall(nativeImageExecutable);
             List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
             invokeMerge(mergerExecutable, sessionDirectories, baseDir);

@@ -138,27 +138,40 @@
                         </executions>
                         <!-- tag::native-plugin-agent-options[] -->
                         <configuration>
-                            <!-- end::native-plugin-agent-options[] -->
-                            <imageName>${imageName}</imageName>
-                            <fallback>false</fallback>
-                            <!-- tag::native-plugin-agent-options[] -->
                             <agent>
-                                <!-- end::native-plugin-agent-options[] -->
                                 <enabled>true</enabled>
-                                <!-- tag::native-plugin-agent-options[] -->
-                                <options><!-- shared options -->
-                                    <option>experimental-class-loader-support</option>
-                                </options>
-                                <options name="main"><!-- main options -->
-                                    <option>access-filter-file=${basedir}/src/main/resources/access-filter.json</option>
-                                </options>
-                                <options name="test"><!-- test options -->
-                                    <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
-                                </options>
-                                <options name="periodic-config"><!-- periodic-config options -->
-                                    <option>config-write-period-secs=30</option>
-                                    <option>config-write-initial-delay-secs=5</option>
-                                </options>
+                                <defaultMode>standard</defaultMode>
+                                <disabledPhases>
+                                    <phase>test</phase>
+                                </disabledPhases>
+                                <modes>
+                                    <standard>
+                                    </standard>
+                                    <conditional>
+                                        <userCodeFilterPath>path-to-filter.json</userCodeFilterPath>
+                                        <extraFilterPath>path-to-another-filter.json</extraFilterPath>
+                                    </conditional>
+                                    <direct>
+                                        <options>
+                                            <option>config-output-dir={output_dir}</option>
+                                            <option>experimental-configuration-with-origins</option>
+                                        </options>
+                                    </direct>
+                                </modes>
+                                <commonOptions>
+                                    <callerFilterFiles>filter.json</callerFilterFiles>
+                                    <accessFilterFiles>filter.json</accessFilterFiles>
+                                    <builtinCallerFilter>true</builtinCallerFilter>
+                                    <builtinHeuristicFilter>true</builtinHeuristicFilter>
+                                    <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
+                                    <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
+                                    <trackReflectionMetadata>true</trackReflectionMetadata>
+                                </commonOptions>
+                                <metadataCopy>
+                                    <outputDirectories>
+                                        <dir>src/main/resources/META-INF/native-image</dir>
+                                    </outputDirectories>
+                                </metadataCopy>
                             </agent>
                         </configuration>
                         <!-- end::native-plugin-agent-options[] -->

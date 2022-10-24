@@ -41,30 +41,6 @@
 
 package org.graalvm.buildtools.maven;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecution;
@@ -73,10 +49,22 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.graalvm.buildtools.Utils;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
+
+import javax.inject.Inject;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.*;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNativeImage;
 
 /**
  * @author Sebastien Deleuze
@@ -383,7 +371,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
-        Path nativeImageExecutable = Utils.getNativeImage(logger);
+        Path nativeImageExecutable = getNativeImage(logger);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
@@ -419,7 +407,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (requiredVersion == null) {
             return;
         }
-        Path nativeImageExecutable = Utils.getNativeImage(logger);
+        Path nativeImageExecutable = getNativeImage(logger);
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
             processBuilder.command().add("--version");
