@@ -92,8 +92,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         return baseDir + File.separator + "test-ids";
     }
 
-    private static String graalvmJava;
-
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
         String effectiveOutputDir = agentOutputDirectoryFor(baseDir, context);
@@ -117,12 +115,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     @Override
     public void afterProjectsRead(MavenSession session) {
-        try {
-            graalvmJava = Utils.getNativeImage(logger).getParent().resolve("java").toString();
-        } catch (MojoExecutionException e) {
-            throw new RuntimeException(e);
-        }
-
         for (MavenProject project : session.getProjects()) {
             Build build = project.getBuild();
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
@@ -167,7 +159,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                                     for (Xpp3Dom child : children) {
                                         commandlineArgs.addChild(child);
                                     }
-                                    findOrAppend(config, "executable").setValue(graalvmJava);
+                                    findOrAppend(config, "executable").setValue(getGraalvmJava());
                                 }
                             })
                     );
@@ -321,7 +313,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             Xpp3Dom argLine = new Xpp3Dom("argLine");
             argLine.setValue(agentArgument);
             configuration.addChild(argLine);
-            findOrAppend(configuration, "jvm").setValue(graalvmJava);
+            findOrAppend(configuration, "jvm").setValue(getGraalvmJava());
         });
     }
 
@@ -358,6 +350,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             parent.addChild(child);
         }
         return child;
+    }
+
+    private static String getGraalvmJava() {
+        try {
+            return Utils.getNativeImage(logger).getParent().resolve("java").toString();
+        } catch (MojoExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
