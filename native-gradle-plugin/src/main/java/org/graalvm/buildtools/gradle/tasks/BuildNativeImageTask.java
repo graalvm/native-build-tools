@@ -41,11 +41,19 @@
 
 package org.graalvm.buildtools.gradle.tasks;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import javax.inject.Inject;
+
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
+import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -67,10 +75,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
+import org.gradle.process.ExecResult;
 
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
@@ -195,6 +200,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 getExecOperations(),
                 logger,
                 diagnostics);
+        checkRequiredVersionIfNeeded(executablePath, options);
         for (String diagnostic : diagnostics.getDiagnostics()) {
             logger.lifecycle(diagnostic);
         }
@@ -218,6 +224,21 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             });
             logger.lifecycle("Native Image written to: " + outputDir);
         }
+    }
+
+    private void checkRequiredVersionIfNeeded(File executablePath, NativeImageOptions options) {
+        if (!options.getRequiredVersion().isPresent()) {
+            return;
+        }
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ExecResult execResult = getExecOperations().exec(spec -> {
+            spec.setStandardOutput(outputStream);
+            spec.args("--version");
+            spec.setExecutable(executablePath.getAbsolutePath());
+        });
+        execResult.assertNormalExitValue();
+        String versionToCheck = new String(outputStream.toByteArray(), StandardCharsets.UTF_8).replace("\n", "");
+        NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionToCheck);
     }
 
 }

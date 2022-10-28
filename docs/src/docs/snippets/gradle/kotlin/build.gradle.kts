@@ -122,6 +122,7 @@ graalvmNative {
             sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
             quickBuild.set(false) // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable, or add --native-quick-build to the CLI)
             richOutput.set(false) // Determines if native-image building should be done with rich output
+            requiredVersion.set('22.3') // The minimal GraalVM version, can be `MAJOR`, `MAJOR.MINOR` or `MAJOR.MINOR.PATCH`
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder
             configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration

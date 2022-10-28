@@ -314,4 +314,13 @@ public interface NativeImageOptions extends Named {
 
     @Input
     ListProperty<String> getExcludeConfigArgs();
+
+    /**
+     * Specify the minimal GraalVM version, can be {@code MAJOR}, {@code MAJOR.MINOR} or {@code MAJOR.MINOR.PATCH}.
+     *
+     * @return the required version property.
+     */
+    @Input
+    @Optional
+    Property<String> getRequiredVersion();
 }

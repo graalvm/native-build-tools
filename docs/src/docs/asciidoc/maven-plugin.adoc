@@ -252,6 +252,13 @@ For example, to build a native image named `executable-name` that uses
 </configuration>
 ----
 
+`<requiredVersion>`::
+If you want to define the minimum GraalVM version, can be `MAJOR`, `MAJOR.MINOR` or `MAJOR.MINOR.PATCH`:
+[source,xml]
+----
+<requiredVersion>22.3</requiredVersion>
+----
+
 NOTE: Most of the aforementioned properties can also be set from command line as a part of Maven invocation -- for example if you want to temporarily enable verbose mode you can append `-Dverbose` to your Maven invocation.
 
 NOTE: If you use GraalVM Enterprise as the `JAVA_HOME` environment, the plugin builds a native image with enterprise features enabled -- for example, an executable will automatically be built with https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e[compressed references] and other optimizations enabled.

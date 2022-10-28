@@ -41,9 +41,13 @@
 
 package org.graalvm.buildtools.maven;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -158,6 +162,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     @Parameter(property = NATIVE_IMAGE_DRY_RUN, defaultValue = "false")
     protected boolean dryRun;
+
+    @Parameter(property = "requiredVersion")
+    protected String requiredVersion;
 
     @Component
     protected ToolchainManager toolchainManager;
@@ -375,6 +382,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected void buildImage() throws MojoExecutionException {
+        checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = Utils.getNativeImage(logger);
 
         try {
@@ -404,6 +412,31 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    protected void checkRequiredVersionIfNeeded() throws MojoExecutionException {
+        if (requiredVersion == null) {
+            return;
+        }
+        Path nativeImageExecutable = Utils.getNativeImage(logger);
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
+            processBuilder.command().add("--version");
+            Process versionCheckProcess = processBuilder.start();
+            if (versionCheckProcess.waitFor() != 0) {
+                String commandString = String.join(" ", processBuilder.command());
+                throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
+            }
+            InputStream inputStream = versionCheckProcess.getInputStream();
+            String versionToCheck = new BufferedReader(
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                    .lines()
+                    .collect(Collectors.joining("\n"));
+            NativeImageUtils.checkVersion(requiredVersion, versionToCheck);
+
+        } catch (IOException | InterruptedException e) {
+            throw new MojoExecutionException("Checking GraalVM version with " + nativeImageExecutable + " failed", e);
         }
     }
 
