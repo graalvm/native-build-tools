@@ -19,6 +19,11 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.17
+
+* Add a `requiredVersion` property to check the minimal GraalVM version
+* Make GraalVM installation check lazy
+
 === Release 0.9.16
 
 * Fixed regression with a reachability-metadata repository
