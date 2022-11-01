@@ -62,10 +62,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNativeImage;
 import static org.graalvm.buildtools.utils.Utils.assertNotEmptyAndTrim;
-import static org.graalvm.buildtools.utils.Utils.parseBoolean;
 
 /**
  * This extension is responsible for configuring the Surefire plugin to enable
@@ -110,7 +110,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             // the same unit of work !).
             effectiveOutputDir = effectiveOutputDir + File.separator + SharedConstants.AGENT_SESSION_SUBDIR;
         }
-        options.add("config-output-dir=" + effectiveOutputDir);
+        String finalEffectiveOutputDir = effectiveOutputDir;
+        options = options.stream().map(option -> option.contains("{output_dir}") ? option.replace("{output_dir}", finalEffectiveOutputDir) : option).collect(Collectors.toList());
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
@@ -125,19 +126,22 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
                 String target = build.getDirectory();
                 String testIdsDir = testIdsDirectory(target);
-                AgentConfiguration agent = AgentUtils.collectAgentProperties(session, (Xpp3Dom) nativePlugin.getConfiguration());
+
+                Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
+                AgentConfiguration agent = AgentUtils.collectAgentProperties(session, configurationRoot);
+                List<String> agentDisabledPhases = AgentUtils.getDisabledPhases(configurationRoot);
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
-                    if (agent != null) {
+                    if (agent.isEnabled() && !agentDisabledPhases.contains(Context.test.name())) {
                         List<String> agentOptions = agent.getAgentCommandLine();
                         configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, Context.test, agentOptions));
                     }
                 });
 
                 // Main configuration
-                if (agent != null) {
+                if (agent.isEnabled() && !agentDisabledPhases.contains(Context.main.name())) {
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if ("java-agent".equals(exec.getId())) {
@@ -195,24 +199,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 .filter(p -> artifactId.equals(p.getArtifactId()))
                 .findFirst()
                 .ifPresent(consumer);
-    }
-
-    private static String getSelectedOptionsName(MavenSession session) {
-        String selectedOptionsName = session.getSystemProperties().getProperty("agentOptions");
-        if (selectedOptionsName == null) {
-            return null;
-        }
-        return assertNotEmptyAndTrim(selectedOptionsName, "agentOptions system property must have a value");
-    }
-
-    private static void processOptionNodes(Xpp3Dom options, List<String> optionsList) {
-        for (Xpp3Dom option : options.getChildren("option")) {
-            String value = assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value");
-            if (value.contains("config-output-dir")) {
-                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
-            }
-            optionsList.add(value);
-        }
     }
 
     private static void configureAgentForSurefire(Plugin surefirePlugin, String agentArgument) {

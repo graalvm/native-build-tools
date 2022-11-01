@@ -78,6 +78,17 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain "containers found"
     }
 
+    def "simple test of agent usage"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        mvn '-Pnative', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+    }
+
     def "agent is used for tests when enabled in POM without custom options"() {
         given:
         withSample("java-application-with-reflection")

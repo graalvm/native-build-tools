@@ -136,7 +136,6 @@
                                 <phase>package</phase>
                             </execution>
                         </executions>
-                        <!-- tag::native-plugin-agent-options[] -->
                         <configuration>
                             <agent>
                                 <enabled>true</enabled>
@@ -174,7 +173,6 @@
                                 </metadataCopy>
                             </agent>
                         </configuration>
-                        <!-- end::native-plugin-agent-options[] -->
                     </plugin>
                 </plugins>
             </build>
