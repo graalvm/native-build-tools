@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":6,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":6,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -287,36 +287,41 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#requiredVersion">requiredVersion</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>protected java.io.File</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#resourcesConfigDirectory">resourcesConfigDirectory</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected org.apache.maven.execution.MavenSession</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#session">session</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#sharedLibrary">sharedLibrary</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected java.util.Map&lt;java.lang.String,&#8203;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#systemProperties">systemProperties</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected org.apache.maven.toolchain.ToolchainManager</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toolchainManager">toolchainManager</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected java.lang.Boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#useArgFile">useArgFile</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#verbose">verbose</a></span></code></th>
 <td class="colLast">&nbsp;</td>
@@ -392,59 +397,64 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>protected void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#checkRequiredVersionIfNeeded()">checkRequiredVersionIfNeeded</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>protected java.util.List&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getBuildArgs()">getBuildArgs</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>protected java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getClasspath()">getClasspath</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected abstract java.util.List&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDependencyScopes()">getDependencyScopes</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMainBuildPath()">getMainBuildPath</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns path to where application classes are stored, or jar artifact if it is produced.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maybeAddGeneratedResourcesConfig(java.util.List)">maybeAddGeneratedResourcesConfig</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;into)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maybeAddReachabilityMetadata(java.util.List)">maybeAddReachabilityMetadata</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;configDirs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#populateApplicationClasspath()">populateApplicationClasspath</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#populateClasspath()">populateClasspath</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processArtifact(org.apache.maven.artifact.Artifact,java.lang.String...)">processArtifact</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact,
                java.lang.String...&nbsp;artifactTypes)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processSupportedArtifacts(org.apache.maven.artifact.Artifact)">processSupportedArtifacts</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#warnIfWrongMetaInfLayout(java.nio.file.Path,org.apache.maven.artifact.Artifact)">warnIfWrongMetaInfLayout</a></span>&#8203;(java.nio.file.Path&nbsp;jarFilePath,
                         org.apache.maven.artifact.Artifact&nbsp;artifact)</code></th>
@@ -810,6 +820,16 @@ protected&nbsp;java.util.List&lt;java.lang.String&gt; jvmArgs</pre>
 protected&nbsp;boolean dryRun</pre>
 </li>
 </ul>
+<a id="requiredVersion">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>requiredVersion</h4>
+<pre>@Parameter(property="requiredVersion")
+protected&nbsp;java.lang.String requiredVersion</pre>
+</li>
+</ul>
 <a id="toolchainManager">
 <!--   -->
 </a>
@@ -1012,6 +1032,20 @@ protected&nbsp;AbstractNativeImageMojo()</pre>
 <h4>buildImage</h4>
 <pre class="methodSignature">protected&nbsp;void&nbsp;buildImage()
                    throws org.apache.maven.plugin.MojoExecutionException</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
+</li>
+</ul>
+<a id="checkRequiredVersionIfNeeded()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>checkRequiredVersionIfNeeded</h4>
+<pre class="methodSignature">protected&nbsp;void&nbsp;checkRequiredVersionIfNeeded()
+                                     throws org.apache.maven.plugin.MojoExecutionException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
