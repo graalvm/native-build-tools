@@ -66,6 +66,7 @@ class NativeImageUtilsTest {
         NativeImageUtils.checkVersion("22", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)");
         NativeImageUtils.checkVersion("22.3", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)");
         NativeImageUtils.checkVersion("22.3.0", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)");
+        NativeImageUtils.checkVersion("22.3.0", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)\n");
     }
 
     @Test

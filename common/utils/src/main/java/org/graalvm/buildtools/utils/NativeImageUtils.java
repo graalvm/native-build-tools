@@ -117,6 +117,7 @@ public class NativeImageUtils {
      * @throws IllegalStateException when the version is not correct
      */
     public static void checkVersion(String requiredVersion, String versionToCheck) {
+        versionToCheck = versionToCheck.trim();
         Matcher requiredMatcher = requiredVersionPattern.matcher(requiredVersion);
         if (!requiredMatcher.matches()) {
             throw new IllegalArgumentException("Invalid version " + requiredVersion + ", should be for example \"22\", \"22.3\" or \"22.3.0\".");
