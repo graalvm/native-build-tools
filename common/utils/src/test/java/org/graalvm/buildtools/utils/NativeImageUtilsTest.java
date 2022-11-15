@@ -107,4 +107,11 @@ class NativeImageUtilsTest {
         );
     }
 
+    @Test
+    void escapeArg() {
+        Assertions.assertEquals("/foo/bar", NativeImageUtils.escapeArg("/foo/bar"));
+        Assertions.assertEquals("c:\\\\foo\\\\bar", NativeImageUtils.escapeArg("c:\\foo\\bar"));
+        Assertions.assertEquals("\"c:\\\\foo\\\\bar baz\"", NativeImageUtils.escapeArg("c:\\foo\\bar baz"));
+    }
+
 }
