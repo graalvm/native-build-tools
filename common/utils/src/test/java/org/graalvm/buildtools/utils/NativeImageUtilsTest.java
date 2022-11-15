@@ -90,6 +90,11 @@ class NativeImageUtilsTest {
     }
 
     @Test
+    void checkVersionWithTrailingNewLine() {
+        NativeImageUtils.checkVersion("22.3.0", "GraalVM 22.3.0\n");
+    }
+
+    @Test
     void checkLowerVersion() {
         Assertions.assertThrows(IllegalStateException.class, () ->
             NativeImageUtils.checkVersion("23", "GraalVM 22.2.1")

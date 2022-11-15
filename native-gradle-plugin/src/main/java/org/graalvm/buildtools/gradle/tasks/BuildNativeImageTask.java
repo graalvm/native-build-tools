@@ -237,7 +237,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             spec.setExecutable(executablePath.getAbsolutePath());
         });
         execResult.assertNormalExitValue();
-        String versionToCheck = new String(outputStream.toByteArray(), StandardCharsets.UTF_8).replace("\n", "");
+        String versionToCheck = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
         NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionToCheck);
     }
 
