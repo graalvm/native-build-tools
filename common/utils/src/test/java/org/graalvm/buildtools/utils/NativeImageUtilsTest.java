@@ -43,6 +43,8 @@ package org.graalvm.buildtools.utils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.regex.Pattern;
+
 class NativeImageUtilsTest {
 
     @Test
@@ -112,6 +114,13 @@ class NativeImageUtilsTest {
         Assertions.assertEquals("/foo/bar", NativeImageUtils.escapeArg("/foo/bar"));
         Assertions.assertEquals("c:\\\\foo\\\\bar", NativeImageUtils.escapeArg("c:\\foo\\bar"));
         Assertions.assertEquals("\"c:\\\\foo\\\\bar baz\"", NativeImageUtils.escapeArg("c:\\foo\\bar baz"));
+    }
+
+    @Test
+    void doNotEscapeQuotedRegexp() {
+        Assertions.assertEquals(Pattern.quote("/foo/bar"), NativeImageUtils.escapeArg(Pattern.quote("/foo/bar")));
+        Assertions.assertEquals(Pattern.quote("c:\\foo\\bar"), NativeImageUtils.escapeArg(Pattern.quote("c:\\foo\\bar")));
+        Assertions.assertEquals(Pattern.quote("c:\\foo\\bar baz"), NativeImageUtils.escapeArg(Pattern.quote("c:\\foo\\bar baz")));
     }
 
 }

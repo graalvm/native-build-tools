@@ -103,9 +103,11 @@ public class NativeImageUtils {
     }
 
     public static String escapeArg(String arg) {
-        arg = arg.replace("\\", "\\\\");
-        if (arg.contains(" ")) {
-            arg = "\"" + arg + "\"";
+        if (!(arg.startsWith("\\Q") && arg.endsWith("\\E"))) {
+            arg = arg.replace("\\", "\\\\");
+            if (arg.contains(" ")) {
+                arg = "\"" + arg + "\"";
+            }
         }
         return arg;
     }
