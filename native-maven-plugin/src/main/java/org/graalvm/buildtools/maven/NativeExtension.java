@@ -129,19 +129,19 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
                 AgentConfiguration agent = AgentUtils.collectAgentProperties(session, configurationRoot);
-                List<String> agentDisabledPhases = AgentUtils.getDisabledPhases(configurationRoot);
+                List<String> agentDisabledStages = AgentUtils.getDisabledStages(configurationRoot);
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
-                    if (agent.isEnabled() && !agentDisabledPhases.contains(Context.test.name())) {
+                    if (agent.isEnabled() && !agentDisabledStages.contains(Context.test.name())) {
                         List<String> agentOptions = agent.getAgentCommandLine();
                         configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, Context.test, agentOptions));
                     }
                 });
 
                 // Main configuration
-                if (agent.isEnabled() && !agentDisabledPhases.contains(Context.main.name())) {
+                if (agent.isEnabled() && !agentDisabledStages.contains(Context.main.name())) {
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if ("java-agent".equals(exec.getId())) {

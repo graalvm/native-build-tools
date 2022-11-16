@@ -43,8 +43,12 @@ package org.graalvm.buildtools.utils;
 import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.agent.*;
+import org.graalvm.buildtools.maven.config.agent.CommonOptionsConfiguration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.utils.Utils.parseBoolean;
@@ -59,9 +63,11 @@ public final class AgentUtils {
             throw new RuntimeException("Default agent mode not provided in configuration.");
         }
 
+        Xpp3Dom agentModes = Xpp3DomParser.getTagByName(agent, "modes");
+
         AgentMode agentMode;
         String mode = defaultModeNode.getValue();
-        switch (mode) {
+        switch (mode.toLowerCase()) {
             case "standard":
                 agentMode = new StandardAgentMode();
                 break;
@@ -70,8 +76,12 @@ public final class AgentUtils {
                 break;
             case "conditional":
                 // conditional mode needs few more options declared in xml
-                Xpp3Dom userCodeFilterPathNode = Xpp3DomParser.getTagByName(agent, "userCodeFilterPath");
-                Xpp3Dom extraFilterPathNode = Xpp3DomParser.getTagByName(agent, "extraFilterPath");
+                if (agentModes == null) {
+                    throw new RuntimeException("AgentModes tag not provided in configuration.");
+                }
+
+                Xpp3Dom userCodeFilterPathNode = Xpp3DomParser.getTagByName(agentModes, "userCodeFilterPath");
+                Xpp3Dom extraFilterPathNode = Xpp3DomParser.getTagByName(agentModes, "extraFilterPath");
 
                 if (userCodeFilterPathNode == null) {
                     throw new Exception("UserCodeFilterPath must be provided in agent configuration");
@@ -79,20 +89,20 @@ public final class AgentUtils {
 
                 agentMode = new ConditionalAgentMode(userCodeFilterPathNode.getValue(),
                                                     extraFilterPathNode != null ? extraFilterPathNode.getValue() : "",
-                                                     parseBooleanNode(agent, "parallel"));
+                                                     parseBooleanNode(agentModes, "parallel"));
                 break;
             case "direct":
-                ArrayList<String> options = new ArrayList<>();
-
-                Xpp3Dom directModeNode = Xpp3DomParser.getTagByName(agent, "direct");
-                if (directModeNode != null) {
-                    // if user provided options for direct mode
-                    Xpp3DomParser.getAllTagsByName(directModeNode, "option")
-                            .stream()
-                            .map(Xpp3Dom::getValue)
-                            .forEach(options::add);
+                // direct mode is given
+                if (agentModes == null) {
+                    throw new RuntimeException("AgentModes tag not provided in configuration.");
                 }
 
+                Xpp3Dom directModeNode = Xpp3DomParser.getTagByName(agentModes, "direct");
+                if (directModeNode == null) {
+                    throw new RuntimeException("Direct agent mode not provided in configuration.");
+                }
+
+                List<String> options = Arrays.stream(directModeNode.getValue().split(" ")).collect(Collectors.toList());
                 agentMode = new DirectAgentMode(options);
                 break;
             default:
@@ -102,19 +112,28 @@ public final class AgentUtils {
         return agentMode;
     }
 
-    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) {
+    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) throws RuntimeException{
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent == null) {
             return new AgentConfiguration();
         }
 
-        ArrayList<String> callerFilterFiles = getFilterFiles(agent, "callerFilterFiles");
-        ArrayList<String> accessFilterFiles = getFilterFiles(agent, "accessFilterFiles");
-        boolean builtinCallerFilter = parseBooleanNode(agent, "builtinCallerFilter");
-        boolean builtinHeuristicFilter = parseBooleanNode(agent, "builtinHeuristicFilter");
-        boolean enableExperimentalPredefinedClasses = parseBooleanNode(agent, "enableExperimentalPredefinedClasses");
-        boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(agent, "enableExperimentalUnsafeAllocationTracing");
-        boolean trackReflectionMetadata = parseBooleanNode(agent, "trackReflectionMetadata");
+        if (!isAgentEnabled(session, agent)) {
+            return new AgentConfiguration();
+        }
+
+        Xpp3Dom commonOptions = Xpp3DomParser.getTagByName(agent, "commonOptions");
+        if (commonOptions == null) {
+            throw new RuntimeException("CommonOptions node not provided in configuration.");
+        }
+
+        ArrayList<String> callerFilterFiles = getFilterFiles(commonOptions, "callerFilterFiles");
+        ArrayList<String> accessFilterFiles = getFilterFiles(commonOptions, "accessFilterFiles");
+        boolean builtinCallerFilter = parseBooleanNode(commonOptions, "builtinCallerFilter");
+        boolean builtinHeuristicFilter = parseBooleanNode(commonOptions, "builtinHeuristicFilter");
+        boolean enableExperimentalPredefinedClasses = parseBooleanNode(commonOptions, "enableExperimentalPredefinedClasses");
+        boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(commonOptions, "enableExperimentalUnsafeAllocationTracing");
+        boolean trackReflectionMetadata = parseBooleanNode(commonOptions, "trackReflectionMetadata");
 
         AgentMode mode;
         try {
@@ -123,23 +142,40 @@ public final class AgentUtils {
             throw new RuntimeException("Agent mode cannot be determined. Reason:" + e.getMessage());
         }
 
-        return isAgentEnabled(session, agent) ? new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
+        return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
                 builtinHeuristicFilter, enableExperimentalPredefinedClasses, enableExperimentalUnsafeAllocationTracing,
-                trackReflectionMetadata, mode) : new AgentConfiguration();
+                trackReflectionMetadata, mode);
     }
 
-    public static ArrayList<String> getDisabledPhases(Xpp3Dom rootNode) {
-        ArrayList<String> disabledPhases = new ArrayList<>();
+    // Keep this implementation until maven Agent is done. This converter can possibly be used
+    public AgentConfiguration convertToCommonAgentConfiguration(org.graalvm.buildtools.maven.config.agent.AgentConfiguration mavenAgentClass) {
+        CommonOptionsConfiguration commonOptions = mavenAgentClass.getCommonOptions();
+        Collection<String> callerFilterFiles = commonOptions.getCallerFilterFiles();
+        Collection<String> accessFilterFiles = commonOptions.getAccessFilterFiles();
+        boolean builtinCallerFilter = commonOptions.isBuiltinCallerFilter();
+        boolean builtinHeuristicFilter = commonOptions.isBuiltinHeuristicFilter();
+        boolean experimentalPredefinedClasses = commonOptions.isEnableExperimentalPredefinedClasses();
+        boolean experimentalUnsafeAllocationTracing = commonOptions.isEnableExperimentalUnsafeAllocationTracing();
+        boolean trackReflectionMetadata = commonOptions.isTrackReflectionMetadata();
+        AgentMode agentMode = mavenAgentClass.getAgentMode();
+
+        return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter, builtinHeuristicFilter,
+                experimentalPredefinedClasses, experimentalUnsafeAllocationTracing, trackReflectionMetadata, agentMode);
+    }
+
+    public static ArrayList<String> getDisabledStages(Xpp3Dom rootNode) {
+        ArrayList<String> disabledStages = new ArrayList<>();
 
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent != null) {
-            Xpp3Dom disabledPhasesNode = Xpp3DomParser.getTagByName(agent, "disabledPhases");
-            if (disabledPhasesNode != null){
-                Xpp3DomParser.getAllTagsByName(disabledPhasesNode, "phase").forEach(phaseNode -> disabledPhases.add(phaseNode.getValue()));
+            Xpp3Dom disabledStagesNode = Xpp3DomParser.getTagByName(agent, "disabledStages");
+            if (disabledStagesNode != null){
+                Xpp3DomParser.getAllTagsByName(disabledStagesNode, "stage")
+                        .forEach(stageNode -> disabledStages.add(stageNode.getValue()));
             }
         }
 
-        return disabledPhases;
+        return disabledStages;
     }
 
     private static boolean isAgentEnabled(MavenSession session, Xpp3Dom agent) {
@@ -152,7 +188,12 @@ public final class AgentUtils {
     }
 
     private static ArrayList<String> getFilterFiles(Xpp3Dom agent, String type) {
-        return Xpp3DomParser.getAllTagsByName(agent, type)
+        Xpp3Dom filterFileNode = Xpp3DomParser.getTagByName(agent, type);
+        if (filterFileNode == null) {
+            return new ArrayList<>();
+        }
+
+        return Xpp3DomParser.getAllTagsByName(filterFileNode, "filterFile")
                 .stream()
                 .map(Xpp3Dom::getValue)
                 .collect(Collectors.toCollection(ArrayList::new));

@@ -38,35 +38,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.maven.config;
+package org.graalvm.buildtools.maven.config.agent;
 
 import org.apache.maven.plugins.annotations.Parameter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MetadataCopyConfiguration {
 
-    @Parameter
-    private List<String> outputDirectories;
+    public static final String DEFAULT_OUTPUT_DIRECTORY = "${project.build.outputDirectory}/META-INF/native-image";
 
-    @Parameter(defaultValue = "${project.basedir}/src/main/resources/META-INF/native-image")
+    @Parameter
+    private List<String> disabledStages;
+
+    @Parameter
+    private boolean merge;
+
+    @Parameter(defaultValue = DEFAULT_OUTPUT_DIRECTORY)
     private String outputDirectory;
 
-    public ArrayList<String> getOutputDirectories() {
-        ArrayList<String> tmp = new ArrayList<>();
-        if (outputDirectories != null) {
-            tmp.addAll(outputDirectories);
-        }
-
-        if (outputDirectory != null) {
-            tmp.add(outputDirectory);
-        }
-
-        return tmp;
+    public List<String> getDisabledStages() {
+        return disabledStages;
     }
 
-    public void setOutputDirectories(List<String> outputDirectories) {
-        this.outputDirectories = outputDirectories;
+    public void setDisabledStages(List<String> disabledStages) {
+        this.disabledStages = disabledStages;
+    }
+
+    public boolean shouldMerge() {
+        return merge;
+    }
+
+    public void setMerge(boolean merge) {
+        this.merge = merge;
+    }
+
+    public String getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setOutputDirectory(String outputDirectory) {
+        this.outputDirectory = outputDirectory;
     }
 }

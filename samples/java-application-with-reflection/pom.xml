@@ -139,27 +139,8 @@
                         <configuration>
                             <agent>
                                 <enabled>true</enabled>
-                                <defaultMode>standard</defaultMode>
-                                <disabledPhases>
-                                    <phase>test</phase>
-                                </disabledPhases>
-                                <modes>
-                                    <standard>
-                                    </standard>
-                                    <conditional>
-                                        <userCodeFilterPath>path-to-filter.json</userCodeFilterPath>
-                                        <extraFilterPath>path-to-another-filter.json</extraFilterPath>
-                                    </conditional>
-                                    <direct>
-                                        <options>
-                                            <option>config-output-dir={output_dir}</option>
-                                            <option>experimental-configuration-with-origins</option>
-                                        </options>
-                                    </direct>
-                                </modes>
+                                <defaultMode>Standard</defaultMode>
                                 <commonOptions>
-                                    <callerFilterFiles>filter.json</callerFilterFiles>
-                                    <accessFilterFiles>filter.json</accessFilterFiles>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
@@ -167,9 +148,44 @@
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
-                                    <outputDirectories>
-                                        <dir>src/main/resources/META-INF/native-image</dir>
-                                    </outputDirectories>
+                                    <merge>true</merge>
+                                    <outputDirectory>/home/dnestoro/Desktop</outputDirectory>
+                                </metadataCopy>
+                            </agent>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>agentConfiguration</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <configuration>
+                            <agent>
+                                <enabled>true</enabled>
+                                <defaultMode>Standard</defaultMode>
+                                <modes></modes>
+                                <commonOptions>
+                                    <callerFilterFiles>
+                                    </callerFilterFiles>
+                                    <accessFilterFiles>
+                                    </accessFilterFiles>
+                                    <builtinCallerFilter>true</builtinCallerFilter>
+                                    <builtinHeuristicFilter>true</builtinHeuristicFilter>
+                                    <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
+                                    <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
+                                    <trackReflectionMetadata>true</trackReflectionMetadata>
+                                </commonOptions>
+                                <metadataCopy>
+                                    <disabledStages>
+                                        <stage>test</stage>
+                                    </disabledStages>
+                                    <merge>true</merge>
+                                    <outputDirectory>~/work/native-build-tools</outputDirectory>
                                 </metadataCopy>
                             </agent>
                         </configuration>
