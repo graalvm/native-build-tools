@@ -103,9 +103,11 @@ public class NativeImageUtils {
     }
 
     public static String escapeArg(String arg) {
-        arg = arg.replace("\\", "\\\\");
-        if (arg.contains(" ")) {
-            arg = "\"" + arg + "\"";
+        if (!(arg.startsWith("\\Q") && arg.endsWith("\\E"))) {
+            arg = arg.replace("\\", "\\\\");
+            if (arg.contains(" ")) {
+                arg = "\"" + arg + "\"";
+            }
         }
         return arg;
     }
@@ -121,7 +123,7 @@ public class NativeImageUtils {
         if (!requiredMatcher.matches()) {
             throw new IllegalArgumentException("Invalid version " + requiredVersion + ", should be for example \"22\", \"22.3\" or \"22.3.0\".");
         }
-        Matcher checkedMatcher = graalvmVersionPattern.matcher(versionToCheck);
+        Matcher checkedMatcher = graalvmVersionPattern.matcher(versionToCheck.trim());
         if (!checkedMatcher.matches()) {
             throw new IllegalArgumentException("Version to check '" + versionToCheck + "' can't be parsed.");
         }
