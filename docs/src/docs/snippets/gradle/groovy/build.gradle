@@ -195,7 +195,7 @@ graalvmNative {
     metadataRepository {
         // Exclude this library from automatic metadata
         // repository search
-        excludes.add("com.company:some-library")
+        excludedModules.add("com.company:some-library")
     }
 }
 // end::exclude-module-from-metadata-repo[]
