@@ -21,10 +21,10 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.9.18
 
-*Trim GraalVM version to fix Windows support
-*Add tests for NativeImageUtils.escapeArg
-*Do not escape quoted regexp args when using argsfile
-*Upgrade to GraalVM metadata repository 0.2.5
+* Trim GraalVM version to fix Windows support
+* Add tests for NativeImageUtils.escapeArg
+* Do not escape quoted regexp args when using argsfile
+* Upgrade to GraalVM metadata repository 0.2.5
 
 === Release 0.9.17
 
