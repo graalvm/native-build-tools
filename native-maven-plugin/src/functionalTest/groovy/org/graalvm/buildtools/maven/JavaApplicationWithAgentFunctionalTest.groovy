@@ -81,7 +81,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "simple test of agent usage"() {
         given:
         withSample("java-application-with-reflection")
-        mvn '-Pnative', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn '-Pnative', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
         mvn '-Pnative', '-DskipNativeTests', 'native:metadata-copy'
