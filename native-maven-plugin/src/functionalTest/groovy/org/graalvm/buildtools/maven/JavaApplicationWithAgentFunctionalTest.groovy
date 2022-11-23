@@ -88,6 +88,11 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         buildSucceeded
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain " returned non-zero result"
+        outputDoesNotContain "Agent files cannot be copied."
+        outputContains "Metadata copy process finished."
+
     }
 
     def "agent is used for tests when enabled in POM without custom options"() {
