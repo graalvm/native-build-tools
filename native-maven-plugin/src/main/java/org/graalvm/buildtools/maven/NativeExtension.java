@@ -134,14 +134,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
-                    if (agent.isEnabled() && !agentDisabledStages.contains(Context.test.name())) {
+                    if (agent.isEnabled()) {
                         List<String> agentOptions = agent.getAgentCommandLine();
                         configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, Context.test, agentOptions));
                     }
                 });
 
                 // Main configuration
-                if (agent.isEnabled() && !agentDisabledStages.contains(Context.main.name())) {
+                if (agent.isEnabled()) {
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if ("java-agent".equals(exec.getId())) {

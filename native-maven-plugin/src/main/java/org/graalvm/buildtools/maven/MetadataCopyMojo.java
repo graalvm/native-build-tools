@@ -55,11 +55,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Mojo(name = "metadata-copy", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
+
+    public static final String DEFAULT_OUTPUT_DIRECTORY = "/META-INF/native-image";
 
     @Parameter(alias = "agent")
     private AgentConfiguration agentConfiguration;
@@ -78,6 +82,11 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 
             String buildDirectory = project.getBuild().getDirectory() + "/native/agent-output/";
             String destinationDir = config.getOutputDirectory();
+
+            if (destinationDir == null) {
+                destinationDir = project.getBuild().getOutputDirectory() + DEFAULT_OUTPUT_DIRECTORY;
+            }
+
             if (!Files.isDirectory(Paths.get(destinationDir))) {
                 throw new MojoExecutionException("Directory specified in metadata copy configuration dose not exists.");
             }
@@ -86,8 +95,12 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             tryInstallMergeExecutable(nativeImageExecutable);
 
             // if we have some disabled stages we don't have all files necessary for merge, so we don't want to merge files in case some stage is disabled
-            if (config.shouldMerge() && (config.getDisabledStages() == null || config.getDisabledStages().isEmpty())) {
-                executeMerge(buildDirectory);
+            if (config.shouldMerge()) {
+                if (config.getDisabledStages().isEmpty()) {
+                    executeMerge(buildDirectory);
+                } else {
+                    logger.warn("Configuration is inconsistent.");
+                }
             }
 
             executeCopy(buildDirectory, destinationDir);
@@ -96,7 +109,28 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
     }
 
     private void executeCopy(String buildDirectory, String destinationDir) throws MojoExecutionException {
-        List<String> nativeImageConfigureOptions = agentConfiguration.getAgentMode().getNativeImageConfigureOptions(Collections.singletonList(buildDirectory), Collections.singletonList(destinationDir));
+        MetadataCopyConfiguration config = agentConfiguration.getMetadataCopyConfiguration();
+
+        List<String> sourceDirectories = new ArrayList<>(2);
+        List<String> disabledStages = config.getDisabledStages();
+        if (disabledStages.isEmpty()) {
+            sourceDirectories.add(buildDirectory);
+        } else {
+            sourceDirectories.add(buildDirectory + NativeExtension.Context.main.name());
+            sourceDirectories.add(buildDirectory + NativeExtension.Context.test.name());
+
+            for (String disabledStage : disabledStages) {
+                sourceDirectories.remove(buildDirectory + disabledStage);
+            }
+        }
+
+        if (sourceDirectories.isEmpty()) {
+            logger.warn("Skipping metadata copy task. Both main and test stages are disabled in metadata copy configuration.");
+            return;
+        }
+
+        logger.info("Copying files from:" + sourceDirectories);
+        List<String> nativeImageConfigureOptions = agentConfiguration.getAgentMode().getNativeImageConfigureOptions(sourceDirectories, Collections.singletonList(destinationDir));
         nativeImageConfigureOptions.add(0, mergerExecutable.getAbsolutePath());
         ProcessBuilder processBuilder = new ProcessBuilder(nativeImageConfigureOptions);
 
@@ -104,7 +138,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             Process start = processBuilder.start();
             int retCode = start.waitFor();
             if (retCode != 0) {
-                getLog().error("Metadata copy process failed.");
+                getLog().error("Metadata copy process failed with code: " + retCode);
                 throw new MojoExecutionException("Metadata copy process failed.");
             }
         } catch (IOException | InterruptedException e) {
@@ -117,11 +151,10 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         if (baseDir.exists()) {
             File[] mergingFiles = baseDir.listFiles();
             if (mergingFiles != null) {
-                invokeMerge(mergerExecutable, Arrays.stream(mergingFiles).collect(Collectors.toList()), baseDir);
+                invokeMerge(mergerExecutable, Arrays.asList(mergingFiles), baseDir);
             }
         } else {
             getLog().debug("Agent output directory " + baseDir + " doesn't exist. Skipping merge.");
         }
     }
-
 }

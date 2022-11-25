@@ -148,8 +148,10 @@
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
+                                    <disabledStages>
+                                        <stage>test</stage>
+                                    </disabledStages>
                                     <merge>true</merge>
-                                    <outputDirectory>/home/dnestoro/Desktop</outputDirectory>
                                 </metadataCopy>
                             </agent>
                         </configuration>
@@ -181,9 +183,6 @@
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
-                                    <disabledStages>
-                                        <stage>test</stage>
-                                    </disabledStages>
                                     <merge>true</merge>
                                     <outputDirectory>~/work/native-build-tools</outputDirectory>
                                 </metadataCopy>

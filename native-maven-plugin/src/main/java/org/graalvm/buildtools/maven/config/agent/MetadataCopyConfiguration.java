@@ -41,14 +41,10 @@
 package org.graalvm.buildtools.maven.config.agent;
 
 import org.apache.maven.plugins.annotations.Parameter;
-
-import java.io.File;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class MetadataCopyConfiguration {
-
-    public static final String DEFAULT_OUTPUT_DIRECTORY = "${project.build.outputDirectory}/META-INF/native-image";
 
     @Parameter
     private List<String> disabledStages;
@@ -56,11 +52,11 @@ public class MetadataCopyConfiguration {
     @Parameter
     private boolean merge;
 
-    @Parameter(defaultValue = DEFAULT_OUTPUT_DIRECTORY)
+    @Parameter
     private String outputDirectory;
 
     public List<String> getDisabledStages() {
-        return disabledStages;
+        return disabledStages == null ? Collections.emptyList() : disabledStages;
     }
 
     public void setDisabledStages(List<String> disabledStages) {
