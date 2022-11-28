@@ -132,7 +132,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code>, <code>org.gradle.api.Named</code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code>, <code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code>, <code><a href="../dsl/NativeImageRuntimeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageRuntimeOptions</a></code>, <code>org.gradle.api.Named</code></dd>
 </dl>
 <hr>
 <pre>public abstract class <span class="typeNameLabel">BaseNativeImageOptions</span>
@@ -418,11 +418,18 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
 </ul>
 <ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.graalvm.buildtools.gradle.dsl.<a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></h3>
+<code><a href="../dsl/NativeImageCompileOptions.html#getExcludeConfigArgs()">getExcludeConfigArgs</a>, <a href="../dsl/NativeImageCompileOptions.html#getUseFatJar()">getUseFatJar</a></code></li>
+</ul>
+<ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.graalvm.buildtools.gradle.dsl.NativeImageOptions">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.graalvm.buildtools.gradle.dsl.<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></h3>
-<code><a href="../dsl/NativeImageOptions.html#getExcludeConfigArgs()">getExcludeConfigArgs</a>, <a href="../dsl/NativeImageOptions.html#getRequiredVersion()">getRequiredVersion</a>, <a href="../dsl/NativeImageOptions.html#getUseFatJar()">getUseFatJar</a></code></li>
+<code><a href="../dsl/NativeImageOptions.html#asCompileOptions()">asCompileOptions</a>, <a href="../dsl/NativeImageOptions.html#getRequiredVersion()">getRequiredVersion</a></code></li>
 </ul>
 </li>
 </ul>
@@ -492,7 +499,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.String&gt;&nb
 <div class="block">Gets the name of the native executable to be generated.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getImageName()">getImageName</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getImageName()">getImageName</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The image name property.</dd>
 </dl>
@@ -513,7 +520,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.String&gt;&nb
  </p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getMainClass()">getMainClass</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getMainClass()">getMainClass</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>mainClass The main class.</dd>
 </dl>
@@ -530,7 +537,7 @@ public abstract&nbsp;org.gradle.api.provider.ListProperty&lt;java.lang.String&gt
 <div class="block">Returns the arguments for the native-image invocation.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getBuildArgs()">getBuildArgs</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getBuildArgs()">getBuildArgs</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Arguments for the native-image invocation.</dd>
 </dl>
@@ -547,7 +554,7 @@ public abstract&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8
 <div class="block">Returns the system properties which will be used by the native-image builder process.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getSystemProperties()">getSystemProperties</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getSystemProperties()">getSystemProperties</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The system properties. Returns an empty map when there are no system properties.</dd>
 </dl>
@@ -563,7 +570,7 @@ public abstract&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8
 <div class="block">Returns the environment variables which will be used by the native-image builder process.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getEnvironmentVariables()">getEnvironmentVariables</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getEnvironmentVariables()">getEnvironmentVariables</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the environment variables. Returns an empty map when there are no environment variables.</dd>
 <dt><span class="simpleTagLabel">Since:</span></dt>
@@ -583,7 +590,7 @@ public abstract&nbsp;org.gradle.api.file.ConfigurableFileCollection&nbsp;getClas
 <div class="block">Returns the classpath for the native-image building.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getClasspath()">getClasspath</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getClasspath()">getClasspath</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>classpath The classpath for the native-image building.</dd>
 </dl>
@@ -601,7 +608,7 @@ public abstract&nbsp;org.gradle.api.provider.ListProperty&lt;java.lang.String&gt
  Does not include system properties and the minimum/maximum heap size.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getJvmArgs()">getJvmArgs</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getJvmArgs()">getJvmArgs</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The arguments. Returns an empty list if there are no arguments.</dd>
 </dl>
@@ -618,7 +625,7 @@ public abstract&nbsp;org.gradle.api.provider.ListProperty&lt;java.lang.String&gt
 <div class="block">Returns the arguments to use when launching the built image.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getRuntimeArgs()">getRuntimeArgs</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageRuntimeOptions.html#getRuntimeArgs()">getRuntimeArgs</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageRuntimeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageRuntimeOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The arguments. Returns an empty list if there are no arguments.</dd>
 </dl>
@@ -635,7 +642,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 <div class="block">Gets the value which toggles native-image debug symbol output.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getDebug()">getDebug</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getDebug()">getDebug</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Is debug enabled</dd>
 </dl>
@@ -651,7 +658,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getFallback()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getFallback()">getFallback</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getFallback()">getFallback</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Whether to enable fallbacks (defaults to false).</dd>
 </dl>
@@ -668,7 +675,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 <div class="block">Gets the value which toggles native-image verbose output.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getVerbose()">getVerbose</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getVerbose()">getVerbose</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Is verbose output</dd>
 </dl>
@@ -685,7 +692,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 <div class="block">Gets the value which determines if shared library is being built.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getSharedLibrary()">getSharedLibrary</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getSharedLibrary()">getSharedLibrary</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The value which determines if shared library is being built.</dd>
 </dl>
@@ -702,7 +709,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 <div class="block">Gets the value which determines if image is being built in quick build mode.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getQuickBuild()">getQuickBuild</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getQuickBuild()">getQuickBuild</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The value which determines if image is being built in quick build mode.</dd>
 </dl>
@@ -719,7 +726,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&n
 <div class="block">Gets the value which determines if image is being built with rich output.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getRichOutput()">getRichOutput</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getRichOutput()">getRichOutput</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The value which determines if image is being built with rich output.</dd>
 </dl>
@@ -737,7 +744,7 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;org.gradle.jvm.toolchai
  to a Java launcher due to Gradle limitations.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getJavaLauncher()">getJavaLauncher</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getJavaLauncher()">getJavaLauncher</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the detected java launcher</dd>
 </dl>
@@ -755,7 +762,7 @@ public abstract&nbsp;org.gradle.api.file.ConfigurableFileCollection&nbsp;getConf
  to be passed to native-image.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getConfigurationFileDirectories()">getConfigurationFileDirectories</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getConfigurationFileDirectories()">getConfigurationFileDirectories</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a collection of directories</dd>
 </dl>
@@ -774,7 +781,7 @@ public abstract&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.Object,&#8
  regular expressions that match resources that should be excluded.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getExcludeConfig()">getExcludeConfig</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getExcludeConfig()">getExcludeConfig</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a map of filters for configuration exclusion</dd>
 </dl>
@@ -789,7 +796,7 @@ public abstract&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.Object,&#8
 <pre class="methodSignature">public abstract&nbsp;<a href="../dsl/NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a>&nbsp;getResources()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getResources()">getResources</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getResources()">getResources</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -979,7 +986,7 @@ public abstract&nbsp;org.gradle.api.provider.MapProperty&lt;java.lang.Object,&#8
 <pre class="methodSignature">public abstract&nbsp;<a href="../dsl/agent/DeprecatedAgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">DeprecatedAgentOptions</a>&nbsp;getAgent()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../dsl/NativeImageOptions.html#getAgent()">getAgent</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></dd>
+<dd><code><a href="../dsl/NativeImageCompileOptions.html#getAgent()">getAgent</a></code>&nbsp;in interface&nbsp;<code><a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></dd>
 </dl>
 </li>
 </ul>

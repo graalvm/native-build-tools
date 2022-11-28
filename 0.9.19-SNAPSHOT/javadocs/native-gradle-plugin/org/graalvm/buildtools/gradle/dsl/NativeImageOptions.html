@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":6,"i18":6,"i19":6,"i20":6,"i21":6,"i22":6,"i23":6,"i24":6,"i25":6,"i26":6,"i27":6,"i28":6,"i29":6,"i30":6,"i31":6,"i32":6,"i33":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var data = {"i0":6,"i1":18,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -124,7 +124,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li class="blockList">
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><code>org.gradle.api.Named</code></dd>
+<dd><code>org.gradle.api.Named</code>, <code><a href="NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code>, <code><a href="NativeImageRuntimeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageRuntimeOptions</a></code></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
@@ -132,8 +132,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <hr>
 <pre>public interface <span class="typeNameLabel">NativeImageOptions</span>
-extends org.gradle.api.Named</pre>
-<div class="block">Class that declares native image options.</div>
+extends org.gradle.api.Named, <a href="NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a>, <a href="NativeImageRuntimeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageRuntimeOptions</a></pre>
+<div class="block">Class that declares native image options.
+ This object is a domain object which can be configured via
+ the Gradle DSL. Multiple instances of this object can be created,
+ in which case it means we have multiple native binaries.
+ 
+ The DSL combines the compiler options (building a native binary)
+ and the runtime options (executing a native binary).</div>
 </li>
 </ul>
 </div>
@@ -165,7 +171,7 @@ extends org.gradle.api.Named</pre>
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -177,220 +183,87 @@ extends org.gradle.api.Named</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>default <a href="NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#asCompileOptions()">asCompileOptions</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Restricts this object to the list of options which are
+ required for compilation.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#buildArgs(java.lang.Iterable)">buildArgs</a></span>&#8203;(java.lang.Iterable&lt;?&gt;&nbsp;buildArgs)</code></th>
 <td class="colLast">
 <div class="block">Adds arguments for the native-image invocation.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#buildArgs(java.lang.Object...)">buildArgs</a></span>&#8203;(java.lang.Object...&nbsp;buildArgs)</code></th>
 <td class="colLast">
 <div class="block">Adds arguments for the native-image invocation.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#classpath(java.lang.Object...)">classpath</a></span>&#8203;(java.lang.Object...&nbsp;paths)</code></th>
 <td class="colLast">
 <div class="block">Adds elements to the classpath for the native-image building.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code><a href="agent/DeprecatedAgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">DeprecatedAgentOptions</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getAgent()">getAgent</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getBuildArgs()">getBuildArgs</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the arguments for the native-image invocation.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>org.gradle.api.file.ConfigurableFileCollection</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getClasspath()">getClasspath</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the classpath for the native-image building.</div>
-</td>
-</tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.file.ConfigurableFileCollection</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getConfigurationFileDirectories()">getConfigurationFileDirectories</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the list of configuration file directories (e.g.</div>
-</td>
-</tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDebug()">getDebug</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the value which toggles native-image debug symbol output.</div>
-</td>
-</tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getEnvironmentVariables()">getEnvironmentVariables</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the environment variables which will be used by the native-image builder process.</div>
-</td>
-</tr>
-<tr id="i10" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.MapProperty&lt;java.lang.Object,&#8203;java.util.List&lt;java.lang.String&gt;&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExcludeConfig()">getExcludeConfig</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the MapProperty that contains information about configuration that should be excluded
- during image building.</div>
-</td>
-</tr>
-<tr id="i11" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExcludeConfigArgs()">getExcludeConfigArgs</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr id="i12" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getFallback()">getFallback</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr id="i13" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.String&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getImageName()">getImageName</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the name of the native executable to be generated.</div>
-</td>
-</tr>
-<tr id="i14" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;org.gradle.jvm.toolchain.JavaLauncher&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getJavaLauncher()">getJavaLauncher</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the toolchain used to invoke native-image.</div>
-</td>
-</tr>
-<tr id="i15" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getJvmArgs()">getJvmArgs</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the extra arguments to use when launching the JVM for the native-image building process.</div>
-</td>
-</tr>
-<tr id="i16" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.String&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMainClass()">getMainClass</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the fully qualified name of the Main class to be executed.</div>
-</td>
-</tr>
-<tr id="i17" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getName()">getName</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i18" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuickBuild()">getQuickBuild</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the value which determines if image is being built in quick build mode.</div>
-</td>
-</tr>
-<tr id="i19" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRequiredVersion()">getRequiredVersion</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Specify the minimal GraalVM version, can be <code>MAJOR</code>, <code>MAJOR.MINOR</code> or <code>MAJOR.MINOR.PATCH</code>.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
-<td class="colFirst"><code><a href="NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getResources()">getResources</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr id="i21" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRichOutput()">getRichOutput</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the value which determines if image is being built with rich output.</div>
-</td>
-</tr>
-<tr id="i22" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRuntimeArgs()">getRuntimeArgs</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the arguments to use when launching the built image.</div>
-</td>
-</tr>
-<tr id="i23" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSharedLibrary()">getSharedLibrary</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the value which determines if shared library is being built.</div>
-</td>
-</tr>
-<tr id="i24" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSystemProperties()">getSystemProperties</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the system properties which will be used by the native-image builder process.</div>
-</td>
-</tr>
-<tr id="i25" class="rowColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUseFatJar()">getUseFatJar</a></span>()</code></th>
-<td class="colLast">
-<div class="block">If set to true, this will build a fat jar of the image classpath
- instead of passing each jar individually to the classpath.</div>
-</td>
-</tr>
-<tr id="i26" class="altColor">
-<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getVerbose()">getVerbose</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the value which toggles native-image verbose output.</div>
-</td>
-</tr>
-<tr id="i27" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#jvmArgs(java.lang.Iterable)">jvmArgs</a></span>&#8203;(java.lang.Iterable&lt;?&gt;&nbsp;arguments)</code></th>
 <td class="colLast">
 <div class="block">Adds some arguments to use when launching the JVM for the native-image building process.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#jvmArgs(java.lang.Object...)">jvmArgs</a></span>&#8203;(java.lang.Object...&nbsp;arguments)</code></th>
 <td class="colLast">
 <div class="block">Adds some arguments to use when launching the JVM for the native-image building process.</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#resources(org.gradle.api.Action)">resources</a></span>&#8203;(org.gradle.api.Action&lt;? super <a href="NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a>&gt;&nbsp;spec)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#runtimeArgs(java.lang.Iterable)">runtimeArgs</a></span>&#8203;(java.lang.Iterable&lt;?&gt;&nbsp;arguments)</code></th>
 <td class="colLast">
 <div class="block">Adds some arguments to use when launching the built image.</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#runtimeArgs(java.lang.Object...)">runtimeArgs</a></span>&#8203;(java.lang.Object...&nbsp;arguments)</code></th>
 <td class="colLast">
 <div class="block">Adds some arguments to use when launching the built image.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#systemProperties(java.util.Map)">systemProperties</a></span>&#8203;(java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">
 <div class="block">Adds some system properties to be used by the native-image builder process.</div>
 </td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#systemProperty(java.lang.String,java.lang.Object)">systemProperty</a></span>&#8203;(java.lang.String&nbsp;name,
               java.lang.Object&nbsp;value)</code></th>
@@ -399,6 +272,20 @@ extends org.gradle.api.Named</pre>
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.graalvm.buildtools.gradle.dsl.<a href="NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></h3>
+<code><a href="NativeImageCompileOptions.html#getAgent()">getAgent</a>, <a href="NativeImageCompileOptions.html#getBuildArgs()">getBuildArgs</a>, <a href="NativeImageCompileOptions.html#getClasspath()">getClasspath</a>, <a href="NativeImageCompileOptions.html#getConfigurationFileDirectories()">getConfigurationFileDirectories</a>, <a href="NativeImageCompileOptions.html#getDebug()">getDebug</a>, <a href="NativeImageCompileOptions.html#getEnvironmentVariables()">getEnvironmentVariables</a>, <a href="NativeImageCompileOptions.html#getExcludeConfig()">getExcludeConfig</a>, <a href="NativeImageCompileOptions.html#getExcludeConfigArgs()">getExcludeConfigArgs</a>, <a href="NativeImageCompileOptions.html#getFallback()">getFallback</a>, <a href="NativeImageCompileOptions.html#getImageName()">getImageName</a>, <a href="NativeImageCompileOptions.html#getJavaLauncher()">getJavaLauncher</a>, <a href="NativeImageCompileOptions.html#getJvmArgs()">getJvmArgs</a>, <a href="NativeImageCompileOptions.html#getMainClass()">getMainClass</a>, <a href="NativeImageCompileOptions.html#getQuickBuild()">getQuickBuild</a>, <a href="NativeImageCompileOptions.html#getResources()">getResources</a>, <a href="NativeImageCompileOptions.html#getRichOutput()">getRichOutput</a>, <a href="NativeImageCompileOptions.html#getSharedLibrary()">getSharedLibrary</a>, <a href="NativeImageCompileOptions.html#getSystemProperties()">getSystemProperties</a>, <a href="NativeImageCompileOptions.html#getUseFatJar()">getUseFatJar</a>, <a href="NativeImageCompileOptions.html#getVerbose()">getVerbose</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.graalvm.buildtools.gradle.dsl.NativeImageRuntimeOptions">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.graalvm.buildtools.gradle.dsl.<a href="NativeImageRuntimeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageRuntimeOptions</a></h3>
+<code><a href="NativeImageRuntimeOptions.html#getRuntimeArgs()">getRuntimeArgs</a></code></li>
+</ul>
 </li>
 </ul>
 </section>
@@ -427,281 +314,6 @@ java.lang.String&nbsp;getName()</pre>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code>getName</code>&nbsp;in interface&nbsp;<code>org.gradle.api.Named</code></dd>
 </dl>
-</li>
-</ul>
-<a id="getImageName()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getImageName</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.String&gt;&nbsp;getImageName()</pre>
-<div class="block">Gets the name of the native executable to be generated.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The image name property.</dd>
-</dl>
-</li>
-</ul>
-<a id="getMainClass()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getMainClass</h4>
-<pre class="methodSignature">@Input
-@Optional
-org.gradle.api.provider.Property&lt;java.lang.String&gt;&nbsp;getMainClass()</pre>
-<div class="block">Returns the fully qualified name of the Main class to be executed.
- <p>
- This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a <code>Main-Class</code> attribute.
- </p></div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>mainClass The main class.</dd>
-</dl>
-</li>
-</ul>
-<a id="getBuildArgs()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getBuildArgs</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;&nbsp;getBuildArgs()</pre>
-<div class="block">Returns the arguments for the native-image invocation.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Arguments for the native-image invocation.</dd>
-</dl>
-</li>
-</ul>
-<a id="getSystemProperties()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getSystemProperties</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;&nbsp;getSystemProperties()</pre>
-<div class="block">Returns the system properties which will be used by the native-image builder process.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The system properties. Returns an empty map when there are no system properties.</dd>
-</dl>
-</li>
-</ul>
-<a id="getEnvironmentVariables()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getEnvironmentVariables</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;&nbsp;getEnvironmentVariables()</pre>
-<div class="block">Returns the environment variables which will be used by the native-image builder process.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the environment variables. Returns an empty map when there are no environment variables.</dd>
-<dt><span class="simpleTagLabel">Since:</span></dt>
-<dd>0.9.14</dd>
-</dl>
-</li>
-</ul>
-<a id="getClasspath()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getClasspath</h4>
-<pre class="methodSignature">@InputFiles
-@Classpath
-org.gradle.api.file.ConfigurableFileCollection&nbsp;getClasspath()</pre>
-<div class="block">Returns the classpath for the native-image building.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>classpath The classpath for the native-image building.</dd>
-</dl>
-</li>
-</ul>
-<a id="getJvmArgs()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getJvmArgs</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;&nbsp;getJvmArgs()</pre>
-<div class="block">Returns the extra arguments to use when launching the JVM for the native-image building process.
- Does not include system properties and the minimum/maximum heap size.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The arguments. Returns an empty list if there are no arguments.</dd>
-</dl>
-</li>
-</ul>
-<a id="getRuntimeArgs()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getRuntimeArgs</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;&nbsp;getRuntimeArgs()</pre>
-<div class="block">Returns the arguments to use when launching the built image.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The arguments. Returns an empty list if there are no arguments.</dd>
-</dl>
-</li>
-</ul>
-<a id="getDebug()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDebug</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getDebug()</pre>
-<div class="block">Gets the value which toggles native-image debug symbol output.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Is debug enabled</dd>
-</dl>
-</li>
-</ul>
-<a id="getFallback()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getFallback</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getFallback()</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Whether to enable fallbacks (defaults to false).</dd>
-</dl>
-</li>
-</ul>
-<a id="getVerbose()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getVerbose</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getVerbose()</pre>
-<div class="block">Gets the value which toggles native-image verbose output.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Is verbose output</dd>
-</dl>
-</li>
-</ul>
-<a id="getSharedLibrary()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getSharedLibrary</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getSharedLibrary()</pre>
-<div class="block">Gets the value which determines if shared library is being built.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The value which determines if shared library is being built.</dd>
-</dl>
-</li>
-</ul>
-<a id="getQuickBuild()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getQuickBuild</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getQuickBuild()</pre>
-<div class="block">Gets the value which determines if image is being built in quick build mode.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The value which determines if image is being built in quick build mode.</dd>
-</dl>
-</li>
-</ul>
-<a id="getRichOutput()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getRichOutput</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getRichOutput()</pre>
-<div class="block">Gets the value which determines if image is being built with rich output.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The value which determines if image is being built with rich output.</dd>
-</dl>
-</li>
-</ul>
-<a id="getJavaLauncher()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getJavaLauncher</h4>
-<pre class="methodSignature">@Optional
-org.gradle.api.provider.Property&lt;org.gradle.jvm.toolchain.JavaLauncher&gt;&nbsp;getJavaLauncher()</pre>
-<div class="block">Returns the toolchain used to invoke native-image. Currently pointing
- to a Java launcher due to Gradle limitations.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the detected java launcher</dd>
-</dl>
-</li>
-</ul>
-<a id="getConfigurationFileDirectories()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getConfigurationFileDirectories</h4>
-<pre class="methodSignature">@InputFiles
-org.gradle.api.file.ConfigurableFileCollection&nbsp;getConfigurationFileDirectories()</pre>
-<div class="block">Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
- to be passed to native-image.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a collection of directories</dd>
-</dl>
-</li>
-</ul>
-<a id="getExcludeConfig()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getExcludeConfig</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.MapProperty&lt;java.lang.Object,&#8203;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;getExcludeConfig()</pre>
-<div class="block">Returns the MapProperty that contains information about configuration that should be excluded
- during image building. It consists of a dependency coordinates and a list of
- regular expressions that match resources that should be excluded as a value.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a map of filters for configuration exclusion</dd>
-</dl>
-</li>
-</ul>
-<a id="getResources()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getResources</h4>
-<pre class="methodSignature"><a href="NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a>&nbsp;getResources()</pre>
 </li>
 </ul>
 <a id="resources(org.gradle.api.Action)">
@@ -859,33 +471,6 @@ org.gradle.api.provider.MapProperty&lt;java.lang.Object,&#8203;java.util.List&lt
 </dl>
 </li>
 </ul>
-<a id="getUseFatJar()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getUseFatJar</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getUseFatJar()</pre>
-<div class="block">If set to true, this will build a fat jar of the image classpath
- instead of passing each jar individually to the classpath. This
- option can be used in case the classpath is too long and that
- invoking native image fails, which can happen on Windows.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>true if a fatjar should be used. Defaults to true for Windows, and false otherwise.</dd>
-</dl>
-</li>
-</ul>
-<a id="getAgent()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getAgent</h4>
-<pre class="methodSignature"><a href="agent/DeprecatedAgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">DeprecatedAgentOptions</a>&nbsp;getAgent()</pre>
-</li>
-</ul>
 <a id="agent(org.gradle.api.Action)">
 <!--   -->
 </a>
@@ -895,20 +480,10 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getUseFatJar()</p
 <pre class="methodSignature">void&nbsp;agent&#8203;(org.gradle.api.Action&lt;? super <a href="agent/DeprecatedAgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">DeprecatedAgentOptions</a>&gt;&nbsp;spec)</pre>
 </li>
 </ul>
-<a id="getExcludeConfigArgs()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getExcludeConfigArgs</h4>
-<pre class="methodSignature">@Input
-org.gradle.api.provider.ListProperty&lt;java.lang.String&gt;&nbsp;getExcludeConfigArgs()</pre>
-</li>
-</ul>
 <a id="getRequiredVersion()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getRequiredVersion</h4>
 <pre class="methodSignature">@Input
@@ -918,6 +493,23 @@ org.gradle.api.provider.Property&lt;java.lang.String&gt;&nbsp;getRequiredVersion
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the required version property.</dd>
+</dl>
+</li>
+</ul>
+<a id="asCompileOptions()">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>asCompileOptions</h4>
+<pre class="methodSignature">default&nbsp;<a href="NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a>&nbsp;asCompileOptions()</pre>
+<div class="block">Restricts this object to the list of options which are
+ required for compilation. This is required so that Gradle
+ only considers the inputs from that type instead of the
+ full set of properties when building a native binary.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the compilation options.</dd>
 </dl>
 </li>
 </ul>
