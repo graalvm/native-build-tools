@@ -41,14 +41,8 @@
 
 package org.graalvm.buildtools.gradle.tasks;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import javax.inject.Inject;
-
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
+import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
@@ -77,6 +71,12 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
+import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
@@ -88,8 +88,14 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
 
-    @Nested
+    @Internal
     public abstract Property<NativeImageOptions> getOptions();
+
+    @Nested
+    protected NativeImageCompileOptions getCompileOptions() {
+        getOptions().finalizeValue();
+        return getOptions().get().asCompileOptions();
+    }
 
     @Option(option = "quick-build-native", description = "Enables quick build mode")
     public void overrideQuickBuild() {
