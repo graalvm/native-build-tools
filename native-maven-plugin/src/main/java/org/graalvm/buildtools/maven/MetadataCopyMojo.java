@@ -59,6 +59,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @Mojo(name = "metadata-copy", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
 public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
@@ -82,7 +84,6 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 
             String buildDirectory = project.getBuild().getDirectory() + "/native/agent-output/";
             String destinationDir = config.getOutputDirectory();
-
             if (destinationDir == null) {
                 destinationDir = project.getBuild().getOutputDirectory() + DEFAULT_OUTPUT_DIRECTORY;
             }
@@ -95,12 +96,8 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             tryInstallMergeExecutable(nativeImageExecutable);
 
             // if we have some disabled stages we don't have all files necessary for merge, so we don't want to merge files in case some stage is disabled
-            if (config.shouldMerge()) {
-                if (config.getDisabledStages().isEmpty()) {
-                    executeMerge(buildDirectory);
-                } else {
-                    logger.warn("Configuration is inconsistent.");
-                }
+            if (config.getDisabledStages().isEmpty()) {
+                executeMerge(buildDirectory);
             }
 
             executeCopy(buildDirectory, destinationDir);
@@ -111,7 +108,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
     private void executeCopy(String buildDirectory, String destinationDir) throws MojoExecutionException {
         MetadataCopyConfiguration config = agentConfiguration.getMetadataCopyConfiguration();
 
-        List<String> sourceDirectories = new ArrayList<>(2);
+        List<String> sourceDirectories = new ArrayList<>(3);
         List<String> disabledStages = config.getDisabledStages();
         if (disabledStages.isEmpty()) {
             sourceDirectories.add(buildDirectory);
@@ -124,9 +121,23 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             }
         }
 
+        // in case we have both main and test phase disabled, we don't need to copy anything
         if (sourceDirectories.isEmpty()) {
             logger.warn("Skipping metadata copy task. Both main and test stages are disabled in metadata copy configuration.");
             return;
+        }
+
+        // In case user wants to merge agent-output files with some existing files in output directory, we need to check if there are some
+        // files in outputDirectory that can be merged. If output directory is empty, we ignore user instruction that we should merge files.
+        if (config.shouldMerge() && !isDirectoryEmpty(destinationDir)) {
+            //  If output directory contains some files, we need to check if the directory contains all necessary files for merge
+            if (!dirContainsFilesForMerge(destinationDir)) {
+                throw new MojoExecutionException("There are missing files for merge in output directory. If you want to merge agent files with" +
+                        "existing files in output directory, please make sure that output directory contains all of the following files: " +
+                        "reflect-config.json, jni-config.json, proxy-config.json, resource-config.json");
+            }
+
+            sourceDirectories.add(destinationDir);
         }
 
         logger.info("Copying files from:" + sourceDirectories);
@@ -157,4 +168,35 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             getLog().debug("Agent output directory " + baseDir + " doesn't exist. Skipping merge.");
         }
     }
+
+    private boolean dirContainsFilesForMerge(String dir) {
+        List<String> requiredFiles = Arrays.asList("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json");
+
+        File searchingDir = new File(dir);
+        if (searchingDir.isDirectory()) {
+            File[] dirContent = searchingDir.listFiles();
+            if (dirContent == null) {
+                return false;
+            }
+
+            AtomicBoolean containsAllFiles = new AtomicBoolean(true);
+            requiredFiles.forEach(file -> {
+                if (!Arrays.stream(dirContent).map(File::getName).collect(Collectors.toList()).contains(file)) {
+                    containsAllFiles.set(false);
+                }
+            });
+
+            return containsAllFiles.get();
+        }
+
+        return false;
+    }
+
+    private boolean isDirectoryEmpty(String dirName) {
+        File directory = new File(dirName);
+        File[] content = directory.listFiles();
+
+        return content == null || content.length == 0;
+    }
+
 }

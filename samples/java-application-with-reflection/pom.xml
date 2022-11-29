@@ -149,9 +149,10 @@
                                 </commonOptions>
                                 <metadataCopy>
                                     <disabledStages>
-                                        <stage>test</stage>
+                                        <stage>main</stage>
                                     </disabledStages>
-                                    <merge>true</merge>
+                                    <merge>false</merge>
+                                    <outputDirectory>/home/dnestoro/Desktop</outputDirectory>
                                 </metadataCopy>
                             </agent>
                         </configuration>
@@ -170,12 +171,7 @@
                             <agent>
                                 <enabled>true</enabled>
                                 <defaultMode>Standard</defaultMode>
-                                <modes></modes>
                                 <commonOptions>
-                                    <callerFilterFiles>
-                                    </callerFilterFiles>
-                                    <accessFilterFiles>
-                                    </accessFilterFiles>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
@@ -183,8 +179,7 @@
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
-                                    <merge>true</merge>
-                                    <outputDirectory>~/work/native-build-tools</outputDirectory>
+                                    <merge>false</merge>
                                 </metadataCopy>
                             </agent>
                         </configuration>
