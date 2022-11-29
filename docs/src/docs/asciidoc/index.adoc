@@ -19,6 +19,15 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.19
+
+==== Gradle plugin
+
+- Fix `nativeCompile` being out-of-date whenever native runtime arguments change
+- Fix GraalVM metadata repository not downloaded from project repositories by default
+
+==== Maven plugin
+
 === Release 0.9.18
 
 * Trim GraalVM version to fix Windows support
