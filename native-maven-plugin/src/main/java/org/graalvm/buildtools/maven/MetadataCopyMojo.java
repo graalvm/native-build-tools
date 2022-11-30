@@ -76,6 +76,13 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
     @Override
     public void execute() throws MojoExecutionException {
         if (agentConfiguration != null && agentConfiguration.isEnabled()) {
+            // in direct mode user is fully responsible for agent configuration, and we will not execute anything besides line that user provided
+            if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
+                logger.info("You are running agent in direct mode. Skipping both merge and metadata copy tasks.");
+                return;
+            }
+
+
             MetadataCopyConfiguration config = agentConfiguration.getMetadataCopyConfiguration();
             if (config == null) {
                 getLog().info("Metadata copy config not provided. Skipping this task.");
@@ -140,7 +147,8 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             sourceDirectories.add(destinationDir);
         }
 
-        logger.info("Copying files from:" + sourceDirectories);
+        String sourceDirs = sourceDirectories.stream().map(File::new).map(File::getName).collect(Collectors.joining(", "));
+        logger.info("Copying files from: " + sourceDirs);
         List<String> nativeImageConfigureOptions = agentConfiguration.getAgentMode().getNativeImageConfigureOptions(sourceDirectories, Collections.singletonList(destinationDir));
         nativeImageConfigureOptions.add(0, mergerExecutable.getAbsolutePath());
         ProcessBuilder processBuilder = new ProcessBuilder(nativeImageConfigureOptions);

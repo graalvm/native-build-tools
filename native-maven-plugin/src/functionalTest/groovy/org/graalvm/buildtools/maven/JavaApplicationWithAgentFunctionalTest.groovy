@@ -89,10 +89,41 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         then:
         buildSucceeded
         outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
-        outputDoesNotContain " returned non-zero result"
+        outputDoesNotContain "returned non-zero result"
         outputDoesNotContain "Agent files cannot be copied."
         outputContains "Metadata copy process finished."
+    }
 
+    def "simple test of agent usage with direct mode"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn '-PagentConfigurationDirectMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn  '-PagentConfigurationDirectMode', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+        outputContains "You are running agent in direct mode. Skipping both merge and metadata copy tasks."
+    }
+
+    def "simple test of agent usage with disabled stages"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn '-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+        outputDoesNotContain "Agent files cannot be copied."
+        outputContains "Copying files from: test"
+        outputContains "Metadata copy process finished."
     }
 
     def "agent is used for tests when enabled in POM without custom options"() {

@@ -144,15 +144,11 @@
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>true</enableExperimentalPredefinedClasses>
-                                    <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
+                                    <enableExperimentalUnsafeAllocationTracing>true</enableExperimentalUnsafeAllocationTracing>
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
-                                    <disabledStages>
-                                        <stage>main</stage>
-                                    </disabledStages>
-                                    <merge>false</merge>
-                                    <outputDirectory>/home/dnestoro/Desktop</outputDirectory>
+                                    <merge>true</merge>
                                 </metadataCopy>
                             </agent>
                         </configuration>
@@ -161,12 +157,79 @@
             </build>
         </profile>
         <profile>
-            <id>agentConfiguration</id>
+            <id>agentConfigurationDirectMode</id>
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <phase>test</phase>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <agent>
+                                <enabled>true</enabled>
+                                <defaultMode>Direct</defaultMode>
+                                <modes>
+                                    <direct>-agentlib:native-image-agent=config-output-dir=/tmp/temp-config-dir/target/native/agent-output/test/session-{pid}-{datetime},builtin-caller-filter=true,builtin-heuristic-filter=true,experimental-class-define-support=false,experimental-unsafe-allocation-support=false,track-reflection-metadata=true</direct>
+                                </modes>
+                                <commonOptions>
+                                    <builtinCallerFilter>true</builtinCallerFilter>
+                                    <builtinHeuristicFilter>true</builtinHeuristicFilter>
+                                    <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
+                                    <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
+                                    <trackReflectionMetadata>true</trackReflectionMetadata>
+                                </commonOptions>
+                                <metadataCopy>
+                                    <merge>false</merge>
+                                    <outputDirectory>/tmp</outputDirectory>
+                                </metadataCopy>
+                            </agent>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>agentConfigurationWithDisabledStages</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <phase>test</phase>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
                         <configuration>
                             <agent>
                                 <enabled>true</enabled>
@@ -179,7 +242,11 @@
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
+                                    <disabledStages>
+                                        <stage>main</stage>
+                                    </disabledStages>
                                     <merge>false</merge>
+                                    <outputDirectory>/tmp</outputDirectory>
                                 </metadataCopy>
                             </agent>
                         </configuration>
@@ -188,7 +255,6 @@
             </build>
         </profile>
     </profiles>
-
     <build>
         <plugins>
             <plugin>
