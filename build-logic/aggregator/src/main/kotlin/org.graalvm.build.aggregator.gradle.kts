@@ -74,11 +74,19 @@ tasks.named("check") {
     }
 }
 
+tasks.register("showPublications") {
+    gradle.includedBuilds.forEach {
+        if (it.name != "docs" && !it.projectDir.path.contains("build-logic")) {
+            dependsOn(it.task(":showPublications"))
+        }
+    }
+}
+
 listOf(
-        "publishTo" to "MavenLocal",
-        "publishAllPublicationsTo" to "CommonRepository",
-        "publishAllPublicationsTo" to "SnapshotsRepository",
-        "publishAllPublicationsTo" to "NexusRepository",
+    "publishTo" to "MavenLocal",
+    "publishAllPublicationsTo" to "CommonRepository",
+    "publishAllPublicationsTo" to "SnapshotsRepository",
+    "publishAllPublicationsTo" to "NexusRepository",
 ).forEach { entry ->
     val (taskPrefix, repo) = entry
     tasks.register("$taskPrefix$repo") {
@@ -123,8 +131,8 @@ tasks.register<Zip>("releaseZip") {
 val updateSamples by tasks.registering
 
 mapOf(
-        "updateSamplesDir" to "samples",
-        "updateMavenReprosDir" to "native-maven-plugin/reproducers"
+    "updateSamplesDir" to "samples",
+    "updateMavenReprosDir" to "native-maven-plugin/reproducers"
 ).forEach { (taskName, dir) ->
     val t = tasks.register<org.graalvm.build.samples.SamplesUpdateTask>(taskName) {
         inputDirectory.set(layout.projectDirectory.dir(dir))
