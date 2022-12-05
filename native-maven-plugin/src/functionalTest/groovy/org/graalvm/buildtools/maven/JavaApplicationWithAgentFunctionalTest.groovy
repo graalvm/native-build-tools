@@ -78,13 +78,13 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain "containers found"
     }
 
-    def "simple test of agent usage"() {
+    def "test agent with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn '-Pnative', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn'-Pnative', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
-        mvn '-Pnative', '-DskipNativeTests', 'native:metadata-copy'
+        mvn'-Pnative', '-DskipNativeTests', 'native:metadata-copy'
 
         then:
         buildSucceeded
@@ -94,13 +94,13 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "Metadata copy process finished."
     }
 
-    def "simple test of agent usage with direct mode"() {
+    def "test agent in direct mode with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn '-PagentConfigurationDirectMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn'-PagentConfigurationDirectMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
-        mvn  '-PagentConfigurationDirectMode', '-DskipNativeTests', 'native:metadata-copy'
+        mvn '-PagentConfigurationDirectMode', '-DskipNativeTests', 'native:metadata-copy'
 
         then:
         buildSucceeded
@@ -109,10 +109,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "You are running agent in direct mode. Skipping both merge and metadata copy tasks."
     }
 
-    def "simple test of agent usage with disabled stages"() {
+    def "test agent with metadata copy task and disabled stages"() {
         given:
         withSample("java-application-with-reflection")
-        mvn '-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
         mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeTests', 'native:metadata-copy'

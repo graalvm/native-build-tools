@@ -65,7 +65,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNativeImage;
-import static org.graalvm.buildtools.utils.Utils.assertNotEmptyAndTrim;
 
 /**
  * This extension is responsible for configuring the Surefire plugin to enable

@@ -42,7 +42,7 @@ package org.graalvm.buildtools.utils;
 
 public final class Utils {
 
-    private Utils() {}
+    private Utils() { }
 
     public static boolean parseBoolean(String description, String value) {
         value = assertNotEmptyAndTrim(value, description + " must have a value").toLowerCase();

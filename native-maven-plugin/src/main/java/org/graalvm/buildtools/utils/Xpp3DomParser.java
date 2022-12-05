@@ -38,11 +38,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 package org.graalvm.buildtools.utils;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public class Xpp3DomParser {
 
@@ -62,7 +64,7 @@ public class Xpp3DomParser {
         return null;
     }
 
-    public static LinkedList<Xpp3Dom> getAllTagsByName(Xpp3Dom root, String name) {
+    public static List<Xpp3Dom> getAllTagsByName(Xpp3Dom root, String name) {
         LinkedList<Xpp3Dom> listOfTags = new LinkedList<>();
         Xpp3Dom[] children = root.getChildren();
         for (Xpp3Dom child : children) {

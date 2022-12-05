@@ -42,7 +42,14 @@ package org.graalvm.buildtools.utils;
 
 import org.apache.maven.execution.MavenSession;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.graalvm.buildtools.agent.*;
+
+import org.graalvm.buildtools.agent.AgentMode;
+import org.graalvm.buildtools.agent.DisabledAgentMode;
+import org.graalvm.buildtools.agent.StandardAgentMode;
+import org.graalvm.buildtools.agent.DirectAgentMode;
+import org.graalvm.buildtools.agent.ConditionalAgentMode;
+import org.graalvm.buildtools.agent.AgentConfiguration;
+
 import org.graalvm.buildtools.maven.config.agent.CommonOptionsConfiguration;
 
 import java.util.ArrayList;
@@ -55,7 +62,7 @@ import static org.graalvm.buildtools.utils.Utils.parseBoolean;
 
 public final class AgentUtils {
 
-    private AgentUtils() {}
+    private AgentUtils() { }
 
     public static AgentMode getAgentMode(Xpp3Dom agent) throws Exception {
         Xpp3Dom defaultModeNode = Xpp3DomParser.getTagByName(agent, "defaultMode");
@@ -112,7 +119,7 @@ public final class AgentUtils {
         return agentMode;
     }
 
-    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) throws RuntimeException{
+    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) throws RuntimeException {
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent == null) {
             return new AgentConfiguration();
@@ -169,7 +176,7 @@ public final class AgentUtils {
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent != null) {
             Xpp3Dom disabledStagesNode = Xpp3DomParser.getTagByName(agent, "disabledStages");
-            if (disabledStagesNode != null){
+            if (disabledStagesNode != null) {
                 Xpp3DomParser.getAllTagsByName(disabledStagesNode, "stage")
                         .forEach(stageNode -> disabledStages.add(stageNode.getValue()));
             }
