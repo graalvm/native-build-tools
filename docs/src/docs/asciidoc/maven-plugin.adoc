@@ -518,43 +518,35 @@ experimental features such as `experimental-class-loader-support` or advanced fe
 such as
 https://www.graalvm.org/reference-manual/native-image/Agent/#caller-based-filters[Caller-based Filters]
 and https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters[Access Filters]
--- you can include `<options>` within the `<agent>` block of the configuration of the
-`native-maven-plugin` in your POM.
-
-* You can supply multiple sets of `<options>`.
-* You can declare an unnamed `<options>` element which will always be used whenever the
-  agent is enabled. This should be used to declare common options that will be used for
-  all executions with the agent.
-* Additional `<options>` elements must declare a unique `name` attribute.
-    - To configure options for your application, use the name `main`.
-    - To configure options for your tests, use the name `test`.
-    - To configure additional sets of options, declare each with a unique name other than
-      `main` or `test`.
-* The `main` options are enabled automatically whenever your application is run with the
-  agent.
-* The `test` options are enabled automatically whenever your tests are run with the agent.
-* To enable any other set of named `<options>`, supply `-DagentOptions=<NAME>` as a
-  command-line argument for Maven, where `<NAME>` corresponds to the `name` attribute of
-  the `<options>` element.
-
-[WARNING]
-====
-The Native Image Maven plugin automatically configures the `config-output-dir` for the
-agent. An attempt to configure a custom value for the `config-output-dir` option will
-therefore result in a build failure.
-====
-
-The following example is likely more complex than anything you would do in your own
-projects, but it demonstrates how to configure four sets of `<options>`.
-
-* The unnamed set is always active.
-* The `main` set is automatically active for application execution.
-* The `test` set is automatically active for test execution.
-* The `periodic-config` set is never active by default, but it can be enabled via
-  `-DagentOptions=periodic-config` on the command line.
+- you can specify them in your POM as described bellow.
 
 [source,xml,indent=0]
-include::../../../../samples/java-application-with-reflection/pom.xml[tag=native-plugin-agent-options]
+include::../snippets/maven/pom.xml[tag=native-plugin-agent-configuration]
+
+This example shows all possibilities you can use for native agent configuration. If you don't need some of the options,
+just remove them.
+
+Agent can be run in one of the following modes:
+
+* `standard` - in this mode you run agent only with options provided in `commonOptions` section.
+* `direct` - in this mode you can provide command line that you want to be executed as an agent configuration. In this
+     mode, user is fully responsible for agent configuration, and the rest of the config file will be ignored.
+* `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output (https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md[see this]). You
+can read more about conditional mode https://www.graalvm.org/22.1/reference-manual/native-image/ExperimentalAgentOptions/#generating-conditional-configuration-using-the-agent[here].
+
+Each option and how you should use it is described bellow:
+
+* `enabled` - a simple flag that specifies whether the agent is on or off. Can be set to true or false.
+* `defaultMode` - agent mode switcher. Can be set to: standard, direct or conditional.
+* `modes` - list of additional mode options, specific for the mode type. Inside this tag, you can specify options for
+ direct or conditional modes. Standard mode doesn't have any specific options.
+* `commonOptions` - list of options that can be specify independent from agent mode. More about common options can be found
+https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/[here].
+* `metadataCopy` - provides additional options for manipulating the agent output after agent finishes its job.
+    ** You can copy agent output to the specific location (inside `<outputDirectory>`)
+    ** Merge agent output with files located there (by specifying true or false inside `<merge>` tag)
+    ** Disable some of the agent stages (by specifying the stage inside `<disabledStages>`)
+
 
 [[agent-support-running-tests]]
 === Running tests with the agent
