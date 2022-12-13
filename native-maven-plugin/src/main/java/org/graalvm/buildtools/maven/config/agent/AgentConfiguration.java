@@ -89,8 +89,9 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
         if (defaultMode.equalsIgnoreCase("conditional")) {
             Properties conditionalMode = modes.getConditional();
             if (conditionalMode != null) {
+                // TODO assert that userCodeFilterPath is not null
                 return new ConditionalAgentMode(conditionalMode.getProperty("userCodeFilterPath"),
-                                                conditionalMode.getProperty("extraFilterPath"),
+                                                conditionalMode.getProperty("extraFilterPath", ""),
                                                 Boolean.parseBoolean(conditionalMode.getProperty("parallel")));
             }
         }

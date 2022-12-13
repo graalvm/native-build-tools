@@ -88,6 +88,7 @@
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
+                                <phase>test</phase>
                                 <configuration>
                                     <executable>java</executable>
                                     <workingDirectory>${project.build.directory}</workingDirectory>
@@ -159,6 +160,93 @@
             </build>
         </profile>
         <profile>
+            <id>agentConfigurationWithDisabledStages</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>java-agent</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>test</phase>
+                                <configuration>
+                                    <executable>java</executable>
+                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <arguments>
+                                        <argument>-classpath</argument>
+                                        <classpath/>
+                                        <argument>${mainClass}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>native</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${project.build.directory}/${imageName}</executable>
+                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>test-native</id>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <phase>test</phase>
+                            </execution>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <agent>
+                                <enabled>true</enabled>
+                                <defaultMode>Standard</defaultMode>
+                                <commonOptions>
+                                    <builtinCallerFilter>true</builtinCallerFilter>
+                                    <builtinHeuristicFilter>true</builtinHeuristicFilter>
+                                    <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
+                                    <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
+                                    <trackReflectionMetadata>true</trackReflectionMetadata>
+                                </commonOptions>
+                                <metadataCopy>
+                                    <disabledStages>
+                                        <stage>main</stage>
+                                    </disabledStages>
+                                    <merge>false</merge>
+                                    <outputDirectory>/tmp</outputDirectory>
+                                </metadataCopy>
+                            </agent>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>agentConfigurationDirectMode</id>
             <build>
                 <plugins>
@@ -208,14 +296,58 @@
             </build>
         </profile>
         <profile>
-            <id>agentConfigurationWithDisabledStages</id>
+            <id>agentConfigurationConditionalMode</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                    </plugin>
+                    <!-- tag::java-agent-exec[] -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>java-agent</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>test</phase>
+                                <configuration>
+                                    <executable>java</executable>
+                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                    <arguments>
+                                        <argument>-classpath</argument>
+                                        <classpath/>
+                                        <argument>${mainClass}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- end::java-agent-exec[] -->
+                            <execution>
+                                <id>native</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${project.build.directory}/${imageName}</executable>
+                                    <workingDirectory>${project.build.directory}</workingDirectory>
+                                </configuration>
+                            </execution>
+                            <!-- tag::java-agent-exec[] -->
+                        </executions>
+                    </plugin>
+                    <!-- end::java-agent-exec[] -->
+                    <!-- tag::native-plugin-extensions[] -->
                     <plugin>
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
                         <extensions>true</extensions>
+                        <!-- end::native-plugin-extensions[] -->
                         <executions>
                             <execution>
                                 <id>test-native</id>
@@ -232,10 +364,18 @@
                                 <phase>package</phase>
                             </execution>
                         </executions>
+                        <!-- tag::native-plugin-agent-options[] -->
                         <configuration>
+                            <!-- end::native-plugin-agent-options[] -->
                             <agent>
                                 <enabled>true</enabled>
-                                <defaultMode>Standard</defaultMode>
+                                <defaultMode>Conditional</defaultMode>
+                                <modes>
+                                    <conditional>
+                                        <userCodeFilterPath>user-code-filter.json</userCodeFilterPath>
+                                        <parallel>true</parallel>
+                                    </conditional>
+                                </modes>
                                 <commonOptions>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
@@ -244,11 +384,8 @@
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
                                 </commonOptions>
                                 <metadataCopy>
-                                    <disabledStages>
-                                        <stage>main</stage>
-                                    </disabledStages>
                                     <merge>false</merge>
-                                    <outputDirectory>/tmp</outputDirectory>
+                                    <outputDirectory>/home/dnestoro/Desktop</outputDirectory>
                                 </metadataCopy>
                             </agent>
                         </configuration>

@@ -94,6 +94,23 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "Metadata copy process finished."
     }
 
+    def "test agent with metadata copy task and disabled stages"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn '-PagentConfigurationWithDisabledStages', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+        outputDoesNotContain "Agent files cannot be copied."
+        outputContains "Copying files from: test"
+        outputContains "Metadata copy process finished."
+    }
+
     def "test agent in direct mode with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
@@ -109,21 +126,16 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "You are running agent in direct mode. Skipping both merge and metadata copy tasks."
     }
 
-    def "test agent with metadata copy task and disabled stages"() {
+    def "test agent in conditional mode with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn '-PagentConfigurationConditionalMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
-        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeTests', 'native:metadata-copy'
+        mvn '-PagentConfigurationConditionalMode', '-DskipNativeTests', 'native:metadata-copy'
 
         then:
         buildSucceeded
-        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
-        outputDoesNotContain "returned non-zero result"
-        outputDoesNotContain "Agent files cannot be copied."
-        outputContains "Copying files from: test"
-        outputContains "Metadata copy process finished."
     }
 
     def "agent is used for tests when enabled in POM without custom options"() {

@@ -130,17 +130,14 @@ public final class AgentUtils {
         }
 
         Xpp3Dom commonOptions = Xpp3DomParser.getTagByName(agent, "commonOptions");
-        if (commonOptions == null) {
-            throw new RuntimeException("CommonOptions node not provided in configuration.");
-        }
 
-        ArrayList<String> callerFilterFiles = getFilterFiles(commonOptions, "callerFilterFiles");
-        ArrayList<String> accessFilterFiles = getFilterFiles(commonOptions, "accessFilterFiles");
-        boolean builtinCallerFilter = parseBooleanNode(commonOptions, "builtinCallerFilter");
-        boolean builtinHeuristicFilter = parseBooleanNode(commonOptions, "builtinHeuristicFilter");
-        boolean enableExperimentalPredefinedClasses = parseBooleanNode(commonOptions, "enableExperimentalPredefinedClasses");
-        boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(commonOptions, "enableExperimentalUnsafeAllocationTracing");
-        boolean trackReflectionMetadata = parseBooleanNode(commonOptions, "trackReflectionMetadata");
+        ArrayList<String> callerFilterFiles = (ArrayList<String>) getFilterFiles(commonOptions, "callerFilterFiles");
+        ArrayList<String> accessFilterFiles = (ArrayList<String>) getFilterFiles(commonOptions, "accessFilterFiles");
+        Boolean builtinCallerFilter = parseBooleanNode(commonOptions, "builtinCallerFilter");
+        Boolean builtinHeuristicFilter = parseBooleanNode(commonOptions, "builtinHeuristicFilter");
+        Boolean enableExperimentalPredefinedClasses = parseBooleanNode(commonOptions, "enableExperimentalPredefinedClasses");
+        Boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(commonOptions, "enableExperimentalUnsafeAllocationTracing");
+        Boolean trackReflectionMetadata = parseBooleanNode(commonOptions, "trackReflectionMetadata");
 
         AgentMode mode;
         try {
@@ -154,23 +151,7 @@ public final class AgentUtils {
                 trackReflectionMetadata, mode);
     }
 
-    // Keep this implementation until maven Agent is done. This converter can possibly be used
-    public AgentConfiguration convertToCommonAgentConfiguration(org.graalvm.buildtools.maven.config.agent.AgentConfiguration mavenAgentClass) {
-        CommonOptionsConfiguration commonOptions = mavenAgentClass.getCommonOptions();
-        Collection<String> callerFilterFiles = commonOptions.getCallerFilterFiles();
-        Collection<String> accessFilterFiles = commonOptions.getAccessFilterFiles();
-        boolean builtinCallerFilter = commonOptions.isBuiltinCallerFilter();
-        boolean builtinHeuristicFilter = commonOptions.isBuiltinHeuristicFilter();
-        boolean experimentalPredefinedClasses = commonOptions.isEnableExperimentalPredefinedClasses();
-        boolean experimentalUnsafeAllocationTracing = commonOptions.isEnableExperimentalUnsafeAllocationTracing();
-        boolean trackReflectionMetadata = commonOptions.isTrackReflectionMetadata();
-        AgentMode agentMode = mavenAgentClass.getAgentMode();
-
-        return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter, builtinHeuristicFilter,
-                experimentalPredefinedClasses, experimentalUnsafeAllocationTracing, trackReflectionMetadata, agentMode);
-    }
-
-    public static ArrayList<String> getDisabledStages(Xpp3Dom rootNode) {
+    public static List<String> getDisabledStages(Xpp3Dom rootNode) {
         ArrayList<String> disabledStages = new ArrayList<>();
 
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
@@ -194,8 +175,12 @@ public final class AgentUtils {
         return parseBooleanNode(agent, "enabled");
     }
 
-    private static ArrayList<String> getFilterFiles(Xpp3Dom agent, String type) {
-        Xpp3Dom filterFileNode = Xpp3DomParser.getTagByName(agent, type);
+    private static List<String> getFilterFiles(Xpp3Dom root, String type) {
+        if (root == null) {
+            return new ArrayList<>();
+        }
+
+        Xpp3Dom filterFileNode = Xpp3DomParser.getTagByName(root, type);
         if (filterFileNode == null) {
             return new ArrayList<>();
         }
@@ -206,11 +191,15 @@ public final class AgentUtils {
                 .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    private static boolean parseBooleanNode(Xpp3Dom root, String name) {
+    private static Boolean parseBooleanNode(Xpp3Dom root, String name) {
+        if (root == null) {
+            return null;
+        }
+
         Xpp3Dom node = Xpp3DomParser.getTagByName(root, name);
         if (node == null) {
             // if node is not provided, default value is false
-            return false;
+            return null;
         }
 
         return Utils.parseBoolean("<" + name + ">", node.getValue());
