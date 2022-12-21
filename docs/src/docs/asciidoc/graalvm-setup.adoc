@@ -36,7 +36,7 @@ setx /M GRAALVM_HOME "C:\path\to\graalvm"
 
 NOTE: Preferably user would also set `JAVA_HOME` variable in the same manner (by replacing `GRAALVM_HOME` with `JAVA_HOME` in previous commands).
 
-== 3. `native-image` tool instalation
+== 3. `native-image` tool installation
 
 .Linux / macOS
 ```bash

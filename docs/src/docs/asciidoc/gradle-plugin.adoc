@@ -12,10 +12,15 @@ For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 
 == Quickstart
 
-[NOTE]
+====
+<<gradle-plugin-quickstart.adoc,Getting Started with Gradle Plugin for GraalVM Native Image>>
+====
+
 ====
 You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
 ====
+
+== Reference Documentation
 
 === Adding the plugin
 
