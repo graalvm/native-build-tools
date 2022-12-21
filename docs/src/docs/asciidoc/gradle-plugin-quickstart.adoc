@@ -1,15 +1,15 @@
 = Getting Started with Gradle Plugin for GraalVM Native Image
 
-This guide demonstrates how to quickly get started with the Gradle plugin for GraalVM Native Image to build a native executable from a Java application.
+This guide shows how to get started with the <<gradle-plugin.adoc,Gradle plugin for GraalVM Native Image>> and build a native executable for a Java application.
 
-You will create a sample application, enable the Gradle plugin for GraalVM Native Image, add support for dynamic features, run JUnit tests, and build a native executable.
+You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
 
 Two ways to build a native executable using the plugin are demonstrated:
 
 - <<#build-a-native-executable-with-resources-autodetection,Build a Native Executable with Resources Autodetection>>
 -  <<#build-a-native-executable-detecting-resources-with-the-agent,Build a Native Executable Detecting Resources with the Agent>>
 
-== Sample Application
+.Note on a Sample Application
 
 You start by creating a **Fortune Teller** sample application that simulates the traditional 
 https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program]. 
@@ -17,11 +17,10 @@ The data for the fortune phrases is provided by https://github.com/your-fortune[
 
 ====
 To use the Native Build Tools, first install GraalVM. 
-The easiest way to install GraalVM is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
+The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
 ```
 bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
 ```
-
 ====
 
 == Prepare a Demo Application
@@ -375,11 +374,11 @@ In this case, the plugin also substitutes `{output_dir}` in the agent options to
 
 === Summary
 
-The Gradle plugin for GraalVM Native Image adds support for building and testing native executables using the https://gradle.org[Gradle]. The plugin has many more features, described in the 
+The Gradle plugin for GraalVM Native Image adds support for building and testing native executables using the https://gradle.org[Gradle]. The plugin has many features, described in the 
 https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html[plugin
 reference documentation].
 
-Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow in that case is just:
+Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just:
 
 [source,shell]
 ----

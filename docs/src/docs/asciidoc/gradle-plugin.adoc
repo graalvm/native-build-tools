@@ -10,6 +10,7 @@ The {doctitle} adds support for building and testing native images using the htt
 
 For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 
+[[quickstart]]
 == Quickstart
 
 ====
@@ -20,7 +21,15 @@ For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
 ====
 
-== Reference Documentation
+====
+The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
+The easiest way to install GraalVM is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
+```
+bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
+```
+====
+
+== Reference documentation
 
 === Adding the plugin
 
