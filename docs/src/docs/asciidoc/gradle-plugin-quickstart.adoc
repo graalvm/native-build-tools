@@ -16,7 +16,7 @@ https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
 The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
 
 ====
-To use the Native Build Tools, first install GraalVM. 
+To use the Native Build Tools, install GraalVM with Native Image. 
 The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
 ```
 bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
