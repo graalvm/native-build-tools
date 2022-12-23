@@ -1,6 +1,8 @@
 = Getting Started with Gradle Plugin for GraalVM Native Image
+The GraalVM team
+:highlighjsdir: {gradle-relative-srcdir}/highlight
 
-This guide shows how to get started with the <<gradle-plugin.adoc,Gradle plugin for GraalVM Native Image>> and build a native executable for a Java application.
+This guide shows how to get started with the <<gradle-plugin.adoc#,Gradle plugin for GraalVM Native Image>> and build a native executable for a Java application.
 
 You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
 
@@ -9,18 +11,23 @@ Two ways to build a native executable using the plugin are demonstrated:
 - <<#build-a-native-executable-with-resources-autodetection,Build a Native Executable with Resources Autodetection>>
 -  <<#build-a-native-executable-detecting-resources-with-the-agent,Build a Native Executable Detecting Resources with the Agent>>
 
-.Note on a Sample Application
+[NOTE]
+====
+.Sample Application
 
 You start by creating a **Fortune Teller** sample application that simulates the traditional 
 https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program]. 
 The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
+====
 
 ====
 To use the Native Build Tools, install GraalVM with Native Image. 
 The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
-```
+
+[source,bash]
+----
 bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
-```
+----
 ====
 
 == Prepare a Demo Application
@@ -29,9 +36,9 @@ bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
 +
 [source,shell]
 ----
-gradle init --project-name fortune --type java-application --package demo --test-framework junit-jupiter --dsl groovy
+gradle init --project-name fortune-parent --type java-application --package demo --test-framework junit-jupiter --dsl groovy
 ----
-. Rename the default `app` directory to `fortune`, then rename the default filename `App.java` to `Fortune.java`, and replace its contents with the following:
+. Rename the default `app` directory to `fortune`, edit the `settings.gradle` file to replace `app` with `fortune`, then rename the default filename `App.java` to `Fortune.java`, and replace its contents with the following:
 +
 [source,java]
 ----
@@ -113,7 +120,7 @@ public class Fortune {
 ----
 . Delete the `fortune/src/test/java` directory, you will add tests in a later stage.
 . Copy and paste the following file,
-https://github.com/graalvm/graalvm-demos/blob/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `fortune/src/main/resources/`. Your project tree should be:
+https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `fortune/src/main/resources/`. Your project tree should be:
 +
 [source,shell]
 ----
@@ -160,21 +167,32 @@ The next steps demonstrate what you should do to enable the
 https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html[Gradle Plugin for GraalVM Native Image].
 . Register the plugin. Add the following to
 `plugins` section of your project’s _build.gradle_ file:
-+
-[source,xml]
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 plugins {
-// ...
+  // ...
 
-id 'org.graalvm.buildtools.native' version '0.9.19'
+  // Apply GraalVM Native Image plugin
+  id 'org.graalvm.buildtools.native' version '{gradle-plugin-version}'
 }
 ----
-+
+
+[source,kotlin,subs="verbatim,attributes",role="multi-language-sample"]
+----
+plugins {
+  // ...
+
+  // Apply GraalVM Native Image plugin
+  id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
+}
+----
+
 The plugin discovers which JAR files it needs to pass to the
 `native-image` builder and what the executable main class should be.
 . The plugin is not yet available on the Gradle Plugin Portal, so declare an additional plugin repository. Open the _settings.gradle_ file and replace the default content with this:
-+
-[source,xml]
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 pluginManagement {
     repositories {
@@ -186,9 +204,23 @@ pluginManagement {
 rootProject.name = 'fortune-parent'
 include('fortune')
 ----
-+
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = "fortune-parent"
+include("fortune")
+----
+
 Note that the `pluginManagement {}` block must appear before any other statements in the file.
 
+[[build-a-native-executable-with-resources-autodetection]]
 == Build a Native Executable with Resources Autodetection
 
 You can already build a native executable by running
@@ -196,8 +228,8 @@ You can already build a native executable by running
 `./gradlew nativeRun`. However, at this stage, running the native executable will fail because this application requires additional metadata: you need to provide it with a list of resources to load.
 
 . Instruct the plugin to automatically detect resources to be included in the native executable. Add this to your `build.gradle` file:
-+
-[source,xml]
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
     binaries.all {
@@ -206,46 +238,74 @@ graalvmNative {
     toolchainDetection = false
 }
 ----
-+
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.all {
+        resources.autodetect()
+    }
+    toolchainDetection.set(false)
+}
+----
+
 Another thing to note here: the plugin may not be able to properly detect the GraalVM installation, because of limitations in Gradle. By default, the plugin selects a Java 11 GraalVM Community Edition. If you want to use GraalVM Enterprise, or a particular version of GraalVM and Java, you need to explicitly tell this in plugin's configuration. For example:
-+
-[source,xml]
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
     binaries {
         main {
             javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(8)
+                languageVersion = JavaLanguageVersion.of(11)
                 vendor = JvmVendorSpec.matching("GraalVM Community")
             }
         }
     }
 }
 ----
-+
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries {
+        main {
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(11)
+                vendor = JvmVendorSpec.matching("GraalVM Community")
+            }
+        }
+    }
+}
+----
+
 The workaround to this is to disable toolchain detection with this command `toolchainDetection = false`.
+
+[start=2]
 . Compile the project and build a native executable at one step:
-+
+
 [source,shell]
 ----
 ./gradlew nativeRun
 ----
-+
+
 The native executable, named _fortune_, is created in the
 _/fortune/build/native/nativeCompile_ directory.
+[start=3]
 . Run the native executable:
-+
+
 [source,shell]
 ----
 ./fortune/build/native/nativeCompile/fortune
 ----
-+
+
 The application starts and prints a random quote.
 
 Configuring the `graalvmNative` plugin to automatically detect resources (`resources.autodetect()`) to be included in a binary is one way to make this example work. Using `resources.autodetect()` works because the application uses resources (_fortunes.json_) which are directly available in the `src/main/resources` location.
 
 In the next section, the guide shows that you can use the tracing agent to do the same.
 
+[[build-a-native-executable-detecting-resources-with-the-agent]]
 == Build a Native Executable by Detecting Resources with the Agent
 
 The Native Image Gradle plugin simplifies generation of the required metadata by injecting the
@@ -293,13 +353,25 @@ To see the benefits of running your application as a native executable, `time` h
 
 You can customize the plugin. For example, change the name of the native executable and pass additional parameters to the plugin in the _build.gradle_ file, as follows:
 
-[source,xml]
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
     binaries {
         main {
             imageName.set('fortuneteller') 
             buildArgs.add('--verbose') 
+        }
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries {
+        main {
+            imageName.set("fortuneteller")
+            buildArgs.add("--verbose")
         }
     }
 }
@@ -313,8 +385,9 @@ The Gradle plugin for GraalVM Native Image can run
 https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] tests on your native executable. This means that the tests will be compiled and run as native code.
 
 . Create the following test in the
-`fortunate/src/test/java/demo/FortuneTest.java` file:
+`fortune/src/test/java/demo/FortuneTest.java` file:
 +
+.fortune/src/test/java/demo/FortuneTest.java
 [source,java]
 ----
 package demo;
@@ -334,19 +407,26 @@ class FortuneTest {
     }
 }
 ----
+
 . Run JUnit tests:
-+
 [source,shell]
 ----
 ./gradlew nativeTest
 ----
-+
+
 The plugin runs tests on the JVM prior to running tests from the native executable. To disable testing support (which comes by default), add the following configuration to the _build.gradle_ file:
-+
-[source,xml]
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
     testSupport = false
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    testSupport.set(false)
 }
 ----
 
@@ -356,17 +436,16 @@ If you need to test collecting metadata with the agent, add the
 `-Pagent` option to the `test` and `nativeTest` task invocations:
 
 . Run the tests on the JVM with the agent:
-+
 [source,shell]
 ----
 ./gradlew -Pagent test
 ----
-+
+
 It runs your application on the JVM with the agent, collects the metadata and uses it for testing on `native-image`. The generated configuration files (containing the metadata) can be found in the
 _$\{buildDir}/native/agent-output/$\{taskName}_ directory. 
 In this case, the plugin also substitutes `{output_dir}` in the agent options to point to this directory.
 . Build a native executable using the metadata collected by the agent:
-+
+
 [source,shell]
 ----
 ./gradlew -Pagent nativeTest

@@ -14,7 +14,7 @@ For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 == Quickstart
 
 ====
-<<gradle-plugin-quickstart.adoc,Getting Started with Gradle Plugin for GraalVM Native Image>>
+<<gradle-plugin-quickstart.adoc#,Getting Started with Gradle Plugin for GraalVM Native Image>>
 ====
 
 ====
