@@ -15,7 +15,7 @@ For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 == Quickstart
 
 ====
-<<maven-plugin-quickstart.adoc,Getting Started with Maven Plugin for GraalVM Native Image>>
+<<maven-plugin-quickstart.adoc#,Getting Started with Maven Plugin for GraalVM Native Image>>
 ====
 
 ====

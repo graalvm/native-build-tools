@@ -1,14 +1,19 @@
 = Getting Started with Maven Plugin for GraalVM Native Image
+The GraalVM team
+:highlighjsdir: {gradle-relative-srcdir}/highlight
 
-This guide shows how to get started with the <<maven-plugin.adoc,Maven plugin for GraalVM Native Image>> and build a native executable for a Java application.
+This guide shows how to get started with the <<maven-plugin.adoc#,Maven plugin for GraalVM Native Image>> and build a native executable for a Java application.
 
 You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
 
-.Note on a Sample Application
+[NOTE]
+====
+.Sample Application
 
-You start by creating a **Fortune Teller** sample application that simulates the traditional 
-https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program]. 
+You start by creating a **Fortune Teller** sample application that simulates the traditional
+https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
 The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
+====
 
 ====
 The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
@@ -21,7 +26,9 @@ It will then make use of Maven profiles to enable building and testing of native
 
 == Prepare a Demo Application
 
-. Create a new Java project with *Maven* in your favorite IDE, called "Fortune", in the `demo` package. The application should contain a sole Java file with the following content:
+. Create a new Java project with *Maven* in your favorite IDE, called "Fortune", in the `demo` package.
+Make sure to choose JUnit Jupiter as the test engine.
+The application should contain a sole Java file with the following content:
 +
 [source,java]
 ----
@@ -99,7 +106,7 @@ public class Fortune {
 }
 ----
 . Copy and paste the following file,
-https://github.com/graalvm/graalvm-demos/blob/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `resources/`. Your project tree should be:
+https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `resources/`. Your project tree should be:
 +
 [source,shell]
 ----
@@ -339,7 +346,7 @@ The agent generates the configuration files in a subdirectory of `target/native/
 +
 [source,shell]
 ----
-mvn -Pnative -Dagent package
+mvn -DskipTests=true -Pnative -Dagent package
 ----
 +
 When the command completes a native executable, _fortune_, is created in the _/target_ directory of the project and ready for use.
@@ -402,6 +409,30 @@ the following example:
     </dependency>
 </dependencies>
 ----
+. Create the following test in the
+`src/test/java/demo/FortuneTest.java` file:
++
+.src/test/java/demo/FortuneTest.java
+[source,java]
+----
+package demo;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class FortuneTest {
+    @Test
+    @DisplayName("Returns a fortune")
+    void testItWorks() throws JsonProcessingException {
+        Fortune fortune = new Fortune();
+        assertTrue(fortune.randomFortune().length()>0);
+    }
+}
+----
++
 . Run native tests:
 +
 [source,shell]
@@ -413,7 +444,7 @@ Run `-Pnative` profile will then build and run native tests.
 
 === Summary
 
-The Maven plugin for GraalVM Native Image adds support for building and testing native executables using https://maven.apache.org/[Apache Maven™]. The plugin has many features, described in the <<maven-plugin.adoc,plugin reference documentation>>.
+The Maven plugin for GraalVM Native Image adds support for building and testing native executables using https://maven.apache.org/[Apache Maven™]. The plugin has many features, described in the <<maven-plugin.adoc#,plugin reference documentation>>.
 
 Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just:
 
