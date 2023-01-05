@@ -93,9 +93,9 @@ public class Fortune {
     }
 
     public String randomFortune() {
-        //Pick a random number
+        // Pick a random number
         int r = RANDOM.nextInt(fortunes.size());
-        //Use the random number to pick a random fortune
+        // Use the random number to pick a random fortune
         return fortunes.get(r);
     }
 
@@ -457,11 +457,4 @@ The Gradle plugin for GraalVM Native Image adds support for building and testing
 https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html[plugin
 reference documentation].
 
-Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just:
-
-[source,shell]
-----
-./gradlew nativeRun
-----
-
-Lastly, if you use GraalVM Enterprise as your `JAVA_HOME` environment, the plugin builds a native executable with enterprise features enabled.
+Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just `./gradlew nativeRun`.

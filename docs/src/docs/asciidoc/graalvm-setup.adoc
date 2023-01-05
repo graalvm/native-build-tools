@@ -2,11 +2,11 @@
 
 image:https://www.graalvm.org/resources/img/logo-colored.svg[GraalVM]
 
-Working GraalVM distribution with `native-image` installable and `GRAALVM_HOME` and/or `JAVA_HOME` environment variables set, is the prequisite for a successful *native-image* building.
+As a prerequisite for building with GraalVM Native Image, a GraalVM JDK is required and the `GRAALVM_HOME` and/or `JAVA_HOME` environment variables need to be set.
 
-Following are the steps needed to obtain and setup the GraalVM environment.
+Following are the steps needed to obtain and setup a GraalVM environment.
 
-NOTE: This is just a quick overview, and a user can consult the https://www.graalvm.org/docs/getting-started/[GraalVM Getting Started section] before proceeding.
+NOTE: This is just a quick overview, and users can consult the https://www.graalvm.org/docs/getting-started/[GraalVM Getting Started section] before proceeding.
 
 == 1. Obtaining distribution
 

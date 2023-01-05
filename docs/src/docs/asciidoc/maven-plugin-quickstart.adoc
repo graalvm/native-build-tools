@@ -446,14 +446,4 @@ Run `-Pnative` profile will then build and run native tests.
 
 The Maven plugin for GraalVM Native Image adds support for building and testing native executables using https://maven.apache.org/[Apache Maven™]. The plugin has many features, described in the <<maven-plugin.adoc#,plugin reference documentation>>.
 
-Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just:
-
-[source,shell]
-----
-mvn clean compile
-mvn -Pnative package
-----
-
-Another advantage of the plugin is that if you use GraalVM Enterprise as
-your `JAVA_HOME` environment, the plugin builds a native executable with
-enterprise features enabled.
+Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just `mvn clean -Pnative package`.
