@@ -26,7 +26,7 @@ The easiest way to install GraalVM with Native Image is to use the https://githu
 
 [source,bash]
 ----
-bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
+bash <(curl -sL https://get.graalvm.org/jdk)
 ----
 ====
 
