@@ -19,7 +19,7 @@ The data for the fortune phrases is provided by https://github.com/your-fortune[
 The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
 The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
 ```
-bash <(curl -sL https://get.graalvm.org/jdk) -c 'native-image'
+bash <(curl -sL https://get.graalvm.org/jdk)
 ```
 It will then make use of Maven profiles to enable building and testing of native executables. 
 ====
@@ -263,6 +263,7 @@ https://graalvm.github.io/native-build-tools/latest/maven-plugin.html[Maven plug
 </profiles>
 ----
 +
+It pulls the latest plugin version. Replace `${native.maven.plugin.version}` with a specific version if you prefer.
 The plugin discovers which JAR files it needs to pass to the
 `native-image` builder and what the executable main class should be. With this plugin you can already build a native executable directly with Maven by running `mvn -Pnative package` (if your application does not call any methods reflectively at run time).
 +
@@ -328,7 +329,7 @@ application the plugin.
 
 == Build a Native Executable
 
-. Compile the project on the Java VM to create a runnable JAR with all dependencies. Open a terminal window and, from the root application directory, run:
+. Compile the project on the JVM to create a runnable JAR with all dependencies. Open a terminal window and, from the root application directory, run:
 +
 [source,shell]
 ----
@@ -341,7 +342,7 @@ mvn clean package
 mvn -Pnative -Dagent exec:exec@java-agent
 ----
 +
-The agent generates the configuration files in a subdirectory of `target/native/agent-output`. Those files will be automatically used by the `native-image` tool if you pass the appropriate options.
+The agent collects the metadata and generates the configuration files in a subdirectory of `target/native/agent-output`. Those files will be automatically used by the `native-image` tool if you pass the appropriate options.
 . Now build a native executable with the Maven profile:
 +
 [source,shell]
