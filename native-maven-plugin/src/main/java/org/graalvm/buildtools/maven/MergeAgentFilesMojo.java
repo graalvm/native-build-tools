@@ -59,8 +59,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.graalvm.buildtools.maven.NativeExtension.agentOutputDirectoryFor;
-
 @Mojo(name = "merge-agent-files", defaultPhase = LifecyclePhase.TEST)
 public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -77,7 +75,28 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        String agentOutputDirectory = agentOutputDirectoryFor(target, NativeExtension.Context.valueOf(context));
+        List<String> disabledPhases = agentConfiguration.getMetadataCopyConfiguration().getDisabledStages();
+        if (disabledPhases.size() == 0) {
+            List<String> dirs = Arrays.asList("test", "main");
+            for (String dir : dirs) {
+                String agentOutputDirectory = (target + "/native/agent-output/" + dir).replace('/', File.separatorChar);
+                mergeForGivenDir(agentOutputDirectory);
+            }
+
+            return;
+        }
+
+        if (disabledPhases.size() == 2) {
+            logger.info("Both phases are skipped.");
+            return;
+        }
+
+        String base = disabledPhases.get(0).equalsIgnoreCase("test") ? "main" : "test";
+        String agentOutputDirectory = (target + "/native/agent-output/" + base).replace('/', File.separatorChar);
+        mergeForGivenDir(agentOutputDirectory);
+    }
+
+    private void mergeForGivenDir(String agentOutputDirectory) throws MojoExecutionException {
         File baseDir = new File(agentOutputDirectory);
         if (baseDir.exists()) {
             Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);

@@ -175,9 +175,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                         Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
-                        if (!agentDisabledStages.contains(context.name())) {
-                            setupMergeAgentFiles(exec, configuration, context);
-                        }
+                        setupMergeAgentFiles(exec, configuration, context);
                     });
                 }
             });

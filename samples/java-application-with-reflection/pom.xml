@@ -385,7 +385,7 @@
                                 </commonOptions>
                                 <metadataCopy>
                                     <merge>false</merge>
-                                    <outputDirectory>/home/dnestoro/Desktop</outputDirectory>
+                                    <outputDirectory>/tmp</outputDirectory>
                                 </metadataCopy>
                             </agent>
                         </configuration>
