@@ -50,11 +50,9 @@ import org.graalvm.buildtools.agent.DirectAgentMode;
 import org.graalvm.buildtools.agent.ConditionalAgentMode;
 import org.graalvm.buildtools.agent.AgentConfiguration;
 
-import org.graalvm.buildtools.maven.config.agent.CommonOptionsConfiguration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 

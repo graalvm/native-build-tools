@@ -49,6 +49,10 @@ import java.util.List;
 public class Xpp3DomParser {
 
     public static Xpp3Dom getTagByName(Xpp3Dom root, String name) {
+        if (root == null) {
+            return null;
+        }
+
         if (root.getName().equalsIgnoreCase(name)) {
             return root;
         }
@@ -66,6 +70,11 @@ public class Xpp3DomParser {
 
     public static List<Xpp3Dom> getAllTagsByName(Xpp3Dom root, String name) {
         LinkedList<Xpp3Dom> listOfTags = new LinkedList<>();
+
+        if (root == null) {
+            return listOfTags;
+        }
+
         Xpp3Dom[] children = root.getChildren();
         for (Xpp3Dom child : children) {
             if (child.getName().equalsIgnoreCase(name)) {

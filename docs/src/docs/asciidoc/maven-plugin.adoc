@@ -532,7 +532,7 @@ Agent can be run in one of the following modes:
 * `direct` - in this mode you can provide command line that you want to be executed as an agent configuration. In this
      mode, user is fully responsible for agent configuration, and the rest of the config file will be ignored.
 * `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output (https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md[see this]). You
-can read more about conditional mode https://www.graalvm.org/22.1/reference-manual/native-image/ExperimentalAgentOptions/#generating-conditional-configuration-using-the-agent[here].
+can read more about conditional mode https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/[here].
 
 Each option and how you should use it is described bellow:
 

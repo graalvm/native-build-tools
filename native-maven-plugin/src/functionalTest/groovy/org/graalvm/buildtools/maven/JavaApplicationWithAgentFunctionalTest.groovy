@@ -138,6 +138,17 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         buildSucceeded
     }
 
+    def "test without agent configuration"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        mvn'-PnoAgentConfiguration', 'package'
+
+        then:
+        buildSucceeded
+    }
+
     def "agent is used for tests when enabled in POM without custom options"() {
         given:
         withSample("java-application-with-reflection")

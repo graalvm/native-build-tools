@@ -40,10 +40,7 @@
  */
 package org.graalvm.buildtools.utils;
 
-public final class Utils {
-
-    private Utils() { }
-
+public abstract class Utils {
     public static boolean parseBoolean(String description, String value) {
         value = assertNotEmptyAndTrim(value, description + " must have a value").toLowerCase();
         switch (value) {

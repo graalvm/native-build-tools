@@ -50,6 +50,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
+import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
@@ -75,8 +76,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNativeImage;
 
 /**
  * @author Sebastien Deleuze
@@ -383,7 +382,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
-        Path nativeImageExecutable = getNativeImage(logger);
+        Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
@@ -419,7 +418,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (requiredVersion == null) {
             return;
         }
-        Path nativeImageExecutable = getNativeImage(logger);
+        Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
             processBuilder.command().add("--version");

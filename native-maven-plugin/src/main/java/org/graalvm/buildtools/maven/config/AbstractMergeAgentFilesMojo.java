@@ -42,24 +42,13 @@
 package org.graalvm.buildtools.maven.config;
 
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.codehaus.plexus.logging.Logger;
-import org.codehaus.plexus.util.FileUtils;
-import org.graalvm.buildtools.agent.AgentConfiguration;
-import org.graalvm.buildtools.maven.NativeExtension;
-import org.graalvm.buildtools.utils.LoggerUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
 
