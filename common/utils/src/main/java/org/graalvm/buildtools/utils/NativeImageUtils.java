@@ -133,12 +133,18 @@ public class NativeImageUtils {
             throw new IllegalStateException("GraalVM version " + requiredMajor + " is required but " + checkedMajor +
                     " has been detected, please upgrade.");
         }
+        if (checkedMajor > requiredMajor) {
+            return;
+        }
         if (requiredMatcher.group(2) != null) {
             int requiredMinor = Integer.parseInt(requiredMatcher.group(2));
             int checkedMinor = Integer.parseInt(checkedMatcher.group(2));
             if (checkedMinor < requiredMinor) {
                 throw new IllegalStateException("GraalVM version " + requiredMajor + "." + requiredMinor +
                         " is required but " + checkedMajor + "." + checkedMinor + " has been detected, please upgrade.");
+            }
+            if (checkedMinor > requiredMinor) {
+                return;
             }
             if (requiredMatcher.group(3) != null) {
                 int requiredPatch = Integer.parseInt(requiredMatcher.group(3));
