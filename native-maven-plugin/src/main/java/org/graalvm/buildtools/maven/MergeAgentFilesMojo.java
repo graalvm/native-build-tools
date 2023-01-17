@@ -48,14 +48,13 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
 import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
+import org.graalvm.buildtools.utils.LoggerUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,25 +74,39 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        List<String> disabledPhases = agentConfiguration.getMetadataCopyConfiguration().getDisabledStages();
-        if (disabledPhases.size() == 0) {
-            List<String> dirs = Arrays.asList("test", "main");
-            for (String dir : dirs) {
-                String agentOutputDirectory = (target + "/native/agent-output/" + dir).replace('/', File.separatorChar);
-                mergeForGivenDir(agentOutputDirectory);
-            }
-
+        if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
+            logger.info("Skipping files merge mojo since we are in direct mode");
             return;
         }
 
+        List<String> disabledPhases = agentConfiguration.getMetadataCopyConfiguration().getDisabledStages();
         if (disabledPhases.size() == 2) {
             logger.info("Both phases are skipped.");
             return;
         }
 
-        String base = disabledPhases.get(0).equalsIgnoreCase("test") ? "main" : "test";
-        String agentOutputDirectory = (target + "/native/agent-output/" + base).replace('/', File.separatorChar);
-        mergeForGivenDir(agentOutputDirectory);
+        Set<String> dirs = new HashSet(2);
+        dirs.addAll(Arrays.asList("main", "test"));
+        dirs.removeAll(disabledPhases);
+
+        for (String dir : dirs) {
+            String agentOutputDirectory = (target + "/native/agent-output/" + dir).replace('/', File.separatorChar);
+            mergeForGivenDir(agentOutputDirectory);
+        }
+    }
+
+    private boolean hasPartialConfig(String path) {
+        File dir = new File(path);
+        if (dir.exists()) {
+            File[] content = dir.listFiles();
+
+            if (content == null) {
+                return false;
+            }
+            return Arrays.stream(content).anyMatch(file -> file.getName().equalsIgnoreCase("partial-config-with-origins.json"));
+        }
+
+        return false;
     }
 
     private void mergeForGivenDir(String agentOutputDirectory) throws MojoExecutionException {
