@@ -48,7 +48,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
 import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
-import org.graalvm.buildtools.utils.LoggerUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
@@ -72,8 +71,16 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
     @Parameter(alias = "agent")
     private AgentConfiguration agentConfiguration;
 
+    private static int NUMBER_OF_EXECUTIONS = 0;
+
     @Override
     public void execute() throws MojoExecutionException {
+        // we need this mojo to be executed only once
+        NUMBER_OF_EXECUTIONS++;
+        if (NUMBER_OF_EXECUTIONS > 1) {
+            return;
+        }
+
         if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
             logger.info("Skipping files merge mojo since we are in direct mode");
             return;

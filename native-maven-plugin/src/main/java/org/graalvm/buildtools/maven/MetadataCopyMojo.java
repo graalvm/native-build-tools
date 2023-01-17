@@ -49,7 +49,6 @@ import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
 import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
 import org.graalvm.buildtools.maven.config.agent.MetadataCopyConfiguration;
-import org.graalvm.buildtools.utils.LoggerUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
