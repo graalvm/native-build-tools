@@ -64,8 +64,9 @@ public final class AgentUtils {
 
     public static AgentMode getAgentMode(Xpp3Dom agent) throws Exception {
         Xpp3Dom defaultModeNode = Xpp3DomParser.getTagByName(agent, "defaultMode");
+        // if default mode is not provided in pom, return Standard mode
         if (defaultModeNode == null) {
-            throw new RuntimeException("Default agent mode not provided in configuration.");
+            return new StandardAgentMode();
         }
 
         Xpp3Dom agentModes = Xpp3DomParser.getTagByName(agent, "modes");
@@ -141,7 +142,7 @@ public final class AgentUtils {
         try {
              mode = getAgentMode(agent);
         } catch (Exception e) {
-            throw new RuntimeException("Agent mode cannot be determined. Reason:" + e.getMessage());
+            throw new RuntimeException("Agent mode could not be determined. Reason: " + e.getMessage());
         }
 
         return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
@@ -170,7 +171,13 @@ public final class AgentUtils {
             // -Dagent=[true|false] overrides configuration in the POM.
             return parseBoolean("agent system property", systemProperty);
         }
-        return parseBooleanNode(agent, "enabled");
+
+        Boolean val = parseBooleanNode(agent, "enabled");
+        if (val == null) {
+            return false;
+        }
+
+        return val;
     }
 
     private static List<String> getFilterFiles(Xpp3Dom root, String type) {

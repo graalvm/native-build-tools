@@ -102,20 +102,6 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
         }
     }
 
-    private boolean hasPartialConfig(String path) {
-        File dir = new File(path);
-        if (dir.exists()) {
-            File[] content = dir.listFiles();
-
-            if (content == null) {
-                return false;
-            }
-            return Arrays.stream(content).anyMatch(file -> file.getName().equalsIgnoreCase("partial-config-with-origins.json"));
-        }
-
-        return false;
-    }
-
     private void mergeForGivenDir(String agentOutputDirectory) throws MojoExecutionException {
         File baseDir = new File(agentOutputDirectory);
         if (baseDir.exists()) {

@@ -56,7 +56,7 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
     @Parameter
     private boolean enabled;
 
-    @Parameter
+    @Parameter(defaultValue = "standard")
     private String defaultMode;
 
     @Parameter
@@ -82,6 +82,11 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
     }
 
     public AgentMode getAgentMode() {
+        // if default mode is not declared, we return Standard mode as default
+        if (defaultMode == null) {
+            return new StandardAgentMode();
+        }
+
         if (defaultMode.equalsIgnoreCase("standard")) {
             return new StandardAgentMode();
         }
@@ -89,7 +94,6 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
         if (defaultMode.equalsIgnoreCase("conditional")) {
             Properties conditionalMode = modes.getConditional();
             if (conditionalMode != null) {
-                // TODO assert that userCodeFilterPath is not null
                 return new ConditionalAgentMode(conditionalMode.getProperty("userCodeFilterPath"),
                                                 conditionalMode.getProperty("extraFilterPath", ""),
                                                 Boolean.parseBoolean(conditionalMode.getProperty("parallel")));
@@ -108,7 +112,7 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
     }
 
     public String getDefaultMode() {
-        return defaultMode;
+        return defaultMode != null ? defaultMode : "standard";
     }
 
     public ModesConfiguration getModes() {
