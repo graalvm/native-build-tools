@@ -11,7 +11,7 @@
                 <parallel>true</parallel>
             </conditional>
         </modes>
-        <commonOptions>
+        <options>
             <callerFilterFiles>
                 <filterFile>caller-filter-file1.json</filterFile>
                 <filterFile>caller-filter-file2.json</filterFile>
@@ -27,7 +27,7 @@
                 true
             </enableExperimentalUnsafeAllocationTracing>
             <trackReflectionMetadata>true</trackReflectionMetadata>
-        </commonOptions>
+        </options>
         <metadataCopy>
             <disabledStages>
                 <stage>main</stage>

@@ -53,7 +53,11 @@ import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,13 +75,13 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
     @Parameter(alias = "agent")
     private AgentConfiguration agentConfiguration;
 
-    private static int NUMBER_OF_EXECUTIONS = 0;
+    private static int numberOfExecutions = 0;
 
     @Override
     public void execute() throws MojoExecutionException {
         // we need this mojo to be executed only once
-        NUMBER_OF_EXECUTIONS++;
-        if (NUMBER_OF_EXECUTIONS > 1) {
+        numberOfExecutions++;
+        if (numberOfExecutions > 1) {
             return;
         }
 

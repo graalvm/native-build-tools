@@ -63,7 +63,7 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
     private ModesConfiguration modes;
 
     @Parameter
-    private CommonOptionsConfiguration commonOptions;
+    private AgentOptionsConfiguration options;
 
     @Parameter
     private MetadataCopyConfiguration metadataCopy;
@@ -119,7 +119,7 @@ public class AgentConfiguration extends org.graalvm.buildtools.agent.AgentConfig
         return modes;
     }
 
-    public CommonOptionsConfiguration getCommonOptions() {
-        return commonOptions;
+    public AgentOptionsConfiguration getOptions() {
+        return options;
     }
 }

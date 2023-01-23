@@ -45,7 +45,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 
 import java.util.List;
 
-public class CommonOptionsConfiguration {
+public class AgentOptionsConfiguration {
 
     @Parameter
     private List<String> callerFilterFiles;

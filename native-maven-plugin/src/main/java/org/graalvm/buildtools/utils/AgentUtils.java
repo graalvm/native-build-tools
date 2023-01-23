@@ -128,15 +128,15 @@ public final class AgentUtils {
             return new AgentConfiguration();
         }
 
-        Xpp3Dom commonOptions = Xpp3DomParser.getTagByName(agent, "commonOptions");
+        Xpp3Dom options = Xpp3DomParser.getTagByName(agent, "options");
 
-        ArrayList<String> callerFilterFiles = (ArrayList<String>) getFilterFiles(commonOptions, "callerFilterFiles");
-        ArrayList<String> accessFilterFiles = (ArrayList<String>) getFilterFiles(commonOptions, "accessFilterFiles");
-        Boolean builtinCallerFilter = parseBooleanNode(commonOptions, "builtinCallerFilter");
-        Boolean builtinHeuristicFilter = parseBooleanNode(commonOptions, "builtinHeuristicFilter");
-        Boolean enableExperimentalPredefinedClasses = parseBooleanNode(commonOptions, "enableExperimentalPredefinedClasses");
-        Boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(commonOptions, "enableExperimentalUnsafeAllocationTracing");
-        Boolean trackReflectionMetadata = parseBooleanNode(commonOptions, "trackReflectionMetadata");
+        ArrayList<String> callerFilterFiles = (ArrayList<String>) getFilterFiles(options, "callerFilterFiles");
+        ArrayList<String> accessFilterFiles = (ArrayList<String>) getFilterFiles(options, "accessFilterFiles");
+        Boolean builtinCallerFilter = parseBooleanNode(options, "builtinCallerFilter");
+        Boolean builtinHeuristicFilter = parseBooleanNode(options, "builtinHeuristicFilter");
+        Boolean enableExperimentalPredefinedClasses = parseBooleanNode(options, "enableExperimentalPredefinedClasses");
+        Boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(options, "enableExperimentalUnsafeAllocationTracing");
+        Boolean trackReflectionMetadata = parseBooleanNode(options, "trackReflectionMetadata");
 
         AgentMode mode;
         try {

@@ -143,13 +143,13 @@
                             <agent>
                                 <enabled>true</enabled>
                                 <defaultMode>Standard</defaultMode>
-                                <commonOptions>
+                                <options>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>true</enableExperimentalPredefinedClasses>
                                     <enableExperimentalUnsafeAllocationTracing>true</enableExperimentalUnsafeAllocationTracing>
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
-                                </commonOptions>
+                                </options>
                                 <metadataCopy>
                                     <merge>true</merge>
                                 </metadataCopy>
@@ -226,13 +226,13 @@
                             <agent>
                                 <enabled>true</enabled>
                                 <defaultMode>Standard</defaultMode>
-                                <commonOptions>
+                                <options>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
                                     <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
-                                </commonOptions>
+                                </options>
                                 <metadataCopy>
                                     <disabledStages>
                                         <stage>main</stage>
@@ -278,13 +278,13 @@
                                 <modes>
                                     <direct>config-output-dir=/tmp,builtin-caller-filter=true,builtin-heuristic-filter=true,experimental-class-define-support=false,experimental-unsafe-allocation-support=false,track-reflection-metadata=true</direct>
                                 </modes>
-                                <commonOptions>
+                                <options>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
                                     <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
-                                </commonOptions>
+                                </options>
                                 <metadataCopy>
                                     <merge>false</merge>
                                     <outputDirectory>/tmp</outputDirectory>
@@ -376,13 +376,13 @@
                                         <parallel>true</parallel>
                                     </conditional>
                                 </modes>
-                                <commonOptions>
+                                <options>
                                     <builtinCallerFilter>true</builtinCallerFilter>
                                     <builtinHeuristicFilter>true</builtinHeuristicFilter>
                                     <enableExperimentalPredefinedClasses>false</enableExperimentalPredefinedClasses>
                                     <enableExperimentalUnsafeAllocationTracing>false</enableExperimentalUnsafeAllocationTracing>
                                     <trackReflectionMetadata>true</trackReflectionMetadata>
-                                </commonOptions>
+                                </options>
                                 <metadataCopy>
                                     <merge>false</merge>
                                     <outputDirectory>/tmp</outputDirectory>

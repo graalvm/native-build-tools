@@ -528,7 +528,7 @@ just remove them.
 
 Agent can be run in one of the following modes:
 
-* `standard` - in this mode you run agent only with options provided in `commonOptions` section.
+* `standard` - in this mode you run agent only with options provided in `options` section.
 * `direct` - in this mode you can provide command line that you want to be executed as an agent configuration. In this
      mode, user is fully responsible for agent configuration, and the rest of the config file will be ignored.
 * `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output (https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md[see this]). You
@@ -540,7 +540,7 @@ Each option and how you should use it is described bellow:
 * `defaultMode` - agent mode switcher. Can be set to: standard, direct or conditional.
 * `modes` - list of additional mode options, specific for the mode type. Inside this tag, you can specify options for
  direct or conditional modes. Standard mode doesn't have any specific options.
-* `commonOptions` - list of options that can be specify independent from agent mode. More about common options can be found
+* `options` - list of options that can be specify independent from agent mode. More about common options can be found
 https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/[here].
 * `metadataCopy` - provides additional options for manipulating the agent output after agent finishes its job.
     ** You can copy agent output to the specific location (inside `<outputDirectory>`)
