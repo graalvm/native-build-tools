@@ -58,9 +58,7 @@ import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.utils.Utils.parseBoolean;
 
-public final class AgentUtils {
-
-    private AgentUtils() { }
+public abstract class AgentUtils {
 
     public static AgentMode getAgentMode(Xpp3Dom agent) throws Exception {
         Xpp3Dom defaultModeNode = Xpp3DomParser.getTagByName(agent, "defaultMode");
