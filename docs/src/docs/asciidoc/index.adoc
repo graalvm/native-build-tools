@@ -19,6 +19,12 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.20
+
+==== Gradle plugin
+
+- Fix `collectReachabilityMetadata` not being thread-safe
+
 === Release 0.9.19
 
 ==== Gradle plugin

@@ -387,6 +387,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .getSharedServices()
                 .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
                     LogLevel logLevel = determineLogLevel();
+                    spec.getMaxParallelUsages().set(1);
                     spec.getParameters().getLogLevel().set(logLevel);
                     spec.getParameters().getUri().set(repositoryExtension.getUri().map(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, configuredUri, GraalVMLogger.of(project.getLogger()))));
                     spec.getParameters().getCacheDir().set(
