@@ -7,11 +7,21 @@ assignees: ''
 
 ---
 
+**Before reporting**
+
+- This repository should be used to report **issues on the Maven or Gradle plugins for GraalVM**.
+- Please report issues which are specific to [the Spring Framework](https://spring.io/) or [the Micronaut framework](https://micronaut.io/) to their specific repositories.
+- Do not report issues with building your specific application, e.g errors which happen at image build time like classes initialized at build time, or missing classes as run time: those are not related to the plugins but problems with configuration. You can refer to the [GraalVM native image documentation](https://www.graalvm.org/latest/reference-manual/native-image/) for available options and the [plugins documentation](https://graalvm.github.io/native-build-tools) for how to use them with the plugin.
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 **Make sure that you have read [the documentation](https://graalvm.github.io/native-build-tools) and that you are using the latest plugin version.**
 
 **To Reproduce**
+
+Ideally, please provide a link to a repository which reproduces the issue, with instructions on how to use.
+The reproducer **must** make use of either the Maven or Gradle plugin.
+
 Steps to reproduce the behavior:
 ```xml
 <!-- project configuration -->
