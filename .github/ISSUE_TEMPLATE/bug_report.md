@@ -19,7 +19,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 
-Ideally, please provide a link to a repository which reproduces the issue, with instructions on how to use.
+When possible, provide a link to a repository which reproduces the issue, with instructions on how to use.
 The reproducer **must** make use of either the Maven or Gradle plugin.
 
 Steps to reproduce the behavior:
