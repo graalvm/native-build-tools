@@ -58,15 +58,15 @@ public class AgentConfiguration implements Serializable {
     private final AgentMode agentMode;
 
     // This constructor should be used only to specify that we have instance of agent that is disabled (to avoid using null for agent enable check)
-    public AgentConfiguration() {
+    public AgentConfiguration(AgentMode ...modes) {
         this.callerFilterFiles = null;
         this.accessFilterFiles = null;
-        this.builtinCallerFilter = false;
-        this.builtinHeuristicFilter = false;
-        this.experimentalPredefinedClasses = false;
-        this.experimentalUnsafeAllocationTracing = false;
-        this.trackReflectionMetadata = false;
-        this.agentMode = new DisabledAgentMode();
+        this.builtinCallerFilter = null;
+        this.builtinHeuristicFilter = null;
+        this.experimentalPredefinedClasses = null;
+        this.experimentalUnsafeAllocationTracing = null;
+        this.trackReflectionMetadata = null;
+        this.agentMode = modes.length == 1 ? modes[0] : new DisabledAgentMode();
     }
 
     public AgentConfiguration(Collection<String> callerFilterFiles,

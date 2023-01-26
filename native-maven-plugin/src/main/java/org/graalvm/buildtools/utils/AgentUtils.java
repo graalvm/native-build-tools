@@ -119,8 +119,15 @@ public abstract class AgentUtils {
     public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) throws RuntimeException {
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent == null) {
-            return new AgentConfiguration();
+            Boolean agentEnabledInCmd = isAgentEnabledInCmd(session);
+            if (agentEnabledInCmd != null && agentEnabledInCmd) {
+                // if agent is only enabled from command line but there is no configuration in pom.xml, we use default options
+                return new AgentConfiguration(new StandardAgentMode());
+            } else {
+                return new AgentConfiguration();
+            }
         }
+
 
         if (!isAgentEnabled(session, agent)) {
             return new AgentConfiguration();
@@ -163,11 +170,20 @@ public abstract class AgentUtils {
         return disabledStages;
     }
 
-    private static boolean isAgentEnabled(MavenSession session, Xpp3Dom agent) {
+    private static Boolean isAgentEnabledInCmd(MavenSession session) {
         String systemProperty = session.getSystemProperties().getProperty("agent");
         if (systemProperty != null) {
             // -Dagent=[true|false] overrides configuration in the POM.
             return parseBoolean("agent system property", systemProperty);
+        }
+
+        return null;
+    }
+
+    private static boolean isAgentEnabled(MavenSession session, Xpp3Dom agent) {
+        Boolean cmdEnable = isAgentEnabledInCmd(session);
+        if (cmdEnable != null) {
+            return cmdEnable;
         }
 
         Boolean val = parseBooleanNode(agent, "enabled");

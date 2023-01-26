@@ -85,6 +85,13 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
             return;
         }
 
+        // if we reached here and agent config is null, agent is enabled but there is no configuration in pom.xml
+        // that means that we enabled agent from command line, so we are using default agent configuration
+        if (agentConfiguration == null) {
+            agentConfiguration = new AgentConfiguration();
+        }
+
+
         if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
             logger.info("Skipping files merge mojo since we are in direct mode");
             return;
