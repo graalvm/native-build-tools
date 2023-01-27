@@ -91,9 +91,10 @@ public abstract class AgentUtils {
                     throw new Exception("UserCodeFilterPath must be provided in agent configuration");
                 }
 
+                Boolean parallel = parseBooleanNode(agentModes, "parallel");
                 agentMode = new ConditionalAgentMode(userCodeFilterPathNode.getValue(),
                                                     extraFilterPathNode != null ? extraFilterPathNode.getValue() : "",
-                                                     parseBooleanNode(agentModes, "parallel"));
+                                                     parallel == null ? false : parallel);
                 break;
             case "direct":
                 // direct mode is given
@@ -147,7 +148,7 @@ public abstract class AgentUtils {
         try {
              mode = getAgentMode(agent);
         } catch (Exception e) {
-            throw new RuntimeException("Agent mode could not be determined. Reason: " + e.getMessage());
+            throw new RuntimeException("Agent mode configuration error. Reason: " + e.getMessage());
         }
 
         return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
