@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.maven;
 
 import org.apache.maven.AbstractMavenLifecycleParticipant;
+import org.apache.maven.MavenExecutionException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -127,8 +128,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 String testIdsDir = testIdsDirectory(target);
 
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
-                AgentConfiguration agent = AgentUtils.collectAgentProperties(session, configurationRoot);
-                List<String> agentDisabledStages = AgentUtils.getDisabledStages(configurationRoot);
+                AgentConfiguration agent;
+                try {
+                    agent = AgentUtils.collectAgentProperties(session, configurationRoot);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {

@@ -135,6 +135,10 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             sourceDirectories.add(destinationDir);
         }
 
+        if (!checkIfSourcesExists(sourceDirectories)) {
+            return;
+        }
+
         String sourceDirsInfo = sourceDirectories.stream().map(File::new).map(File::getName).collect(Collectors.joining(", "));
         logger.info("Copying files from: " + sourceDirsInfo);
 
@@ -152,6 +156,20 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean checkIfSourcesExists(List<String> sourceDirectories) {
+        for (String source : sourceDirectories) {
+            File dir = new File(source);
+            if (!dir.isDirectory() || !dir.exists()) {
+                logger.warn("Cannot find source directory " + source + " for metadata copy. Please check if you configured agent" +
+                        " properly and it generates all necessary directories. If you want to skipp copy from some source, please " +
+                        "configure metadataCopy with disable stage you want to skipp.");
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private List<String> getSourceDirectories(List<String> disabledStages, String buildDirectory) {

@@ -91,6 +91,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
         outputDoesNotContain "returned non-zero result"
         outputDoesNotContain "Agent files cannot be copied."
+        outputDoesNotContain "Cannot collect agent configuration."
         outputContains "Metadata copy process finished."
     }
 
@@ -104,6 +105,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         buildSucceeded
+        outputDoesNotContain "Cannot collect agent configuration."
         outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
         outputDoesNotContain "returned non-zero result"
         outputDoesNotContain "Agent files cannot be copied."
@@ -121,6 +123,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         buildSucceeded
+        outputDoesNotContain "Cannot collect agent configuration."
         outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
         outputDoesNotContain "returned non-zero result"
         outputContains "You are running agent in direct mode. Skipping both merge and metadata copy tasks."
@@ -136,6 +139,9 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         buildSucceeded
+        outputDoesNotContain "Cannot collect agent configuration."
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
     }
 
     def "test without agent configuration"() {
