@@ -131,7 +131,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
                 List<String> destinationDirContent = Arrays.stream(Objects.requireNonNull(new File(destinationDir).listFiles())).map(File::getName).collect(Collectors.toList());
                 List<String> missingFiles = getListDiff(FILES_REQUIRED_FOR_MERGE, destinationDirContent);
 
-                throw new MojoExecutionException("There are missing files for merge in output directory. If you want to merge agent files with" +
+                throw new MojoExecutionException("There are missing files for merge in output directory. If you want to merge agent files with " +
                         "existing files in output directory, please make sure that output directory contains all of the following files: " +
                         "reflect-config.json, jni-config.json, proxy-config.json, resource-config.json. Currently the output directory is " +
                         "missing: " + missingFiles);
