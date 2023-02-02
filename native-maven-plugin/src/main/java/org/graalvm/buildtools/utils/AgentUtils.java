@@ -81,7 +81,7 @@ public abstract class AgentUtils {
             case "conditional":
                 // conditional mode needs few more options declared in xml
                 if (agentModes == null) {
-                    throw new RuntimeException("AgentModes tag not provided in configuration.");
+                    throw new RuntimeException("Tag <modes> not provided in agent configuration.");
                 }
 
                 Xpp3Dom userCodeFilterPathNode = Xpp3DomParser.getTagByName(agentModes, "userCodeFilterPath");
@@ -99,7 +99,7 @@ public abstract class AgentUtils {
             case "direct":
                 // direct mode is given
                 if (agentModes == null) {
-                    throw new RuntimeException("AgentModes tag not provided in configuration.");
+                    throw new RuntimeException("Tag <modes> not provided in agent configuration.");
                 }
 
                 Xpp3Dom directModeNode = Xpp3DomParser.getTagByName(agentModes, "direct");

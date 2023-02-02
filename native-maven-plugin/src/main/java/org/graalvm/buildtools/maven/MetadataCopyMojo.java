@@ -98,7 +98,12 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             }
 
             if (!Files.isDirectory(Paths.get(destinationDir))) {
-                throw new MojoExecutionException("Directory specified in metadata copy configuration dose not exists.");
+                logger.warn("Destination directory " + destinationDir + " doesn't exist.");
+                logger.warn("Creating directory at: " + destinationDir);
+                boolean success = new File(destinationDir).mkdirs();
+                if (!success) {
+                    throw new MojoExecutionException("Cannot create directory at the given location: " + destinationDir);
+                }
             }
 
             Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
