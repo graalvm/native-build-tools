@@ -478,7 +478,7 @@ The Native Image Maven plugin simplifies generation of the required configuratio
 injecting the agent automatically for you (this includes, but is not limited to the
 reflection file).
 
-The agent generates the native configuration files in a subdirectory of
+The agent generates the native configuration files in subdirectories of
 `target/native/agent-output`. Although those files will be automatically used if you run
 your build with the agent enabled, you should consider reviewing the generated files and
 adding them to your sources instead.
@@ -514,10 +514,10 @@ line by supplying the `-Dagent=false` flag.
 === Configuring agent options
 
 If you would like to configure the options for the agent -- for example, to configure
-experimental features such as `experimental-class-loader-support` or advanced features
+agent mode or advanced features
 such as
-https://www.graalvm.org/reference-manual/native-image/Agent/#caller-based-filters[Caller-based Filters]
-and https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters[Access Filters]
+https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#caller-based-filters[Caller-based Filters]
+and https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#access-filters[Access Filters]
 - you can specify them in your POM as described bellow.
 
 [source,xml,indent=0]
@@ -530,22 +530,39 @@ Agent can be run in one of the following modes:
 
 * `standard` - in this mode you run agent only with options provided in `options` section.
 * `direct` - in this mode you can provide command line that you want to be executed as an agent configuration. In this
-     mode, user is fully responsible for agent configuration, and the rest of the config file will be ignored.
-* `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output (https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md[see this]). You
+     mode, user is fully responsible for agent configuration, and the rest of the agent configuration, provided in pom.xml file, will be ignored.
+* `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output. You
 can read more about conditional mode https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/[here].
 
 Each option and how you should use it is described bellow:
 
-* `enabled` - a simple flag that specifies whether the agent is on or off. Can be set to true or false.
+* `enabled` - a simple flag that specifies whether the agent is enabled or not. Can be set to true or false.
 * `defaultMode` - agent mode switcher. Can be set to: standard, direct or conditional.
-* `modes` - list of additional mode options, specific for the mode type. Inside this tag, you can specify options for
+* `modes` - list of additional mode options, specific for certain mode type. Inside this tag, you can specify options for
  direct or conditional modes. Standard mode doesn't have any specific options.
+  ** in case of `direct` mode you can specify `<direct>` tag, with the agent command line as its value
+  ** in case of `conditional` mode you can specify `<conditional>` tag, and set additional https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md[filter files]
+   inside `<userCodeFilterPath>` and `<extraCodeFilterPath>`. Also, you can set value for `<parallel>` tag. If the value is true, agent will create
+   partial-config file, and merge it with conditional merge, otherwise agent will generate same kind of output as other modes.
 * `options` - list of options that can be specify independent from agent mode. More about common options can be found
 https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/[here].
-* `metadataCopy` - provides additional options for manipulating the agent output after agent finishes its job.
-    ** You can copy agent output to the specific location (inside `<outputDirectory>`)
-    ** Merge agent output with files located there (by specifying true or false inside `<merge>` tag)
-    ** Disable some of the agent stages (by specifying the stage inside `<disabledStages>`)
+
+
+[[metadata-copy]]
+==== Metadata copy
+`metadataCopy` provides additional options for manipulating the agent output after agent finishes its job.
+
+[source,xml,indent=0]
+include::../snippets/maven/metadataCopy.xml[tag=native-plugin-agent-metadata-copy]
+
+You can set values for the following tags:
+
+* `<outputDirectory>` - where you want to copy agent output.
+* `<merge>` - in case you already have some other config files inside `output directory`, you can choose whether you want to override those files or
+    merge new files with the existing once (set merge value to true).
+* `<disabledStages>` - in case you don't want to copy output of the certain stage (main or test) you can disable them and metadataCopy will not look at
+    the agent output for that stage. For example, if you want to copy only config files generated in tests, you can disable main stage. Also, if you want
+    to copy only files generated in main phase, you can disable test stage. Therefore, if you skip both stages, metadataCopy will not be executed.
 
 
 [[agent-support-running-tests]]
@@ -564,13 +581,14 @@ When the `agent` system property is set to `true` (or when the agent is
 to your Maven Surefire test execution, and the generated files can be found in the
 `target/native/agent-output/test` directory.
 
-To run your tests with custom agent options, supply the `-DagentOptions=<NAME>`
-command-line argument to Maven as follows. See the documentation for
-<<agent-support-configuring-options, agent options>> for details.
-
+[TIP]
+====
+If you want to run metadataCopy as well, first define its configuration as described <<metadata-copy, above>> and add `native:metadata-copy`
+at the end of the agent invocation command. Example:
 ```bash
-mvn -Pnative -Dagent=true -DagentOptions=periodic-config test
+mvn -Pnative -Dagent=true test native:metadata-copy
 ```
+====
 
 [[agent-support-running-application]]
 === Running your application with the agent
@@ -587,14 +605,6 @@ Then you can execute your application with the agent by running:
 
 ```bash
 mvn -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
-```
-
-To execute your application with custom agent options, supply the `-DagentOptions=<NAME>`
-command-line argument to Maven as follows. See the documentation for
-<<agent-support-configuring-options, agent options>> for details.
-
-```bash
-mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
 ```
 
 Both of the above commands will generate configuration files in the

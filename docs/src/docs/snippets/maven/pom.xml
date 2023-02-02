@@ -29,11 +29,7 @@
             <trackReflectionMetadata>true</trackReflectionMetadata>
         </options>
         <metadataCopy>
-            <disabledStages>
-                <stage>main</stage>
-            </disabledStages>
-            <merge>true</merge>
-            <outputDirectory>/tmp/test-output-dir</outputDirectory>
+            <!-- you can specify metadataCopy configuration here -->
         </metadataCopy>
     </agent>
 </configuration>
