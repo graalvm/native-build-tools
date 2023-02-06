@@ -78,54 +78,81 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain "containers found"
     }
 
-    def "agent is used for tests when enabled in POM without custom options"() {
+    def "test agent with metadata copy task"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn'-Pnative', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn'-Pnative', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+        outputDoesNotContain "Agent files cannot be copied."
+        outputDoesNotContain "Cannot collect agent configuration."
+        outputContains "Metadata copy process finished."
+    }
+
+    def "test agent with metadata copy task and disabled stages"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn '-PagentConfigurationWithDisabledStages', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot collect agent configuration."
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+        outputDoesNotContain "Agent files cannot be copied."
+        outputContains "Copying files from: test"
+        outputContains "Metadata copy process finished."
+    }
+
+    def "test agent in direct mode with metadata copy task"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn'-PagentConfigurationDirectMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn '-PagentConfigurationDirectMode', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot collect agent configuration."
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+        outputContains "You are running agent in direct mode. Skipping both merge and metadata copy tasks."
+    }
+
+    def "test agent in conditional mode with metadata copy task"() {
+        given:
+        withSample("java-application-with-reflection")
+        mvn '-PagentConfigurationConditionalMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+
+        when:
+        mvn '-PagentConfigurationConditionalMode', '-DskipNativeTests', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "Cannot collect agent configuration."
+        outputDoesNotContain "Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM."
+        outputDoesNotContain "returned non-zero result"
+    }
+
+    def "test without agent configuration"() {
         given:
         withSample("java-application-with-reflection")
 
         when:
-        // Run Maven in debug mode (-X) in order to capture the command line arguments
-        // used to launch Surefire with the agent.
-        mvnDebug '-Pnative', 'test'
+        mvn'-PnoAgentConfiguration', 'package'
 
         then:
-        outputContains """
-[         4 containers found      ]
-[         0 containers skipped    ]
-[         4 containers started    ]
-[         0 containers aborted    ]
-[         4 containers successful ]
-[         0 containers failed     ]
-[         7 tests found           ]
-[         0 tests skipped         ]
-[         7 tests started         ]
-[         0 tests aborted         ]
-[         7 tests successful      ]
-[         0 tests failed          ]
-""".trim()
-
-        and:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/test/${name}-config.json").exists()
-        }
-
-        and:
-        outputContains '-agentlib:native-image-agent'
-        // From shared, unnamed config:
-        outputContains '=experimental-class-loader-support'
-        // From test config:
-        outputContains ',access-filter-file='
-        outputContains '/src/test/resources/access-filter.json'.replace('/', java.io.File.separator)
-        // Always configured:
-        outputContains ',config-output-dir='
-        outputContains '/target/native/agent-output/test'.replace("/", java.io.File.separator)
-
-        and:
-        // If the custom access-filter.json is applied, we should not see any warnings about Surefire types.
-        // The actual warning would be something like:
-        // Warning: Could not resolve org.apache.maven.surefire.junitplatform.JUnitPlatformProvider for reflection configuration. Reason: java.lang.ClassNotFoundException: org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.
-        outputDoesNotContain 'Warning: Could not resolve org.apache.maven.surefire'
-        // From periodic-config:
-        outputDoesNotContain ',config-write-period-secs=30,config-write-initial-delay-secs=5'
+        buildSucceeded
     }
 
     def "agent is not used for tests when enabled in POM but disabled via the command line"() {
@@ -154,142 +181,4 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         and:
         outputContains 'expected: <Hello, native!> but was: <null>'
     }
-
-    def "agent is used for tests when enabled in POM with custom options"() {
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        // Run Maven in debug mode (-X) in order to capture the command line arguments
-        // used to launch Surefire with the agent.
-        mvnDebug '-Pnative', '-DagentOptions=periodic-config', 'test'
-
-        then:
-        outputContains """
-[         4 containers found      ]
-[         0 containers skipped    ]
-[         4 containers started    ]
-[         0 containers aborted    ]
-[         4 containers successful ]
-[         0 containers failed     ]
-[         7 tests found           ]
-[         0 tests skipped         ]
-[         7 tests started         ]
-[         0 tests aborted         ]
-[         7 tests successful      ]
-[         0 tests failed          ]
-""".trim()
-
-        and:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/test/${name}-config.json").exists()
-        }
-
-        and:
-        // If custom agent options are processed, the debug output for Surefire
-        // should include the following segments of the agent command line argument.
-        outputContains '-agentlib:native-image-agent'
-        // From shared, unnamed config:
-        outputContains '=experimental-class-loader-support'
-        // From test config:
-        outputContains ',access-filter-file='
-        outputContains '/src/test/resources/access-filter.json'.replace('/', java.io.File.separator)
-        // From periodic-config:
-        outputContains ',config-write-period-secs=30,config-write-initial-delay-secs=5'
-        // Always configured:
-        outputContains ',config-output-dir='
-        outputContains '/target/native/agent-output/test'.replace("/", java.io.File.separator)
-
-        and:
-        // If the custom access-filter.json is applied, we should not see any warnings about Surefire types.
-        // The actual warning would be something like:
-        // Warning: Could not resolve org.apache.maven.surefire.junitplatform.JUnitPlatformProvider for reflection configuration. Reason: java.lang.ClassNotFoundException: org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.
-        outputDoesNotContain 'Warning: Could not resolve org.apache.maven.surefire'
-    }
-
-    @Issue("https://github.com/graalvm/native-build-tools/issues/134")
-    @Unroll("generated agent files are added when building native image on Maven #version with JUnit Platform #junitVersion")
-    def "generated agent files are used when building native image"() {
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        mvnDebug '-Pnative', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
-
-        then:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/main/${name}-config.json").exists()
-        }
-
-        and:
-        // If custom agent options are not used, the Maven debug output should include
-        // the following segments of the agent command line argument.
-        outputContains '-agentlib:native-image-agent'
-        // From shared, unnamed config:
-        outputContains '=experimental-class-loader-support'
-        // From main config:
-        outputContains ',access-filter-file='
-        outputContains '/src/main/resources/access-filter.json'.replace('/', java.io.File.separator)
-        // Always configured:
-        outputContains ',config-output-dir='
-        outputContains '/target/native/agent-output/main'.replace("/", java.io.File.separator)
-
-        when:
-        mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
-
-        then:
-        outputContains "Application message: Hello, native!"
-    }
-
-    def "generated agent files are not used when building native image when agent is enabled in POM but disabled via the command line"() {
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        mvnDebug '-Pnative', '-Dagent=false', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
-
-        then:
-        outputDoesNotContain '-agentlib:native-image-agent'
-
-        when:
-        mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
-
-        then:
-        outputContains "Application message: null"
-    }
-
-    def "custom options and generated agent files are used when building native image"() {
-        given:
-        withSample("java-application-with-reflection")
-
-        when:
-        mvnDebug '-Pnative', '-DagentOptions=periodic-config', '-DskipTests=true', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
-
-        then:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/main/${name}-config.json").exists()
-        }
-
-        and:
-        // If custom agent options are used, the Maven debug output should include
-        // the following segments of the agent command line argument.
-        outputContains '-agentlib:native-image-agent'
-        // From shared, unnamed config:
-        outputContains '=experimental-class-loader-support'
-        // From main config:
-        outputContains ',access-filter-file='
-        outputContains '/src/main/resources/access-filter.json'.replace('/', java.io.File.separator)
-        // From periodic-config:
-        outputContains ',config-write-period-secs=30,config-write-initial-delay-secs=5'
-        // Always configured:
-        outputContains ',config-output-dir='
-        outputContains '/target/native/agent-output/main'.replace("/", java.io.File.separator)
-
-        when:
-        mvn '-Pnative', '-DskipTests=true', 'package', 'exec:exec@native'
-
-        then:
-        outputContains "Application message: Hello, native!"
-    }
-
 }

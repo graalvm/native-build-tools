@@ -1,0 +1,9 @@
+<!-- tag::native-plugin-agent-metadata-copy[] -->
+<metadataCopy>
+    <disabledStages>
+        <stage>main</stage>
+    </disabledStages>
+    <merge>true</merge>
+    <outputDirectory>/tmp/test-output-dir</outputDirectory>
+</metadataCopy>
+<!-- end::native-plugin-agent-metadata-copy[] -->

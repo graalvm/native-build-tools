@@ -50,7 +50,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.junit.platform.JUnitPlatformFeature;
 
 import java.io.File;
@@ -67,7 +67,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.graalvm.buildtools.Utils.NATIVE_TESTS_EXE;
+import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_TESTS_EXE;
 
 /**
  * This goal builds and runs native tests.
@@ -110,7 +110,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     protected void addDependenciesToClasspath() throws MojoExecutionException {
         super.addDependenciesToClasspath();
         pluginArtifacts.stream()
-                .filter(it -> it.getGroupId().startsWith(Utils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
+                .filter(it -> it.getGroupId().startsWith(NativeImageConfigurationUtils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
                 .map(it -> it.getFile().toPath())
                 .forEach(imageClasspath::add);
         findNativePlatformJar().ifPresent(imageClasspath::add);

@@ -52,7 +52,8 @@ import org.codehaus.plexus.component.annotations.Component;
 import org.codehaus.plexus.logging.LogEnabled;
 import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.graalvm.buildtools.Utils;
+import org.graalvm.buildtools.agent.AgentConfiguration;
+import org.graalvm.buildtools.utils.AgentUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
@@ -61,6 +62,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNativeImage;
 
 /**
  * This extension is responsible for configuring the Surefire plugin to enable
@@ -105,7 +109,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             // the same unit of work !).
             effectiveOutputDir = effectiveOutputDir + File.separator + SharedConstants.AGENT_SESSION_SUBDIR;
         }
-        options.add("config-output-dir=" + effectiveOutputDir);
+        String finalEffectiveOutputDir = effectiveOutputDir;
+        options = options.stream().map(option -> option.contains("{output_dir}") ? option.replace("{output_dir}", finalEffectiveOutputDir) : option).collect(Collectors.toList());
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
@@ -120,20 +125,26 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
                 String target = build.getDirectory();
                 String testIdsDir = testIdsDirectory(target);
-                boolean isAgentEnabled = isAgentEnabled(session, nativePlugin);
-                String selectedOptionsName = getSelectedOptionsName(session);
+
+                Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
+                AgentConfiguration agent;
+                try {
+                    agent = AgentUtils.collectAgentProperties(session, configurationRoot);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
 
                 // Test configuration
                 withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
                     configureJunitListener(surefirePlugin, testIdsDir);
-                    if (isAgentEnabled) {
-                        List<String> agentOptions = getAgentOptions(nativePlugin, Context.test, selectedOptionsName);
+                    if (agent.isEnabled()) {
+                        List<String> agentOptions = agent.getAgentCommandLine();
                         configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, Context.test, agentOptions));
                     }
                 });
 
                 // Main configuration
-                if (isAgentEnabled) {
+                if (agent.isEnabled()) {
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if ("java-agent".equals(exec.getId())) {
@@ -147,7 +158,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
                                     // Agent argument
                                     Xpp3Dom arg = new Xpp3Dom("argument");
-                                    List<String> agentOptions = getAgentOptions(nativePlugin, Context.main, selectedOptionsName);
+                                    List<String> agentOptions = agent.getAgentCommandLine();
                                     arg.setValue(buildAgentArgument(target, Context.main, agentOptions));
                                     children.add(0, arg);
 
@@ -167,9 +178,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                         Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
-                        if (context == Context.test) {
-                            setupMergeAgentFiles(exec, configuration, context);
-                        }
+                        setupMergeAgentFiles(exec, configuration, context);
                     });
                 }
             });
@@ -191,118 +200,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 .filter(p -> artifactId.equals(p.getArtifactId()))
                 .findFirst()
                 .ifPresent(consumer);
-    }
-
-    private static boolean isAgentEnabled(MavenSession session, Plugin nativePlugin) {
-        String systemProperty = session.getSystemProperties().getProperty("agent");
-        if (systemProperty != null) {
-            // -Dagent=[true|false] overrides configuration in the POM.
-            return parseBoolean("agent system property", systemProperty);
-        }
-
-        Xpp3Dom agent = getAgentNode(nativePlugin);
-        if (agent != null) {
-            Xpp3Dom enabled = agent.getChild("enabled");
-            if (enabled != null) {
-                return parseBoolean("<enabled>", enabled.getValue());
-            }
-        }
-
-        return false;
-    }
-
-    private static String getSelectedOptionsName(MavenSession session) {
-        String selectedOptionsName = session.getSystemProperties().getProperty("agentOptions");
-        if (selectedOptionsName == null) {
-            return null;
-        }
-        return assertNotEmptyAndTrim(selectedOptionsName, "agentOptions system property must have a value");
-    }
-
-    /**
-     * Parses the configuration block for the {@code native-maven-plugin}, searching for
-     * {@code <options>} elements whose names match the name of the supplied {@code context}
-     * or {@code selectedOptionsName} and for unnamed, shared {@code <options>} elements,
-     * and returns a list of the collected agent options.
-     *
-     * @param nativePlugin the {@code native-maven-plugin}; never null
-     * @param context the current execution context; never null
-     * @param selectedOptionsName the name of the set of custom agent options activated
-     * by the user via the {@code agentOptions} system property; may be null if not
-     * supplied via a system property
-     */
-    private static List<String> getAgentOptions(Plugin nativePlugin, Context context, String selectedOptionsName) {
-        // <configuration>
-        //     <agent>
-        //         <enabled>true</enabled>
-        //         <options>
-        //             <option>experimental-class-loader-support</option>
-        //         </options>
-        //         <options name="main">
-        //             <option>access-filter-file=${basedir}/src/main/resources/access-filter.json</option>
-        //         </options>
-        //         <options name="test">
-        //             <option>access-filter-file=${basedir}/src/test/resources/access-filter.json</option>
-        //         </options>
-        //         <options name="periodic-config">
-        //             <option>config-write-period-secs=30</option>
-        //             <option>config-write-initial-delay-secs=5</option>
-        //         </options>
-        //     </agent>
-        // </configuration>
-
-        List<String> optionsList = new ArrayList<>();
-        Xpp3Dom agent = getAgentNode(nativePlugin);
-        if (agent != null) {
-            for (Xpp3Dom options : agent.getChildren("options")) {
-                String name = options.getAttribute("name");
-                if (name != null) {
-                    name = assertNotEmptyAndTrim(name, "<options> must declare a non-empty name attribute or omit the name attribute");
-                }
-                // If unnamed/shared options, or options for the current context (main/test), or user-selected options:
-                if (name == null || name.equals(context.name()) || name.equals(selectedOptionsName)) {
-                    processOptionNodes(options, optionsList);
-                }
-            }
-        }
-        return optionsList;
-    }
-
-    private static void processOptionNodes(Xpp3Dom options, List<String> optionsList) {
-        for (Xpp3Dom option : options.getChildren("option")) {
-            String value = assertNotEmptyAndTrim(option.getValue(), "<option> must declare a value");
-            if (value.contains("config-output-dir")) {
-                throw new IllegalStateException("config-output-dir cannot be supplied as an agent option");
-            }
-            optionsList.add(value);
-        }
-    }
-
-    private static boolean parseBoolean(String description, String value) {
-        value = assertNotEmptyAndTrim(value, description + " must have a value").toLowerCase();
-        switch (value) {
-            case "true":
-                return true;
-            case "false":
-                return false;
-            default:
-                throw new IllegalStateException(description + " must have a value of 'true' or 'false'");
-        }
-    }
-
-    private static String assertNotEmptyAndTrim(String input, String message) {
-        if (input == null || input.isEmpty()) {
-            throw new IllegalStateException(message);
-        }
-        return input.trim();
-    }
-
-    private static Xpp3Dom getAgentNode(Plugin nativePlugin) {
-        Xpp3Dom configuration = (Xpp3Dom) nativePlugin.getConfiguration();
-        if (configuration != null) {
-            return configuration.getChild("agent");
-        }
-        return null;
     }
 
     private static void configureAgentForSurefire(Plugin surefirePlugin, String agentArgument) {
@@ -354,7 +251,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     private static String getGraalvmJava() {
         try {
-            return Utils.getNativeImage(logger).getParent().resolve("java").toString();
+            return getNativeImage(logger).getParent().resolve("java").toString();
         } catch (MojoExecutionException e) {
             throw new RuntimeException(e);
         }

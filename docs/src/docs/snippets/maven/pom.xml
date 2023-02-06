@@ -1,0 +1,36 @@
+<!-- tag::native-plugin-agent-configuration[] -->
+<configuration>
+    <agent>
+        <enabled>true</enabled>
+        <defaultMode>Standard</defaultMode>
+        <modes>
+            <direct>config-output-dir=${project.build.directory}/native/agent-output</direct>
+            <conditional>
+                <userCodeFilterPath>user-code-filter.json</userCodeFilterPath>
+                <extraFilterPath>extra-filter.json</extraFilterPath>
+                <parallel>true</parallel>
+            </conditional>
+        </modes>
+        <options>
+            <callerFilterFiles>
+                <filterFile>caller-filter-file1.json</filterFile>
+                <filterFile>caller-filter-file2.json</filterFile>
+            </callerFilterFiles>
+            <accessFilterFiles>
+                <filterFile>access-filter-file1.json</filterFile>
+                <filterFile>access-filter-file2.json</filterFile>
+            </accessFilterFiles>
+            <builtinCallerFilter>true</builtinCallerFilter>
+            <builtinHeuristicFilter>true</builtinHeuristicFilter>
+            <enableExperimentalPredefinedClasses>true</enableExperimentalPredefinedClasses>
+            <enableExperimentalUnsafeAllocationTracing>
+                true
+            </enableExperimentalUnsafeAllocationTracing>
+            <trackReflectionMetadata>true</trackReflectionMetadata>
+        </options>
+        <metadataCopy>
+            <!-- you can specify metadataCopy configuration here -->
+        </metadataCopy>
+    </agent>
+</configuration>
+<!-- end::native-plugin-agent-configuration[] -->
