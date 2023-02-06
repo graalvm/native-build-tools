@@ -1388,7 +1388,7 @@ injecting the agent automatically for you (this includes, but is not limited to 
 reflection file).</p>
 </div>
 <div class="paragraph">
-<p>The agent generates the native configuration files in a subdirectory of
+<p>The agent generates the native configuration files in subdirectories of
 <code>target/native/agent-output</code>. Although those files will be automatically used if you run
 your build with the agent enabled, you should consider reviewing the generated files and
 adding them to your sources instead.</p>
@@ -1437,109 +1437,139 @@ line by supplying the <code>-Dagent=false</code> flag.</p>
 <h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h3>
 <div class="paragraph">
 <p>If you would like to configure the options for the agent&#8201;&#8212;&#8201;for example, to configure
-experimental features such as <code>experimental-class-loader-support</code> or advanced features
+agent mode or advanced features
 such as
-<a href="https://www.graalvm.org/reference-manual/native-image/Agent/#caller-based-filters">Caller-based Filters</a>
-and <a href="https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters">Access Filters</a>&#8201;&#8212;&#8201;you can include <code>&lt;options&gt;</code> within the <code>&lt;agent&gt;</code> block of the configuration of the
-<code>native-maven-plugin</code> in your POM.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>You can supply multiple sets of <code>&lt;options&gt;</code>.</p>
-</li>
-<li>
-<p>You can declare an unnamed <code>&lt;options&gt;</code> element which will always be used whenever the
-agent is enabled. This should be used to declare common options that will be used for
-all executions with the agent.</p>
-</li>
-<li>
-<p>Additional <code>&lt;options&gt;</code> elements must declare a unique <code>name</code> attribute.</p>
-<div class="ulist">
-<ul>
-<li>
-<p>To configure options for your application, use the name <code>main</code>.</p>
-</li>
-<li>
-<p>To configure options for your tests, use the name <code>test</code>.</p>
-</li>
-<li>
-<p>To configure additional sets of options, declare each with a unique name other than
-<code>main</code> or <code>test</code>.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>The <code>main</code> options are enabled automatically whenever your application is run with the
-agent.</p>
-</li>
-<li>
-<p>The <code>test</code> options are enabled automatically whenever your tests are run with the agent.</p>
-</li>
-<li>
-<p>To enable any other set of named <code>&lt;options&gt;</code>, supply <code>-DagentOptions=&lt;NAME&gt;</code> as a
-command-line argument for Maven, where <code>&lt;NAME&gt;</code> corresponds to the <code>name</code> attribute of
-the <code>&lt;options&gt;</code> element.</p>
-</li>
-</ul>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The Native Image Maven plugin automatically configures the <code>config-output-dir</code> for the
-agent. An attempt to configure a custom value for the <code>config-output-dir</code> option will
-therefore result in a build failure.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>The following example is likely more complex than anything you would do in your own
-projects, but it demonstrates how to configure four sets of <code>&lt;options&gt;</code>.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The unnamed set is always active.</p>
-</li>
-<li>
-<p>The <code>main</code> set is automatically active for application execution.</p>
-</li>
-<li>
-<p>The <code>test</code> set is automatically active for test execution.</p>
-</li>
-<li>
-<p>The <code>periodic-config</code> set is never active by default, but it can be enabled via
-<code>-DagentOptions=periodic-config</code> on the command line.</p>
-</li>
-</ul>
+<a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#caller-based-filters">Caller-based Filters</a>
+and <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#access-filters">Access Filters</a>
+- you can specify them in your POM as described bellow.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
     &lt;agent&gt;
-        &lt;options&gt;&lt;!-- shared options --&gt;
-            &lt;option&gt;experimental-class-loader-support&lt;/option&gt;
+        &lt;enabled&gt;true&lt;/enabled&gt;
+        &lt;defaultMode&gt;Standard&lt;/defaultMode&gt;
+        &lt;modes&gt;
+            &lt;direct&gt;config-output-dir=${project.build.directory}/native/agent-output&lt;/direct&gt;
+            &lt;conditional&gt;
+                &lt;userCodeFilterPath&gt;user-code-filter.json&lt;/userCodeFilterPath&gt;
+                &lt;extraFilterPath&gt;extra-filter.json&lt;/extraFilterPath&gt;
+                &lt;parallel&gt;true&lt;/parallel&gt;
+            &lt;/conditional&gt;
+        &lt;/modes&gt;
+        &lt;options&gt;
+            &lt;callerFilterFiles&gt;
+                &lt;filterFile&gt;caller-filter-file1.json&lt;/filterFile&gt;
+                &lt;filterFile&gt;caller-filter-file2.json&lt;/filterFile&gt;
+            &lt;/callerFilterFiles&gt;
+            &lt;accessFilterFiles&gt;
+                &lt;filterFile&gt;access-filter-file1.json&lt;/filterFile&gt;
+                &lt;filterFile&gt;access-filter-file2.json&lt;/filterFile&gt;
+            &lt;/accessFilterFiles&gt;
+            &lt;builtinCallerFilter&gt;true&lt;/builtinCallerFilter&gt;
+            &lt;builtinHeuristicFilter&gt;true&lt;/builtinHeuristicFilter&gt;
+            &lt;enableExperimentalPredefinedClasses&gt;true&lt;/enableExperimentalPredefinedClasses&gt;
+            &lt;enableExperimentalUnsafeAllocationTracing&gt;
+                true
+            &lt;/enableExperimentalUnsafeAllocationTracing&gt;
+            &lt;trackReflectionMetadata&gt;true&lt;/trackReflectionMetadata&gt;
         &lt;/options&gt;
-        &lt;options name="main"&gt;&lt;!-- main options --&gt;
-            &lt;option&gt;access-filter-file=${basedir}/src/main/resources/access-filter.json&lt;/option&gt;
-        &lt;/options&gt;
-        &lt;options name="test"&gt;&lt;!-- test options --&gt;
-            &lt;option&gt;access-filter-file=${basedir}/src/test/resources/access-filter.json&lt;/option&gt;
-        &lt;/options&gt;
-        &lt;options name="periodic-config"&gt;&lt;!-- periodic-config options --&gt;
-            &lt;option&gt;config-write-period-secs=30&lt;/option&gt;
-            &lt;option&gt;config-write-initial-delay-secs=5&lt;/option&gt;
-        &lt;/options&gt;
+        &lt;metadataCopy&gt;
+            &lt;!-- you can specify metadataCopy configuration here --&gt;
+        &lt;/metadataCopy&gt;
     &lt;/agent&gt;
 &lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This example shows all possibilities you can use for native agent configuration. If you don&#8217;t need some of the options,
+just remove them.</p>
+</div>
+<div class="paragraph">
+<p>Agent can be run in one of the following modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>standard</code> - in this mode you run agent only with options provided in <code>options</code> section.</p>
+</li>
+<li>
+<p><code>direct</code> - in this mode you can provide command line that you want to be executed as an agent configuration. In this
+mode, user is fully responsible for agent configuration, and the rest of the agent configuration, provided in pom.xml file, will be ignored.</p>
+</li>
+<li>
+<p><code>conditional</code> - in this mode you can provide additional files that can be used as a filter for the agent output. You
+can read more about conditional mode <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/">here</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Each option and how you should use it is described bellow:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>enabled</code> - a simple flag that specifies whether the agent is enabled or not. Can be set to true or false.</p>
+</li>
+<li>
+<p><code>defaultMode</code> - agent mode switcher. Can be set to: standard, direct or conditional.</p>
+</li>
+<li>
+<p><code>modes</code> - list of additional mode options, specific for certain mode type. Inside this tag, you can specify options for
+direct or conditional modes. Standard mode doesn&#8217;t have any specific options.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>in case of <code>direct</code> mode you can specify <code>&lt;direct&gt;</code> tag, with the agent command line as its value</p>
+</li>
+<li>
+<p>in case of <code>conditional</code> mode you can specify <code>&lt;conditional&gt;</code> tag, and set additional <a href="https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md">filter files</a>
+inside <code>&lt;userCodeFilterPath&gt;</code> and <code>&lt;extraCodeFilterPath&gt;</code>. Also, you can set value for <code>&lt;parallel&gt;</code> tag. If the value is true, agent will create
+partial-config file, and merge it with conditional merge, otherwise agent will generate same kind of output as other modes.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>options</code> - list of options that can be specify independent from agent mode. More about common options can be found
+<a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/">here</a>.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="metadata-copy"><a class="anchor" href="#metadata-copy"></a>Metadata copy</h4>
+<div class="paragraph">
+<p><code>metadataCopy</code> provides additional options for manipulating the agent output after agent finishes its job.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataCopy&gt;
+    &lt;disabledStages&gt;
+        &lt;stage&gt;main&lt;/stage&gt;
+    &lt;/disabledStages&gt;
+    &lt;merge&gt;true&lt;/merge&gt;
+    &lt;outputDirectory&gt;/tmp/test-output-dir&lt;/outputDirectory&gt;
+&lt;/metadataCopy&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can set values for the following tags:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>&lt;outputDirectory&gt;</code> - where you want to copy agent output.</p>
+</li>
+<li>
+<p><code>&lt;merge&gt;</code> - in case you already have some other config files inside <code>output directory</code>, you can choose whether you want to override those files or
+merge new files with the existing once (set merge value to true).</p>
+</li>
+<li>
+<p><code>&lt;disabledStages&gt;</code> - in case you don&#8217;t want to copy output of the certain stage (main or test) you can disable them and metadataCopy will not look at
+the agent output for that stage. For example, if you want to copy only config files generated in tests, you can disable main stage. Also, if you want
+to copy only files generated in main phase, you can disable test stage. Therefore, if you skip both stages, metadataCopy will not be executed.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -1562,15 +1592,25 @@ projects, but it demonstrates how to configure four sets of <code>&lt;options&gt
 to your Maven Surefire test execution, and the generated files can be found in the
 <code>target/native/agent-output/test</code> directory.</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>To run your tests with custom agent options, supply the <code>-DagentOptions=&lt;NAME&gt;</code>
-command-line argument to Maven as follows. See the documentation for
-<a href="#agent-support-configuring-options">agent options</a> for details.</p>
+<p>If you want to run metadataCopy as well, first define its configuration as described <a href="#metadata-copy">above</a> and add <code>native:metadata-copy</code>
+at the end of the agent invocation command. Example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config test</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true test native:metadata-copy</code></pre>
 </div>
+</div>
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
@@ -1594,6 +1634,30 @@ separate mojo execution which allows forking the Java process.</p>
             &lt;goals&gt;
                 &lt;goal&gt;exec&lt;/goal&gt;
             &lt;/goals&gt;
+            &lt;phase&gt;test&lt;/phase&gt;
+            &lt;configuration&gt;
+                &lt;executable&gt;java&lt;/executable&gt;
+                &lt;workingDirectory&gt;${project.build.directory}&lt;/workingDirectory&gt;
+                &lt;arguments&gt;
+                    &lt;argument&gt;-classpath&lt;/argument&gt;
+                    &lt;classpath/&gt;
+                    &lt;argument&gt;${mainClass}&lt;/argument&gt;
+                &lt;/arguments&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+    &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.0.0&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;java-agent&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;exec&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;phase&gt;test&lt;/phase&gt;
             &lt;configuration&gt;
                 &lt;executable&gt;java&lt;/executable&gt;
                 &lt;workingDirectory&gt;${project.build.directory}&lt;/workingDirectory&gt;
@@ -1614,16 +1678,6 @@ separate mojo execution which allows forking the Java process.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To execute your application with custom agent options, supply the <code>-DagentOptions=&lt;NAME&gt;</code>
-command-line argument to Maven as follows. See the documentation for
-<a href="#agent-support-configuring-options">agent options</a> for details.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
 </div>
 </div>
 <div class="paragraph">
