@@ -24,6 +24,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 ==== Gradle plugin
 
 - Fix `collectReachabilityMetadata` not being thread-safe
+- Add an option to configure the maximum number of images which can be built in parallel
 
 === Release 0.9.19
 
