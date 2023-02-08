@@ -979,6 +979,13 @@ For options that can be set using command-line, if both DSL and command-line opt
 </div>
 </div>
 <div class="sect3">
+<h4 id="max_parallel_builds"><a class="anchor" href="#max_parallel_builds"></a>Max parallel builds</h4>
+<div class="paragraph">
+<p>When using Gradle parallel builds, the plugin will automatically limit the number of native images which can be built concurrently, in order to limit CPU and memory usage.
+By default, it&#8217;s limited to the number of CPU cores / 16, but you can change this limit either by setting the <code>org.graalvm.buildtools.max.parallel.builds</code> gradle property (e.g in your <code>gradle.properties</code> file) or by setting the <code>GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS</code> environment variable.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath, @argument file and fat jar support</h4>
 <div class="paragraph">
 <p>Since release 0.9.10, the plugin will automatically pass arguments to the <code>native-image</code> tool using an argument file, which should prevent all <a href="https://github.com/graalvm/native-build-tools/issues/85">long classpath issues</a> under Windows.
