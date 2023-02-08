@@ -196,6 +196,14 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
+[[max_parallel_builds]]
+==== Max parallel builds
+
+When using Gradle parallel builds, the plugin will automatically limit the number of native images which can be built concurrently, in order to limit CPU and memory usage.
+By default, it's limited to the number of CPU cores / 16, but you can change this limit either by setting the `org.graalvm.buildtools.max.parallel.builds` gradle property (e.g in your `gradle.properties` file) or by setting the `GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS` environment variable.
+
+[[configuration-advanced]]
+
 [[long_classpath_and_fat_jar_support]]
 ==== Long classpath, @argument file and fat jar support
 
