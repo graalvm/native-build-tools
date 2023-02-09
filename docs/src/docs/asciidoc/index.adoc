@@ -24,9 +24,12 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 ==== Gradle plugin
 
 - Fix `collectReachabilityMetadata` not being thread-safe
-- Add agent modes to Maven plugin
 - Add an option to configure the maximum number of images which can be built in parallel
 - Fix GraalVM version check being too strict
+
+==== Maven plugin
+
+- Add agent modes to Maven plugin
 
 === Release 0.9.19
 
