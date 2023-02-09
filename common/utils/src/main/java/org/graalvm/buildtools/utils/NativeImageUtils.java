@@ -59,7 +59,7 @@ public class NativeImageUtils {
 
     private static final Pattern requiredVersionPattern = Pattern.compile("^([0-9]+)(?:\\.([0-9]+)?)?(?:\\.([0-9]+)?)?$");
 
-    private static final Pattern graalvmVersionPattern = Pattern.compile("^GraalVM ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
+    private static final Pattern graalvmVersionPattern = Pattern.compile("^(GraalVM|native-image) ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
 
     public static void maybeCreateConfigureUtilSymlink(File configureUtilFile, Path nativeImageExecutablePath) {
         if (!configureUtilFile.exists()) {
@@ -119,7 +119,7 @@ public class NativeImageUtils {
      * @throws IllegalStateException when the version is not correct
      */
     public static void checkVersion(String requiredVersion, String versionToCheck) {
-        if (versionToCheck.startsWith("GraalVM dev")) {
+        if (versionToCheck.startsWith("GraalVM dev") || versionToCheck.startsWith("native-image dev")) {
             return;
         }
         Matcher requiredMatcher = requiredVersionPattern.matcher(requiredVersion);
@@ -131,7 +131,7 @@ public class NativeImageUtils {
             throw new IllegalArgumentException("Version to check '" + versionToCheck + "' can't be parsed.");
         }
         int requiredMajor = Integer.parseInt(requiredMatcher.group(1));
-        int checkedMajor = Integer.parseInt(checkedMatcher.group(1));
+        int checkedMajor = Integer.parseInt(checkedMatcher.group(2));
         if (checkedMajor < requiredMajor) {
             throw new IllegalStateException("GraalVM version " + requiredMajor + " is required but " + checkedMajor +
                     " has been detected, please upgrade.");
@@ -141,7 +141,7 @@ public class NativeImageUtils {
         }
         if (requiredMatcher.group(2) != null) {
             int requiredMinor = Integer.parseInt(requiredMatcher.group(2));
-            int checkedMinor = Integer.parseInt(checkedMatcher.group(2));
+            int checkedMinor = Integer.parseInt(checkedMatcher.group(3));
             if (checkedMinor < requiredMinor) {
                 throw new IllegalStateException("GraalVM version " + requiredMajor + "." + requiredMinor +
                         " is required but " + checkedMajor + "." + checkedMinor + " has been detected, please upgrade.");
@@ -151,7 +151,7 @@ public class NativeImageUtils {
             }
             if (requiredMatcher.group(3) != null) {
                 int requiredPatch = Integer.parseInt(requiredMatcher.group(3));
-                int checkedPatch = Integer.parseInt(checkedMatcher.group(3));
+                int checkedPatch = Integer.parseInt(checkedMatcher.group(4));
                 if (checkedPatch < requiredPatch) {
                     throw new IllegalStateException("GraalVM version " + requiredMajor + "." + requiredMinor + "." +
                             requiredPatch +  " is required but " + checkedMajor + "." + checkedMinor + "." + checkedPatch +
