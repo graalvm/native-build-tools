@@ -81,7 +81,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        if (agentConfiguration != null && (agentConfiguration.isEnabled() || session.getSystemProperties().getProperty("agent").equalsIgnoreCase("true"))) {
+        if (agentConfiguration != null && (agentConfiguration.isEnabled() || agentIsEnabledFromCmd())) {
             // in direct mode user is fully responsible for agent configuration, and we will not execute anything besides line that user provided
             if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
                 logger.info("You are running agent in direct mode. Skipping both merge and metadata copy tasks.");
@@ -217,6 +217,18 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         List<String> diff = new ArrayList<>(list1);
         diff.removeAll(list2);
         return diff;
+    }
+
+    private boolean agentIsEnabledFromCmd() {
+        if (session == null) {
+            return false;
+        }
+
+        if (session.getSystemProperties().getProperty("agent") == null) {
+            return false;
+        }
+
+        return session.getSystemProperties().getProperty("agent").equalsIgnoreCase("true");
     }
 
 }
