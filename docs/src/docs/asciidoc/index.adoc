@@ -21,10 +21,6 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.9.21
 
-==== Gradle plugin
-
-- TBD
-
 ==== Maven plugin
 
 - Add a new `native:write-args-file` goal that can be used to write the arguments passed to `native-image` to a file
