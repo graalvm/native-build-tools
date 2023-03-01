@@ -1138,6 +1138,10 @@ wish to run those same tests in native mode.</p>
 <p>To avoid this, since release 0.9.10, the plugin will use an argument file to pass the arguments to the <code>native-image</code> tool, instead of passing them directly.</p>
 </div>
 <div class="paragraph">
+<p>There is also a <code>native:write-args-file</code> goal that can be used to generate this argument file. This can be useful in situations where the Native Build Tools plugin is not available, for example, when running native-image in a Docker container. The path to the args file is stored in the project properties
+under the key <code>graalvm.native-image.args-file</code>, so that other Maven plugins further in the lifecycle can use it.</p>
+</div>
+<div class="paragraph">
 <p>In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn&#8217;t supported.</p>
 </div>
 <div class="paragraph">
