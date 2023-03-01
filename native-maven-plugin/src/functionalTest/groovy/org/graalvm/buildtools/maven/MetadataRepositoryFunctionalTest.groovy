@@ -167,12 +167,12 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withLocalServer()
 
         when:
-        mvn '-Pnative,metadataUrl', "-Dmetadata.url=https://httpstat.us/404", '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataUrl', "-Dmetadata.url=https://google.com/notfound", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
         outputContains "Reflection failed"
-        outputContains "Failed to download from https://httpstat.us/404: 404 Not Found"
+        outputContains "Failed to download from https://google.com/notfound: 404 Not Found"
     }
 
     void "it can include hints in jar"() {

@@ -108,4 +108,15 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputContains "Hello, native!"
     }
 
+    def "can write the args file"() {
+        withSample("java-application")
+
+        when:
+        mvn '-Pnative', 'native:write-args-file'
+
+        then:
+        buildSucceeded
+        outputContains "Args file written to: target/native-image"
+    }
+
 }
