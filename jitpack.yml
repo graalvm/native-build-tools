@@ -1,3 +1,5 @@
 before_install:
   - sdk install java 22.3.r11-grl
   - sdk use java 22.3.r11-grl
+install:
+  - ./gradlew publishToMavenLocal --no-parallel
