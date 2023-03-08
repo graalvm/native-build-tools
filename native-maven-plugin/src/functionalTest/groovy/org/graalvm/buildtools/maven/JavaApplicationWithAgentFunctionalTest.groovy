@@ -54,7 +54,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvnDebug '-Pnative', 'test', '-DskipNativeTests'
+        mvnDebug '-Pnative', 'test', '-Dagent=true', '-DskipNativeTests'
 
         then:
         // Agent is used with Surefire
@@ -81,10 +81,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "test agent with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn'-Pnative', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn'-Pnative', '-DskipNativeBuild=true', 'package', '-Dagent=true', 'exec:exec@java-agent'
 
         when:
-        mvn'-Pnative', '-DskipNativeTests', 'native:metadata-copy'
+        mvn'-Pnative', '-DskipNativeTests', '-Dagent=true', 'native:metadata-copy'
 
         then:
         buildSucceeded

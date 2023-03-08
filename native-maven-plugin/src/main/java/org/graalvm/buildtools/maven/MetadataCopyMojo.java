@@ -40,6 +40,7 @@
  */
 package org.graalvm.buildtools.maven;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -75,9 +76,12 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
+    @Parameter(defaultValue = "${session}", readonly = true)
+    private MavenSession session;
+
     @Override
     public void execute() throws MojoExecutionException {
-        if (agentConfiguration != null && agentConfiguration.isEnabled()) {
+        if (agentConfiguration != null && (agentConfiguration.isEnabled() || agentIsEnabledFromCmd())) {
             // in direct mode user is fully responsible for agent configuration, and we will not execute anything besides line that user provided
             if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
                 logger.info("You are running agent in direct mode. Skipping both merge and metadata copy tasks.");
@@ -213,6 +217,18 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         List<String> diff = new ArrayList<>(list1);
         diff.removeAll(list2);
         return diff;
+    }
+
+    private boolean agentIsEnabledFromCmd() {
+        if (session == null) {
+            return false;
+        }
+
+        if (session.getSystemProperties().getProperty("agent") == null) {
+            return false;
+        }
+
+        return session.getSystemProperties().getProperty("agent").equalsIgnoreCase("true");
     }
 
 }

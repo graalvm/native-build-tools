@@ -141,7 +141,6 @@
                         <configuration>
                             <!-- end::native-plugin-agent-options[] -->
                             <agent>
-                                <enabled>true</enabled>
                                 <defaultMode>Standard</defaultMode>
                                 <options>
                                     <builtinCallerFilter>true</builtinCallerFilter>
