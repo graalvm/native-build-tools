@@ -10,12 +10,26 @@ The {doctitle} adds support for building and testing native images using the htt
 
 For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 
+[[quickstart]]
 == Quickstart
 
-[NOTE]
+====
+<<gradle-plugin-quickstart.adoc#,Getting Started with Gradle Plugin for GraalVM Native Image>>
+====
+
 ====
 You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
 ====
+
+====
+The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
+The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
+```
+bash <(curl -sL https://get.graalvm.org/jdk)
+```
+====
+
+== Reference documentation
 
 === Adding the plugin
 
@@ -181,6 +195,14 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 ----
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
+
+[[max_parallel_builds]]
+==== Max parallel builds
+
+When using Gradle parallel builds, the plugin will automatically limit the number of native images which can be built concurrently, in order to limit CPU and memory usage.
+By default, it's limited to the number of CPU cores / 16, but you can change this limit either by setting the `org.graalvm.buildtools.max.parallel.builds` gradle property (e.g in your `gradle.properties` file) or by setting the `GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS` environment variable.
+
+[[configuration-advanced]]
 
 [[long_classpath_and_fat_jar_support]]
 ==== Long classpath, @argument file and fat jar support

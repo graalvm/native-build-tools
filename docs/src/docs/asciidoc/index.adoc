@@ -19,6 +19,49 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.21
+
+==== Maven plugin
+
+- Add a new `native:write-args-file` goal that can be used to write the arguments passed to `native-image` to a file
+
+=== Release 0.9.20
+
+==== Gradle plugin
+
+- Fix `collectReachabilityMetadata` not being thread-safe
+- Add an option to configure the maximum number of images which can be built in parallel
+- Fix GraalVM version check being too strict
+
+==== Maven plugin
+
+- Add agent modes to Maven plugin
+
+=== Release 0.9.19
+
+==== Gradle plugin
+
+- Fix `nativeCompile` being out-of-date whenever native runtime arguments change
+- Fix GraalVM metadata repository not downloaded from project repositories by default
+
+==== Maven plugin
+
+=== Release 0.9.18
+
+* Trim GraalVM version to fix Windows support
+* Add tests for NativeImageUtils.escapeArg
+* Do not escape quoted regexp args when using argsfile
+* Upgrade to GraalVM metadata repository 0.2.5
+
+=== Release 0.9.17
+
+* Add a `requiredVersion` property to check the minimal GraalVM version
+* Make GraalVM installation check lazy
+
+=== Release 0.9.16
+
+* Fixed regression with a reachability-metadata repository
+
 === Release 0.9.15
 
 * Upgrade to GraalVM metadata repository 0.2.3.

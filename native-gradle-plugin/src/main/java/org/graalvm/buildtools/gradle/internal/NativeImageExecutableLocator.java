@@ -96,8 +96,9 @@ public class NativeImageExecutableLocator {
                 logger.log("Native Image executable wasn't found. We will now try to download it. ");
                 File graalVmHomeGuess = executablePath.getParentFile();
 
-                if (!graalVmHomeGuess.toPath().resolve(GU_EXE).toFile().exists()) {
-                    throw new GradleException("'" + GU_EXE + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
+                File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
+                if (!guPath.exists()) {
+                    throw new GradleException("'" + GU_EXE + "' at '" + guPath + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
                 }
                 ExecResult res = execOperations.exec(spec -> {
                     spec.args("install", "native-image");
@@ -150,6 +151,7 @@ public class NativeImageExecutableLocator {
         public void withExecutablePath(File path) {
             executablePath = path;
         }
+
         public List<String> getDiagnostics() {
             List<String> diags = new ArrayList<>();
             diags.add("GraalVM Toolchain detection is " + (toolchainDetectionDisabled ? "disabled" : "enabled"));

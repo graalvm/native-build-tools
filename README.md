@@ -13,9 +13,15 @@ End-user documentation about the plugins can be found [here](https://graalvm.git
 
 ### Common subprojects
  * [junit-platform-native](common/junit-platform-native/README.md)
- <hr>
 
-_Examples can be found in the [samples subdirectory](samples/README.md)._
+### Getting Started
+
+* [Getting Started with the Maven Plugin](https://graalvm.github.io/native-build-tools/latest/maven-plugin-quickstart.html)
+* [Getting Started with the Gradle Plugin](https://graalvm.github.io/native-build-tools/latest/gradle-plugin-quickstart.html)
+
+### Samples
+
+Examples can be found in the [samples subdirectory](samples).
 
 ### Contributing Code
 We welcome your code contributions. To get started, you will need to sign the [Oracle Contributor Agreement](https://oca.opensource.oracle.com) (OCA).

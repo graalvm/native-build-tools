@@ -39,11 +39,10 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools;
+package org.graalvm.buildtools.utils;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.logging.Logger;
-import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +56,7 @@ import java.util.stream.Stream;
 /**
  * Utility class containing various native-image and JVM related methods.
  */
-public abstract class Utils implements SharedConstants {
+public abstract class NativeImageConfigurationUtils implements SharedConstants {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
     public static Path nativeImageCache;

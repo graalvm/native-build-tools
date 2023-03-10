@@ -67,7 +67,7 @@ class IsolatedMavenExecutor {
         cliArgs.add("-cp")
         cliArgs.add(classpath)
         if (debug) {
-            cliArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
+            cliArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
         }
         cliArgs.add("-Dmaven.multiModuleProjectDirectory=" + rootProjectDirectory.getAbsolutePath())
         cliArgs.add("org.apache.maven.cli.MavenCli")

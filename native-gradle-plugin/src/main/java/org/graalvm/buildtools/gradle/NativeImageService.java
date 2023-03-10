@@ -44,18 +44,31 @@ package org.graalvm.buildtools.gradle;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
 @SuppressWarnings({"UnstableApiUsage", "unused"})
 public abstract class NativeImageService implements BuildService<BuildServiceParameters.None> {
+
+    public static final String MAX_PARALLEL_SYSTEM_PROPERTY = "org.graalvm.buildtools.max.parallel.builds";
+    public static final String MAX_PARALLEL_ENV_VAR = "GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS";
+
     public static Provider<NativeImageService> registerOn(Project project) {
         return project.getGradle()
                 .getSharedServices()
                 .registerIfAbsent("nativeImage", NativeImageService.class,
                         spec -> {
                             GraalVMLogger.newBuild();
-                            spec.getMaxParallelUsages().set(1 + Runtime.getRuntime().availableProcessors() / 16);
+                            spec.getMaxParallelUsages().set(maxParallelUsagesOf(project.getProviders()));
                         });
+    }
+
+    private static Provider<Integer> maxParallelUsagesOf(ProviderFactory providers) {
+        return providers.gradleProperty(MAX_PARALLEL_SYSTEM_PROPERTY)
+                .forUseAtConfigurationTime()
+                .orElse(providers.environmentVariable(MAX_PARALLEL_ENV_VAR).forUseAtConfigurationTime())
+                .map(Integer::parseInt)
+                .orElse(1 + Runtime.getRuntime().availableProcessors() / 16);
     }
 }

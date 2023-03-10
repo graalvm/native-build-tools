@@ -49,21 +49,33 @@ public class AgentConfiguration implements Serializable {
 
     private final Collection<String> callerFilterFiles;
     private final Collection<String> accessFilterFiles;
-    private final boolean builtinCallerFilter;
-    private final boolean builtinHeuristicFilter;
-    private final boolean experimentalPredefinedClasses;
-    private final boolean experimentalUnsafeAllocationTracing;
-    private final boolean trackReflectionMetadata;
+    private final Boolean builtinCallerFilter;
+    private final Boolean builtinHeuristicFilter;
+    private final Boolean experimentalPredefinedClasses;
+    private final Boolean experimentalUnsafeAllocationTracing;
+    private final Boolean trackReflectionMetadata;
 
     private final AgentMode agentMode;
 
+    // This constructor should be used only to specify that we have instance of agent that is disabled (to avoid using null for agent enable check)
+    public AgentConfiguration(AgentMode ...modes) {
+        this.callerFilterFiles = null;
+        this.accessFilterFiles = null;
+        this.builtinCallerFilter = null;
+        this.builtinHeuristicFilter = null;
+        this.experimentalPredefinedClasses = null;
+        this.experimentalUnsafeAllocationTracing = null;
+        this.trackReflectionMetadata = null;
+        this.agentMode = modes.length == 1 ? modes[0] : new DisabledAgentMode();
+    }
+
     public AgentConfiguration(Collection<String> callerFilterFiles,
                               Collection<String> accessFilterFiles,
-                              boolean builtinCallerFilter,
-                              boolean builtinHeuristicFilter,
-                              boolean experimentalPredefinedClasses,
-                              boolean experimentalUnsafeAllocationTracing,
-                              boolean trackReflectionMetadata,
+                              Boolean builtinCallerFilter,
+                              Boolean builtinHeuristicFilter,
+                              Boolean experimentalPredefinedClasses,
+                              Boolean experimentalUnsafeAllocationTracing,
+                              Boolean trackReflectionMetadata,
                               AgentMode agentMode) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
@@ -79,11 +91,11 @@ public class AgentConfiguration implements Serializable {
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
-        cmdLine.add("builtin-caller-filter=" + builtinCallerFilter);
-        cmdLine.add("builtin-heuristic-filter=" + builtinHeuristicFilter);
-        cmdLine.add("experimental-class-define-support=" + experimentalPredefinedClasses);
-        cmdLine.add("experimental-unsafe-allocation-support=" + experimentalUnsafeAllocationTracing);
-        cmdLine.add("track-reflection-metadata=" + trackReflectionMetadata);
+        addToCmd("builtin-caller-filter=", builtinCallerFilter, cmdLine);
+        addToCmd("builtin-heuristic-filter=", builtinHeuristicFilter, cmdLine);
+        addToCmd("experimental-class-define-support=", experimentalPredefinedClasses, cmdLine);
+        addToCmd("experimental-unsafe-allocation-support=", experimentalUnsafeAllocationTracing, cmdLine);
+        addToCmd("track-reflection-metadata=", trackReflectionMetadata, cmdLine);
         return cmdLine;
     }
 
@@ -100,10 +112,19 @@ public class AgentConfiguration implements Serializable {
     }
 
     public static void appendOptionToValues(String option, Collection<String> values, Collection<String> target) {
-        values.stream().map(value -> option + value).forEach(target::add);
+        if (values != null) {
+            values.stream().map(value -> option + value).forEach(target::add);
+        }
     }
 
     public AgentMode getAgentMode() {
         return agentMode;
     }
+
+    private void addToCmd(String option, Boolean value, List<String> cmdLine) {
+        if (value != null) {
+            cmdLine.add(option + value);
+        }
+    }
+
 }
