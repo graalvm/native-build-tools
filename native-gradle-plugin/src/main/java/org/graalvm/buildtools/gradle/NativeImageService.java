@@ -66,8 +66,7 @@ public abstract class NativeImageService implements BuildService<BuildServicePar
 
     private static Provider<Integer> maxParallelUsagesOf(ProviderFactory providers) {
         return providers.gradleProperty(MAX_PARALLEL_SYSTEM_PROPERTY)
-                .forUseAtConfigurationTime()
-                .orElse(providers.environmentVariable(MAX_PARALLEL_ENV_VAR).forUseAtConfigurationTime())
+                .orElse(providers.environmentVariable(MAX_PARALLEL_ENV_VAR))
                 .map(Integer::parseInt)
                 .orElse(1 + Runtime.getRuntime().availableProcessors() / 16);
     }

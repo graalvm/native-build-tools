@@ -49,7 +49,6 @@ repositories {
 }
 
 def junitVersion = providers.gradleProperty('junit.jupiter.version')
-    .forUseAtConfigurationTime()
     .get()
 
 dependencies {

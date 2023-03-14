@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.util.GradleVersion
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
 
@@ -114,6 +115,11 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         def graalvmHome = System.getenv("GRAALVM_HOME")
         graalvmHome != null
     })
+    @IgnoreIf({
+        // Incompatible with configuration cache because the toolchain error causes serialization
+        // problems
+        Boolean.getBoolean("config.cache")
+    })
     def "can override toolchain selection"() {
         def nativeApp = file("build/native/nativeCompile/java-application")
         boolean dummyToolchain = GradleVersion.version(gradleVersion).compareTo(GradleVersion.version("7.0")) >= 0
@@ -124,6 +130,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         if (dummyToolchain) {
             buildFile << """graalvmNative.binaries.configureEach {
                 javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()))
                     vendor.set(JvmVendorSpec.matching("non existing vendor"))
                 })
             }"""

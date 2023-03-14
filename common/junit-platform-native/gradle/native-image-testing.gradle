@@ -136,7 +136,7 @@ tasks.register("nativeTestCompile", Exec) {
     argsProvider.classpath.from(test.classpath)
     argsProvider.testIdsDir.set(testIdsDir)
     argsProvider.agentOutputDir.set(agentOutput)
-    argsProvider.discovery.set(providers.systemProperty("testDiscovery").forUseAtConfigurationTime().map(v -> Boolean.valueOf(v)).orElse(false))
+    argsProvider.discovery.set(providers.systemProperty("testDiscovery").map(v -> Boolean.valueOf(v)).orElse(false))
     argumentProviders.add(argsProvider)
 }
 

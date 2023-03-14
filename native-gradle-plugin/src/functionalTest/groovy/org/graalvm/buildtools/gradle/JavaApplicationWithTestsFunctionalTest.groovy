@@ -284,7 +284,12 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
 
         then:
         tasks {
-            upToDate(':test')
+            if (hasConfigurationCache) {
+                // because we run with --rerun-tasks when checking with config cache
+                succeeded(':test')
+            } else {
+                upToDate(':test')
+            }
         }
     }
 }

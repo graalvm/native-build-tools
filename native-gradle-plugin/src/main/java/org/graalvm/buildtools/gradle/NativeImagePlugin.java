@@ -139,7 +139,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializablePredicateOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableSupplierOf;
@@ -330,7 +329,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             tasks.register(runTaskName, NativeRunTask.class, task -> {
                 task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                 task.setDescription("Executes the " + options.getName() + " native binary");
-                task.getImage().convention(imageBuilder.map(t -> t.getOutputFile().get()));
+                task.getImage().convention(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile));
                 task.getRuntimeArgs().convention(options.getRuntimeArgs());
             });
             configureClasspathJarFor(tasks, options, imageBuilder);
@@ -374,13 +373,15 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                            Collector<T, A, R> collector) {
         GraalVMReachabilityMetadataRepositoryExtension extension = reachabilityExtensionOn(graalExtension);
         Provider<GraalVMReachabilityMetadataService> metadataServiceProvider = graalVMReachabilityMetadataService(project, extension);
-        Configuration classpath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+        ResolutionResult resolutionResult = project.getConfigurations()
+                .getByName(sourceSet.getRuntimeClasspathConfigurationName())
+                .getIncoming()
+                .getResolutionResult();
         return extension.getEnabled().flatMap(serializableTransformerOf(enabled -> {
             if (enabled && extension.getUri().isPresent()) {
                 Set<String> excludedModules = extension.getExcludedModules().getOrElse(Collections.emptySet());
                 Map<String, String> forcedVersions = extension.getModuleToConfigVersion().getOrElse(Collections.emptyMap());
                 return metadataServiceProvider.map(serializableTransformerOf(service -> {
-                    ResolutionResult resolutionResult = classpath.getIncoming().getResolutionResult();
                     Set<ResolvedComponentResult> components = resolutionResult.getAllComponents();
                     Stream<T> mapped = components.stream().flatMap(serializableFunctionOf(component -> {
                         ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
@@ -441,9 +442,14 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureJvmReachabilityExcludeConfigArgs(Project project, GraalVMExtension graalExtension, NativeImageOptions options, SourceSet sourceSet) {
-        options.getExcludeConfig().putAll(graalVMReachabilityQuery(project, graalExtension, sourceSet,
-                DirectoryConfiguration::isOverride, this::getExclusionConfig,
-                () -> Collectors.<Map.Entry<String, List<String>>, String, List<String>>toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        options.getExcludeConfig().putAll(
+                graalVMReachabilityQuery(project,
+                        graalExtension,
+                        sourceSet,
+                        DirectoryConfiguration::isOverride,
+                        this::getExclusionConfig,
+                        Collectors.<Map.Entry<String, List<String>>, String, List<String>>toMap(Map.Entry::getKey, Map.Entry::getValue))
+        );
         GraalVMReachabilityMetadataRepositoryExtension repositoryExtension = reachabilityExtensionOn(graalExtension);
         graalVMReachabilityMetadataService(project, repositoryExtension);
     }
@@ -627,7 +633,6 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static Provider<String> agentProperty(Project project, AgentOptions options) {
         return project.getProviders()
                 .gradleProperty(AGENT_PROPERTY)
-                .forUseAtConfigurationTime()
                 .map(serializableTransformerOf(v -> {
                     if (!v.isEmpty()) {
                         return v;
