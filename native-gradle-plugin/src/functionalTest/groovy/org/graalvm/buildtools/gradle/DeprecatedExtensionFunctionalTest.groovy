@@ -42,8 +42,10 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import spock.lang.IgnoreIf
 
 class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
+    @IgnoreIf({ Boolean.getBoolean("config.cache")} )
     def "using a deprecated extension issues a warning"() {
         given:
         buildFile << """

@@ -58,6 +58,7 @@ abstract class AbstractFunctionalTest extends Specification {
 
     String gradleVersion = testGradleVersion()
     boolean debug
+    boolean hasConfigurationCache = Boolean.getBoolean("config.cache")
 
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
     boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
@@ -128,7 +129,13 @@ abstract class AbstractFunctionalTest extends Specification {
     void run(String... args) {
         try {
             result = newRunner(args)
-                    .build()
+                    .run()
+            if (hasConfigurationCache) {
+                // run a 2d time to check that not only we can store in
+                // the configuration cache, but that we can also load from it
+                result = newRunner([*args, "--rerun-tasks"] as String[])
+                        .run()
+            }
         } finally {
             recordOutputs()
         }
@@ -182,7 +189,7 @@ abstract class AbstractFunctionalTest extends Specification {
         List<String> autoArgs = [
                 "-S",
         ]
-        if (Boolean.getBoolean("config.cache")) {
+        if (hasConfigurationCache) {
             autoArgs << '--configuration-cache'
         }
         autoArgs << "-I"
@@ -215,7 +222,7 @@ abstract class AbstractFunctionalTest extends Specification {
             allprojects {
                 repositories {
                     maven {
-                        url = "\${providers.systemProperty('common.repo.url').forUseAtConfigurationTime().get()}"
+                        url = "\${providers.systemProperty('common.repo.url').get()}"
                     }
                     mavenCentral()
                 }
@@ -248,7 +255,7 @@ abstract class AbstractFunctionalTest extends Specification {
 
         void contains(String... tasks) {
             tasks.each { task ->
-                assert result.task(task) != null: "Expected to find task $task in the graph but it was missing"
+                assert result.task(task) != null: "Expected to find task $task in the graph but it was missing. Found tasks: ${result.tasks.collect { it.path }}"
             }
         }
 

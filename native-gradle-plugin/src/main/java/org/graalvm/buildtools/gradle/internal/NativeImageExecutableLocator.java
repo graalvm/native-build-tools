@@ -128,7 +128,6 @@ public class NativeImageExecutableLocator {
         public Provider<String> fromEnvVar(String envVar, ProviderFactory factory) {
             return factory.environmentVariable(envVar)
                     // required for older Gradle versions support
-                    .forUseAtConfigurationTime()
                     .map(ConfigurationCacheSupport.serializableTransformerOf(value -> {
                         this.envVar = envVar;
                         return value;
@@ -164,12 +163,8 @@ public class NativeImageExecutableLocator {
             if (toolchain != null) {
                 diags.add("GraalVM uses toolchain detection. Selected:");
                 diags.add("   - language version: " + toolchain.getLanguageVersion());
-                if (GradleUtils.isAtLeastGradle6dot8()) {
-                    diags.add("   - vendor: " + toolchain.getVendor());
-                    if (GradleUtils.isAtLeastGradle7dot1()) {
-                        diags.add("   - runtime version: " + toolchain.getJavaRuntimeVersion());
-                    }
-                }
+                diags.add("   - vendor: " + toolchain.getVendor());
+                diags.add("   - runtime version: " + toolchain.getJavaRuntimeVersion());
             }
             if (executablePath != null) {
                 try {

@@ -44,7 +44,6 @@ plugins {
 }
 
 version = providers.gradleProperty("publishVersion")
-        .forUseAtConfigurationTime()
         .orElse(libs.versions.nativeBuildTools)
         .get()
 

@@ -53,7 +53,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gradle-version: ["current", "7.1"]
+        gradle-version: ["current", "7.4"]
+        gradle-config-cache-version: ["current", "7.5.1"]
         # Following versions are disabled temporarily in order to speed up PR testing
         # "7.3.3", "7.2", "7.1", "6.8.3"
         graalvm-version: [ latest ] # dev
@@ -69,6 +70,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }}
+      - name: "❓ Check and test the plugin with configuration cache"
+        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}
       - name: "📜 Upload functional tests results"
         if: always()
         uses: actions/upload-artifact@v2

@@ -21,6 +21,12 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.9.21
 
+==== Gradle plugin
+
+- Bump minimal version of Gradle to 7.4
+- Fix compatibility with Gradle's https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#header[configuration cache] (requires Gradle 7.5+)
+- Remove use of deprecated Gradle APIs
+
 ==== Maven plugin
 
 - Add a new `native:write-args-file` goal that can be used to write the arguments passed to `native-image` to a file

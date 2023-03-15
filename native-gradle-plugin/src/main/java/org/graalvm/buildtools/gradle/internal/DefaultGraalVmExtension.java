@@ -97,9 +97,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
                         if (toolchainService != null) {
                             return toolchainService.launcherFor(spec -> {
                                 spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                                if (GradleUtils.isAtLeastGradle7()) {
-                                    spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
-                                }
+                                spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
                             });
                         }
                     }

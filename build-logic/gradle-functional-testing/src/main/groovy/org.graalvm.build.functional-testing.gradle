@@ -82,12 +82,12 @@ def graalVm = javaToolchains.launcherFor {
 def fullFunctionalTest = tasks.register("fullFunctionalTest")
 
 ['functionalTest', 'configCacheFunctionalTest'].each { baseName ->
-    ["current", "7.3.3", "7.2", "7.1"].each { gradleVersion ->
+    ["current", "7.4", "7.6.2"].each { gradleVersion ->
         String taskName = gradleVersion == 'current' ? baseName : "gradle${gradleVersion}${baseName.capitalize()}"
         // Add a task to run the functional tests
         def testTask = tasks.register(taskName, Test) {
             String effectiveVersion = gradleVersion
-            def versionProvider = providers.systemProperty('gradleVersion').forUseAtConfigurationTime()
+            def versionProvider = providers.systemProperty('gradleVersion')
             if (effectiveVersion == 'current' && versionProvider.isPresent()) {
                 effectiveVersion = versionProvider.get()
             }
@@ -99,7 +99,7 @@ def fullFunctionalTest = tasks.register("fullFunctionalTest")
             systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
             systemProperty('gradle.test.version', effectiveVersion)
             systemProperty('versions.junit', libs.versions.junitJupiter.get())
-            environment('GRAALVM_HOME', graalVm.forUseAtConfigurationTime().get().metadata.installationPath.asFile.absolutePath)
+            environment('GRAALVM_HOME', graalVm.get().metadata.installationPath.asFile.absolutePath)
             testClassesDirs = sourceSets.functionalTest.output.classesDirs
             classpath = sourceSets.functionalTest.runtimeClasspath
             javaLauncher.set(graalVm)
