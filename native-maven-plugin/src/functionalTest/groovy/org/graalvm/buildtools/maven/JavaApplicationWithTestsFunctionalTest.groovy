@@ -140,4 +140,17 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/178")
+    def "can run tests in a multimodule project"() {
+        given:
+        withSample("multi-project-with-tests")
+
+        when:
+        mvn 'package'
+
+        then:
+        buildSucceeded
+        outputContains "SurefirePlugin - Tests run: 8, Failures: 0, Errors: 0, Skipped: 0"
+    }
+
 }
