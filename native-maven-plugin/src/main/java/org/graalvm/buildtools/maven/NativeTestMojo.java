@@ -202,6 +202,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(executable.toAbsolutePath().toString());
             processBuilder.inheritIO();
+            processBuilder.directory(session.getCurrentProject().getBasedir());
 
             List<String> command = new ArrayList<>();
             command.add("--xml-output-dir");

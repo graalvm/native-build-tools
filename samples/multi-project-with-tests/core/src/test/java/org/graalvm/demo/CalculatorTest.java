@@ -1,12 +1,16 @@
 package org.graalvm.demo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.apache.commons.math3.complex.Complex;
+
+import java.io.IOException;
+import java.io.FileInputStream;
 
 class CalculatorTest {
 
@@ -42,5 +46,12 @@ class CalculatorTest {
         Calculator calculator = new Calculator();
         assertEquals(expectedResult, calculator.add(first, second),
                 () -> first + " + " + second + " should equal " + expectedResult);
+    }
+
+    @Test
+    void messageIsFoundUsingRelativePaths() throws IOException {
+        try (FileInputStream fileInputStream = new FileInputStream("src/test/resources/hello.txt")) {
+            assertNotNull(fileInputStream);
+        }
     }
 }
