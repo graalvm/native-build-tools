@@ -50,20 +50,20 @@ graalvmNative {
     binaries {
         named("main") {
             javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(8))
-                vendor.set(JvmVendorSpec.matching("GraalVM Community"))
+                languageVersion.set(JavaLanguageVersion.of(20))
+                vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
             })
         }
     }
 }
 // end::select-toolchain[]
 
-if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
-// tag::disabling-toolchain[]
+if (providers.environmentVariable("ENABLE_TOOLCHAIN").isPresent()) {
+// tag::enabling-toolchain[]
     graalvmNative {
-        toolchainDetection.set(false)
+        toolchainDetection.set(true)
     }
-// end::disabling-toolchain[]
+// end::enabling-toolchain[]
 }
 
 // tag::all-config-options[]
