@@ -30,6 +30,7 @@ jobs:
       matrix:
         graalvm-version: [ latest ] # dev
         java-version: [ 11 ]
+        vendor: ["GraalVM Community", "Oracle"]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
@@ -39,6 +40,7 @@ jobs:
           graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          gds-token: ${{ matrix.vendor == 'Oracle' && secrets.GDS_TOKEN || '' }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-maven-plugin:check --no-daemon
       - name: "📜 Upload unit test results"

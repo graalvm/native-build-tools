@@ -6,6 +6,10 @@ inputs:
     description: 'secrets.GITHUB_TOKEN'
     required: false
     default: ''
+  gds-token:
+    description: 'secrets.GDS_TOKEN'
+    required: false
+    default: ''
   graalvm-version:
     description: 'GraalVM version to use'
     required: false
@@ -31,6 +35,7 @@ runs:
       with:
         components: 'native-image'
         github-token: ${{ inputs.github-token }}
+        gds-token: ${{ inputs.gds-token }}
         java-version: ${{ inputs.java-version }}
         version: ${{ inputs.graalvm-version }}
     - name: "🔒 Configure push access"
