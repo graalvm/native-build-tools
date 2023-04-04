@@ -21,6 +21,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.9.21
 
+* Deprecate `requiredVersion` check without replacement.
+
 ==== Gradle plugin
 
 - Bump minimal version of Gradle to 7.4

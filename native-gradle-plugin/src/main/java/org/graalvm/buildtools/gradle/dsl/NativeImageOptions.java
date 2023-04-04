@@ -151,10 +151,12 @@ public interface NativeImageOptions extends Named, NativeImageCompileOptions, Na
     /**
      * Specify the minimal GraalVM version, can be {@code MAJOR}, {@code MAJOR.MINOR} or {@code MAJOR.MINOR.PATCH}.
      *
+     * @deprecated deprecated without replacement.
      * @return the required version property.
      */
     @Input
     @Optional
+    @Deprecated
     Property<String> getRequiredVersion();
 
     /**
