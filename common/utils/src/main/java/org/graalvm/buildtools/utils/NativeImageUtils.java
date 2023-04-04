@@ -119,6 +119,9 @@ public class NativeImageUtils {
      * @throws IllegalStateException when the version is not correct
      */
     public static void checkVersion(String requiredVersion, String versionToCheck) {
+        if (versionToCheck.contains("GraalVM Runtime Environment")) {
+            return; // later than 22.3.1 (e.g., GraalVM for JDK 17 / GraalVM for JDK 20)
+        }
         if (versionToCheck.startsWith("GraalVM dev") || versionToCheck.startsWith("native-image dev")) {
             return;
         }
