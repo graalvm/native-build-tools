@@ -68,6 +68,18 @@ class NativeImageUtilsTest {
         NativeImageUtils.checkVersion("22", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)");
         NativeImageUtils.checkVersion("22.3", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)");
         NativeImageUtils.checkVersion("22.3.0", "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)");
+
+        String graalVMCEForJDK17 = "native-image 17.0.7 2023-04-18\nGraalVM Runtime Environment GraalVM CE 17.0.7+4.1 (build 17.0.7+4-jvmci-23.0-b10)\nSubstrate VM GraalVM CE 17.0.7+4.1 (build 17.0.7+4, serial gc)";
+        NativeImageUtils.checkVersion("22.3.0", graalVMCEForJDK17);
+        NativeImageUtils.checkVersion("23", graalVMCEForJDK17);
+        NativeImageUtils.checkVersion("23.0", graalVMCEForJDK17);
+        NativeImageUtils.checkVersion("23.0.0", graalVMCEForJDK17);
+
+        String graalVMCEForJDK20 = "native-image 20 2023-04-18\nGraalVM Runtime Environment GraalVM CE 20+34.1 (build 20+34-jvmci-23.0-b10)\nSubstrate VM GraalVM CE 20+34.1 (build 20+34, serial gc)";
+        NativeImageUtils.checkVersion("22.3.0", graalVMCEForJDK20);
+        NativeImageUtils.checkVersion("23", graalVMCEForJDK20);
+        NativeImageUtils.checkVersion("23.0", graalVMCEForJDK20);
+        NativeImageUtils.checkVersion("23.0.0", graalVMCEForJDK20);
     }
 
     @Test
@@ -85,6 +97,18 @@ class NativeImageUtilsTest {
         NativeImageUtils.checkVersion("22", "GraalVM 22.3.0 Java 17 EE (Java Version 17.0.5+9-LTS-jvmci-22.3-b07)");
         NativeImageUtils.checkVersion("22.3", "GraalVM 22.3.0 Java 17 EE (Java Version 17.0.5+9-LTS-jvmci-22.3-b07)");
         NativeImageUtils.checkVersion("22.3.0", "GraalVM 22.3.0 Java 17 EE (Java Version 17.0.5+9-LTS-jvmci-22.3-b07)");
+
+        String oracleGraalVMForJDK17 = "native-image 17.0.7 2023-04-18\nGraalVM Runtime Environment Oracle GraalVM (build 17.0.7+8-jvmci-23.0-b10)\nSubstrate VM Oracle GraalVM (build 17.0.7+8, serial gc)";
+        NativeImageUtils.checkVersion("22.3.0", oracleGraalVMForJDK17);
+        NativeImageUtils.checkVersion("23", oracleGraalVMForJDK17);
+        NativeImageUtils.checkVersion("23.0", oracleGraalVMForJDK17);
+        NativeImageUtils.checkVersion("23.0.0", oracleGraalVMForJDK17);
+
+        String oracleGraalVMForJDK20 = "native-image 20.0.1 2023-04-18\nGraalVM Runtime Environment Oracle GraalVM 20.0.1+9.1 (build 20.0.1+9-jvmci-23.0-b10)\nSubstrate VM Oracle GraalVM 20.0.1+9.1 (build 20.0.1+9, serial gc)";
+        NativeImageUtils.checkVersion("22.3.0", oracleGraalVMForJDK20);
+        NativeImageUtils.checkVersion("23", oracleGraalVMForJDK20);
+        NativeImageUtils.checkVersion("23.0", oracleGraalVMForJDK20);
+        NativeImageUtils.checkVersion("23.0.0", oracleGraalVMForJDK20);
     }
 
     @Test
