@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":18,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
+var data = {"i0":6,"i1":18,"i2":6,"i3":6,"i4":6,"i5":6,"i6":38,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"],32:["t6","Deprecated Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -171,7 +171,7 @@ extends org.gradle.api.Named, <a href="NativeImageCompileOptions.html" title="in
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -220,7 +220,9 @@ extends org.gradle.api.Named, <a href="NativeImageCompileOptions.html" title="in
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRequiredVersion()">getRequiredVersion</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Specify the minimal GraalVM version, can be <code>MAJOR</code>, <code>MAJOR.MINOR</code> or <code>MAJOR.MINOR.PATCH</code>.</div>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span>
+<div class="deprecationComment">deprecated without replacement.</div>
+</div>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
@@ -488,7 +490,11 @@ java.lang.String&nbsp;getName()</pre>
 <h4>getRequiredVersion</h4>
 <pre class="methodSignature">@Input
 @Optional
+@Deprecated
 org.gradle.api.provider.Property&lt;java.lang.String&gt;&nbsp;getRequiredVersion()</pre>
+<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
+<div class="deprecationComment">deprecated without replacement.</div>
+</div>
 <div class="block">Specify the minimal GraalVM version, can be <code>MAJOR</code>, <code>MAJOR.MINOR</code> or <code>MAJOR.MINOR.PATCH</code>.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
