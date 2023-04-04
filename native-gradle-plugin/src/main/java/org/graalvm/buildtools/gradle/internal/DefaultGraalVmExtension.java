@@ -72,7 +72,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.plugin = plugin;
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
-        getToolchainDetection().convention(true);
+        getToolchainDetection().convention(false);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
         AgentOptions agentOpts = getAgent();

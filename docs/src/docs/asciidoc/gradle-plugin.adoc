@@ -91,30 +91,13 @@ include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=
 
 === Installing GraalVM Native Image tool
 
-The plugin relies on Gradle's https://docs.gradle.org/7.1.1/userguide/toolchains.html[JVM toolchain support], allowing to decorrelate the tool used to run Gradle, the compiler used to build your application, and eventually the SDK used to generate a native image.
-
-In practice, it means that this plugin will try to locate a suitable installation of GraalVM for you, even if you don't run Gradle itself with GraalVM.
-For this, it will look into conventional places on your machine, including from installations done by popular tools like https://sdkman.io/[SDKMAN!] or https://github.com/shyiko/jabba[Jabba].
-
-WARNING: Even if you have a GraalVM SDK installed, Gradle will _not_ automatically detect if `native-image` is also installed.
-Therefore, you will need to make sure that you have executed `gu install native-image` as indicated in the <<graalvm-setup.adoc#,setup instructions>>.
-
-If Gradle cannot find a GraalVM installation on the machine, it will fail with an error like this:
-
-----
-> No compatible toolchains found for request filter: {languageVersion=11, vendor=matching('GraalVM'), implementation=vendor-specific} (auto-detect true, auto-download true)
-----
-
-This happens because there's no automatic provisioning of the GraalVM toolchain available yet, so you will have to install it first.
-Follow the <<graalvm-setup.adoc#,following instructions>> to install it properly.
+By default, the plugin will try to use the `native-image` tool that is bundled with the JDK that is used to run Gradle.
+This means you must make sure that you run Gradle with a GraalVM JDK.
 
 Alternatively, you may choose to:
 
-1. <<configuration-toolchains-disabling, Disable toolchain support>>
-2. Run Gradle itself with a GraalVM SDK
-3. Set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation
-
-Note that none of the above options is recommended as they are more fragile.
+1. Set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation, in which case the JDK pointed at this location will be used for Native Image builds instead
+2. <<configuration-toolchains-enabling, Enable toolchain support to automatically>>
 
 [[configuration]]
 == Configuration
@@ -139,10 +122,36 @@ The main executable is configured by the image named `main`, while the test exec
 The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
 
 [[configuration-toolchains]]
+=== Using Gradle toolchains
+
+[[configuration-toolchains-enabling]]
+==== Enabling toolchain detection
+
+Instead of relying on the JDK which is used to run Gradle, you can use the https://docs.gradle.org/current/userguide/toolchains.html[Gradle toolchain support] to select a specific GraalVM installation.
+
+However, because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
+In particular, this will only work properly if you _only_ have GraalVM JDKs installed on the machine: **Otherwise, Gradle will not be able to reliably detect GraalVM JDKs**, nor detect GraalVM distributions from different vendors.
+
+Should you still want to enable toolchain support, you do it via the `graalvmNative` extension:
+
+.Enabling toolchain detection
+[source,groovy,role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=enabling-toolchain, indent=0]
+----
+
+[source, kotlin, role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=enabling-toolchain, indent=0]
+----
+
 ==== Selecting the GraalVM toolchain
 
-By default, the plugin will select a Java 11 GraalVM toolchain.
-If you want to use a different toolchain, for example a GraalVM Community Edition for Java 8, you can configure the toolchain like this:
+By default, the plugin will select a Java 11 GraalVM toolchain using the vendor string `GraalVM`,
+which works properly for GraalVM up to version 22.3 included.
+More recent versions of GraalVM do not have a specific version and are aligned with the language version they support.
+
+If you want to use a different toolchain, for example a distribution compatible with Java 20 from Oracle, you can configure the toolchain like this:
 
 .Selecting the GraalVM toolchain
 [source, groovy, role="multi-language-sample"]
@@ -155,28 +164,7 @@ include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
 ----
 
-[[configuration-toolchains-disabling]]
-===== Disabling toolchain detection
-
-Because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
-This is the case if, for example, you want to use GraalVM Enterprise or you want to be able to select a particular version of GraalVM.
-
-To work around this problem, you can disable toolchain detection:
-
-.Disabling toolchain detection
-[source,groovy,role="multi-language-sample"]
-----
-include::../snippets/gradle/groovy/build.gradle[tags=disabling-toolchain, indent=0]
-----
-
-[source, kotlin, role="multi-language-sample"]
-----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=disabling-toolchain, indent=0]
-----
-
-If you do this, the plugin will search for 2 environment variables: `GRAALVM_HOME` and `JAVA_HOME` _in that order_.
-If one of them is set, it will assume that it points to a valid GraalVM installation and completely bypass toolchain selection.
-Therefore, it becomes your responsibility to make sure that the environment variable points to a JDK that is compatible with your build script requirements (in particular, the language version).
+Again, be aware that the toolchain detection _cannot_ distinguish between GraalVM JDKs and standard JDKs without Native Image support: if you have both installed on the machine, Gradle may randomly pick one or the other.
 
 [[configuration-options]]
 ==== Configuration options

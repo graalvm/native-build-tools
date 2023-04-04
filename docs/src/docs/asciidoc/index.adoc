@@ -26,6 +26,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 - Bump minimal version of Gradle to 7.4
 - Fix compatibility with Gradle's https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#header[configuration cache] (requires Gradle 7.5+)
 - Remove use of deprecated Gradle APIs
+- [Behavior change] Toolchain detection is now disabled by default
 
 ==== Maven plugin
 
