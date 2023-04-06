@@ -132,6 +132,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -169,6 +170,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
+    private static final String DEFAULT_URI = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
 
     private GraalVMLogger logger;
 
@@ -405,19 +407,26 @@ public class NativeImagePlugin implements Plugin<Project> {
                     LogLevel logLevel = determineLogLevel();
                     spec.getMaxParallelUsages().set(1);
                     spec.getParameters().getLogLevel().set(logLevel);
-                    spec.getParameters().getUri().set(repositoryExtension.getUri().map(serializableTransformerOf(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, configuredUri, GraalVMLogger.of(project.getLogger())))));
+                    spec.getParameters().getUri().set(repositoryExtension.getUri().map(serializableTransformerOf(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, m -> logFallbackToDefaultUri(m, logger)))));
                     spec.getParameters().getCacheDir().set(
                             new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
                 });
     }
 
-    private static URI computeMetadataRepositoryUri(Project project,
-                                                    GraalVMReachabilityMetadataRepositoryExtension repositoryExtension,
-                                                    URI configuredUri,
-                                                    GraalVMLogger logger) {
+    private static void logFallbackToDefaultUri(URI defaultUri, GraalVMLogger logger) {
+        logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                    "Falling back to the default repository at " + defaultUri);
+    }
+
+    static URI computeMetadataRepositoryUri(Project project,
+                                            GraalVMReachabilityMetadataRepositoryExtension repositoryExtension,
+                                            Consumer<? super URI> onFallback) {
+        URI configuredUri = repositoryExtension.getUri().getOrNull();
+        URI githubReleaseUri;
         URI defaultUri;
         try {
-            defaultUri = new URI(String.format(METADATA_REPO_URL_TEMPLATE, repositoryExtension.getVersion().get()));
+            defaultUri = new URI(DEFAULT_URI);
+            githubReleaseUri = new URI(String.format(METADATA_REPO_URL_TEMPLATE, repositoryExtension.getVersion().get()));
         } catch (URISyntaxException e) {
             throw new RuntimeException("Unable to convert repository path to URI", e);
         }
@@ -434,8 +443,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             if (files.size() == 1) {
                 return files.iterator().next().toURI();
             } else {
-                logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
-                            "Falling back to the default repository at " + defaultUri);
+                onFallback.accept(githubReleaseUri);
             }
         }
         return configuredUri;
