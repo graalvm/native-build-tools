@@ -134,7 +134,7 @@ Build Configuration]. It is also possible to customize the plugin within a
 [source,xml]
 ----
 <buildArgs>
-    <arg>--argument</arg>
+    --argument
 </buildArgs>
 ----
 `<skipNativeBuild>`::
@@ -279,7 +279,7 @@ The `<buildArgs>` element can be combined between parent and children POMs. Supp
     <imageName>${project.artifactId}</imageName>
     <mainClass>${exec.mainClass}</mainClass>
     <buildArgs>
-      <buildArg>--no-fallback</buildArg>
+      --no-fallback
     </buildArgs>
   </configuration>
 </plugin>
@@ -427,7 +427,7 @@ Depending on the other plugins your build uses (typically the Spring Boot plugin
 		<imageName>${project.artifactId}</imageName>
 		<mainClass>${exec.mainClass}</mainClass>
 		<buildArgs>
-			<buildArg>--no-fallback</buildArg>
+			--no-fallback
 		</buildArgs>
 		<classpath>
 			<param>
