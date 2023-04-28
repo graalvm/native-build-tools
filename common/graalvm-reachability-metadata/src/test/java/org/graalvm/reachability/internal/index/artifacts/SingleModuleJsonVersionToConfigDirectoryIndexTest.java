@@ -95,6 +95,36 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
 
     }
 
+    @Test
+    void checkIndexWithDefaultFor() throws URISyntaxException {
+        withIndex("artifact-2");
+
+        Optional<DirectoryConfiguration> config = index.findConfiguration("com.foo", "bar", "1.0");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("1.0"), config.get().getDirectory());
+
+        config = index.findConfiguration("com.foo", "bar", "1.1");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("1.0"), config.get().getDirectory());
+
+        config = index.findConfiguration("com.foo", "bar", "2.0");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("2.0"), config.get().getDirectory());
+
+        config = index.findConfiguration("com.foo", "bar", "2.1");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("2.0"), config.get().getDirectory());
+
+        Optional<DirectoryConfiguration> latest = index.findLatestConfigurationFor("com.foo", "bar", "123");
+        assertTrue(latest.isPresent());
+        assertEquals(repoPath.resolve("2.0"), latest.get().getDirectory());
+
+        config = index.findConfiguration("com.foo", "baz", "1.1");
+        assertTrue(config.isPresent());
+        assertEquals(repoPath.resolve("1.0"), config.get().getDirectory());
+
+    }
+
     private void withIndex(String json) throws URISyntaxException {
         repoPath = new File(SingleModuleJsonVersionToConfigDirectoryIndexTest.class.getResource("/json/" + json).toURI()).toPath();
         index = new SingleModuleJsonVersionToConfigDirectoryIndex(repoPath);
