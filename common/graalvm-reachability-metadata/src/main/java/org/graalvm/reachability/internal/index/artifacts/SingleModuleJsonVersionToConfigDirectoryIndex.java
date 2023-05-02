@@ -91,8 +91,9 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      */
     @Override
     public Optional<DirectoryConfiguration> findConfiguration(String groupId, String artifactId, String version) {
-        return findConfigurationFor(groupId, artifactId, version,
-                artifact -> artifact.getVersions().contains(version) || artifact.isDefaultFor(version));
+        Optional<DirectoryConfiguration> exactMatch = findConfigurationFor(groupId, artifactId, version, artifact -> artifact.getVersions().contains(version));
+        return exactMatch.isPresent() ? exactMatch :
+                findConfigurationFor(groupId, artifactId, version, artifact -> artifact.isDefaultFor(version));
     }
 
     @Override
@@ -111,7 +112,9 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      */
     @Override
     public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId, String version) {
-        return findConfigurationFor(groupId, artifactId, version, artifact -> artifact.isDefaultFor(version) || artifact.isLatest());
+        Optional<DirectoryConfiguration> defaultMatch = findConfigurationFor(groupId, artifactId, version, artifact -> artifact.isDefaultFor(version));
+        return defaultMatch.isPresent() ? defaultMatch :
+                findConfigurationFor(groupId, artifactId, version, Artifact::isLatest);
     }
 
     private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, String version,
