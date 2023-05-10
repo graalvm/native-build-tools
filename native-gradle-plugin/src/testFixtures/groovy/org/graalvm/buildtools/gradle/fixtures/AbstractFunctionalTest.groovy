@@ -44,7 +44,6 @@ package org.graalvm.buildtools.gradle.fixtures
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -123,7 +122,7 @@ abstract class AbstractFunctionalTest extends Specification {
 
     protected void withSample(String name) {
         File sampleDir = new File("../samples/$name")
-        GFileUtils.copyDirectory(sampleDir, testDirectory.toFile())
+        FileUtils.copyDirectory(sampleDir.toPath(), testDirectory)
     }
 
     void run(String... args) {

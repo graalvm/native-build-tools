@@ -38,9 +38,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-import org.gradle.util.GFileUtils
-
 def agentOutput = layout.buildDirectory.dir("agent")
 
 ext {
@@ -55,7 +52,7 @@ tasks.register("testConsoleLauncher", JavaExec) {
     doFirst {
         def agentOutputDir = agentOutput.get().asFile
         if (agentOutputDir.exists()) {
-            GFileUtils.deleteDirectory(agentOutputDir)
+            delete { delete agentOutputDir }
         }
         if (project.hasProperty("agent")) {
             mkdir "${agentOutputDir}"
