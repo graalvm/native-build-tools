@@ -287,6 +287,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             task.setDescription("Obtains native reachability metdata for the runtime classpath configuration");
+            task.setClasspath(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         });
 
         GraalVMReachabilityMetadataRepositoryExtension metadataRepositoryExtension = reachabilityExtensionOn(graalExtension);
