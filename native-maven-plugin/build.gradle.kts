@@ -148,7 +148,7 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
     )
 
     doFirst {
-        GFileUtils.deleteDirectory(localRepositoryDir.get().asFile)
+        delete { delete { localRepositoryDir.get().asFile } }
     }
 }
 

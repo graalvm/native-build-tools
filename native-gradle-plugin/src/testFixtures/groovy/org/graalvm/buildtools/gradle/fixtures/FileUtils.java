@@ -38,58 +38,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-plugins {
-    id 'java-library'
-    id 'checkstyle'
-    id 'signing'
-    id 'org.graalvm.build.java'
-    id 'org.graalvm.build.publishing'
-}
+package org.graalvm.buildtools.gradle.fixtures;
 
-maven {
-    name = "JUnit Platform Native"
-    description = 'JUnit Platform support for GraalVM Native Image'
-}
-dependencies {
-    compileOnly libs.graalvm.svm
-    implementation(platform(libs.test.junit.bom))
-    implementation libs.test.junit.platform.console
-    implementation libs.test.junit.platform.launcher
-    implementation libs.test.junit.jupiter.core
-    testImplementation libs.test.junit.vintage
-}
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.stream.Stream;
 
-apply from: "gradle/native-image-testing.gradle"
-
-test {
-    doFirst {
-        delete { delete testIdsDir.get().asFile }
+public final class FileUtils {
+    private FileUtils() {
     }
-    useJUnitPlatform() {
-        systemProperty('junit.platform.listeners.uid.tracking.enabled', true)
-        systemProperty('junit.platform.listeners.uid.tracking.output.dir', "${testIdsDir.get().asFile.absolutePath}/test_ids")
-    }
-}
 
-tasks.withType(Test).configureEach {
-    testLogging {
-        events "standardOut", "passed", "skipped", "failed"
-    }
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
+    public static void copyDirectory(Path sourceDirectory, Path destinationDirectory) throws IOException {
+        try (Stream<Path> walker = Files.walk(sourceDirectory)) {
+            walker.forEach(source -> {
+                Path destination = destinationDirectory.resolve(sourceDirectory.relativize(source).toString());
+                try {
+                    Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
-}
-
-signing {
-    required { gradle.taskGraph.hasTask("publish") }
-    sign publishing.publications.mavenJava
-}
-
-tasks.withType(Checkstyle).configureEach {
-    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
 }

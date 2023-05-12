@@ -114,7 +114,6 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -604,7 +603,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             TrackingDirectorySystemPropertyProvider directoryProvider = project.getObjects().newInstance(TrackingDirectorySystemPropertyProvider.class);
             directoryProvider.getDirectory().set(testListDirectory);
             test.getJvmArgumentProviders().add(directoryProvider);
-            test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory));
+            test.doFirst("cleanup test ids", new CleanupTestIdsDirectory(testListDirectory, getFileOperations()));
         });
 
         // Following ensures that required feature jar is on classpath for every project
@@ -847,16 +846,18 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static final class CleanupTestIdsDirectory implements Action<Task> {
         private final DirectoryProperty directory;
+        private final FileSystemOperations fsOperations;
 
-        private CleanupTestIdsDirectory(DirectoryProperty directory) {
+        private CleanupTestIdsDirectory(DirectoryProperty directory, FileSystemOperations fsOperations) {
             this.directory = directory;
+            this.fsOperations = fsOperations;
         }
 
         @Override
         public void execute(@Nonnull Task task) {
             File dir = directory.getAsFile().get();
             if (dir.exists()) {
-                GFileUtils.deleteDirectory(dir);
+                fsOperations.delete(s -> s.delete(dir));
             }
         }
     }
