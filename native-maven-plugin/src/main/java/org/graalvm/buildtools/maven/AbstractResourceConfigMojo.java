@@ -95,7 +95,7 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
     @Parameter(property = "resources.excludedPatterns")
     private List<String> resourceExcludedPatterns;
 
-    @Parameter(property = "resources.autodetection.enabled", defaultValue = "false")
+    @Parameter(property = "resources.autodetection.enabled", defaultValue = "true")
     private boolean isDetectionEnabled;
 
     @Parameter(property = "resources.autodetection.restrictToModuleDependencies", defaultValue = "true")
