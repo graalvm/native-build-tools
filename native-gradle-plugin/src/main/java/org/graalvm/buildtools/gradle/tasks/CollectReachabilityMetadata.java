@@ -41,48 +41,40 @@
 
 package org.graalvm.buildtools.gradle.tasks;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public abstract class CollectReachabilityMetadata extends DefaultTask {
 
-    private Configuration classpath;
-
-    /**
-     * The classpath for which the metadata should be copied.
-     * @return the classpath to use
-     */
-    @Classpath
-    @Optional
-    public Configuration getClasspath() {
-        return classpath;
-    }
-
     public void setClasspath(Configuration classpath) {
-        this.classpath = classpath;
+        getRootComponent().set(classpath.getIncoming().getResolutionResult().getRootComponent());
     }
+
+    @Input
+    @Optional
+    protected abstract Property<ResolvedComponentResult> getRootComponent();
 
     @Internal
     public abstract Property<GraalVMReachabilityMetadataService> getMetadataService();
@@ -136,16 +128,28 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     @TaskAction
     void copyReachabilityMetadata() throws IOException {
-        GraalVMReachabilityMetadataService service = getMetadataService().get();
-        Configuration classpath = (this.classpath != null) ? this.classpath
-                : getProject().getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        Objects.requireNonNull(classpath);
-        Set<String> excludedModules = getExcludedModules().getOrElse(Collections.emptySet());
-        Map<String, String> forcedVersions = getModuleToConfigVersion().getOrElse(Collections.emptyMap());
-        for (ResolvedComponentResult component : classpath.getIncoming().getResolutionResult().getAllComponents()) {
+        if (getRootComponent().isPresent()) {
+            GraalVMReachabilityMetadataService service = getMetadataService().get();
+            Set<String> excludedModules = getExcludedModules().getOrElse(Collections.emptySet());
+            Map<String, String> forcedVersions = getModuleToConfigVersion().getOrElse(Collections.emptyMap());
+            visit(getRootComponent().get(), service, excludedModules, forcedVersions, new HashSet<>());
+        }
+    }
+
+    private void visit(ResolvedComponentResult component,
+                       GraalVMReachabilityMetadataService service,
+                       Set<String> excludedModules,
+                       Map<String, String> forcedVersions,
+                       Set<ResolvedComponentResult> visited) throws IOException {
+        if (visited.add(component)) {
             ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
             Set<DirectoryConfiguration> configurations = service.findConfigurationsFor(excludedModules, forcedVersions, moduleVersion);
             DirectoryConfiguration.copy(configurations, getInto().get().getAsFile().toPath());
+            for (DependencyResult dependency : component.getDependencies()) {
+                if (dependency instanceof ResolvedDependencyResult) {
+                    visit(((ResolvedDependencyResult) dependency).getSelected(), service, excludedModules, forcedVersions, visited);
+                }
+            }
         }
     }
 
