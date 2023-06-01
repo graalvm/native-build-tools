@@ -58,7 +58,6 @@ public class PlatformConfigProvider implements PluginConfigProvider {
                 "org.junit.platform.launcher.core.LauncherConfigurationParameters",
                 "org.junit.platform.commons.logging.LoggerFactory",
                 "org.junit.platform.engine.UniqueIdFormat",
-                "org.junit.platform.commons.util.ReflectionUtils",
                 // https://github.com/graalvm/native-build-tools/issues/300
                 "org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener"
         };

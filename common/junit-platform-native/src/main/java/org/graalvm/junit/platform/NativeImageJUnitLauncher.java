@@ -43,6 +43,8 @@ package org.graalvm.junit.platform;
 
 import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ImageSingletons;
+import org.graalvm.nativeimage.Platform;
+import org.graalvm.nativeimage.Platforms;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestPlan;
@@ -59,11 +61,17 @@ public class NativeImageJUnitLauncher {
     static final String DEFAULT_OUTPUT_FOLDER = Paths.get("test-results-native").resolve("test").toString();
 
     final Launcher launcher;
-    final TestPlan testPlan;
+    TestPlan testPlan;
+    final TestsDiscoveryHelper testsDiscoveryHelper;
 
-    public NativeImageJUnitLauncher(Launcher launcher, TestPlan testPlan) {
-        this.launcher = launcher;
-        this.testPlan = testPlan;
+    @Platforms(Platform.HOSTED_ONLY.class)
+    public NativeImageJUnitLauncher(TestsDiscoveryHelper testsDiscoveryHelper) {
+        this.testsDiscoveryHelper = testsDiscoveryHelper;
+        launcher = testsDiscoveryHelper.getLauncher();
+    }
+
+    private void discoverTests() {
+        testPlan = testsDiscoveryHelper.discoverTestPlan();
     }
 
     public void registerTestExecutionListeners(TestExecutionListener testExecutionListener) {
@@ -115,7 +123,8 @@ public class NativeImageJUnitLauncher {
 
         PrintWriter out = new PrintWriter(System.out);
         NativeImageJUnitLauncher launcher = ImageSingletons.lookup(NativeImageJUnitLauncher.class);
-
+        //Discover the test plan at runtime.
+        launcher.discoverTests();
         if (!silent) {
             out.println("JUnit Platform on Native Image - report");
             out.println("----------------------------------------\n");
