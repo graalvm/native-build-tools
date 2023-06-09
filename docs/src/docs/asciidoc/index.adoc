@@ -19,6 +19,20 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.23
+
+* Upgrade metadata to 0.3.2
+* Display the GraalVM logo on the generated NBT docs
+
+=== Release 0.9.22
+
+* Upgrade metadata to 0.3.0
+* Add support for default-for attribute
+
+=== Gradle plugin
+
+- Fix lookup of metadata repository
+
 === Release 0.9.21
 
 * Deprecate `requiredVersion` check without replacement.
