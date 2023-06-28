@@ -6,27 +6,33 @@ This guide shows how to get started with the <<maven-plugin.adoc#,Maven plugin f
 
 You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
 
-[NOTE]
 ====
-.Sample Application
+The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM>>.
 
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks#grl[SDKMAN!].
+To install Oracle GraalVM for JDK 20 or JDK 17, run:
+```
+sdk install java 20.0.1-graal
+sdk install java 17.0.7-graal
+```
+To install GraalVM Community Edition for JDK 20 or JDK 17, run:
+```
+sdk install java 20.0.1-graalce
+sdk install java 17.0.7-graalce
+```
+GraalVM installation includes Native Image.
+For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
+====
+
+== Prepare a Demo Application
+
+====
 You start by creating a **Fortune Teller** sample application that simulates the traditional
 https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
 The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
 ====
 
-====
-The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
-The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
-```
-bash <(curl -sL https://get.graalvm.org/jdk)
-```
-It will then make use of Maven profiles to enable building and testing of native executables. 
-====
-
-== Prepare a Demo Application
-
-. Create a new Java project with *Maven* in your favorite IDE, called "Fortune", in the `demo` package.
+. Create a new Java project with *Maven* in your favorite IDE, called "Fortune", in the _demo_ package.
 Make sure to choose JUnit Jupiter as the test engine.
 The application should contain a sole Java file with the following content:
 +
@@ -106,7 +112,7 @@ public class Fortune {
 }
 ----
 . Copy and paste the following file,
-https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `resources/`. Your project tree should be:
+https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under _resources/_. Your project tree should be:
 +
 [source,shell]
 ----

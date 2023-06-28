@@ -6,31 +6,36 @@ This guide shows how to get started with the <<gradle-plugin.adoc#,Gradle plugin
 
 You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
 
-Two ways to build a native executable using the plugin are demonstrated:
+Two ways of building a native executable using the plugin will be demonstrated:
 
 - <<#build-a-native-executable-with-resources-autodetection,Build a Native Executable with Resources Autodetection>>
 -  <<#build-a-native-executable-detecting-resources-with-the-agent,Build a Native Executable Detecting Resources with the Agent>>
 
-[NOTE]
 ====
-.Sample Application
+The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM>>.
 
-You start by creating a **Fortune Teller** sample application that simulates the traditional 
-https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program]. 
-The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
-====
-
-====
-To use the Native Build Tools, install GraalVM with Native Image. 
-The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
-
-[source,bash]
-----
-bash <(curl -sL https://get.graalvm.org/jdk)
-----
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks#grl[SDKMAN!].
+To install Oracle GraalVM for JDK 20 or JDK 17, run:
+```
+sdk install java 20.0.1-graal
+sdk install java 17.0.7-graal
+```
+To install GraalVM Community Edition for JDK 20 or JDK 17, run:
+```
+sdk install java 20.0.1-graalce
+sdk install java 17.0.7-graalce
+```
+GraalVM installation includes Native Image.
+For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
 
 == Prepare a Demo Application
+
+====
+You start by creating a **Fortune Teller** sample application that simulates the traditional
+https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
+The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
+====
 
 . Create a new Java project with *Gradle* using the following command (alternatively, you can use your IDE to generate a project):
 +
@@ -38,7 +43,7 @@ bash <(curl -sL https://get.graalvm.org/jdk)
 ----
 gradle init --project-name fortune-parent --type java-application --package demo --test-framework junit-jupiter --dsl groovy
 ----
-. Rename the default `app` directory to `fortune`, edit the `settings.gradle` file to replace `app` with `fortune`, then rename the default filename `App.java` to `Fortune.java`, and replace its contents with the following:
+. Rename the default _app_ directory to _fortune_, edit the _settings.gradle_ file to replace `app` with `fortune`, then rename the default filename _App.java_ to _Fortune.java_, and replace its contents with the following:
 +
 [source,java]
 ----
@@ -118,9 +123,9 @@ public class Fortune {
     }
 }
 ----
-. Delete the `fortune/src/test/java` directory, you will add tests in a later stage.
+. Delete the _fortune/src/test/java_ directory, you will add tests in a later stage.
 . Copy and paste the following file,
-https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `fortune/src/main/resources/`. Your project tree should be:
+https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under _fortune/src/main/resources/_. Your project tree should be:
 +
 [source,shell]
 ----
@@ -250,7 +255,7 @@ graalvmNative {
 }
 ----
 +
-Another thing to note here: the plugin may not be able to properly detect the GraalVM installation, because of limitations in Gradle. By default, the plugin selects a Java 11 GraalVM Community Edition. If you want to use GraalVM Enterprise, or a particular version of GraalVM and Java, you need to explicitly tell this in plugin's configuration. For example:
+Another thing to note here: the plugin may not be able to properly detect the GraalVM installation, because of limitations in Gradle. If you want to use Oracle GraalVM, or a particular version of GraalVM and Java, you need to explicitly tell this in plugin's configuration. For example:
 +
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -259,7 +264,7 @@ graalvmNative {
         main {
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(11)
-                vendor = JvmVendorSpec.matching("GraalVM Community")
+                vendor = JvmVendorSpec.matching("Oracle GraalVM")
             }
         }
     }
@@ -273,7 +278,7 @@ graalvmNative {
         main {
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(11)
-                vendor = JvmVendorSpec.matching("GraalVM Community")
+                vendor = JvmVendorSpec.matching("Oracle GraalVM")
             }
         }
     }
@@ -331,7 +336,7 @@ binaries.all {
 ----
 It runs your application on the JVM with the agent, collects the metadata, and generates configuration files in the _$\{buildDir}/native/agent-output/$\{taskName}_ directory.
 . Copy the configuration files into the project's
-`/META-INF/native-image` directory using the `metadataCopy` task:
+_/META-INF/native-image_ directory using the `metadataCopy` task:
 +
 [source,shell]
 ----
@@ -393,7 +398,7 @@ The Gradle plugin for GraalVM Native Image can run
 https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] tests on your native executable. This means that the tests will be compiled and run as native code.
 
 . Create the following test in the
-`fortune/src/test/java/demo/FortuneTest.java` file:
+_fortune/src/test/java/demo/FortuneTest.java_ file:
 +
 .fortune/src/test/java/demo/FortuneTest.java
 [source,java]

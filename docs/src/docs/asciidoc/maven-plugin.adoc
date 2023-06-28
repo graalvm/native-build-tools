@@ -23,12 +23,21 @@ You can find full samples in https://github.com/graalvm/native-build-tools/tree/
 ====
 
 ====
-The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
-The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
+The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM>>.
+
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks#grl[SDKMAN!].
+To install Oracle GraalVM for JDK 20 or JDK 17, run:
 ```
-bash <(curl -sL https://get.graalvm.org/jdk)
+sdk install java 20.0.1-graal
+sdk install java 17.0.7-graal
 ```
-It will then make use of Maven profiles to enable building and testing of native executables.
+To install GraalVM Community Edition for JDK 20 or JDK 17, run:
+```
+sdk install java 20.0.1-graalce
+sdk install java 17.0.7-graalce
+```
+GraalVM installation includes Native Image.
+For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
 
 [[configuration]]

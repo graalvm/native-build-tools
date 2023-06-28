@@ -3,7 +3,7 @@ The GraalVM team
 
 The {doctitle} project provides plugins for different build tools to add support for building and testing native applications written in Java (or any other language compiled to JVM bytecode).
 
-Most notably, this is the official source for integrating with the https://www.graalvm.org/reference-manual/native-image/[GraalVM `native-image` tool].
+Most notably, this is the official source for integrating with the https://www.graalvm.org/reference-manual/native-image/[GraalVM  Native Image].
 
 Please refer to the following pages for build tool specific documentation:
 
@@ -12,9 +12,9 @@ Please refer to the following pages for build tool specific documentation:
 
 This release of Native Build Tools ships with the GraalVM reachability metadata repository release {metadata-repository-version}.
 
-If you are interested in contributing, please refer to our https://github.com/graalvm/native-build-tools[Git repository].
+If you are interested in contributing, please refer to the https://github.com/graalvm/native-build-tools[Git repository].
 
-If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>
+If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>.
 
 [[changelog]]
 == Changelog
