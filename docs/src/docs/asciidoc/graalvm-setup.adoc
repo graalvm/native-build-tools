@@ -12,13 +12,14 @@ This is just a quick overview, and users can consult the https://www.graalvm.org
 
 == 1. Download GraalVM
 
-The easiest way to download GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
-To install GraalVM for JDK 20 or JDK 17, run:
+The easiest way to download GraalVM is to use the https://sdkman.io/jdks[SDKMAN!], simply run:
+
 ```
-sdk install java 20.0.1-graal
-sdk install java 17.0.7-graal
+sdk install java 20.0.1-graal # for Oracle GraalVM for JDK 20
+sdk install java 17.0.7-graal # for Oracle GraalVM for JDK 17
+
+# (use `graal-ce` instead of `graal` for GraalVM Community Edition)
 ```
-GraalVM installation includes Native Image.
 
 == 2. Set up Environment Variables
 

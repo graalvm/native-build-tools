@@ -9,13 +9,14 @@ You will create a sample application, enable the plugin, add support for dynamic
 ====
 The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM>>.
 
-The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
-To install GraalVM for JDK 20 or JDK 17, run:
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!], simply run:
+
 ```
-sdk install java 20.0.1-graal
-sdk install java 17.0.7-graal
+sdk install java 20.0.1-graal # for Oracle GraalVM for JDK 20
+sdk install java 17.0.7-graal # for Oracle GraalVM for JDK 17
+
+# (use `graal-ce` instead of `graal` for GraalVM Community Edition)
 ```
-GraalVM installation includes Native Image.
 For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
 
