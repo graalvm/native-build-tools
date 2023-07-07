@@ -2,7 +2,7 @@
 ![](https://github.com/graalvm/native-build-tools/actions/workflows/test-native-gradle-plugin.yml/badge.svg)
 ![](https://github.com/graalvm/native-build-tools/actions/workflows/test-native-maven-plugin.yml/badge.svg)
 
-Repository which contains build tool plugins for interoperability with [GraalVM Native Image](https://www.graalvm.org/reference-manual/native-image/)
+Repository which contains build tool plugins for interoperability with [GraalVM Native Image](https://www.graalvm.org/reference-manual/native-image/).
 
 End-user documentation about the plugins can be found [here](https://graalvm.github.io/native-build-tools/).
 

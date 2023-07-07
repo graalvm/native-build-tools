@@ -6,27 +6,23 @@ This guide shows how to get started with the <<maven-plugin.adoc#,Maven plugin f
 
 You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
 
-[NOTE]
 ====
-.Sample Application
+The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
+
+For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
+====
+
+== Prepare a Demo Application
+
+====
 You start by creating a **Fortune Teller** sample application that simulates the traditional
 https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
 The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
 ====
 
-====
-The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM and Native Image>>.
-The easiest way to install GraalVM with Native Image is to use the https://github.com/graalvm/graalvm-jdk-downloader[GraalVM JDK Downloader]:
-```
-bash <(curl -sL https://get.graalvm.org/jdk)
-```
-It will then make use of Maven profiles to enable building and testing of native executables. 
-====
-
-== Prepare a Demo Application
-
-. Create a new Java project with *Maven* in your favorite IDE, called "Fortune", in the `demo` package.
+. Create a new Java project with *Maven* in your favorite IDE, called "Fortune", in the _demo_ package.
 Make sure to choose JUnit Jupiter as the test engine.
 The application should contain a sole Java file with the following content:
 +
@@ -106,7 +102,8 @@ public class Fortune {
 }
 ----
 . Copy and paste the following file,
-https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under `resources/`. Your project tree should be:
+https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under _resources/_.
+Your project tree should be:
 +
 [source,shell]
 ----
@@ -132,7 +129,8 @@ https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fort
     </dependency>
 </dependencies>
 ----
-. Add regular Maven plugins for building and assembling a Maven project into an executable JAR. Insert the following into the `build` section in the _pom.xml_ file:
+. Add regular Maven plugins for building and assembling a Maven project into an executable JAR.
+Insert the following into the `build` section in the _pom.xml_ file:
 +
 [source,xml]
 ----
@@ -220,10 +218,10 @@ https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fort
 </properties>
 ----
 +
-The statements "hardcoded" plugin versions and the entry point class to your application. The next steps demonstrate what you should do to enable the
+The statements "hardcoded" plugin versions and the entry point class to your application.
+The next steps demonstrate what you should do to enable the
 https://graalvm.github.io/native-build-tools/latest/maven-plugin.html[Maven plugin for GraalVM Native Image].
-. Register the Maven plugin for GraalVM Native Image,
-`native-maven-plugin`, in the profile called `native` by adding the following to the _pom.xml_ file:
+. Register the Maven plugin for GraalVM Native Image, `native-maven-plugin`, in the profile called `native` by adding the following to the _pom.xml_ file:
 +
 [source,xml]
 ----
@@ -265,15 +263,14 @@ https://graalvm.github.io/native-build-tools/latest/maven-plugin.html[Maven plug
 +
 It pulls the latest plugin version. Replace `${native.maven.plugin.version}` with a specific version if you prefer.
 The plugin discovers which JAR files it needs to pass to the
-`native-image` builder and what the executable main class should be. With this plugin you can already build a native executable directly with Maven by running `mvn -Pnative package` (if your application does not call any methods reflectively at run time).
+`native-image` builder and what the executable main class should be.
+With this plugin you can already build a native executable directly with Maven by running `mvn -Pnative package` (if your application does not call any methods reflectively at run time).
 +
-This demo application is a little more complicated than `HelloWorld`, and requires metadata before building a native executable. You do not have to configure anything manually: the plugin can generate the required metadata for you by
-injecting the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support[tracing
-agent] at package time. The agent is disabled by default, and can be enabled in project's _pom.xml_ file or via the command line.
+This demo application is a little more complicated than `HelloWorld`, and requires metadata before building a native executable. You do not have to configure anything manually: the plugin can generate the required metadata for you by injecting the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support[tracing
+agent] at package time.
+The agent is disabled by default, and can be enabled in project's _pom.xml_ file or via the command line.
 
-- To enable the agent via the _pom.xml_ file, specify
-`<enabled>true</enabled>` in the `native-maven-plugin` plugin
-configuration:
+- To enable the agent via the _pom.xml_ file, specify `<enabled>true</enabled>` in the `native-maven-plugin` plugin configuration:
 +
 [source,xml]
 ----
@@ -286,7 +283,8 @@ configuration:
 - To enable the agent via the command line, pass the `-Dagent=true` option when running Maven. 
 + 
 So your next step is to run with the agent.
-. Before running with the agent, register a separate Mojo execution in the `native` profile which allows forking the Java process. It is required to run your application with the agent.
+. Before running with the agent, register a separate Mojo execution in the `native` profile which allows forking the Java process.
+It is required to run your application with the agent.
 +
 [source,xml]
 ----
@@ -324,12 +322,12 @@ So your next step is to run with the agent.
 </plugin>
 ----
 +
-Now you are all set to to build a native executable from a Java
-application the plugin.
+Now you are all set to to build a native executable from a Java application the plugin.
 
 == Build a Native Executable
 
-. Compile the project on the JVM to create a runnable JAR with all dependencies. Open a terminal window and, from the root application directory, run:
+. Compile the project on the JVM to create a runnable JAR with all dependencies.
+Open a terminal window and, from the root application directory, run:
 +
 [source,shell]
 ----
@@ -342,7 +340,8 @@ mvn clean package
 mvn -Pnative -Dagent exec:exec@java-agent
 ----
 +
-The agent collects the metadata and generates the configuration files in a subdirectory of `target/native/agent-output`. Those files will be automatically used by the `native-image` tool if you pass the appropriate options.
+The agent collects the metadata and generates the configuration files in a subdirectory of `target/native/agent-output`.
+Those files will be automatically used by the `native-image` tool if you pass the appropriate options.
 . Now build a native executable with the Maven profile:
 +
 [source,shell]
@@ -373,14 +372,14 @@ The executable's name is derived from the artifact ID, but you can specify any c
 mvn -Pnative exec:exec@native
 ----
 
-To see the benefits of running your application as a native executable,
-`time` how long it takes and compare the results with running on the
+To see the benefits of running your application as a native executable, `time` how long it takes and compare the results with running on the
 JVM.
 
 == Add JUnit Testing
 
 The Maven plugin for GraalVM Native Image can run
-https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] tests on a native executable. This means that tests will be compiled and executed as native code.
+https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] tests on a native executable.
+This means that tests will be compiled and executed as native code.
 
 This plugin requires JUnit Platform 1.8 or higher and Maven Surefire 2.22.0 or higher to run tests on a native executable.
 
@@ -395,8 +394,7 @@ This plugin requires JUnit Platform 1.8 or higher and Maven Surefire 2.22.0 or h
     <version>${native.maven.plugin.version}</version>
     <extensions>true</extensions>
 ----
-. Add an explicit dependency on the `junit-platform-launcher` artifact
-to the dependencies section of your native profile configuration as in
+. Add an explicit dependency on the `junit-platform-launcher` artifact to the dependencies section of your native profile configuration as in
 the following example:
 +
 [source,xml]
@@ -410,8 +408,7 @@ the following example:
     </dependency>
 </dependencies>
 ----
-. Create the following test in the
-`src/test/java/demo/FortuneTest.java` file:
+. Create the following test in the `src/test/java/demo/FortuneTest.java` file:
 +
 .src/test/java/demo/FortuneTest.java
 [source,java]
@@ -445,6 +442,8 @@ Run `-Pnative` profile will then build and run native tests.
 
 === Summary
 
-The Maven plugin for GraalVM Native Image adds support for building and testing native executables using https://maven.apache.org/[Apache Maven™]. The plugin has many features, described in the <<maven-plugin.adoc#,plugin reference documentation>>.
+The Maven plugin for GraalVM Native Image adds support for building and testing native executables using https://maven.apache.org/[Apache Maven™].
+The plugin has many features, described in the <<maven-plugin.adoc#,plugin reference documentation>>.
 
-Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless. Your workflow, in that case, is just `mvn clean -Pnative package`.
+Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless.
+Your workflow, in that case, is just `mvn clean -Pnative package`.
