@@ -9,19 +9,13 @@ You will create a sample application, enable the plugin, add support for dynamic
 Two ways of building a native executable using the plugin will be demonstrated:
 
 - <<#build-a-native-executable-with-resources-autodetection,Build a Native Executable with Resources Autodetection>>
--  <<#build-a-native-executable-detecting-resources-with-the-agent,Build a Native Executable Detecting Resources with the Agent>>
+- <<#build-a-native-executable-detecting-resources-with-the-agent,Build a Native Executable Detecting Resources with the Agent>>
 
 ====
-The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM>>.
+The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
-The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!], simply run:
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
 
-```
-sdk install java 20.0.1-graal # for Oracle GraalVM for JDK 20
-sdk install java 17.0.7-graal # for Oracle GraalVM for JDK 17
-
-# (use `graal-ce` instead of `graal` for GraalVM Community Edition)
-```
 For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
 

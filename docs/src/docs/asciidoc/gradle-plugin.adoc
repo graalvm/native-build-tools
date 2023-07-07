@@ -22,16 +22,10 @@ You can find full samples in https://github.com/graalvm/native-build-tools/tree/
 ====
 
 ====
-The plugin requires that you <<graalvm-setup.adoc#,setup GraalVM>>.
+The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
-The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!], simply run:
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
 
-```
-sdk install java 20.0.1-graal # for Oracle GraalVM for JDK 20
-sdk install java 17.0.7-graal # for Oracle GraalVM for JDK 17
-
-# (use `graal-ce` instead of `graal` for GraalVM Community Edition)
-```
 For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
 
