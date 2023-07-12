@@ -42,38 +42,21 @@
 package org.graalvm.junit.platform;
 
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
-import org.junit.platform.engine.DiscoverySelector;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.junit.platform.engine.discovery.UniqueIdSelector;
-import org.junit.platform.engine.support.descriptor.ClassSource;
-import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
-import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
-import org.junit.platform.launcher.core.LauncherFactory;
-import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {
 
-    public final boolean debug = System.getProperty("debug") != null;
+    public static final boolean debug = System.getProperty(TestsDiscoveryHelper.DEBUG) != null;
 
     private static final NativeImageConfigurationImpl nativeImageConfigImpl = new NativeImageConfigurationImpl();
     private final ServiceLoader<PluginConfigProvider> extensionConfigProviders = ServiceLoader.load(PluginConfigProvider.class);
@@ -86,65 +69,28 @@ public final class JUnitPlatformFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
-
         List<Path> classpathRoots = access.getApplicationClassPath();
-        List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
-
-        Launcher launcher = LauncherFactory.create();
-        TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
-        ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
-    }
-
-    private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
-        try {
-            Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
-            String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
-                    UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
-            List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
-                    .map(DiscoverySelectors::selectUniqueId)
-                    .collect(Collectors.toList());
-            if (!selectors.isEmpty()) {
-                System.out.printf(
-                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
-                                + "found in folder [%s] and its subfolders.%n",
-                        prefix, outputDir.toAbsolutePath());
-                return selectors;
+        List<Class<?>> discoveredTests;
+        if (Boolean.parseBoolean(System.getProperty("isolateTestDiscovery"))) {
+            List<String> discoveredTestNames = TestsDiscoveryHelper.launchTestDiscovery(debug, classpathRoots);
+            discoveredTests = new ArrayList<>();
+            for (String discoveredTestName : discoveredTestNames) {
+                try {
+                    discoveredTests.add(Class.forName(discoveredTestName, false, access.getApplicationClassLoader()));
+                } catch (ClassNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        } catch (Exception ex) {
-            debug("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
+        } else {
+            TestsDiscoveryHelper helper = new TestsDiscoveryHelper(debug, classpathRoots);
+            discoveredTests = helper.discoverTests();
+        }
+        for (Class<?> discoveredTest : discoveredTests) {
+            registerTestClassForReflection(discoveredTest);
         }
 
-        System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
-        if (debug) {
-            classpathRoots.forEach(entry -> debug("Selecting classpath root: " + entry));
-        }
-        return DiscoverySelectors.selectClasspathRoots(new HashSet<>(classpathRoots));
-    }
-
-    /**
-     * Use the JUnit Platform Launcher to discover tests and register classes
-     * for reflection.
-     */
-    private TestPlan discoverTestsAndRegisterTestClassesForReflection(Launcher launcher,
-            List<? extends DiscoverySelector> selectors) {
-
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectors)
-                .build();
-
-        TestPlan testPlan = launcher.discover(request);
-
-        testPlan.getRoots().stream()
-                .flatMap(rootIdentifier -> testPlan.getDescendants(rootIdentifier).stream())
-                .map(TestIdentifier::getSource)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(ClassSource.class::isInstance)
-                .map(ClassSource.class::cast)
-                .map(ClassSource::getJavaClass)
-                .forEach(this::registerTestClassForReflection);
-
-        return testPlan;
+        ImageSingletons.add(NativeImageJUnitLauncher.class,
+                new NativeImageJUnitLauncher(new TestsDiscoveryHelper(debug, classpathRoots)));
     }
 
     private void registerTestClassForReflection(Class<?> clazz) {
@@ -170,26 +116,11 @@ public final class JUnitPlatformFeature implements Feature {
     }
 
     public static boolean debug() {
-        return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
-    }
-
-    private Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
-        return findFiles(dir, prefix).map(outputFile -> {
-            try {
-                return Files.readAllLines(outputFile);
-            } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
-            }
-        }).flatMap(List::stream);
-    }
-
-    private static Stream<Path> findFiles(Path dir, String prefix) throws IOException {
-        if (!Files.exists(dir)) {
-            return Stream.empty();
+        if (!ImageInfo.inImageCode()) {
+            return debug;
+        } else {
+            return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
         }
-        return Files.find(dir, Integer.MAX_VALUE,
-            (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
-                    && path.getFileName().toString().startsWith(prefix)));
     }
 
 }

@@ -84,6 +84,12 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Parameter(property = "skipNativeTests", defaultValue = "false")
     private boolean skipNativeTests;
 
+    @Parameter(property = "isolateTestDiscovery", defaultValue = "true")
+    private boolean isolateTestDiscovery;
+
+    @Parameter(property = "isolateTestDiscoveryDebugPort", defaultValue = "-1")
+    private int isolateTestDiscoveryDebugPort;
+
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
@@ -137,6 +143,11 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
 
         configureEnvironment();
         buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+
+        buildArgs.add("-DisolateTestDiscovery=" + isolateTestDiscovery);
+        if (isolateTestDiscovery) {
+            buildArgs.add("-DisolateTestDiscoveryDebugPort=" + isolateTestDiscoveryDebugPort);
+        }
 
         if (systemProperties == null) {
             systemProperties = new HashMap<>();

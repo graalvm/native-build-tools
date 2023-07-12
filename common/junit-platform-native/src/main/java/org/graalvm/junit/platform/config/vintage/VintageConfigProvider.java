@@ -53,8 +53,6 @@ public class VintageConfigProvider implements PluginConfigProvider {
                 "org.junit.vintage.engine.support.UniqueIdReader",
                 "org.junit.vintage.engine.support.UniqueIdStringifier",
                 "org.junit.runner.Description",
-                "org.junit.runners.BlockJUnit4ClassRunner",
-                "org.junit.runners.JUnit4",
                 /* Workaround until we can register serializable classes from a native-image feature */
                 "org.junit.runner.Result"
         };
