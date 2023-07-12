@@ -69,10 +69,12 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -321,15 +323,17 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     protected void addDependenciesToClasspath() throws MojoExecutionException {
         configureMetadataRepository();
-        for (Artifact dependency : project.getArtifacts().stream()
-                .filter(artifact -> getDependencyScopes().contains(artifact.getScope()))
-                .collect(Collectors.toSet())) {
-            addArtifactToClasspath(dependency);
-            maybeAddDependencyMetadata(dependency, file -> {
-                buildArgs.add("--exclude-config");
-                buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
-                buildArgs.add("^/META-INF/native-image/");
-            });
+        Set<Artifact> collected = new HashSet<>();
+        // Must keep classpath order is the same with surefire test
+        for (Artifact dependency : project.getArtifacts()) {
+            if (getDependencyScopes().contains(dependency.getScope()) && collected.add(dependency)) {
+                addArtifactToClasspath(dependency);
+                maybeAddDependencyMetadata(dependency, file -> {
+                    buildArgs.add("--exclude-config");
+                    buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
+                    buildArgs.add("^/META-INF/native-image/");
+                });
+            }
         }
     }
 
