@@ -276,7 +276,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         project.getTasks().register("metadataCopy", MetadataCopyTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-            task.setDescription("Copies metadata collected from tasks instrumented with the agent into target directories.");
+            task.setDescription("Copies metadata collected from tasks instrumented with the agent into target directories");
             task.getInputTaskNames().set(graalExtension.getAgent().getMetadataCopy().getInputTaskNames());
             task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
@@ -285,7 +285,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-            task.setDescription("Obtains native reachability metdata for the runtime classpath configuration");
+            task.setDescription("Obtains native reachability metadata for the runtime classpath configuration");
             task.setClasspath(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         });
 
