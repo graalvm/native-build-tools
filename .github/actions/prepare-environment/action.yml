@@ -32,7 +32,7 @@ runs:
         components: 'native-image'
         github-token: ${{ inputs.github-token }}
         java-version: ${{ inputs.java-version }}
-        version: ${{ inputs.graalvm-version }}
+        distribution: 'graalvm'
     - name: "🔒 Configure push access"
       if: ${{ inputs.push-access == '1' }}
       shell: "bash"

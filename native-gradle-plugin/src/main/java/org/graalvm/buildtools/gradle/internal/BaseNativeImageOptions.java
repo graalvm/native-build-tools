@@ -47,6 +47,8 @@ import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -243,6 +245,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
 
     @Inject
     public BaseNativeImageOptions(String name,
+                                  ProjectLayout layout,
                                   ObjectFactory objectFactory,
                                   ProviderFactory providers,
                                   JavaToolchainService toolchains,
@@ -264,6 +267,9 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);
         getPgoInstrument().convention(false);
+        DirectoryProperty pgoProfileDir = objectFactory.directoryProperty();
+        pgoProfileDir.convention(layout.getProjectDirectory().dir("src/pgo-profiles/" + name));
+        getPgoProfilesDirectory().convention(pgoProfileDir.map(d -> d.getAsFile().exists() ? d : null));
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
