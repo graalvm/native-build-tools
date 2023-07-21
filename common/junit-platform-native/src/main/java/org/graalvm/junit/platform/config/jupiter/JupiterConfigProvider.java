@@ -86,11 +86,17 @@ public class JupiterConfigProvider implements PluginConfigProvider {
             config.initializeAtBuildTime(className);
         }
 
-        try {
-            Class <?> executor = Class.forName("org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource");
-            config.registerAllClassMembersForReflection(executor);
-        } catch (ClassNotFoundException e) {
-            debug("Failed to register class for reflection. Reason: %s", e);
+        String[] registeredForReflection = {
+                "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
+                "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
+        };
+        for (String className : registeredForReflection) {
+            try {
+                Class <?> executor = Class.forName(className);
+                config.registerAllClassMembersForReflection(executor);
+            } catch (ClassNotFoundException e) {
+                debug("Failed to register class for reflection. Reason: %s", e);
+            }
         }
     }
 
