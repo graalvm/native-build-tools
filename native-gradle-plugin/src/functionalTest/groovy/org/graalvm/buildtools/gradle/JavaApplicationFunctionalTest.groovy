@@ -196,6 +196,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         buildFile << """
             graalvmNative.binaries.all {
                 buildArgs.add("--initialize-at-build-time=org.graalvm.demo.Application")
+                buildArgs.add("-ECUSTOM_MESSAGE")
                 environmentVariables.put('CUSTOM_MESSAGE', 'Hello, custom message!')
             }
         """.stripIndent()
@@ -211,6 +212,27 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
         then:
         process.output.contains "Hello, custom message!"
+
+    }
+
+    def "can build a native image with PGO instrumentation"() {
+        def nativeApp = file("build/native/nativeCompile/java-application-instrumented")
+        def pgoFile = file("build/native/nativeCompile/default.iprof")
+
+        given:
+        withSample("java-application")
+
+        when:
+        run 'nativeCompile', '--pgo-instrument', 'nativeRun'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':nativeRun'
+        }
+
+        and:
+        nativeApp.exists()
+        pgoFile.exists()
 
     }
 

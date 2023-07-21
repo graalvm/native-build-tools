@@ -77,6 +77,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
@@ -107,6 +108,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getOptions().get().getDebug().set(true);
     }
 
+    @Option(option = "pgo-instrument", description = "Enables PGO instrumentation")
+    public void overridePgoInstrument() {
+        getOptions().get().getPgoInstrument().set(true);
+    }
+
     @Inject
     protected abstract ExecOperations getExecOperations();
 
@@ -128,12 +134,14 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Internal
     public Provider<String> getExecutableShortName() {
-        return getOptions().flatMap(NativeImageOptions::getImageName);
+        return getOptions().flatMap(options ->
+                options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo)? "-instrumented" : "")))
+        );
     }
 
     @Internal
     public Provider<String> getExecutableName() {
-        return getOptions().flatMap(options -> options.getImageName().map(name -> name + EXECUTABLE_EXTENSION));
+        return getExecutableShortName().map(name -> name + EXECUTABLE_EXTENSION);
     }
 
     @Internal

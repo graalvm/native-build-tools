@@ -52,7 +52,6 @@ import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.DefaultGraalVmExtension;
 import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
-import org.graalvm.buildtools.gradle.internal.DeprecatedNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
@@ -91,7 +90,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaLibraryPlugin;
@@ -139,6 +137,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializablePredicateOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableSupplierOf;
@@ -248,7 +247,6 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Add DSL extensions for building and testing
         NativeImageOptions mainOptions = createMainOptions(graalExtension, project);
-        deprecateExtension(project, mainOptions, DEPRECATED_NATIVE_BUILD_EXTENSION, "main");
 
         project.getPlugins().withId("application", p -> mainOptions.getMainClass().convention(
                 Objects.requireNonNull(project.getExtensions().findByType(JavaApplication.class)).getMainClass()
@@ -333,6 +331,15 @@ public class NativeImagePlugin implements Plugin<Project> {
                 task.setDescription("Executes the " + options.getName() + " native binary");
                 task.getImage().convention(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile));
                 task.getRuntimeArgs().convention(options.getRuntimeArgs());
+                task.getInternalRuntimeArgs().convention(
+                        imageBuilder.zip(options.getPgoInstrument(), serializableBiFunctionOf((builder, pgo) -> {
+                                    if (Boolean.TRUE.equals(pgo)) {
+                                        File outputDir = builder.getOutputDirectory().get().getAsFile();
+                                        return Collections.singletonList("-XX:ProfilesDumpFile=" + new File(outputDir, "default.iprof").getAbsolutePath());
+                                    }
+                                    return Collections.emptyList();
+                                })
+                        ));
             });
             configureClasspathJarFor(tasks, options, imageBuilder);
             SourceSet sourceSet = "test".equals(binaryName) ? sourceSets.getByName(SourceSet.TEST_SOURCE_SET_NAME) : sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -481,18 +488,6 @@ public class NativeImagePlugin implements Plugin<Project> {
         return ((ExtensionAware) graalExtension).getExtensions().getByType(GraalVMReachabilityMetadataRepositoryExtension.class);
     }
 
-    private void deprecateExtension(Project project,
-                                    NativeImageOptions delegate,
-                                    String name,
-                                    String substitute) {
-        ObjectFactory objects = project.getObjects();
-        project.getExtensions().add(name, objects.newInstance(DeprecatedNativeImageOptions.class,
-                name,
-                delegate,
-                substitute,
-                project.getLogger()));
-    }
-
     private void configureClasspathJarFor(TaskContainer tasks, NativeImageOptions options, TaskProvider<BuildNativeImageTask> imageBuilder) {
         String baseName = imageBuilder.getName();
         TaskProvider<Jar> classpathJar = tasks.register(baseName + "ClasspathJar", Jar.class, jar -> {
@@ -589,9 +584,6 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Add DSL extension for testing
         NativeImageOptions testOptions = createTestOptions(graalExtension, name, project, mainOptions, config.getSourceSet());
-        if (isPrimaryTest) {
-            deprecateExtension(project, testOptions, DEPRECATED_NATIVE_TEST_EXTENSION, "test");
-        }
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testTask.configure(test -> {

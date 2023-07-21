@@ -75,8 +75,8 @@ gradlePlugin.testSourceSets(sourceSets.functionalTest)
 configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
 
 def graalVm = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
-    vendor.set(JvmVendorSpec.matching("GraalVM"))
+    languageVersion.set(JavaLanguageVersion.of(17))
+//    vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
 }
 
 def fullFunctionalTest = tasks.register("fullFunctionalTest")

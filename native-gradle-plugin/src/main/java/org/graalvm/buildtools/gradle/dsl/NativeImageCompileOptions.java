@@ -215,4 +215,12 @@ public interface NativeImageCompileOptions {
 
     @Nested
     DeprecatedAgentOptions getAgent();
+
+    /**
+     * When set to true, the compiled binaries will be generated with PGO instrumentation
+     * support.
+     * @return the PGO instrumentation flag
+     */
+    @Input
+    Property<Boolean> getPgoInstrument();
 }

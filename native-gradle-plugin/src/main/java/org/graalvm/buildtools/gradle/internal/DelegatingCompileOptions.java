@@ -160,4 +160,9 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     public DeprecatedAgentOptions getAgent() {
         return options.getAgent();
     }
+
+    @Override
+    public Property<Boolean> getPgoInstrument() {
+        return options.getPgoInstrument();
+    }
 }

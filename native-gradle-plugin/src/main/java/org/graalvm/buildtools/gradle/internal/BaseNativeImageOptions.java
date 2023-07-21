@@ -263,6 +263,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getSharedLibrary().convention(false);
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);
+        getPgoInstrument().convention(false);
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
