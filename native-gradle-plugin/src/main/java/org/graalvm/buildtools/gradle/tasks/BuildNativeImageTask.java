@@ -135,7 +135,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Internal
     public Provider<String> getExecutableShortName() {
         return getOptions().flatMap(options ->
-                options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo)? "-instrumented" : "")))
+                options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo) ? "-instrumented" : "")))
         );
     }
 
