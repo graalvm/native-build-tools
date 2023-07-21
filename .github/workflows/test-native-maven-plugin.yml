@@ -28,7 +28,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ latest ] # dev
         java-version: [ 17 ]
         os: [ ubuntu-20.04 ]
     steps:
@@ -36,7 +35,6 @@ jobs:
         uses: actions/checkout@v2
       - uses: ./.github/actions/prepare-environment
         with:
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
@@ -55,7 +53,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ latest ] # dev
         java-version: [ 17 ]
         os: [ windows-latest ]
     steps:
@@ -63,7 +60,6 @@ jobs:
         uses: actions/checkout@v2
       - uses: ./.github/actions/prepare-environment
         with:
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the Maven plugin"

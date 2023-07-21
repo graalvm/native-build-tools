@@ -20,7 +20,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ latest ]
         java-version: [ 17 ]
         os: [ ubuntu-22.04 ]
     steps:
@@ -32,7 +31,6 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           push-access: 1
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
