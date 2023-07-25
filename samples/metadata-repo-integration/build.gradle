@@ -73,8 +73,7 @@ graalvmNative {
     metadataRepository {
         enabled = true
     }
-}
-
-tasks.named("jar") {
-    from collectReachabilityMetadata
+    binaries.all {
+        verbose = true
+    }
 }

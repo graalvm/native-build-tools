@@ -49,6 +49,7 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
     def "the application runs when using the official metadata repository"() {
         given:
         withSample("metadata-repo-integration")
+        debug = true
 
         when:
         run 'nativeRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"

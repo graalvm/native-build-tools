@@ -146,7 +146,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Internal
     public Provider<RegularFile> getOutputFile() {
-        return getOutputDirectory().map(dir -> dir.file(getExecutableName()).get());
+        return getOutputDirectory().zip(getExecutableName(), Directory::file);
     }
 
     @Input
