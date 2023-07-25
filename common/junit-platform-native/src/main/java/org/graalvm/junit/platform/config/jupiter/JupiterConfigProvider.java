@@ -81,6 +81,9 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 "org.junit.jupiter.engine.execution.ConditionEvaluator",
                 "org.junit.jupiter.engine.execution.ExecutableInvoker",
                 "org.junit.jupiter.params.provider.EnumSource$Mode",
+                // new in Junit 5.10
+                "org.junit.platform.launcher.core.LauncherConfig",
+                "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
         };
         for (String className : buildTimeInitializedClasses) {
             config.initializeAtBuildTime(className);
