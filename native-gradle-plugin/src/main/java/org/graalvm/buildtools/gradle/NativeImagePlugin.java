@@ -913,11 +913,11 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
     }
 
-    private static class ExcludeEntry {
+    private static final class ExcludeEntry {
         private final String gav;
         private final List<String> excludes;
 
-        public <T> ExcludeEntry(String gav, List<String> excludes) {
+        private ExcludeEntry(String gav, List<String> excludes) {
             this.gav = gav;
             this.excludes = excludes;
         }
