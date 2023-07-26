@@ -66,8 +66,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }}
-#      - name: "❓ Check and test the plugin with configuration cache"
-#        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}
+      - name: "❓ Check and test the plugin with configuration cache"
+        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}
       - name: "📜 Upload functional tests results"
         if: always()
         uses: actions/upload-artifact@v2
