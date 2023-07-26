@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         gradle-version: ["current", "7.4"]
-        gradle-config-cache-version: ["current", "7.5.1"]
+        gradle-config-cache-version: ["current", "8.0.1"]
         # Following versions are disabled temporarily in order to speed up PR testing
         # "7.3.3", "7.2", "7.1", "6.8.3"
         java-version: [ 17 ]
