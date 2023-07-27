@@ -449,6 +449,47 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=include-metadata]
 
 For more advanced configurations you can declare a `org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata` task and set the appropriate properties.
 
+[[pgo-support]]
+== Profile-guided optimizations
+
+The plugin supports building images with https://www.graalvm.org/latest/reference-manual/native-image/guides/optimize-native-executable-with-pgo/[Profile-Guided Optimizations].
+
+It works in 3 phases:
+
+- the first one consists in generating a binary with instrumentation enabled
+- the second phase consists in running the binary in order to gather profiling information
+- the third phase consists in compiling the binary with the generated profile
+
+In order to generate a binary with instrumentation enabled, you should run the `nativeCompile` command with the `--pgo-instrument` command line option:
+
+`./gradlew nativeCompile --pgo-instrument`
+
+This will generate a binary under `build/native/nativeCompile` with the `-instrumented` suffix.
+You can run the binary to gather profiling data:
+
+[source,bash]
+----
+$ cd build/native/nativeCompile/
+$ ./my-application-instrumented`
+----
+
+A `default.iprof` file will be generated once the application is stopped.
+Alternatively, you can have Gradle both generate and run the instrumented binary in a single command by running:
+
+`./gradlew nativeCompile --pgo-instrument nativeRun`
+
+In which case the profile will automatically be stored into `build/native/nativeCompile`.
+
+The last phase consists in copying the generated profile, so that it's automatically used when building the native binary.
+The conventional location for profiles is `src/pgo-profiles/<name of the binary>`.
+By default, we're using the `main` binary so the location will be `src/pgo-profiles/main`.
+Copy the `default.iprof` file into that directory, then run:
+
+`./gradlew nativeCompile`
+
+The profile will automatically be used and the binary compiled with PGO.
+It is possible to include more than one profile, in which case you should rename the `.iprof` files in the `src/pgo-profiles/main` directory.
+
 [[plugin-configurations]]
 == Configurations defined by the plugin
 

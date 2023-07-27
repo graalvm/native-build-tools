@@ -45,6 +45,7 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -58,6 +59,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class NativeImageCommandLineProvider implements CommandLineArgumentProvider {
@@ -118,6 +120,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
         appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
         appendBooleanOption(cliArgs, options.getRichOutput(), "-H:+BuildOutputColorful");
+        appendBooleanOption(cliArgs, options.getPgoInstrument(), "--pgo-instrument");
 
         if (getOutputDirectory().isPresent()) {
             cliArgs.add("-H:Path=" + getOutputDirectory().get());
@@ -144,6 +147,13 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         }
         if (options.getMainClass().isPresent()) {
             cliArgs.add("-H:Class=" + options.getMainClass().get());
+        }
+        if (Boolean.FALSE.equals(options.getPgoInstrument().get()) && options.getPgoProfilesDirectory().isPresent()) {
+            FileTree files = options.getPgoProfilesDirectory().get().getAsFileTree();
+            Set<File> profiles = files.filter(f -> f.getName().endsWith(".iprof")).getFiles();
+            for (File profile : profiles) {
+                cliArgs.add("--pgo=" + profile);
+            }
         }
         cliArgs.addAll(options.getBuildArgs().get());
         if (useArgFile.getOrElse(true)) {

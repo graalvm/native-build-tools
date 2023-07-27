@@ -154,7 +154,6 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
 
 val launcher = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(11))
-    vendor.set(JvmVendorSpec.matching("GraalVM"))
 }
 
 tasks {

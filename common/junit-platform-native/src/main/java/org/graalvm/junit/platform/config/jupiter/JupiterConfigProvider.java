@@ -81,16 +81,25 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 "org.junit.jupiter.engine.execution.ConditionEvaluator",
                 "org.junit.jupiter.engine.execution.ExecutableInvoker",
                 "org.junit.jupiter.params.provider.EnumSource$Mode",
+                // new in Junit 5.10
+                "org.junit.platform.launcher.core.LauncherConfig",
+                "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
         };
         for (String className : buildTimeInitializedClasses) {
             config.initializeAtBuildTime(className);
         }
 
-        try {
-            Class <?> executor = Class.forName("org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource");
-            config.registerAllClassMembersForReflection(executor);
-        } catch (ClassNotFoundException e) {
-            debug("Failed to register class for reflection. Reason: %s", e);
+        String[] registeredForReflection = {
+                "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
+                "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
+        };
+        for (String className : registeredForReflection) {
+            try {
+                Class <?> executor = Class.forName(className);
+                config.registerAllClassMembersForReflection(executor);
+            } catch (ClassNotFoundException e) {
+                debug("Failed to register class for reflection. Reason: %s", e);
+            }
         }
     }
 

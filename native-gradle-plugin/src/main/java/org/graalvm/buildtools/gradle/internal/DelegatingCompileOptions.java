@@ -44,6 +44,7 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -159,5 +160,15 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     @Override
     public DeprecatedAgentOptions getAgent() {
         return options.getAgent();
+    }
+
+    @Override
+    public Property<Boolean> getPgoInstrument() {
+        return options.getPgoInstrument();
+    }
+
+    @Override
+    public DirectoryProperty getPgoProfilesDirectory() {
+        return options.getPgoProfilesDirectory();
     }
 }

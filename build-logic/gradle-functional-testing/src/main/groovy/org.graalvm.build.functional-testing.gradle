@@ -75,14 +75,14 @@ gradlePlugin.testSourceSets(sourceSets.functionalTest)
 configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
 
 def graalVm = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
-    vendor.set(JvmVendorSpec.matching("GraalVM"))
+    languageVersion.set(JavaLanguageVersion.of(17))
+//    vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
 }
 
 def fullFunctionalTest = tasks.register("fullFunctionalTest")
 
 ['functionalTest', 'configCacheFunctionalTest'].each { baseName ->
-    ["current", "7.4", "7.6.2"].each { gradleVersion ->
+    ["current", "7.4", "7.6.2", "8.0.1"].each { gradleVersion ->
         String taskName = gradleVersion == 'current' ? baseName : "gradle${gradleVersion}${baseName.capitalize()}"
         // Add a task to run the functional tests
         def testTask = tasks.register(taskName, Test) {
@@ -105,6 +105,14 @@ def fullFunctionalTest = tasks.register("fullFunctionalTest")
             javaLauncher.set(graalVm)
             if (baseName == 'configCacheFunctionalTest') {
                 systemProperty('config.cache', 'true')
+                // These args are required so that we can debug tests which
+                // run with the configuration cache, see https://github.com/gradle/gradle/issues/25898
+                jvmArgs = [
+                        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util=ALL-UNNAMED',
+                        '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED',
+                        '--add-opens=java.base/java.net=ALL-UNNAMED',
+                ]
             }
         }
         fullFunctionalTest.configure {

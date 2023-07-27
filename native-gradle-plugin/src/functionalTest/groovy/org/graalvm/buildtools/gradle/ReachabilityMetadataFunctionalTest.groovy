@@ -43,7 +43,6 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
-import spock.lang.Unroll
 
 class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
@@ -52,11 +51,11 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
         withSample("metadata-repo-integration")
 
         when:
-        run 'jar', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
+        run 'collectReachabilityMetadata', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
 
         then:
         tasks {
-            succeeded ':jar', ':collectReachabilityMetadata'
+            succeeded ':collectReachabilityMetadata'
         }
 
         and: "has copied metadata file"

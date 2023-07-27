@@ -61,7 +61,7 @@ dependencies {
 
 apply from: "gradle/native-image-testing.gradle"
 
-test {
+tasks.named('test') {
     doFirst {
         delete { delete testIdsDir.get().asFile }
     }

@@ -6,14 +6,10 @@ inputs:
     description: 'secrets.GITHUB_TOKEN'
     required: false
     default: ''
-  graalvm-version:
-    description: 'GraalVM version to use'
-    required: false
-    default: 'dev'
   java-version:
     description: 'Java version to use'
     required: false
-    default: '11'
+    default: '17'
   push-access:
     description: 'Does this workflow require push access?'
     required: false
@@ -26,13 +22,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "🔧 Install GraalVM ${{ inputs.graalvm-version }} (JDK${{ inputs.java-version }})"
+    - name: "🔧 Install GraalVM (JDK${{ inputs.java-version }})"
       uses: graalvm/setup-graalvm@main
       with:
         components: 'native-image'
         github-token: ${{ inputs.github-token }}
         java-version: ${{ inputs.java-version }}
-        version: ${{ inputs.graalvm-version }}
+        distribution: 'graalvm'
     - name: "🔒 Configure push access"
       if: ${{ inputs.push-access == '1' }}
       shell: "bash"

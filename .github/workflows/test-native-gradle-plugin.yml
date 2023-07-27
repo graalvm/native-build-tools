@@ -28,8 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ latest ] # dev
-        java-version: [ 11 ]
+        java-version: [ 17 ]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
@@ -37,7 +36,6 @@ jobs:
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Unit tests and inspections"
@@ -54,18 +52,16 @@ jobs:
       fail-fast: false
       matrix:
         gradle-version: ["current", "7.4"]
-        gradle-config-cache-version: ["current", "7.5.1"]
+        gradle-config-cache-version: ["current", "8.0.1"]
         # Following versions are disabled temporarily in order to speed up PR testing
         # "7.3.3", "7.2", "7.1", "6.8.3"
-        graalvm-version: [ latest ] # dev
-        java-version: [ 11 ]
+        java-version: [ 17 ]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v2
       - uses: ./.github/actions/prepare-environment
         with:
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
@@ -86,15 +82,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ latest ]
-        java-version: [ 11 ]
+        java-version: [ 17 ]
         os: [ windows-latest ]
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v2
       - uses: ./.github/actions/prepare-environment
         with:
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the Gradle plugin"

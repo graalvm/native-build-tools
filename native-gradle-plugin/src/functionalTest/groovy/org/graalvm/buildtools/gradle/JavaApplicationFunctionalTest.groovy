@@ -46,6 +46,8 @@ import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Requires
 
+import java.nio.file.Files
+
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
         def nativeApp = file("build/native/nativeCompile/java-application")
@@ -196,6 +198,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         buildFile << """
             graalvmNative.binaries.all {
                 buildArgs.add("--initialize-at-build-time=org.graalvm.demo.Application")
+                buildArgs.add("-ECUSTOM_MESSAGE")
                 environmentVariables.put('CUSTOM_MESSAGE', 'Hello, custom message!')
             }
         """.stripIndent()
@@ -212,6 +215,44 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         process.output.contains "Hello, custom message!"
 
+    }
+
+    def "can build a native image with PGO instrumentation"() {
+        def pgoDir = file("src/pgo-profiles/main").toPath()
+        def nativeApp = file("build/native/nativeCompile/java-application-instrumented")
+        def pgoFile = file("build/native/nativeCompile/default.iprof")
+
+        given:
+        withSample("java-application")
+        buildFile << """
+            graalvmNative.binaries.all {
+                verbose = true
+            }
+        """
+
+        when:
+        run 'nativeCompile', '--pgo-instrument', 'nativeRun'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':nativeRun'
+        }
+
+        and:
+        nativeApp.exists()
+        pgoFile.exists()
+
+        when:
+        Files.createDirectories(pgoDir)
+        Files.copy(pgoFile.toPath(), pgoDir.resolve("default.iprof"))
+        run 'nativeCompile', 'nativeRun'
+
+        then:
+        tasks {
+            succeeded ':nativeCompile', ':nativeRun'
+        }
+        outputContains "--pgo="
+        outputContains "PGO: user-provided"
     }
 
 }

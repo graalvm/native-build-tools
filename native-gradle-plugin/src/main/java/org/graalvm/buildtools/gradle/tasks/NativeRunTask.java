@@ -53,6 +53,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unused")
@@ -69,11 +71,13 @@ public abstract class NativeRunTask extends DefaultTask {
     @Optional
     public abstract MapProperty<String, String> getEnvironment();
 
+    @Input
+    public abstract ListProperty<String> getInternalRuntimeArgs();
+
     @Inject
     protected abstract ExecOperations getExecOperations();
 
     public NativeRunTask() {
-
         setDescription("Runs this project as a native-image application");
         setGroup(ApplicationPlugin.APPLICATION_GROUP);
     }
@@ -82,7 +86,9 @@ public abstract class NativeRunTask extends DefaultTask {
     public void exec() {
         getExecOperations().exec(spec -> {
             spec.setExecutable(getImage().get().getAsFile().getAbsolutePath());
-            spec.args(getRuntimeArgs().get());
+            List<String> allRuntimeArgs = new ArrayList<>(getInternalRuntimeArgs().get());
+            allRuntimeArgs.addAll(getRuntimeArgs().get());
+            spec.args(allRuntimeArgs);
             if (getEnvironment().isPresent()) {
                 Map<String, String> env = getEnvironment().get();
                 for (Map.Entry<String, String> entry : env.entrySet()) {

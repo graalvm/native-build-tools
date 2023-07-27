@@ -42,14 +42,18 @@ package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.jvm.toolchain.JavaLauncher;
 
 import java.util.List;
@@ -215,4 +219,17 @@ public interface NativeImageCompileOptions {
 
     @Nested
     DeprecatedAgentOptions getAgent();
+
+    /**
+     * When set to true, the compiled binaries will be generated with PGO instrumentation
+     * support.
+     * @return the PGO instrumentation flag
+     */
+    @Input
+    Property<Boolean> getPgoInstrument();
+
+    @InputDirectory
+    @PathSensitive(PathSensitivity.NONE)
+    @Optional
+    DirectoryProperty getPgoProfilesDirectory();
 }

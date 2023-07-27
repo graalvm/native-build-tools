@@ -19,6 +19,12 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.24
+
+==== Gradle plugin
+
+* Add support for PGO
+
 === Release 0.9.23
 
 * Upgrade metadata to 0.3.2
