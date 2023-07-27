@@ -486,6 +486,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_including_metadata_repository_files">Including metadata repository files</a></li>
 </ul>
 </li>
+<li><a href="#pgo-support">Profile-guided optimizations</a></li>
 <li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
 <li><a href="#_javadocs">Javadocs</a></li>
 </ul>
@@ -1389,6 +1390,69 @@ Files will be downloaded into <code>META-INF/native-image/&lt;groupId&gt;/&lt;ve
 <div class="paragraph">
 <p>For more advanced configurations you can declare a <code>org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata</code> task and set the appropriate properties.</p>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="pgo-support"><a class="anchor" href="#pgo-support"></a>Profile-guided optimizations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin supports building images with <a href="https://www.graalvm.org/latest/reference-manual/native-image/guides/optimize-native-executable-with-pgo/">Profile-Guided Optimizations</a>.</p>
+</div>
+<div class="paragraph">
+<p>It works in 3 phases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>the first one consists in generating a binary with instrumentation enabled</p>
+</li>
+<li>
+<p>the second phase consists in running the binary in order to gather profiling information</p>
+</li>
+<li>
+<p>the third phase consists in compiling the binary with the generated profile</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In order to generate a binary with instrumentation enabled, you should run the <code>nativeCompile</code> command with the <code>--pgo-instrument</code> command line option:</p>
+</div>
+<div class="paragraph">
+<p><code>./gradlew nativeCompile --pgo-instrument</code></p>
+</div>
+<div class="paragraph">
+<p>This will generate a binary under <code>build/native/nativeCompile</code> with the <code>-instrumented</code> suffix.
+You can run the binary to gather profiling data:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">$ cd build/native/nativeCompile/
+$ ./my-application-instrumented`</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A <code>default.iprof</code> file will be generated once the application is stopped.
+Alternatively, you can have Gradle both generate and run the instrumented binary in a single command by running:</p>
+</div>
+<div class="paragraph">
+<p><code>./gradlew nativeCompile --pgo-instrument nativeRun</code></p>
+</div>
+<div class="paragraph">
+<p>In which case the profile will automatically be stored into <code>build/native/nativeCompile</code>.</p>
+</div>
+<div class="paragraph">
+<p>The last phase consists in copying the generated profile, so that it&#8217;s automatically used when building the native binary.
+The conventional location for profiles is <code>src/pgo-profiles/&lt;name of the binary&gt;</code>.
+By default, we&#8217;re using the <code>main</code> binary so the location will be <code>src/pgo-profiles/main</code>.
+Copy the <code>default.iprof</code> file into that directory, then run:</p>
+</div>
+<div class="paragraph">
+<p><code>./gradlew nativeCompile</code></p>
+</div>
+<div class="paragraph">
+<p>The profile will automatically be used and the binary compiled with PGO.
+It is possible to include more than one profile, in which case you should rename the <code>.iprof</code> files in the <code>src/pgo-profiles/main</code> directory.</p>
 </div>
 </div>
 </div>

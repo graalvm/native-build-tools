@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":10,"i3":6,"i4":6,"i5":10,"i6":10,"i7":10,"i8":6,"i9":6,"i10":6,"i11":10,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":10,"i18":10};
+var data = {"i0":10,"i1":6,"i2":10,"i3":6,"i4":6,"i5":10,"i6":10,"i7":10,"i8":6,"i9":6,"i10":6,"i11":10,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":10,"i18":10,"i19":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -316,6 +316,11 @@ extends org.gradle.api.DefaultTask</pre>
 </tr>
 <tr id="i18" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overridePgoInstrument()">overridePgoInstrument</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i19" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideQuickBuild()">overrideQuickBuild</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
@@ -332,7 +337,7 @@ extends org.gradle.api.DefaultTask</pre>
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.gradle.api.internal.AbstractTask</h3>
-<code>appendParallelSafeAction, doNotTrackState, getAsDynamicObject, getConvention, getIdentityPath, getImpliesSubProjects, getLifecycleDependencies, getOnlyIf, getReasonNotToTrackState, getReasonTaskIsIncompatibleWithConfigurationCache, getRequiredServices, getServices, getSharedResources, getStandardOutputCapture, getTaskActions, getTaskIdentity, getTemporaryDirFactory, hasTaskActions, injectIntoNewInstance, isCompatibleWithConfigurationCache, isEnabled, isHasCustomActions, notCompatibleWithConfigurationCache, prependParallelSafeAction, setImpliesSubProjects</code></li>
+<code>acceptServiceReferences, appendParallelSafeAction, doNotTrackState, getAsDynamicObject, getConvention, getIdentityPath, getImpliesSubProjects, getLifecycleDependencies, getOnlyIf, getReasonNotToTrackState, getReasonTaskIsIncompatibleWithConfigurationCache, getRequiredServices, getServices, getSharedResources, getStandardOutputCapture, getTaskActions, getTaskIdentity, getTemporaryDirFactory, hasTaskActions, injectIntoNewInstance, isCompatibleWithConfigurationCache, isEnabled, isHasCustomActions, notCompatibleWithConfigurationCache, prependParallelSafeAction, setImpliesSubProjects</code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -418,6 +423,15 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;<a href="../dsl/NativeI
 <li class="blockList">
 <h4>overrideDebugBuild</h4>
 <pre class="methodSignature">public&nbsp;void&nbsp;overrideDebugBuild()</pre>
+</li>
+</ul>
+<a id="overridePgoInstrument()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overridePgoInstrument</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overridePgoInstrument()</pre>
 </li>
 </ul>
 <a id="getExecOperations()">

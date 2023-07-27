@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":6,"i18":6,"i19":6};
+var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":6,"i18":6,"i19":6,"i20":6,"i21":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -128,7 +128,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><code><a href="../internal/BaseNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">BaseNativeImageOptions</a></code>, <code><a href="../internal/DelegatingCompileOptions.html" title="class in org.graalvm.buildtools.gradle.internal">DelegatingCompileOptions</a></code>, <code><a href="../internal/DeprecatedNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">DeprecatedNativeImageOptions</a></code></dd>
+<dd><code><a href="../internal/BaseNativeImageOptions.html" title="class in org.graalvm.buildtools.gradle.internal">BaseNativeImageOptions</a></code>, <code><a href="../internal/DelegatingCompileOptions.html" title="class in org.graalvm.buildtools.gradle.internal">DelegatingCompileOptions</a></code></dd>
 </dl>
 <hr>
 <pre>public interface <span class="typeNameLabel">NativeImageCompileOptions</span></pre>
@@ -241,38 +241,51 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tr id="i13" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPgoInstrument()">getPgoInstrument</a></span>()</code></th>
+<td class="colLast">
+<div class="block">When set to true, the compiled binaries will be generated with PGO instrumentation
+ support.</div>
+</td>
+</tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>org.gradle.api.file.DirectoryProperty</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPgoProfilesDirectory()">getPgoProfilesDirectory</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i15" class="rowColor">
+<td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuickBuild()">getQuickBuild</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the value which determines if image is being built in quick build mode.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code><a href="NativeResourcesOptions.html" title="class in org.graalvm.buildtools.gradle.dsl">NativeResourcesOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getResources()">getResources</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRichOutput()">getRichOutput</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the value which determines if image is being built with rich output.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSharedLibrary()">getSharedLibrary</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the value which determines if shared library is being built.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.MapProperty&lt;java.lang.String,&#8203;java.lang.Object&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSystemProperties()">getSystemProperties</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the system properties which will be used by the native-image builder process.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUseFatJar()">getUseFatJar</a></span>()</code></th>
 <td class="colLast">
@@ -280,7 +293,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  instead of passing each jar individually to the classpath.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getVerbose()">getVerbose</a></span>()</code></th>
 <td class="colLast">
@@ -595,10 +608,38 @@ org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getUseFatJar()</p
 <a id="getAgent()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getAgent</h4>
 <pre class="methodSignature"><a href="agent/DeprecatedAgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent">DeprecatedAgentOptions</a>&nbsp;getAgent()</pre>
+</li>
+</ul>
+<a id="getPgoInstrument()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPgoInstrument</h4>
+<pre class="methodSignature">@Input
+org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;&nbsp;getPgoInstrument()</pre>
+<div class="block">When set to true, the compiled binaries will be generated with PGO instrumentation
+ support.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the PGO instrumentation flag</dd>
+</dl>
+</li>
+</ul>
+<a id="getPgoProfilesDirectory()">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getPgoProfilesDirectory</h4>
+<pre class="methodSignature">@InputDirectory
+@PathSensitive(NONE)
+@Optional
+org.gradle.api.file.DirectoryProperty&nbsp;getPgoProfilesDirectory()</pre>
 </li>
 </ul>
 </li>

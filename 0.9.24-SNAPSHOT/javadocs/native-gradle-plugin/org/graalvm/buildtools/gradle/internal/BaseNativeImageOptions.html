@@ -176,7 +176,8 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(java.lang.String,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.ProviderFactory,org.gradle.jvm.toolchain.JavaToolchainService,org.gradle.api.tasks.TaskContainer,java.lang.String)">BaseNativeImageOptions</a></span>&#8203;(java.lang.String&nbsp;name,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(java.lang.String,org.gradle.api.file.ProjectLayout,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.ProviderFactory,org.gradle.jvm.toolchain.JavaToolchainService,org.gradle.api.tasks.TaskContainer,java.lang.String)">BaseNativeImageOptions</a></span>&#8203;(java.lang.String&nbsp;name,
+                      org.gradle.api.file.ProjectLayout&nbsp;layout,
                       org.gradle.api.model.ObjectFactory&nbsp;objectFactory,
                       org.gradle.api.provider.ProviderFactory&nbsp;providers,
                       org.gradle.jvm.toolchain.JavaToolchainService&nbsp;toolchains,
@@ -422,7 +423,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.graalvm.buildtools.gradle.dsl.<a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></h3>
-<code><a href="../dsl/NativeImageCompileOptions.html#getExcludeConfigArgs()">getExcludeConfigArgs</a>, <a href="../dsl/NativeImageCompileOptions.html#getUseFatJar()">getUseFatJar</a></code></li>
+<code><a href="../dsl/NativeImageCompileOptions.html#getExcludeConfigArgs()">getExcludeConfigArgs</a>, <a href="../dsl/NativeImageCompileOptions.html#getPgoInstrument()">getPgoInstrument</a>, <a href="../dsl/NativeImageCompileOptions.html#getPgoProfilesDirectory()">getPgoProfilesDirectory</a>, <a href="../dsl/NativeImageCompileOptions.html#getUseFatJar()">getUseFatJar</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.graalvm.buildtools.gradle.dsl.NativeImageOptions">
@@ -447,7 +448,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(java.lang.String,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.ProviderFactory,org.gradle.jvm.toolchain.JavaToolchainService,org.gradle.api.tasks.TaskContainer,java.lang.String)">
+<a id="&lt;init&gt;(java.lang.String,org.gradle.api.file.ProjectLayout,org.gradle.api.model.ObjectFactory,org.gradle.api.provider.ProviderFactory,org.gradle.jvm.toolchain.JavaToolchainService,org.gradle.api.tasks.TaskContainer,java.lang.String)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -455,6 +456,7 @@ implements <a href="../dsl/NativeImageOptions.html" title="interface in org.graa
 <h4>BaseNativeImageOptions</h4>
 <pre>@Inject
 public&nbsp;BaseNativeImageOptions&#8203;(java.lang.String&nbsp;name,
+                              org.gradle.api.file.ProjectLayout&nbsp;layout,
                               org.gradle.api.model.ObjectFactory&nbsp;objectFactory,
                               org.gradle.api.provider.ProviderFactory&nbsp;providers,
                               org.gradle.jvm.toolchain.JavaToolchainService&nbsp;toolchains,
