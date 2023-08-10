@@ -22,14 +22,34 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
 
 jobs:
+  populate-matrix:
+    name: "Set matrix"
+    runs-on: "ubuntu-20.04"
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v3
+      - name: "🔧 Prepare environment"
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "🕸️ Populate matrix"
+        id: set-matrix
+        run: |
+          ./gradlew :native-gradle-plugin:dumpFunctionalTestList
+
   test-native-gradle-plugin:
     name: "Sanity checks"
-    runs-on: ${{ matrix.os }}
+    runs-on: "ubuntu-20.04"
+    timeout-minutes: 60
+    needs: populate-matrix
     strategy:
       fail-fast: false
-      matrix:
-        java-version: [ 17 ]
-        os: [ ubuntu-20.04 ]
+      matrix: ${{fromJson(needs.populate-matrix.outputs.matrix)}}
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
@@ -45,6 +65,7 @@ jobs:
         with:
           name: unit-tests-results
           path: native-gradle-plugin/build/reports/tests/test/
+
   functional-testing-gradle-plugin-dev:
     name: "Functional testing (GraalVM Dev Build)"
     runs-on: ${{ matrix.os }}
@@ -79,17 +100,13 @@ jobs:
           name: functional-tests-results-graalvm-dev
           path: native-gradle-plugin/build/reports/tests/functionalTest/
   functional-testing-gradle-plugin:
-    name: "Functional testing"
+    name: "🧪 Gradle: ${{ matrix.test }} on ${{ matrix.os }} with gradle version: ${{ matrix.gradle-version }}"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs: populate-matrix
     strategy:
       fail-fast: false
-      matrix:
-        gradle-version: ["current", "7.4"]
-        gradle-config-cache-version: ["current", "8.0.1"]
-        # Following versions are disabled temporarily in order to speed up PR testing
-        # "7.3.3", "7.2", "7.1", "6.8.3"
-        java-version: [ 17 ]
-        os: [ ubuntu-20.04 ]
+      matrix: ${{fromJson(needs.populate-matrix.outputs.matrix)}}
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
@@ -99,9 +116,9 @@ jobs:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
-        run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }}
+        run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }} --tests ${{ matrix.test }}
       - name: "❓ Check and test the plugin with configuration cache"
-        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}
+        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}  --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
         uses: actions/upload-artifact@v3

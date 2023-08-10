@@ -51,6 +51,7 @@ plugins {
     id("org.graalvm.build.publishing")
     id("org.graalvm.build.maven-plugin")
     id("org.graalvm.build.maven-functional-testing")
+    id("org.graalvm.build.github-actions-helper")
 }
 
 maven {
