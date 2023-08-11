@@ -228,8 +228,8 @@ Build Configuration]. It is also possible to customize the plugin within a
 [source,xml]
 ----
 <classpath>
-    <entry>path/to/file.jar</entry>
-    <entry>path/to/classes</entry>
+    <param>path/to/file.jar</param>
+    <param>path/to/classes</param>
 </classpath>
 ----
 `<classesDirectory>`::
