@@ -17,6 +17,8 @@ aether = "1.1.0"
 slf4j = "1.7.9"
 groovy = "3.0.11"
 jetty = "11.0.11"
+plexusUtils = "4.0.0"
+plexusXml = "4.0.2"
 
 [libraries]
 # Local projects
@@ -55,3 +57,7 @@ maven-wagon-provider = { module = "org.apache.maven.wagon:wagon-provider-api", v
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
+
+plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexusUtils" }
+
+plexus-xml = { module = "org.codehaus.plexus:plexus-xml", version.ref = "plexusXml" }
