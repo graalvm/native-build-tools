@@ -70,7 +70,7 @@ class JavaLibraryFunctionalTest extends AbstractFunctionalTest {
             doesNotContain ':build'
         }
 
-        outputContains "-H:+SharedLibrary"
+        outputContains "--shared"
 
         and:
         library.exists()

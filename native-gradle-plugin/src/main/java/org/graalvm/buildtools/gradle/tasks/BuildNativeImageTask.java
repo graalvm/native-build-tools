@@ -179,7 +179,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getDisableToolchainDetection().convention(false);
     }
 
-    private List<String> buildActualCommandLineArgs() {
+    private List<String> buildActualCommandLineArgs(int majorJDKVersion) {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
                 getOptions(),
@@ -189,7 +189,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 // a mapped value before the task was called, when we are actually calling it...
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
                 getClasspathJar(),
-                getUseArgFile()).asArguments();
+                getUseArgFile(),
+                getProviders().provider(() -> majorJDKVersion)).asArguments();
     }
 
     // This property provides access to the service instance
@@ -203,10 +204,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         NativeImageOptions options = getOptions().get();
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
-        List<String> args = buildActualCommandLineArgs();
-        if (options.getVerbose().get()) {
-            logger.lifecycle("Args are: " + args);
-        }
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
                 options.getJavaLauncher(),
                 getDisableToolchainDetection(),
@@ -214,7 +211,15 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 getExecOperations(),
                 logger,
                 diagnostics);
-        checkRequiredVersionIfNeeded(executablePath, options);
+        String versionString = getVersionString(getExecOperations(), executablePath);
+        if (options.getRequiredVersion().isPresent()) {
+            NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
+        }
+        int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
+        List<String> args = buildActualCommandLineArgs(majorJDKVersion);
+        if (options.getVerbose().get()) {
+            logger.lifecycle("Args are: " + args);
+        }
         for (String diagnostic : diagnostics.getDiagnostics()) {
             logger.lifecycle(diagnostic);
         }
@@ -240,19 +245,14 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         }
     }
 
-    private void checkRequiredVersionIfNeeded(File executablePath, NativeImageOptions options) {
-        if (!options.getRequiredVersion().isPresent()) {
-            return;
-        }
+    public static String getVersionString(ExecOperations execOperations, File executablePath) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ExecResult execResult = getExecOperations().exec(spec -> {
+        ExecResult execResult = execOperations.exec(spec -> {
             spec.setStandardOutput(outputStream);
             spec.args("--version");
             spec.setExecutable(executablePath.getAbsolutePath());
         });
         execResult.assertNormalExitValue();
-        String versionToCheck = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-        NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionToCheck);
+        return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
     }
-
 }

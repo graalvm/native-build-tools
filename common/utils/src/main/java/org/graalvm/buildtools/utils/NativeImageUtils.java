@@ -61,6 +61,8 @@ public class NativeImageUtils {
 
     private static final Pattern graalvmVersionPattern = Pattern.compile("^(GraalVM|native-image) ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
 
+    private static final Pattern SAFE_SHELL_ARG = Pattern.compile("[A-Za-z0-9@%_\\-+=:,./]+");
+
     public static void maybeCreateConfigureUtilSymlink(File configureUtilFile, Path nativeImageExecutablePath) {
         if (!configureUtilFile.exists()) {
             // possibly the symlink is missing
@@ -102,15 +104,21 @@ public class NativeImageUtils {
         }
     }
 
+
+    /**
+     * See https://github.com/oracle/graal/blob/f011d4d056a7ed78fe9669cc38062e6d09c14bed/substratevm/src/com.oracle.svm.driver/src/com/oracle/svm/driver/NativeImage.java#L1447C47-L1447C60.
+     */
     public static String escapeArg(String arg) {
-        if (!(arg.startsWith("\\Q") && arg.endsWith("\\E"))) {
-            arg = arg.replace("\\", "\\\\");
-            if (arg.contains(" ")) {
-                arg = "\"" + arg + "\"";
-            }
+        if (arg.isEmpty()) {
+            return "''";
         }
-        return arg;
+        Matcher m = SAFE_SHELL_ARG.matcher(arg);
+        if (m.matches()) {
+            return arg;
+        }
+        return "'" + arg.replace("'", "'\"'\"'") + "'";
     }
+
 
     /**
      *
@@ -163,5 +171,13 @@ public class NativeImageUtils {
                 }
             }
         }
+    }
+
+    public static int getMajorJDKVersion(String versionString) {
+        Matcher matcher = graalvmVersionPattern.matcher(versionString.trim());
+        if (matcher.matches()) {
+            return Integer.parseInt(matcher.group(2));
+        }
+        return -1;
     }
 }

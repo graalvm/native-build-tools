@@ -67,23 +67,26 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
 
     private final Provider<NativeImageOptions> options;
     private final Provider<String> executableName;
-    private final Provider<String> outputDirectory;
     private final Provider<String> workingDirectory;
+    private final Provider<String> outputDirectory;
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
+    private final Provider<Integer> majorJDKVersion;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
                                           Provider<String> workingDirectory,
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
-                                          Provider<Boolean> useArgFile) {
+                                          Provider<Boolean> useArgFile,
+                                          Provider<Integer> majorJDKVersion) {
         this.options = options;
         this.executableName = executableName;
         this.workingDirectory = workingDirectory;
         this.outputDirectory = outputDirectory;
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
+        this.majorJDKVersion = majorJDKVersion;
     }
 
     @Nested
@@ -119,13 +122,15 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
         appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
-        appendBooleanOption(cliArgs, options.getRichOutput(), "-H:+BuildOutputColorful");
+        appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? "--color" : "-H:+BuildOutputColorful");
         appendBooleanOption(cliArgs, options.getPgoInstrument(), "--pgo-instrument");
 
+        String targetOutputPath = getExecutableName().get();
         if (getOutputDirectory().isPresent()) {
-            cliArgs.add("-H:Path=" + getOutputDirectory().get());
+            targetOutputPath = getOutputDirectory().get() + File.separator + targetOutputPath;
         }
-        cliArgs.add("-H:Name=" + getExecutableName().get());
+        cliArgs.add("-o");
+        cliArgs.add(targetOutputPath);
 
         options.getSystemProperties().get().forEach((n, v) -> {
             if (v != null) {
@@ -145,9 +150,6 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         if (!configFiles.isEmpty()) {
             cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
         }
-        if (options.getMainClass().isPresent()) {
-            cliArgs.add("-H:Class=" + options.getMainClass().get());
-        }
         if (Boolean.FALSE.equals(options.getPgoInstrument().get()) && options.getPgoProfilesDirectory().isPresent()) {
             FileTree files = options.getPgoProfilesDirectory().get().getAsFileTree();
             Set<File> profiles = files.filter(f -> f.getName().endsWith(".iprof")).getFiles();
@@ -156,12 +158,20 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
             }
         }
         cliArgs.addAll(options.getBuildArgs().get());
+
+        List<String> actualCliArgs;
         if (useArgFile.getOrElse(true)) {
             Path argFileDir = Paths.get(workingDirectory.get());
-            return NativeImageUtils.convertToArgsFile(cliArgs, argFileDir, argFileDir);
+            actualCliArgs = new ArrayList<>(NativeImageUtils.convertToArgsFile(cliArgs, argFileDir, argFileDir));
+        } else {
+            actualCliArgs = cliArgs;
         }
-        return Collections.unmodifiableList(cliArgs);
 
+        /* Main class comes last. It is kept outside argument files as GraalVM releases before JDK 21 fail to detect the mainClass in these files. */
+        if (options.getMainClass().isPresent()) {
+            actualCliArgs.add(options.getMainClass().get());
+        }
+        return Collections.unmodifiableList(actualCliArgs);
     }
 
     /**
