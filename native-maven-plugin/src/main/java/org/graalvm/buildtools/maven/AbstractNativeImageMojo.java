@@ -214,8 +214,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             cliArgs.add("-Ob");
         }
 
-        cliArgs.add("-H:Path=" + outputDirectory.toPath().toAbsolutePath());
-        cliArgs.add("-H:Name=" + imageName);
+        cliArgs.add("-o");
+        cliArgs.add(outputDirectory.toPath().toAbsolutePath() + File.separator + imageName);
 
         if (systemProperties != null) {
             for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
@@ -240,21 +240,25 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             );
         }
 
-        if (mainClass != null && !mainClass.equals(".")) {
-            cliArgs.add("-H:Class=" + mainClass);
-        }
-
         if (buildArgs != null && !buildArgs.isEmpty()) {
             for (String buildArg : buildArgs) {
                 cliArgs.addAll(Arrays.asList(buildArg.split("\\s+")));
             }
         }
 
+        List<String> actualCliArgs;
         if (useArgFile) {
             Path tmpDir = Paths.get("target", "tmp");
-            return NativeImageUtils.convertToArgsFile(cliArgs, tmpDir);
+            actualCliArgs = new ArrayList<>(NativeImageUtils.convertToArgsFile(cliArgs, tmpDir));
+        } else {
+            actualCliArgs = cliArgs;
         }
-        return Collections.unmodifiableList(cliArgs);
+
+        /* Main class comes last. It is kept outside argument files as GraalVM releases before JDK 21 fail to detect the mainClass in these files. */
+        if (mainClass != null && !mainClass.equals(".")) {
+            actualCliArgs.add(mainClass);
+        }
+        return Collections.unmodifiableList(actualCliArgs);
     }
 
     protected Path processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
@@ -453,12 +457,6 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             String value = configDirs.map(File::getAbsolutePath).collect(Collectors.joining(","));
             if (!value.isEmpty()) {
                 into.add("-H:ConfigurationFileDirectories=" + value);
-                if (agentResourceDirectory != null && agentResourceDirectory.isDirectory()) {
-                    // The generated reflect config file contains references to java.*
-                    // and org.apache.maven.surefire that we'd need to remove using
-                    // a proper JSON parser/writer instead
-                    into.add("-H:+AllowIncompleteClasspath");
-                }
             }
         }
     }

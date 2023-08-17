@@ -130,7 +130,7 @@ graalvmNative {
             excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
 
             // Advanced options
-            buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+            buildArgs.add("--link-at-build-time") // Passes '--link-at-build-time' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
             jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
 
             // Runtime options
