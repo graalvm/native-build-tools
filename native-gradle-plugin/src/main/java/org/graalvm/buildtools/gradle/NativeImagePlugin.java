@@ -709,6 +709,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         String prefix = "main".equals(binaryName) ? "" : capitalize(binaryName);
         Configuration baseClasspath = configurations.getByName(baseClasspathConfigurationName);
+        ProviderFactory providers = project.getProviders();
         Configuration compileOnly = configurations.create("nativeImage" + prefix + "CompileOnly", c -> {
             c.setCanBeResolved(false);
             c.setCanBeConsumed(false);
@@ -722,8 +723,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 AttributeContainer baseAttributes = baseClasspath.getAttributes();
                 for (Attribute<?> attribute : baseAttributes.keySet()) {
                     Attribute<Object> attr = (Attribute<Object>) attribute;
-                    Object value = baseAttributes.getAttribute(attr);
-                    attrs.attribute(attr, Objects.requireNonNull(value));
+                    attrs.attributeProvider(attr, providers.provider(() -> baseAttributes.getAttribute(attr)));
                 }
             });
         });
