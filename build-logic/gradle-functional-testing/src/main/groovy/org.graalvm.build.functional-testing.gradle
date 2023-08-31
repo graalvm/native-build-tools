@@ -82,7 +82,7 @@ def graalVm = javaToolchains.launcherFor {
 def fullFunctionalTest = tasks.register("fullFunctionalTest")
 
 ['functionalTest', 'configCacheFunctionalTest'].each { baseName ->
-    ["current", "7.4", "7.6.2", "8.0.1"].each { gradleVersion ->
+    ["current", "7.4", "7.6.2", "8.0.1", "8.2.1"].each { gradleVersion ->
         String taskName = gradleVersion == 'current' ? baseName : "gradle${gradleVersion}${baseName.capitalize()}"
         // Add a task to run the functional tests
         def testTask = tasks.register(taskName, Test) {

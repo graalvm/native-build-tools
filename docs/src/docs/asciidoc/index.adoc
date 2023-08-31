@@ -19,6 +19,12 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.26
+
+==== Gradle plugin
+
+* Fix compatibility with Gradle 8.3
+
 === Release 0.9.25
 
 * Upgrade metadata to 0.3.4
