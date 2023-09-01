@@ -40,8 +40,6 @@
  */
 package org.graalvm.buildtools.utils;
 
-import org.graalvm.compiler.hotspot.replacements.Log;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
