@@ -40,6 +40,8 @@
  */
 package org.graalvm.buildtools.utils;
 
+import org.graalvm.compiler.hotspot.replacements.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -122,7 +124,10 @@ public class NativeImageUtils {
         if (versionToCheck.contains("GraalVM Runtime Environment")) {
             return; // later than 22.3.1 (e.g., GraalVM for JDK 17 / GraalVM for JDK 20)
         }
-        if (versionToCheck.startsWith("GraalVM dev") || versionToCheck.startsWith("native-image dev")) {
+        if (!versionToCheck.startsWith("GraalVM") && !versionToCheck.startsWith("native-image") && !versionToCheck.startsWith("Oracle GraalVM")) {
+            throw new IllegalArgumentException("Invalid version " + versionToCheck + ", should start with GraalVM, Oracle GraalVM or native-image");
+        }
+        if (versionToCheck.contains("dev")) {
             return;
         }
         Matcher requiredMatcher = requiredVersionPattern.matcher(requiredVersion);
