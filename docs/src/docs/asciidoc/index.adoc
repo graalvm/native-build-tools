@@ -21,6 +21,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.9.26
 
+* Relax GraalVM version check for dev versions
+
 ==== Gradle plugin
 
 * Fix compatibility with Gradle 8.3

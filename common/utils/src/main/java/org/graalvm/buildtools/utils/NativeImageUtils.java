@@ -122,7 +122,8 @@ public class NativeImageUtils {
         if (versionToCheck.contains("GraalVM Runtime Environment")) {
             return; // later than 22.3.1 (e.g., GraalVM for JDK 17 / GraalVM for JDK 20)
         }
-        if (versionToCheck.startsWith("GraalVM dev") || versionToCheck.startsWith("native-image dev")) {
+        if ((versionToCheck.startsWith("native-image") && versionToCheck.contains("dev")) ||
+                versionToCheck.startsWith("GraalVM dev")) { /* For GraalVM 22.3 and earlier */
             return;
         }
         Matcher requiredMatcher = requiredVersionPattern.matcher(requiredVersion);
