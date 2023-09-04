@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
     implementation(libs.graalvm.svm)
+    implementation(libs.plexus.utils)
+    implementation(libs.plexus.xml)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
