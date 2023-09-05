@@ -22,7 +22,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 === Release 0.9.26
 
 * Relax GraalVM version check for dev versions
-* Prepare plugins for release of *GraalVM for JDK 21*. They no longer deploy any experimental options.
+* Prepare plugins for release of _GraalVM for JDK 21_. They no longer deploy any experimental options.
+* Bump Java compliance of the plugins from Java 8+ to Java 11+.
 
 ==== Gradle plugin
 
