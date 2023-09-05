@@ -23,6 +23,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 * Relax GraalVM version check for dev versions
 * Prepare plugins for release of *GraalVM for JDK 21*. They no longer deploy any experimental options.
+* This release drops support for Java 8. From now on Java 11 or later is required.
 
 ==== Gradle plugin
 
