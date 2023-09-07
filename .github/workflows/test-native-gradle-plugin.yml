@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ 17 ]
+        java-version: [ dev ]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
@@ -55,7 +55,7 @@ jobs:
         gradle-config-cache-version: ["current", "8.0.1"]
         # Following versions are disabled temporarily in order to speed up PR testing
         # "7.3.3", "7.2", "7.1", "6.8.3"
-        java-version: [ 17 ]
+        java-version: [ dev ]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
@@ -82,7 +82,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ 17 ]
+        java-version: [ dev ]
         os: [ windows-latest ]
     steps:
       - name: "☁️ Checkout repository"

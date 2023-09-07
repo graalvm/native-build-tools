@@ -22,13 +22,18 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: "🔧 Setup java"
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'oracle'
+        java-version: '17'
     - name: "🔧 Install GraalVM (JDK${{ inputs.java-version }})"
       uses: graalvm/setup-graalvm@main
       with:
-        components: 'native-image'
         github-token: ${{ inputs.github-token }}
         java-version: ${{ inputs.java-version }}
         distribution: 'graalvm'
+        set-java-home: 'false'
     - name: "🔒 Configure push access"
       if: ${{ inputs.push-access == '1' }}
       shell: "bash"
