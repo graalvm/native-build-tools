@@ -51,8 +51,8 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <native.maven.plugin.version>0.9.26</native.maven.plugin.version>
-        <junit.platform.native.version>0.9.26</junit.platform.native.version>
+        <native.maven.plugin.version>0.9.26-SNAPSHOT</native.maven.plugin.version>
+        <junit.platform.native.version>0.9.26-SNAPSHOT</junit.platform.native.version>
         <h2.version>2.1.210</h2.version>
         <netty.version>4.1.80.Final</netty.version>
         <logback.version>1.4.4</logback.version>
