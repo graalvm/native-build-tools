@@ -131,7 +131,14 @@ public final class JUnitPlatformFeature implements Feature {
                 "org.junit.platform.launcher.core.LauncherListenerRegistry",
                 "org.junit.Test",
                 "java.lang.annotation.Annotation",
-                "org.junit.runners.model.FrameworkMethod"
+                "org.junit.runners.model.FrameworkMethod",
+                "org.junit.jupiter.engine.descriptor.NestedClassTestDescriptor",
+                "org.junit.jupiter.params.provider.EnumSource$Mode$Validator",
+                "org.junit.platform.engine.support.hierarchical.Node$ExecutionMode",
+                "org.junit.platform.launcher.core.DefaultLauncherConfig",
+                "org.junit.runners.ParentRunner$1",
+                "org.junit.runners.model.TestClass"
+
         }) {
             try {
                 RuntimeClassInitialization.initializeAtBuildTime(Class.forName(className));
