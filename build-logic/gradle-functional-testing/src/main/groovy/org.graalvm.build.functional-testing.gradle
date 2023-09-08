@@ -99,7 +99,7 @@ def fullFunctionalTest = tasks.register("fullFunctionalTest")
             systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
             systemProperty('gradle.test.version', effectiveVersion)
             systemProperty('versions.junit', libs.versions.junitJupiter.get())
-            environment('GRAALVM_HOME', graalVm.get().metadata.installationPath.asFile.absolutePath)
+            environment('GRAALVM_HOME', providers.environmentVariable("GRAALVM_HOME").orElse(graalVm.get().metadata.installationPath.asFile.absolutePath))
             testClassesDirs = sourceSets.functionalTest.output.classesDirs
             classpath = sourceSets.functionalTest.runtimeClasspath
             javaLauncher.set(graalVm)
