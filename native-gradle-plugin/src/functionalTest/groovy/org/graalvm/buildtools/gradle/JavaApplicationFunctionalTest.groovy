@@ -129,10 +129,6 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
                     vendor.set(JvmVendorSpec.matching("non existing vendor"))
                 })
             }
-            
-            tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
-                disableToolchainDetection = true
-            }
         """.stripIndent()
 
         when:
