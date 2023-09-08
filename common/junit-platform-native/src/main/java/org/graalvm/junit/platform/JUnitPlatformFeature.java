@@ -86,6 +86,9 @@ public final class JUnitPlatformFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
+        if (Runtime.version().feature() >= 21) {
+            registerClassInitializationPoliciesJDK21OrLater();
+        }
 
         List<Path> classpathRoots = access.getApplicationClassPath();
         List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
@@ -93,6 +96,47 @@ public final class JUnitPlatformFeature implements Feature {
         Launcher launcher = LauncherFactory.create();
         TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
         ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
+    }
+    private static void registerClassInitializationPoliciesJDK21OrLater() {
+        for (String className : new String[]{
+                "org.junit.platform.launcher.core.SessionPerRequestLauncher",
+                "org.junit.platform.launcher.core.DefaultLauncher",
+                "org.junit.platform.launcher.core.ListenerRegistry",
+                "org.junit.platform.launcher.LauncherSessionListener$1",
+                "org.junit.platform.launcher.listeners.UniqueIdTrackingListener",
+                "org.junit.platform.launcher.core.EngineExecutionOrchestrator",
+                "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$2",
+                "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$3",
+                "org.junit.platform.engine.TestDescriptor$Type",
+                "org.junit.platform.engine.UniqueId",
+                "org.junit.platform.engine.support.descriptor.ClassSource",
+                "org.junit.platform.engine.support.descriptor.MethodSource",
+                "org.junit.platform.launcher.core.LauncherDiscoveryResult",
+                "org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1",
+                "org.junit.platform.engine.UniqueId$Segment",
+                "org.junit.jupiter.engine.JupiterTestEngine",
+                "org.junit.jupiter.engine.descriptor.JupiterEngineDescriptor",
+                "org.junit.jupiter.api.TestInstance$Lifecycle",
+                "org.junit.jupiter.api.extension.ConditionEvaluationResult",
+                "org.junit.jupiter.engine.config.CachingJupiterConfiguration",
+                "org.junit.jupiter.engine.descriptor.DynamicDescendantFilter",
+                "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker",
+                "org.junit.jupiter.api.DisplayNameGenerator$Standard",
+                "org.junit.jupiter.engine.config.DefaultJupiterConfiguration",
+                "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall",
+                "org.junit.jupiter.engine.execution.InvocationInterceptorChain",
+                "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall$VoidMethodInterceptorCall",
+                "org.junit.vintage.engine.VintageTestEngine",
+                "org.junit.vintage.engine.descriptor.VintageEngineDescriptor",
+                "org.junit.platform.launcher.core.LauncherListenerRegistry",
+                "org.junit.Test",
+                "java.lang.annotation.Annotation"}) {
+            try {
+                RuntimeClassInitialization.initializeAtBuildTime(Class.forName(className));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
