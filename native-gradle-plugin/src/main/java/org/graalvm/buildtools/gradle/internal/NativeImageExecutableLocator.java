@@ -82,12 +82,14 @@ public class NativeImageExecutableLocator {
             if (graalvmHomeProvider.isPresent()) {
                 diagnostics.disableToolchainDetection();
                 String graalvmHome = graalvmHomeProvider.get();
+                logger.log("Using GRAALVM_HOME at: " + graalvmHome);
                 executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
             }
         }
         if (executablePath == null) {
             JavaInstallationMetadata metadata = javaLauncher.get().getMetadata();
             diagnostics.withToolchain(metadata);
+            logger.log("Using JAVA_HOME at: " + metadata.getInstallationPath());
             executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
         }
 
