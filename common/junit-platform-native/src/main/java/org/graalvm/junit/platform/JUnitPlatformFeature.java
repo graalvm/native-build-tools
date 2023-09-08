@@ -130,7 +130,9 @@ public final class JUnitPlatformFeature implements Feature {
                 "org.junit.vintage.engine.descriptor.VintageEngineDescriptor",
                 "org.junit.platform.launcher.core.LauncherListenerRegistry",
                 "org.junit.Test",
-                "java.lang.annotation.Annotation"}) {
+                "java.lang.annotation.Annotation",
+                "org.junit.runners.model.FrameworkMethod"
+        }) {
             try {
                 RuntimeClassInitialization.initializeAtBuildTime(Class.forName(className));
             } catch (ClassNotFoundException e) {
