@@ -65,18 +65,6 @@ class NativeImageConfigurationImpl implements NativeImageConfiguration {
         RuntimeReflection.register(fields);
     }
 
-    @Override
-    public void initializeAtBuildTime(String... classNames) {
-        for (String className : classNames) {
-            Class<?> clazz;
-            try {
-                clazz = Class.forName(className);
-                initializeAtBuildTime(clazz);
-            } catch (ClassNotFoundException e) {
-                JUnitPlatformFeature.debug("[Native Image Configuration] Failed to register class for build time initialization: %s Reason: %s", className, e);
-            }
-        }
-    }
 
     @Override
     public void initializeAtBuildTime(Class<?>... classes) {

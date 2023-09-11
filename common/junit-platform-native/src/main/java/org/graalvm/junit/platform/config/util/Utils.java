@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,39 +39,22 @@
  * SOFTWARE.
  */
 
-package org.graalvm.junit.platform.config.core;
+package org.graalvm.junit.platform.config.util;
 
 import org.graalvm.junit.platform.JUnitPlatformFeature;
-import org.graalvm.junit.platform.config.util.Utils;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
+import java.util.Arrays;
 
-public interface NativeImageConfiguration {
-
-    void registerForReflection(Class<?>... classes);
-
-    void registerForReflection(Executable... methods);
-
-    void registerForReflection(Field... fields);
-
-    default void registerAllClassMembersForReflection(String... classNames) {
-        registerAllClassMembersForReflection(Utils.toClasses(classNames));
-    };
-
-    default void registerAllClassMembersForReflection(Class<?>... classes) {
-        for (Class<?> clazz : classes) {
-            JUnitPlatformFeature.debug("[Native Image Configuration] Registering for reflection: %s", clazz.getName());
-            registerForReflection(clazz);
-            registerForReflection(clazz.getDeclaredConstructors());
-            registerForReflection(clazz.getDeclaredMethods());
-            registerForReflection(clazz.getDeclaredFields());
-        }
+public class Utils {
+    public static Class<?>[] toClasses(String... classNames) {
+        return Arrays.stream(classNames).map(className -> {
+            Class<?> clazz = null;
+            try {
+                clazz = Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                JUnitPlatformFeature.debug("[Native Image Configuration] Failed to resolve: %s Reason: %s", className, e);
+            }
+            return clazz;
+        }).filter(c -> c != null).toArray(Class[]::new);
     }
-
-    default void initializeAtBuildTime(String... classNames) {
-        initializeAtBuildTime(Utils.toClasses(classNames));
-    };
-
-    void initializeAtBuildTime(Class<?>... classes);
 }

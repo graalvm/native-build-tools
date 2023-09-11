@@ -48,7 +48,7 @@ public class PlatformConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        String[] buildTimeInitializedClasses = new String[] {
+        config.initializeAtBuildTime(
                 "org.junit.platform.launcher.TestIdentifier",
                 "org.junit.platform.launcher.core.InternalTestPlan",
                 "org.junit.platform.commons.util.StringUtils",
@@ -61,10 +61,7 @@ public class PlatformConfigProvider implements PluginConfigProvider {
                 "org.junit.platform.commons.util.ReflectionUtils",
                 // https://github.com/graalvm/native-build-tools/issues/300
                 "org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener"
-        };
-        for (String className : buildTimeInitializedClasses) {
-            config.initializeAtBuildTime(className);
-        }
+        );
 
         try {
             /* Verify if the core JUnit Platform test class is available on the classpath */

@@ -68,7 +68,7 @@ public class JupiterConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        String[] buildTimeInitializedClasses = new String[]{
+        config.initializeAtBuildTime(
                 "org.junit.jupiter.engine.config.EnumConfigurationParameterConverter",
                 "org.junit.jupiter.engine.descriptor.ClassTestDescriptor",
                 "org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor",
@@ -84,23 +84,12 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 // new in Junit 5.10
                 "org.junit.platform.launcher.core.LauncherConfig",
                 "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
-        };
-        for (String className : buildTimeInitializedClasses) {
-            config.initializeAtBuildTime(className);
-        }
+        );
 
-        String[] registeredForReflection = {
+        config.registerAllClassMembersForReflection(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
                 "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
-        };
-        for (String className : registeredForReflection) {
-            try {
-                Class <?> executor = Class.forName(className);
-                config.registerAllClassMembersForReflection(executor);
-            } catch (ClassNotFoundException e) {
-                debug("Failed to register class for reflection. Reason: %s", e);
-            }
-        }
+        );
     }
 
     @Override
