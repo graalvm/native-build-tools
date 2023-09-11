@@ -86,6 +86,27 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
         );
 
+        if (getMajorJDKVersion() >= 21) {
+            /* new with simulated class initialization */
+            config.initializeAtBuildTime(
+                    "org.junit.jupiter.api.DisplayNameGenerator$Standard",
+                    "org.junit.jupiter.api.extension.ConditionEvaluationResult",
+                    "org.junit.jupiter.api.TestInstance$Lifecycle",
+                    "org.junit.jupiter.engine.config.CachingJupiterConfiguration",
+                    "org.junit.jupiter.engine.config.DefaultJupiterConfiguration",
+                    "org.junit.jupiter.engine.descriptor.DynamicDescendantFilter",
+                    "org.junit.jupiter.engine.descriptor.JupiterEngineDescriptor",
+                    "org.junit.jupiter.engine.descriptor.NestedClassTestDescriptor",
+                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker",
+                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall",
+                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall$VoidMethodInterceptorCall",
+                    "org.junit.jupiter.engine.execution.InvocationInterceptorChain",
+                    "org.junit.jupiter.engine.JupiterTestEngine",
+                    "org.junit.jupiter.params.provider.EnumSource$Mode$Validator"
+            );
+        }
+
+
         config.registerAllClassMembersForReflection(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
                 "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"

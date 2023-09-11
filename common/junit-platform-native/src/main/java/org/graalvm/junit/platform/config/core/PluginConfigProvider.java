@@ -47,4 +47,8 @@ public interface PluginConfigProvider {
 
     void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
 
+    default int getMajorJDKVersion() {
+        return Runtime.version().feature();
+    }
+
 }
