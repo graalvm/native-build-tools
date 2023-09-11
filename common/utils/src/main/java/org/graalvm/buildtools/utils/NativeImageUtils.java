@@ -116,7 +116,10 @@ public class NativeImageUtils {
         if (m.matches()) {
             return arg;
         }
-        return "'" + arg.replace("'", "'\"'\"'") + "'";
+        return "'" + arg
+                .replace("'", "'\"'\"'")
+                .replace("\\", "\\\\") /* for Windows paths */
+                + "'";
     }
 
 
