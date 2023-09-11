@@ -64,6 +64,8 @@ configurations {
     }
 }
 
+val graalVmHomeProvider = providers.environmentVariable("GRAALVM_HOME")
+
 // Add a task to run the functional tests
 tasks.register<Test>("functionalTest") {
     // Any change to samples invalidates functional tests
@@ -82,4 +84,10 @@ tasks.named("check") {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    if (graalVmHomeProvider.isPresent) {
+        val graalvmHome = graalVmHomeProvider.get()
+        inputs.property("GRAALVM_HOME", graalvmHome)
+        environment("GRAALVM_HOME", graalvmHome)
+        println("Task $name will use GRAALVM_HOME = $graalvmHome")
+    }
 }

@@ -74,6 +74,7 @@ configurations {
 gradlePlugin.testSourceSets(sourceSets.functionalTest)
 configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
 
+def graalVmHomeProvider = providers.environmentVariable("GRAALVM_HOME")
 def graalVm = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(17))
 //    vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
@@ -99,7 +100,14 @@ def fullFunctionalTest = tasks.register("fullFunctionalTest")
             systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
             systemProperty('gradle.test.version', effectiveVersion)
             systemProperty('versions.junit', libs.versions.junitJupiter.get())
-            environment('GRAALVM_HOME', graalVm.get().metadata.installationPath.asFile.absolutePath)
+            environment('GRAALVM_HOME', graalVmHomeProvider.
+                    orElse(providers.provider(() -> graalVm.get().metadata.installationPath.asFile.absolutePath))
+                    .map {
+                        println("Test task $taskName will use GRAALVM_HOME = $it")
+                        it
+                    }
+                    .get()
+            )
             testClassesDirs = sourceSets.functionalTest.output.classesDirs
             classpath = sourceSets.functionalTest.runtimeClasspath
             javaLauncher.set(graalVm)
