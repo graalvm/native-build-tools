@@ -48,6 +48,8 @@ jobs:
   functional-testing-gradle-plugin-dev:
     name: "Functional testing (GraalVM Dev Build)"
     runs-on: ${{ matrix.os }}
+    env:
+      IS_GRAALVM_DEV_BUILD: 'true'
     strategy:
       fail-fast: false
       matrix:
