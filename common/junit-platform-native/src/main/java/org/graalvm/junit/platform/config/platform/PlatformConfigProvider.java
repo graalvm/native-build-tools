@@ -48,7 +48,7 @@ public class PlatformConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        String[] buildTimeInitializedClasses = new String[] {
+        config.initializeAtBuildTime(
                 "org.junit.platform.launcher.TestIdentifier",
                 "org.junit.platform.launcher.core.InternalTestPlan",
                 "org.junit.platform.commons.util.StringUtils",
@@ -61,9 +61,30 @@ public class PlatformConfigProvider implements PluginConfigProvider {
                 "org.junit.platform.commons.util.ReflectionUtils",
                 // https://github.com/graalvm/native-build-tools/issues/300
                 "org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener"
-        };
-        for (String className : buildTimeInitializedClasses) {
-            config.initializeAtBuildTime(className);
+        );
+
+        if (getMajorJDKVersion() >= 21) {
+            /* new with simulated class initialization */
+            config.initializeAtBuildTime(
+                    "org.junit.platform.engine.support.descriptor.ClassSource",
+                    "org.junit.platform.engine.support.descriptor.MethodSource",
+                    "org.junit.platform.engine.support.hierarchical.Node$ExecutionMode",
+                    "org.junit.platform.engine.TestDescriptor$Type",
+                    "org.junit.platform.engine.UniqueId",
+                    "org.junit.platform.engine.UniqueId$Segment",
+                    "org.junit.platform.launcher.core.DefaultLauncher",
+                    "org.junit.platform.launcher.core.DefaultLauncherConfig",
+                    "org.junit.platform.launcher.core.EngineExecutionOrchestrator",
+                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$2",
+                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$3",
+                    "org.junit.platform.launcher.core.LauncherDiscoveryResult",
+                    "org.junit.platform.launcher.core.LauncherListenerRegistry",
+                    "org.junit.platform.launcher.core.ListenerRegistry",
+                    "org.junit.platform.launcher.core.SessionPerRequestLauncher",
+                    "org.junit.platform.launcher.LauncherSessionListener$1",
+                    "org.junit.platform.launcher.listeners.UniqueIdTrackingListener",
+                    "org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1"
+            );
         }
 
         try {

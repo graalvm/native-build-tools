@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
 
@@ -217,6 +218,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     }
 
+    @IgnoreIf({ System.getenv("IS_GRAALVM_DEV_BUILD") })
     def "can build a native image with PGO instrumentation"() {
         def pgoDir = file("src/pgo-profiles/main").toPath()
         def nativeApp = file("build/native/nativeCompile/java-application-instrumented")

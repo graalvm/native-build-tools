@@ -68,7 +68,7 @@ public class JupiterConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        String[] buildTimeInitializedClasses = new String[]{
+        config.initializeAtBuildTime(
                 "org.junit.jupiter.engine.config.EnumConfigurationParameterConverter",
                 "org.junit.jupiter.engine.descriptor.ClassTestDescriptor",
                 "org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor",
@@ -84,23 +84,33 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 // new in Junit 5.10
                 "org.junit.platform.launcher.core.LauncherConfig",
                 "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
-        };
-        for (String className : buildTimeInitializedClasses) {
-            config.initializeAtBuildTime(className);
+        );
+
+        if (getMajorJDKVersion() >= 21) {
+            /* new with simulated class initialization */
+            config.initializeAtBuildTime(
+                    "org.junit.jupiter.api.DisplayNameGenerator$Standard",
+                    "org.junit.jupiter.api.extension.ConditionEvaluationResult",
+                    "org.junit.jupiter.api.TestInstance$Lifecycle",
+                    "org.junit.jupiter.engine.config.CachingJupiterConfiguration",
+                    "org.junit.jupiter.engine.config.DefaultJupiterConfiguration",
+                    "org.junit.jupiter.engine.descriptor.DynamicDescendantFilter",
+                    "org.junit.jupiter.engine.descriptor.JupiterEngineDescriptor",
+                    "org.junit.jupiter.engine.descriptor.NestedClassTestDescriptor",
+                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker",
+                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall",
+                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall$VoidMethodInterceptorCall",
+                    "org.junit.jupiter.engine.execution.InvocationInterceptorChain",
+                    "org.junit.jupiter.engine.JupiterTestEngine",
+                    "org.junit.jupiter.params.provider.EnumSource$Mode$Validator"
+            );
         }
 
-        String[] registeredForReflection = {
+
+        config.registerAllClassMembersForReflection(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
                 "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
-        };
-        for (String className : registeredForReflection) {
-            try {
-                Class <?> executor = Class.forName(className);
-                config.registerAllClassMembersForReflection(executor);
-            } catch (ClassNotFoundException e) {
-                debug("Failed to register class for reflection. Reason: %s", e);
-            }
-        }
+        );
     }
 
     @Override

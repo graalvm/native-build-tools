@@ -19,6 +19,11 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.9.27
+
+* Update JUnit configuration for native testing on GraalVM for JDK 21 with `--strict-image-heap` mode.
+* Fix path escaping problem for Windows users
+
 === Release 0.9.26
 
 * Relax GraalVM version check for dev versions
