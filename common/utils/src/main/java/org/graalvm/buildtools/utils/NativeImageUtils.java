@@ -105,21 +105,14 @@ public class NativeImageUtils {
     }
 
 
-    /**
-     * See https://github.com/oracle/graal/blob/f011d4d056a7ed78fe9669cc38062e6d09c14bed/substratevm/src/com.oracle.svm.driver/src/com/oracle/svm/driver/NativeImage.java#L1447C47-L1447C60.
-     */
     public static String escapeArg(String arg) {
-        if (arg.isEmpty()) {
-            return "''";
+        if (!(arg.startsWith("\\Q") && arg.endsWith("\\E"))) {
+            arg = arg.replace("\\", "\\\\");
+            if (arg.contains(" ")) {
+                arg = "\"" + arg + "\"";
+            }
         }
-        Matcher m = SAFE_SHELL_ARG.matcher(arg);
-        if (m.matches()) {
-            return arg;
-        }
-        return "'" + arg
-                .replace("'", "'\"'\"'")
-                .replace("\\", "\\\\") /* for Windows paths */
-                + "'";
+        return arg;
     }
 
 
