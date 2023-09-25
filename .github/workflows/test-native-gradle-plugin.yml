@@ -99,6 +99,7 @@ jobs:
         with:
           name: functional-tests-results-graalvm-dev
           path: native-gradle-plugin/build/reports/tests/functionalTest/
+
   functional-testing-gradle-plugin:
     name: "🧪 Gradle: ${{ matrix.test }} on ${{ matrix.os }} with gradle version: ${{ matrix.gradle-version }}"
     runs-on: ${{ matrix.os }}
@@ -125,6 +126,7 @@ jobs:
         with:
           name: functional-tests-results-${{ matrix.gradle-version }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
+          
   functional-testing-gradle-plugin-windows:
     name: "Windows Gradle plugin functional testing"
     runs-on: ${{ matrix.os }}
