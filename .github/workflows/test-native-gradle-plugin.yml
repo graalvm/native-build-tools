@@ -46,10 +46,11 @@ jobs:
     name: "Sanity checks"
     runs-on: "ubuntu-20.04"
     timeout-minutes: 60
-    needs: populate-matrix
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.populate-matrix.outputs.matrix)}}
+      matrix:
+        java-version: [ 17 ]
+        os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
