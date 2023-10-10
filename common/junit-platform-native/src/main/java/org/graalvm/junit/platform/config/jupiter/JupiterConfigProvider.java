@@ -69,6 +69,7 @@ public class JupiterConfigProvider implements PluginConfigProvider {
     @Override
     public void onLoad(NativeImageConfiguration config) {
         config.initializeAtBuildTime(
+                "org.junit.jupiter.api.condition.OS",
                 "org.junit.jupiter.engine.config.EnumConfigurationParameterConverter",
                 "org.junit.jupiter.engine.descriptor.ClassTestDescriptor",
                 "org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor",
