@@ -228,3 +228,34 @@ tasks.named("jar", Jar) {
 	from(collectReachabilityMetadata)
 }
 // end::include-metadata[]
+
+// tag::configure-binaries[]
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("my-app")
+            mainClass.set("org.jackup.Runner")
+            buildArgs.add("-O4")
+        }
+        named("test") {
+            buildArgs.add("-O0")
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
+    }
+}
+// end::configure-binaries[]
+
+// tag::configure-test-binary[]
+graalvmNative {
+    binaries {
+        named("main") {
+            mainClass.set("org.test.Main")
+        }
+        named("test") {
+            buildArgs.addAll("--verbose", "-O0")
+        }
+    }
+}
+// end::configure-test-binary[]

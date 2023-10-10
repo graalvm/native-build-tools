@@ -120,6 +120,17 @@ The main executable is configured by the image named `main`, while the test exec
 === Native image options
 
 The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
+The plugin allows configuring the final binary, the <<test-binary-config,tests>> one, as well as apply options to both.
+
+[source,groovy,role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=configure-binaries]
+----
+
+[source,kotlin,role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=configure-binaries]
+----
 
 [[configuration-toolchains]]
 === Using Gradle toolchains
@@ -244,6 +255,22 @@ Currently, this feature requires the execution of the tests in the classic "JVM"
 [source,bash]
 ----
 ./gradlew nativeTest
+----
+
+[[test-binary-config]]
+=== Configuring test image options
+
+You can fine-tune the test binary using the `test` binary configuration.
+The following example prints additional data for troubleshooting and sets the minimal optimizations.
+
+[source,groovy,role="multi-language-sample"]
+----
+include::../snippets/gradle/groovy/build.gradle[tags=configure-test-binary]
+----
+
+[source,kotlin,role="multi-language-sample"]
+----
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=configure-test-binary]
 ----
 
 [[testing-support-disabling]]
