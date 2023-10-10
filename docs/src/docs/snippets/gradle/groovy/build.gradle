@@ -214,3 +214,31 @@ tasks.named("jar") {
     from collectReachabilityMetadata
 }
 // end::include-metadata[]
+
+// tag::configure-binaries[]
+graalvmNative {
+    binaries {
+        main {
+            imageName = "my-app"
+            mainClass = "org.jackup.Runner"
+            buildArgs.add("-O4")
+        }
+        test {
+            buildArgs.add("-O0")
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
+    }
+}
+// end::configure-binaries[]
+
+// tag::configure-test-binary[]
+graalvmNative {
+    binaries {
+        test {
+            buildArgs.addAll('--verbose', '-O0')
+        }
+    }
+}
+// end::configure-test-binary[]
