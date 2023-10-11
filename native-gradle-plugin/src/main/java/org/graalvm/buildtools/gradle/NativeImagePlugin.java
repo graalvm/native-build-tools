@@ -95,7 +95,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -259,7 +259,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Register Native Image tasks
         TaskContainer tasks = project.getTasks();
-        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
         configureAutomaticTaskCreation(project, graalExtension, tasks, javaConvention.getSourceSets());
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
@@ -624,8 +624,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Testing part begins here. -------------------------------------------
 
-        // In future Gradle releases this becomes a proper DirectoryProperty
-        File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
+        DirectoryProperty testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
         DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
 
         // Add DSL extension for testing
@@ -633,7 +632,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testTask.configure(test -> {
-            File testList = new File(testResultsDir, test.getName() + "/testlist");
+            var testList = testResultsDir.dir(test.getName() + "/testlist");
             testListDirectory.set(testList);
             test.getOutputs().dir(testList);
             // Set system property read by the UniqueIdTrackingListener.
