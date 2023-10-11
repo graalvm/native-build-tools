@@ -624,8 +624,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Testing part begins here. -------------------------------------------
 
-        // In future Gradle releases this becomes a proper DirectoryProperty
-        File testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
+        DirectoryProperty testResultsDir = GradleUtils.getJavaPluginConvention(project).getTestResultsDir();
         DirectoryProperty testListDirectory = project.getObjects().directoryProperty();
 
         // Add DSL extension for testing
@@ -633,7 +632,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testTask.configure(test -> {
-            File testList = new File(testResultsDir, test.getName() + "/testlist");
+            var testList = testResultsDir.dir(test.getName() + "/testlist");
             testListDirectory.set(testList);
             test.getOutputs().dir(testList);
             // Set system property read by the UniqueIdTrackingListener.
