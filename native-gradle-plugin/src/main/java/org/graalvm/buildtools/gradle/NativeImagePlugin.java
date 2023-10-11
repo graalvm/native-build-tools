@@ -95,7 +95,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -259,7 +259,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Register Native Image tasks
         TaskContainer tasks = project.getTasks();
-        JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
+        JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
         configureAutomaticTaskCreation(project, graalExtension, tasks, javaConvention.getSourceSets());
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
