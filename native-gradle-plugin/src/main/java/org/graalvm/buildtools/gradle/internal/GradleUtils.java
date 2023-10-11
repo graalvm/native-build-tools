@@ -47,7 +47,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.util.GradleVersion;
@@ -64,8 +64,8 @@ public class GradleUtils {
         return sourceSetContainer.findByName(sourceSetName);
     }
 
-    public static JavaPluginConvention getJavaPluginConvention(Project project) {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
+    public static JavaPluginExtension getJavaPluginConvention(Project project) {
+        return project.getExtensions().getByType(JavaPluginExtension.class);
     }
 
 
