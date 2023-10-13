@@ -53,7 +53,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <native.maven.plugin.version>0.9.28-SNAPSHOT</native.maven.plugin.version>
         <junit.platform.native.version>0.9.28-SNAPSHOT</junit.platform.native.version>
-        <h2.version>2.1.210</h2.version>
+        <h2.version>2.2.220</h2.version>
         <netty.version>4.1.80.Final</netty.version>
         <logback.version>1.4.4</logback.version>
         <log4j.version>2.19.0</log4j.version>
