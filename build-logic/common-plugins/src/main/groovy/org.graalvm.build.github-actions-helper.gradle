@@ -2,13 +2,16 @@ import groovy.json.JsonOutput
 
 def matrixDefault = [
         "java-version": [ "17" ],
-        "os": [ "ubuntu-20.04" ]
+        "os": [ "ubuntu-20.04", "windows-latest" ]
 ]
 
+// # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",
 def gradleVersions = [
         "gradle-version": ["current", "7.4"],
+]
+
+def gradleCachedVersions = [
         "gradle-config-cache-version": ["current", "8.0.1"]
-        // # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",
 ]
 
 sourceSets.configureEach { sourceSet ->
@@ -23,8 +26,12 @@ sourceSets.configureEach { sourceSet ->
                 matrix.putAll(matrixDefault)
 
                 // add gradle specific stuff
-                if (project.getDisplayName().contains(":native-gradle-plugin")) {
+                if (matrixType == "gradle") {
                     matrix.putAll(gradleVersions)
+                }
+
+                if (matrixType == "gradleCached") {
+                    matrix.putAll(gradleCachedVersions)
                 }
 
                 // add functional tests

@@ -40,7 +40,7 @@ jobs:
       - name: "🕸️ Populate matrix"
         id: set-matrix
         run: |
-          ./gradlew :native-gradle-plugin:dumpFunctionalTestList
+          ./gradlew -PmatrixType=gradle :native-gradle-plugin:dumpFunctionalTestList
 
   test-native-gradle-plugin:
     name: "Sanity checks"
@@ -119,23 +119,41 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }} --tests ${{ matrix.test }}
-      - name: "❓ Check and test the plugin with configuration cache"
-        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}  --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: functional-tests-results-${{ matrix.gradle-version }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
-          
-  functional-testing-gradle-plugin-windows:
-    name: "Windows Gradle plugin functional testing"
+
+  populate-cache-matrix:
+    name: "Set cache matrix"
+    runs-on: "ubuntu-20.04"
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v3
+      - name: "🔧 Prepare environment"
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "🕸️ Populate matrix"
+        id: set-matrix
+        run: |
+          ./gradlew -PmatrixType=gradleCached :native-gradle-plugin:dumpFunctionalTestList
+
+  functional-testing-gradle-with-cache-version:
+    name: "🧪 Gradle: ${{ matrix.test }} on ${{ matrix.os }} with cache gradle version: ${{ matrix.gradle-config-cache-version }}"
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    needs: populate-cache-matrix
     strategy:
       fail-fast: false
-      matrix:
-        java-version: [ 17 ]
-        os: [ windows-latest ]
+      matrix: ${{fromJson(needs.populate-cache-matrix.outputs.matrix)}}
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
@@ -144,11 +162,11 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "❓ Check and test the Gradle plugin"
-        run: ./gradlew :native-gradle-plugin:functionalTest --no-daemon --fail-fast
-      - name: "📜 Upload tests results"
+      - name: "❓ Check and test the plugin with configuration cache"
+        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}  --tests ${{ matrix.test }}
+      - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
-          name: windows-gradle-functional-tests-results
-          path: native-gradle-plugin/build/reports/tests/
+          name: functional-tests-results-${{ matrix.gradle-config-cache-version }}
+          path: native-gradle-plugin/build/reports/tests/functionalTest/

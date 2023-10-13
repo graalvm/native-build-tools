@@ -40,7 +40,7 @@ jobs:
       - name: "🕸️ Populate matrix"
         id: set-matrix
         run: |
-          ./gradlew :native-maven-plugin:dumpFunctionalTestList
+          ./gradlew -PmatrixType=maven :native-maven-plugin:dumpFunctionalTestList
 
   test-native-maven-plugin:
     name: "🧪 Maven: ${{ matrix.test }} on ${{ matrix.os }}"
@@ -65,28 +65,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: maven-functional-tests-results-${{ matrix.os }}
-          path: native-maven-plugin/build/reports/tests/
-  test-native-maven-plugin-windows:
-    name: "Windows Minimal Tests for Maven plugin"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [ 17 ]
-        os: [ windows-latest ]
-    steps:
-      - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
-      - name: "🔧 Prepare environment"
-        uses: ./.github/actions/prepare-environment
-        with:
-          java-version: ${{ matrix.java-version }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "❓ Check and test the Maven plugin"
-        run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast
-      - name: "📜 Upload tests results"
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: windows-maven-functional-tests-results
           path: native-maven-plugin/build/reports/tests/
