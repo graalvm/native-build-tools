@@ -109,8 +109,6 @@ jobs:
           path: native-gradle-plugin/build/reports/tests/functionalTest/
   functional-testing-gradle-plugin-windows:
     name: "Windows Gradle plugin functional testing"
-    if: ${{ false }}
-    # Disabled due to https://github.com/gradle/native-platform/issues/274
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
