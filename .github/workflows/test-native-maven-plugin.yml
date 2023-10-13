@@ -47,8 +47,6 @@ jobs:
           path: native-maven-plugin/build/reports/tests/
   test-native-maven-plugin-windows:
     name: "Windows Minimal Tests for Maven plugin"
-    if: ${{ false }}
-    # Fails with "Illegal char <�> at index 3: C:\�Users\�RUNNER~1\�AppData\�Local\�Temp\�spock_supports_spaces_in__0_testDirectory18198684407774777428\�with spaces\�local-repo\�org\�apache\�commons\�commons-lang3\�3.8.1\�commons-lang3-3.8.1.jar"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
