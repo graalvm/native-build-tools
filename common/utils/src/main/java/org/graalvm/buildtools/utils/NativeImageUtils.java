@@ -61,6 +61,10 @@ public class NativeImageUtils {
 
     private static final Pattern graalvmVersionPattern = Pattern.compile("^(GraalVM|native-image) ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
 
+    private static final Pattern javaVersionPattern = Pattern.compile("^native-image ([0-9]+).*", Pattern.DOTALL);
+    private static final Pattern javaVersionLegacyPattern = Pattern.compile(".* \\(Java Version ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
+
+
     private static final Pattern SAFE_SHELL_ARG = Pattern.compile("[A-Za-z0-9@%_\\-+=:,./]+");
 
     public static void maybeCreateConfigureUtilSymlink(File configureUtilFile, Path nativeImageExecutablePath) {
@@ -170,9 +174,14 @@ public class NativeImageUtils {
     }
 
     public static int getMajorJDKVersion(String versionString) {
-        Matcher matcher = graalvmVersionPattern.matcher(versionString.trim());
+        String trimmedVersionString = versionString.trim();
+        Matcher matcher = javaVersionPattern.matcher(versionString.trim());
         if (matcher.matches()) {
-            return Integer.parseInt(matcher.group(2));
+            return Integer.parseInt(matcher.group(1));
+        }
+        Matcher legacyMatcher = javaVersionLegacyPattern.matcher(trimmedVersionString);
+        if (legacyMatcher.matches()) {
+            return Integer.parseInt(legacyMatcher.group(1));
         }
         return -1;
     }
