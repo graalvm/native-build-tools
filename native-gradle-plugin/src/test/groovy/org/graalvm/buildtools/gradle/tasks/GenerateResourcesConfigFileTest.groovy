@@ -51,13 +51,13 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ ],
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -72,7 +72,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ ],
     "excludes" : [ ]
@@ -82,7 +82,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
   }, {
     "name" : "other.bundle"
   } ]
-}'''
+}''')
         }
     }
 
@@ -98,7 +98,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "pattern"
@@ -112,7 +112,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     } ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -127,13 +127,13 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ ],
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -149,7 +149,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qorg/foo/some/resource.txt\\\\E"
@@ -157,7 +157,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -174,7 +174,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qorg/foo/some/resource.txt\\\\E"
@@ -182,7 +182,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -198,7 +198,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qorg/foo/some/resource.txt\\\\E"
@@ -206,7 +206,7 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -224,13 +224,13 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ ],
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 
@@ -246,13 +246,13 @@ class GenerateResourcesConfigFileTest extends AbstractPluginTest {
         then:
         with(project) {
             outputFile.exists()
-            outputFile.text == '''{
+            matches(outputFile.text, '''{
   "resources" : {
     "includes" : [ ],
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
         }
     }
 

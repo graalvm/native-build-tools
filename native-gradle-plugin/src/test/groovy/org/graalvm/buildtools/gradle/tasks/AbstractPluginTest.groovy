@@ -199,4 +199,11 @@ abstract class AbstractPluginTest extends Specification {
         }
     }
 
+    static boolean matches(String actual, String expected) {
+        normalizeString(actual) == normalizeString(expected)
+    }
+
+    private static String normalizeString(String input) {
+        input.replace("\r\n", "\n")
+    }
 }
