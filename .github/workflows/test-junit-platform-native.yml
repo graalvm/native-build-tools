@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - 'common/junit-platform-native/**'
-      - '.github/actions/prepare-environment'
+      - '.github/actions/**'
       - '.github/workflows/test-junit-platform-native.yml'
   pull_request:
     paths:
       - 'common/junit-platform-native/**'
-      - '.github/actions/prepare-environment'
+      - '.github/actions/**'
       - '.github/workflows/test-junit-platform-native.yml'
   workflow_dispatch:
 
