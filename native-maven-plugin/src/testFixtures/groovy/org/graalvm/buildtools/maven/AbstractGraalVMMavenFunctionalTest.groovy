@@ -231,7 +231,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     private static String normalizeString(String input) {
-        input.replace("\r\n", "\n")
+        input.replace("\r\n", "\n").replace("\\\\", "/")
     }
 
     String getArgFileContents() {
