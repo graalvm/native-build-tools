@@ -46,7 +46,7 @@ import spock.lang.Unroll
 class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can build an application which uses resources using #pattern with JUnit Platform #junitVersion")
     def "can build an application which uses resources"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")
@@ -196,7 +196,7 @@ graalvmNative {
     }
 
     def "scans resources of jar file even if it includes a native-image/resources-config.json file"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")

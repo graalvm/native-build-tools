@@ -46,16 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 class JavaLibraryFunctionalTest extends AbstractFunctionalTest {
 
     def "can build a native image for a simple library"() {
-        def libExt = ""
-        if (IS_LINUX) {
-            libExt = ".so"
-        } else if (IS_WINDOWS) {
-            libExt = ".dll"
-        } else if (IS_MAC) {
-            libExt = ".dylib"
-        }
-
-        def library = file("build/native/nativeCompile/java-library" + libExt)
+        def sharedLibrary = getSharedLibraryFile("build/native/nativeCompile/java-library")
         debug  = true
 
         given:
@@ -73,6 +64,6 @@ class JavaLibraryFunctionalTest extends AbstractFunctionalTest {
         outputContains "--shared"
 
         and:
-        library.exists()
+        sharedLibrary.exists()
     }
 }
