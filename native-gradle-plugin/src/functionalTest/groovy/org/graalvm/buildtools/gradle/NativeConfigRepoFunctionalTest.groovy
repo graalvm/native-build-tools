@@ -78,7 +78,7 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal" + File.separator + "library-with-reflection" + File.separator + "1"
 
         where:
         format   | label

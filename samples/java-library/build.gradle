@@ -57,6 +57,7 @@ dependencies {
 }
 
 graalvmNative {
+    useArgFile = false // required to check for flags in tests
     binaries {
         main {
             verbose = true
