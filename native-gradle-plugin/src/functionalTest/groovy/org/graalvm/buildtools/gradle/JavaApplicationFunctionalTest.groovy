@@ -51,7 +51,7 @@ import java.nio.file.Files
 
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
 
         given:
@@ -85,7 +85,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/129")
     def "can build a native image with dependencies only needed by native image"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
 
         given:
         withSample("java-application-with-extra-sourceset")
@@ -119,7 +119,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     })
     @Ignore("Need to find another way to test this since toolchains will now always be evaluated early")
     def "can override toolchain selection"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
 
         given:
         withSample("java-application")
@@ -178,7 +178,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         nativeApp.exists()
 
         when:
@@ -191,7 +191,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/275")
     def "can pass environment variables to the builder process"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
 
         given:
         withSample("java-application")
@@ -221,7 +221,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     @IgnoreIf({ System.getenv("IS_GRAALVM_DEV_BUILD") })
     def "can build a native image with PGO instrumentation"() {
         def pgoDir = file("src/pgo-profiles/main").toPath()
-        def nativeApp = file("build/native/nativeCompile/java-application-instrumented")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application-instrumented")
         def pgoFile = file("build/native/nativeCompile/default.iprof")
 
         given:

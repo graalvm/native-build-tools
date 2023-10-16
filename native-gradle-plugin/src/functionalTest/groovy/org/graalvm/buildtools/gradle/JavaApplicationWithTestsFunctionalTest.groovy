@@ -49,7 +49,7 @@ import spock.lang.Unroll
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute tests in a native image with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {
-        def nativeTestsApp = file("build/native/nativeTestCompile/java-application-tests")
+        def nativeTestsApp = getExecutableFile("build/native/nativeTestCompile/java-application-tests")
 
         given:
         withSample("java-application-with-tests")

@@ -91,6 +91,23 @@ abstract class AbstractFunctionalTest extends Specification {
         path(pathElements).toFile()
     }
 
+    File getExecutableFile(String path) {
+        file(IS_WINDOWS ? path + ".exe" : path)
+    }
+
+    File getSharedLibraryFile(String path) {
+        def libExt = ""
+        if (IS_LINUX) {
+            libExt = ".so"
+        } else if (IS_WINDOWS) {
+            libExt = ".dll"
+        } else if (IS_MAC) {
+            libExt = ".dylib"
+        }
+        assert !libExt.isEmpty(): "Unable to determine shared library extension: unexpected operating system"
+        file("build/native/nativeCompile/java-library" + libExt)
+    }
+
     File getGroovyBuildFile() {
         file("build.gradle")
     }
