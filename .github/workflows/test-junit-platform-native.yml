@@ -42,7 +42,7 @@ jobs:
         run: ./gradlew :junit-platform-native:nativeTest
       - name: "📜 Upload tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: tests-results
           path: common/junit-platform-native/build/reports/tests/
