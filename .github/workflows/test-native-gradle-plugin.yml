@@ -39,8 +39,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "🕸️ Populate matrix"
         id: set-matrix
-        run: |
-          ./gradlew -PmatrixType=gradle :native-gradle-plugin:dumpFunctionalTestList
+        run: ./gradlew -PmatrixType=gradle :native-gradle-plugin:dumpFunctionalTestList
 
   test-native-gradle-plugin:
     name: "Sanity checks"
