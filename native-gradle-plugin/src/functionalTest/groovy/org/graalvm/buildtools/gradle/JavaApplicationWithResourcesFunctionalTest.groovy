@@ -77,7 +77,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         process.output.contains "Hello, native!"
 
         and:
-        file("build/native/generated/generateResourcesConfigFile/resource-config.json").text == '''{
+        matches(file("build/native/generated/generateResourcesConfigFile/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -85,7 +85,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         junitVersion = System.getProperty('versions.junit')
@@ -151,7 +151,7 @@ graalvmNative {
         }
 
         and:
-        file("build/native/generated/generateTestResourcesConfigFile/resource-config.json").text == '''{
+        matches(file("build/native/generated/generateTestResourcesConfigFile/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -161,7 +161,7 @@ graalvmNative {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         junitVersion = System.getProperty('versions.junit')
@@ -242,7 +242,7 @@ graalvmNative {
         nativeApp.exists()
 
         and:
-        file("build/native/generated/generateResourcesConfigFile/resource-config.json").text == '''{
+        matches(file("build/native/generated/generateResourcesConfigFile/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -250,7 +250,7 @@ graalvmNative {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         when:
         def process = execute(nativeApp)

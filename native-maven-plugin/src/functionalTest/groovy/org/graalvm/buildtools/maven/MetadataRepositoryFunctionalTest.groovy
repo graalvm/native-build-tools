@@ -186,12 +186,12 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         buildSucceeded
 
         and:
-        file("target/classes/META-INF/native-image/org.graalvm.internal/library-with-reflection/1.5/reflect-config.json").text.trim() == '''[
+        matches(file("target/classes/META-INF/native-image/org.graalvm.internal/library-with-reflection/1.5/reflect-config.json").text.trim(), '''[
   {
     "name": "org.graalvm.internal.reflect.Message",
     "allDeclaredFields": true,
     "allDeclaredMethods": true
   }
-]'''
+]''')
     }
 }

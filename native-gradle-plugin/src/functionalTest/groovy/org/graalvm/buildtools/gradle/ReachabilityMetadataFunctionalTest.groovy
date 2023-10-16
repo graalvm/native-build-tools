@@ -59,7 +59,7 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
         }
 
         and: "has copied metadata file"
-        file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.1.210/resource-config.json").text.trim() == '''{
+        matches(file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.1.210/resource-config.json").text.trim(), '''{
   "bundles": [],
   "resources": {
     "includes": [
@@ -71,7 +71,7 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
       }
     ]
   }
-}'''
+}''')
         and: "has copied reachability-metadata.properties file"
         file("build/native-reachability-metadata/META-INF/native-image/io.netty/netty-codec-http/4.1.80.Final/reachability-metadata.properties").text.trim() == 'override=true'
     }
