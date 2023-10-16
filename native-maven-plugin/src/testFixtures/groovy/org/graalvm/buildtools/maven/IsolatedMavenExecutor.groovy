@@ -80,7 +80,11 @@ class IsolatedMavenExecutor {
                 .command(cliArgs)
 
         def environment = builder.environment()
-        environment.put("GRAALVM_HOME", javaExecutable.parentFile.parentFile.absolutePath)
+        String graalvmHome = System.getenv("GRAALVM_HOME")
+        if (graalvmHome == null) {
+            graalvmHome = javaExecutable.parentFile.parentFile.absolutePath
+        }
+        environment.put("GRAALVM_HOME", graalvmHome)
         environment.put("M2_HOME", m2Home.absolutePath)
         Process p = builder
                 .redirectErrorStream(true)
