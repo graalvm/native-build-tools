@@ -41,7 +41,7 @@ jobs:
         run: ./gradlew :native-maven-plugin:check --no-daemon
       - name: "📜 Upload unit test results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: maven-functional-tests-results-${{ matrix.os }}
           path: native-maven-plugin/build/reports/tests/
@@ -64,7 +64,7 @@ jobs:
         run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast
       - name: "📜 Upload tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: windows-maven-functional-tests-results
           path: native-maven-plugin/build/reports/tests/

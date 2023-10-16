@@ -41,7 +41,7 @@ jobs:
       - name: "❓ Unit tests and inspections"
         run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
       - name: "📜 Upload unit test results"
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: unit-tests-results
           path: native-gradle-plugin/build/reports/tests/test/
@@ -74,7 +74,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:functionalTest
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: functional-tests-results-graalvm-dev
           path: native-gradle-plugin/build/reports/tests/functionalTest/
@@ -103,7 +103,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }}
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: functional-tests-results-${{ matrix.gradle-version }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
@@ -126,7 +126,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:functionalTest --no-daemon --fail-fast
       - name: "📜 Upload tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: windows-gradle-functional-tests-results
           path: native-gradle-plugin/build/reports/tests/
