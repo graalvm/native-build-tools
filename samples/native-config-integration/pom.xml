@@ -94,6 +94,7 @@
                             <imageName>${imageName}</imageName>
                             <fallback>false</fallback>
                             <quickBuild>true</quickBuild>
+                            <useArgFile>false</useArgFile>
                         </configuration>
                     </plugin>
                 </plugins>
