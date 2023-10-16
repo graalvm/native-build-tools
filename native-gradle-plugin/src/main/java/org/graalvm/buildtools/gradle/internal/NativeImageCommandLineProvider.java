@@ -72,6 +72,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
     private final Provider<Integer> majorJDKVersion;
+    private final Provider<Boolean> useColors;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
@@ -79,7 +80,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                                           Provider<String> outputDirectory,
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile,
-                                          Provider<Integer> majorJDKVersion) {
+                                          Provider<Integer> majorJDKVersion,
+                                          Provider<Boolean> useColors) {
         this.options = options;
         this.executableName = executableName;
         this.workingDirectory = workingDirectory;
@@ -87,6 +89,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
         this.majorJDKVersion = majorJDKVersion;
+        this.useColors = useColors;
     }
 
     @Nested
@@ -122,7 +125,9 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
         appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
         appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
-        appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? "--color" : "-H:+BuildOutputColorful");
+        if (useColors.get()) {
+            appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? "--color" : "-H:+BuildOutputColorful");
+        }
         appendBooleanOption(cliArgs, options.getPgoInstrument(), "--pgo-instrument");
 
         String targetOutputPath = getExecutableName().get();

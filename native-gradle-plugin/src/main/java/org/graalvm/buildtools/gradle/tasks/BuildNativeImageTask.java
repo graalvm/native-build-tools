@@ -190,7 +190,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
                 getClasspathJar(),
                 getUseArgFile(),
-                getProviders().provider(() -> majorJDKVersion)).asArguments();
+                getProviders().provider(() -> majorJDKVersion),
+                getProviders().provider(() -> "plain".equals(getProject().getGradle().getStartParameter().getConsoleOutput()))).asArguments();
     }
 
     // This property provides access to the service instance
