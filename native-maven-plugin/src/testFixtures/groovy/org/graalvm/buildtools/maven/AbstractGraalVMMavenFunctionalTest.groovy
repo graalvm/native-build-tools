@@ -222,6 +222,10 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         !normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
+    static boolean matches(String actual, String expected) {
+        normalizeString(actual) == normalizeString(expected)
+    }
+
     File file(String path) {
         testDirectory.resolve(path).toFile()
     }

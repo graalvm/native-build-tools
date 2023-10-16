@@ -169,6 +169,10 @@ abstract class AbstractFunctionalTest extends Specification {
         assert errorOutput.contains(normalizeString(text))
     }
 
+    static boolean matches(String actual, String expected) {
+        normalizeString(actual) == normalizeString(expected)
+    }
+
     void tasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
         def graph = new TaskExecutionGraph()
         spec.delegate = graph

@@ -32,7 +32,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         outputContains "Hello, native!"
 
         and:
-        file("target/native/generated/generateResourceConfig/resource-config.json").text == '''{
+        matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -40,7 +40,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         detection | includedPatterns               | restrictToModules | detectionExclusionPatterns
@@ -75,7 +75,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         buildSucceeded
 
         and:
-        file("target/native/generated/generateTestResourceConfig/resource-config.json").text == '''{
+        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -85,7 +85,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns
