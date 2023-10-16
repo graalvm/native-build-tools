@@ -227,8 +227,13 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         given:
         withSample("java-application")
         buildFile << """
-            graalvmNative.binaries.all {
-                verbose = true
+            graalvmNative {
+                useArgFile = false // required to check for --pgo flag
+                binaries {
+                    all {
+                        verbose = true
+                    }
+                }
             }
         """
 

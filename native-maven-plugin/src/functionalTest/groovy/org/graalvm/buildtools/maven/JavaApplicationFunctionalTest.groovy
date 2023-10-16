@@ -43,6 +43,8 @@ package org.graalvm.buildtools.maven
 
 import spock.lang.Issue
 
+import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
+
 class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     def "proper options are added to the native-image invocation"() {
         withSample("java-application")
@@ -55,7 +57,9 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
         then:
         buildSucceeded
-        outputContains "native-image -cp / -g --no-fallback --verbose --shared -Ob"
+        outputContains NATIVE_IMAGE_EXE
+        outputContains "-cp " // actual path is OS-specific (/ vs C:\)
+        outputContains "-g --no-fallback --verbose --shared -Ob"
     }
 
     def "can build and execute a native image with the Maven plugin"() {
@@ -116,7 +120,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
         then:
         buildSucceeded
-        outputContains "Args file written to: target/native-image"
+        outputContains "Args file written to: target" + File.separator + "native-image"
     }
 
 }

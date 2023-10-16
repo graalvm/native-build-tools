@@ -89,6 +89,7 @@
                             <imageName>${imageName}</imageName>
                             <fallback>false</fallback>
                             <sharedLibrary>true</sharedLibrary>
+                            <useArgFile>false</useArgFile>
                         </configuration>
                     </plugin>
                 </plugins>

@@ -41,7 +41,10 @@
 
 package org.graalvm.buildtools.maven
 
+import spock.lang.IgnoreIf
+
 class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    @IgnoreIf({ os.windows })
     void "the application runs when using the official metadata repository"() {
         given:
         withSample("metadata-repo-integration")
@@ -60,6 +63,7 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         outputDoesNotContain "Falling back to the default repository."
     }
 
+    @IgnoreIf({ os.windows })
     void "the application runs when using the versioned official metadata repository"() {
         given:
         withSample("metadata-repo-integration")

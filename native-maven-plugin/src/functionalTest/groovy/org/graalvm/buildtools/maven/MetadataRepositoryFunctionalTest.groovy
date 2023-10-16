@@ -41,6 +41,8 @@
 
 package org.graalvm.buildtools.maven
 
+import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
+
 class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
     void "if metadata is disabled, reflection fails"() {
@@ -70,7 +72,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal" + File.separator + "library-with-reflection" + File.separator + "1"
     }
 
     void "if excludeConfig is set it is added to the command line invocation"() {
@@ -82,7 +84,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         then:
         buildSucceeded
-        outputContains "native-image --exclude-config dummy/path/to/file.jar \"*\""
+        outputContains NATIVE_IMAGE_EXE + " --exclude-config dummy/path/to/file.jar \"*\""
    }
 
     void "if the path doesn't exist it throws an error"() {
@@ -138,7 +140,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal" + File.separator + "library-with-reflection" + File.separator + "1"
     }
 
     void "it can download a remote repository"() {
@@ -158,7 +160,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 
         and: "but it finds one thanks to the latest configuration field"
-        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal/library-with-reflection/1"
+        outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal" + File.separator + "library-with-reflection" + File.separator + "1"
     }
 
     void "when pointing to a missing URL, reflection fails"() {
