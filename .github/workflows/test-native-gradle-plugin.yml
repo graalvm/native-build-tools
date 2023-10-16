@@ -44,7 +44,7 @@ jobs:
   test-native-gradle-plugin:
     name: "Sanity checks"
     runs-on: "ubuntu-20.04"
-    timeout-minutes: 60
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -103,7 +103,7 @@ jobs:
   functional-testing-gradle-plugin:
     name: "🧪 Gradle: ${{ matrix.test }} on ${{ matrix.os }} with gradle version: ${{ matrix.gradle-version }}"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 40
     needs: populate-matrix
     strategy:
       fail-fast: false
@@ -148,7 +148,7 @@ jobs:
   functional-testing-gradle-with-cache-version:
     name: "🧪 Gradle: ${{ matrix.test }} on ${{ matrix.os }} with cache gradle version: ${{ matrix.gradle-config-cache-version }}"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 40
     needs: populate-cache-matrix
     strategy:
       fail-fast: false
