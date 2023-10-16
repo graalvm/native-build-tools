@@ -40,7 +40,7 @@ jobs:
         run: ./gradlew :graalvm-reachability-metadata:test
       - name: "📜 Upload tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: tests-results
           path: common/graalvm-reachability-metadata/build/reports/tests/
