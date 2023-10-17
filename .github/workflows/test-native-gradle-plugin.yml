@@ -58,7 +58,8 @@ jobs:
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
-      - uses: ./.github/actions/prepare-environment
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +93,8 @@ jobs:
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
-      - uses: ./.github/actions/prepare-environment
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -117,7 +119,8 @@ jobs:
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
-      - uses: ./.github/actions/prepare-environment
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
