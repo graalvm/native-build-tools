@@ -31,10 +31,9 @@ runs:
     - name: "🔧 Install GraalVM (JDK${{ inputs.java-version }})"
       uses: graalvm/setup-graalvm@main
       with:
-        components: 'native-image'
-        github-token: ${{ inputs.github-token }}
         java-version: ${{ inputs.java-version }}
         distribution: 'graalvm'
+        github-token: ${{ inputs.github-token }}
     - name: "🔒 Configure push access"
       if: ${{ inputs.push-access == '1' }}
       shell: "bash"
