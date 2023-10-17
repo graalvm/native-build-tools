@@ -65,10 +65,9 @@ jobs:
       - name: "🔧 Install GraalVM (dev)"
         uses: graalvm/setup-graalvm@main
         with:
-          components: 'native-image'
-          github-token: ${{ inputs.github-token }}
           java-version: 'dev'
           distribution: 'graalvm'
+          github-token: ${{ inputs.github-token }}
           set-java-home: 'false'
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-gradle-plugin:functionalTest
