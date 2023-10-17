@@ -22,7 +22,7 @@ jobs:
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁  Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
       - name: "🔧 Prepare environment"

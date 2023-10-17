@@ -32,7 +32,7 @@ jobs:
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -57,7 +57,7 @@ jobs:
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
@@ -92,7 +92,7 @@ jobs:
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
@@ -117,7 +117,7 @@ jobs:
         os: [ windows-latest ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
