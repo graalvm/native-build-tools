@@ -165,7 +165,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }} --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: functional-tests-results-${{ matrix.gradle-config-cache-version }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
