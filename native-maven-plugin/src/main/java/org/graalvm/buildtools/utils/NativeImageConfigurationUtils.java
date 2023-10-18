@@ -84,14 +84,15 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
                     throw new MojoExecutionException("Determining GraalVM installation failed with message: " + e.getMessage());
                 }
             } else if (failFast) {
-                throw new MojoExecutionException("'" + GU_EXE + "' tool was not found. This probably means that JDK at is not a GraalVM distribution.");
+                throw new MojoExecutionException("'" + GU_EXE + "' tool was not found in your " + javaHomeVariable + "." +
+                        "This probably means that the JDK at '" + graalHomePath + "' is not a GraalVM distribution.");
             }
         }
 
         if (!Files.exists(nativeImageExe)) {
             if (failFast) {
                 throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
-                        "This probably means that JDK at is not a GraalVM distribution.");
+                        "This probably means that the JDK at '" + graalHomePath + "' is not a GraalVM distribution.");
             } else {
                 return null;
             }
