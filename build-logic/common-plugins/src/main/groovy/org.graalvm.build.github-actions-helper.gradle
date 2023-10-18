@@ -2,7 +2,7 @@ import groovy.json.JsonOutput
 
 def matrixDefault = [
         "java-version": [ "17" ],
-        "os": [ "ubuntu-20.04" ]
+        "os": [ "ubuntu-20.04", "windows-latest" ]
 ]
 
 // # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",
