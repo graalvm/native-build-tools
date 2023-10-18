@@ -59,7 +59,7 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
         }
 
         and: "has copied metadata file"
-        matches(file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.1.210/resource-config.json").text.trim(), '''{
+        matches(file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.2.220/resource-config.json").text.trim(), '''{
   "bundles": [],
   "resources": {
     "includes": [
