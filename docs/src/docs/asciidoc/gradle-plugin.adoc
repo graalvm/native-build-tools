@@ -97,7 +97,7 @@ This means you must make sure that you run Gradle with a GraalVM JDK.
 Alternatively, you may choose to:
 
 1. Set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation, in which case the JDK pointed at this location will be used for Native Image builds instead
-2. <<configuration-toolchains-enabling, Enable toolchain support to automatically>>
+2. <<configuration-toolchains-enabling, Enable toolchain support>>
 
 [[configuration]]
 == Configuration
