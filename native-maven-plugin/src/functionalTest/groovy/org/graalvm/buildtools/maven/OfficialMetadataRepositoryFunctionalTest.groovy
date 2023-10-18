@@ -59,7 +59,7 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         outputContains "Customers in the database"
 
         and: "finds metadata in the remote repository"
-        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.2.220]: Configuration directory is com.h2database/h2/2.2.220"
         outputDoesNotContain "Falling back to the default repository."
     }
 
@@ -78,6 +78,6 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         outputContains "Customers in the database"
 
         and: "finds metadata in the remote repository"
-        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.2.220]: Configuration directory is com.h2database/h2/2.2.220"
     }
 }
