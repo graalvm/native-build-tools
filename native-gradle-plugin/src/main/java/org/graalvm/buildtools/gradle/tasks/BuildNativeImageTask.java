@@ -88,6 +88,7 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
+    private final boolean useColors;
 
     @Internal
     public abstract Property<NativeImageOptions> getOptions();
@@ -176,6 +177,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         ProviderFactory providers = getProject().getProviders();
         this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
         this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);
+        this.useColors = "plain".equals(getProject().getGradle().getStartParameter().getConsoleOutput());
         getDisableToolchainDetection().convention(false);
     }
 
@@ -191,7 +193,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 getClasspathJar(),
                 getUseArgFile(),
                 getProviders().provider(() -> majorJDKVersion),
-                getProviders().provider(() -> "plain".equals(getProject().getGradle().getStartParameter().getConsoleOutput()))).asArguments();
+                getProviders().provider(() -> useColors)).asArguments();
     }
 
     // This property provides access to the service instance
