@@ -117,7 +117,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
-        run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion=${{ matrix.gradle-version }} --tests ${{ matrix.test }}
+        run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion="${{ matrix.gradle-version }}" --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
         uses: actions/upload-artifact@v3
@@ -162,7 +162,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin with configuration cache"
-        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion=${{ matrix.gradle-config-cache-version }} --tests ${{ matrix.test }}
+        run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion="${{ matrix.gradle-config-cache-version }}" --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
         uses: actions/upload-artifact@v3
