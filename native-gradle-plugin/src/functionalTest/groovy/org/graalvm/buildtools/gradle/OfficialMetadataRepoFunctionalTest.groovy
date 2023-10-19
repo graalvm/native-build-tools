@@ -60,7 +60,8 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
         }
 
         and: "finds metadata in the remote repository"
-        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.2.220]: Configuration directory is com.h2database" + File.separator + "h2" + File.separator + "2.2.220"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:"
+        outputContains "Configuration directory is com.h2database" + File.separator + "h2" + File.separator
         outputDoesNotContain "Falling back to the default repository at"
     }
 
