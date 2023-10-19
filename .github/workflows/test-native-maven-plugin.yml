@@ -45,7 +45,7 @@ jobs:
   test-native-maven-plugin:
     name: "🧪 Maven: ${{ matrix.test }} on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     needs: populate-matrix
     strategy:
       fail-fast: false
