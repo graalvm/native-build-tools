@@ -39,15 +39,6 @@
  * SOFTWARE.
  */
 
-// tag::plugin-management[]
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-// end::plugin-management[]
-
 if (false) {
 // tag::pre-release[]
     pluginManagement {

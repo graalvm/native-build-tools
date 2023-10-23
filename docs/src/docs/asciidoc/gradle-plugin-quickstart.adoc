@@ -187,36 +187,6 @@ plugins {
 The `{gradle-plugin-version}` block pulls the latest plugin version.
 Replace it with a specific version if you prefer.
 The plugin discovers which JAR files it needs to pass to the `native-image` builder and what the executable main class should be.
-. The plugin is not yet available on the Gradle Plugin Portal, so declare an additional plugin repository.
-Open the _settings.gradle_ file and replace the default content with this:
-+
-[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
-----
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-
-rootProject.name = 'fortune-parent'
-include('fortune')
-----
-+
-[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
-----
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-
-rootProject.name = "fortune-parent"
-include("fortune")
-----
-+
-Note that the `pluginManagement {}` block must appear before any other statements in the file.
 
 [[build-a-native-executable-with-resources-autodetection]]
 == Build a Native Executable with Resources Autodetection

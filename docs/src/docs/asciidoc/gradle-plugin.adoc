@@ -58,24 +58,8 @@ plugins {
 
 NOTE: This plugin supplements and heavily relies on regular Java plugins (e.g. `application`, `java-library`, `java` etc). Not having them included in your project will most probably cause errors.
 
-The plugin isn't available on the https://plugins.gradle.org[Gradle Plugin Portal] yet, so you will need to declare a plugin repository in addition:
-
-Add the following to your `settings.gradle` / `settings.gradle.kts`:
-
-.Declaring the plugin repository
-[source,groovy,role="multi-language-sample"]
-----
-include::../snippets/gradle/groovy/settings.gradle[tags=plugin-management]
-----
-
-[source,kotlin,role="multi-language-sample"]
-----
-include::../snippets/gradle/kotlin/settings.gradle.kts[tags=plugin-management]
-----
-
-
 [TIP]
-.Testing pre-releases (BROKEN AT THE MOMENT!)
+.Testing pre-releases
 ====
 You can use development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
 [source, groovy, role="multi-language-sample"]
