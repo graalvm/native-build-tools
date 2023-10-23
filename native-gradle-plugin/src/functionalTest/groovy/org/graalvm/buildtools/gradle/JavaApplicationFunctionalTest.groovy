@@ -225,7 +225,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         def pgoFile = file("build/native/nativeCompile/default.iprof")
 
         given:
-        withSample("java-application")
+        withSample("java-application", false)
         buildFile << """
             graalvmNative {
                 useArgFile = false // required to check for --pgo flag

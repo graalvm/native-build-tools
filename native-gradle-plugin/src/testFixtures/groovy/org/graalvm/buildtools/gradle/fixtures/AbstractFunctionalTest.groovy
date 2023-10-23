@@ -137,9 +137,19 @@ abstract class AbstractFunctionalTest extends Specification {
         Files.createDirectory(testDirectory)
     }
 
-    protected void withSample(String name) {
+    protected void withSample(String name, boolean quickBuildMode = true) {
         File sampleDir = new File("../samples/$name")
         FileUtils.copyDirectory(sampleDir.toPath(), testDirectory)
+
+        if (quickBuildMode) {
+            buildFile << """
+            graalvmNative {
+                binaries.all {
+                    buildArgs.add("-Ob")
+                }
+            }
+            """.stripIndent()
+        }
     }
 
     void run(String... args) {
