@@ -25,7 +25,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         }
 
         when:
-        mvn(['-Pnative', '-DskipTests', *options, 'package', 'exec:exec@native'])
+        mvn(['-Pnative', '-DquickBuild', '-DskipTests', *options, 'package', 'exec:exec@native'])
 
         then:
         buildSucceeded
@@ -69,7 +69,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         }
 
         when:
-        mvn(['-Pnative', 'test', *options])
+        mvn(['-Pnative', '-DquickBuild', 'test', *options])
 
         then:
         buildSucceeded

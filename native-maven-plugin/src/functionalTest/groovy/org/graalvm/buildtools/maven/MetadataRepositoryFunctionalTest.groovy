@@ -50,7 +50,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -62,7 +62,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataLocal', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataLocal', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -92,7 +92,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataMissing', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataMissing', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -105,7 +105,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataExclude', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataExclude', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -117,7 +117,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataForceVersion', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataForceVersion',  '-DquickBuild','-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -130,7 +130,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-Pnative,metadataArchive', '-DrepoFormat=zip', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataArchive', '-DquickBuild', '-DrepoFormat=zip', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -149,7 +149,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withLocalServer()
 
         when:
-        mvn '-Pnative,metadataUrl', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.zip", '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataUrl', '-DquickBuild', "-Dmetadata.url=http://localhost:${localServerPort}/target/repo.zip", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -169,7 +169,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withLocalServer()
 
         when:
-        mvn '-Pnative,metadataUrl', "-Dmetadata.url=https://google.com/notfound", '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative,metadataUrl', '-DquickBuild', "-Dmetadata.url=https://google.com/notfound", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -182,7 +182,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         withSample("native-config-integration")
 
         when:
-        mvn '-X', '-PaddMetadataHints', '-DskipTests', 'package'
+        mvn '-X', '-PaddMetadataHints', '-DquickBuild', '-DskipTests', 'package'
 
         then:
         buildSucceeded

@@ -48,7 +48,7 @@ class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctio
     @Unroll("transitive dependencies are included when testing with JUnit Platform #junitVersion")
     def "transitive dependencies are included when testing"() {
         given:
-        withSample("multi-project-with-tests")
+        withSample("multi-project-with-tests", false)
 
         when:
         run 'nativeTest'
