@@ -50,7 +50,7 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         withSample("metadata-repo-integration")
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -70,7 +70,7 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         withSample("metadata-repo-integration")
 
         when:
-        mvn '-PnativeVersioned', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-PnativeVersioned', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded

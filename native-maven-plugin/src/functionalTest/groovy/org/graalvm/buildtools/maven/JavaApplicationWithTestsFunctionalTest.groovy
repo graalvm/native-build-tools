@@ -49,7 +49,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', 'test'
+        mvn '-Pnative', '-DquickBuild', 'test'
 
         then:
         buildSucceeded
@@ -74,7 +74,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pshaded', 'integration-test'
+        mvn '-Pshaded', '-DquickBuild', 'integration-test'
 
         then:
         buildSucceeded
@@ -100,7 +100,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', 'test', '-DskipTests'
+        mvn '-Pnative', '-DquickBuild', 'test', '-DskipTests'
 
         then:
         buildSucceeded
@@ -114,7 +114,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', 'test', '-DskipNativeTests'
+        mvn '-Pnative', '-DquickBuild', 'test', '-DskipNativeTests'
 
         then:
         buildSucceeded
@@ -129,7 +129,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', '-Ptest-variables', 'test'
+        mvn '-Pnative', '-DquickBuild', '-Ptest-variables', 'test'
 
         then:
         buildSucceeded
@@ -146,7 +146,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("multi-project-with-tests")
 
         when:
-        mvn 'package'
+        mvn '-DquickBuild', 'package'
 
         then:
         buildSucceeded

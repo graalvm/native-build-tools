@@ -66,7 +66,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application")
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -77,7 +77,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application")
 
         when:
-        mvn '-Pshaded', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pshaded', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -90,7 +90,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application")
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native', "-DuseArgFile=${argFile}"
+        mvn '-Pnative', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native', "-DuseArgFile=${argFile}"
 
         then:
         buildSucceeded
@@ -104,7 +104,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application-with-custom-packaging")
 
         when:
-        mvnDebug 'package', '-Dpackaging=native-image', 'exec:exec@native'
+        mvnDebug '-DquickBuild', 'package', '-Dpackaging=native-image', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -116,7 +116,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application")
 
         when:
-        mvn '-Pnative', 'native:write-args-file'
+        mvn '-DquickBuild', '-Pnative', 'native:write-args-file'
 
         then:
         buildSucceeded
