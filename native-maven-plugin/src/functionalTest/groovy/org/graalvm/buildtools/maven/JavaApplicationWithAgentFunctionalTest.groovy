@@ -54,7 +54,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
         // used to launch Surefire with the agent.
-        mvnDebug '-Pnative', 'test', '-Dagent=true', '-DskipNativeTests'
+        mvnDebug '-Pnative', '-DquickBuild', 'test', '-Dagent=true', '-DskipNativeTests'
 
         then:
         // Agent is used with Surefire
@@ -81,10 +81,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "test agent with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn'-Pnative', '-DskipNativeBuild=true', 'package', '-Dagent=true', 'exec:exec@java-agent'
+        mvn'-Pnative', '-DquickBuild', '-DskipNativeBuild=true', 'package', '-Dagent=true', 'exec:exec@java-agent'
 
         when:
-        mvn'-Pnative', '-DskipNativeTests', '-Dagent=true', 'native:metadata-copy'
+        mvn'-Pnative', '-DquickBuild', '-DskipNativeTests', '-Dagent=true', 'native:metadata-copy'
 
         then:
         buildSucceeded
@@ -98,10 +98,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "test agent with metadata copy task and disabled stages"() {
         given:
         withSample("java-application-with-reflection")
-        mvn'-PagentConfigurationWithDisabledStages', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn'-PagentConfigurationWithDisabledStages', '-DquickBuild', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
-        mvn '-PagentConfigurationWithDisabledStages', '-DskipNativeTests', 'native:metadata-copy'
+        mvn '-PagentConfigurationWithDisabledStages', '-DquickBuild', '-DskipNativeTests', 'native:metadata-copy'
 
         then:
         buildSucceeded
@@ -116,10 +116,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "test agent in direct mode with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn'-PagentConfigurationDirectMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn'-PagentConfigurationDirectMode', '-DquickBuild', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
-        mvn '-PagentConfigurationDirectMode', '-DskipNativeTests', 'native:metadata-copy'
+        mvn '-PagentConfigurationDirectMode', '-DquickBuild', '-DskipNativeTests', 'native:metadata-copy'
 
         then:
         buildSucceeded
@@ -132,10 +132,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "test agent in conditional mode with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
-        mvn '-PagentConfigurationConditionalMode', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
+        mvn '-PagentConfigurationConditionalMode', '-DquickBuild', '-DskipNativeBuild=true', 'package', 'exec:exec@java-agent'
 
         when:
-        mvn '-PagentConfigurationConditionalMode', '-DskipNativeTests', 'native:metadata-copy'
+        mvn '-PagentConfigurationConditionalMode', '-DquickBuild', '-DskipNativeTests', 'native:metadata-copy'
 
         then:
         buildSucceeded
@@ -149,7 +149,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn'-PnoAgentConfiguration', 'package'
+        mvn'-PnoAgentConfiguration', '-DquickBuild', 'package'
 
         then:
         buildSucceeded
@@ -160,7 +160,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-reflection")
 
         when:
-        mvn '-Pnative', '-Dagent=false', 'test'
+        mvn '-Pnative', '-DquickBuild', '-Dagent=false', 'test'
 
         then:
         outputContains """
