@@ -4,7 +4,7 @@ The GraalVM team
 
 This guide shows how to get started with the <<maven-plugin.adoc#,Maven plugin for GraalVM Native Image>> and build a native executable for a Java application.
 
-You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.
+You will create a sample application, enable the plugin, add support for dynamic features, build a native executable, and run JUnit tests.
 
 ====
 The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
@@ -22,7 +22,7 @@ https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
 The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
 ====
 
-. Create a new Java project with *Maven* in your favorite IDE, called _Fortune_ and make sure to choose
+. Create a new Java project with *Maven* in your favorite IDE, called _Fortune_, in the package named _demo_. Make sure to choose
 https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter[JUnit Jupiter] as the test engine. The _pom.xml_ file
 should look similar to the following.
 +
@@ -49,7 +49,7 @@ should look similar to the following.
 </project>
 ----
 
-. Create a package, named _demo_, and add the _Fortune.java_ (_src/main/java/demo/Fortune.java_) class.
+. Create the _Fortune.java_ (_src/main/java/demo/Fortune.java_) class.
 +
 [source,java]
 ----
@@ -147,35 +147,35 @@ under the _resources_ directory (_src/main/resources/fortunes.json_). Your proje
         └── resources
             └── fortunes.json
 ----
-. Add explicit https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind[FasterXML Jackson]
+. Add the https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind[FasterXML Jackson]
 dependency that provide functionality to read and write JSON, data bindings (used in the demo application). Open the
 _pom.xml_ file (a Maven configuration file), and insert the following in the `<dependencies>` section:
 +
 [source,xml]
 ----
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.16.0</version>
-        </dependency>
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.16.0</version>
+</dependency>
 ----
 There should be two dependencies, the FasterXML Jackson dependency and the JUnit 5 dependency as shown below.
 +
 [source,xml]
 ----
-    <dependencies>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.16.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+<dependencies>
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.16.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.10.1</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
 ----
 . Add regular Maven plugins for building and assembling a Maven project into an executable JAR.
 Insert the following into the `build` section in the _pom.xml_ file:
@@ -268,8 +268,7 @@ Insert the following into the `build` section in the _pom.xml_ file:
 The statements "hardcoded" plugin versions and the entry point class to your application.
 The next steps demonstrate what you should do to enable the
 https://graalvm.github.io/native-build-tools/latest/maven-plugin.html[Maven plugin for GraalVM Native Image].
-. Register the Maven plugin for GraalVM Native Image, `native-maven-plugin`, in the profile called `native` by adding
-the following to the _pom.xml_ file:
+. Register the Maven plugin for GraalVM Native Image, `native-maven-plugin`, within a Maven profile, `native`, by adding the following to the _pom.xml_ file:
 +
 [source,xml]
 ----
@@ -308,73 +307,70 @@ the following to the _pom.xml_ file:
     </profiles>
 ----
 +
-It pulls the latest plugin version. Replace `${native.maven.plugin.version}` with a specific version if you prefer.
-The plugin discovers which JAR files it needs to pass to the `native-image` builder and what the executable main class
-should be. With this plugin you can already build a native executable directly with Maven by running
-`mvn -Pnative package` (if your application does not call any methods reflectively at run time).
-+
-This demo application is a little more complicated than `HelloWorld`, and requires metadata before building a native
-executable. You do not have to configure anything manually as the plugin can generate the required metadata for you by
-injecting the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support[tracing agent] at
-package time. The agent is disabled by default, and can be enabled in project's _pom.xml_ file or via the command line.
+It pulls the latest plugin version. 
+Replace `${native.maven.plugin.version}` with a specific version if you prefer.
+The plugin discovers which JAR files it needs to pass to the `native-image` builder and what the executable main class should be.
+With this plugin you can already build a native executable directly with Maven by running `mvn -Pnative package` (if your application does not call any methods reflectively at run time).
 
-- To enable the agent via the _pom.xml_ file, specify `<enabled>true</enabled>` in the `native-maven-plugin` plugin
-configuration:
+== Build a Native Executable by Detecting Resources with the Agent
+
+This demo application and requires metadata before building a native executable. 
+You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support[tracing agent] at package time.
+The agent is disabled by default, and can be enabled in project's _pom.xml_ file or via the command line.
+
+. To enable the agent via the _pom.xml_ file, specify `<enabled>true</enabled>` in the `native-maven-plugin` plugin configuration:
 +
 [source,xml]
 ----
-                        <configuration>
-                            <fallback>false</fallback>
-                            <agent>
-                                <enabled>true</enabled>
-                            </agent>
-                        </configuration>
+<configuration>
+    <fallback>false</fallback>
+    <agent>
+        <enabled>true</enabled>
+    </agent>
+</configuration>
 ----
-- To enable the agent via the command line, pass the `-Dagent=true` option when running Maven.
-+
-So your next step is to run with the agent.
-. Before running with the agent, register a separate Mojo execution in the `native` profile which allows forking the
-Java process. It is required to run your application with the agent.
+To enable the agent via the command line, pass the `-Dagent=true` option when running Maven. 
+
+. Before running with the agent, register a separate Mojo execution in the `native` profile which allows forking the Java process.
+It is required to run your application with the agent.
 +
 [source,xml]
 ----
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>exec-maven-plugin</artifactId>
-                        <version>3.1.1</version>
-                        <executions>
-                            <execution>
-                                <id>java-agent</id>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>java</executable>
-                                    <workingDirectory>${project.build.directory}</workingDirectory>
-                                    <arguments>
-                                        <argument>-classpath</argument>
-                                        <classpath/>
-                                        <argument>${mainClass}</argument>
-                                    </arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>native</id>
-                                <goals>
-                                    <goal>exec</goal>
-                                </goals>
-                                <configuration>
-                                    <executable>${project.build.directory}/${imageName}</executable>
-                                    <workingDirectory>${project.build.directory}</workingDirectory>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>3.1.1</version>
+    <executions>
+        <execution>
+            <id>java-agent</id>
+            <goals>
+                <goal>exec</goal>
+            </goals>
+            <configuration>
+                <executable>java</executable>
+                <workingDirectory>${project.build.directory}</workingDirectory>
+                <arguments>
+                    <argument>-classpath</argument>
+                    <classpath/>
+                    <argument>${mainClass}</argument>
+                </arguments>
+            </configuration>
+        </execution>
+        <execution>
+            <id>native</id>
+            <goals>
+                <goal>exec</goal>
+            </goals>
+            <configuration>
+                <executable>${project.build.directory}/${imageName}</executable>
+                <workingDirectory>${project.build.directory}</workingDirectory>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
 ----
 +
-Now you are all set to to build a native executable from a Java application the plugin.
-
-== Build a Native Executable
+Now you are all set to to build a native executable. 
 
 . Compile the project on the JVM to create a runnable JAR with all dependencies.
 Open a terminal window and, from the root application directory, run:
@@ -399,21 +395,20 @@ Those files will be automatically used by the `native-image` tool if you pass th
 mvn -DskipTests=true -Pnative -Dagent package
 ----
 +
-When the command completes a native executable, _fortune_, is created in the _target_ directory of the project and
-ready for use.
+When the command completes, a native executable, _fortune_, is created in the _target_ directory of the project and ready for use.
 +
 The executable's name is derived from the artifact ID, but you can specify any custom name in `native-maven-plugin`
 by providing the `<imageName>fortuneteller</imageName>` within a `<configuration>` node:
 +
 [source,xml]
 ----
-                        <configuration>
-                            <fallback>false</fallback>
-                            <imageName>fortuneteller</imageName>
-                            <agent>
-                                <enabled>true</enabled>
-                            </agent>
-                        </configuration>
+<configuration>
+    <imageName>fortuneteller</imageName>
+    <fallback>false</fallback>
+    <agent>
+        <enabled>true</enabled>
+    </agent>
+</configuration>
 ----
 . Run the demo directly or with the Maven profile:
 +
@@ -422,13 +417,7 @@ by providing the `<imageName>fortuneteller</imageName>` within a `<configuration
 ./target/fortune
 ----
 +
-[source,shell]
-----
-mvn -Pnative exec:exec@native
-----
-
-To see the benefits of running your application as a native executable, `time` how long it takes and compare the results
-with running on the JVM.
+The application starts and prints a random quote.
 
 == Add JUnit Testing
 
@@ -439,32 +428,34 @@ This means that tests will be compiled and executed as native code.
 This plugin requires JUnit Platform 1.10 or higher and Maven Surefire 2.22.0 or higher to run tests on a native
 executable.
 
-. Enable extensions in the plugin's configuration,
-`<extensions>true</extensions>`:
+. Enable extensions in the plugin's configuration, `<extensions>true</extensions>`:
 +
 [source,xml]
 ----
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <version>${native.maven.plugin.version}</version>
-                        <extensions>true</extensions>
+<plugin>
+    <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>native-maven-plugin</artifactId>
+    <version>${native.maven.plugin.version}</version>
+    <extensions>true</extensions>
+    ...
+</plugin>    
 ----
-. Add an explicit dependency on the `junit-platform-launcher` artifact to the dependencies section of your native
-profile configuration as in the following example:
+. Add an explicit dependency on the `junit-platform-launcher` artifact in the dependencies section of your native profile configuration as in the following example:
 +
 [source,xml]
 ----
-        <profile>
-            <id>native</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-launcher</artifactId>
-                    <version>1.10.0</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
+<profile>
+    <id>native</id>
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.10.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    ...
+</profile>    
 ----
 . Create the following test in the _src/test/java/demo/FortuneTest.java_ file:
 +
@@ -488,20 +479,16 @@ class FortuneTest {
 }
 ----
 +
-. Run native tests:
+. Run JUnit tests:
 +
 [source,shell]
 ----
 mvn -Pnative -Dagent test
 ----
 +
-Run `-Pnative` profile will then build and run native tests. Include the `-Dagent` is this is not enabled in the
-_pom.xml_ file.
+The `-Pnative` profile will then build and run JUnit tests.
 
 === Summary
 
 The Maven plugin for GraalVM Native Image adds support for building and testing native executables using https://maven.apache.org/[Apache Maven™].
 The plugin has many features, described in the <<maven-plugin.adoc#,plugin reference documentation>>.
-
-Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless.
-Your workflow, in that case, is just `mvn clean -Pnative package`.
