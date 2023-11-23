@@ -49,7 +49,7 @@ should look similar to the following.
 </project>
 ----
 
-. Create a package, named `demo` and add the `Fortune.java` (`src/main/java/demo/Fortune.java`) class.
+. Create a package, named `demo`, and add the `Fortune.java` (`src/main/java/demo/Fortune.java`) class.
 +
 [source,java]
 ----
@@ -182,88 +182,87 @@ Insert the following into the `build` section in the `pom.xml` file:
 +
 [source,xml]
 ----
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>3.1.1</version>
-            <executions>
-                <execution>
-                    <id>java</id>
-                    <goals>
-                        <goal>java</goal>
-                    </goals>
-                    <configuration>
-                        <mainClass>${mainClass}</mainClass>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>java</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>${mainClass}</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.11.0</version>
-            <configuration>
-                <source>${maven.compiler.source}</source>
-                <target>${maven.compiler.source}</target>
-            </configuration>
-        </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.source}</target>
+                </configuration>
+            </plugin>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>3.3.0</version>
-            <configuration>
-                <archive>
-                    <manifest>
-                        <addClasspath>true</addClasspath>
-                        <mainClass>${mainClass}</mainClass>
-                    </manifest>
-                </archive>
-            </configuration>
-        </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>${mainClass}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
 
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>3.6.0</version>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>single</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <archive>
-                    <manifest>
-                        <addClasspath>true</addClasspath>
-                        <mainClass>${mainClass}</mainClass>
-                    </manifest>
-                </archive>
-                <descriptorRefs>
-                    <descriptorRef>jar-with-dependencies</descriptorRef>
-                </descriptorRefs>
-            </configuration>
-        </plugin>
-
-    </plugins>
-</build>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>${mainClass}</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 ----
 . Replace the default `<properties>` section in the `pom.xml` file with this content:
 +
 [source,xml,subs="verbatim,attributes"]
 ----
-<properties>
-    <native.maven.plugin.version>{maven-plugin-version}</native.maven.plugin.version>
-    <maven.compiler.source>${java.specification.version}</maven.compiler.source>
-    <maven.compiler.target>${java.specification.version}</maven.compiler.target>
-    <imageName>fortune</imageName>
-    <mainClass>demo.Fortune</mainClass>
-</properties>
+    <properties>
+        <native.maven.plugin.version>{maven-plugin-version}</native.maven.plugin.version>
+        <maven.compiler.source>${java.specification.version}</maven.compiler.source>
+        <maven.compiler.target>${java.specification.version}</maven.compiler.target>
+        <imageName>fortune</imageName>
+        <mainClass>demo.Fortune</mainClass>
+    </properties>
 ----
 +
 The statements "hardcoded" plugin versions and the entry point class to your application.
@@ -283,7 +282,6 @@ the following to the `pom.xml` file:
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native.maven.plugin.version}</version>
-                        <extensions>true</extensions>
                         <executions>
                             <execution>
                                 <id>build-native</id>
@@ -470,7 +468,6 @@ profile configuration as in the following example:
 ----
 . Create the following test in the `src/test/java/demo/FortuneTest.java` file:
 +
-.src/test/java/demo/FortuneTest.java
 [source,java]
 ----
 package demo;
@@ -479,14 +476,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class FortuneTest {
     @Test
     @DisplayName("Returns a fortune")
     void testItWorks() throws JsonProcessingException {
         Fortune fortune = new Fortune();
-        assertTrue(fortune.randomFortune().length()>0);
+        assertFalse(fortune.randomFortune().isEmpty());
     }
 }
 ----
@@ -495,10 +492,11 @@ class FortuneTest {
 +
 [source,shell]
 ----
-mvn -Pnative test
+mvn -Pnative -Dagent test
 ----
 +
-Run `-Pnative` profile will then build and run native tests.
+Run `-Pnative` profile will then build and run native tests. Include the `-Dagent` is this is not enabled in the
+`pom.xml` file.
 
 === Summary
 
