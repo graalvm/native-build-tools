@@ -49,7 +49,7 @@ should look similar to the following.
 </project>
 ----
 
-Create a package, named `demo` and add the `Fortune.java` (`src/main/java/demo/Fortune.java`) class.
+. Create a package, named `demo` and add the `Fortune.java` (`src/main/java/demo/Fortune.java`) class.
 +
 [source,java]
 ----
