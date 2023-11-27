@@ -455,13 +455,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel1">
 <li><a href="#_prepare_a_demo_application">Prepare a Demo Application</a></li>
 <li><a href="#build-a-native-executable-with-resources-autodetection">Build a Native Executable with Resources Autodetection</a></li>
-<li><a href="#build-a-native-executable-detecting-resources-with-the-agent">Build a Native Executable by Detecting Resources with the Agent</a>
-<ul class="sectlevel2">
-<li><a href="#_plugin_customization">Plugin Customization</a></li>
-</ul>
-</li>
-<li><a href="#_add_junit_testing">Add JUnit Testing</a></li>
-<li><a href="#_run_tests_with_the_agent">Run Tests with the Agent</a>
+<li><a href="#build-a-native-executable-detecting-resources-with-the-agent">Build a Native Executable by Detecting Resources with the Agent</a></li>
+<li><a href="#_add_junit_testing">Add JUnit Testing</a>
 <ul class="sectlevel2">
 <li><a href="#_summary">Summary</a></li>
 </ul>
@@ -476,7 +471,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>This guide shows how to get started with the <a href="gradle-plugin.html">Gradle plugin for GraalVM Native Image</a> and build a native executable for a Java application.</p>
 </div>
 <div class="paragraph">
-<p>You will create a sample application, enable the plugin, add support for dynamic features, run JUnit tests, and build a native executable.</p>
+<p>You will create a sample application, enable the plugin, add support for dynamic features, build a native executable, and run JUnit tests.</p>
 </div>
 <div class="paragraph">
 <p>Two ways of building a native executable using the plugin will be demonstrated:</p>
@@ -611,7 +606,7 @@ public class Fortune {
 </div>
 </li>
 <li>
-<p>Delete the <em>fortune/src/test/java</em> directory, you will add tests in a later stage.</p>
+<p>Delete the <em>fortune/src/test/java</em> directory (you will add tests in a later stage).</p>
 </li>
 <li>
 <p>Copy and paste the following file,
@@ -674,9 +669,6 @@ implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.2'</code></p
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">plugins {
-  // ...
-
-  // Apply GraalVM Native Image plugin
   id 'org.graalvm.buildtools.native' version '0.9.29-SNAPSHOT'
 }</code></pre>
 </div>
@@ -684,9 +676,6 @@ implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.2'</code></p
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">plugins {
-  // ...
-
-  // Apply GraalVM Native Image plugin
   id("org.graalvm.buildtools.native") version "0.9.29-SNAPSHOT"
 }</code></pre>
 </div>
@@ -719,7 +708,6 @@ Add this to your <em>build.gradle</em> file:</p>
     binaries.all {
         resources.autodetect()
     }
-    toolchainDetection = false
 }</code></pre>
 </div>
 </div>
@@ -729,51 +717,10 @@ Add this to your <em>build.gradle</em> file:</p>
     binaries.all {
         resources.autodetect()
     }
-    toolchainDetection.set(false)
 }</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Another thing to note here: the plugin may not be able to properly detect the GraalVM installation, because of limitations in Gradle.
-If you want to use Oracle GraalVM, or a particular version of GraalVM and Java, you need to explicitly tell this in plugin&#8217;s configuration.
-For example:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries {
-        main {
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(11)
-                vendor = JvmVendorSpec.matching("Oracle GraalVM")
-            }
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries {
-        main {
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(11)
-                vendor = JvmVendorSpec.matching("Oracle GraalVM")
-            }
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The workaround to this is to disable toolchain detection with this command <code>toolchainDetection = false</code>.</p>
 </div>
 </li>
-</ol>
-</div>
-<div class="olist arabic">
-<ol class="arabic" start="2">
 <li>
 <p>Compile the project and build a native executable at one step:</p>
 <div class="listingblock">
@@ -792,11 +739,11 @@ For example:</p>
 <pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./fortune/build/native/nativeCompile/fortune</code></pre>
 </div>
 </div>
-</li>
-</ol>
-</div>
 <div class="paragraph">
 <p>The application starts and prints a random quote.</p>
+</div>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <p>Configuring the <code>graalvmNative</code> plugin to automatically detect resources (<code>resources.autodetect()</code>) to be included in a binary is one way to make this example work.
@@ -874,43 +821,6 @@ To enable the agent, just pass the <code>-Pagent</code> option to any Gradle tas
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>To see the benefits of running your application as a native executable, <code>time</code> how long it takes and compare the results with running as a Java application.</p>
-</div>
-<div class="sect2">
-<h3 id="_plugin_customization"><a class="anchor" href="#_plugin_customization"></a>Plugin Customization</h3>
-<div class="paragraph">
-<p>You can customize the plugin. For example, change the name of the native executable and pass additional parameters to the plugin in the <em>build.gradle</em> file, as follows:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries {
-        main {
-            imageName.set('fortuneteller')
-            buildArgs.add('--verbose')
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries {
-        main {
-            imageName.set("fortuneteller")
-            buildArgs.add("--verbose")
-        }
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The native executable then will be called <code>fortuneteller</code>.
-Notice how you can pass additional arguments to the <code>native-image</code> tool using the <code>buildArgs.add</code> syntax.</p>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -976,39 +886,6 @@ To disable testing support (which comes by default), add the following configura
 }</code></pre>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_run_tests_with_the_agent"><a class="anchor" href="#_run_tests_with_the_agent"></a>Run Tests with the Agent</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you need to test collecting metadata with the agent, add the <code>-Pagent</code> option to the <code>test</code> and <code>nativeTest</code> task invocations:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Run the tests on the JVM with the agent:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./gradlew -Pagent test</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It runs your application on the JVM with the agent, collects the metadata and uses it for testing on <code>native-image</code>.
-The generated configuration files (containing the metadata) can be found in the <em>${buildDir}/native/agent-output/${taskName}</em> directory.
-In this case, the plugin also substitutes <code>{output_dir}</code> in the agent options to point to this directory.</p>
-</div>
-</li>
-<li>
-<p>Build a native executable using the metadata collected by the agent:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./gradlew -Pagent nativeTest</code></pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
 <div class="sect2">
 <h3 id="_summary"><a class="anchor" href="#_summary"></a>Summary</h3>
 <div class="paragraph">
@@ -1016,10 +893,6 @@ In this case, the plugin also substitutes <code>{output_dir}</code> in the agent
 The plugin has many features, described in the
 <a href="https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html">plugin
 reference documentation</a>.</p>
-</div>
-<div class="paragraph">
-<p>Note that if your application does not call any classes dynamically at run time, the execution with the agent is needless.
-Your workflow, in that case, is just <code>./gradlew nativeRun</code>.</p>
 </div>
 </div>
 </div>
