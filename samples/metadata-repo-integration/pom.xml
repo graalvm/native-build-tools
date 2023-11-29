@@ -55,7 +55,7 @@
         <junit.platform.native.version>0.9.29-SNAPSHOT</junit.platform.native.version>
         <h2.version>2.2.220</h2.version>
         <netty.version>4.1.80.Final</netty.version>
-        <logback.version>1.4.4</logback.version>
+        <logback.version>1.4.12</logback.version>
         <log4j.version>2.19.0</log4j.version>
         <slf4j.version>2.0.3</slf4j.version>
 
