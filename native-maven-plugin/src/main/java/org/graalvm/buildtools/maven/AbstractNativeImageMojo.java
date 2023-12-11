@@ -64,6 +64,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
@@ -293,13 +294,23 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(imageClasspath::add);
     }
 
+    private static FileSystem openFileSystem(URI uri) throws IOException {
+      FileSystem fs;
+      try {
+        fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
+      } catch (FileSystemAlreadyExistsException e) {
+        fs = FileSystems.getFileSystem(uri);
+      }
+      return fs;
+    }
+
     protected void warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
         if (jarFilePath.toFile().isDirectory()) {
             logger.debug("Artifact `" + jarFilePath + "` is a directory.");
             return;
         }
         URI jarFileURI = URI.create("jar:" + jarFilePath.toUri());
-        try (FileSystem jarFS = FileSystems.newFileSystem(jarFileURI, Collections.emptyMap())) {
+        try (FileSystem jarFS = openFileSystem(jarFileURI)) {
             Path nativeImageMetaInfBase = jarFS.getPath("/" + NATIVE_IMAGE_META_INF);
             if (Files.isDirectory(nativeImageMetaInfBase)) {
                 try (Stream<Path> stream = Files.walk(nativeImageMetaInfBase)) {
