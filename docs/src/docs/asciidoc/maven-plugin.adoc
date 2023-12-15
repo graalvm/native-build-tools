@@ -133,7 +133,7 @@ Build Configuration]. It is also possible to customize the plugin within a
 [source,xml]
 ----
 <buildArgs>
-    <arg>--argument</arg>
+    <buildArg>--argument</buildArg>
 </buildArgs>
 ----
 `<skipNativeBuild>`::
