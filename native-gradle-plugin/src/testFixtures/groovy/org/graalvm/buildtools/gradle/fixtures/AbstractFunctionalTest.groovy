@@ -269,6 +269,13 @@ abstract class AbstractFunctionalTest extends Specification {
             }
         }
 
+        void failed(String... tasks) {
+            tasks.each { task ->
+                contains(task)
+                assert result.task(task).outcome == TaskOutcome.FAILED
+            }
+        }
+
         void skipped(String... tasks) {
             tasks.each { task ->
                 contains(task)

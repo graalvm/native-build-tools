@@ -44,6 +44,7 @@ package org.graalvm.buildtools.maven
 import spock.lang.IgnoreIf
 
 class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+
     @IgnoreIf({ os.windows })
     void "the application runs when using the official metadata repository"() {
         given:
@@ -81,5 +82,36 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         and: "finds metadata in the remote repository"
         outputContains "[graalvm reachability metadata repository for com.h2database:h2:"
         outputContains "Configuration directory is com.h2database" + File.separator + "h2" + File.separator
+    }
+
+    @IgnoreIf({ os.windows })
+    void "the application uses specified version of metadata repository without explicit enable"() {
+        given:
+        withSample("metadata-repo-integration")
+
+        when:
+        mvn '-PenableMetadataByDefault', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildSucceeded
+
+        and: "the run succeeded and retrieved data from the database"
+        outputContains "Customers in the database"
+
+        and: "finds metadata in the remote repository"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:"
+        outputContains "Configuration directory is com.h2database" + File.separator + "h2" + File.separator
+    }
+
+    @IgnoreIf({ os.windows })
+    void "the application doesn't run when metadata repository is disabled"() {
+        given:
+        withSample("metadata-repo-integration")
+
+        when:
+        mvn '-PdisabledMetadataRepo', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
+
+        then:
+        buildFailed
     }
 }

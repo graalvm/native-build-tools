@@ -71,7 +71,9 @@ graalvmNative {
         defaultMode = "standard"
     }
     metadataRepository {
-        enabled = true
+        if (providers.gradleProperty("metadata.repo.enabled").isPresent()) {
+            enabled = providers.gradleProperty("metadata.repo.enabled").map { value -> value.toBoolean()}
+        }
     }
     binaries.all {
         verbose = true

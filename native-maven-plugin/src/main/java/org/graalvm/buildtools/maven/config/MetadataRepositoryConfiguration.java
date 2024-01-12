@@ -53,8 +53,8 @@ import java.util.Optional;
 
 public class MetadataRepositoryConfiguration {
 
-    @Parameter(defaultValue = "false")
-    private boolean enabled;
+    @Parameter(defaultValue = "true")
+    private boolean enabled = true;
 
     @Parameter
     private String version;

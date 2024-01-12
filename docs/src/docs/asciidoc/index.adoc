@@ -19,6 +19,17 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.10.0
+
+==== Gradle plugin
+
+- Update plugin to use metadata repository by default
+
+====Maven plugin
+
+- Update plugin to use metadata repository by default
+
+
 === Release 0.9.28
 
 * Fix path escaping problem for Windows users

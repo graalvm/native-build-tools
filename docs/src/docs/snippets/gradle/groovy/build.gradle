@@ -166,13 +166,13 @@ graalvmNative {
 }
 // end::disable-test-support[]
 
-// tag::enable-metadata-repository[]
+// tag::disable-metadata-repository[]
 graalvmNative {
     metadataRepository {
-        enabled = true
+        enabled = false
     }
 }
-// end::enable-metadata-repository[]
+// end::disable-metadata-repository[]
 
 // tag::specify-metadata-repository-version[]
 graalvmNative {
