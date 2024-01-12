@@ -123,78 +123,112 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     }
 
     protected boolean isMetadataRepositoryEnabled() {
-        return metadataRepositoryConfiguration != null && metadataRepositoryConfiguration.isEnabled();
+        return metadataRepositoryConfiguration == null || metadataRepositoryConfiguration.isEnabled();
     }
 
     protected void configureMetadataRepository() {
-        if (isMetadataRepositoryEnabled()) {
-            Path repoPath = null;
-            Path destinationRoot = reachabilityMetadataOutputDirectory.toPath();
-            if (Files.exists(destinationRoot) && !Files.isDirectory(destinationRoot)) {
-                throw new RuntimeException("Metadata repository must be a directory, please remove regular file at: " + destinationRoot);
-            }
+        if (!isMetadataRepositoryEnabled()) {
+            logger.warn("GraalVM reachability metadata repository is disabled");
+            return;
+        }
+
+        Path destinationRoot = reachabilityMetadataOutputDirectory.toPath();
+        if (Files.exists(destinationRoot) && !Files.isDirectory(destinationRoot)) {
+            throw new RuntimeException("Metadata repository must be a directory, please remove regular file at: " + destinationRoot);
+        }
+        try {
+            Files.createDirectories(destinationRoot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Path repoPath = metadataRepositoryConfiguration != null ? getRepo(destinationRoot) : getDefaultRepo(destinationRoot);
+        if (repoPath == null) {
+            throw new RuntimeException("Cannot pull GraalVM reachability metadata repository either from the one specified in the configuration or the default one.\n" +
+                    "Note: Since the repository is enabled by default, you can disable it manually in your pom.xml file (see this: " +
+                    "https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#_configuring_the_metadata_repository)");
+        } else {
+            metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                @Override
+                public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                    logger.info(String.format("[graalvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                }
+            });
+        }
+    }
+
+    private Path getDefaultRepo(Path destinationRoot) {
+        // try to get default Metadata Repository from Maven Central
+        URL targetUrl = resolveDefaultMetadataRepositoryUrl();
+        if (targetUrl == null) {
+            logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                    "Falling back to the default repository.");
+            String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
             try {
-                Files.createDirectories(destinationRoot);
-            } catch (IOException e) {
+                targetUrl = new URI(metadataUrl).toURL();
+                // TODO investigate if the following line is necessary
+                metadataRepositoryConfiguration.setUrl(targetUrl);
+            } catch (URISyntaxException | MalformedURLException e) {
                 throw new RuntimeException(e);
             }
+        }
 
-            if (metadataRepositoryConfiguration.getLocalPath() != null) {
-                Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
-                Path destination = destinationRoot.resolve(FileUtils.hashFor(localPath.toUri()));
-                repoPath = unzipLocalMetadata(localPath, destination);
-            } else {
-                URL targetUrl = metadataRepositoryConfiguration.getUrl();
-                if (targetUrl == null) {
-                    String version = metadataRepositoryConfiguration.getVersion();
-                    if (version == null) {
-                        // Both the URL and version are unset, so we want to use
-                        // the version from Maven Central
-                        targetUrl = resolveDefaultMetadataRepositoryUrl();
-                        if (targetUrl == null) {
-                            logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
-                                        "Falling back to the default repository.");
-                            version = VersionInfo.METADATA_REPO_VERSION;
-                        }
-                    }
-                    if (version != null) {
-                        String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
-                        try {
-                            targetUrl = new URI(metadataUrl).toURL();
-                            metadataRepositoryConfiguration.setUrl(targetUrl);
-                        } catch (URISyntaxException | MalformedURLException e) {
-                            throw new RuntimeException(e);
-                        }
+        return downloadMetadataRepo(destinationRoot, targetUrl);
+    }
+
+    private Path getRepo(Path destinationRoot) {
+        if (metadataRepositoryConfiguration.getLocalPath() != null) {
+            Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+            Path destination = destinationRoot.resolve(FileUtils.hashFor(localPath.toUri()));
+            return unzipLocalMetadata(localPath, destination);
+        } else {
+            URL targetUrl = metadataRepositoryConfiguration.getUrl();
+            if (targetUrl == null) {
+                String version = metadataRepositoryConfiguration.getVersion();
+                if (version == null) {
+                    // Both the URL and version are unset, so we want to use
+                    // the version from Maven Central
+                    targetUrl = resolveDefaultMetadataRepositoryUrl();
+                    if (targetUrl == null) {
+                        logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                                "Falling back to the default repository.");
+                        version = VersionInfo.METADATA_REPO_VERSION;
                     }
                 }
-                Path destination;
-                try {
-                    destination = destinationRoot.resolve(FileUtils.hashFor(targetUrl.toURI()));
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-                if (Files.exists(destination)) {
-                    repoPath = destination;
-                } else {
-                    Optional<Path> download = downloadMetadata(targetUrl, destination);
-                    if (download.isPresent()) {
-                        logger.info("Downloaded GraalVM reachability metadata repository from " + targetUrl);
-                        repoPath = unzipLocalMetadata(download.get(), destination);
+                if (version != null) {
+                    String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
+                    try {
+                        targetUrl = new URI(metadataUrl).toURL();
+                        // TODO investigate if the following line is necessary
+                        metadataRepositoryConfiguration.setUrl(targetUrl);
+                    } catch (URISyntaxException | MalformedURLException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
 
-            if (repoPath == null) {
-                logger.warn("GraalVM reachability metadata repository is enabled, but no repository has been configured");
-            } else {
-                metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
-                    @Override
-                    public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                        logger.info(String.format("[graalvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
-                    }
-                });
+            return downloadMetadataRepo(destinationRoot, targetUrl);
+        }
+    }
+
+    private Path downloadMetadataRepo(Path destinationRoot, URL targetUrl) {
+        Path destination;
+        try {
+            destination = destinationRoot.resolve(FileUtils.hashFor(targetUrl.toURI()));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        if (Files.exists(destination)) {
+            return destination;
+        } else {
+            Optional<Path> download = downloadMetadata(targetUrl, destination);
+            if (download.isPresent()) {
+                logger.info("Downloaded GraalVM reachability metadata repository from " + targetUrl);
+                return unzipLocalMetadata(download.get(), destination);
             }
         }
+
+        return null;
     }
 
     /**

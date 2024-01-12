@@ -631,14 +631,14 @@ This version of the plugin defaults to the using the metadata repository in vers
 e.g. `graalvm-reachability-metadata-{maven-plugin-version}-repository.zip`.
 ====
 
-=== Enabling the metadata repository
+=== Configuring the metadata repository
 
-Support needs to be enabled explicitly by including the following into the `<configuration>` element:
+Metadata repository is enabled by default. Support can be disabled by including the following into the `<configuration>` element:
 
-.Enabling the metadata repository
+.Disabling the metadata repository
 [source,xml,indent=0]
 ----
-include::../../../../samples/metadata-repo-integration/pom.xml[tag=metadata-default]
+include::../../../../samples/metadata-repo-integration/pom.xml[tag=metadata-disable]
 ----
 
 Alternatively, you can use a _remote repository_, in which case you can specify the URL of the ZIP file:
@@ -658,10 +658,8 @@ include::../../../../samples/native-config-integration/pom.xml[tag=metadata-loca
 ----
 <1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 
-=== Configuring the metadata repository
-
-Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
-In case you want to use another verion of the metadata use:
+For each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
+In case you want to use another version of the metadata use:
 
 .Choosing a version for the metadata repository
 [source,xml,indent=0]

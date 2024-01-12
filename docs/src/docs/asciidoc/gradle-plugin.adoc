@@ -361,14 +361,14 @@ This repository provides https://www.graalvm.org/22.2/reference-manual/native-im
 
 NOTE: This version of the plugin defaults to the using the metadata repository in version {metadata-repository-version}. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates: `org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata` with the `repository` classifier and `zip` extension, e.g. `graalvm-reachability-metadata-{gradle-plugin-version}-repository.zip`.
 
-=== Enabling the metadata repository
+=== Configuring the metadata repository
 
-Support needs to be enabled explicitly:
+Metadata repository is enabled by default. Support can be disabled explicitly:
 
-.Enabling the metadata repository
+.Disabling the metadata repository
 [source, groovy, role="multi-language-sample"]
 ----
-include::../snippets/gradle/groovy/build.gradle[tags=enable-metadata-repository]
+include::../snippets/gradle/groovy/build.gradle[tags=disable-metadata-repository]
 ----
 
 [source, kotlin, role="multi-language-sample"]
@@ -403,9 +403,7 @@ include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-repository
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-repository-file]
 ----
 
-=== Configuring the metadata repository
-
-Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
+For each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
 In some cases, you may need to exclude a particular module from the search.
 This can be done by adding it to the exclude list:
 

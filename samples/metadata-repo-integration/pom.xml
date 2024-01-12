@@ -110,13 +110,6 @@
                                 <phase>package</phase>
                             </execution>
                         </executions>
-                        <configuration>
-                            <!-- tag::metadata-default[] -->
-                            <metadataRepository>
-                                <enabled>true</enabled>
-                            </metadataRepository>
-                            <!-- end::metadata-default[] -->
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -146,6 +139,62 @@
                                 <version>0.2.3</version>
                             </metadataRepository>
                             <!-- end::metadata-versioned[] -->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>disabledMetadataRepo</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <!-- tag::metadata-disable[] -->
+                            <metadataRepository>
+                                <enabled>false</enabled>
+                            </metadataRepository>
+                            <!-- end::metadata-disable[] -->
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>enableMetadataByDefault</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <metadataRepository>
+                                <version>0.2.3</version>
+                            </metadataRepository>
                         </configuration>
                     </plugin>
                 </plugins>
