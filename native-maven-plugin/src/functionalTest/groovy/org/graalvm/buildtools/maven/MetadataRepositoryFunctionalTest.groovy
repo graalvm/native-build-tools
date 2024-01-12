@@ -87,7 +87,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains NATIVE_IMAGE_EXE + " --exclude-config dummy/path/to/file.jar \"*\""
    }
 
-    void "if the path doesn't exist it throws an error"() {
+    void "if the path doesn't exist, the repository cannot be pulled"() {
         given:
         withSample("native-config-integration")
 
@@ -95,9 +95,8 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         mvn '-Pnative,metadataMissing', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
-        buildSucceeded
-        outputContains "GraalVM reachability metadata repository path does not exist"
-        outputContains "Reflection failed"
+        buildFailed
+        outputContains " Cannot pull GraalVM reachability metadata repository either from the one specified in the configuration or the default one"
     }
 
     void "it can exclude dependencies"() {
@@ -163,7 +162,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory is org.graalvm.internal" + File.separator + "library-with-reflection" + File.separator + "1"
     }
 
-    void "when pointing to a missing URL, reflection fails"() {
+    void "when pointing to a missing URL, the repository cannot be pulled"() {
         given:
         withSample("native-config-integration")
         withLocalServer()
@@ -172,9 +171,8 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         mvn '-Pnative,metadataUrl', '-DquickBuild', "-Dmetadata.url=https://google.com/notfound", '-DskipTests', 'package', 'exec:exec@native'
 
         then:
-        buildSucceeded
-        outputContains "Reflection failed"
-        outputContains "Failed to download from https://google.com/notfound: 404 Not Found"
+        buildFailed
+        outputContains "Cannot pull GraalVM reachability metadata repository either from the one specified in the configuration or the default one"
     }
 
     void "it can include hints in jar"() {
