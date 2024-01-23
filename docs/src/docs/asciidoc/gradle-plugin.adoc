@@ -363,7 +363,7 @@ NOTE: This version of the plugin defaults to the using the metadata repository i
 
 === Configuring the metadata repository
 
-Metadata repository is enabled by default. Support can be disabled explicitly:
+Metadata repository support is enabled by default. Support can be disabled explicitly:
 
 .Disabling the metadata repository
 [source, groovy, role="multi-language-sample"]
@@ -403,7 +403,7 @@ include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-repository
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-repository-file]
 ----
 
-For each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
+For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository.
 In some cases, you may need to exclude a particular module from the search.
 This can be done by adding it to the exclude list:
 

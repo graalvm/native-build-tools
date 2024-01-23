@@ -96,7 +96,7 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 
         then:
         buildFailed
-        outputContains " Cannot pull GraalVM reachability metadata repository either from the one specified in the configuration or the default one"
+        outputContains "Cannot pull GraalVM reachability metadata repository either from the one specified in the configuration or the default one"
     }
 
     void "it can exclude dependencies"() {

@@ -658,7 +658,7 @@ include::../../../../samples/native-config-integration/pom.xml[tag=metadata-loca
 ----
 <1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 
-For each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
+For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.
 In case you want to use another version of the metadata use:
 
 .Choosing a version for the metadata repository
