@@ -585,7 +585,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void configureNativeConfigurationRepo(ExtensionAware graalvmNative) {
         GraalVMReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("metadataRepository", GraalVMReachabilityMetadataRepositoryExtension.class);
-        configurationRepository.getEnabled().convention(false);
+        configurationRepository.getEnabled().convention(true);
         configurationRepository.getVersion().convention(VersionInfo.METADATA_REPO_VERSION);
         configurationRepository.getUri().convention(configurationRepository.getVersion().map(serializableTransformerOf(this::getReachabilityMetadataRepositoryUrlForVersion)));
         configurationRepository.getExcludedModules().convention(Collections.emptySet());
