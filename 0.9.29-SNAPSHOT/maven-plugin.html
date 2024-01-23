@@ -478,7 +478,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
 <ul class="sectlevel2">
-<li><a href="#_enabling_the_metadata_repository">Enabling the metadata repository</a></li>
 <li><a href="#_configuring_the_metadata_repository">Configuring the metadata repository</a></li>
 <li><a href="#_adding_metadata_repository_files">Adding metadata repository files</a></li>
 </ul>
@@ -1722,15 +1721,15 @@ This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/
 </table>
 </div>
 <div class="sect2">
-<h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
+<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
 <div class="paragraph">
-<p>Support needs to be enabled explicitly by including the following into the <code>&lt;configuration&gt;</code> element:</p>
+<p>Metadata repository is enabled by default. Support can be disabled by including the following into the <code>&lt;configuration&gt;</code> element:</p>
 </div>
 <div class="listingblock">
-<div class="title">Enabling the metadata repository</div>
+<div class="title">Disabling the metadata repository</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;enabled&gt;false&lt;/enabled&gt;
 &lt;/metadataRepository&gt;</code></pre>
 </div>
 </div>
@@ -1766,12 +1765,9 @@ This repository provides <a href="https://www.graalvm.org/22.2/reference-manual/
 </tr>
 </table>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
 <div class="paragraph">
-<p>Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
-In case you want to use another verion of the metadata use:</p>
+<p>For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.
+In case you want to use another version of the metadata use:</p>
 </div>
 <div class="listingblock">
 <div class="title">Choosing a version for the metadata repository</div>

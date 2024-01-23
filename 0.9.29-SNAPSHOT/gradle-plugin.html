@@ -482,7 +482,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
 <ul class="sectlevel2">
-<li><a href="#_enabling_the_metadata_repository">Enabling the metadata repository</a></li>
 <li><a href="#_configuring_the_metadata_repository">Configuring the metadata repository</a></li>
 <li><a href="#_including_metadata_repository_files">Including metadata repository files</a></li>
 </ul>
@@ -1275,16 +1274,16 @@ This version of the plugin defaults to the using the metadata repository in vers
 </table>
 </div>
 <div class="sect2">
-<h3 id="_enabling_the_metadata_repository"><a class="anchor" href="#_enabling_the_metadata_repository"></a>Enabling the metadata repository</h3>
+<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
 <div class="paragraph">
-<p>Support needs to be enabled explicitly:</p>
+<p>Metadata repository support is enabled by default. Support can be disabled explicitly:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Enabling the metadata repository</div>
+<div class="title">Disabling the metadata repository</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     metadataRepository {
-        enabled = true
+        enabled = false
     }
 }</code></pre>
 </div>
@@ -1343,11 +1342,8 @@ The plugin will automatically download the configuration metadata from the offic
 }</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
 <div class="paragraph">
-<p>Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository.
+<p>For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository.
 In some cases, you may need to exclude a particular module from the search.
 This can be done by adding it to the exclude list:</p>
 </div>
