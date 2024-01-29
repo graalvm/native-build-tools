@@ -21,6 +21,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.10.0
 
+- Update version of GraalVM dependency to 22.3.5
+
 ==== Gradle plugin
 
 - Update plugin to use metadata repository by default
