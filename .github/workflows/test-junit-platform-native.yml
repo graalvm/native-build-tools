@@ -6,11 +6,13 @@ on:
       - 'common/junit-platform-native/**'
       - '.github/actions/**'
       - '.github/workflows/test-junit-platform-native.yml'
+      - 'gradle/libs.versions.toml'
   pull_request:
     paths:
       - 'common/junit-platform-native/**'
       - '.github/actions/**'
       - '.github/workflows/test-junit-platform-native.yml'
+      - 'gradle/libs.versions.toml'
   workflow_dispatch:
 
 concurrency:
