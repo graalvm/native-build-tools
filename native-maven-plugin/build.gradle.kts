@@ -64,7 +64,6 @@ dependencies {
     implementation(libs.utils)
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
-    implementation(libs.graalvm.svm)
     implementation(libs.plexus.utils)
     implementation(libs.plexus.xml)
 
@@ -163,7 +162,6 @@ tasks {
     functionalTest {
         javaLauncher.set(launcher)
         dependsOn(prepareMavenLocalRepo, publishAllPublicationsToCommonRepository)
-        systemProperty("graalvm.version", libs.versions.graalvm.get())
         systemProperty("junit.jupiter.version", libs.versions.junitJupiter.get())
         systemProperty("native.maven.plugin.version", libs.versions.nativeBuildTools.get())
         systemProperty("junit.platform.native.version", libs.versions.nativeBuildTools.get())

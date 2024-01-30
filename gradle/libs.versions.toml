@@ -9,7 +9,6 @@ maven = "3.8.6"
 mavenAnnotations = "3.6.4"
 mavenEmbedder = "3.8.6"
 mavenWagon = "3.4.3"
-graalvm = "23.0.2"
 jackson = "2.13.5"
 junitPlatform = "1.10.0"
 junitJupiter = "5.10.0"
@@ -37,8 +36,6 @@ test-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", versi
 test-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version = "" }
 test-junit-vintage = { module = "org.junit.vintage:junit-vintage-engine", version = "" }
 test-spock = { module = "org.spockframework:spock-core", version.ref = "spock" }
-
-graalvm-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graalvm" }
 
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 

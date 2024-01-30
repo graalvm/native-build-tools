@@ -51,7 +51,6 @@ maven {
     description = 'JUnit Platform support for GraalVM Native Image'
 }
 dependencies {
-    compileOnly libs.graalvm.svm
     implementation(platform(libs.test.junit.bom))
     implementation libs.test.junit.platform.console
     implementation libs.test.junit.platform.launcher
