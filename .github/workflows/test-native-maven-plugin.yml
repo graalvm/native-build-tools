@@ -32,7 +32,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: "🔧 Prepare environment"
         uses: graalvm/setup-graalvm@v1
         with:
@@ -64,7 +64,7 @@ jobs:
         run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast --tests ${{ matrix.test }}
       - name: "📜 Upload unit test results"
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maven-functional-tests-results-${{ matrix.os }}
           path: native-maven-plugin/build/reports/tests/
