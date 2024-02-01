@@ -58,7 +58,7 @@ val mavenExtension = project.extensions.create<MavenExtension>("maven").also {
     it.description.convention(project.description)
 }
 
-val publishingTasks = tasks.withType<PublishToMavenRepository>()
+val publishingTasks = tasks.withType<AbstractPublishToMaven>()
         .matching { it.name.endsWith("ToCommonRepository") }
 
 val repositoryElements by configurations.creating {

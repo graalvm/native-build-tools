@@ -50,32 +50,43 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
-import org.graalvm.junit.platform.JUnitPlatformFeature;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_TESTS_EXE;
 
 /**
  * This goal builds and runs native tests.
+ *
  * @author Sebastien Deleuze
  */
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,
-        requiresDependencyResolution = ResolutionScope.TEST,
-        requiresDependencyCollection = ResolutionScope.TEST)
+    requiresDependencyResolution = ResolutionScope.TEST,
+    requiresDependencyCollection = ResolutionScope.TEST)
 public class NativeTestMojo extends AbstractNativeImageMojo {
 
     @Parameter(property = "skipTests", defaultValue = "false")
@@ -89,31 +100,39 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         super.populateApplicationClasspath();
         imageClasspath.add(Paths.get(project.getBuild().getTestOutputDirectory()));
         project.getBuild()
-                .getTestResources()
-                .stream()
-                .map(FileSet::getDirectory)
-                .map(Paths::get)
-                .forEach(imageClasspath::add);
+            .getTestResources()
+            .stream()
+            .map(FileSet::getDirectory)
+            .map(Paths::get)
+            .forEach(imageClasspath::add);
     }
 
     @Override
     protected List<String> getDependencyScopes() {
         return Arrays.asList(
-                Artifact.SCOPE_COMPILE,
-                Artifact.SCOPE_RUNTIME,
-                Artifact.SCOPE_TEST,
-                Artifact.SCOPE_COMPILE_PLUS_RUNTIME
+            Artifact.SCOPE_COMPILE,
+            Artifact.SCOPE_RUNTIME,
+            Artifact.SCOPE_TEST,
+            Artifact.SCOPE_COMPILE_PLUS_RUNTIME
         );
     }
 
     @Override
     protected void addDependenciesToClasspath() throws MojoExecutionException {
         super.addDependenciesToClasspath();
+        Set<Module> modules = new HashSet<>();
+        //noinspection SimplifyStreamApiCallChains
         pluginArtifacts.stream()
-                .filter(it -> it.getGroupId().startsWith(NativeImageConfigurationUtils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
-                .map(it -> it.getFile().toPath())
-                .forEach(imageClasspath::add);
-        findNativePlatformJar().ifPresent(imageClasspath::add);
+            // do not use peek as Stream implementations are free to discard it
+            .map(a -> {
+                modules.add(new Module(a.getGroupId(), a.getArtifactId()));
+                return a;
+            })
+            .filter(it -> it.getGroupId().startsWith(NativeImageConfigurationUtils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
+            .map(it -> it.getFile().toPath())
+            .forEach(imageClasspath::add);
+        var jars = findJunitPlatformNativeJars(modules);
+        imageClasspath.addAll(jars);
     }
 
     @Override
@@ -142,7 +161,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             systemProperties = new HashMap<>();
         }
         systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
-                NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
+            NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
 
         imageName = NATIVE_TESTS_EXE;
         mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
@@ -248,15 +267,71 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             return Stream.empty();
         }
         return Files.find(dir, Integer.MAX_VALUE,
-                (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
-                        && path.getFileName().toString().startsWith(prefix)));
+            (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
+                                            && path.getFileName().toString().startsWith(prefix)));
     }
 
-    private static Optional<Path> findNativePlatformJar() {
+    private List<Path> findJunitPlatformNativeJars(Set<Module> modulesAlreadyOnClasspath) {
+        RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
+        DefaultRepositorySystemSession newSession = new DefaultRepositorySystemSession(repositorySession);
+        CollectRequest collectRequest = new CollectRequest();
+        List<RemoteRepository> repositories = project.getRemoteProjectRepositories();
+        collectRequest.setRepositories(repositories);
+        DefaultArtifact artifact = new DefaultArtifact(
+            RuntimeMetadata.GROUP_ID,
+            RuntimeMetadata.JUNIT_PLATFORM_NATIVE_ARTIFACT_ID,
+            null,
+            "jar",
+            RuntimeMetadata.VERSION
+        );
+        Dependency dependency = new Dependency(artifact, "runtime");
+        collectRequest.addDependency(dependency);
+        DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
+        DependencyResult dependencyResult;
         try {
-            return Optional.of(new File(JUnitPlatformFeature.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toPath());
-        } catch (URISyntaxException e) {
-            return Optional.empty();
+            dependencyResult = repositorySystem.resolveDependencies(newSession, dependencyRequest);
+        } catch (DependencyResolutionException e) {
+            return Collections.emptyList();
+        }
+        return dependencyResult.getArtifactResults()
+            .stream()
+            .map(ArtifactResult::getArtifact)
+            .filter(a -> !modulesAlreadyOnClasspath.contains(new Module(a.getGroupId(), a.getArtifactId())))
+            .map(a -> a.getFile().toPath())
+            .collect(Collectors.toList());
+    }
+
+    private static final class Module {
+        private final String groupId;
+        private final String artifactId;
+
+        private Module(String groupId, String artifactId) {
+            this.groupId = groupId;
+            this.artifactId = artifactId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Module module = (Module) o;
+
+            if (!groupId.equals(module.groupId)) {
+                return false;
+            }
+            return artifactId.equals(module.artifactId);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = groupId.hashCode();
+            result = 31 * result + artifactId.hashCode();
+            return result;
         }
     }
 }
