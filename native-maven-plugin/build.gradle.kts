@@ -60,11 +60,9 @@ maven {
 }
 
 dependencies {
-    implementation(libs.junitPlatformNative)
     implementation(libs.utils)
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
-    implementation(libs.graalvm.svm)
     implementation(libs.plexus.utils)
     implementation(libs.plexus.xml)
 
@@ -177,4 +175,6 @@ tasks {
 
 tasks.withType<Checkstyle>().configureEach {
     configFile = layout.projectDirectory.dir("../config/checkstyle.xml").asFile
+    // generated code
+    exclude("**/RuntimeMetadata*")
 }
