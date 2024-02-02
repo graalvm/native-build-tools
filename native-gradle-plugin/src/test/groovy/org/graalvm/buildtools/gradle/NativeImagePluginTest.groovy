@@ -21,8 +21,8 @@ class NativeImagePluginTest extends Specification {
     private URI fallbackUri
 
     def setup() {
-        project = ProjectBuilder.builder().build()
-        project.repositories.mavenCentral()
+        project = ProjectBuilder.builder()
+                .build()
         project.plugins.apply(NativeImagePlugin)
         reachabilityMetadataRepositoryExtension = project.extensions
                 .findByType(GraalVMExtension)
