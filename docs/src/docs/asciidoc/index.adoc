@@ -25,7 +25,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 ==== Gradle plugin
 
-- Update plugin to use metadata repository by default. Metadata repository can be disabled manually. <<gradle-plugin.adoc#_configuring_the_metadata_repository,See this>>
+- Update plugin to use metadata repository by default. Metadata repository <<gradle-plugin.adoc#_configuring_the_metadata_repository,can be disabled manually.>>
 
 ==== Maven plugin
 
