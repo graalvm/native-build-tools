@@ -373,7 +373,7 @@ include::../snippets/gradle/groovy/build.gradle[tags=disable-metadata-repository
 
 [source, kotlin, role="multi-language-sample"]
 ----
-include::../snippets/gradle/kotlin/build.gradle.kts[tags=enable-metadata-repository]
+include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-metadata-repository]
 ----
 
 A metadata repository consists of configuration files for GraalVM.
