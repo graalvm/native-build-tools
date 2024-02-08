@@ -64,7 +64,7 @@ public class PlatformConfigProvider implements PluginConfigProvider {
         );
 
         if (getMajorJDKVersion() >= 21) {
-            /* new with simulated class initialization */
+            /* new with --strict-image-heap */
             config.initializeAtBuildTime(
                     "org.junit.platform.engine.support.descriptor.ClassSource",
                     "org.junit.platform.engine.support.descriptor.MethodSource",
@@ -75,15 +75,21 @@ public class PlatformConfigProvider implements PluginConfigProvider {
                     "org.junit.platform.launcher.core.DefaultLauncher",
                     "org.junit.platform.launcher.core.DefaultLauncherConfig",
                     "org.junit.platform.launcher.core.EngineExecutionOrchestrator",
+                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$1",
                     "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$2",
                     "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$3",
+                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$4",
                     "org.junit.platform.launcher.core.LauncherDiscoveryResult",
                     "org.junit.platform.launcher.core.LauncherListenerRegistry",
                     "org.junit.platform.launcher.core.ListenerRegistry",
                     "org.junit.platform.launcher.core.SessionPerRequestLauncher",
                     "org.junit.platform.launcher.LauncherSessionListener$1",
                     "org.junit.platform.launcher.listeners.UniqueIdTrackingListener",
-                    "org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1"
+                    "org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1",
+                    "org.junit.platform.suite.engine.SuiteEngineDescriptor",
+                    "org.junit.platform.suite.engine.SuiteLauncher",
+                    "org.junit.platform.suite.engine.SuiteTestDescriptor",
+                    "org.junit.platform.suite.engine.SuiteTestEngine"
             );
         }
 
