@@ -19,6 +19,11 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.10.1
+
+- Mark additional JUnit 5 types for build-time initialization for compatibility with Native Image's `--strict-image-heap` option.
+
+
 === Release 0.10.0
 
 - Update version of GraalVM dependency to 22.3.5
