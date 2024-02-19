@@ -45,6 +45,7 @@ import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
+import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -59,6 +60,7 @@ import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -66,6 +68,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,6 +96,46 @@ public final class JUnitPlatformFeature implements Feature {
         Launcher launcher = LauncherFactory.create();
         TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
         ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
+
+        Method registerAllDeclaredMethods = findMethodOrNull(RuntimeReflection.class, "registerAllDeclaredMethods", Class.class);
+        if (registerAllDeclaredMethods != null) {
+            // graalvm-23.0+ with `RuntimeReflection#registerAllDeclaredMethods` method.
+            ClassLoader applicationLoader = access.getApplicationClassLoader();
+            Class<?> typeSafeMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeMatcher");
+            Class<?> typeSafeDiagnosingMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeDiagnosingMatcher");
+            if (typeSafeMatcher != null || typeSafeDiagnosingMatcher != null) {
+                BiConsumer<DuringAnalysisAccess, Class<?>> registerMatcherForReflection = (a, c) -> {
+                    try {
+                        registerAllDeclaredMethods.invoke(null, c);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
+                if (typeSafeMatcher != null) {
+                    access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeMatcher);
+                }
+                if (typeSafeDiagnosingMatcher != null) {
+                    access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeDiagnosingMatcher);
+                }
+            }
+
+        }
+    }
+
+    private static Class<?> findClassOrNull(ClassLoader loader, String className) {
+        try {
+            return loader.loadClass(className);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    private static Method findMethodOrNull(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+        try {
+            return clazz.getDeclaredMethod(methodName, parameterTypes);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
