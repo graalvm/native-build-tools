@@ -60,7 +60,6 @@ import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,28 +96,17 @@ public final class JUnitPlatformFeature implements Feature {
         TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
         ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
 
-        Method registerAllDeclaredMethods = findMethodOrNull(RuntimeReflection.class, "registerAllDeclaredMethods", Class.class);
-        if (registerAllDeclaredMethods != null) {
-            // graalvm-23.0+ with `RuntimeReflection#registerAllDeclaredMethods` method.
-            ClassLoader applicationLoader = access.getApplicationClassLoader();
-            Class<?> typeSafeMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeMatcher");
-            Class<?> typeSafeDiagnosingMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeDiagnosingMatcher");
-            if (typeSafeMatcher != null || typeSafeDiagnosingMatcher != null) {
-                BiConsumer<DuringAnalysisAccess, Class<?>> registerMatcherForReflection = (a, c) -> {
-                    try {
-                        registerAllDeclaredMethods.invoke(null, c);
-                    } catch (ReflectiveOperationException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
-                if (typeSafeMatcher != null) {
-                    access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeMatcher);
-                }
-                if (typeSafeDiagnosingMatcher != null) {
-                    access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeDiagnosingMatcher);
-                }
+        ClassLoader applicationLoader = access.getApplicationClassLoader();
+        Class<?> typeSafeMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeMatcher");
+        Class<?> typeSafeDiagnosingMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeDiagnosingMatcher");
+        if (typeSafeMatcher != null || typeSafeDiagnosingMatcher != null) {
+            BiConsumer<DuringAnalysisAccess, Class<?>> registerMatcherForReflection = (a, c) -> RuntimeReflection.registerAllDeclaredMethods(c);
+            if (typeSafeMatcher != null) {
+                access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeMatcher);
             }
-
+            if (typeSafeDiagnosingMatcher != null) {
+                access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeDiagnosingMatcher);
+            }
         }
     }
 
@@ -126,14 +114,6 @@ public final class JUnitPlatformFeature implements Feature {
         try {
             return loader.loadClass(className);
         } catch (ClassNotFoundException e) {
-            return null;
-        }
-    }
-
-    private static Method findMethodOrNull(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
-        try {
-            return clazz.getDeclaredMethod(methodName, parameterTypes);
-        } catch (NoSuchMethodException e) {
             return null;
         }
     }
