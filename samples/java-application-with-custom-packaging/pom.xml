@@ -61,7 +61,7 @@
         <micronaut.version>3.3.4</micronaut.version>
         <exec.mainClass>org.graalvm.demo.Application</exec.mainClass>
         <micronaut.runtime>netty</micronaut.runtime>
-        <native.maven.plugin.version>0.10.1</native.maven.plugin.version>
+        <native.maven.plugin.version>0.10.2-SNAPSHOT</native.maven.plugin.version>
     </properties>
 
     <repositories>
