@@ -9,7 +9,7 @@ You will create a sample application, enable the plugin, add support for dynamic
 ====
 The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
-The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
+The easiest way to install GraalVM is to use https://sdkman.io/jdks[SDKMAN!].
 
 For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
@@ -314,12 +314,8 @@ With this plugin you can already build a native executable directly with Maven b
 
 == Build a Native Executable by Detecting Resources with the Agent
 
-<<<<<<< HEAD
 This demo application and requires metadata before building a native executable. 
 You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support[tracing agent] at package time.
-=======
-This demo application requires metadata before building a native executable. You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support[tracing agent] at package time.
->>>>>>> 24e5db3b (Remove extra word)
 The agent is disabled by default, and can be enabled in project's _pom.xml_ file or via the command line.
 
 . To enable the agent via the _pom.xml_ file, specify `<enabled>true</enabled>` in the `native-maven-plugin` plugin configuration:
@@ -442,7 +438,7 @@ executable.
     <version>${native.maven.plugin.version}</version>
     <extensions>true</extensions>
     ...
-</plugin>    
+</plugin>
 ----
 . Add an explicit dependency on the `junit-platform-launcher` artifact in the dependencies section of your native profile configuration as in the following example:
 +
@@ -459,7 +455,7 @@ executable.
         </dependency>
     </dependencies>
     ...
-</profile>    
+</profile>
 ----
 . Create the following test in the _src/test/java/demo/FortuneTest.java_ file:
 +
