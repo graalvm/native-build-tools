@@ -14,7 +14,7 @@ Two ways of building a native executable using the plugin will be demonstrated:
 ====
 The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
-The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
+The easiest way to install GraalVM is to use https://sdkman.io/jdks[SDKMAN!].
 
 For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 ====
