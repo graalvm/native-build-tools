@@ -455,6 +455,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel1">
 <li><a href="#_prepare_a_demo_application">Prepare a Demo Application</a></li>
 <li><a href="#_build_a_native_executable_by_detecting_resources_with_the_agent">Build a Native Executable by Detecting Resources with the Agent</a></li>
+<li><a href="#_add_junit_testing">Add JUnit Testing</a>
+<ul class="sectlevel2">
+<li><a href="#_summary">Summary</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -473,7 +478,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>The plugin requires that you <a href="https://www.graalvm.org/latest/docs/getting-started/">setup GraalVM</a>.</p>
 </div>
 <div class="paragraph">
-<p>The easiest way to install GraalVM is to use the <a href="https://sdkman.io/jdks">SDKMAN!</a>.</p>
+<p>The easiest way to install GraalVM is to use <a href="https://sdkman.io/jdks">SDKMAN!</a>.</p>
 </div>
 <div class="paragraph">
 <p>For other installation options, go to <a href="https://www.graalvm.org/downloads/">GraalVM Downloads</a>.</p>
@@ -810,15 +815,8 @@ With this plugin you can already build a native executable directly with Maven b
 <h2 id="_build_a_native_executable_by_detecting_resources_with_the_agent"><a class="anchor" href="#_build_a_native_executable_by_detecting_resources_with_the_agent"></a>Build a Native Executable by Detecting Resources with the Agent</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-This demo application and requires metadata before building a native executable.
-You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support">tracing agent</a> at package time.</p>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>This demo application requires metadata before building a native executable. You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support">tracing agent</a> at package time.
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; 24e5db3b (Remove extra word)
+<p>This demo application and requires metadata before building a native executable.
+You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support">tracing agent</a> at package time.
 The agent is disabled by default, and can be enabled in project&#8217;s <em>pom.xml</em> file or via the command line.</p>
 </div>
 <div class="olist arabic">
@@ -942,9 +940,11 @@ by providing the <code>&lt;imageName&gt;fortuneteller&lt;/imageName&gt;</code> w
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>== Add JUnit Testing</p>
 </div>
+</div>
+<div class="sect1">
+<h2 id="_add_junit_testing"><a class="anchor" href="#_add_junit_testing"></a>Add JUnit Testing</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The Maven plugin for GraalVM Native Image can run
 <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> tests on a native executable.
@@ -1025,13 +1025,11 @@ class FortuneTest {
 </li>
 </ol>
 </div>
-<div class="paragraph">
-<p>=== Summary</p>
-</div>
+<div class="sect2">
+<h3 id="_summary"><a class="anchor" href="#_summary"></a>Summary</h3>
 <div class="paragraph">
 <p>The Maven plugin for GraalVM Native Image adds support for building and testing native executables using <a href="https://maven.apache.org/">Apache Maven™</a>.
 The plugin has many features, described in the <a href="maven-plugin.html">plugin reference documentation</a>.</p>
-</div>
 </div>
 </div>
 </div>
@@ -1044,7 +1042,7 @@ The plugin has many features, described in the <a href="maven-plugin.html">plugi
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
-        <img src="https://www.graalvm.org/resources/img/logo-colored.svg" alt="GraalVM"> (c) 2024. Licensed under the Universal Permissive License (UPL), Version 1.0
+        <img src="img/GraalVM-rgb.svg" alt="GraalVM"> (c) 2024. Licensed under the Universal Permissive License (UPL), Version 1.0
     </div>
 </div>
 </body>
