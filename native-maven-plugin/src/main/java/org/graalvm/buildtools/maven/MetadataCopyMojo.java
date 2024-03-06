@@ -98,7 +98,10 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             String buildDirectory = project.getBuild().getDirectory() + "/native/agent-output/";
             String destinationDir = config.getOutputDirectory();
             if (destinationDir == null) {
-                destinationDir = project.getBuild().getOutputDirectory() + DEFAULT_OUTPUT_DIRECTORY;
+                destinationDir = project.getBuild().getOutputDirectory()
+                        .concat(DEFAULT_OUTPUT_DIRECTORY).concat("/")
+                        .concat(project.getGroupId()).concat("/")
+                        .concat(project.getArtifactId());
             }
 
             if (!Files.isDirectory(Paths.get(destinationDir))) {
