@@ -100,7 +100,7 @@ graalvmNative {
         // Copies metadata collected from tasks into the specified directories.
         metadataCopy {
             inputTaskNames.add("test") // Tasks previously executed with the agent attached.
-            outputDirectories.add("src/main/resources/META-INF/native-image")
+            outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/") // Replace <groupId> and <artifactId> with GAV coordinates of your project
             mergeWithExisting.set(true) // Instead of copying, merge with existing metadata in the output directories.
         }
 
