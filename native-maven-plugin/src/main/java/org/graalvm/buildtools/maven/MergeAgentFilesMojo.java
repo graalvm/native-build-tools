@@ -48,11 +48,9 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
 import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
-import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -116,14 +114,12 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
     private void mergeForGivenDir(String agentOutputDirectory) throws MojoExecutionException {
         File baseDir = new File(agentOutputDirectory);
         if (baseDir.exists()) {
-            Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
-            tryInstallMergeExecutable(nativeImageExecutable);
             List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
             if (sessionDirectories.size() == 0) {
                 sessionDirectories = Collections.singletonList(baseDir);
             }
 
-            invokeMerge(mergerExecutable, sessionDirectories, baseDir);
+            invokeMerge(sessionDirectories, baseDir);
         } else {
             getLog().debug("Agent output directory " + baseDir + " doesn't exist. Skipping merge.");
         }
@@ -135,11 +131,8 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
                 .filter(f -> f.getName().startsWith("session-"));
     }
 
-    private void invokeMerge(File mergerExecutable, List<File> inputDirectories, File outputDirectory) throws MojoExecutionException {
-        if (!mergerExecutable.exists()) {
-            getLog().warn("Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM.");
-            return;
-        }
+    private void invokeMerge(List<File> inputDirectories, File outputDirectory) throws MojoExecutionException {
+        File mergerExecutable = getMergerExecutable();
         try {
             if (inputDirectories.isEmpty()) {
                 getLog().warn("Skipping merging of agent files since there are no input directories.");
