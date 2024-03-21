@@ -42,12 +42,12 @@
 package org.graalvm.buildtools.maven.config;
 
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.codehaus.plexus.logging.Logger;
-import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 
 import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
@@ -58,32 +58,24 @@ public abstract class AbstractMergeAgentFilesMojo extends AbstractMojo {
     @Component
     protected Logger logger;
 
-    protected File mergerExecutable;
+    private File mergerExecutable;
 
-    protected void tryInstallMergeExecutable(Path nativeImageExecutablePath) {
-        if (mergerExecutable != null && mergerExecutable.exists()) {
-            return;
+    public File getMergerExecutable() throws MojoExecutionException {
+        if (mergerExecutable == null) {
+            initializeMergerExecutable();
         }
 
-        File nativeImageExecutable = nativeImageExecutablePath.toAbsolutePath().toFile();
+        return mergerExecutable;
+    }
+
+    private void initializeMergerExecutable() throws MojoExecutionException {
+        Path nativeImage = NativeImageConfigurationUtils.getNativeImage(logger);
+        File nativeImageExecutable = nativeImage.toAbsolutePath().toFile();
         File mergerExecutable = new File(nativeImageExecutable.getParentFile(), nativeImageConfigureFileName());
         if (!mergerExecutable.exists()) {
-            getLog().info("Installing native image merger to " + mergerExecutable);
-            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
-            processBuilder.command().add("--macro:native-image-configure-launcher");
-            processBuilder.directory(mergerExecutable.getParentFile());
-            processBuilder.inheritIO();
-
-            try {
-                Process installProcess = processBuilder.start();
-                if (installProcess.waitFor() != 0) {
-                    getLog().warn("Installation of native image merging tool failed");
-                }
-                NativeImageUtils.maybeCreateConfigureUtilSymlink(mergerExecutable, nativeImageExecutablePath);
-            } catch (IOException | InterruptedException e) {
-                // ignore since we will handle that if the installer doesn't exist later
-            }
-
+            throw new MojoExecutionException("'" + nativeImageConfigureFileName() + "' tool was not found in your " + nativeImage + "." +
+                    "This probably means that the JDK at '" + nativeImage + "' is not a GraalVM distribution."
+            );
         }
 
         this.mergerExecutable = mergerExecutable;
