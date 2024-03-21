@@ -50,12 +50,10 @@ import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
 import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
 import org.graalvm.buildtools.maven.config.agent.MetadataCopyConfiguration;
-import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -113,8 +111,6 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
                 }
             }
 
-            Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
-            tryInstallMergeExecutable(nativeImageExecutable);
             executeCopy(buildDirectory, destinationDir);
             getLog().info("Metadata copy process finished.");
         }
@@ -155,7 +151,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         logger.info("Copying files from: " + sourceDirsInfo);
 
         List<String> nativeImageConfigureOptions = new StandardAgentMode().getNativeImageConfigureOptions(sourceDirectories, Collections.singletonList(destinationDir));
-        nativeImageConfigureOptions.add(0, mergerExecutable.getAbsolutePath());
+        nativeImageConfigureOptions.add(0, getMergerExecutable().getAbsolutePath());
         ProcessBuilder processBuilder = new ProcessBuilder(nativeImageConfigureOptions);
 
         try {
