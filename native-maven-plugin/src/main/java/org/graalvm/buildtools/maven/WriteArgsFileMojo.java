@@ -47,7 +47,11 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Persists the arguments file to be used by the native-image command. This can be useful in situations where
@@ -67,6 +71,24 @@ public class WriteArgsFileMojo extends NativeCompileNoForkMojo {
     @Override
     public void execute() throws MojoExecutionException {
         List<String> args = getBuildArgs();
+
+        getLog().info("Cleaning old native image build args");
+
+        try (Stream<Path> listStream = Files.list(outputDirectory.toPath())) {
+            listStream.map(path -> path.getFileName().toString())
+                    .filter(f -> f.startsWith("native-image") && f.endsWith("args"))
+                    .map(outputDirectory.toPath()::resolve)
+                    .forEach(file -> {
+                        try {
+                            Files.delete(file);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         List<String> conversionResult = NativeImageUtils.convertToArgsFile(args, outputDirectory.toPath());
         if (conversionResult.size() == 1) {
             String argsFileName = conversionResult.get(0).replace("@", "");
