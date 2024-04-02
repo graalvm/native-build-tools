@@ -72,7 +72,7 @@ public class WriteArgsFileMojo extends NativeCompileNoForkMojo {
     public void execute() throws MojoExecutionException {
         List<String> args = getBuildArgs();
 
-        getLog().info("Cleaning old native image build args");
+        getLog().debug("Cleaning old native image build args");
 
         try (Stream<Path> listStream = Files.list(outputDirectory.toPath())) {
             listStream.map(path -> path.getFileName().toString())
@@ -86,7 +86,7 @@ public class WriteArgsFileMojo extends NativeCompileNoForkMojo {
                         }
                     });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new MojoExecutionException(e);
         }
 
         List<String> conversionResult = NativeImageUtils.convertToArgsFile(args, outputDirectory.toPath());
