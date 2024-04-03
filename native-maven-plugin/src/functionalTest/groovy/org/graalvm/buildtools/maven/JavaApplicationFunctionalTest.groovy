@@ -121,6 +121,14 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         then:
         buildSucceeded
         outputContains "Args file written to: target" + File.separator + "native-image"
+
+        when:
+        mvn '-DquickBuild', '-Pnative', 'native:write-args-file'
+
+        then:
+        buildSucceeded
+        outputContains "Args file written to: target" + File.separator + "native-image"
+        file("target/").listFiles().findAll(x->x.name.contains("native-image") && x.name.endsWith(".args")).size() == 1
     }
 
 }
