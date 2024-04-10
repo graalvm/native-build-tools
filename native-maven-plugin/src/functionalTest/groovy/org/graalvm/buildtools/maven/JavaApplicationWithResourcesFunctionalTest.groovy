@@ -58,10 +58,9 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         where:
         detection | includedPatterns               | restrictToModules | detectionExclusionPatterns | ignoreExistingResourcesConfig
         false     | [Pattern.quote("message.txt")] | false             | []                         | true
-        false     | [Pattern.quote("message.txt")] | false             | []                         | false
         true      | []                             | false             | ["META-INF/.*"]            | true
         true      | []                             | true              | ["META-INF/.*"]            | true
-        true      | []                             | true              | ["META-INF/.*"]            | false
+        true      | []                             | true              | []                         | false
     }
 
     def "can test an application which uses test resources"() {
@@ -118,10 +117,9 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         where:
         detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns                     | ignoreExistingResourcesConfig
         false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                             | true
-        false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                             | false
+        true      | []                                                                             | false             | []                                             | false
         true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"] | true
         true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"] | true
-        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"] | false
     }
 
     private static String joinForCliArg(List<String> patterns) {
