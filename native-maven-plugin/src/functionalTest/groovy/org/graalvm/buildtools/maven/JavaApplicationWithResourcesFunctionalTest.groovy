@@ -20,6 +20,9 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         if (!restrictToModules) {
             options << '-Dresources.autodetection.restrictToModuleDependencies=false'
         }
+        if (ignoreExistingResourcesConfig) {
+            options << '-Dresources.autodetection.ignoreExistingResourcesConfig=true'
+        }
         if (detectionExclusionPatterns) {
             options << "-Dresources.autodetection.detectionExclusionPatterns=${joinForCliArg(detectionExclusionPatterns)}".toString()
         }
@@ -32,7 +35,8 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         outputContains "Hello, native!"
 
         and:
-        matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
+        if (ignoreExistingResourcesConfig) {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -41,12 +45,23 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
   },
   "bundles" : [ ]
 }''')
+        } else {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}''')
+        }
 
         where:
-        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns
-        false     | [Pattern.quote("message.txt")] | false             | []
-        true      | []                             | false             | ["META-INF/.*"]
-        true      | []                             | true              | ["META-INF/.*"]
+        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns | ignoreExistingResourcesConfig
+        false     | [Pattern.quote("message.txt")] | false             | []                         | true
+        false     | [Pattern.quote("message.txt")] | false             | []                         | false
+        true      | []                             | false             | ["META-INF/.*"]            | true
+        true      | []                             | true              | ["META-INF/.*"]            | true
+        true      | []                             | true              | ["META-INF/.*"]            | false
     }
 
     def "can test an application which uses test resources"() {
@@ -64,6 +79,9 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         if (!restrictToModules) {
             options << '-Dresources.autodetection.restrictToModuleDependencies=false'
         }
+        if (ignoreExistingResourcesConfig) {
+            options << '-Dresources.autodetection.ignoreExistingResourcesConfig=true'
+        }
         if (detectionExclusionPatterns) {
             options << "-Dresources.autodetection.detectionExclusionPatterns=${joinForCliArg(detectionExclusionPatterns)}".toString()
         }
@@ -75,7 +93,8 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         buildSucceeded
 
         and:
-        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, '''{
+        if (ignoreExistingResourcesConfig) {
+            matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -86,12 +105,23 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
   },
   "bundles" : [ ]
 }''')
+        } else {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}''')
+        }
 
         where:
-        detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns
-        false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []
-        true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"]
-        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"]
+        detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns                     | ignoreExistingResourcesConfig
+        false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                             | true
+        false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                             | false
+        true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"] | true
+        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"] | true
+        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"] | false
     }
 
     private static String joinForCliArg(List<String> patterns) {
