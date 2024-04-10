@@ -71,9 +71,10 @@ public abstract class AbstractMergeAgentFilesMojo extends AbstractMojo {
     private void initializeMergerExecutable() throws MojoExecutionException {
         Path nativeImage = NativeImageConfigurationUtils.getNativeImage(logger);
         File nativeImageExecutable = nativeImage.toAbsolutePath().toFile();
-        File mergerExecutable = new File(nativeImageExecutable.getParentFile(), nativeImageConfigureFileName());
+        String configureFileName = nativeImageConfigureFileName();
+        File mergerExecutable = new File(nativeImageExecutable.getParentFile(), configureFileName);
         if (!mergerExecutable.exists()) {
-            throw new MojoExecutionException("'" + nativeImageConfigureFileName() + "' tool was not found in your " + nativeImage + "." +
+            throw new MojoExecutionException("'" + configureFileName + "' tool was not found in your " + nativeImage + "." +
                     "This probably means that the JDK at '" + nativeImage + "' is not a GraalVM distribution."
             );
         }
