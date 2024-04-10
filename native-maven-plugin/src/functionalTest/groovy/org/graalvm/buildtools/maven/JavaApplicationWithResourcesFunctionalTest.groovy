@@ -117,7 +117,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         where:
         detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns                     | ignoreExistingResourcesConfig
         false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                             | true
-        true      | []                                                                             | false             | []                                             | false
+        true      | []                                                                             | true              | []                                             | false
         true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"] | true
         true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"] | true
     }
