@@ -68,7 +68,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 //        withDebug()
         withSample("java-application-with-resources")
 
-        List<String> options = []
+        List<String> options = ['-Dresources.autodetection.ignoreExistingResourcesConfig=true']
         if (detection) {
             options << '-Dresources.autodetection.enabled=true'
         }
