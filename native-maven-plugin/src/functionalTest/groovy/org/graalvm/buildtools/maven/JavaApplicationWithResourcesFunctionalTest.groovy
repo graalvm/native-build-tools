@@ -20,11 +20,26 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         if (!restrictToModules) {
             options << '-Dresources.autodetection.restrictToModuleDependencies=false'
         }
+        if (ignoreExistingResourcesConfig) {
+            options << '-Dresources.autodetection.ignoreExistingResourcesConfig=true'
+        }
         if (detectionExclusionPatterns) {
             options << "-Dresources.autodetection.detectionExclusionPatterns=${joinForCliArg(detectionExclusionPatterns)}".toString()
         }
 
         when:
+        def resourcesFile = file("src/main/resources/META-INF/native-image/app/resource-config.json")
+        resourcesFile.parentFile.mkdirs()
+        resourcesFile << """
+{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}
+        """
+
         mvn(['-Pnative', '-DquickBuild', '-DskipTests', *options, 'package', 'exec:exec@native'])
 
         then:
@@ -32,7 +47,8 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         outputContains "Hello, native!"
 
         and:
-        matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
+        if (ignoreExistingResourcesConfig) {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -41,12 +57,22 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
   },
   "bundles" : [ ]
 }''')
+        } else {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}''')
+        }
 
         where:
-        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns
-        false     | [Pattern.quote("message.txt")] | false             | []
-        true      | []                             | false             | ["META-INF/.*"]
-        true      | []                             | true              | ["META-INF/.*"]
+        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns | ignoreExistingResourcesConfig
+        false     | [Pattern.quote("message.txt")] | false             | []                         | true
+        true      | []                             | false             | ["META-INF/.*"]            | true
+        true      | []                             | true              | ["META-INF/.*"]            | true
+        true      | []                             | true              | []                         | false
     }
 
     def "can test an application which uses test resources"() {

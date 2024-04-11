@@ -102,7 +102,7 @@ class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            if (inNativeImageDir && relativePathOf(file).endsWith("resource-config.json")) {
+            if (!ignoreExistingResourcesConfig && inNativeImageDir && relativePathOf(file).endsWith("resource-config.json")) {
                 hasNativeImageResourceFile = true;
                 return FileVisitResult.TERMINATE;
             }

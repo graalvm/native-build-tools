@@ -59,9 +59,9 @@ abstract class AbstractFunctionalTest extends Specification {
     boolean debug
     boolean hasConfigurationCache = Boolean.getBoolean("config.cache")
 
-    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
-    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows")
+    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux")
+    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac")
 
     private StringWriter outputWriter
     private StringWriter errorOutputWriter
