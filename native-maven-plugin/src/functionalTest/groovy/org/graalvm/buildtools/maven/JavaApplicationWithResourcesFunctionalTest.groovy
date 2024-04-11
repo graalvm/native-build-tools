@@ -28,6 +28,18 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         }
 
         when:
+        def resourcesFile = file("src/main/resources/META-INF/native-image/app/resource-config.json")
+        resourcesFile.parentFile.mkdirs()
+        resourcesFile << """
+{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}
+        """
+
         mvn(['-Pnative', '-DquickBuild', '-DskipTests', *options, 'package', 'exec:exec@native'])
 
         then:
@@ -68,7 +80,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 //        withDebug()
         withSample("java-application-with-resources")
 
-        List<String> options = ['-Dresources.autodetection.ignoreExistingResourcesConfig=true']
+        List<String> options = []
         if (detection) {
             options << '-Dresources.autodetection.enabled=true'
         }

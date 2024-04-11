@@ -1,9 +1,0 @@
-{
-  "resources" : {
-    "includes" : [ {
-      "pattern" : "\\Qmessage.txt\\E"
-    } ],
-    "excludes" : [ ]
-  },
-  "bundles" : [ ]
-}
