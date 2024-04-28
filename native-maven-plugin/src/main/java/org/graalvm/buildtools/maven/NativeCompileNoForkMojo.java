@@ -71,6 +71,9 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     @Parameter(property = "skipNativeBuild", defaultValue = "false")
     private boolean skip;
 
+    @Parameter(property = "skipNativeBuildForPom", defaultValue = "false")
+    private boolean skipNativeBuildForPom;
+
     private PluginParameterExpressionEvaluator evaluator;
 
     @Override
@@ -85,6 +88,11 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     public void execute() throws MojoExecutionException {
         if (skip) {
             logger.info("Skipping native-image generation (parameter 'skipNativeBuild' is true).");
+            return;
+        }
+
+        if(skipNativeBuildForPom && project.getPackaging().equals("pom")) {
+            logger.info("Skipping native-image generation (parameter 'skipNativeBuildForPom' is true).");
             return;
         }
 
