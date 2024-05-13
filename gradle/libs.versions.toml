@@ -1,6 +1,6 @@
 [versions]
 # Project versions
-nativeBuildTools = "0.10.2-SNAPSHOT"
+nativeBuildTools = "0.10.2"
 metadataRepository = "0.3.8"
 
 # External dependencies
