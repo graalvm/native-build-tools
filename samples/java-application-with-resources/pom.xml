@@ -51,9 +51,9 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <native.maven.plugin.version>0.10.2</native.maven.plugin.version>
+        <native.maven.plugin.version>0.10.3-SNAPSHOT</native.maven.plugin.version>
         <junit.jupiter.version>5.10.0</junit.jupiter.version>
-        <junit.platform.native.version>0.10.2</junit.platform.native.version>
+        <junit.platform.native.version>0.10.3-SNAPSHOT</junit.platform.native.version>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.demo.Application</mainClass>
     </properties>
