@@ -40,6 +40,7 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
+import org.graalvm.buildtools.utils.ExponentialBackoff;
 import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
@@ -66,6 +67,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -85,6 +87,10 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
     protected abstract FileSystemOperations getFileOperations();
 
     public interface Params extends BuildServiceParameters {
+        Property<Integer> getBackoffMaxRetries();
+
+        Property<Integer> getInitialBackoffMillis();
+
         Property<LogLevel> getLogLevel();
 
         Property<URI> getUri();
@@ -124,14 +130,16 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
                         throw new RuntimeException(e);
                     }
                 }
-
-                try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(zipped)) {
-                        fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                ExponentialBackoff.get()
+                    .withMaxRetries(getParameters().getBackoffMaxRetries().get())
+                    .withInitialWaitPeriod(Duration.ofMillis(getParameters().getInitialBackoffMillis().get()))
+                    .execute(() -> {
+                        try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
+                            try (FileOutputStream fileOutputStream = new FileOutputStream(zipped)) {
+                                fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                            }
+                        }
+                    });
             }
             return newRepositoryFromZipFile(cacheKey, zipped, logLevel);
         }

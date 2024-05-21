@@ -466,6 +466,12 @@ public class NativeImagePlugin implements Plugin<Project> {
                     spec.getParameters().getUri().set(repositoryExtension.getUri().map(serializableTransformerOf(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, m -> logFallbackToDefaultUri(m, logger)))));
                     spec.getParameters().getCacheDir().set(
                             new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
+                    spec.getParameters().getBackoffMaxRetries().convention(
+                        GradleUtils.intProperty(project.getProviders(), "exponential.backoff.max.retries", 3)
+                    );
+                    spec.getParameters().getInitialBackoffMillis().convention(
+                        GradleUtils.intProperty(project.getProviders(), "exponential.backoff.initial.delay", 100)
+                    );
                 });
     }
 

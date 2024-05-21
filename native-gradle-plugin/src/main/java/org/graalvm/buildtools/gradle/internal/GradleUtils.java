@@ -48,6 +48,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.util.GradleVersion;
@@ -77,17 +79,28 @@ public class GradleUtils {
         ConfigurableFileCollection transitiveProjectArtifacts = project.getObjects().fileCollection();
         transitiveProjectArtifacts.from(findMainArtifacts(project));
         transitiveProjectArtifacts.from(findConfiguration(project, name)
-                .getIncoming()
-                .artifactView(view -> view.componentFilter(ProjectComponentIdentifier.class::isInstance))
-                .getFiles());
+            .getIncoming()
+            .artifactView(view -> view.componentFilter(ProjectComponentIdentifier.class::isInstance))
+            .getFiles());
         return transitiveProjectArtifacts;
     }
 
     public static FileCollection findMainArtifacts(Project project) {
         return findConfiguration(project, JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-                .getOutgoing()
-                .getArtifacts()
-                .getFiles();
+            .getOutgoing()
+            .getArtifacts()
+            .getFiles();
     }
 
+    public static Provider<Integer> intProperty(ProviderFactory providers, String propertyName, int defaultValue) {
+        return stringProperty(providers, propertyName)
+            .map(Integer::parseInt)
+            .orElse(defaultValue);
+    }
+
+    private static Provider<String> stringProperty(ProviderFactory providers, String propertyName) {
+        return providers.systemProperty(propertyName)
+            .orElse(providers.gradleProperty(propertyName))
+            .orElse(providers.environmentVariable(propertyName.replace('.', '_').toUpperCase()));
+    }
 }

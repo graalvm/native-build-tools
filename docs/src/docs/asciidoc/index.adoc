@@ -19,6 +19,12 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [[changelog]]
 == Changelog
 
+=== Release 0.10.3
+
+==== Gradle plugin
+
+- Add retries when downloading the metadata repository when using a URL directly
+
 === Release 0.10.1
 
 - Mark additional JUnit 5 types for build-time initialization for compatibility with Native Image's `--strict-image-heap` option.
