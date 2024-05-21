@@ -59,6 +59,7 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
+import org.graalvm.buildtools.utils.ExponentialBackoff;
 import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
@@ -73,6 +74,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -103,6 +105,12 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Parameter(alias = "metadataRepository")
     protected MetadataRepositoryConfiguration metadataRepositoryConfiguration;
+
+    @Parameter(defaultValue = "3")
+    protected int metadataRepositoryMaxRetries;
+
+    @Parameter(defaultValue = "100")
+    protected int metadataRepositoryInitialBackoffMillis;
 
     protected final Set<DirectoryConfiguration> metadataRepositoryConfigurations;
 
@@ -207,7 +215,11 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 }
             }
 
-            return downloadMetadataRepo(destinationRoot, targetUrl);
+            URL finalTargetUrl = targetUrl;
+            return ExponentialBackoff.get()
+                .withMaxRetries(metadataRepositoryMaxRetries)
+                .withInitialWaitPeriod(Duration.ofMillis(metadataRepositoryInitialBackoffMillis))
+                .supply(() -> downloadMetadataRepo(destinationRoot, finalTargetUrl));
         }
     }
 
