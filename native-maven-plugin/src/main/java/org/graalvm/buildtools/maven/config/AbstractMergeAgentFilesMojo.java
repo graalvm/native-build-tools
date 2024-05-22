@@ -74,8 +74,9 @@ public abstract class AbstractMergeAgentFilesMojo extends AbstractMojo {
         String nativeImageConfigureFileName = nativeImageConfigureFileName();
         File mergerExecutable = new File(nativeImageExecutable.getParentFile(), nativeImageConfigureFileName);
         if (!mergerExecutable.exists()) {
-            throw new MojoExecutionException("'" + nativeImageConfigureFileName + "' tool was not found in the GraalVM JDK at '" + nativeImageExecutable.getParentFile().getParentFile() + "'." +
-                    "This probably means that you are using a GraalVM distribution that is not fully supported by the Native Build Tools."
+            throw new MojoExecutionException("The '" + nativeImageConfigureFileName + "' tool was not found in the GraalVM JDK at '" + nativeImageExecutable.getParentFile().getParentFile() + "'." +
+                    "This probably means that you are using a GraalVM distribution that is not fully supported by the Native Build Tools. " +
+                    "Please try again, for example, with Oracle GraalVM or GraalVM Community Edition."
             );
         }
 

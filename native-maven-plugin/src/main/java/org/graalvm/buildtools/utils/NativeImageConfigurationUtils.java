@@ -128,8 +128,8 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
         }
 
         if (nativeImage == null) {
-            throw new RuntimeException("GraalVM native-image is missing on your system. " + System.lineSeparator() +
-                    "Make sure that GRAALVM_HOME environment variable is present.");
+            throw new RuntimeException("The 'native-image' tool was not found on your system. " + System.lineSeparator() +
+                    "Make sure that the JAVA_HOME or GRAALVM_HOME environment variables point to a GraalVM JDK, or that 'native-image' is on the system path.");
         }
 
         nativeImageExeCache = nativeImage;
