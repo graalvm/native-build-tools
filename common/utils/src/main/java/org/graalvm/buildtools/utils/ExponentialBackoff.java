@@ -24,13 +24,13 @@ import java.time.temporal.ChronoUnit;
  */
 public class ExponentialBackoff {
     private static final int DEFAULT_MAX_RETRIES = 3;
-    private static final Duration INITIAL_WAIT_PERIOD = Duration.of(250, ChronoUnit.MILLIS);
+    private static final Duration DEFAULT_INITIAL_WAIT_PERIOD = Duration.of(250, ChronoUnit.MILLIS);
 
     private final int maxRetries;
     private final Duration initialWaitPeriod;
 
     public ExponentialBackoff() {
-        this(DEFAULT_MAX_RETRIES, INITIAL_WAIT_PERIOD);
+        this(DEFAULT_MAX_RETRIES, DEFAULT_INITIAL_WAIT_PERIOD);
     }
 
     private ExponentialBackoff(int maxRetries, Duration initialWaitPeriod) {
