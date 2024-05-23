@@ -171,11 +171,6 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#logger">logger</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><code>protected java.io.File</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#mergerExecutable">mergerExecutable</a></span></code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="fields.inherited.from.class.org.apache.maven.plugin.Mojo">
@@ -223,8 +218,8 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#tryInstallMergeExecutable(java.nio.file.Path)">tryInstallMergeExecutable</a></span>&#8203;(java.nio.file.Path&nbsp;nativeImageExecutablePath)</code></th>
+<td class="colFirst"><code>java.io.File</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMergerExecutable()">getMergerExecutable</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </table>
@@ -268,20 +263,11 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <a id="logger">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>logger</h4>
 <pre>@Component
 protected&nbsp;org.codehaus.plexus.logging.Logger logger</pre>
-</li>
-</ul>
-<a id="mergerExecutable">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>mergerExecutable</h4>
-<pre>protected&nbsp;java.io.File mergerExecutable</pre>
 </li>
 </ul>
 </li>
@@ -313,13 +299,18 @@ protected&nbsp;org.codehaus.plexus.logging.Logger logger</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="tryInstallMergeExecutable(java.nio.file.Path)">
+<a id="getMergerExecutable()">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>tryInstallMergeExecutable</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;tryInstallMergeExecutable&#8203;(java.nio.file.Path&nbsp;nativeImageExecutablePath)</pre>
+<h4>getMergerExecutable</h4>
+<pre class="methodSignature">public&nbsp;java.io.File&nbsp;getMergerExecutable()
+                                 throws org.apache.maven.plugin.MojoExecutionException</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
 </li>
 </ul>
 </li>
