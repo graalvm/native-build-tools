@@ -21,6 +21,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 === Release 0.10.3
 
+- Remove usage of macro from merger tool initialization and throw better error if executable does not exist
+
 ==== Gradle plugin
 
 - Add retries when downloading the metadata repository when using a URL directly
