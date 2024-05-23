@@ -128,7 +128,7 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
         }
 
         if (nativeImage == null) {
-            throw new RuntimeException("The 'native-image' tool was not found on your system. " + System.lineSeparator() +
+            throw new RuntimeException("The 'native-image' tool was not found on your system. " +
                     "Make sure that the JAVA_HOME or GRAALVM_HOME environment variables point to a GraalVM JDK, or that 'native-image' is on the system path.");
         }
 
