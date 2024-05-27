@@ -31,6 +31,22 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 - Add retries when downloading the metadata repository when using a URL directly
 
+
+=== Release 0.10.2
+
+- Fix class path directory analyzer
+- Update Reachability Metadata repository version
+
+==== Gradle plugin
+
+- Update Default Target Directory for MetadataCopy Task
+
+==== Maven plugin
+
+- Update Getting Started with Maven Plugin doc
+- Delete old stale args file
+- Add a parameter to be able to skip build native for pom type modules, leave it as false per default for backward compat
+
 === Release 0.10.1
 
 - Mark additional JUnit 5 types for build-time initialization for compatibility with Native Image's `--strict-image-heap` option.
