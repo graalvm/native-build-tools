@@ -55,24 +55,24 @@ import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.InputStream;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -82,11 +82,13 @@ import java.util.stream.Stream;
 
 /**
  * @author Sebastien Deleuze
+ * @author Loic Lefevre
  */
 public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
+    protected static final String MODULE_INFO_CLASS = "module-info.class";
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -112,6 +114,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "classpath")
     protected List<String> classpath;
 
+    @Parameter(property = "module-path")
+    protected List<String> modulepath;
+
     @Parameter(property = "classesDirectory")
     protected File classesDirectory;
 
@@ -119,6 +124,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected File defaultClassesDirectory;
 
     protected final List<Path> imageClasspath;
+    protected final List<Path> imageModulepath;
 
     @Parameter(property = "debug", defaultValue = "false")
     protected boolean debug;
@@ -174,7 +180,26 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Inject
     protected AbstractNativeImageMojo() {
         imageClasspath = new ArrayList<>();
+        imageModulepath = new ArrayList<>();
         useArgFile = SharedConstants.IS_WINDOWS;
+    }
+
+    static class PathItem {
+        private final Path path;
+        private final boolean module;
+
+        public PathItem(Path path, boolean module) {
+            this.path = path;
+            this.module = module;
+        }
+
+        public Path getPath() {
+            return path;
+        }
+
+        public boolean isModule() {
+            return module;
+        }
     }
 
     protected List<String> getBuildArgs() throws MojoExecutionException {
@@ -190,6 +215,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
         cliArgs.add("-cp");
         cliArgs.add(getClasspath());
+
+        cliArgs.add("--module-path");
+        cliArgs.add(getModulepath());
 
         if (debug) {
             cliArgs.add("-g");
@@ -262,11 +290,11 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         return Collections.unmodifiableList(actualCliArgs);
     }
 
-    protected Path processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
+    protected PathItem processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
         return processArtifact(artifact, "jar", "test-jar", "war");
     }
 
-    protected Path processArtifact(Artifact artifact, String... artifactTypes) throws MojoExecutionException {
+    protected PathItem processArtifact(Artifact artifact, String... artifactTypes) throws MojoExecutionException {
         File artifactFile = artifact.getFile();
 
         if (artifactFile == null) {
@@ -286,12 +314,17 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         Path jarFilePath = artifactFile.toPath();
         logger.debug("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");
 
-        warnIfWrongMetaInfLayout(jarFilePath, artifact);
-        return jarFilePath;
+        return warnIfWrongMetaInfLayout(jarFilePath, artifact);
     }
 
     protected void addArtifactToClasspath(Artifact artifact) throws MojoExecutionException {
-        Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(imageClasspath::add);
+        Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(pathItem -> {
+            if(pathItem.isModule()) {
+				imageModulepath.add(pathItem.getPath());
+			} else {
+				imageClasspath.add(pathItem.getPath());
+			}
+        });
     }
 
     private static FileSystem openFileSystem(URI uri) throws IOException {
@@ -304,13 +337,17 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
       return fs;
     }
 
-    protected void warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
+    protected PathItem warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
         if (jarFilePath.toFile().isDirectory()) {
             logger.debug("Artifact `" + jarFilePath + "` is a directory.");
-            return;
+            return null;
         }
         URI jarFileURI = URI.create("jar:" + jarFilePath.toUri());
+        Boolean module = null;
         try (FileSystem jarFS = openFileSystem(jarFileURI)) {
+            // check if this is a module!
+            Path moduleInfoClass = jarFS.getPath("/" + MODULE_INFO_CLASS);
+            module = Files.exists(moduleInfoClass);
             Path nativeImageMetaInfBase = jarFS.getPath("/" + NATIVE_IMAGE_META_INF);
             if (Files.isDirectory(nativeImageMetaInfBase)) {
                 try (Stream<Path> stream = Files.walk(nativeImageMetaInfBase)) {
@@ -330,8 +367,10 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 }
             }
         } catch (IOException e) {
-            throw new MojoExecutionException("Artifact " + artifact + "cannot be added to image classpath", e);
+            throw new MojoExecutionException("Artifact " + artifact + "cannot be added to image classpath or module path", e);
         }
+
+        return new PathItem(jarFilePath, module);
     }
 
     protected abstract List<String> getDependencyScopes();
@@ -354,16 +393,21 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     /**
      * Returns path to where application classes are stored, or jar artifact if it is produced.
+	 * @param forModulePath denotes if the build path should be added to the image classpath or image module path
      * @return Path to application classes
      * @throws MojoExecutionException failed getting main build path
      */
-    protected Path getMainBuildPath() throws MojoExecutionException {
+    protected Path getMainBuildPath(boolean forModulePath) throws MojoExecutionException {
         if (classesDirectory != null) {
-            return classesDirectory.toPath();
+            if(!forModulePath) {
+                return classesDirectory.toPath();
+            } else {
+                return defaultClassesDirectory.toPath();
+            }
         } else {
-            Path artifactPath = processArtifact(project.getArtifact(), project.getPackaging());
-            if (artifactPath != null) {
-                return artifactPath;
+            PathItem artifactPath = processArtifact(project.getArtifact(), project.getPackaging());
+            if (artifactPath != null && forModulePath == artifactPath.isModule()) {
+                return artifactPath.getPath();
             } else {
                 return defaultClassesDirectory.toPath();
             }
@@ -371,7 +415,11 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected void populateApplicationClasspath() throws MojoExecutionException {
-        imageClasspath.add(getMainBuildPath());
+        imageClasspath.add(getMainBuildPath(false));
+    }
+
+    protected void populateApplicationModulepath() throws MojoExecutionException {
+        imageModulepath.add(getMainBuildPath(true));
     }
 
     protected void populateClasspath() throws MojoExecutionException {
@@ -387,6 +435,19 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
         imageClasspath.removeIf(entry -> !entry.toFile().exists());
     }
+    protected void populateModulepath() throws MojoExecutionException {
+        if (modulepath != null && !modulepath.isEmpty()) {
+            imageModulepath.addAll(modulepath.stream()
+                    .map(Paths::get)
+                    .map(Path::toAbsolutePath)
+                    .collect(Collectors.toSet())
+            );
+        } else {
+            populateApplicationModulepath();
+            addDependenciesToClasspath();
+        }
+        imageModulepath.removeIf(entry -> !entry.toFile().exists());
+    }
 
     protected String getClasspath() throws MojoExecutionException {
         populateClasspath();
@@ -395,6 +456,17 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     "Check if your classpath configuration is correct.");
         }
         return imageClasspath.stream()
+                .map(Path::toString)
+                .collect(Collectors.joining(File.pathSeparator));
+    }
+
+    protected String getModulepath() throws MojoExecutionException {
+        populateModulepath();
+        if (imageModulepath.isEmpty()) {
+            throw new MojoExecutionException("Image module path is empty. " +
+                    "Check if your module path configuration is correct.");
+        }
+        return imageModulepath.stream()
                 .map(Path::toString)
                 .collect(Collectors.joining(File.pathSeparator));
     }
