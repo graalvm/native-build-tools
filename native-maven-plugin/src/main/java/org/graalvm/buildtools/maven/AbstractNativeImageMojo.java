@@ -126,8 +126,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected final List<Path> imageClasspath;
     protected final List<Path> imageModulepath;
 
-    @Parameter(property = "inferModulePath", defaultValue = "false")
-    protected boolean inferModulePath;
+    // Experimental feature
+    @Parameter(property = "experimentalInferModulePath", defaultValue = "false")
+    protected boolean experimentalInferModulePath;
 
     @Parameter(property = "debug", defaultValue = "false")
     protected boolean debug;
@@ -219,7 +220,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         cliArgs.add("-cp");
         cliArgs.add(getClasspath());
 
-        if(inferModulePath) {
+        if(experimentalInferModulePath) {
             logger.info("Module path inference: enabled");
             cliArgs.add("--module-path");
             cliArgs.add(getModulepath());
@@ -353,7 +354,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         try (FileSystem jarFS = openFileSystem(jarFileURI)) {
             // check if this is a module!
             Path moduleInfoClass = jarFS.getPath("/" + MODULE_INFO_CLASS);
-            module = inferModulePath && Files.exists(moduleInfoClass);
+            module = experimentalInferModulePath && Files.exists(moduleInfoClass);
             Path nativeImageMetaInfBase = jarFS.getPath("/" + NATIVE_IMAGE_META_INF);
             if (Files.isDirectory(nativeImageMetaInfBase)) {
                 try (Stream<Path> stream = Files.walk(nativeImageMetaInfBase)) {
