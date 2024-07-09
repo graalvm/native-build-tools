@@ -240,7 +240,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     .collect(Collectors.joining(","))
             );
         }
-        logger.debug("ARGS:" + buildArgs);
+
         if (buildArgs != null && !buildArgs.isEmpty()) {
             for (String buildArg : buildArgs) {
                 if(buildArg.startsWith("\\Q") ||
