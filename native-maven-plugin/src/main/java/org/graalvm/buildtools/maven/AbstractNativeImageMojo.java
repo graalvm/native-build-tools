@@ -254,9 +254,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     if (a.startsWith(""+System.getProperty("user.home").charAt(0))) {
                         StringBuilder path = new StringBuilder(a);
                         i++;
-                        String tempArg = args[i].trim().toLowerCase();
-                        while(i < args.length && tempArg.charAt(0) <= 'z' &&
-                                tempArg.charAt(0) >= 'a') {
+                        while( i< args.length && args[i].toLowerCase().charAt(0) <= 'z' &&
+                                args[i].toLowerCase().charAt(0) >= 'a') {
                             path.append(" ").append(args[i]);
                             i++;
                         }
