@@ -54,8 +54,7 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
 abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
-    @TempDir
-    Path testDirectory
+    Path testDirectory = Path.of("C:\\Users\\Lahoucine EL ADDALI\\Desktop\\tests");
 
     Path testOrigin;
 
