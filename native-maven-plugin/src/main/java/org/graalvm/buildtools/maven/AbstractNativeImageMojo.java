@@ -240,10 +240,32 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     .collect(Collectors.joining(","))
             );
         }
-
+        logger.debug("ARGS:" + buildArgs);
         if (buildArgs != null && !buildArgs.isEmpty()) {
             for (String buildArg : buildArgs) {
-                cliArgs.addAll(Arrays.asList(buildArg.split("\\s+")));
+                if(buildArg.startsWith("\\Q") ||
+                        buildArg.startsWith("--H:ConfigurationFileDirectories")) {
+                    continue;
+                }
+                String[] args = buildArg.split("\\s+");
+                int i=0;
+                while(i < args.length) {
+                    String a =args[i];
+                    if (a.startsWith(""+System.getProperty("user.home").charAt(0))) {
+                        StringBuilder path = new StringBuilder(a);
+                        i++;
+                        String tempArg = args[i].trim().toLowerCase();
+                        while(i < args.length && tempArg.charAt(0) <= 'z' &&
+                                tempArg.charAt(0) >= 'a') {
+                            path.append(" ").append(args[i]);
+                            i++;
+                        }
+                        cliArgs.add(path.toString());
+                    } else {
+                        cliArgs.add(a);
+                        i++;
+                    }
+                }
             }
         }
 
