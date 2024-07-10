@@ -245,6 +245,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             for (String buildArg : buildArgs) {
                 if(buildArg.startsWith("\\Q") ||
                         buildArg.startsWith("--H:ConfigurationFileDirectories")) {
+                    cliArgs.add(buildArg);
                     continue;
                 }
                 String[] args = buildArg.split("\\s+");
