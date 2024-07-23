@@ -52,3 +52,4 @@ runs:
         git config --global user.name 'graalvm bot'
         git config --global user.email 'graalvmbot@users.noreply.github.com'
         echo "org.ajoberstar.grgit.auth.command.allow=true" >> gradle.properties
+        mkdir -p ~/test with whitespaces/.m2 
