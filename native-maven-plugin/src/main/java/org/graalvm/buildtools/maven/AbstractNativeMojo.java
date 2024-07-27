@@ -44,20 +44,23 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
-import org.graalvm.buildtools.Utils;
-import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
+import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
+import org.graalvm.buildtools.utils.ExponentialBackoff;
 import org.graalvm.buildtools.utils.FileUtils;
-import org.graalvm.buildtools.utils.NativeImageUtils;
-import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -69,34 +72,24 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.time.Duration;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEMPLATE;
 
 /**
  * @author Sebastien Deleuze
  */
-
 public abstract class AbstractNativeMojo extends AbstractMojo {
-    protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
-    protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
-    protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
+    private static final String GROUP_ID = "org.graalvm.buildtools";
+    private static final String GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID = "graalvm-reachability-metadata";
+    private static final String REPOSITORY_FORMAT = "zip";
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -107,81 +100,19 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
-    @Parameter(defaultValue = "${mojoExecution}")
-    protected MojoExecution mojoExecution;
-
-    @Parameter(property = "plugin.artifacts", required = true, readonly = true)
-    protected List<Artifact> pluginArtifacts;
-
-    @Parameter(defaultValue = "${project.build.directory}", property = "outputDir", required = true)
-    protected File outputDirectory;
-
-    @Parameter(property = "mainClass")
-    protected String mainClass;
-
-    @Parameter(property = "imageName", defaultValue = "${project.artifactId}")
-    protected String imageName;
-
-    @Parameter(property = "classpath")
-    protected List<String> classpath;
-
-    @Parameter(property = "classesDirectory")
-    protected File classesDirectory;
-
-    @Parameter(defaultValue = "${project.build.outputDirectory}", readonly = true, required = true)
-    protected File defaultClassesDirectory;
-
-    protected final List<Path> imageClasspath;
-
-    protected final Set<DirectoryConfiguration> metadataRepositoryConfigurations;
-
-    @Parameter(property = "debug", defaultValue = "false")
-    protected boolean debug;
-
-    @Parameter(property = "fallback", defaultValue = "false")
-    protected boolean fallback;
-
-    @Parameter(property = "verbose", defaultValue = "false")
-    protected boolean verbose;
-
-    @Parameter(property = "sharedLibrary", defaultValue = "false")
-    protected boolean sharedLibrary;
-
-    @Parameter(property = "quickBuild", defaultValue = "false")
-    protected boolean quickBuild;
-
-    @Parameter(property = "useArgFile")
-    protected Boolean useArgFile;
-
-    @Parameter(property = "buildArgs")
-    protected List<String> buildArgs;
-
-    @Parameter(defaultValue = "${project.build.directory}/native/generated", property = "resourcesConfigDirectory", required = true)
-    protected File resourcesConfigDirectory;
-
-    @Parameter(property = "agentResourceDirectory")
-    protected File agentResourceDirectory;
-
-    @Parameter(property = "excludeConfig")
-    protected List<ExcludeConfigConfiguration> excludeConfig;
-
-    @Parameter(property = "environmentVariables")
-    protected Map<String, String> environment;
-
-    @Parameter(property = "systemPropertyVariables")
-    protected Map<String, String> systemProperties;
-
-    @Parameter(property = "configurationFileDirectories")
-    protected List<String> configFiles;
-
-    @Parameter(property = "jvmArgs")
-    protected List<String> jvmArgs;
+    @Parameter(defaultValue = "${project.build.directory}/graalvm-reachability-metadata", required = true)
+    protected File reachabilityMetadataOutputDirectory;
 
     @Parameter(alias = "metadataRepository")
     protected MetadataRepositoryConfiguration metadataRepositoryConfiguration;
 
-    @Parameter(property = NATIVE_IMAGE_DRY_RUN, defaultValue = "false")
-    protected boolean dryRun;
+    @Parameter(defaultValue = "3")
+    protected int metadataRepositoryMaxRetries;
+
+    @Parameter(defaultValue = "100")
+    protected int metadataRepositoryInitialBackoffMillis;
+
+    protected final Set<DirectoryConfiguration> metadataRepositoryConfigurations;
 
     protected GraalVMReachabilityMetadataRepository metadataRepository;
 
@@ -189,334 +120,168 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected Logger logger;
 
     @Component
-    protected ToolchainManager toolchainManager;
+    protected MavenSession mavenSession;
+
+    @Component
+    protected RepositorySystem repositorySystem;
 
     @Inject
     protected AbstractNativeMojo() {
-        imageClasspath = new ArrayList<>();
         metadataRepositoryConfigurations = new HashSet<>();
-        useArgFile = SharedConstants.IS_WINDOWS;
-    }
-
-    protected List<String> getBuildArgs() throws MojoExecutionException {
-        final List<String> cliArgs = new ArrayList<>();
-
-        if (excludeConfig != null) {
-            excludeConfig.forEach(entry -> {
-                cliArgs.add("--exclude-config");
-                cliArgs.add(entry.getJarPath());
-                cliArgs.add(String.format("\"%s\"", entry.getResourcePattern()));
-            });
-        }
-
-        cliArgs.add("-cp");
-        cliArgs.add(getClasspath());
-
-        if (debug) {
-            cliArgs.add("-g");
-        }
-        if (!fallback) {
-            cliArgs.add("--no-fallback");
-        }
-        if (verbose) {
-            cliArgs.add("--verbose");
-        }
-        if (sharedLibrary) {
-            cliArgs.add("--shared");
-        }
-
-        // Let's allow user to specify environment option to toggle quick build.
-        String quickBuildEnv = System.getenv("GRAALVM_QUICK_BUILD");
-        if (quickBuildEnv != null) {
-            logger.warn("Quick build environment variable is set.");
-            quickBuild = quickBuildEnv.isEmpty() || Boolean.parseBoolean(quickBuildEnv);
-        }
-
-        if (quickBuild) {
-            cliArgs.add("-Ob");
-        }
-
-        cliArgs.add("-H:Path=" + outputDirectory.toPath().toAbsolutePath());
-        cliArgs.add("-H:Name=" + imageName);
-
-        if (systemProperties != null) {
-            for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
-                cliArgs.add("-D" + entry.getKey() + "=" + entry.getValue());
-            }
-        }
-
-        if (jvmArgs != null) {
-            jvmArgs.forEach(jvmArg -> cliArgs.add("-J" + jvmArg));
-        }
-
-        maybeAddGeneratedResourcesConfig(buildArgs);
-        maybeAddReachabilityMetadata(configFiles);
-
-        if (configFiles != null && !configFiles.isEmpty()) {
-            cliArgs.add("-H:ConfigurationFileDirectories=" +
-                    configFiles.stream()
-                    .map(Paths::get)
-                    .map(Path::toAbsolutePath)
-                    .map(Path::toString)
-                    .collect(Collectors.joining(","))
-            );
-        }
-
-        if (mainClass != null && !mainClass.equals(".")) {
-            cliArgs.add("-H:Class=" + mainClass);
-        }
-
-        if (buildArgs != null && !buildArgs.isEmpty()) {
-            for (String buildArg : buildArgs) {
-                cliArgs.addAll(Arrays.asList(buildArg.split("\\s+")));
-            }
-        }
-
-        if (useArgFile) {
-            Path tmpDir = Paths.get("target", "tmp");
-            return NativeImageUtils.convertToArgsFile(cliArgs, tmpDir);
-        }
-        return Collections.unmodifiableList(cliArgs);
-    }
-
-    protected Path processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
-        return processArtifact(artifact, "jar", "test-jar", "war");
-    }
-
-    protected Path processArtifact(Artifact artifact, String... artifactTypes) throws MojoExecutionException {
-        File artifactFile = artifact.getFile();
-
-        if (artifactFile == null) {
-            logger.debug("Missing artifact file for artifact " + artifact + " (type: " + artifact.getType() + ")");
-            return null;
-        }
-
-        if (Arrays.stream(artifactTypes).noneMatch(a -> a.equals(artifact.getType()))) {
-            logger.warn("Ignoring ImageClasspath Entry '" + artifact + "' with unsupported type '" + artifact.getType() + "'");
-            return null;
-        }
-        if (!artifactFile.exists()) {
-            throw new MojoExecutionException("Missing jar-file for " + artifact + ". " +
-                    "Ensure that " + plugin.getArtifactId() + " runs in package phase.");
-        }
-
-        Path jarFilePath = artifactFile.toPath();
-        logger.debug("ImageClasspath Entry: " + artifact + " (" + jarFilePath.toUri() + ")");
-
-        warnIfWrongMetaInfLayout(jarFilePath, artifact);
-        return jarFilePath;
-    }
-
-    protected void addArtifactToClasspath(Artifact artifact) throws MojoExecutionException {
-        Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(imageClasspath::add);
-    }
-
-    protected void warnIfWrongMetaInfLayout(Path jarFilePath, Artifact artifact) throws MojoExecutionException {
-        if (jarFilePath.toFile().isDirectory()) {
-            logger.debug("Artifact `" + jarFilePath + "` is a directory.");
-            return;
-        }
-        URI jarFileURI = URI.create("jar:" + jarFilePath.toUri());
-        try (FileSystem jarFS = FileSystems.newFileSystem(jarFileURI, Collections.emptyMap())) {
-            Path nativeImageMetaInfBase = jarFS.getPath("/" + NATIVE_IMAGE_META_INF);
-            if (Files.isDirectory(nativeImageMetaInfBase)) {
-                try (Stream<Path> stream = Files.walk(nativeImageMetaInfBase)) {
-                    List<Path> nativeImageProperties = stream
-                            .filter(p -> p.endsWith(NATIVE_IMAGE_PROPERTIES_FILENAME)).collect(Collectors.toList());
-                    for (Path nativeImageProperty : nativeImageProperties) {
-                        Path relativeSubDir = nativeImageMetaInfBase.relativize(nativeImageProperty).getParent();
-                        boolean valid = relativeSubDir != null && (relativeSubDir.getNameCount() == 2);
-                        valid = valid && relativeSubDir.getName(0).toString().equals(artifact.getGroupId());
-                        valid = valid && relativeSubDir.getName(1).toString().equals(artifact.getArtifactId());
-                        if (!valid) {
-                            String example = NATIVE_IMAGE_META_INF + "/%s/%s/" + NATIVE_IMAGE_PROPERTIES_FILENAME;
-                            example = String.format(example, artifact.getGroupId(), artifact.getArtifactId());
-                            logger.warn("Properties file at '" + nativeImageProperty.toUri() + "' does not match the recommended '" + example + "' layout.");
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new MojoExecutionException("Artifact " + artifact + "cannot be added to image classpath", e);
-        }
-    }
-
-    protected abstract List<String> getDependencyScopes();
-
-    protected void addDependenciesToClasspath() throws MojoExecutionException {
-        configureMetadataRepository();
-        for (Artifact dependency : project.getArtifacts().stream()
-                .filter(artifact -> getDependencyScopes().contains(artifact.getScope()))
-                .collect(Collectors.toSet())) {
-            addArtifactToClasspath(dependency);
-            maybeAddDependencyMetadata(dependency);
-        }
-    }
-
-    /**
-     * Returns path to where application classes are stored, or jar artifact if it is produced.
-     * @return Path to application classes
-     * @throws MojoExecutionException failed getting main build path
-     */
-    protected Path getMainBuildPath() throws MojoExecutionException {
-        if (classesDirectory != null) {
-            return classesDirectory.toPath();
-        } else {
-            Path artifactPath = processArtifact(project.getArtifact(), project.getPackaging());
-            if (artifactPath != null) {
-                return artifactPath;
-            } else {
-                return defaultClassesDirectory.toPath();
-            }
-        }
-    }
-
-    protected void populateApplicationClasspath() throws MojoExecutionException {
-        imageClasspath.add(getMainBuildPath());
-    }
-
-    protected void populateClasspath() throws MojoExecutionException {
-        if (classpath != null && !classpath.isEmpty()) {
-            imageClasspath.addAll(classpath.stream()
-                    .map(Paths::get)
-                    .map(Path::toAbsolutePath)
-                    .collect(Collectors.toSet())
-            );
-        } else {
-            populateApplicationClasspath();
-            addDependenciesToClasspath();
-        }
-        imageClasspath.removeIf(entry -> !entry.toFile().exists());
-    }
-
-    protected String getClasspath() throws MojoExecutionException {
-        populateClasspath();
-        if (imageClasspath.isEmpty()) {
-            throw new MojoExecutionException("Image classpath is empty. " +
-                    "Check if your classpath configuration is correct.");
-        }
-        return imageClasspath.stream()
-                .map(Path::toString)
-                .collect(Collectors.joining(File.pathSeparator));
-    }
-
-    protected void buildImage() throws MojoExecutionException {
-        Path nativeImageExecutable = Utils.getNativeImage(logger);
-
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
-            processBuilder.command().addAll(getBuildArgs());
-
-            if (environment != null) {
-                processBuilder.environment().putAll(environment);
-            }
-
-            if (!outputDirectory.exists() && !outputDirectory.mkdirs()) {
-                throw new MojoExecutionException("Failed creating output directory");
-            }
-            processBuilder.inheritIO();
-
-            String commandString = String.join(" ", processBuilder.command());
-            logger.info("Executing: " + commandString);
-
-            if (dryRun) {
-                logger.warn("Skipped native-image building due to `" + NATIVE_IMAGE_DRY_RUN + "` being specified.");
-                return;
-            }
-
-            Process imageBuildProcess = processBuilder.start();
-            if (imageBuildProcess.waitFor() != 0) {
-                throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
-            }
-        } catch (IOException | InterruptedException e) {
-            throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
-        }
-    }
-
-    protected void maybeAddGeneratedResourcesConfig(List<String> into) {
-        if (resourcesConfigDirectory.exists() || agentResourceDirectory != null) {
-            File[] dirs = resourcesConfigDirectory.listFiles();
-            Stream<File> configDirs =
-                    Stream.concat(dirs == null ? Stream.empty() : Arrays.stream(dirs),
-                            agentResourceDirectory == null ? Stream.empty() : Stream.of(agentResourceDirectory).filter(File::isDirectory));
-
-            String value = configDirs.map(File::getAbsolutePath).collect(Collectors.joining(","));
-            if (!value.isEmpty()) {
-                into.add("-H:ConfigurationFileDirectories=" + value);
-                if (agentResourceDirectory != null && agentResourceDirectory.isDirectory()) {
-                    // The generated reflect config file contains references to java.*
-                    // and org.apache.maven.surefire that we'd need to remove using
-                    // a proper JSON parser/writer instead
-                    into.add("-H:+AllowIncompleteClasspath");
-                }
-            }
-        }
     }
 
     protected boolean isMetadataRepositoryEnabled() {
-        return metadataRepositoryConfiguration != null && metadataRepositoryConfiguration.isEnabled();
+        return metadataRepositoryConfiguration == null || metadataRepositoryConfiguration.isEnabled();
     }
 
     protected void configureMetadataRepository() {
-        if (isMetadataRepositoryEnabled()) {
-            Path repoPath = null;
-            Path destinationRoot = outputDirectory.toPath().resolve("graalvm-reachability-metadata");
-            if (Files.exists(destinationRoot) && !Files.isDirectory(destinationRoot)) {
-                throw new RuntimeException("Metadata repository must be a directory, please remove regular file at: " + destinationRoot);
-            }
+        if (!isMetadataRepositoryEnabled()) {
+            logger.warn("GraalVM reachability metadata repository is disabled");
+            return;
+        }
+
+        Path destinationRoot = reachabilityMetadataOutputDirectory.toPath();
+        if (Files.exists(destinationRoot) && !Files.isDirectory(destinationRoot)) {
+            throw new RuntimeException("Metadata repository must be a directory, please remove regular file at: " + destinationRoot);
+        }
+        try {
+            Files.createDirectories(destinationRoot);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Path repoPath = metadataRepositoryConfiguration != null ? getRepo(destinationRoot) : getDefaultRepo(destinationRoot);
+        if (repoPath == null) {
+            throw new RuntimeException("Cannot pull GraalVM reachability metadata repository either from the one specified in the configuration or the default one.\n" +
+                    "Note: Since the repository is enabled by default, you can disable it manually in your pom.xml file (see this: " +
+                    "https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#_configuring_the_metadata_repository)");
+        } else {
+            metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
+                @Override
+                public void log(String groupId, String artifactId, String version, Supplier<String> message) {
+                    logger.info(String.format("[graalvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
+                }
+            });
+        }
+    }
+
+    private Path getDefaultRepo(Path destinationRoot) {
+        // try to get default Metadata Repository from Maven Central
+        URL targetUrl = resolveDefaultMetadataRepositoryUrl();
+        if (targetUrl == null) {
+            logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                    "Falling back to the default repository.");
+            String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
             try {
-                Files.createDirectories(destinationRoot);
-            } catch (IOException e) {
+                targetUrl = new URI(metadataUrl).toURL();
+                // TODO investigate if the following line is necessary (Issue: https://github.com/graalvm/native-build-tools/issues/560)
+                metadataRepositoryConfiguration.setUrl(targetUrl);
+            } catch (URISyntaxException | MalformedURLException e) {
                 throw new RuntimeException(e);
             }
+        }
 
-            if (metadataRepositoryConfiguration.getLocalPath() != null) {
-                Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
-                Path destination = outputDirectory.toPath().resolve(FileUtils.hashFor(localPath.toUri()));
-                repoPath = unzipLocalMetadata(localPath, destination);
-            } else {
-                URL targetUrl = metadataRepositoryConfiguration.getUrl();
-                if (targetUrl == null) {
-                    String version = metadataRepositoryConfiguration.getVersion();
-                    if (version == null) {
-                        version = SharedConstants.METADATA_REPO_DEFAULT_VERSION;
+        return downloadMetadataRepo(destinationRoot, targetUrl);
+    }
+
+    private Path getRepo(Path destinationRoot) {
+        if (metadataRepositoryConfiguration.getLocalPath() != null) {
+            Path localPath = metadataRepositoryConfiguration.getLocalPath().toPath();
+            Path destination = destinationRoot.resolve(FileUtils.hashFor(localPath.toUri()));
+            return unzipLocalMetadata(localPath, destination);
+        } else {
+            URL targetUrl = metadataRepositoryConfiguration.getUrl();
+            if (targetUrl == null) {
+                String version = metadataRepositoryConfiguration.getVersion();
+                if (version == null) {
+                    // Both the URL and version are unset, so we want to use
+                    // the version from Maven Central
+                    targetUrl = resolveDefaultMetadataRepositoryUrl();
+                    if (targetUrl == null) {
+                        logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
+                                "Falling back to the default repository.");
+                        version = VersionInfo.METADATA_REPO_VERSION;
                     }
+                }
+                if (version != null) {
                     String metadataUrl = String.format(METADATA_REPO_URL_TEMPLATE, version);
                     try {
                         targetUrl = new URI(metadataUrl).toURL();
+                        // TODO investigate if the following line is necessary (Issue: https://github.com/graalvm/native-build-tools/issues/560)
                         metadataRepositoryConfiguration.setUrl(targetUrl);
                     } catch (URISyntaxException | MalformedURLException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                Path destination;
-                try {
-                    destination = destinationRoot.resolve(FileUtils.hashFor(targetUrl.toURI()));
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-                if (Files.exists(destination)) {
-                    repoPath = destination;
-                } else {
-                    Optional<Path> download = downloadMetadata(targetUrl, destination);
-                    if (download.isPresent()) {
-                        logger.info("Downloaded GraalVM reachability metadata repository from " + targetUrl);
-                        repoPath = unzipLocalMetadata(download.get(), destination);
-                    }
-                }
             }
 
-            if (repoPath == null) {
-                logger.warn("GraalVM reachability metadata repository is enabled, but no repository has been configured");
-            } else {
-                metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
-                    @Override
-                    public void log(String groupId, String artifactId, String version, Supplier<String> message) {
-                        logger.info(String.format("[graalvm reachability metadata repository for %s:%s:%s]: %s", groupId, artifactId, version, message.get()));
-                    }
-                });
+            URL finalTargetUrl = targetUrl;
+            return ExponentialBackoff.get()
+                .withMaxRetries(metadataRepositoryMaxRetries)
+                .withInitialWaitPeriod(Duration.ofMillis(metadataRepositoryInitialBackoffMillis))
+                .supply(() -> downloadMetadataRepo(destinationRoot, finalTargetUrl));
+        }
+    }
+
+    private Path downloadMetadataRepo(Path destinationRoot, URL targetUrl) {
+        Path destination;
+        try {
+            destination = destinationRoot.resolve(FileUtils.hashFor(targetUrl.toURI()));
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        if (Files.exists(destination)) {
+            return destination;
+        } else {
+            Optional<Path> download = downloadMetadata(targetUrl, destination);
+            if (download.isPresent()) {
+                logger.info("Downloaded GraalVM reachability metadata repository from " + targetUrl);
+                return unzipLocalMetadata(download.get(), destination);
             }
         }
+
+        return null;
+    }
+
+    /**
+     * Downloads the metadata repository from Maven Central and returns the path to the downloaded file.
+     * @return the path to the downloaded repository file, or null if not found
+     */
+    private URL resolveDefaultMetadataRepositoryUrl() {
+        RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
+        CollectRequest collectRequest = new CollectRequest();
+        collectRequest.setRepositories(project.getRemoteProjectRepositories());
+        Dependency repository = new Dependency(new DefaultArtifact(
+                GROUP_ID,
+                GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID,
+                "repository",
+                REPOSITORY_FORMAT,
+                VersionInfo.NBT_VERSION
+        ), "runtime");
+        collectRequest.addDependency(
+                repository
+        );
+        DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
+
+        DependencyResult dependencyResult = null;
+        try {
+            dependencyResult = repositorySystem.resolveDependencies(repositorySession, dependencyRequest);
+        } catch (DependencyResolutionException e) {
+            return null;
+        }
+        return dependencyResult.getArtifactResults()
+                .stream()
+                .filter(result -> result.getArtifact().getGroupId().equals(GROUP_ID) &&
+                        result.getArtifact().getArtifactId().equals(GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID)
+                ).findFirst()
+                .map(r -> {
+                    try {
+                        return r.getArtifact().getFile().toURI().toURL();
+                    } catch (MalformedURLException e) {
+                        return null;
+                    }
+                })
+                .orElse(null);
     }
 
     public boolean isArtifactExcludedFromMetadataRepository(Artifact dependency) {
@@ -527,17 +292,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
     }
 
-    protected void maybeAddReachabilityMetadata(List<String> configDirs) {
-        if (isMetadataRepositoryEnabled() && !metadataRepositoryConfigurations.isEmpty()) {
-            metadataRepositoryConfigurations.stream()
-                    .map(configuration -> configuration.getDirectory().toAbsolutePath())
-                    .map(Path::toFile)
-                    .map(File::getAbsolutePath)
-                    .forEach(configDirs::add);
-        }
-    }
-
-    protected void maybeAddDependencyMetadata(Artifact dependency) {
+    protected void maybeAddDependencyMetadata(Artifact dependency, Consumer<File> excludeAction) {
         if (isMetadataRepositoryEnabled() && metadataRepository != null && !isArtifactExcludedFromMetadataRepository(dependency)) {
             Set<DirectoryConfiguration> configurations = metadataRepository.findConfigurationsFor(q -> {
                 q.useLatestConfigWhenVersionIsUntested();
@@ -550,10 +305,8 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 });
             });
             metadataRepositoryConfigurations.addAll(configurations);
-            if (configurations.stream().anyMatch(DirectoryConfiguration::isOverride)) {
-                buildArgs.add("--exclude-config");
-                buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
-                buildArgs.add("^/META-INF/native-image/");
+            if (excludeAction != null && configurations.stream().anyMatch(DirectoryConfiguration::isOverride)) {
+                excludeAction.accept(dependency.getFile());
             }
         }
     }

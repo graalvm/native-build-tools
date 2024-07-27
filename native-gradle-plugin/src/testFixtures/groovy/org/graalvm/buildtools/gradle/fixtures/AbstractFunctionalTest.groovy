@@ -44,7 +44,6 @@ package org.graalvm.buildtools.gradle.fixtures
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -58,10 +57,11 @@ abstract class AbstractFunctionalTest extends Specification {
 
     String gradleVersion = testGradleVersion()
     boolean debug
+    boolean hasConfigurationCache = Boolean.getBoolean("config.cache")
 
-    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
-    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows")
+    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux")
+    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac")
 
     private StringWriter outputWriter
     private StringWriter errorOutputWriter
@@ -89,6 +89,23 @@ abstract class AbstractFunctionalTest extends Specification {
 
     File file(String... pathElements) {
         path(pathElements).toFile()
+    }
+
+    File getExecutableFile(String path) {
+        file(IS_WINDOWS ? path + ".exe" : path)
+    }
+
+    File getSharedLibraryFile(String path) {
+        def libExt = ""
+        if (IS_LINUX) {
+            libExt = ".so"
+        } else if (IS_WINDOWS) {
+            libExt = ".dll"
+        } else if (IS_MAC) {
+            libExt = ".dylib"
+        }
+        assert !libExt.isEmpty(): "Unable to determine shared library extension: unexpected operating system"
+        file("build/native/nativeCompile/java-library" + libExt)
     }
 
     File getGroovyBuildFile() {
@@ -120,15 +137,31 @@ abstract class AbstractFunctionalTest extends Specification {
         Files.createDirectory(testDirectory)
     }
 
-    protected void withSample(String name) {
+    protected void withSample(String name, boolean quickBuildMode = true) {
         File sampleDir = new File("../samples/$name")
-        GFileUtils.copyDirectory(sampleDir, testDirectory.toFile())
+        FileUtils.copyDirectory(sampleDir.toPath(), testDirectory)
+
+        if (quickBuildMode) {
+            buildFile << """
+            graalvmNative {
+                binaries.all {
+                    buildArgs.add("-Ob")
+                }
+            }
+            """.stripIndent()
+        }
     }
 
     void run(String... args) {
         try {
             result = newRunner(args)
-                    .build()
+                    .run()
+            if (hasConfigurationCache) {
+                // run a 2d time to check that not only we can store in
+                // the configuration cache, but that we can also load from it
+                result = newRunner([*args, "--rerun-tasks"] as String[])
+                        .run()
+            }
         } finally {
             recordOutputs()
         }
@@ -144,6 +177,10 @@ abstract class AbstractFunctionalTest extends Specification {
 
     void errorOutputContains(String text) {
         assert errorOutput.contains(normalizeString(text))
+    }
+
+    static boolean matches(String actual, String expected) {
+        normalizeString(actual) == normalizeString(expected)
     }
 
     void tasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
@@ -182,7 +219,7 @@ abstract class AbstractFunctionalTest extends Specification {
         List<String> autoArgs = [
                 "-S",
         ]
-        if (Boolean.getBoolean("config.cache")) {
+        if (hasConfigurationCache) {
             autoArgs << '--configuration-cache'
         }
         autoArgs << "-I"
@@ -215,7 +252,7 @@ abstract class AbstractFunctionalTest extends Specification {
             allprojects {
                 repositories {
                     maven {
-                        url = "\${providers.systemProperty('common.repo.url').forUseAtConfigurationTime().get()}"
+                        url = "\${providers.systemProperty('common.repo.url').get()}"
                     }
                     mavenCentral()
                 }
@@ -229,6 +266,13 @@ abstract class AbstractFunctionalTest extends Specification {
             tasks.each { task ->
                 contains(task)
                 assert result.task(task).outcome == TaskOutcome.SUCCESS
+            }
+        }
+
+        void failed(String... tasks) {
+            tasks.each { task ->
+                contains(task)
+                assert result.task(task).outcome == TaskOutcome.FAILED
             }
         }
 
@@ -248,7 +292,7 @@ abstract class AbstractFunctionalTest extends Specification {
 
         void contains(String... tasks) {
             tasks.each { task ->
-                assert result.task(task) != null: "Expected to find task $task in the graph but it was missing"
+                assert result.task(task) != null: "Expected to find task $task in the graph but it was missing. Found tasks: ${result.tasks.collect { it.path }}"
             }
         }
 
@@ -260,6 +304,6 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     private static String normalizeString(String input) {
-        input.replace("\r\n", "\n")
+        input.replace("\r\n", "\n").replace("\\\\", "/")
     }
 }

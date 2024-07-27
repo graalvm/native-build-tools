@@ -50,20 +50,20 @@ graalvmNative {
     binaries {
         named("main") {
             javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(8))
-                vendor.set(JvmVendorSpec.matching("GraalVM Community"))
+                languageVersion.set(JavaLanguageVersion.of(20))
+                vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
             })
         }
     }
 }
 // end::select-toolchain[]
 
-if (providers.environmentVariable("DISABLE_TOOLCHAIN").isPresent()) {
-// tag::disabling-toolchain[]
+if (providers.environmentVariable("ENABLE_TOOLCHAIN").isPresent()) {
+// tag::enabling-toolchain[]
     graalvmNative {
-        toolchainDetection.set(false)
+        toolchainDetection.set(true)
     }
-// end::disabling-toolchain[]
+// end::enabling-toolchain[]
 }
 
 // tag::all-config-options[]
@@ -100,7 +100,7 @@ graalvmNative {
         // Copies metadata collected from tasks into the specified directories.
         metadataCopy {
             inputTaskNames.add("test") // Tasks previously executed with the agent attached.
-            outputDirectories.add("src/main/resources/META-INF/native-image")
+            outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/") // Replace <groupId> and <artifactId> with GAV coordinates of your project
             mergeWithExisting.set(true) // Instead of copying, merge with existing metadata in the output directories.
         }
 
@@ -122,6 +122,7 @@ graalvmNative {
             sharedLibrary.set(false) // Determines if image is a shared library, defaults to false if `java-library` plugin isn't included
             quickBuild.set(false) // Determines if image is being built in quick build mode (alternatively use GRAALVM_QUICK_BUILD environment variable, or add --native-quick-build to the CLI)
             richOutput.set(false) // Determines if native-image building should be done with rich output
+            requiredVersion.set('22.3') // The minimal GraalVM version, can be `MAJOR`, `MAJOR.MINOR` or `MAJOR.MINOR.PATCH`
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2")) // Sets the system properties to use for the native image builder
             configurationFileDirectories.from(file("src/my-config")) // Adds a native image configuration file directory, containing files like reflection configuration
@@ -129,7 +130,7 @@ graalvmNative {
             excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
 
             // Advanced options
-            buildArgs.add("-H:Extra") // Passes '-H:Extra' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
+            buildArgs.add("--link-at-build-time") // Passes '--link-at-build-time' to the native image builder options. This can be used to pass parameters which are not directly supported by this extension
             jvmArgs.add("flag") // Passes 'flag' directly to the JVM running the native image builder
 
             // Runtime options
@@ -178,13 +179,13 @@ graalvmNative {
 }
 // end::custom-binary[]
 
-// tag::enable-metadata-repository[]
+// tag::disable-metadata-repository[]
 graalvmNative {
     metadataRepository {
-        enabled.set(true)
+        enabled.set(false)
     }
 }
-// end::enable-metadata-repository[]
+// end::disable-metadata-repository[]
 
 // tag::specify-metadata-repository-version[]
 graalvmNative {
@@ -221,3 +222,40 @@ graalvmNative {
     }
 }
 // end::specify-metadata-version-for-library[]
+
+// tag::include-metadata[]
+tasks.named("jar", Jar) {
+	from(collectReachabilityMetadata)
+}
+// end::include-metadata[]
+
+// tag::configure-binaries[]
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("my-app")
+            mainClass.set("org.jackup.Runner")
+            buildArgs.add("-O4")
+        }
+        named("test") {
+            buildArgs.add("-O0")
+        }
+    }
+    binaries.all {
+        buildArgs.add("--verbose")
+    }
+}
+// end::configure-binaries[]
+
+// tag::configure-test-binary[]
+graalvmNative {
+    binaries {
+        named("main") {
+            mainClass.set("org.test.Main")
+        }
+        named("test") {
+            buildArgs.addAll("--verbose", "-O0")
+        }
+    }
+}
+// end::configure-test-binary[]

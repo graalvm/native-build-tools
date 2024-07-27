@@ -60,6 +60,17 @@ public interface VersionToConfigDirectoryIndex {
      * @param groupId the group ID of the artifact
      * @param artifactId the artifact ID of the artifact
      * @return a configuration, or empty if no configuration directory is available
+     * @deprecated in favor of {@link #findLatestConfigurationFor(String, String, String)}
      */
+    @Deprecated
     Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId);
+
+    /**
+     * Returns the latest configuration for the requested artifact.
+     * @param groupId the group ID of the artifact
+     * @param artifactId the artifact ID of the artifact
+     * @param version the version of the artifact
+     * @return a configuration, or empty if no configuration directory is available
+     */
+    Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId, String version);
 }

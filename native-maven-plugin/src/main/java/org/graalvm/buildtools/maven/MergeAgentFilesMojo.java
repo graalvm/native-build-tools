@@ -40,32 +40,27 @@
  */
 package org.graalvm.buildtools.maven;
 
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.logging.Logger;
 import org.codehaus.plexus.util.FileUtils;
-import org.graalvm.buildtools.Utils;
-import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
+import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.graalvm.buildtools.maven.NativeExtension.agentOutputDirectoryFor;
-import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
-
 @Mojo(name = "merge-agent-files", defaultPhase = LifecyclePhase.TEST)
-public class MergeAgentFilesMojo extends AbstractMojo {
+public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
 
@@ -75,46 +70,59 @@ public class MergeAgentFilesMojo extends AbstractMojo {
     @Parameter(property = "native.agent.merge.context", required = true)
     protected String context;
 
-    @Component
-    protected Logger logger;
+    @Parameter(alias = "agent")
+    private AgentConfiguration agentConfiguration;
 
+    private static int numberOfExecutions = 0;
 
     @Override
     public void execute() throws MojoExecutionException {
-        String agentOutputDirectory = agentOutputDirectoryFor(target, NativeExtension.Context.valueOf(context));
-        File baseDir = new File(agentOutputDirectory);
-        if (baseDir.exists()) {
-            Path nativeImageExecutable = Utils.getNativeImage(logger);
-            File mergerExecutable = tryInstall(nativeImageExecutable);
-            List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
-            invokeMerge(mergerExecutable, sessionDirectories, baseDir);
-        } else {
-            getLog().debug("Agent output directory " + baseDir + " doesn't exist. Skipping merge.");
+        // we need this mojo to be executed only once
+        numberOfExecutions++;
+        if (numberOfExecutions > 1) {
+            return;
+        }
+
+        // if we reached here and agent config is null, agent is enabled but there is no configuration in pom.xml
+        // that means that we enabled agent from command line, so we are using default agent configuration
+        if (agentConfiguration == null) {
+            agentConfiguration = new AgentConfiguration();
+        }
+
+
+        if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {
+            logger.info("Skipping files merge mojo since we are in direct mode");
+            return;
+        }
+
+        List<String> disabledPhases = agentConfiguration.getMetadataCopyConfiguration().getDisabledStages();
+        if (disabledPhases.size() == 2) {
+            logger.info("Both phases are skipped.");
+            return;
+        }
+
+        Set<String> dirs = new HashSet(2);
+        dirs.addAll(Arrays.asList("main", "test"));
+        dirs.removeAll(disabledPhases);
+
+        for (String dir : dirs) {
+            String agentOutputDirectory = (target + "/native/agent-output/" + dir).replace('/', File.separatorChar);
+            mergeForGivenDir(agentOutputDirectory);
         }
     }
 
-    private File tryInstall(Path nativeImageExecutablePath) {
-        File nativeImageExecutable = nativeImageExecutablePath.toAbsolutePath().toFile();
-        File mergerExecutable = new File(nativeImageExecutable.getParentFile(), nativeImageConfigureFileName());
-        if (!mergerExecutable.exists()) {
-            getLog().info("Installing native image merger to " + mergerExecutable);
-            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
-            processBuilder.command().add("--macro:native-image-configure-launcher");
-            processBuilder.directory(mergerExecutable.getParentFile());
-            processBuilder.inheritIO();
-
-            try {
-                Process installProcess = processBuilder.start();
-                if (installProcess.waitFor() != 0) {
-                    getLog().warn("Installation of native image merging tool failed");
-                }
-                NativeImageUtils.maybeCreateConfigureUtilSymlink(mergerExecutable, nativeImageExecutablePath);
-            } catch (IOException | InterruptedException e) {
-                // ignore since we will handle that if the installer doesn't exist later
+    private void mergeForGivenDir(String agentOutputDirectory) throws MojoExecutionException {
+        File baseDir = new File(agentOutputDirectory);
+        if (baseDir.exists()) {
+            List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
+            if (sessionDirectories.size() == 0) {
+                sessionDirectories = Collections.singletonList(baseDir);
             }
 
+            invokeMerge(sessionDirectories, baseDir);
+        } else {
+            getLog().debug("Agent output directory " + baseDir + " doesn't exist. Skipping merge.");
         }
-        return mergerExecutable;
     }
 
     private static Stream<File> sessionDirectoriesFrom(File[] files) {
@@ -123,38 +131,40 @@ public class MergeAgentFilesMojo extends AbstractMojo {
                 .filter(f -> f.getName().startsWith("session-"));
     }
 
-    private void invokeMerge(File mergerExecutable, List<File> inputDirectories, File outputDirectory) throws MojoExecutionException {
-        if (!mergerExecutable.exists()) {
-            getLog().warn("Cannot merge agent files because native-image-configure is not installed. Please upgrade to a newer version of GraalVM.");
-            return;
-        }
+    private void invokeMerge(List<File> inputDirectories, File outputDirectory) throws MojoExecutionException {
+        File mergerExecutable = getMergerExecutable();
         try {
             if (inputDirectories.isEmpty()) {
                 getLog().warn("Skipping merging of agent files since there are no input directories.");
                 return;
             }
+
             getLog().info("Merging agent " + inputDirectories.size() + " files into " + outputDirectory);
-            List<String> args = new ArrayList<>(inputDirectories.size() + 2);
-            args.add("generate");
-            inputDirectories.stream()
-                    .map(f -> "--input-dir=" + f.getAbsolutePath())
-                    .forEach(args::add);
-            args.add("--output-dir=" + outputDirectory.getAbsolutePath());
+            List<String> optionsInputDirs = inputDirectories.stream().map(File::getAbsolutePath).collect(Collectors.toList());
+            List<String> optionsOutputDirs = Collections.singletonList(outputDirectory.getAbsolutePath());
+            List<String> args = agentConfiguration.getAgentMode().getNativeImageConfigureOptions(optionsInputDirs, optionsOutputDirs);
+
             ProcessBuilder processBuilder = new ProcessBuilder(mergerExecutable.toString());
             processBuilder.command().addAll(args);
             processBuilder.inheritIO();
-
             String commandString = String.join(" ", processBuilder.command());
             Process imageBuildProcess = processBuilder.start();
             if (imageBuildProcess.waitFor() != 0) {
                 throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
             }
-            for (File inputDirectory : inputDirectories) {
-                FileUtils.deleteDirectory(inputDirectory);
+
+            // in case inputDirectories has only one value which is the same as outputDirectory
+            // we shouldn't delete that directory, because we will delete outputDirectory
+            if (!(inputDirectories.size() == 1 && inputDirectories.get(0).equals(outputDirectory))) {
+                for (File inputDirectory : inputDirectories) {
+                    FileUtils.deleteDirectory(inputDirectory);
+                }
             }
+
             getLog().debug("Agent output: " + Arrays.toString(outputDirectory.listFiles()));
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Merging agent files with " + mergerExecutable + " failed", e);
         }
     }
+
 }

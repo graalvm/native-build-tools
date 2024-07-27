@@ -177,8 +177,6 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
     @Unroll("plugin supports configuration cache (JUnit Platform #junitVersion)")
     def "supports configuration cache"() {
-        debug = true
-        var metadata_dir = 'src/main/resources/META-INF/native-image'
         given:
         withSample("java-application-with-reflection")
 

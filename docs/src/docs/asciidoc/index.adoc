@@ -3,19 +3,184 @@ The GraalVM team
 
 The {doctitle} project provides plugins for different build tools to add support for building and testing native applications written in Java (or any other language compiled to JVM bytecode).
 
-Most notably, this is the official source for integrating with the https://www.graalvm.org/reference-manual/native-image/[GraalVM `native-image` tool].
+Most notably, this is the official source for integrating with the https://www.graalvm.org/reference-manual/native-image/[GraalVM  Native Image].
 
 Please refer to the following pages for build tool specific documentation:
 
 - The <<gradle-plugin.adoc#,Gradle plugin documentation>>
 - The <<maven-plugin.adoc#,Maven plugin documentation>>
 
-If you are interested in contributing, please refer to our https://github.com/graalvm/native-build-tools[Git repository].
+This release of Native Build Tools ships with the GraalVM reachability metadata repository release {metadata-repository-version}.
 
-If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>
+If you are interested in contributing, please refer to the https://github.com/graalvm/native-build-tools[Git repository].
+
+If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>.
 
 [[changelog]]
 == Changelog
+
+=== Release 0.10.3
+
+- Remove usage of macro from merger tool initialization and throw better error if executable does not exist
+
+==== Gradle plugin
+
+- Add retries when downloading the metadata repository when using a URL directly
+
+==== Maven plugin
+
+- Add retries when downloading the metadata repository when using a URL directly
+
+
+=== Release 0.10.2
+
+- Fix class path directory analyzer
+- Update Reachability Metadata repository version
+
+==== Gradle plugin
+
+- Update Default Target Directory for MetadataCopy Task
+
+==== Maven plugin
+
+- Update Getting Started with Maven Plugin doc
+- Delete old stale args file
+- Add a parameter to be able to skip build native for pom type modules, leave it as false per default for backward compat
+
+=== Release 0.10.1
+
+- Mark additional JUnit 5 types for build-time initialization for compatibility with Native Image's `--strict-image-heap` option.
+
+
+=== Release 0.10.0
+
+- Update version of GraalVM dependency to 22.3.5
+
+==== Gradle plugin
+
+- Update plugin to use metadata repository by default. Metadata repository <<gradle-plugin.adoc#_configuring_the_metadata_repository,can be disabled manually.>>
+
+==== Maven plugin
+
+- Update plugin to use metadata repository by default. Metadata repository <<maven-plugin.adoc#_configuring_the_metadata_repository,can be disabled manually.>>
+
+
+=== Release 0.9.28
+
+* Fix path escaping problem for Windows users
+* Fix and improve major JDK version detection.
+
+==== Gradle plugin
+
+- Remove use of deprecated `getConvention` APIs
+
+=== Release 0.9.27
+
+* Update JUnit configuration for native testing on GraalVM for JDK 21 with `--strict-image-heap` mode.
+
+=== Release 0.9.26
+
+* Relax GraalVM version check for dev versions
+* Prepare plugins for release of _GraalVM for JDK 21_. They no longer deploy any experimental options.
+* Bump Java compliance of the plugins from Java 8+ to Java 11+.
+* Fix compatibility with Maven 3.9.
+
+==== Gradle plugin
+
+* Fix compatibility with Gradle 8.3
+
+=== Release 0.9.25
+
+* Upgrade metadata to 0.3.4
+
+=== Release 0.9.24
+
+* Upgrade metadata to 0.3.3
+
+==== Gradle plugin
+
+* Add support for PGO
+
+=== Release 0.9.23
+
+* Upgrade metadata to 0.3.2
+* Display the GraalVM logo on the generated NBT docs
+
+==== Gradle plugin
+
+- Remove use of GFileUtils
+- Fix "collect reachability metadata" with config cache
+
+=== Release 0.9.22
+
+* Upgrade metadata to 0.3.0
+* Add support for default-for attribute
+
+==== Gradle plugin
+
+- Fix lookup of metadata repository
+
+=== Release 0.9.21
+
+* Deprecate `requiredVersion` check without replacement.
+
+==== Gradle plugin
+
+- Bump minimal version of Gradle to 7.4
+- Fix compatibility with Gradle's https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#header[configuration cache] (requires Gradle 7.5+)
+- Remove use of deprecated Gradle APIs
+- [Behavior change] Toolchain detection is now disabled by default
+
+==== Maven plugin
+
+- Add a new `native:write-args-file` goal that can be used to write the arguments passed to `native-image` to a file
+
+=== Release 0.9.20
+
+==== Gradle plugin
+
+- Fix `collectReachabilityMetadata` not being thread-safe
+- Add an option to configure the maximum number of images which can be built in parallel
+- Fix GraalVM version check being too strict
+
+==== Maven plugin
+
+- Add agent modes to Maven plugin
+
+=== Release 0.9.19
+
+==== Gradle plugin
+
+- Fix `nativeCompile` being out-of-date whenever native runtime arguments change
+- Fix GraalVM metadata repository not downloaded from project repositories by default
+
+==== Maven plugin
+
+=== Release 0.9.18
+
+* Trim GraalVM version to fix Windows support
+* Add tests for NativeImageUtils.escapeArg
+* Do not escape quoted regexp args when using argsfile
+* Upgrade to GraalVM metadata repository 0.2.5
+
+=== Release 0.9.17
+
+* Add a `requiredVersion` property to check the minimal GraalVM version
+* Make GraalVM installation check lazy
+
+=== Release 0.9.16
+
+* Fixed regression with a reachability-metadata repository
+
+=== Release 0.9.15
+
+* Upgrade to GraalVM metadata repository 0.2.3.
+* Ship the metadata repository as an artifact alongside the plugin
+* Add ability to collect GraalVM metadata of dependencies to a custom location
+
+==== Gradle plugin
+
+* Improved diagnostics to help users figure out what GraalVM toolchain was selected
 
 === Release 0.9.14
 

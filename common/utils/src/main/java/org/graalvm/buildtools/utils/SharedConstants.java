@@ -41,6 +41,8 @@
 
 package org.graalvm.buildtools.utils;
 
+import org.graalvm.buildtools.VersionInfo;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -76,5 +78,11 @@ public interface SharedConstants {
     String AGENT_OUTPUT_DIRECTORY_MARKER = "{output_dir}";
     String AGENT_OUTPUT_DIRECTORY_OPTION = "config-output-dir=";
     String METADATA_REPO_URL_TEMPLATE = "https://github.com/oracle/graalvm-reachability-metadata/releases/download/%1$s/graalvm-reachability-metadata-%1$s.zip";
-    String METADATA_REPO_DEFAULT_VERSION = "0.2.0";
+    /**
+     * The default metadata repository version. Maintained for backwards
+     * compatibility.
+     * @deprecated Please use {@link VersionInfo#METADATA_REPO_VERSION} instead
+     */
+    @Deprecated
+    String METADATA_REPO_DEFAULT_VERSION = VersionInfo.METADATA_REPO_VERSION;
 }

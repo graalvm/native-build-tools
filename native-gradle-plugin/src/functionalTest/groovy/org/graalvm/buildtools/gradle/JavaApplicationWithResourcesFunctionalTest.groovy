@@ -46,7 +46,7 @@ import spock.lang.Unroll
 class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can build an application which uses resources using #pattern with JUnit Platform #junitVersion")
     def "can build an application which uses resources"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")
@@ -77,7 +77,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
         process.output.contains "Hello, native!"
 
         and:
-        file("build/native/generated/generateResourcesConfigFile/resource-config.json").text == '''{
+        matches(file("build/native/generated/generateResourcesConfigFile/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -85,7 +85,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         junitVersion = System.getProperty('versions.junit')
@@ -151,7 +151,7 @@ graalvmNative {
         }
 
         and:
-        file("build/native/generated/generateTestResourcesConfigFile/resource-config.json").text == '''{
+        matches(file("build/native/generated/generateTestResourcesConfigFile/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -161,7 +161,7 @@ graalvmNative {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         junitVersion = System.getProperty('versions.junit')
@@ -196,7 +196,7 @@ graalvmNative {
     }
 
     def "scans resources of jar file even if it includes a native-image/resources-config.json file"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
         given:
         withSample("java-application-with-resources")
@@ -242,7 +242,7 @@ graalvmNative {
         nativeApp.exists()
 
         and:
-        file("build/native/generated/generateResourcesConfigFile/resource-config.json").text == '''{
+        matches(file("build/native/generated/generateResourcesConfigFile/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -250,7 +250,7 @@ graalvmNative {
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         when:
         def process = execute(nativeApp)

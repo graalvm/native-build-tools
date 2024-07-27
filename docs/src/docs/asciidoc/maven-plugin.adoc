@@ -14,16 +14,24 @@ For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 [[quickstart]]
 == Quickstart
 
-[NOTE]
+====
+<<maven-plugin-quickstart.adoc#,Getting Started with Maven Plugin for GraalVM Native Image>>
+====
+
 ====
 You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
 ====
 
-This plugin first requires that you <<graalvm-setup.adoc#,setup GraalVM and `native-image` properly>>.
-It will then make use of Maven profiles to enable building and testing of native images.
+====
+The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
+
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
+
+For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
+====
 
 [[configuration]]
-== Configuration
+== Reference documentation
 
 [[configuration-registering-plugin]]
 === Registering the plugin
@@ -125,7 +133,7 @@ Build Configuration]. It is also possible to customize the plugin within a
 [source,xml]
 ----
 <buildArgs>
-    <arg>--argument</arg>
+    <buildArg>--argument</buildArg>
 </buildArgs>
 ----
 `<skipNativeBuild>`::
@@ -220,8 +228,8 @@ Build Configuration]. It is also possible to customize the plugin within a
 [source,xml]
 ----
 <classpath>
-    <entry>path/to/file.jar</entry>
-    <entry>path/to/classes</entry>
+    <param>path/to/file.jar</param>
+    <param>path/to/classes</param>
 </classpath>
 ----
 `<classesDirectory>`::
@@ -383,6 +391,9 @@ Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is pos
 
 To avoid this, since release 0.9.10, the plugin will use an argument file to pass the arguments to the `native-image` tool, instead of passing them directly.
 
+There is also a `native:write-args-file` goal that can be used to generate this argument file. This can be useful in situations where the Native Build Tools plugin is not available, for example, when running native-image in a Docker container. The path to the args file is stored in the project properties
+under the key `graalvm.native-image.args-file`, so that other Maven plugins further in the lifecycle can use it.
+
 In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn't supported.
 
 One option is to use a https://maven.apache.org/plugins/maven-shade-plugin[shaded jar] and use it instead of individual jars on classpath.
@@ -462,7 +473,7 @@ The Native Image Maven plugin simplifies generation of the required configuratio
 injecting the agent automatically for you (this includes, but is not limited to the
 reflection file).
 
-The agent generates the native configuration files in a subdirectory of
+The agent generates the native configuration files in subdirectories of
 `target/native/agent-output`. Although those files will be automatically used if you run
 your build with the agent enabled, you should consider reviewing the generated files and
 adding them to your sources instead.
@@ -498,47 +509,56 @@ line by supplying the `-Dagent=false` flag.
 === Configuring agent options
 
 If you would like to configure the options for the agent -- for example, to configure
-experimental features such as `experimental-class-loader-support` or advanced features
+agent mode or advanced features
 such as
-https://www.graalvm.org/reference-manual/native-image/Agent/#caller-based-filters[Caller-based Filters]
-and https://www.graalvm.org/reference-manual/native-image/Agent/#access-filters[Access Filters]
--- you can include `<options>` within the `<agent>` block of the configuration of the
-`native-maven-plugin` in your POM.
-
-* You can supply multiple sets of `<options>`.
-* You can declare an unnamed `<options>` element which will always be used whenever the
-  agent is enabled. This should be used to declare common options that will be used for
-  all executions with the agent.
-* Additional `<options>` elements must declare a unique `name` attribute.
-    - To configure options for your application, use the name `main`.
-    - To configure options for your tests, use the name `test`.
-    - To configure additional sets of options, declare each with a unique name other than
-      `main` or `test`.
-* The `main` options are enabled automatically whenever your application is run with the
-  agent.
-* The `test` options are enabled automatically whenever your tests are run with the agent.
-* To enable any other set of named `<options>`, supply `-DagentOptions=<NAME>` as a
-  command-line argument for Maven, where `<NAME>` corresponds to the `name` attribute of
-  the `<options>` element.
-
-[WARNING]
-====
-The Native Image Maven plugin automatically configures the `config-output-dir` for the
-agent. An attempt to configure a custom value for the `config-output-dir` option will
-therefore result in a build failure.
-====
-
-The following example is likely more complex than anything you would do in your own
-projects, but it demonstrates how to configure four sets of `<options>`.
-
-* The unnamed set is always active.
-* The `main` set is automatically active for application execution.
-* The `test` set is automatically active for test execution.
-* The `periodic-config` set is never active by default, but it can be enabled via
-  `-DagentOptions=periodic-config` on the command line.
+https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#caller-based-filters[Caller-based Filters]
+and https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#access-filters[Access Filters]
+- you can specify them in your POM as described bellow.
 
 [source,xml,indent=0]
-include::../../../../samples/java-application-with-reflection/pom.xml[tag=native-plugin-agent-options]
+include::../snippets/maven/pom.xml[tag=native-plugin-agent-configuration]
+
+This example shows all possibilities you can use for native agent configuration. If you don't need some of the options,
+just remove them.
+
+Agent can be run in one of the following modes:
+
+* `standard` - in this mode you run agent only with options provided in `options` section.
+* `direct` - in this mode you can provide command line that you want to be executed as an agent configuration. In this
+     mode, user is fully responsible for agent configuration, and the rest of the agent configuration, provided in pom.xml file, will be ignored.
+* `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output. You
+can read more about conditional mode https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/[here].
+
+Each option and how you should use it is described bellow:
+
+* `enabled` - a simple flag that specifies whether the agent is enabled or not. Can be set to true or false.
+* `defaultMode` - agent mode switcher. Can be set to: standard, direct or conditional.
+* `modes` - list of additional mode options, specific for certain mode type. Inside this tag, you can specify options for
+ direct or conditional modes. Standard mode doesn't have any specific options.
+  ** in case of `direct` mode you can specify `<direct>` tag, with the agent command line as its value
+  ** in case of `conditional` mode you can specify `<conditional>` tag, and set additional https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md[filter files]
+   inside `<userCodeFilterPath>` and `<extraCodeFilterPath>`. Also, you can set value for `<parallel>` tag. If the value is true, agent will create
+   partial-config file, and merge it with conditional merge, otherwise agent will generate same kind of output as other modes.
+* `options` - list of options that can be specify independent from agent mode. More about common options can be found
+https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/[here].
+
+
+[[metadata-copy]]
+==== Metadata copy
+`metadataCopy` provides additional options for manipulating the agent output after agent finishes its job.
+
+[source,xml,indent=0]
+include::../snippets/maven/metadataCopy.xml[tag=native-plugin-agent-metadata-copy]
+
+You can set values for the following tags:
+
+* `<outputDirectory>` - where you want to copy agent output.
+* `<merge>` - in case you already have some other config files inside `output directory`, you can choose whether you want to override those files or
+    merge new files with the existing once (set merge value to true).
+* `<disabledStages>` - in case you don't want to copy output of the certain stage (main or test) you can disable them and metadataCopy will not look at
+    the agent output for that stage. For example, if you want to copy only config files generated in tests, you can disable main stage. Also, if you want
+    to copy only files generated in main phase, you can disable test stage. Therefore, if you skip both stages, metadataCopy will not be executed.
+
 
 [[agent-support-running-tests]]
 === Running tests with the agent
@@ -556,13 +576,14 @@ When the `agent` system property is set to `true` (or when the agent is
 to your Maven Surefire test execution, and the generated files can be found in the
 `target/native/agent-output/test` directory.
 
-To run your tests with custom agent options, supply the `-DagentOptions=<NAME>`
-command-line argument to Maven as follows. See the documentation for
-<<agent-support-configuring-options, agent options>> for details.
-
+[TIP]
+====
+If you want to run metadataCopy as well, first define its configuration as described <<metadata-copy, above>> and add `native:metadata-copy`
+at the end of the agent invocation command. Example:
 ```bash
-mvn -Pnative -Dagent=true -DagentOptions=periodic-config test
+mvn -Pnative -Dagent=true test native:metadata-copy
 ```
+====
 
 [[agent-support-running-application]]
 === Running your application with the agent
@@ -581,14 +602,6 @@ Then you can execute your application with the agent by running:
 mvn -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
 ```
 
-To execute your application with custom agent options, supply the `-DagentOptions=<NAME>`
-command-line argument to Maven as follows. See the documentation for
-<<agent-support-configuring-options, agent options>> for details.
-
-```bash
-mvn -Pnative -Dagent=true -DagentOptions=periodic-config -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
-```
-
 Both of the above commands will generate configuration files in the
 `target/native/agent-output/main` directory. If you want to run your native application
 with those configuration files, you then need to execute the following command:
@@ -603,14 +616,29 @@ mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 Since release 0.9.12, the plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
 This repository provides https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
 
-=== Enabling the metadata repository
+[NOTE]
+====
+This version of the plugin defaults to the using the metadata repository in version {metadata-repository-version}. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates:
+```xml
+<dependency>
+   <groupId>org.graalvm.buildtools</groupId>
+    <artifactId>graalvm-reachability-metadata</artifactId>
+    <version>{maven-plugin-version}</version>
+    <classifier>repository</classifier>
+    <type>zip</type>
+</dependency>
+```
+e.g. `graalvm-reachability-metadata-{maven-plugin-version}-repository.zip`.
+====
 
-Support needs to be enabled explicitly by including the following into the `<configuration>` element:
+=== Configuring the metadata repository
 
-.Enabling the metadata repository
+Metadata repository is enabled by default. Support can be disabled by including the following into the `<configuration>` element:
+
+.Disabling the metadata repository
 [source,xml,indent=0]
 ----
-include::../../../../samples/metadata-repo-integration/pom.xml[tag=metadata-default]
+include::../../../../samples/metadata-repo-integration/pom.xml[tag=metadata-disable]
 ----
 
 Alternatively, you can use a _remote repository_, in which case you can specify the URL of the ZIP file:
@@ -630,10 +658,8 @@ include::../../../../samples/native-config-integration/pom.xml[tag=metadata-loca
 ----
 <1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 
-=== Configuring the metadata repository
-
-Once activated, for each library included in the native image, the plugin will automatically search for GraalVM reachability metadata in the repository that was released together with the plugin.
-In case you want to use another verion of the metadata use:
+For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.
+In case you want to use another version of the metadata use:
 
 .Choosing a version for the metadata repository
 [source,xml,indent=0]
@@ -658,6 +684,23 @@ This may be interesting if there's no specific metadata available for the partic
 [source,xml,indent=0]
 ----
 include::../../../../samples/native-config-integration/pom.xml[tag=metadata-force-version]
+----
+
+=== Adding metadata repository files
+
+By default, repository metadata will be used only when your native image is generated.
+In some situations, you may want to include the metadata directly inside your jar.
+
+Adding metadata to your jar can be useful when some other process is responsible for converting your jar into a native image.
+For example, you might be generating a shaded jar and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
+
+To include metadata repository inside your jar you can use the `add-reachability-metadata` goal.
+Typically the goal will be included in an execution step where by default it will be bound to the `generate-resources` phase:
+
+.Configuring the `add-reachability-metadata` goal to execute with the `generate-resources` phase
+[source,xml,indent=0]
+----
+include::../../../../samples/native-config-integration/pom.xml[tag=add-reachability-metadata-execution]
 ----
 
 [[javadocs]]

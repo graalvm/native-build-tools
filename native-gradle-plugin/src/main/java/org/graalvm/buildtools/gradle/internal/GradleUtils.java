@@ -47,7 +47,9 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.util.GradleVersion;
@@ -57,20 +59,17 @@ import org.gradle.util.GradleVersion;
  */
 @SuppressWarnings("unused")
 public class GradleUtils {
-    private static final GradleVersion GRADLE_7 = GradleVersion.version("7.0");
+    private static final GradleVersion MINIMAL_GRADLE_VERSION = GradleVersion.version("7.4");
 
     public static SourceSet findSourceSet(Project project, String sourceSetName) {
         SourceSetContainer sourceSetContainer = getJavaPluginConvention(project).getSourceSets();
         return sourceSetContainer.findByName(sourceSetName);
     }
 
-    public static JavaPluginConvention getJavaPluginConvention(Project project) {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
+    public static JavaPluginExtension getJavaPluginConvention(Project project) {
+        return project.getExtensions().getByType(JavaPluginExtension.class);
     }
 
-    public static boolean isAtLeastGradle7() {
-        return GradleVersion.current().compareTo(GRADLE_7) >= 0;
-    }
 
     public static Configuration findConfiguration(Project project, String name) {
         return project.getConfigurations().getByName(name);
@@ -80,17 +79,28 @@ public class GradleUtils {
         ConfigurableFileCollection transitiveProjectArtifacts = project.getObjects().fileCollection();
         transitiveProjectArtifacts.from(findMainArtifacts(project));
         transitiveProjectArtifacts.from(findConfiguration(project, name)
-                .getIncoming()
-                .artifactView(view -> view.componentFilter(ProjectComponentIdentifier.class::isInstance))
-                .getFiles());
+            .getIncoming()
+            .artifactView(view -> view.componentFilter(ProjectComponentIdentifier.class::isInstance))
+            .getFiles());
         return transitiveProjectArtifacts;
     }
 
     public static FileCollection findMainArtifacts(Project project) {
         return findConfiguration(project, JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-                .getOutgoing()
-                .getArtifacts()
-                .getFiles();
+            .getOutgoing()
+            .getArtifacts()
+            .getFiles();
     }
 
+    public static Provider<Integer> intProperty(ProviderFactory providers, String propertyName, int defaultValue) {
+        return stringProperty(providers, propertyName)
+            .map(Integer::parseInt)
+            .orElse(defaultValue);
+    }
+
+    private static Provider<String> stringProperty(ProviderFactory providers, String propertyName) {
+        return providers.systemProperty(propertyName)
+            .orElse(providers.gradleProperty(propertyName))
+            .orElse(providers.environmentVariable(propertyName.replace('.', '_').toUpperCase()));
+    }
 }

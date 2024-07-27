@@ -5,11 +5,13 @@ Gradle plugin for GraalVM Native Image building
 End-user documentation about the plugins can be found [here](https://graalvm.github.io/native-build-tools/).
 
 ## Building
-Building of plugin itself should be as simple as:
+
+This plugin can be built with this command:
+
 ```bash
 ./gradlew publishToMavenLocal --no-parallel
 ```
 
 In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-native` artifact.
 
-*You can also take a look at CI workflow [here](../.github/workflows/native-gradle-plugin.yml).*
+*You can also take a look at CI workflow [here](../.github/workflows/test-native-gradle-plugin.yml).*

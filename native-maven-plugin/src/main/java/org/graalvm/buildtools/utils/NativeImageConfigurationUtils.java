@@ -39,11 +39,10 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools;
+package org.graalvm.buildtools.utils;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.logging.Logger;
-import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,10 +56,10 @@ import java.util.stream.Stream;
 /**
  * Utility class containing various native-image and JVM related methods.
  */
-public abstract class Utils implements SharedConstants {
+public abstract class NativeImageConfigurationUtils implements SharedConstants {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
-    public static Path nativeImageCache;
+    public static Path nativeImageExeCache;
 
     public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast, Logger logger) throws MojoExecutionException {
         String graalHome = System.getenv(javaHomeVariable);
@@ -69,37 +68,37 @@ public abstract class Utils implements SharedConstants {
         }
 
         Path graalHomePath = Paths.get(graalHome);
-        Path graalExe = graalHomePath.resolve("bin").resolve(NATIVE_IMAGE_EXE);
-        Path guExe = graalHomePath.resolve("bin").resolve(GU_EXE);
+        Path nativeImageExe = graalHomePath.resolve("bin").resolve(NATIVE_IMAGE_EXE);
 
-        if (!Files.exists(graalExe)) {
+        if (!Files.exists(nativeImageExe)) {
+            Path guExe = graalHomePath.resolve("bin").resolve(GU_EXE);
             if (Files.exists(guExe)) {
                 ProcessBuilder processBuilder = new ProcessBuilder(guExe.toString(), "install", "native-image");
                 processBuilder.inheritIO();
-
                 try {
                     Process nativeImageFetchingProcess = processBuilder.start();
                     if (nativeImageFetchingProcess.waitFor() != 0) {
-                        throw new MojoExecutionException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.");
+                        throw new MojoExecutionException("native-image was not found, and '" + GU_EXE + "' tool failed to install it.");
                     }
                 } catch (MojoExecutionException | IOException | InterruptedException e) {
                     throw new MojoExecutionException("Determining GraalVM installation failed with message: " + e.getMessage());
                 }
             } else if (failFast) {
-                throw new MojoExecutionException("'" + GU_EXE + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
+                throw new MojoExecutionException("'" + GU_EXE + "' tool was not found in your " + javaHomeVariable + "." +
+                        "This probably means that the JDK at '" + graalHomePath + "' is not a GraalVM distribution.");
             }
         }
 
-        if (!Files.exists(graalExe)) {
+        if (!Files.exists(nativeImageExe)) {
             if (failFast) {
                 throw new RuntimeException("native-image is not installed in your " + javaHomeVariable + "." +
-                        "You should install it using `gu install native-image`");
+                        "This probably means that the JDK at '" + graalHomePath + "' is not a GraalVM distribution.");
             } else {
                 return null;
             }
         }
         logger.info("Found GraalVM installation from " + javaHomeVariable + " variable.");
-        return graalExe;
+        return nativeImageExe;
     }
 
     public static Path getNativeImageFromPath() {
@@ -111,8 +110,8 @@ public abstract class Utils implements SharedConstants {
     }
 
     public static Path getNativeImage(Logger logger) throws MojoExecutionException {
-        if (nativeImageCache != null) {
-            return nativeImageCache;
+        if (nativeImageExeCache != null) {
+            return nativeImageExeCache;
         }
 
         Path nativeImage = getJavaHomeNativeImage("GRAALVM_HOME", false, logger);
@@ -129,11 +128,11 @@ public abstract class Utils implements SharedConstants {
         }
 
         if (nativeImage == null) {
-            throw new RuntimeException("GraalVM native-image is missing from your system.\n " +
-                    "Make sure that GRAALVM_HOME environment variable is present.");
+            throw new RuntimeException("The 'native-image' tool was not found on your system. " +
+                    "Make sure that the JAVA_HOME or GRAALVM_HOME environment variables point to a GraalVM JDK, or that 'native-image' is on the system path.");
         }
 
-        nativeImageCache = nativeImage;
+        nativeImageExeCache = nativeImage;
         return nativeImage;
     }
 }

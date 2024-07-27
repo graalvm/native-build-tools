@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Artifact {
@@ -53,18 +54,21 @@ public class Artifact {
     private final String directory;
     private final boolean latest;
     private final boolean override;
+    private final Pattern defaultForPattern;
 
     @JsonCreator
     public Artifact(@JsonProperty("module") String module,
                     @JsonProperty("tested-versions") Set<String> versions,
                     @JsonProperty("metadata-version") String directory,
                     @JsonProperty(value = "latest", defaultValue = "false") boolean latest,
-                    @JsonProperty(value = "override", defaultValue = "false") boolean override) {
+                    @JsonProperty(value = "override", defaultValue = "false") boolean override,
+                    @JsonProperty(value = "default-for") String defaultFor) {
         this.module = module;
         this.versions = versions;
         this.directory = directory;
         this.latest = latest;
         this.override = override;
+        this.defaultForPattern = (defaultFor == null ? null : Pattern.compile(defaultFor));
     }
 
     public String getModule() {
@@ -85,5 +89,9 @@ public class Artifact {
 
     public boolean isOverride() {
         return override;
+    }
+
+    public boolean isDefaultFor(String version) {
+        return defaultForPattern != null && defaultForPattern.matcher(version).matches();
     }
 }

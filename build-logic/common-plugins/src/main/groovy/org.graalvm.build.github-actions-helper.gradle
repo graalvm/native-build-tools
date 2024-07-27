@@ -1,0 +1,54 @@
+import groovy.json.JsonOutput
+
+def matrixDefault = [
+        "java-version": [ "17" ],
+        "os": [ "ubuntu-20.04", "windows-latest" ]
+]
+
+// # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",
+def gradleVersions = [
+        "gradle-version": ["current", "7.4"],
+]
+
+def gradleCachedVersions = [
+        "gradle-config-cache-version": ["current", "8.0.1"]
+]
+
+sourceSets.configureEach { sourceSet ->
+    if (sourceSet.name == 'functionalTest') {
+        tasks.register("dumpFunctionalTestList") {
+            doLast {
+                def matrix = [
+                        test: []
+                ]
+
+                // add all defaults
+                matrix.putAll(matrixDefault)
+
+                // add gradle specific stuff
+                if (matrixType == "gradle") {
+                    matrix.putAll(gradleVersions)
+                }
+
+                if (matrixType == "gradleCached") {
+                    matrix.putAll(gradleCachedVersions)
+                }
+
+                // add functional tests
+                sourceSet.allSource.each {
+                    matrix.test << it.name.substring(0, it.name.lastIndexOf('.'))
+                }
+
+                String githubOut = System.getenv("GITHUB_OUTPUT")
+                if (githubOut != null) {
+                    new File(githubOut).withWriterAppend {
+                        it.println "matrix=${JsonOutput.toJson(matrix)}"
+                    }
+                } else {
+                    println "Warning: GITHUB_OUTPUT environment variable not found"
+                }
+                println "Build Matrix: $matrix"
+            }
+        }
+    }
+}

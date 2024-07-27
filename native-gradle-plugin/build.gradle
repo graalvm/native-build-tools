@@ -47,6 +47,7 @@ plugins {
     id 'org.graalvm.build.java'
     id 'org.graalvm.build.functional-testing'
     id 'org.graalvm.build.publishing'
+    id 'org.graalvm.build.github-actions-helper'
 }
 
 maven {
@@ -61,6 +62,7 @@ dependencies {
     testFixturesImplementation libs.test.spock
     testFixturesImplementation gradleTestKit()
     functionalTestCommonRepository(libs.junitPlatformNative)
+    functionalTestCommonRepository(libs.jvmReachabilityMetadata)
     functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 }
 

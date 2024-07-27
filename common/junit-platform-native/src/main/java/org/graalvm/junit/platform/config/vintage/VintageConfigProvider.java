@@ -48,7 +48,7 @@ public class VintageConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        String[] buildTimeInitializedClasses = new String[]{
+        config.initializeAtBuildTime(
                 "org.junit.vintage.engine.descriptor.RunnerTestDescriptor",
                 "org.junit.vintage.engine.support.UniqueIdReader",
                 "org.junit.vintage.engine.support.UniqueIdStringifier",
@@ -57,9 +57,19 @@ public class VintageConfigProvider implements PluginConfigProvider {
                 "org.junit.runners.JUnit4",
                 /* Workaround until we can register serializable classes from a native-image feature */
                 "org.junit.runner.Result"
-        };
-        for (String className : buildTimeInitializedClasses) {
-            config.initializeAtBuildTime(className);
+        );
+
+        if (getMajorJDKVersion() >= 21) {
+            /* new with simulated class initialization */
+            config.initializeAtBuildTime(
+                    "java.lang.annotation.Annotation",
+                    "org.junit.runners.model.FrameworkMethod",
+                    "org.junit.runners.model.TestClass",
+                    "org.junit.runners.ParentRunner$1",
+                    "org.junit.Test",
+                    "org.junit.vintage.engine.descriptor.VintageEngineDescriptor",
+                    "org.junit.vintage.engine.VintageTestEngine"
+            );
         }
     }
 

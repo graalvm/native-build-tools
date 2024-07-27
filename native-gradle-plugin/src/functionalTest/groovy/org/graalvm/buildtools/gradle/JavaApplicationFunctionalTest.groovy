@@ -42,13 +42,16 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-import org.gradle.util.GradleVersion
+import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
 
+import java.nio.file.Files
+
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
     def "can build a native image for a simple application"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
 
         given:
@@ -82,7 +85,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/129")
     def "can build a native image with dependencies only needed by native image"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
 
         given:
         withSample("java-application-with-extra-sourceset")
@@ -114,22 +117,20 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         def graalvmHome = System.getenv("GRAALVM_HOME")
         graalvmHome != null
     })
+    @Ignore("Need to find another way to test this since toolchains will now always be evaluated early")
     def "can override toolchain selection"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
-        boolean dummyToolchain = GradleVersion.version(gradleVersion).compareTo(GradleVersion.version("7.0")) >= 0
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
 
         given:
         withSample("java-application")
 
-        if (dummyToolchain) {
             buildFile << """graalvmNative.binaries.configureEach {
                 javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()))
                     vendor.set(JvmVendorSpec.matching("non existing vendor"))
                 })
-            }"""
-        }
-
-        buildFile << """
+            }
+            
             tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
                 disableToolchainDetection = true
             }
@@ -177,7 +178,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         nativeApp.exists()
 
         when:
@@ -190,7 +191,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/275")
     def "can pass environment variables to the builder process"() {
-        def nativeApp = file("build/native/nativeCompile/java-application")
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
 
         given:
         withSample("java-application")
@@ -198,6 +199,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         buildFile << """
             graalvmNative.binaries.all {
                 buildArgs.add("--initialize-at-build-time=org.graalvm.demo.Application")
+                buildArgs.add("-ECUSTOM_MESSAGE")
                 environmentVariables.put('CUSTOM_MESSAGE', 'Hello, custom message!')
             }
         """.stripIndent()
@@ -214,6 +216,50 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         process.output.contains "Hello, custom message!"
 
+    }
+
+    @IgnoreIf({ System.getenv("IS_GRAALVM_DEV_BUILD") })
+    def "can build a native image with PGO instrumentation"() {
+        def pgoDir = file("src/pgo-profiles/main").toPath()
+        def nativeApp = getExecutableFile("build/native/nativeCompile/java-application-instrumented")
+        def pgoFile = file("build/native/nativeCompile/default.iprof")
+
+        given:
+        withSample("java-application", false)
+        buildFile << """
+            graalvmNative {
+                useArgFile = false // required to check for --pgo flag
+                binaries {
+                    all {
+                        verbose = true
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'nativeCompile', '--pgo-instrument', 'nativeRun'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile', ':nativeRun'
+        }
+
+        and:
+        nativeApp.exists()
+        pgoFile.exists()
+
+        when:
+        Files.createDirectories(pgoDir)
+        Files.copy(pgoFile.toPath(), pgoDir.resolve("default.iprof"))
+        run 'nativeCompile', 'nativeRun'
+
+        then:
+        tasks {
+            succeeded ':nativeCompile', ':nativeRun'
+        }
+        outputContains "--pgo="
+        outputContains "PGO: user-provided"
     }
 
 }

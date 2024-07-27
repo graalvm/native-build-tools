@@ -20,19 +20,35 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         if (!restrictToModules) {
             options << '-Dresources.autodetection.restrictToModuleDependencies=false'
         }
+        if (ignoreExistingResourcesConfig) {
+            options << '-Dresources.autodetection.ignoreExistingResourcesConfig=true'
+        }
         if (detectionExclusionPatterns) {
             options << "-Dresources.autodetection.detectionExclusionPatterns=${joinForCliArg(detectionExclusionPatterns)}".toString()
         }
 
         when:
-        mvn(['-Pnative', '-DskipTests', *options, 'package', 'exec:exec@native'])
+        def resourcesFile = file("src/main/resources/META-INF/native-image/app/resource-config.json")
+        resourcesFile.parentFile.mkdirs()
+        resourcesFile << """
+{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}
+        """
+
+        mvn(['-Pnative', '-DquickBuild', '-DskipTests', *options, 'package', 'exec:exec@native'])
 
         then:
         buildSucceeded
         outputContains "Hello, native!"
 
         and:
-        file("target/native/generated/generateResourceConfig/resource-config.json").text == '''{
+        if (ignoreExistingResourcesConfig) {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -40,13 +56,23 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
+        } else {
+            matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
+  "resources" : {
+    "includes" : [ ],
+    "excludes" : [ ]
+  },
+  "bundles" : [ ]
+}''')
+        }
 
         where:
-        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns
-        false     | [Pattern.quote("message.txt")] | false             | []
-        true      | []                             | false             | ["META-INF/.*"]
-        true      | []                             | true              | ["META-INF/.*"]
+        detection | includedPatterns               | restrictToModules | detectionExclusionPatterns | ignoreExistingResourcesConfig
+        false     | [Pattern.quote("message.txt")] | false             | []                         | true
+        true      | []                             | false             | ["META-INF/.*"]            | true
+        true      | []                             | true              | ["META-INF/.*"]            | true
+        true      | []                             | true              | []                         | false
     }
 
     def "can test an application which uses test resources"() {
@@ -69,13 +95,13 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         }
 
         when:
-        mvn(['-Pnative', 'test', *options])
+        mvn(['-Pnative', '-DquickBuild', 'test', *options])
 
         then:
         buildSucceeded
 
         and:
-        file("target/native/generated/generateTestResourceConfig/resource-config.json").text == '''{
+        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, '''{
   "resources" : {
     "includes" : [ {
       "pattern" : "\\\\Qmessage.txt\\\\E"
@@ -85,7 +111,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
     "excludes" : [ ]
   },
   "bundles" : [ ]
-}'''
+}''')
 
         where:
         detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns

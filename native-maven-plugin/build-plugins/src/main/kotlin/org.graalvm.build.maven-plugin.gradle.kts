@@ -1,4 +1,5 @@
 import org.graalvm.build.maven.GeneratePluginDescriptor
+import org.graalvm.build.maven.GenerateRuntimeMetadata
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.tasks.Copy
 import org.gradle.kotlin.dsl.register
@@ -71,6 +72,22 @@ val generatePluginDescriptor = tasks.register<GeneratePluginDescriptor>("generat
     pomFile.set(mvnDescriptorOut.map { it.file("pom.xml") })
     mavenEmbedderClasspath.from(configurations.findByName("mavenEmbedder"))
     outputDirectory.set(project.layout.buildDirectory.dir("generated/maven-plugin"))
+}
+
+val writeConstants = tasks.register<GenerateRuntimeMetadata>("writeRuntimeMetadata") {
+    className.set("org.graalvm.buildtools.maven.RuntimeMetadata")
+    outputDirectory.set(layout.buildDirectory.dir("generated/runtime-metadata"))
+    metadata.put("GROUP_ID", project.group as String)
+    metadata.put("VERSION", project.version as String)
+    metadata.put("JUNIT_PLATFORM_NATIVE_ARTIFACT_ID", "junit-platform-native")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir(writeConstants)
+        }
+    }
 }
 
 tasks {

@@ -49,7 +49,6 @@ repositories {
 }
 
 def junitVersion = providers.gradleProperty('junit.jupiter.version')
-    .forUseAtConfigurationTime()
     .get()
 
 dependencies {
@@ -58,6 +57,7 @@ dependencies {
 }
 
 graalvmNative {
+    useArgFile = false // required to check for flags in tests
     binaries {
         main {
             verbose = true

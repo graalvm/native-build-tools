@@ -58,7 +58,7 @@ val mavenExtension = project.extensions.create<MavenExtension>("maven").also {
     it.description.convention(project.description)
 }
 
-val publishingTasks = tasks.withType<PublishToMavenRepository>()
+val publishingTasks = tasks.withType<AbstractPublishToMaven>()
         .matching { it.name.endsWith("ToCommonRepository") }
 
 val repositoryElements by configurations.creating {
@@ -151,8 +151,33 @@ plugins.withId("java-test-fixtures") {
     }
 }
 
+val publicationCoordinatesCollector = gradle.sharedServices.registerIfAbsent("publicationCoordinatesCollector", PublicationCoordinatesCollector::class.java) {
+}
+
+val showPublications by tasks.registering {
+    usesService(publicationCoordinatesCollector)
+    doLast {
+        publishing.publications.all {
+            val pub = this as MavenPublication
+            publicationCoordinatesCollector.get().addPublication(pub)
+        }
+    }
+}
+
 // Get a handle on the software component factory
 interface Services {
     @Inject
     fun getSoftwareComponentFactory(): SoftwareComponentFactory
+}
+
+abstract class PublicationCoordinatesCollector: BuildService<BuildServiceParameters.None>, AutoCloseable {
+    val publications = mutableSetOf<String>()
+
+    fun addPublication(publication: MavenPublication) {
+        publications.add("${publication.groupId}:${publication.artifactId}:${publication.version}")
+    }
+
+    override fun close() {
+        publications.sorted().forEach { println(it) }
+    }
 }

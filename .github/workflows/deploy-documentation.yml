@@ -18,19 +18,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ latest ]
-        java-version: [ 11 ]
+        java-version: [ 17 ]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁  Checkout repository"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           push-access: 1
           ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}

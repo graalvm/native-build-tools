@@ -67,7 +67,7 @@ class IsolatedMavenExecutor {
         cliArgs.add("-cp")
         cliArgs.add(classpath)
         if (debug) {
-            cliArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005")
+            cliArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
         }
         cliArgs.add("-Dmaven.multiModuleProjectDirectory=" + rootProjectDirectory.getAbsolutePath())
         cliArgs.add("org.apache.maven.cli.MavenCli")
@@ -80,7 +80,11 @@ class IsolatedMavenExecutor {
                 .command(cliArgs)
 
         def environment = builder.environment()
-        environment.put("GRAALVM_HOME", javaExecutable.parentFile.parentFile.absolutePath)
+        String graalvmHome = System.getenv("GRAALVM_HOME")
+        if (graalvmHome == null) {
+            graalvmHome = javaExecutable.parentFile.parentFile.absolutePath
+        }
+        environment.put("GRAALVM_HOME", graalvmHome)
         environment.put("M2_HOME", m2Home.absolutePath)
         Process p = builder
                 .redirectErrorStream(true)

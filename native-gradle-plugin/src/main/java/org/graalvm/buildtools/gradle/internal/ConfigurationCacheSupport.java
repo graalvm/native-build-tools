@@ -44,8 +44,11 @@ package org.graalvm.buildtools.gradle.internal;
 import org.gradle.api.Transformer;
 
 import java.io.Serializable;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 /**
  * Helper class to deal with Gradle configuration cache.
@@ -82,6 +85,33 @@ public class ConfigurationCacheSupport {
         return transformer;
     }
 
+    /**
+     * Generates a serializable function lambda.
+     * @param function the bifunction
+     * @param <F> the type of the parameter
+     * @param <T> the type of the result
+     * @return a serializable function
+     */
+    public static <F, T> Function<F, T> serializableFunctionOf(SerializableFunction<F, T> function) {
+        return function;
+    }
+
+    /**
+     * Generates a serializable bifunction lambda.
+     * @param bifunction the bifunction
+     * @param <T> the type of the first parameter
+     * @param <U> the type of the second parameter
+     * @param <R> the type of the result
+     * @return a serializable bifunction
+     */
+    public static <T, U, R> BiFunction<T, U, R> serializableBiFunctionOf(SerializableBiFunction<T, U, R> bifunction) {
+        return bifunction;
+    }
+
+    public static <T, A, R> Collector<T, A, R> serializableCollectorOf(SerializableCollector<T, A, R> collector) {
+        return collector;
+    }
+
     public interface SerializableSupplier<T> extends Supplier<T>, Serializable {
 
     }
@@ -91,6 +121,18 @@ public class ConfigurationCacheSupport {
     }
 
     public interface SerializableTransformer<OUT, IN> extends Transformer<OUT, IN>, Serializable {
+
+    }
+
+    public interface SerializableFunction<F, T> extends Function<F, T>, Serializable {
+
+    }
+
+    public interface SerializableBiFunction<T, U, R> extends BiFunction<T, U, R>, Serializable {
+
+    }
+
+    public interface SerializableCollector<T, A, R> extends Collector<T, A, R>, Serializable {
 
     }
 

@@ -1,6 +1,7 @@
 [versions]
 # Project versions
-nativeBuildTools = "0.9.15-SNAPSHOT"
+nativeBuildTools = "0.10.3-SNAPSHOT"
+metadataRepository = "0.3.8"
 
 # External dependencies
 spock = "2.1-groovy-3.0"
@@ -8,14 +9,16 @@ maven = "3.8.6"
 mavenAnnotations = "3.6.4"
 mavenEmbedder = "3.8.6"
 mavenWagon = "3.4.3"
-graalvm = "22.0.0"
-jackson = "2.13.3"
-junitPlatform = "1.8.1"
-junitJupiter = "5.8.1"
+graalvm = "23.0.2"
+jackson = "2.13.5"
+junitPlatform = "1.10.0"
+junitJupiter = "5.10.0"
 aether = "1.1.0"
 slf4j = "1.7.9"
 groovy = "3.0.11"
 jetty = "11.0.11"
+plexusUtils = "4.0.0"
+plexusXml = "4.0.2"
 
 [libraries]
 # Local projects
@@ -54,3 +57,7 @@ maven-wagon-provider = { module = "org.apache.maven.wagon:wagon-provider-api", v
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
+
+plexus-utils = { module = "org.codehaus.plexus:plexus-utils", version.ref = "plexusUtils" }
+
+plexus-xml = { module = "org.codehaus.plexus:plexus-xml", version.ref = "plexusXml" }

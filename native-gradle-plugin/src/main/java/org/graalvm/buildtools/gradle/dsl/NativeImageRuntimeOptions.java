@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,55 +38,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.dsl;
 
-package org.graalvm.buildtools.gradle
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Input;
 
-import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-
-class DeprecatedExtensionFunctionalTest extends AbstractFunctionalTest {
-    def "using a deprecated extension issues a warning"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'application'
-                id 'org.graalvm.buildtools.native'
-            }
-            
-            $extensionName {
-                verbose = true
-                jvmArgs('hello', 'world')
-            }
-            
-            assert graalvmNative.binaries.${replacedWith}.verbose.get() == true
-            assert graalvmNative.binaries.${replacedWith}.jvmArgs.get() == ['hello', 'world']
-        """
-
-        when:
-        run 'help'
-
-        then:
-        outputContains "The $extensionName extension is deprecated and will be removed. Please use the 'graalvmNative.binaries.$replacedWith' extension to configure the native image instead."
-
-        where:
-        extensionName | replacedWith
-        'nativeBuild' | 'main'
-        'nativeTest'  | 'test'
-    }
-
-    def "calling the deprecated nativeBuild task triggers a warning and execution of the native image task"() {
-        given:
-        withSample("java-application")
-
-        when:
-        run 'nativeBuild'
-
-        then:
-        tasks {
-            succeeded ':nativeCompile'
-            succeeded ':nativeBuild'
-        }
-
-        and:
-        outputContains 'Task nativeBuild is deprecated. Use nativeCompile instead.'
-    }
+/**
+ * Options required when running a native image.
+ */
+public interface NativeImageRuntimeOptions {
+    /**
+     * Returns the arguments to use when launching the built image.
+     *
+     * @return The arguments. Returns an empty list if there are no arguments.
+     */
+    @Input
+    ListProperty<String> getRuntimeArgs();
 }

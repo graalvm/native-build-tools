@@ -43,13 +43,13 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
-import spock.lang.Unroll
 
 class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
 
-    def "the application runs when using the official metadata repository"() {
+    def "the application runs when using the official metadata repository by default"() {
         given:
         withSample("metadata-repo-integration")
+        debug = true
 
         when:
         run 'nativeRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
@@ -60,7 +60,23 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
         }
 
         and: "finds metadata in the remote repository"
-        outputContains "[graalvm reachability metadata repository for com.h2database:h2:2.1.210]: Configuration directory is com.h2database/h2/2.1.210"
+        outputContains "[graalvm reachability metadata repository for com.h2database:h2:"
+        outputContains "Configuration directory is com.h2database" + File.separator + "h2" + File.separator
+        outputDoesNotContain "Falling back to the default repository at"
+    }
+
+    def "the application doesn't run when usage of the official metadata repository is disabled"() {
+        given:
+        withSample("metadata-repo-integration")
+        debug = true
+
+        when:
+        run 'nativeRun', "-Pmetadata.repo.enabled=false",  "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}"
+
+        then:
+        tasks {
+            failed ':nativeCompile'
+        }
     }
 
 }

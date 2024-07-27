@@ -42,10 +42,12 @@
 package org.graalvm.buildtools.gradle.tasks;
 
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
+import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
+import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -67,11 +69,15 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
+import org.gradle.process.ExecResult;
 
 import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
@@ -81,9 +87,17 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
+    private final NativeImageExecutableLocator.Diagnostics diagnostics;
+    private final boolean useColors;
+
+    @Internal
+    public abstract Property<NativeImageOptions> getOptions();
 
     @Nested
-    public abstract Property<NativeImageOptions> getOptions();
+    protected NativeImageCompileOptions getCompileOptions() {
+        getOptions().finalizeValue();
+        return getOptions().get().asCompileOptions();
+    }
 
     @Option(option = "quick-build-native", description = "Enables quick build mode")
     public void overrideQuickBuild() {
@@ -93,6 +107,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Option(option = "debug-native", description = "Enables debug mode")
     public void overrideDebugBuild() {
         getOptions().get().getDebug().set(true);
+    }
+
+    @Option(option = "pgo-instrument", description = "Enables PGO instrumentation")
+    public void overridePgoInstrument() {
+        getOptions().get().getPgoInstrument().set(true);
     }
 
     @Inject
@@ -116,17 +135,19 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Internal
     public Provider<String> getExecutableShortName() {
-        return getOptions().flatMap(NativeImageOptions::getImageName);
+        return getOptions().flatMap(options ->
+                options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo) ? "-instrumented" : "")))
+        );
     }
 
     @Internal
     public Provider<String> getExecutableName() {
-        return getOptions().flatMap(options -> options.getImageName().map(name -> name + EXECUTABLE_EXTENSION));
+        return getExecutableShortName().map(name -> name + EXECUTABLE_EXTENSION);
     }
 
     @Internal
     public Provider<RegularFile> getOutputFile() {
-        return getOutputDirectory().map(dir -> dir.file(getExecutableName()).get());
+        return getOutputDirectory().zip(getExecutableName(), Directory::file);
     }
 
     @Input
@@ -154,11 +175,13 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         getOutputDirectory().convention(outputDir);
         ProviderFactory providers = getProject().getProviders();
-        this.graalvmHomeProvider = graalvmHomeProvider(providers);
+        this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
+        this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);
+        this.useColors = "plain".equals(getProject().getGradle().getStartParameter().getConsoleOutput());
         getDisableToolchainDetection().convention(false);
     }
 
-    private List<String> buildActualCommandLineArgs() {
+    private List<String> buildActualCommandLineArgs(int majorJDKVersion) {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
                 getOptions(),
@@ -168,7 +191,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 // a mapped value before the task was called, when we are actually calling it...
                 getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
                 getClasspathJar(),
-                getUseArgFile()).asArguments();
+                getUseArgFile(),
+                getProviders().provider(() -> majorJDKVersion),
+                getProviders().provider(() -> useColors)).asArguments();
     }
 
     // This property provides access to the service instance
@@ -182,18 +207,25 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         NativeImageOptions options = getOptions().get();
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
-        List<String> args = buildActualCommandLineArgs();
-        if (options.getVerbose().get()) {
-            logger.lifecycle("Args are: " + args);
-        }
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
                 options.getJavaLauncher(),
                 getDisableToolchainDetection(),
                 getGraalVMHome(),
                 getExecOperations(),
-                logger);
-
-        logger.lifecycle("Using executable path: " + executablePath);
+                logger,
+                diagnostics);
+        String versionString = getVersionString(getExecOperations(), executablePath);
+        if (options.getRequiredVersion().isPresent()) {
+            NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
+        }
+        int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
+        List<String> args = buildActualCommandLineArgs(majorJDKVersion);
+        if (options.getVerbose().get()) {
+            logger.lifecycle("Args are: " + args);
+        }
+        for (String diagnostic : diagnostics.getDiagnostics()) {
+            logger.lifecycle(diagnostic);
+        }
         String executable = executablePath.getAbsolutePath();
         File outputDir = getOutputDirectory().getAsFile().get();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
@@ -216,4 +248,14 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         }
     }
 
+    public static String getVersionString(ExecOperations execOperations, File executablePath) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ExecResult execResult = execOperations.exec(spec -> {
+            spec.setStandardOutput(outputStream);
+            spec.args("--version");
+            spec.setExecutable(executablePath.getAbsolutePath());
+        });
+        execResult.assertNormalExitValue();
+        return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+    }
 }

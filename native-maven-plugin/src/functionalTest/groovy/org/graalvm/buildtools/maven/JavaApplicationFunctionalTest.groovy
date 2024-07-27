@@ -43,6 +43,8 @@ package org.graalvm.buildtools.maven
 
 import spock.lang.Issue
 
+import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
+
 class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     def "proper options are added to the native-image invocation"() {
         withSample("java-application")
@@ -55,14 +57,16 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
         then:
         buildSucceeded
-        outputContains "native-image -cp / -g --no-fallback --verbose --shared -Ob"
+        outputContains NATIVE_IMAGE_EXE
+        outputContains "-cp " // actual path is OS-specific (/ vs C:\)
+        outputContains "-g --no-fallback --verbose --shared -Ob"
     }
 
     def "can build and execute a native image with the Maven plugin"() {
         withSample("java-application")
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -73,7 +77,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application")
 
         when:
-        mvn '-Pshaded', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pshaded', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
@@ -86,7 +90,7 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application")
 
         when:
-        mvn '-Pnative', '-DskipTests', 'package', 'exec:exec@native', "-DuseArgFile=${argFile}"
+        mvn '-Pnative', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native', "-DuseArgFile=${argFile}"
 
         then:
         buildSucceeded
@@ -100,12 +104,31 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("java-application-with-custom-packaging")
 
         when:
-        mvnDebug 'package', '-Dpackaging=native-image', 'exec:exec@native'
+        mvnDebug '-DquickBuild', 'package', '-Dpackaging=native-image', 'exec:exec@native'
 
         then:
         buildSucceeded
         outputContains "ImageClasspath Entry: org.graalvm.buildtools.examples:java-application-with-custom-packaging:native-image:0.1"
         outputContains "Hello, native!"
+    }
+
+    def "can write the args file"() {
+        withSample("java-application")
+
+        when:
+        mvn '-DquickBuild', '-Pnative', 'native:write-args-file'
+
+        then:
+        buildSucceeded
+        outputContains "Args file written to: target" + File.separator + "native-image"
+
+        when:
+        mvn '-DquickBuild', '-Pnative', 'native:write-args-file'
+
+        then:
+        buildSucceeded
+        outputContains "Args file written to: target" + File.separator + "native-image"
+        file("target/").listFiles().findAll(x->x.name.contains("native-image") && x.name.endsWith(".args")).size() == 1
     }
 
 }

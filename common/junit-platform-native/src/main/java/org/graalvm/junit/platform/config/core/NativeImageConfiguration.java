@@ -42,6 +42,7 @@
 package org.graalvm.junit.platform.config.core;
 
 import org.graalvm.junit.platform.JUnitPlatformFeature;
+import org.graalvm.junit.platform.config.util.Utils;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -54,6 +55,10 @@ public interface NativeImageConfiguration {
 
     void registerForReflection(Field... fields);
 
+    default void registerAllClassMembersForReflection(String... classNames) {
+        registerAllClassMembersForReflection(Utils.toClasses(classNames));
+    };
+
     default void registerAllClassMembersForReflection(Class<?>... classes) {
         for (Class<?> clazz : classes) {
             JUnitPlatformFeature.debug("[Native Image Configuration] Registering for reflection: %s", clazz.getName());
@@ -64,7 +69,9 @@ public interface NativeImageConfiguration {
         }
     }
 
-    void initializeAtBuildTime(String... classNames);
+    default void initializeAtBuildTime(String... classNames) {
+        initializeAtBuildTime(Utils.toClasses(classNames));
+    };
 
     void initializeAtBuildTime(Class<?>... classes);
 }

@@ -42,183 +42,33 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
+import org.graalvm.buildtools.gradle.internal.DelegatingCompileOptions;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.jvm.toolchain.JavaLauncher;
 
-import java.util.List;
 import java.util.Map;
 
 
 /**
  * Class that declares native image options.
+ * This object is a domain object which can be configured via
+ * the Gradle DSL. Multiple instances of this object can be created,
+ * in which case it means we have multiple native binaries.
+ * 
+ * The DSL combines the compiler options (building a native binary)
+ * and the runtime options (executing a native binary).
  *
  * @author gkrocher
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public interface NativeImageOptions extends Named {
+public interface NativeImageOptions extends Named, NativeImageCompileOptions, NativeImageRuntimeOptions {
     @Override
     @Internal
     String getName();
-
-    /**
-     * Gets the name of the native executable to be generated.
-     *
-     * @return The image name property.
-     */
-    @Input
-    Property<String> getImageName();
-
-    /**
-     * Returns the fully qualified name of the Main class to be executed.
-     * <p>
-     * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
-     * </p>
-     *
-     * @return mainClass The main class.
-     */
-    @Input
-    @Optional
-    Property<String> getMainClass();
-
-    /**
-     * Returns the arguments for the native-image invocation.
-     *
-     * @return Arguments for the native-image invocation.
-     */
-    @Input
-    ListProperty<String> getBuildArgs();
-
-    /**
-     * Returns the system properties which will be used by the native-image builder process.
-     *
-     * @return The system properties. Returns an empty map when there are no system properties.
-     */
-    @Input
-    MapProperty<String, Object> getSystemProperties();
-
-    /**
-     * Returns the environment variables which will be used by the native-image builder process.
-     * @return the environment variables. Returns an empty map when there are no environment variables.
-     *
-     * @since 0.9.14
-     */
-    @Input
-    MapProperty<String, Object> getEnvironmentVariables();
-
-    /**
-     * Returns the classpath for the native-image building.
-     *
-     * @return classpath The classpath for the native-image building.
-     */
-    @InputFiles
-    @Classpath
-    ConfigurableFileCollection getClasspath();
-
-    /**
-     * Returns the extra arguments to use when launching the JVM for the native-image building process.
-     * Does not include system properties and the minimum/maximum heap size.
-     *
-     * @return The arguments. Returns an empty list if there are no arguments.
-     */
-    @Input
-    ListProperty<String> getJvmArgs();
-
-    /**
-     * Returns the arguments to use when launching the built image.
-     *
-     * @return The arguments. Returns an empty list if there are no arguments.
-     */
-    @Input
-    ListProperty<String> getRuntimeArgs();
-
-    /**
-     * Gets the value which toggles native-image debug symbol output.
-     *
-     * @return Is debug enabled
-     */
-    @Input
-    Property<Boolean> getDebug();
-
-    /**
-     * @return Whether to enable fallbacks (defaults to false).
-     */
-    @Input
-    Property<Boolean> getFallback();
-
-    /**
-     * Gets the value which toggles native-image verbose output.
-     *
-     * @return Is verbose output
-     */
-    @Input
-    Property<Boolean> getVerbose();
-
-    /**
-     * Gets the value which determines if shared library is being built.
-     *
-     * @return The value which determines if shared library is being built.
-     */
-    @Input
-    Property<Boolean> getSharedLibrary();
-
-    /**
-     * Gets the value which determines if image is being built in quick build mode.
-     *
-     * @return The value which determines if image is being built in quick build mode.
-     */
-    @Input
-    Property<Boolean> getQuickBuild();
-
-    /**
-     * Gets the value which determines if image is being built with rich output.
-     *
-     * @return The value which determines if image is being built with rich output.
-     */
-    @Input
-    Property<Boolean> getRichOutput();
-
-    /**
-     * Returns the toolchain used to invoke native-image. Currently pointing
-     * to a Java launcher due to Gradle limitations.
-     *
-     * @return the detected java launcher
-     */
-    @Nested
-    @Optional
-    Property<JavaLauncher> getJavaLauncher();
-
-    /**
-     * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
-     * to be passed to native-image.
-     *
-     * @return a collection of directories
-     */
-    @InputFiles
-    ConfigurableFileCollection getConfigurationFileDirectories();
-
-    /**
-     * Returns the MapProperty that contains information about configuration that should be excluded
-     * during image building. It consists of a dependency coordinates and a list of
-     * regular expressions that match resources that should be excluded as a value.
-     *
-     * @return a map of filters for configuration exclusion
-     */
-    @Input
-    MapProperty<Object, List<String>> getExcludeConfig();
-
-    @Nested
-    NativeResourcesOptions getResources();
 
     void resources(Action<? super NativeResourcesOptions> spec);
 
@@ -296,22 +146,29 @@ public interface NativeImageOptions extends Named {
      */
     NativeImageOptions runtimeArgs(Iterable<?> arguments);
 
-    /**
-     * If set to true, this will build a fat jar of the image classpath
-     * instead of passing each jar individually to the classpath. This
-     * option can be used in case the classpath is too long and that
-     * invoking native image fails, which can happen on Windows.
-     *
-     * @return true if a fatjar should be used. Defaults to true for Windows, and false otherwise.
-     */
-    @Input
-    Property<Boolean> getUseFatJar();
-
-    @Nested
-    DeprecatedAgentOptions getAgent();
-
     void agent(Action<? super DeprecatedAgentOptions> spec);
 
+    /**
+     * Specify the minimal GraalVM version, can be {@code MAJOR}, {@code MAJOR.MINOR} or {@code MAJOR.MINOR.PATCH}.
+     *
+     * @deprecated deprecated without replacement.
+     * @return the required version property.
+     */
     @Input
-    ListProperty<String> getExcludeConfigArgs();
+    @Optional
+    @Deprecated
+    Property<String> getRequiredVersion();
+
+    /**
+     * Restricts this object to the list of options which are
+     * required for compilation. This is required so that Gradle
+     * only considers the inputs from that type instead of the
+     * full set of properties when building a native binary.
+     *
+     * @return the compilation options.
+     */
+    default NativeImageCompileOptions asCompileOptions() {
+        return new DelegatingCompileOptions(this);
+    }
+
 }

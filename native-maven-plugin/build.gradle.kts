@@ -51,6 +51,7 @@ plugins {
     id("org.graalvm.build.publishing")
     id("org.graalvm.build.maven-plugin")
     id("org.graalvm.build.maven-functional-testing")
+    id("org.graalvm.build.github-actions-helper")
 }
 
 maven {
@@ -59,11 +60,11 @@ maven {
 }
 
 dependencies {
-    implementation(libs.junitPlatformNative)
     implementation(libs.utils)
     implementation(libs.jackson.databind)
     implementation(libs.jvmReachabilityMetadata)
-    implementation(libs.graalvm.svm)
+    implementation(libs.plexus.utils)
+    implementation(libs.plexus.xml)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
@@ -148,13 +149,12 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
     )
 
     doFirst {
-        GFileUtils.deleteDirectory(localRepositoryDir.get().asFile)
+        delete { delete { localRepositoryDir.get().asFile } }
     }
 }
 
 val launcher = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(11))
-    vendor.set(JvmVendorSpec.matching("GraalVM"))
 }
 
 tasks {
@@ -175,4 +175,6 @@ tasks {
 
 tasks.withType<Checkstyle>().configureEach {
     configFile = layout.projectDirectory.dir("../config/checkstyle.xml").asFile
+    // generated code
+    exclude("**/RuntimeMetadata*")
 }

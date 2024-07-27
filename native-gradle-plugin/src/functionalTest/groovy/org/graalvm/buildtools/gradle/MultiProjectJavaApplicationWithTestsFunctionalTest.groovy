@@ -48,7 +48,7 @@ class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctio
     @Unroll("transitive dependencies are included when testing with JUnit Platform #junitVersion")
     def "transitive dependencies are included when testing"() {
         given:
-        withSample("multi-project-with-tests")
+        withSample("multi-project-with-tests", false)
 
         when:
         run 'nativeTest'
@@ -70,11 +70,11 @@ class MultiProjectJavaApplicationWithTestsFunctionalTest extends AbstractFunctio
 [         0 containers aborted    ]
 [         3 containers successful ]
 [         0 containers failed     ]
-[         7 tests found           ]
+[         8 tests found           ]
 [         0 tests skipped         ]
-[         7 tests started         ]
+[         8 tests started         ]
 [         0 tests aborted         ]
-[         7 tests successful      ]
+[         8 tests successful      ]
 [         0 tests failed          ]
 """.trim()
 

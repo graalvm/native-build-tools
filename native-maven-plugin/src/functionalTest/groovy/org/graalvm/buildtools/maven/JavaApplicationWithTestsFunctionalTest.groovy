@@ -49,7 +49,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', 'test'
+        mvn '-Pnative', '-DquickBuild', 'test'
 
         then:
         buildSucceeded
@@ -74,7 +74,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pshaded', 'integration-test'
+        mvn '-Pshaded', '-DquickBuild', 'integration-test'
 
         then:
         buildSucceeded
@@ -100,7 +100,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', 'test', '-DskipTests'
+        mvn '-Pnative', '-DquickBuild', 'test', '-DskipTests'
 
         then:
         buildSucceeded
@@ -114,7 +114,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', 'test', '-DskipNativeTests'
+        mvn '-Pnative', '-DquickBuild', 'test', '-DskipNativeTests'
 
         then:
         buildSucceeded
@@ -129,7 +129,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         withSample("java-application-with-tests")
 
         when:
-        mvn '-Pnative', '-Ptest-variables', 'test'
+        mvn '-Pnative', '-DquickBuild', '-Ptest-variables', 'test'
 
         then:
         buildSucceeded
@@ -138,6 +138,19 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         nativeImageExecResult.contains "TEST_ENV = test-value"
         nativeImageExecResult.contains "test-property = test-value"
 
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/178")
+    def "can run tests in a multimodule project"() {
+        given:
+        withSample("multi-project-with-tests")
+
+        when:
+        mvn '-DquickBuild', 'package'
+
+        then:
+        buildSucceeded
+        outputContains "SurefirePlugin - Tests run: 8, Failures: 0, Errors: 0, Skipped: 0"
     }
 
 }

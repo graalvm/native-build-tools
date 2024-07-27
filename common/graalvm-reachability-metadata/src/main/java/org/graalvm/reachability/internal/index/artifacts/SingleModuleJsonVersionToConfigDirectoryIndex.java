@@ -91,22 +91,34 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
      */
     @Override
     public Optional<DirectoryConfiguration> findConfiguration(String groupId, String artifactId, String version) {
-        return findConfigurationFor(groupId, artifactId, artifact -> artifact.getVersions().contains(version));
+        Optional<DirectoryConfiguration> exactMatch = findConfigurationFor(groupId, artifactId, version, artifact -> artifact.getVersions().contains(version));
+        return exactMatch.isPresent() ? exactMatch :
+                findConfigurationFor(groupId, artifactId, version, artifact -> artifact.isDefaultFor(version));
+    }
+
+    @Override
+    @Deprecated
+    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId) {
+        return findConfigurationFor(groupId, artifactId, null, Artifact::isLatest);
     }
 
     /**
-     * Returns the latest configuration directory for the requested artifact.
+     * Returns the matching configuration directory for the requested artifact.
      *
      * @param groupId the group ID of the artifact
      * @param artifactId the artifact ID of the artifact
+     * @param version the version of the artifact
      * @return a configuration directory, or empty if no configuration directory is available
      */
     @Override
-    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId) {
-        return findConfigurationFor(groupId, artifactId, Artifact::isLatest);
+    public Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId, String version) {
+        Optional<DirectoryConfiguration> defaultMatch = findConfigurationFor(groupId, artifactId, version, artifact -> artifact.isDefaultFor(version));
+        return defaultMatch.isPresent() ? defaultMatch :
+                findConfigurationFor(groupId, artifactId, version, Artifact::isLatest);
     }
 
-    private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, Predicate<? super Artifact> predicate) {
+    private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, String version,
+            Predicate<? super Artifact> predicate) {
         String module = groupId + ":" + artifactId;
         List<Artifact> artifacts = index.get(module);
         if (artifacts == null) {
@@ -116,7 +128,8 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
                 .filter(artifact -> artifact.getModule().equals(module))
                 .filter(predicate)
                 .findFirst()
-                .map(artifact -> new DirectoryConfiguration(moduleRoot.resolve(artifact.getDirectory()), artifact.isOverride()));
+                .map(artifact -> new DirectoryConfiguration(groupId, artifactId, version,
+                        moduleRoot.resolve(artifact.getDirectory()), artifact.isOverride()));
     }
 
 }

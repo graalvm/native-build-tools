@@ -4,13 +4,15 @@ on:
   push:
     paths:
       - 'common/junit-platform-native/**'
-      - '.github/actions/prepare-environment'
+      - '.github/actions/**'
       - '.github/workflows/test-junit-platform-native.yml'
+      - 'gradle/libs.versions.toml'
   pull_request:
     paths:
       - 'common/junit-platform-native/**'
-      - '.github/actions/prepare-environment'
+      - '.github/actions/**'
       - '.github/workflows/test-junit-platform-native.yml'
+      - 'gradle/libs.versions.toml'
   workflow_dispatch:
 
 concurrency:
@@ -24,16 +26,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        graalvm-version: [ dev ]
-        java-version: [ 11 ]
+        java-version: [ 17 ]
         os: [ ubuntu-20.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
-          graalvm-version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java-version }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Checkstyle"
@@ -44,7 +44,7 @@ jobs:
         run: ./gradlew :junit-platform-native:nativeTest
       - name: "📜 Upload tests results"
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: tests-results
           path: common/junit-platform-native/build/reports/tests/

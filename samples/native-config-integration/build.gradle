@@ -53,7 +53,6 @@ application {
 }
 
 def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .forUseAtConfigurationTime()
         .get()
 
 dependencies {
@@ -86,19 +85,19 @@ graalvmNative {
 tasks.register("configZip", Zip) {
     destinationDirectory = project.layout.projectDirectory
     from(file("config-directory"))
-    archiveName = 'config-directory.zip'
+    archiveFileName = 'config-directory.zip'
 }
 
 tasks.register("configTarGz", Tar) {
     destinationDirectory = project.layout.projectDirectory
     compression = Compression.GZIP
     from(file("config-directory"))
-    archiveName = 'config-directory.tar.gz'
+    archiveFileName = 'config-directory.tar.gz'
 }
 
 tasks.register("configTarBz2", Tar) {
     destinationDirectory = project.layout.projectDirectory
     compression = Compression.BZIP2
     from(file("config-directory"))
-    archiveName = 'config-directory.tar.bz2'
+    archiveFileName = 'config-directory.tar.bz2'
 }

@@ -16,7 +16,7 @@ public class H2Example {
 
     public static final String JDBC_CONNECTION_URL = "jdbc:h2:./data/test";
 
-    public static void main(String[] args) throws Exception {
+    public static void test() throws Exception {
         // Cleanup
         withConnection(JDBC_CONNECTION_URL, connection -> {
             connection.prepareStatement("DROP TABLE IF EXISTS customers").execute();

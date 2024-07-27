@@ -80,21 +80,21 @@ class FileUtilsTest {
     @Test
     @DisplayName("It doesn't blow up with a URL that isn't a file download")
     void testDownloadNoFile(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://httpstat.us/200");
+        URL url = new URL("https://httpbin.org/html");
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
         System.out.println("errorLogs = " + errorLogs);
 
         assertTrue(download.isPresent());
-        assertEquals("200", download.get().getFileName().toString());
+        assertEquals("html", download.get().getFileName().toString());
         assertEquals(0, errorLogs.size());
     }
 
     @Test
     @DisplayName("It doesn't blow up with a URL that does not exist")
     void testDownloadNotFound(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://httpstat.us/404");
+        URL url = new URL("https://google.com/notfound");
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
@@ -107,7 +107,7 @@ class FileUtilsTest {
     @Test
     @DisplayName("It doesn't blow up with connection timeouts")
     void testDownloadTimeout(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://httpstat.us/200?sleep=" + (FileUtils.READ_TIMEOUT + 1000));
+        URL url = new URL("https://httpbin.org/delay/10");
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);

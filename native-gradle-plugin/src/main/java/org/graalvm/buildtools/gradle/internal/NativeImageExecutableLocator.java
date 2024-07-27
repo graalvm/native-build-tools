@@ -50,7 +50,11 @@ import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.graalvm.buildtools.utils.SharedConstants.GU_EXE;
 import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
@@ -58,30 +62,33 @@ import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 public class NativeImageExecutableLocator {
 
     public static Provider<String> graalvmHomeProvider(ProviderFactory providers) {
-        return providers.environmentVariable("GRAALVM_HOME")
-                .forUseAtConfigurationTime()
-                .orElse(providers.environmentVariable("JAVA_HOME").forUseAtConfigurationTime());
+        return graalvmHomeProvider(providers, new Diagnostics());
+    }
+
+    public static Provider<String> graalvmHomeProvider(ProviderFactory providers, Diagnostics diagnostics) {
+        return diagnostics.fromEnvVar("GRAALVM_HOME", providers)
+                .orElse(diagnostics.fromEnvVar("JAVA_HOME", providers));
     }
 
     public static File findNativeImageExecutable(Property<JavaLauncher> javaLauncher,
                                                  Provider<Boolean> disableToolchainDetection,
                                                  Provider<String> graalvmHomeProvider,
                                                  ExecOperations execOperations,
-                                                 GraalVMLogger logger) {
+                                                 GraalVMLogger logger,
+                                                 Diagnostics diagnostics) {
         File executablePath = null;
-        if (disableToolchainDetection.get() || !javaLauncher.isPresent()) {
+        boolean toolchainDetectionIsDisabled = Boolean.TRUE.equals(disableToolchainDetection.get());
+        if (toolchainDetectionIsDisabled || !javaLauncher.isPresent()) {
             if (graalvmHomeProvider.isPresent()) {
+                diagnostics.disableToolchainDetection();
                 String graalvmHome = graalvmHomeProvider.get();
-                logger.lifecycle("Toolchain detection is disabled, will use GraalVM from {}.", graalvmHome);
                 executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
             }
         }
         if (executablePath == null) {
             JavaInstallationMetadata metadata = javaLauncher.get().getMetadata();
+            diagnostics.withToolchain(metadata);
             executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
-            if (!executablePath.exists() && graalvmHomeProvider.isPresent()) {
-                executablePath = Paths.get(graalvmHomeProvider.get()).resolve("bin").resolve(NATIVE_IMAGE_EXE).toFile();
-            }
         }
 
         try {
@@ -89,8 +96,9 @@ public class NativeImageExecutableLocator {
                 logger.log("Native Image executable wasn't found. We will now try to download it. ");
                 File graalVmHomeGuess = executablePath.getParentFile();
 
-                if (!graalVmHomeGuess.toPath().resolve(GU_EXE).toFile().exists()) {
-                    throw new GradleException("'" + GU_EXE + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
+                File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
+                if (!guPath.exists()) {
+                    throw new GradleException("'" + GU_EXE + "' at '" + guPath + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
                 }
                 ExecResult res = execOperations.exec(spec -> {
                     spec.args("install", "native-image");
@@ -99,12 +107,73 @@ public class NativeImageExecutableLocator {
                 if (res.getExitValue() != 0) {
                     throw new GradleException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.");
                 }
+                diagnostics.withGuInstall();
             }
         } catch (GradleException e) {
             throw new GradleException("Determining GraalVM installation failed with message: " + e.getMessage() + "\n\n"
-                    + "Make sure to declare the GRAALVM_HOME environment variable or install GraalVM with " +
-                    "native-image in a standard location recognized by Gradle Java toolchain support");
+                                      + "Make sure to declare the GRAALVM_HOME environment variable or install GraalVM with " +
+                                      "native-image in a standard location recognized by Gradle Java toolchain support");
         }
+        diagnostics.withExecutablePath(executablePath);
         return executablePath;
+    }
+
+    public static final class Diagnostics {
+        private boolean toolchainDetectionDisabled;
+        private String envVar;
+        private boolean guInstall;
+        private File executablePath;
+        private JavaInstallationMetadata toolchain;
+
+        public Provider<String> fromEnvVar(String envVar, ProviderFactory factory) {
+            return factory.environmentVariable(envVar)
+                    // required for older Gradle versions support
+                    .map(ConfigurationCacheSupport.serializableTransformerOf(value -> {
+                        this.envVar = envVar;
+                        return value;
+                    }));
+        }
+
+        public void withToolchain(JavaInstallationMetadata toolchain) {
+            this.toolchain = toolchain;
+            this.envVar = null;
+        }
+
+        public void disableToolchainDetection() {
+            toolchainDetectionDisabled = true;
+        }
+
+        public void withGuInstall() {
+            guInstall = true;
+        }
+
+        public void withExecutablePath(File path) {
+            executablePath = path;
+        }
+
+        public List<String> getDiagnostics() {
+            List<String> diags = new ArrayList<>();
+            diags.add("GraalVM Toolchain detection is " + (toolchainDetectionDisabled ? "disabled" : "enabled"));
+            if (envVar != null) {
+                diags.add("GraalVM location read from environment variable: " + envVar);
+            }
+            if (guInstall) {
+                diags.add("Native Image executable was installed using 'gu' tool");
+            }
+            if (toolchain != null) {
+                diags.add("GraalVM uses toolchain detection. Selected:");
+                diags.add("   - language version: " + toolchain.getLanguageVersion());
+                diags.add("   - vendor: " + toolchain.getVendor());
+                diags.add("   - runtime version: " + toolchain.getJavaRuntimeVersion());
+            }
+            if (executablePath != null) {
+                try {
+                    diags.add("Native Image executable path: " + executablePath.getCanonicalPath());
+                } catch (IOException e) {
+                    diags.add("Native Image executable path: " + executablePath.getAbsolutePath());
+                }
+            }
+            return Collections.unmodifiableList(diags);
+        }
     }
 }

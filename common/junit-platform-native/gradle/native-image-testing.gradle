@@ -38,9 +38,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-import org.gradle.util.GFileUtils
-
 def agentOutput = layout.buildDirectory.dir("agent")
 
 ext {
@@ -55,7 +52,7 @@ tasks.register("testConsoleLauncher", JavaExec) {
     doFirst {
         def agentOutputDir = agentOutput.get().asFile
         if (agentOutputDir.exists()) {
-            GFileUtils.deleteDirectory(agentOutputDir)
+            delete { delete agentOutputDir }
         }
         if (project.hasProperty("agent")) {
             mkdir "${agentOutputDir}"
@@ -99,8 +96,7 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
                 "-cp", classpath.asPath,
                 "--no-fallback",
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
-                "-H:Name=native-image-tests",
-                "-H:Class=org.graalvm.junit.platform.NativeImageJUnitLauncher",
+                "-o", "native-image-tests",
                 "-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"
         ]
         if (agentOutputDir.isPresent()) {
@@ -111,12 +107,15 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
             }
 
             args << "-H:ConfigurationFileDirectories=${outputDir.absolutePath}/agentOutput"
-            args << "-H:+AllowIncompleteClasspath"
         }
 
         if (discovery.get()) {
             args << "-DtestDiscovery"
         }
+
+        // Main class comes last
+        args << "org.graalvm.junit.platform.NativeImageJUnitLauncher"
+
         args.collect { it.toString() }
     }
 }
@@ -136,7 +135,7 @@ tasks.register("nativeTestCompile", Exec) {
     argsProvider.classpath.from(test.classpath)
     argsProvider.testIdsDir.set(testIdsDir)
     argsProvider.agentOutputDir.set(agentOutput)
-    argsProvider.discovery.set(providers.systemProperty("testDiscovery").forUseAtConfigurationTime().map(v -> Boolean.valueOf(v)).orElse(false))
+    argsProvider.discovery.set(providers.systemProperty("testDiscovery").map(v -> Boolean.valueOf(v)).orElse(false))
     argumentProviders.add(argsProvider)
 }
 

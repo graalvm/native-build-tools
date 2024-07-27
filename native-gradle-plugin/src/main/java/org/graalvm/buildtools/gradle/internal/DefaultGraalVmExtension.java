@@ -53,7 +53,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -72,7 +71,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.plugin = plugin;
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
-        getToolchainDetection().convention(true);
+        getToolchainDetection().convention(false);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
         AgentOptions agentOpts = getAgent();
@@ -97,9 +96,6 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
                         if (toolchainService != null) {
                             return toolchainService.launcherFor(spec -> {
                                 spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                                if (GradleUtils.isAtLeastGradle7()) {
-                                    spec.getVendor().set(JvmVendorSpec.matching("GraalVM"));
-                                }
                             });
                         }
                     }

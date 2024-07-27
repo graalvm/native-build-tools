@@ -51,8 +51,8 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <native.maven.plugin.version>0.9.15-SNAPSHOT</native.maven.plugin.version>
-        <junit.platform.native.version>0.9.15-SNAPSHOT</junit.platform.native.version>
+        <native.maven.plugin.version>0.10.3-SNAPSHOT</native.maven.plugin.version>
+        <junit.platform.native.version>0.10.3-SNAPSHOT</junit.platform.native.version>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.example.Application</mainClass>
     </properties>
@@ -94,6 +94,7 @@
                             <imageName>${imageName}</imageName>
                             <fallback>false</fallback>
                             <quickBuild>true</quickBuild>
+                            <useArgFile>false</useArgFile>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -354,6 +355,34 @@
                             </metadataRepository>
                             <!-- end::metadata-url[] -->
                         </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>addMetadataHints</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <configuration>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                                <localPath>${project.basedir}/config-directory</localPath> <!--1-->
+                            </metadataRepository>
+                        </configuration>
+                        <!-- tag::add-reachability-metadata-execution[] -->
+                        <executions>
+                            <execution>
+                                <id>add-reachability-metadata</id>
+                                <goals>
+                                    <goal>add-reachability-metadata</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <!-- end::add-reachability-metadata-execution[] -->
                     </plugin>
                 </plugins>
             </build>

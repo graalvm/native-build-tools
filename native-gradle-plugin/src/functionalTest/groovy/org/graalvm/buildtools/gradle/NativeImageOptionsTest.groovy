@@ -29,6 +29,8 @@ class NativeImageOptionsTest extends Specification {
                 id 'org.graalvm.buildtools.native'
             }
             
+            graalvmNative.toolchainDetection = true
+            
             assert graalvmNative.binaries.main.javaLauncher
                 .get()
                 .metadata
