@@ -68,30 +68,3 @@ jobs:
         with:
           name: maven-functional-tests-results-${{ matrix.os }}
           path: native-maven-plugin/build/reports/tests/
-
-  test-native-maven-plugin-with-whitespaces:
-      name: "🧪 Maven: ${{ matrix.test }} on ${{ matrix.os }}"
-      runs-on: ${{ matrix.os }}
-      timeout-minutes: 60
-      needs: populate-matrix
-      strategy:
-        fail-fast: false
-        matrix: ${{fromJson(needs.populate-matrix.outputs.matrix)}}
-      steps:
-        - name: "☁️ Checkout repository"
-          uses: actions/checkout@v4
-        - name: "🔧 Prepare environment"
-          uses: ./.github/actions/prepare-environment
-          with:
-            java-version: ${{ matrix.java-version }}
-            github-token: ${{ secrets.GITHUB_TOKEN }}
-        - name: "Set .m2 location to a folder with whitespaces"
-          run: echo "MAVEN_OPTS=-Dmaven.repo.local=~/test with whitespaces/.m2" >> $GITHUB_ENV
-        - name: "❓ Check and test the plugin"
-          run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast --tests ${{ matrix.test }}
-        - name: "📜 Upload unit test results"
-          if: always()
-          uses: actions/upload-artifact@v3
-          with:
-            name: maven-functional-tests-results-${{ matrix.os }}
-            path: native-maven-plugin/build/reports/tests/

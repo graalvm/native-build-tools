@@ -49,12 +49,15 @@ import org.eclipse.jetty.server.handler.ResourceHandler
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
 
 abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
-    @TempDir
+
     Path testDirectory
 
     Path testOrigin;
@@ -71,6 +74,13 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
 
     def setup() {
+        var home_dir = Path.of(System.getProperty("user.home"))
+        testDirectory = home_dir.resolve("tests")
+
+        if (Files.notExists(testDirectory)) {
+            Files.createDirectory(testDirectory)
+        }
+
         executor = new IsolatedMavenExecutor(
                 new File(System.getProperty("java.executable")),
                 testDirectory.resolve("m2-home").toFile(),
@@ -79,6 +89,21 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     def cleanup() {
+
+        //cleanup test directory and all it's sub directories
+        Files.walkFileTree(testDirectory, new SimpleFileVisitor<Path>() {
+            @Override
+            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
+            @Override
+            FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                Files.delete(dir);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
         if (server != null) {
             server.stop()
             server.destroy()
@@ -158,7 +183,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         var resultingSystemProperties = [
                 "common.repo.uri": System.getProperty("common.repo.uri"),
                 "seed.repo.uri": System.getProperty("seed.repo.uri"),
-                "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
+                "maven.repo.local": testDirectory.resolve("local repo").toFile().absolutePath
         ]
         resultingSystemProperties.putAll(systemProperties)
 

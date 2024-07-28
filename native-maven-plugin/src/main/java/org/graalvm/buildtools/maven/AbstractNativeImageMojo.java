@@ -244,7 +244,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (buildArgs != null && !buildArgs.isEmpty()) {
             for (String buildArg : buildArgs) {
                 if(buildArg.startsWith("\\Q") ||
-                        buildArg.startsWith("--H:ConfigurationFileDirectories")) {
+                        buildArg.startsWith("-H:ConfigurationFileDirectories")) {
                     cliArgs.add(buildArg);
                     continue;
                 }
@@ -252,7 +252,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 int i=0;
                 while(i < args.length) {
                     String a =args[i];
-                    if (a.startsWith(""+System.getProperty("user.home").charAt(0))) {
+                    if (a.charAt(0) == System.getProperty("user.home").charAt(0)) {
                         StringBuilder path = new StringBuilder(a);
                         i++;
                         while( i< args.length && args[i].toLowerCase().charAt(0) <= 'z' &&
