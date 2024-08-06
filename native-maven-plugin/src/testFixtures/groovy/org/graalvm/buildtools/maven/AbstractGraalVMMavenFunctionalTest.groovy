@@ -74,8 +74,8 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
 
     def setup() {
-        var home_dir = Path.of(System.getProperty("user.home"))
-        testDirectory = home_dir.resolve("tests")
+        Path HomeDir = Path.of(System.getProperty("user.home"))
+        testDirectory = HomeDir.resolve("tests")
 
         if (Files.notExists(testDirectory)) {
             Files.createDirectory(testDirectory)
@@ -89,8 +89,6 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     def cleanup() {
-
-        //cleanup test directory and all it's sub directories
         Files.walkFileTree(testDirectory, new SimpleFileVisitor<Path>() {
             @Override
             FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
