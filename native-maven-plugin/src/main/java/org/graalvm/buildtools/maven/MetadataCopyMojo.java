@@ -66,7 +66,8 @@ import java.util.stream.Collectors;
 public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 
     private static final String DEFAULT_OUTPUT_DIRECTORY = "/META-INF/native-image";
-    private static final List<String> FILES_REQUIRED_FOR_MERGE = Arrays.asList("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json");
+    private static final List<String> FILES_REQUIRED_FOR_MERGE_LEGACY = Arrays.asList("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json");
+    private static final List<String> FILES_REQUIRED_FOR_MERGE = Arrays.asList("reachability-metadata.json");
 
     @Parameter(alias = "agent")
     private AgentConfiguration agentConfiguration;
@@ -136,7 +137,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 
                 throw new MojoExecutionException("There are missing files for merge in output directory. If you want to merge agent files with " +
                         "existing files in output directory, please make sure that output directory contains all of the following files: " +
-                        "reflect-config.json, jni-config.json, proxy-config.json, resource-config.json. Currently the output directory is " +
+                        "reflect-config.json, jni-config.json, proxy-config.json, resource-config.json, reachability-metadata.json. Currently the output directory is " +
                         "missing: " + missingFiles);
             }
 
@@ -209,7 +210,8 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         }
         List<String> dirContent = Arrays.stream(content).map(File::getName).collect(Collectors.toList());
 
-        return getListDiff(FILES_REQUIRED_FOR_MERGE, dirContent).isEmpty();
+        return getListDiff(FILES_REQUIRED_FOR_MERGE, dirContent).isEmpty() ||
+            getListDiff(FILES_REQUIRED_FOR_MERGE_LEGACY, dirContent).isEmpty();
     }
 
     private List<String> getListDiff(List<String> list1, List<String> list2) {
