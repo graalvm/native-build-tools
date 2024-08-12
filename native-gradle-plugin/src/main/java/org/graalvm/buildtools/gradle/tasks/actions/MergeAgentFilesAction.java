@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.findNativeImageExecutable;
@@ -94,8 +95,11 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.noLauncherProperty = objectFactory.property(JavaLauncher.class);
     }
 
+    private static final Set<String> metadataFiles = Set.of("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json", "reachability-metadata.json");
+
     private static boolean isConfigDir(String dir) {
-        return Arrays.stream(new File(dir).listFiles()).anyMatch(file -> file.getName().equals("reflect-config.json"));
+        return Arrays.stream(new File(dir).listFiles())
+           .anyMatch(file -> metadataFiles.contains(file.getName()));
     }
 
     @Override
