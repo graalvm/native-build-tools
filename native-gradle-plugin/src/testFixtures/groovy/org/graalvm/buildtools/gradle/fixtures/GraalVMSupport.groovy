@@ -53,6 +53,26 @@ class GraalVMSupport {
         (System.getProperty("java.vendor.version", "") - 'GraalVM' - 'CE' - 'EE').trim()
     }
 
+    static String getJavaHomeVersionString() {
+        String javaHomeLocation = System.getenv("JAVA_HOME")
+        return extractVersionString(javaHomeLocation)
+    }
+
+    static String getGraalVMHomeVersionString() {
+        String graalvmHomeLocation = System.getenv("GRAALVM_HOME")
+        return extractVersionString(graalvmHomeLocation)
+    }
+
+    private static String extractVersionString(String location) {
+        def sout = new StringBuilder(), serr = new StringBuilder()
+        def proc = (location + '/bin/native-image --version').execute()
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitForOrKill(1000)
+        assert serr.toString().isEmpty()
+
+        return sout.toString()
+    }
+
     static int getMajorVersion() {
         String v = version
         v.substring(0, v.indexOf('.')).toInteger()
