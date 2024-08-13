@@ -65,7 +65,8 @@ class GraalVMSupport {
 
     private static String extractVersionString(String location) {
         def sout = new StringBuilder(), serr = new StringBuilder()
-        def proc = (location + '/bin/native-image --version').execute()
+        String command = getSystemBasedCommand(location);
+        def proc = command.execute()
         proc.consumeProcessOutput(sout, serr)
         proc.waitForOrKill(1000)
         assert serr.toString().isEmpty()
@@ -81,5 +82,13 @@ class GraalVMSupport {
     static int getMinorVersion() {
         String v = version - "${majorVersion}."
         v.substring(0, v.indexOf('.')).toInteger()
+    }
+
+    private static boolean getSystemBasedCommand(String location) {
+        if (System.getProperty("os.name", "unknown").contains("Windows")) {
+            return location + '\\bin\\native-image.cmd --version'
+        } else {
+            return location + '/bin/native-image --version'
+        }
     }
 }
