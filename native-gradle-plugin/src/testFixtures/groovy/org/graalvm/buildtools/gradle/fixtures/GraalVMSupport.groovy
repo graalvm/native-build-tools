@@ -84,7 +84,7 @@ class GraalVMSupport {
         v.substring(0, v.indexOf('.')).toInteger()
     }
 
-    private static boolean getSystemBasedCommand(String location) {
+    private static String getSystemBasedCommand(String location) {
         if (System.getProperty("os.name", "unknown").contains("Windows")) {
             return location + '\\bin\\native-image.cmd --version'
         } else {
