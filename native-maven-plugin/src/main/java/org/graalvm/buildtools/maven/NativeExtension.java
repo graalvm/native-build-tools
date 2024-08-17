@@ -132,6 +132,13 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         return agentArgument;
     }
 
+    static String appendAgentArgument(String existingArgLine, String agentArgument) {
+        String quotedAgentArgument = quoteAgentArgumentForArgLine(agentArgument);
+        return existingArgLine == null || existingArgLine.isBlank()
+                ? quotedAgentArgument
+                : existingArgLine + " " + quotedAgentArgument;
+    }
+
     static String agentOutputDirectoryFor(String baseDir, Context context) {
         return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
     }
@@ -248,11 +255,10 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             Xpp3Dom systemPropertyVariables = findOrAppend(configuration, SYSTEM_PROPERTY_VARIABLES);
             Xpp3Dom agent = findOrAppend(systemPropertyVariables, NATIVEIMAGE_IMAGECODE);
             agent.setValue("agent");
-            Xpp3Dom argLine = new Xpp3Dom("argLine");
+            Xpp3Dom argLine = findOrAppend(configuration, "argLine");
             // Surefire/Failsafe parse argLine as one command-line string.
-            // Keep spaced output paths as one JVM argument. §FS-tracing-agent.3.
-            argLine.setValue(quoteAgentArgumentForArgLine(agentArgument));
-            configuration.addChild(argLine);
+            // Preserve user-supplied JVM options while keeping spaced output paths as one argument. §FS-tracing-agent.3.
+            argLine.setValue(appendAgentArgument(argLine.getValue(), agentArgument));
             findOrAppend(configuration, "jvm").setValue(getGraalvmJava());
         });
         return true;
