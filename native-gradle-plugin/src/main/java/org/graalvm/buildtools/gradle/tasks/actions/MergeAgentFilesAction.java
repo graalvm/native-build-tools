@@ -99,7 +99,7 @@ public class MergeAgentFilesAction implements Action<Task> {
 
     private static boolean isConfigDir(String dir) {
         return Arrays.stream(new File(dir).listFiles())
-           .anyMatch(file -> metadataFiles.contains(file.getName()));
+           .anyMatch(file -> METADATA_FILES.contains(file.getName()));
     }
 
     @Override
