@@ -95,7 +95,7 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.noLauncherProperty = objectFactory.property(JavaLauncher.class);
     }
 
-    private static final Set<String> metadataFiles = Set.of("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json", "reachability-metadata.json");
+    private static final Set<String> METADATA_FILES = Set.of("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json", "reachability-metadata.json");
 
     private static boolean isConfigDir(String dir) {
         return Arrays.stream(new File(dir).listFiles())
