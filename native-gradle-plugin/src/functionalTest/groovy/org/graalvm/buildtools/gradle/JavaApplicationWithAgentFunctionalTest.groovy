@@ -61,11 +61,8 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
             return file("${path}/reachability-metadata.json").exists()
         }
 
-        boolean allFilesExist = true
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            if (!file("${path}/${name}-config.json").exists()) {
-                allFilesExist = false
-            }
+        boolean allFilesExist = ['jni', 'proxy', 'reflect', 'resource', 'serialization'].every { name ->
+           file("${path}/${name}-config.json").exists()
         }
 
         return allFilesExist
