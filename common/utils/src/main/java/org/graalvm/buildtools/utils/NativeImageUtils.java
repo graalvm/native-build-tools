@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static org.graalvm.buildtools.utils.SharedConstants.GRAALVM_EXE_EXTENSION;
 
 public class NativeImageUtils {
+    public static final String ORACLE_GRAALVM_IDENTIFIER = "Oracle GraalVM";
 
     private static final Pattern requiredVersionPattern = Pattern.compile("^([0-9]+)(?:\\.([0-9]+)?)?(?:\\.([0-9]+)?)?$");
 
