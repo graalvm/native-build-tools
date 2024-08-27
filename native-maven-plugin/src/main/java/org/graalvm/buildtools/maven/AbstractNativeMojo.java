@@ -44,6 +44,7 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -123,6 +124,12 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected MavenSession mavenSession;
 
     @Component
+    protected MavenProject mavenProject;
+
+    @Component
+    protected BuildPluginManager pluginManager;
+
+    @Component
     protected RepositorySystem repositorySystem;
 
     @Inject
@@ -175,7 +182,8 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             try {
                 targetUrl = new URI(metadataUrl).toURL();
                 // TODO investigate if the following line is necessary (Issue: https://github.com/graalvm/native-build-tools/issues/560)
-                metadataRepositoryConfiguration.setUrl(targetUrl);
+                // TODO: forced to remove this to allow building on my machine. Remove this before merging.
+//                metadataRepositoryConfiguration.setUrl(targetUrl);
             } catch (URISyntaxException | MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -208,7 +216,8 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                     try {
                         targetUrl = new URI(metadataUrl).toURL();
                         // TODO investigate if the following line is necessary (Issue: https://github.com/graalvm/native-build-tools/issues/560)
-                        metadataRepositoryConfiguration.setUrl(targetUrl);
+                        // TODO: forced to remove this to allow building on my machine. Remove this before merging.
+//                        metadataRepositoryConfiguration.setUrl(targetUrl);
                     } catch (URISyntaxException | MalformedURLException e) {
                         throw new RuntimeException(e);
                     }

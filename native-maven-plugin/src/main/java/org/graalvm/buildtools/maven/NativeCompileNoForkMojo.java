@@ -53,11 +53,11 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.graalvm.buildtools.maven.sbom.SBOMGenerator;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
-
 
 /**
  * This goal runs native builds. It functions the same as the native:compile goal, but it
@@ -73,6 +73,10 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
 
     @Parameter(property = "skipNativeBuildForPom", defaultValue = "false")
     private boolean skipNativeBuildForPom;
+
+    public static final String enableSBOMParamName = "enableSBOM";
+    @Parameter(property = enableSBOMParamName, defaultValue = "true")
+    private boolean enableSBOM;
 
     private PluginParameterExpressionEvaluator evaluator;
 
@@ -101,6 +105,12 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-assembly-plugin", "archive", "manifest", "mainClass");
         maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-jar-plugin", "archive", "manifest", "mainClass");
         maybeAddGeneratedResourcesConfig(buildArgs);
+
+        if (enableSBOM) {
+            var generator = new SBOMGenerator(mavenProject, mavenSession, pluginManager, repositorySystem, mainClass, logger);
+            generator.generate();
+        }
+
         buildImage();
     }
 
