@@ -44,6 +44,7 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -121,6 +122,12 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Component
     protected MavenSession mavenSession;
+
+    @Component
+    protected MavenProject mavenProject;
+
+    @Component
+    protected BuildPluginManager pluginManager;
 
     @Component
     protected RepositorySystem repositorySystem;
