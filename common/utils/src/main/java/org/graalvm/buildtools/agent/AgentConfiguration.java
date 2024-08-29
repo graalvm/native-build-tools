@@ -40,13 +40,21 @@
  */
 package org.graalvm.buildtools.agent;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class AgentConfiguration implements Serializable {
 
+    private static final String DEFAULT_ACCESS_FILTER_FILE = "/access-filter.json";
     private final Collection<String> callerFilterFiles;
     private final Collection<String> accessFilterFiles;
     private final Boolean builtinCallerFilter;
@@ -79,6 +87,7 @@ public class AgentConfiguration implements Serializable {
                               AgentMode agentMode) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
+        addDefaultAccessFilter();
         this.builtinCallerFilter = builtinCallerFilter;
         this.builtinHeuristicFilter = builtinHeuristicFilter;
         this.experimentalPredefinedClasses = experimentalPredefinedClasses;
@@ -124,6 +133,20 @@ public class AgentConfiguration implements Serializable {
     private void addToCmd(String option, Boolean value, List<String> cmdLine) {
         if (value != null) {
             cmdLine.add(option + value);
+        }
+    }
+
+    private void addDefaultAccessFilter() {
+        try(InputStream accessFilter = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE)) {
+            if (accessFilter != null) {
+                Path accessFilterPath = Files.createTempFile("access-filter", ".json");
+                Files.copy(accessFilter, accessFilterPath, StandardCopyOption.REPLACE_EXISTING);
+                accessFilterFiles.add(accessFilterPath.toString());
+            } else {
+                throw new IOException("Cannot find access-filter.json on default location: " + DEFAULT_ACCESS_FILTER_FILE);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot add default access-filter.json" ,e);
         }
     }
 
