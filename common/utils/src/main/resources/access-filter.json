@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "includeClasses": "**"
+    },
+    {
+      "excludeClasses": "org.gradle.**"
+    },
+    {
+      "excludeClasses": "org.junit.**"
+    }
+  ]
+}
