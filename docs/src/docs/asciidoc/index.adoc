@@ -22,6 +22,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 === Release 0.10.3
 
 - Remove usage of macro from merger tool initialization and throw better error if executable does not exist
+- Add support for the new reachability-metadata.json config file
+- Remove custom post-processing task for filtering config files entries and use access-filter.json instead
 
 ==== Gradle plugin
 
