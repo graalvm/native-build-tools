@@ -53,6 +53,27 @@ class GraalVMSupport {
         (System.getProperty("java.vendor.version", "") - 'GraalVM' - 'CE' - 'EE').trim()
     }
 
+    static String getJavaHomeVersionString() {
+        String javaHomeLocation = System.getenv("JAVA_HOME")
+        return extractVersionString(javaHomeLocation)
+    }
+
+    static String getGraalVMHomeVersionString() {
+        String graalvmHomeLocation = System.getenv("GRAALVM_HOME")
+        return extractVersionString(graalvmHomeLocation)
+    }
+
+    private static String extractVersionString(String location) {
+        def sout = new StringBuilder(), serr = new StringBuilder()
+        String command = getSystemBasedCommand(location);
+        def proc = command.execute()
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitForOrKill(1000)
+        assert serr.toString().isEmpty()
+
+        return sout.toString()
+    }
+
     static int getMajorVersion() {
         String v = version
         v.substring(0, v.indexOf('.')).toInteger()
@@ -61,5 +82,13 @@ class GraalVMSupport {
     static int getMinorVersion() {
         String v = version - "${majorVersion}."
         v.substring(0, v.indexOf('.')).toInteger()
+    }
+
+    private static String getSystemBasedCommand(String location) {
+        if (System.getProperty("os.name", "unknown").contains("Windows")) {
+            return location + '\\bin\\native-image.cmd --version'
+        } else {
+            return location + '/bin/native-image --version'
+        }
     }
 }
