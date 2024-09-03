@@ -91,29 +91,29 @@ public class NativeImageExecutableLocator {
             executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
         }
 
-        try {
-            if (!executablePath.exists()) {
-                logger.log("Native Image executable wasn't found. We will now try to download it. ");
-                File graalVmHomeGuess = executablePath.getParentFile();
+        File graalVmHomeGuess = executablePath.getParentFile();
+        File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
+        if (guPath.exists() && !executablePath.exists()) {
+            logger.log("Native Image executable wasn't found. We will now try to download it. ");
 
-                File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
-                if (!guPath.exists()) {
-                    throw new GradleException("'" + GU_EXE + "' at '" + guPath + "' tool wasn't found. This probably means that JDK at isn't a GraalVM distribution.");
-                }
-                ExecResult res = execOperations.exec(spec -> {
-                    spec.args("install", "native-image");
-                    spec.setExecutable(Paths.get(graalVmHomeGuess.getAbsolutePath(), GU_EXE));
-                });
-                if (res.getExitValue() != 0) {
-                    throw new GradleException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.");
-                }
-                diagnostics.withGuInstall();
+            ExecResult res = execOperations.exec(spec -> {
+                spec.args("install", "native-image");
+                spec.setExecutable(Paths.get(graalVmHomeGuess.getAbsolutePath(), GU_EXE));
+            });
+            if (res.getExitValue() != 0) {
+                throw new GradleException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.\n" +
+                        "Make sure to declare the GRAALVM_HOME or JAVA_HOME environment variable or install GraalVM with " +
+                        "native-image in a standard location recognized by Gradle Java toolchain support");
             }
-        } catch (GradleException e) {
-            throw new GradleException("Determining GraalVM installation failed with message: " + e.getMessage() + "\n\n"
-                                      + "Make sure to declare the GRAALVM_HOME environment variable or install GraalVM with " +
-                                      "native-image in a standard location recognized by Gradle Java toolchain support");
+            diagnostics.withGuInstall();
         }
+
+        if (!executablePath.exists()) {
+            throw new GradleException(executablePath + " wasn't found. This probably means that JDK isn't a GraalVM distribution.\n" +
+                    "Make sure to declare the GRAALVM_HOME or JAVA_HOME environment variable or install GraalVM with" +
+                    "native-image in a standard location recognized by Gradle Java toolchain support");
+        }
+
         diagnostics.withExecutablePath(executablePath);
         return executablePath;
     }
