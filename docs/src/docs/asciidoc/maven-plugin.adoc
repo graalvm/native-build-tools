@@ -160,6 +160,14 @@ Build Configuration]. It is also possible to customize the plugin within a
 ----
 <verbose>true</verbose>
 ----
+`<experimentalInferModulePath>`::
+If you want to enable module path inference during native-image building supply the following in the configuration of the plugin:
+[source,xml]
+----
+<experimentalInferModulePath>true</experimentalInferModulePath>
+----
+Module path inference will detect which dependencies are modules and configure the module path accordingly. The identified modules will then be removed from the usual classpath.
+NOTE: This is an experimental feature.
 `<sharedLibrary>`::
    If you want to build image as a shared library supply the following in the configuration of the plugin:
 [source,xml]
