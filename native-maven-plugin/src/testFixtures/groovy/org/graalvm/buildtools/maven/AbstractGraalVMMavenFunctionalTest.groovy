@@ -43,24 +43,20 @@ package org.graalvm.buildtools.maven
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.SymlinkAllowedResourceAliasChecker
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.server.handler.ResourceHandler
 import spock.lang.Specification
 import spock.lang.TempDir
 
-import java.nio.file.FileVisitResult
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
 import java.nio.file.StandardCopyOption
-import java.nio.file.attribute.BasicFileAttributes
 
 abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
-
+    @TempDir
     Path testDirectory
 
-    Path testOrigin;
+    Path testOrigin
 
     private IsolatedMavenExecutor executor
 
@@ -69,18 +65,11 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     Server server
     ServerConnector connector
 
-    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
-    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows")
+    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux")
+    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac")
 
     def setup() {
-        Path HomeDir = Path.of(System.getProperty("user.home"))
-        testDirectory = HomeDir.resolve("tests")
-
-        if (Files.notExists(testDirectory)) {
-            Files.createDirectory(testDirectory)
-        }
-
         executor = new IsolatedMavenExecutor(
                 new File(System.getProperty("java.executable")),
                 testDirectory.resolve("m2-home").toFile(),
@@ -89,19 +78,6 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     def cleanup() {
-        Files.walkFileTree(testDirectory, new SimpleFileVisitor<Path>() {
-            @Override
-            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-            @Override
-            FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-
         if (server != null) {
             server.stop()
             server.destroy()
@@ -177,12 +153,13 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     void mvn(List<String> args, Map<String, String> systemProperties) {
-        System.out.println("Running copy of maven project `" + testOrigin + "` with " + args);
+        println("Running copy of maven project ${testOrigin} in ${testDirectory}  with $args")
         var resultingSystemProperties = [
                 "common.repo.uri": System.getProperty("common.repo.uri"),
                 "seed.repo.uri": System.getProperty("seed.repo.uri"),
-                "maven.repo.local": testDirectory.resolve("local repo").toFile().absolutePath
+                "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
         ]
+        println "Using local repo: ${resultingSystemProperties['maven.repo.local']}"
         resultingSystemProperties.putAll(systemProperties)
 
         result = executor.execute(
@@ -192,7 +169,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
                  *args],
                 new File(System.getProperty("maven.settings"))
         )
-        System.out.println("Exit code is ${result.exitCode}")
+        println "Exit code is ${result.exitCode}"
 
     }
 

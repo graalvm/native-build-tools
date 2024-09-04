@@ -131,4 +131,16 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         file("target/").listFiles().findAll(x->x.name.contains("native-image") && x.name.endsWith(".args")).size() == 1
     }
 
+    def "can handle spaces when writing the args file"() {
+        withSpacesInProjectDir()
+        withSample("java-application")
+
+        when:
+        mvn '-DquickBuild', '-Pnative', 'native:write-args-file'
+
+        then:
+        buildSucceeded
+        outputContains "Args file written to: target" + File.separator + "native-image"
+    }
+
 }
