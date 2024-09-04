@@ -43,7 +43,6 @@ package org.graalvm.buildtools.maven
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
-import org.eclipse.jetty.server.SymlinkAllowedResourceAliasChecker
 import org.eclipse.jetty.server.handler.ContextHandler
 import org.eclipse.jetty.server.handler.ResourceHandler
 import spock.lang.Specification
@@ -57,7 +56,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     @TempDir
     Path testDirectory
 
-    Path testOrigin;
+    Path testOrigin
 
     private IsolatedMavenExecutor executor
 
@@ -66,9 +65,9 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     Server server
     ServerConnector connector
 
-    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");
-    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux");
-    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac");
+    boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows")
+    boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux")
+    boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac")
 
     def setup() {
         executor = new IsolatedMavenExecutor(
@@ -154,12 +153,13 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     }
 
     void mvn(List<String> args, Map<String, String> systemProperties) {
-        System.out.println("Running copy of maven project `" + testOrigin + "` with " + args);
+        println("Running copy of maven project ${testOrigin} in ${testDirectory}  with $args")
         var resultingSystemProperties = [
                 "common.repo.uri": System.getProperty("common.repo.uri"),
                 "seed.repo.uri": System.getProperty("seed.repo.uri"),
                 "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
         ]
+        println "Using local repo: ${resultingSystemProperties['maven.repo.local']}"
         resultingSystemProperties.putAll(systemProperties)
 
         result = executor.execute(
@@ -169,7 +169,7 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
                  *args],
                 new File(System.getProperty("maven.settings"))
         )
-        System.out.println("Exit code is ${result.exitCode}")
+        println "Exit code is ${result.exitCode}"
 
     }
 
