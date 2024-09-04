@@ -242,13 +242,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
 
         if (buildArgs != null && !buildArgs.isEmpty()) {
-            for (String buildArg : buildArgs) {
-                if(buildArg.startsWith("\\Q") || buildArg.startsWith("-H")) {
-                    cliArgs.add(buildArg);
-                    continue;
-                }
-                cliArgs.addAll(Arrays.asList(buildArg.split("\\s+", 2)));
-            }
+            cliArgs.addAll(processBuildArgs(buildArgs));
         }
 
         List<String> actualCliArgs;
@@ -264,6 +258,18 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             actualCliArgs.add(mainClass);
         }
         return Collections.unmodifiableList(actualCliArgs);
+    }
+
+    static List<String> processBuildArgs(List<String> buildArgs) {
+        var result = new ArrayList<String>();
+        for (String buildArg : buildArgs) {
+            if(buildArg.startsWith("\\Q") || buildArg.startsWith("-H:ConfigurationFileDirectories")) {
+                result.add(buildArg);
+            } else {
+                result.addAll(Arrays.asList(buildArg.split("\\s+", 2)));
+            }
+        }
+        return result;
     }
 
     protected Path processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
