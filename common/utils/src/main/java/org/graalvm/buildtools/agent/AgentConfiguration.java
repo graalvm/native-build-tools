@@ -40,13 +40,21 @@
  */
 package org.graalvm.buildtools.agent;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 public class AgentConfiguration implements Serializable {
 
+    private static final String DEFAULT_ACCESS_FILTER_FILE = "/access-filter.json";
     private final Collection<String> callerFilterFiles;
     private final Collection<String> accessFilterFiles;
     private final Boolean builtinCallerFilter;
@@ -88,6 +96,7 @@ public class AgentConfiguration implements Serializable {
     }
 
     public List<String> getAgentCommandLine() {
+        addDefaultAccessFilter();
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
@@ -124,6 +133,36 @@ public class AgentConfiguration implements Serializable {
     private void addToCmd(String option, Boolean value, List<String> cmdLine) {
         if (value != null) {
             cmdLine.add(option + value);
+        }
+    }
+
+    private void addDefaultAccessFilter() {
+        if (accessFilterFiles == null) {
+            // this could only happen if we instantiated disabled agent configuration
+            return;
+        }
+
+        String tempDir = System.getProperty("java.io.tmpdir");
+        Path agentDir = Path.of(tempDir).resolve("agent-config");
+        Path accessFilterFile = agentDir.resolve("access-filter.json");
+        if (Files.exists(accessFilterFile)) {
+            accessFilterFiles.add(accessFilterFile.toString());
+            return;
+        }
+
+        try(InputStream accessFilter = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE)) {
+            if (accessFilter != null) {
+                if (!Files.exists(agentDir)) {
+                    Files.createDirectory(agentDir);
+                }
+
+                Files.copy(accessFilter, accessFilterFile, StandardCopyOption.REPLACE_EXISTING);
+                accessFilterFiles.add(accessFilterFile.toString());
+            } else {
+                throw new IOException("Cannot find access-filter.json on default location: " + DEFAULT_ACCESS_FILTER_FILE);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot add default access-filter.json" ,e);
         }
     }
 

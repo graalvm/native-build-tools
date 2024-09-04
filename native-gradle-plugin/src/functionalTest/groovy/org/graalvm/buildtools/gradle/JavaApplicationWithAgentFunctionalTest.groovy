@@ -42,9 +42,31 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
+import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
+
+    def getCurrentJDKVersion() {
+        return NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString())
+    }
+
+    def metadataInSingleConfigFile() {
+        return getCurrentJDKVersion() >= 23
+    }
+
+    def metadataExistsAt(String path) {
+        if (metadataInSingleConfigFile()) {
+            return file("${path}/reachability-metadata.json").exists()
+        }
+
+        boolean allFilesExist = ['jni', 'proxy', 'reflect', 'resource', 'serialization'].every { name ->
+           file("${path}/${name}-config.json").exists()
+        }
+
+        return allFilesExist
+    }
 
     @Unroll("agent is not passed and the application fails with JUnit Platform #junitVersion")
     def "agent is not passed"() {
@@ -94,18 +116,13 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 """.trim()
 
         and:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("build/native/agent-output/test/${name}-config.json").exists()
-        }
+        assert metadataExistsAt("build/native/agent-output/test")
 
         when:
         run 'metadataCopy'
 
         then:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("build/native/metadataCopyTest/${name}-config.json").exists()
-        }
-
+        assert metadataExistsAt("build/native/metadataCopyTest")
 
         where:
         junitVersion = System.getProperty('versions.junit')
@@ -125,7 +142,11 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
-        assert file("build/native/agent-output/test/reflect-config.json").text.contains("\"condition\"")
+        if (metadataInSingleConfigFile()) {
+            assert file("build/native/agent-output/test/reachability-metadata.json").text.contains("\"condition\"")
+        } else {
+            assert file("build/native/agent-output/test/reflect-config.json").text.contains("\"condition\"")
+        }
 
         where:
         junitVersion = System.getProperty('versions.junit')
@@ -148,22 +169,26 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("build/native/agent-output/run/${name}-config.json").exists()
-        }
+        assert metadataExistsAt("build/native/agent-output/run")
 
         when:
-        run'metadataCopy', '--task', 'run', '--dir', metadata_dir
+        run 'metadataCopy', '--task', 'run', '--dir', metadata_dir
 
         then:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("${metadata_dir}/${name}-config.json").exists()
-        }
+        assert metadataExistsAt(metadata_dir)
 
         and:
-        var reflect_config = file("${metadata_dir}/reflect-config.json")
-        var reflect_config_contents = reflect_config.text
-        assert reflect_config_contents.contains("DummyClass") && reflect_config_contents.contains("org.graalvm.demo.Message")
+        if (metadataInSingleConfigFile()) {
+            var reachabilityMetadata = file("${metadata_dir}/reachability-metadata.json")
+            var reachabilityMetadataContents = reachabilityMetadata.text
+            println reachabilityMetadataContents
+            assert reachabilityMetadataContents.contains("DummyClass"), reachabilityMetadataContents
+            assert reachabilityMetadataContents.contains("org.graalvm.demo.Message"), reachabilityMetadataContents
+        } else {
+            var reflect_config = file("${metadata_dir}/reflect-config.json")
+            var reflect_config_contents = reflect_config.text
+            assert reflect_config_contents.contains("DummyClass") && reflect_config_contents.contains("org.graalvm.demo.Message")
+        }
 
         when:
         run 'nativeRun'
@@ -190,9 +215,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("build/native/agent-output/run/${name}-config.json").exists()
-        }
+        assert metadataExistsAt("build/native/agent-output/run")
 
         when:
         run'run', '-Pagent', '--configuration-cache', '--rerun-tasks'
