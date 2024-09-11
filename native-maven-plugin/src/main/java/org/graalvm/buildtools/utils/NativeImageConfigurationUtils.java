@@ -41,7 +41,10 @@
 
 package org.graalvm.buildtools.utils;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.toolchain.Toolchain;
+import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
 
 import java.io.File;
@@ -60,6 +63,7 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;
     public static final String MAVEN_GROUP_ID = "org.graalvm.buildtools";
     public static Path nativeImageExeCache;
+    public static Path nativeImageExeCacheSupportingToolchain;
 
     public static Path getJavaHomeNativeImage(String javaHomeVariable, Boolean failFast, Logger logger) throws MojoExecutionException {
         String graalHome = System.getenv(javaHomeVariable);
@@ -104,6 +108,51 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
                 .filter(path -> Files.exists(path.resolve(NATIVE_IMAGE_EXE)))
                 .findFirst();
         return exePath.map(path -> path.resolve(NATIVE_IMAGE_EXE)).orElse(null);
+    }
+
+    public static Path getNativeImageSupportingToolchain(Logger logger, ToolchainManager toolchainManager, MavenSession session, boolean enforceToolchain) throws MojoExecutionException {
+        if (nativeImageExeCacheSupportingToolchain != null) {
+            return nativeImageExeCacheSupportingToolchain;
+        }
+
+        Path nativeImage = getToolchainNativeImage(logger, toolchainManager, session, enforceToolchain);
+        if (nativeImage != null) {
+            nativeImageExeCacheSupportingToolchain = nativeImage;
+            nativeImageExeCache = nativeImage;
+            return nativeImage;
+        }
+
+        return getNativeImage(logger);
+    }
+
+    public static Path getToolchainNativeImage(Logger logger, ToolchainManager toolchainManager, MavenSession session, boolean enforceToolchain) throws MojoExecutionException {
+        final Toolchain toolchain = toolchainManager.getToolchainFromBuildContext("jdk", session);
+
+        if (toolchain != null) {
+            String javaPath = toolchain.findTool("java");
+
+            if (javaPath != null) {
+                Path nativeImagePath = Paths.get(javaPath).getParent().resolve(NATIVE_IMAGE_EXE).toAbsolutePath();
+                if (!Files.exists(nativeImagePath)) {
+                    final String message = "No " + NATIVE_IMAGE_EXE + " found in the jdk toolchain configuration: " + nativeImagePath.getParent().getParent();
+                    if (enforceToolchain) {
+                        throw new MojoExecutionException(message);
+                    }
+                    logger.warn(message);
+                    return null;
+                }
+                return nativeImagePath;
+            }
+            throw new MojoExecutionException("No java found the toolchain configuration.");
+
+        } else {
+            final String message = "No jdk toolchain configuration found";
+            if (enforceToolchain) {
+                throw new MojoExecutionException(message);
+            }
+            logger.warn(message);
+        }
+        return null;
     }
 
     public static Path getNativeImage(Logger logger) throws MojoExecutionException {
