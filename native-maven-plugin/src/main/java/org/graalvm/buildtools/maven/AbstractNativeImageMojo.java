@@ -183,6 +183,13 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Component
     protected ToolchainManager toolchainManager;
 
+    /**
+        Set this to true to ensure that native-image is found in your toolchain and not in an unrelated JDK or in your PATH.
+        Will fail the build in case no toolchain was found or if it does not contain native-image.
+    */
+    @Parameter(property = "enforceToolchain")
+    protected boolean enforceToolchain;
+
     @Inject
     protected AbstractNativeImageMojo() {
         imageClasspath = new ArrayList<>();
@@ -448,7 +455,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
-        Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
+        Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
