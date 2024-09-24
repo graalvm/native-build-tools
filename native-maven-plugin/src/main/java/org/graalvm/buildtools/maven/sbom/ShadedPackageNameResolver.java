@@ -41,7 +41,6 @@
 package org.graalvm.buildtools.maven.sbom;
 
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginExecution;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.xml.Xpp3Dom;
 
@@ -50,7 +49,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,8 +57,11 @@ import java.util.stream.StreamSupport;
 
 class ShadedPackageNameResolver {
     private final MavenProject mavenProject;
-    private final Optional<Plugin> optionalShadePlugin;
-    /*
+    /**
+     * The shade plugin for this {@link ShadedPackageNameResolver#mavenProject} if used, otherwise null.
+     */
+    private final Plugin shadePlugin;
+    /**
      * Set of possible directory paths containing class files in a jar file system. Examples of the keys are:
      * "org/json" and "org/apache/commons/collections/map".
      */
@@ -71,7 +72,7 @@ class ShadedPackageNameResolver {
 
     ShadedPackageNameResolver(MavenProject mavenProject, String mainClass) {
         this.mavenProject = mavenProject;
-        this.optionalShadePlugin = getShadePluginIfUsed(mavenProject);
+        this.shadePlugin = getShadePluginIfUsed(mavenProject);
         this.pathToClassFilesDirectories = new HashSet<>();
         this.visitedPathToClassFileDirectories = new HashSet<>();
         this.mainClass = mainClass;
@@ -82,13 +83,13 @@ class ShadedPackageNameResolver {
      * to the fat or shaded jar, but instead to the local repository. This method tries to return a path to
      * the directory containing the class files inside the fat or shaded jar. If the artifact is not part of
      * a fat or shaded jar, {@param jarPath} is returned.
-     *
+     * <p>
      * NOTE:
      * - To improve chances of successful resolution, it is important to call this method with the main
      * artifact last.
      * - Should not be called with the same artifact more than once.
-     * - This only works if the main artifact is shaded, i.e. shaded dependencies are not handled. Currently,
-     * we disable any pruning by Native Image of shaded dependencies since we cannot guarantee its correctness.
+     * - Shaded dependencies to the main artifact are not handled. Currently, we disable any pruning by
+     * Native Image of shaded dependencies since we cannot guarantee its correctness.
      *
      * @param jarPath  the jar path as reported by the original Artifact.
      * @param artifact the artifact with its class files inside the {@param jarPath}.
@@ -100,13 +101,12 @@ class ShadedPackageNameResolver {
         }
 
         /* If the shade plugin is not used, then we are not dealing with a fat or shaded jar. */
-        if (optionalShadePlugin.isEmpty()) {
+        if (shadePlugin == null) {
             return handleNonShadedCase(artifact, jarPath);
         }
 
         /* Recover the path to the shaded jar by querying the shade plugin object. */
-        Plugin shadePlugin = optionalShadePlugin.get();
-        Optional<Path> optionalShadedJarPath = getShadedJarPath(shadePlugin);
+        Optional<Path> optionalShadedJarPath = getShadedJarPath();
         if (optionalShadedJarPath.isEmpty()) {
             return handleNonShadedCase(artifact, jarPath);
         }
@@ -118,12 +118,12 @@ class ShadedPackageNameResolver {
             return handleNonShadedCase(artifact, jarPath);
         }
 
-        /* Attempt to derive which shaded directory contains the class files of this artifact. */
-        Optional<Set<Path>> optionalDirectories = resolveDirectoriesWithClasses(jarFileSystem, jarPath, artifact, shadePlugin);
-        if (optionalDirectories.isPresent()) {
-            Set<Path> containingDirectories = optionalDirectories.get();
+        /* Derive the directories of this artifact containing class files and retrieve the package names from those files. */
+        Optional<Set<Path>> optionalClassFileDirectories = resolveArtifactClassFileDirectories(jarFileSystem, jarPath, artifact);
+        if (optionalClassFileDirectories.isPresent()) {
+            Set<Path> classFileDirectories = optionalClassFileDirectories.get();
             Set<String> packageNames = new HashSet<>();
-            for (var directory : containingDirectories) {
+            for (var directory : classFileDirectories) {
                 Set<String> newPackageNames = FileWalkerUtility.walkFileSystemAndCollectPackageNames(jarFileSystem, directory)
                         .orElse(Set.of());
                 packageNames.addAll(newPackageNames);
@@ -131,19 +131,23 @@ class ShadedPackageNameResolver {
             artifact.setPackageNames(packageNames);
             artifact.setJarPath(shadedJarPath.toUri());
             return Optional.of(artifact);
-        }
-        return handleNonShadedCase(artifact, jarPath);
+        }   
+        return Optional.empty();
     }
 
-    static void markShadedDependencies(Set<ArtifactAdapter> dependencies) throws IOException {
-        for (ArtifactAdapter dependency : dependencies) {
-            if (isShaded(dependency)) {
-                dependency.prunable = false;
+    static void markShadedArtifactsAsNonPrunable(Set<ArtifactAdapter> artifacts) throws IOException {
+        for (ArtifactAdapter artifact : artifacts) {
+            if (isShaded(artifact)) {
+                artifact.prunable = false;
             }
         }
     }
 
     private static boolean isShaded(ArtifactAdapter artifact) throws IOException {
+        if (artifact.jarPath == null) {
+            return false;
+        }
+
         FileSystem jarFileSystem = getOrCreateFileSystem(Paths.get(artifact.jarPath));
         Optional<Path> optionalMetaInfPath = getMetaInfArtifactPath(jarFileSystem, artifact);
         if (optionalMetaInfPath.isEmpty()) {
@@ -169,7 +173,7 @@ class ShadedPackageNameResolver {
         return Optional.of(artifactAdapter);
     }
 
-    private Optional<Path> getShadedJarPath(Plugin shadePlugin) {
+    private Optional<Path> getShadedJarPath() {
         Path targetDirectory = Paths.get(mavenProject.getBuild().getDirectory());
 
         Optional<String> outputFile = getParameterFromPlugin(shadePlugin, "outputFile");
@@ -229,10 +233,51 @@ class ShadedPackageNameResolver {
         return Optional.of(path);
     }
 
-    private Optional<Set<Path>> resolveDirectoriesWithClasses(FileSystem jarFileSystem, Path jarPath, ArtifactAdapter artifact, Plugin shadePlugin) throws IOException {
-        // TODO: this only handles cases where there's no relocation or where ALL files are relocated. Thus, partial or multiple relocations are not supported.
+    /**
+     * Finds the paths to the directories containing the class files for the {@param artifact} inside the jar.
+     * For example, if {@param artifact} represents commons-validator and the content of a fat jar looks like this:
+     *
+     * <pre>
+     * org/
+     * ├── apache/
+     * │   ├── commons/
+     * │   │   ├── validator/
+     * │   │   │   ├── UrlValidator.class
+     * │   │   │   ├── routines/
+     * │   │   │   │   └── ValidatorUtils.class
+     * │   │   │   ├── util/
+     * │   │   │   │   └── Flags.class
+     * │   │   ├── digester/
+     * │   │   │   ├── plugins/
+     * │   │   │   │   └── strategies/
+     * │   │   │   │       └── DigesterPlugin.class
+     * ├── json/
+     * │   └── org/
+     * │       └── json/
+     * │           └── JSONObject.class
+     * META-INF/...
+     * </pre>
+     *
+     * Then the method would return only the path to the directories of commons-validator:
+     *
+     * <pre>
+     * org/apache/commons/validator/
+     * org/apache/commons/validator/routines/
+     * org/apache/commons/validator/util/
+     * </pre>
+     *
+     * NOTE: partial relocations--when a subset of the class files are relocated--is not supported and
+     * {@link Optional#empty()} is returned in these cases.
+     *
+     * @param jarFileSystem The filesystem representing the JAR.
+     * @param jarPath The path within the JAR file to search.
+     * @param artifact The artifact whose class directories should be found.
+     * @return A list of paths containing the class files for the artifact.
+     * @throws IOException if an error occurs while reading the JAR.
+     */
+    private Optional<Set<Path>> resolveArtifactClassFileDirectories(FileSystem jarFileSystem, Path jarPath, ArtifactAdapter artifact) throws IOException {
         if (pathToClassFilesDirectories.isEmpty()) {
-            Set<Path> potentialDirectories = collectPotentialDirectories(jarFileSystem.getPath("/"));
+            Set<Path> potentialDirectories = resolveDirectoriesContainingClassFiles(jarFileSystem.getPath("/"));
             if (potentialDirectories.isEmpty()) {
                 return Optional.empty();
             }
@@ -254,16 +299,16 @@ class ShadedPackageNameResolver {
         }
 
         /*
-         * If relocations are not used then matching directly with the GAV coordinates should work.
+         * Try to match directly with the GAV coordinates.
          */
-        if (!areRelocationsUsed(shadePlugin)) {
-            Optional<Path> resolvedPath = tryResolveUsingGAVCoordinates(jarFileSystem.getPath("/"), artifact);
-            if (resolvedPath.isPresent()) return Optional.of(Set.of(resolvedPath.get()));
+        Optional<Path> resolvedPath = tryResolveUsingGAVCoordinates(jarFileSystem.getPath("/"), artifact);
+        if (resolvedPath.isPresent()) {
+            return Optional.of(Set.of(resolvedPath.get()));
         }
 
         boolean isMainArtifact = artifact.equals(mavenProject.getArtifact());
         if (isMainArtifact) {
-            Optional<Path> resolvedPath = findTopClassDirectory(jarFileSystem.getPath("/"), mainClass);
+            resolvedPath = findTopClassDirectory(jarFileSystem.getPath("/"), mainClass);
             if (resolvedPath.isPresent()) {
                 return Optional.of(Set.of(resolvedPath.get()));
             }
@@ -375,14 +420,14 @@ class ShadedPackageNameResolver {
         return Optional.of(matchingDirectories);
     }
 
-    private Set<Path> collectPotentialDirectories(Path rootPath) throws IOException {
-        Set<Path> potentialDirectories = new HashSet<>();
+    private Set<Path> resolveDirectoriesContainingClassFiles(Path rootPath) throws IOException {
+        Set<Path> directories = new HashSet<>();
         Files.walkFileTree(rootPath, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 if (file.toString().endsWith(".class")) {
                     Path classDirectory = file.getParent();
-                    potentialDirectories.add(classDirectory);
+                    directories.add(classDirectory);
                     return FileVisitResult.CONTINUE;
                 }
                 return FileVisitResult.CONTINUE;
@@ -397,7 +442,7 @@ class ShadedPackageNameResolver {
                 return FileVisitResult.CONTINUE;
             }
         });
-        return potentialDirectories;
+        return directories;
     }
 
     private Path pathFromGAVCoordinates(Path basePath, ArtifactAdapter artifact, boolean useArtifactId) throws IOException {
@@ -438,29 +483,11 @@ class ShadedPackageNameResolver {
         return Optional.empty();
     }
 
-    private static boolean areRelocationsUsed(Plugin shadePlugin) {
-        List<PluginExecution> executions = shadePlugin.getExecutions();
-        if (executions == null || executions.isEmpty()) {
-            return false;
-        }
-
-        for (PluginExecution execution : executions) {
-            org.codehaus.plexus.util.xml.Xpp3Dom configuration = (org.codehaus.plexus.util.xml.Xpp3Dom) execution.getConfiguration();
-            if (configuration != null) {
-                org.codehaus.plexus.util.xml.Xpp3Dom relocationsNode = configuration.getChild("relocations");
-                if (relocationsNode != null && relocationsNode.getChildCount() > 0) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static Optional<Plugin> getShadePluginIfUsed(MavenProject mavenProject) {
+    private static Plugin getShadePluginIfUsed(MavenProject mavenProject) {
         return mavenProject.getBuildPlugins().stream()
                 .filter(v -> mavenShadePluginName.equals(v.getArtifactId()))
-                .findFirst();
+                .findFirst()
+                .orElse(null);
     }
 
     private static FileSystem getOrCreateFileSystem(Path jarPath) throws IOException {

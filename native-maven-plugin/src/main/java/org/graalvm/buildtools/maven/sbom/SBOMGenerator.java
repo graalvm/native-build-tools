@@ -64,27 +64,21 @@ import java.util.stream.Collectors;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
- * Generates an enhanced Software Bill of Materials (SBOM) for Native Image consumption and refinement.
+ * Generates a Software Bill of Materials (SBOM) that is augmented and refined by Native Image.
  * <p>
- * Process overview:
- * 1. Utilizes the cyclonedx-maven-plugin to create a baseline SBOM.
- * 2. Augments the baseline SBOM components with additional metadata (see {@link AddedComponentFields}):
- * * "packageNames": A list of all package names associated with each component.
- * * "jarPath": Path to the component jar.
- * * "prunable": Boolean indicating if the component can be pruned. We currently set this to false for
- * any dependencies to the main component that are shaded.
- * 3. Stores the enhanced SBOM at a known location.
- * 4. Native Image then processes this SBOM during its static analysis:
- * * Unreachable components are removed.
- * * Unnecessary dependency relationships are pruned.
+ * Approach:
+ * 1. The cyclonedx-maven-plugin creates a baseline SBOM.
+ * 2. The components of the baseline SBOM are updated with additional metadata, most importantly being the set of package
+ * names associated with the component (see {@link AddedComponentFields} for all additional metadata).
+ * 3. The SBOM is stored at a known location.
+ * 4. Native Image processes the SBOM and removes unreachable components and unnecessary dependencies.
  * <p>
- * Creating the package-name-to-component mapping in the context of Native Image, without any build-system
- * knowledge is difficult, which was the primary motivation for realizing this approach.
+ * Creating the package-name-to-component mapping in the context of Native Image, without the knowledge known at the
+ * plugin build-time is difficult, which was the primary motivation for realizing this approach.
  * <p>
  * Benefits:
  * * Great Baseline: Produces an industry-standard SBOM at minimum.
- * * Enhanced Accuracy: Native Image static analysis refines the SBOM,
- * potentially significantly improving its accuracy.
+ * * Enhanced Accuracy: Native Image augments and refines the SBOM, potentially significantly improving its accuracy.
  */
 final public class SBOMGenerator {
     private final MavenProject mavenProject;
@@ -94,12 +88,24 @@ final public class SBOMGenerator {
     private final String mainClass;
     private final Logger logger;
 
+    private static final String cycloneDXPluginName = "cyclonedx-maven-plugin";
     private static final String SBOM_NAME = "WIP_SBOM";
     private static final String FILE_FORMAT = "json";
 
     private static final class AddedComponentFields {
+        /**
+         * The package names associated with this component.
+         */
         static final String packageNames = "packageNames";
+        /**
+         * The path to the jar containing the class files. For a component embedded in a shaded jar, the path must
+         * be pointing to the shaded jar.
+         */
         static final String jarPath = "jarPath";
+        /**
+         * If set to false, then this component and all its transitive dependencies SHOULD NOT be pruned by Native Image.
+         * This is set to false when the package names could not be derived accurately.
+         */
         static final String prunable = "prunable";
     }
 
@@ -124,15 +130,16 @@ final public class SBOMGenerator {
      * @throws MojoExecutionException if SBOM creation fails.
      */
     public void generate() throws MojoExecutionException {
+        String outputDirectory = mavenProject.getBuild().getDirectory();
+        Path sbomPath = Paths.get(outputDirectory, SBOM_NAME + "." + FILE_FORMAT);
         try {
-            String outputDirectory = mavenProject.getBuild().getDirectory();
             /* Suppress the output from the cyclonedx-maven-plugin. */
             int loggingLevel = logger.getThreshold();
             logger.setThreshold(Logger.LEVEL_DISABLED);
             executeMojo(
                     plugin(
                             groupId("org.cyclonedx"),
-                            artifactId("cyclonedx-maven-plugin"),
+                            artifactId(cycloneDXPluginName),
                             version("2.8.1")
                     ),
                     goal("makeAggregateBom"),
@@ -146,46 +153,77 @@ final public class SBOMGenerator {
             );
             logger.setThreshold(loggingLevel);
 
-            Path sbomPath = Paths.get(outputDirectory, SBOM_NAME + "." + FILE_FORMAT);
+
             if (!Files.exists(sbomPath)) {
                 return;
             }
 
+            // TODO: debugging, remove before merge
+            Path unmodifiedPath = Paths.get(outputDirectory, "SBOM_UNMODIFIED.json");
+            Files.deleteIfExists(unmodifiedPath);
+            Files.copy(sbomPath, unmodifiedPath);
+
             var resolver = new ArtifactToPackageNameResolver(mavenProject, repositorySystem, mavenSession.getRepositorySession(), mainClass);
-            Set<ArtifactAdapter> artifactsWithPackageNames = resolver.getArtifactPackageMappings();
-            augmentSBOM(sbomPath, artifactsWithPackageNames);
+            Set<ArtifactAdapter> artifacts = resolver.getArtifactAdapters();
+            augmentSBOM(sbomPath, artifacts);
+
+            // TODO: debugging, remove before merge
+            Path testPath = Paths.get(outputDirectory, "SBOM_AUGMENTED.json");
+            Files.deleteIfExists(testPath);
+            Files.copy(sbomPath, testPath);
+
         } catch (Exception exception) {
+            deleteFileIfExists(sbomPath);
             String errorMsg = String.format("Failed to create SBOM. Please try again and report this issue if it persists. " +
                     "To bypass this failure, disable SBOM generation by setting %s to false.", NativeCompileNoForkMojo.enableSBOMParamName);
             throw new MojoExecutionException(errorMsg, exception);
         }
     }
 
-    private void augmentSBOM(Path sbomPath, Set<ArtifactAdapter> artifactToPackageNames) throws IOException {
+    private static void deleteFileIfExists(Path sbomPath) {
+        try {
+            Files.deleteIfExists(sbomPath);
+        } catch (IOException e) {
+            /* Failed to delete file. */
+        }
+    }
+
+    /**
+     * Augments the base SBOM with information from the derived {@param artifacts}.
+     *
+     * @param baseSBOMPath path to the base SBOM generated by the cyclonedx plugin.
+     * @param artifacts artifacts that possibly have been extended with package name data.
+     */
+    private void augmentSBOM(Path baseSBOMPath, Set<ArtifactAdapter> artifacts) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode sbomJson = (ObjectNode) objectMapper.readTree(Files.newInputStream(sbomPath));
+        ObjectNode sbomJson = (ObjectNode) objectMapper.readTree(Files.newInputStream(baseSBOMPath));
 
         ArrayNode componentsArray = (ArrayNode) sbomJson.get("components");
         if (componentsArray == null) {
-            return;
+            throw new RuntimeException(String.format("SBOM generated by %s contained no components.", cycloneDXPluginName));
         }
 
-        /*
-         * Iterates over the components and finds the associated artifact by equality checks of the GAV coordinates.
-         * If a match is found, the component is augmented.
-         */
-        componentsArray.forEach(componentNode -> augmentComponentNode(componentNode, artifactToPackageNames, objectMapper));
+        /* Augment the "components" */
+        componentsArray.forEach(componentNode -> augmentComponentNode(componentNode, artifacts, objectMapper));
 
         /* Augment the main component in "metadata/component" */
         JsonNode metadataNode = sbomJson.get("metadata");
         if (metadataNode != null && metadataNode.has("component")) {
-            augmentComponentNode(metadataNode.get("component"), artifactToPackageNames, objectMapper);
+            augmentComponentNode(metadataNode.get("component"), artifacts, objectMapper);
         }
 
         /* Save the augmented SBOM back to the file */
-        objectMapper.writerWithDefaultPrettyPrinter().writeValue(Files.newOutputStream(sbomPath), sbomJson);
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(Files.newOutputStream(baseSBOMPath), sbomJson);
     }
 
+    /**
+     * Updates the {@param componentNode} with {@link AddedComponentFields} from the artifact in {@param artifactsWithPackageNames}
+     * with matching GAV coordinates.
+     *
+     * @param componentNode the node in the base SBOM that should be augmented.
+     * @param artifactsWithPackageNames the artifact with information for {@link AddedComponentFields}.
+     * @param objectMapper the objectMapper that is used to write the updates.
+     */
     private void augmentComponentNode(JsonNode componentNode, Set<ArtifactAdapter> artifactsWithPackageNames, ObjectMapper objectMapper) {
         String groupField = "group";
         String nameField = "name";

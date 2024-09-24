@@ -71,20 +71,40 @@ final class ArtifactToPackageNameResolver {
         this.shadedPackageNameResolver = new ShadedPackageNameResolver(mavenProject, mainClass);
     }
 
-    Set<ArtifactAdapter> getArtifactPackageMappings() throws Exception {
+    /**
+     * Maps the artifacts of the maven project to {@link ArtifactAdapter}s. {@link ArtifactAdapter#packageNames} will
+     * be non-empty if package names could accurately be derived for an artifact. If not, it will be non-empty and
+     * {@link ArtifactAdapter#prunable} will be set to false. {@link ArtifactAdapter#prunable} will also be set to
+     * false if an artifact is not the main artifact and its part of a shaded jar.
+     *
+     * @return the artifacts of this project as {@link ArtifactAdapter}s.
+     * @throws Exception if an error was encountered when deriving the artifacts.
+     */
+    Set<ArtifactAdapter> getArtifactAdapters() throws Exception {
         Set<ArtifactAdapter> artifactsWithPackageNameMappings = new HashSet<>();
         List<Artifact> artifacts = new ArrayList<>(mavenProject.getArtifacts());
         /* Purposefully add the project artifact last. This is important for the resolution of shaded jars.  */
         artifacts.add(mavenProject.getArtifact());
         for (Artifact artifact : artifacts) {
             Optional<ArtifactAdapter> optionalArtifact = resolvePackageNamesFromArtifact(artifact);
-            optionalArtifact.ifPresent(artifactsWithPackageNameMappings::add);
+            if (optionalArtifact.isPresent()) {
+                artifactsWithPackageNameMappings.add(optionalArtifact.get());
+            } else {
+                /* If resolve failed, then there are no package name mappings, so we mark it as not prunable. */
+                var artifactAdapter = ArtifactAdapter.fromMavenArtifact(artifact);
+                artifactAdapter.prunable = false;
+                artifactsWithPackageNameMappings.add(artifactAdapter);
+            }
         }
 
+        /*
+         * Currently we cannot ensure that package name are derived accurately for shaded dependencies.
+         * Thus, we mark such artifacts as non-prunable.
+         */
         Set<ArtifactAdapter> dependencies = artifactsWithPackageNameMappings.stream()
                 .filter(v -> !v.equals(mavenProject.getArtifact()))
                 .collect(Collectors.toSet());
-        ShadedPackageNameResolver.markShadedDependencies(dependencies);
+        ShadedPackageNameResolver.markShadedArtifactsAsNonPrunable(dependencies);
         return artifactsWithPackageNameMappings;
     }
 
