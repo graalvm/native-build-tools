@@ -87,6 +87,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
+    private String nativeImageVersionInformation = null;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -447,6 +448,21 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (requiredVersion == null) {
             return;
         }
+        NativeImageUtils.checkVersion(requiredVersion, getVersionInformation());
+    }
+
+    protected boolean isOracleGraalVM() throws MojoExecutionException {
+        return getVersionInformation().contains("Oracle GraalVM");
+    }
+
+    /**
+     * Returns the output of calling "native-image --version".
+     */
+    protected String getVersionInformation() throws MojoExecutionException {
+        if (nativeImageVersionInformation != null) {
+            return nativeImageVersionInformation;
+        }
+
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
@@ -457,12 +473,11 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
             }
             InputStream inputStream = versionCheckProcess.getInputStream();
-            String versionToCheck = new BufferedReader(
+            nativeImageVersionInformation = new BufferedReader(
                     new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                     .lines()
                     .collect(Collectors.joining("\n"));
-            NativeImageUtils.checkVersion(requiredVersion, versionToCheck);
-
+            return nativeImageVersionInformation;
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Checking GraalVM version with " + nativeImageExecutable + " failed", e);
         }

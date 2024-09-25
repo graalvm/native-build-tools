@@ -68,8 +68,9 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
  * <p>
  * Approach:
  * 1. The cyclonedx-maven-plugin creates a baseline SBOM.
- * 2. The components of the baseline SBOM are updated with additional metadata, most importantly being the set of package
- * names associated with the component (see {@link AddedComponentFields} for all additional metadata).
+ * 2. The components of the baseline SBOM (referred to as the "base" SBOM) are updated with additional metadata,
+ * most importantly being the set of package names associated with the component (see {@link AddedComponentFields}
+ * for all additional metadata).
  * 3. The SBOM is stored at a known location.
  * 4. Native Image processes the SBOM and removes unreachable components and unnecessary dependencies.
  * <p>
@@ -89,7 +90,7 @@ final public class SBOMGenerator {
     private final Logger logger;
 
     private static final String cycloneDXPluginName = "cyclonedx-maven-plugin";
-    private static final String SBOM_NAME = "WIP_SBOM";
+    private static final String SBOM_NAME = "base_sbom";
     private static final String FILE_FORMAT = "json";
 
     private static final class AddedComponentFields {

@@ -106,7 +106,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-jar-plugin", "archive", "manifest", "mainClass");
         maybeAddGeneratedResourcesConfig(buildArgs);
 
-        if (enableSBOM) {
+        if (isOracleGraalVM() && enableSBOM) {
             var generator = new SBOMGenerator(mavenProject, mavenSession, pluginManager, repositorySystem, mainClass, logger);
             generator.generate();
         }
