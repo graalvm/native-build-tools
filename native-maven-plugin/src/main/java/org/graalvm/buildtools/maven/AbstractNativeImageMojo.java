@@ -80,6 +80,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
+
 /**
  * @author Sebastien Deleuze
  */
@@ -452,7 +454,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected boolean isOracleGraalVM() throws MojoExecutionException {
-        return getVersionInformation().contains("Oracle GraalVM");
+        return getVersionInformation().contains(ORACLE_GRAALVM_IDENTIFIER);
     }
 
     /**

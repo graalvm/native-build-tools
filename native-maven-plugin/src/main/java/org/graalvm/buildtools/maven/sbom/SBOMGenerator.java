@@ -50,7 +50,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.RepositorySystem;
-import org.graalvm.buildtools.maven.NativeCompileNoForkMojo;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,10 +60,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.graalvm.buildtools.maven.NativeCompileNoForkMojo.augmentedSBOMParamName;
+import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
 /**
- * Generates a Software Bill of Materials (SBOM) that is augmented and refined by Native Image.
+ * Generates a Software Bill of Materials (SBOM) that is augmented and refined by Native Image. This feature is only
+ * supported in Oracle GraalVM for JDK {@link SBOMGenerator#requiredNativeImageVersion} or later.
  * <p>
  * Approach:
  * 1. The cyclonedx-maven-plugin creates a baseline SBOM.
@@ -82,6 +84,8 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
  * * Enhanced Accuracy: Native Image augments and refines the SBOM, potentially significantly improving its accuracy.
  */
 final public class SBOMGenerator {
+    public static final int requiredNativeImageVersion = 24;
+
     private final MavenProject mavenProject;
     private final MavenSession mavenSession;
     private final BuildPluginManager pluginManager;
@@ -123,6 +127,26 @@ final public class SBOMGenerator {
         this.repositorySystem = repositorySystem;
         this.mainClass = mainClass;
         this.logger = logger;
+    }
+
+    /**
+     * Checks if the JDK version supports augmented SBOMs.
+     *
+     * @param detectedJdkVersion the JDK version used.
+     * @param throwErrorIfNotSupported if true, then an error is thrown if the check failed.
+     * @return true if the JDK version supports the flag, otherwise false (if {@param throwErrorIfNotSupported} is false).
+     * @throws IllegalArgumentException when {@param throwErrorIfNotSupported} is true and the version check failed.
+     */
+    public static boolean checkAugmentedSBOMSupportedByJDKVersion(int detectedJdkVersion, boolean throwErrorIfNotSupported) throws IllegalArgumentException {
+        if (detectedJdkVersion < SBOMGenerator.requiredNativeImageVersion) {
+            if (throwErrorIfNotSupported) {
+                throw new IllegalArgumentException(
+                        String.format("%s version %s is required to use configuration option %s but major JDK version %s has been detected.",
+                                ORACLE_GRAALVM_IDENTIFIER, SBOMGenerator.requiredNativeImageVersion, augmentedSBOMParamName, detectedJdkVersion));
+            }
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -176,7 +200,7 @@ final public class SBOMGenerator {
         } catch (Exception exception) {
             deleteFileIfExists(sbomPath);
             String errorMsg = String.format("Failed to create SBOM. Please try again and report this issue if it persists. " +
-                    "To bypass this failure, disable SBOM generation by setting %s to false.", NativeCompileNoForkMojo.enableSBOMParamName);
+                    "To bypass this failure, disable SBOM generation by setting configuration option %s to false.", augmentedSBOMParamName);
             throw new MojoExecutionException(errorMsg, exception);
         }
     }
