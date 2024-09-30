@@ -459,6 +459,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     /**
      * Returns the output of calling "native-image --version".
+     * @return the output as a string joined by "\n".
+     * @throws MojoExecutionException when any errors occurred.
      */
     protected String getVersionInformation() throws MojoExecutionException {
         if (nativeImageVersionInformation != null) {

@@ -93,9 +93,10 @@ final public class SBOMGenerator {
     private final String mainClass;
     private final Logger logger;
 
-    private static final String cycloneDXPluginName = "cyclonedx-maven-plugin";
-    private static final String SBOM_NAME = "base_sbom";
-    private static final String FILE_FORMAT = "json";
+    private static final String SBOM_FILE_FORMAT = "json";
+    private static final String SBOM_FILENAME_WITHOUT_EXTENSION = "base_sbom";
+    private static final String SBOM_FILENAME = SBOM_FILENAME_WITHOUT_EXTENSION + "." + SBOM_FILE_FORMAT;
+    private final String outputDirectory;
 
     private static final class AddedComponentFields {
         /**
@@ -114,6 +115,23 @@ final public class SBOMGenerator {
         static final String prunable = "prunable";
     }
 
+    /**
+     * The external plugin used to generate the baseline SBOM.
+     */
+    private static final class Plugin {
+        static final String artifactId = "cyclonedx-maven-plugin";
+        static final String groupId = "org.cyclonedx";
+        static final String version = "2.8.1";
+        static final String goal = "makeAggregateBom";
+
+        private static final class Configuration {
+            static final String outputFormat = SBOM_FILE_FORMAT;
+            static final String outputName = SBOM_FILENAME_WITHOUT_EXTENSION;
+            static final String skipNotDeployed = "false";
+            static final String schemaVersion = "1.5";
+        }
+    }
+
     public SBOMGenerator(
             MavenProject mavenProject,
             MavenSession mavenSession,
@@ -127,6 +145,7 @@ final public class SBOMGenerator {
         this.repositorySystem = repositorySystem;
         this.mainClass = mainClass;
         this.logger = logger;
+        this.outputDirectory = mavenProject.getBuild().getDirectory();
     }
 
     /**
@@ -134,8 +153,8 @@ final public class SBOMGenerator {
      *
      * @param detectedJdkVersion the JDK version used.
      * @param throwErrorIfNotSupported if true, then an error is thrown if the check failed.
-     * @return true if the JDK version supports the flag, otherwise false (if {@param throwErrorIfNotSupported} is false).
-     * @throws IllegalArgumentException when {@param throwErrorIfNotSupported} is true and the version check failed.
+     * @return true if the JDK version supports the flag, otherwise false (if throwErrorIfNotSupported is false).
+     * @throws IllegalArgumentException when throwErrorIfNotSupported is true and the version check failed.
      */
     public static boolean checkAugmentedSBOMSupportedByJDKVersion(int detectedJdkVersion, boolean throwErrorIfNotSupported) throws IllegalArgumentException {
         if (detectedJdkVersion < SBOMGenerator.requiredNativeImageVersion) {
@@ -155,24 +174,24 @@ final public class SBOMGenerator {
      * @throws MojoExecutionException if SBOM creation fails.
      */
     public void generate() throws MojoExecutionException {
-        String outputDirectory = mavenProject.getBuild().getDirectory();
-        Path sbomPath = Paths.get(outputDirectory, SBOM_NAME + "." + FILE_FORMAT);
+        Path sbomPath = Paths.get(outputDirectory, SBOM_FILENAME);
         try {
-            /* Suppress the output from the cyclonedx-maven-plugin. */
+            /* Suppress the output from the plugin. */
             int loggingLevel = logger.getThreshold();
             logger.setThreshold(Logger.LEVEL_DISABLED);
             executeMojo(
                     plugin(
-                            groupId("org.cyclonedx"),
-                            artifactId(cycloneDXPluginName),
-                            version("2.8.1")
+                            groupId(Plugin.groupId),
+                            artifactId(Plugin.artifactId),
+                            version(Plugin.version)
                     ),
-                    goal("makeAggregateBom"),
+                    goal(Plugin.goal),
                     configuration(
-                            element(name("outputFormat"), FILE_FORMAT),
-                            element(name("outputName"), SBOM_NAME),
+                            element(name("outputFormat"), Plugin.Configuration.outputFormat),
+                            element(name("outputName"), Plugin.Configuration.outputName),
                             element(name("outputDirectory"), outputDirectory),
-                            element(name("skipNotDeployed"), "false")
+                            element(name("skipNotDeployed"), Plugin.Configuration.skipNotDeployed),
+                            element(name("schemaVersion"), Plugin.Configuration.schemaVersion)
                     ),
                     executionEnvironment(mavenProject, mavenSession, pluginManager)
             );
@@ -225,7 +244,7 @@ final public class SBOMGenerator {
 
         ArrayNode componentsArray = (ArrayNode) sbomJson.get("components");
         if (componentsArray == null) {
-            throw new RuntimeException(String.format("SBOM generated by %s contained no components.", cycloneDXPluginName));
+            throw new RuntimeException(String.format("SBOM generated by %s:%s contained no components.", Plugin.groupId, Plugin.artifactId));
         }
 
         /* Augment the "components" */
