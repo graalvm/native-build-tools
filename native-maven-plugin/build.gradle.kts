@@ -45,8 +45,7 @@ import org.gradle.util.GFileUtils
 plugins {
     `java-library`
     groovy
-    // TODO: forced to remove this to allow building on my machine. Remove this before merging.
-//    checkstyle
+    checkstyle
     `java-test-fixtures`
     id("org.graalvm.build.java")
     id("org.graalvm.build.publishing")
@@ -94,8 +93,7 @@ dependencies {
     functionalTestCommonRepository(libs.utils)
     functionalTestCommonRepository(libs.junitPlatformNative)
     functionalTestCommonRepository(libs.jvmReachabilityMetadata)
-    // TODO: forced to remove this to allow building on my machine. Remove this before merging.
-//    functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
+    functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 
     functionalTestImplementation(libs.test.spock)
     functionalTestRuntimeOnly(libs.slf4j.simple)
@@ -177,10 +175,9 @@ tasks {
     }
 }
 
-// TODO: forced to remove this to allow building on my machine. Remove this before merging.
-//tasks.withType<Checkstyle>().configureEach {
-//    configFile = layout.projectDirectory.dir("../config/checkstyle.xml").asFile
-//    // generated code
-//    exclude("**/RuntimeMetadata*")
-//}
+tasks.withType<Checkstyle>().configureEach {
+    configFile = layout.projectDirectory.dir("../config/checkstyle.xml").asFile
+    // generated code
+    exclude("**/RuntimeMetadata*")
+}
 

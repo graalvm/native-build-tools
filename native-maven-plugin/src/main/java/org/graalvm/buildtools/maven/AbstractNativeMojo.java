@@ -182,8 +182,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             try {
                 targetUrl = new URI(metadataUrl).toURL();
                 // TODO investigate if the following line is necessary (Issue: https://github.com/graalvm/native-build-tools/issues/560)
-                // TODO: forced to remove this to allow building on my machine. Remove this before merging.
-//                metadataRepositoryConfiguration.setUrl(targetUrl);
+                metadataRepositoryConfiguration.setUrl(targetUrl);
             } catch (URISyntaxException | MalformedURLException e) {
                 throw new RuntimeException(e);
             }
@@ -216,8 +215,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                     try {
                         targetUrl = new URI(metadataUrl).toURL();
                         // TODO investigate if the following line is necessary (Issue: https://github.com/graalvm/native-build-tools/issues/560)
-                        // TODO: forced to remove this to allow building on my machine. Remove this before merging.
-//                        metadataRepositoryConfiguration.setUrl(targetUrl);
+                        metadataRepositoryConfiguration.setUrl(targetUrl);
                     } catch (URISyntaxException | MalformedURLException e) {
                         throw new RuntimeException(e);
                     }

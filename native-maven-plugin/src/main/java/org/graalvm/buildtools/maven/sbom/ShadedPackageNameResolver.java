@@ -55,7 +55,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-class ShadedPackageNameResolver {
+
+final class ShadedPackageNameResolver {
     private final MavenProject mavenProject;
     /**
      * The shade plugin for this {@link ShadedPackageNameResolver#mavenProject} if used, otherwise null.

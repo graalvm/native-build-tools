@@ -83,7 +83,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
      */
     @Parameter
     private Boolean augmentedSBOM;
-    public static final String augmentedSBOMParamName = "augmentedSBOM";
+    public static final String AUGMENTED_SBOM_PARAM_NAME = "augmentedSBOM";
 
     @Parameter
     private Boolean myBooleanOption;
@@ -152,7 +152,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
 
             if (!isOracleGraalVM()) {
                 throw new IllegalArgumentException(
-                        String.format("Configuration option %s is only supported in %s.", augmentedSBOMParamName, ORACLE_GRAALVM_IDENTIFIER));
+                        String.format("Configuration option %s is only supported in %s.", AUGMENTED_SBOM_PARAM_NAME, ORACLE_GRAALVM_IDENTIFIER));
             }
 
             SBOMGenerator.checkAugmentedSBOMSupportedByJDKVersion(detectedJDKVersion, true);
@@ -160,7 +160,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
             if (!sbomEnabledForNativeImage) {
                 buildArgs.add(sbomNativeImageFlag);
                 logger.info(String.format("Automatically added build argument %s to Native Image because configuration option %s was set to true. " +
-                        "An SBOM will be embedded in the image.", sbomNativeImageFlag, augmentedSBOMParamName));
+                        "An SBOM will be embedded in the image.", sbomNativeImageFlag, AUGMENTED_SBOM_PARAM_NAME));
             }
 
             /* Continue to generate augmented SBOM because parameter option explicitly set and all conditions are met. */
@@ -170,9 +170,6 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
             }
 
             if (!SBOMGenerator.checkAugmentedSBOMSupportedByJDKVersion(detectedJDKVersion, false)) {
-                String optionDescription = "generate more accurate SBOMs by first creating a baseline SBOM using the CycloneDX Maven plugin, " +
-                        "which is then augmented and pruned based on the results of the Native Image static analysis.";
-                logger.info(String.format("Upgrade to %s for JDK %s to %s", ORACLE_GRAALVM_IDENTIFIER, SBOMGenerator.requiredNativeImageVersion, optionDescription));
                return;
             }
 

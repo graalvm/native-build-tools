@@ -60,7 +60,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.graalvm.buildtools.maven.NativeCompileNoForkMojo.augmentedSBOMParamName;
+import static org.graalvm.buildtools.maven.NativeCompileNoForkMojo.AUGMENTED_SBOM_PARAM_NAME;
 import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -161,7 +161,7 @@ final public class SBOMGenerator {
             if (throwErrorIfNotSupported) {
                 throw new IllegalArgumentException(
                         String.format("%s version %s is required to use configuration option %s but major JDK version %s has been detected.",
-                                ORACLE_GRAALVM_IDENTIFIER, SBOMGenerator.requiredNativeImageVersion, augmentedSBOMParamName, detectedJdkVersion));
+                                ORACLE_GRAALVM_IDENTIFIER, SBOMGenerator.requiredNativeImageVersion, AUGMENTED_SBOM_PARAM_NAME, detectedJdkVersion));
             }
             return false;
         }
@@ -197,29 +197,17 @@ final public class SBOMGenerator {
             );
             logger.setThreshold(loggingLevel);
 
-
             if (!Files.exists(sbomPath)) {
                 return;
             }
 
-            // TODO: debugging, remove before merge
-            Path unmodifiedPath = Paths.get(outputDirectory, "SBOM_UNMODIFIED.json");
-            Files.deleteIfExists(unmodifiedPath);
-            Files.copy(sbomPath, unmodifiedPath);
-
             var resolver = new ArtifactToPackageNameResolver(mavenProject, repositorySystem, mavenSession.getRepositorySession(), mainClass);
             Set<ArtifactAdapter> artifacts = resolver.getArtifactAdapters();
             augmentSBOM(sbomPath, artifacts);
-
-            // TODO: debugging, remove before merge
-            Path testPath = Paths.get(outputDirectory, "SBOM_AUGMENTED.json");
-            Files.deleteIfExists(testPath);
-            Files.copy(sbomPath, testPath);
-
         } catch (Exception exception) {
             deleteFileIfExists(sbomPath);
             String errorMsg = String.format("Failed to create SBOM. Please try again and report this issue if it persists. " +
-                    "To bypass this failure, disable SBOM generation by setting configuration option %s to false.", augmentedSBOMParamName);
+                    "To bypass this failure, disable SBOM generation by setting configuration option %s to false.", AUGMENTED_SBOM_PARAM_NAME);
             throw new MojoExecutionException(errorMsg, exception);
         }
     }
