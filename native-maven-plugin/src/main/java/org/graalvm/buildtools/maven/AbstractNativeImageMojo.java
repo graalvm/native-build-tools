@@ -49,36 +49,24 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.InputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.nio.file.*;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
 
 /**
  * @author Sebastien Deleuze
@@ -87,6 +75,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
+    private static String nativeImageVersionInformation = null;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -447,6 +436,24 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (requiredVersion == null) {
             return;
         }
+        NativeImageUtils.checkVersion(requiredVersion, getVersionInformation(logger));
+    }
+
+    static protected boolean isOracleGraalVM(Logger logger) throws MojoExecutionException {
+        return getVersionInformation(logger).contains(ORACLE_GRAALVM_IDENTIFIER);
+    }
+
+    /**
+     * Returns the output of calling "native-image --version".
+     * @param logger a logger, that may be null, to print warnings or useful information.
+     * @return the output as a string joined by "\n".
+     * @throws MojoExecutionException when any errors occurred.
+     */
+    static protected String getVersionInformation(Logger logger) throws MojoExecutionException {
+        if (nativeImageVersionInformation != null) {
+            return nativeImageVersionInformation;
+        }
+
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
@@ -457,12 +464,11 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 throw new MojoExecutionException("Execution of " + commandString + " returned non-zero result");
             }
             InputStream inputStream = versionCheckProcess.getInputStream();
-            String versionToCheck = new BufferedReader(
+            nativeImageVersionInformation = new BufferedReader(
                     new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                     .lines()
                     .collect(Collectors.joining("\n"));
-            NativeImageUtils.checkVersion(requiredVersion, versionToCheck);
-
+            return nativeImageVersionInformation;
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Checking GraalVM version with " + nativeImageExecutable + " failed", e);
         }

@@ -65,6 +65,8 @@ dependencies {
     implementation(libs.jvmReachabilityMetadata)
     implementation(libs.plexus.utils)
     implementation(libs.plexus.xml)
+    implementation(libs.cyclonedx.maven.plugin)
+    implementation(libs.plugin.executor.maven)
 
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
@@ -178,3 +180,4 @@ tasks.withType<Checkstyle>().configureEach {
     // generated code
     exclude("**/RuntimeMetadata*")
 }
+
