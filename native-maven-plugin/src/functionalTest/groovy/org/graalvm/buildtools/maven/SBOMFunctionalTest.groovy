@@ -68,7 +68,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         EE() && jdkVersionSupportsAugmentedSBOM()
     }
 
-    @Requires({ EE() })
+    @Requires({ supportedAugmentedSBOMVersion() })
     def "sbom is created when buildArg '--enable-sbom=export,embed' is used"() {
         withSample 'java-application'
 
