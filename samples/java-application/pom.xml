@@ -209,30 +209,6 @@
         <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
-                <groupId>org.graalvm.buildtools</groupId>
-                <artifactId>native-maven-plugin</artifactId>
-                <version>${native.maven.plugin.version}</version>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>build-native</id>
-                        <goals>
-                            <goal>compile-no-fork</goal>
-                        </goals>
-                        <phase>package</phase>
-                    </execution>
-                </executions>
-                <configuration>
-                    <skip>false</skip>
-                    <imageName>${imageName}</imageName>
-                    <fallback>false</fallback>
-                    <buildArgs>
-                        <buildArg>${native.build.arg}</buildArg>
-                    </buildArgs>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M5</version>
