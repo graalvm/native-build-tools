@@ -95,8 +95,9 @@ final public class SBOMGenerator {
 
     private static final String SBOM_FILE_FORMAT = "json";
     private static final String SBOM_FILENAME_WITHOUT_EXTENSION = "base_sbom";
-    private static final String SBOM_FILENAME = SBOM_FILENAME_WITHOUT_EXTENSION + "." + SBOM_FILE_FORMAT;
     private final String outputDirectory;
+
+    public static final String SBOM_FILENAME = SBOM_FILENAME_WITHOUT_EXTENSION + "." + SBOM_FILE_FORMAT;
 
     private static final class AddedComponentFields {
         /**

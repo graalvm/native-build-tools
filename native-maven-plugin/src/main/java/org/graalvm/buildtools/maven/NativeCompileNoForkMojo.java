@@ -85,9 +85,6 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     private Boolean augmentedSBOM;
     public static final String AUGMENTED_SBOM_PARAM_NAME = "augmentedSBOM";
 
-    @Parameter
-    private Boolean myBooleanOption;
-
     private PluginParameterExpressionEvaluator evaluator;
 
     @Override
@@ -141,7 +138,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         boolean optionWasSet = augmentedSBOM != null;
         augmentedSBOM = optionWasSet ? augmentedSBOM : true;
 
-        int detectedJDKVersion = NativeImageUtils.getMajorJDKVersion(getVersionInformation());
+        int detectedJDKVersion = NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger));
         String sbomNativeImageFlag = "--enable-sbom";
         boolean sbomEnabledForNativeImage = getBuildArgs().stream().anyMatch(v -> v.contains(sbomNativeImageFlag));
         if (optionWasSet) {
@@ -150,7 +147,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
                 return;
             }
 
-            if (!isOracleGraalVM()) {
+            if (!isOracleGraalVM(logger)) {
                 throw new IllegalArgumentException(
                         String.format("Configuration option %s is only supported in %s.", AUGMENTED_SBOM_PARAM_NAME, ORACLE_GRAALVM_IDENTIFIER));
             }
@@ -165,7 +162,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
 
             /* Continue to generate augmented SBOM because parameter option explicitly set and all conditions are met. */
         } else {
-            if (!isOracleGraalVM() || !sbomEnabledForNativeImage) {
+            if (!isOracleGraalVM(logger) || !sbomEnabledForNativeImage) {
                 return;
             }
 
