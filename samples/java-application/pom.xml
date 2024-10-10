@@ -116,7 +116,7 @@
                             <imageName>${imageName}</imageName>
                             <fallback>false</fallback>
                             <buildArgs>
-                                <buildArg>--enable-sbom=embed,export</buildArg>
+                                <buildArg>--enable-sbom</buildArg>
                             </buildArgs>
                         </configuration>
                     </plugin>
