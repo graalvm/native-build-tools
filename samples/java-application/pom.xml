@@ -55,8 +55,6 @@
         <junit.platform.native.version>0.10.4-SNAPSHOT</junit.platform.native.version>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.demo.Application</mainClass>
-        <!-- Arbitrary placeholder that can be overridden to provide native image with an argument -->
-        <native.build.arg>--color=auto</native.build.arg>
     </properties>
 
     <dependencies>
@@ -70,12 +68,60 @@
     <profiles>
         <profile>
             <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <imageName>${imageName}</imageName>
+                            <fallback>false</fallback>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>native-sbom</id>
-            <properties>
-                <native.build.arg>--enable-sbom=embed,export</native.build.arg>
-            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <imageName>${imageName}</imageName>
+                            <fallback>false</fallback>
+                            <buildArgs>
+                                <buildArg>--enable-sbom=embed,export</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>native-augmentedSBOM-only</id>
