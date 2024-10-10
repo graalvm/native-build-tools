@@ -67,8 +67,8 @@ final class FileWalkerUtility {
         return walkFileTreeAndCollectPackageNames(fileSystem.getPath(startPath.toString()), fileSystem.getPath("/"));
     }
 
-    static void walkFileTreeWithExtensions(Path rootPath, Set<String> fileExtensions, Consumer<Path> fileHandler) throws IOException {
-        Files.walkFileTree(rootPath, new SimpleFileVisitor<>() {
+    static void walkFileTreeWithExtensions(Path startPath, Set<String> fileExtensions, Consumer<Path> fileHandler) throws IOException {
+        Files.walkFileTree(startPath, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 for (String extension : fileExtensions) {

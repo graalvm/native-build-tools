@@ -55,11 +55,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-
-final class ShadedPackageNameResolver {
+/**
+ * Class that tries to resolve the additional fields of {@link ArtifactAdapter}, including the pacakge names, jar path,
+ * and if it is prunable.
+ */
+final class ArtifactAdapterResolver {
     private final MavenProject mavenProject;
     /**
-     * The shade plugin for this {@link ShadedPackageNameResolver#mavenProject} if used, otherwise null.
+     * The shade plugin for this {@link ArtifactAdapterResolver#mavenProject} if used, otherwise null.
      */
     private final Plugin shadePlugin;
     /**
@@ -71,7 +74,7 @@ final class ShadedPackageNameResolver {
     private final String mainClass;
     private static final String mavenShadePluginName = "maven-shade-plugin";
 
-    ShadedPackageNameResolver(MavenProject mavenProject, String mainClass) {
+    ArtifactAdapterResolver(MavenProject mavenProject, String mainClass) {
         this.mavenProject = mavenProject;
         this.shadePlugin = getShadePluginIfUsed(mavenProject);
         this.pathToClassFilesDirectories = new HashSet<>();
@@ -80,11 +83,12 @@ final class ShadedPackageNameResolver {
     }
 
     /**
-     * Even if an artifact is packaged in a fat or shaded jar, its artifact source file path would not point
-     * to the fat or shaded jar, but instead to the local repository. This method tries to return a path to
-     * the directory containing the class files inside the fat or shaded jar. If the artifact is not part of
-     * a fat or shaded jar, {@param jarPath} is returned.
-     * <p>
+     * This method tries to populate the extra fields of the {@link ArtifactAdapter}, namely:
+     * {@link ArtifactAdapter#packageNames}, {@link ArtifactAdapter#jarPath}, and {@link ArtifactAdapter#prunable}.
+     * The method tries to derive the package names as Native Image will see it as it encounters class files,
+     * meaning the final package names (possibly affected by shading) and the final jar path (possibly a fat
+     * or shaded jar).
+     *
      * NOTE:
      * - To improve chances of successful resolution, it is important to call this method with the main
      * artifact last.
@@ -96,7 +100,7 @@ final class ShadedPackageNameResolver {
      * @param artifact the artifact with its class files inside the {@param jarPath}.
      * @return a new path to the directory containing the class file of this shaded artifact (if it is one).
      */
-    Optional<ArtifactAdapter> resolvePackageNamesFromPossiblyShadedJar(Path jarPath, ArtifactAdapter artifact) throws IOException {
+    Optional<ArtifactAdapter> populateWithAdditionalFields(Path jarPath, ArtifactAdapter artifact) throws IOException {
         if (!Files.exists(jarPath) || !jarPath.toString().endsWith(".jar")) {
             return Optional.empty();
         }

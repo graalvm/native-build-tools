@@ -61,14 +61,14 @@ final class ArtifactToPackageNameResolver {
     private final RepositorySystem repositorySystem;
     private final RepositorySystemSession repositorySystemSession;
     private final List<RemoteRepository> remoteRepositories;
-    private final ShadedPackageNameResolver shadedPackageNameResolver;
+    private final ArtifactAdapterResolver shadedPackageNameResolver;
 
     ArtifactToPackageNameResolver(MavenProject mavenProject, RepositorySystem repositorySystem, RepositorySystemSession repositorySystemSession, String mainClass) {
         this.mavenProject = mavenProject;
         this.repositorySystem = repositorySystem;
         this.repositorySystemSession = repositorySystemSession;
         this.remoteRepositories = mavenProject.getRemoteProjectRepositories();
-        this.shadedPackageNameResolver = new ShadedPackageNameResolver(mavenProject, mainClass);
+        this.shadedPackageNameResolver = new ArtifactAdapterResolver(mavenProject, mainClass);
     }
 
     /**
@@ -104,7 +104,7 @@ final class ArtifactToPackageNameResolver {
         Set<ArtifactAdapter> dependencies = artifactsWithPackageNameMappings.stream()
                 .filter(v -> !v.equals(mavenProject.getArtifact()))
                 .collect(Collectors.toSet());
-        ShadedPackageNameResolver.markShadedArtifactsAsNonPrunable(dependencies);
+        ArtifactAdapterResolver.markShadedArtifactsAsNonPrunable(dependencies);
         return artifactsWithPackageNameMappings;
     }
 
@@ -140,7 +140,7 @@ final class ArtifactToPackageNameResolver {
             artifact.setPackageNames(packageNames);
             return Optional.of(artifact);
         } else if (artifactFile.getName().endsWith(".jar")) {
-            return shadedPackageNameResolver.resolvePackageNamesFromPossiblyShadedJar(sourcePath, artifact);
+            return shadedPackageNameResolver.populateWithAdditionalFields(sourcePath, artifact);
         } else {
             return Optional.empty();
         }

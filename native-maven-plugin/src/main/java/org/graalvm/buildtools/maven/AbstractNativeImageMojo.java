@@ -445,6 +445,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     /**
      * Returns the output of calling "native-image --version".
+     * @param logger a logger, that may be null, to print warnings or useful information.
      * @return the output as a string joined by "\n".
      * @throws MojoExecutionException when any errors occurred.
      */
