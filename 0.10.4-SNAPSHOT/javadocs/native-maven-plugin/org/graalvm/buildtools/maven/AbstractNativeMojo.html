@@ -172,38 +172,48 @@ extends org.apache.maven.plugin.AbstractMojo</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>protected org.apache.maven.project.MavenProject</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#mavenProject">mavenProject</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>protected org.apache.maven.execution.MavenSession</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#mavenSession">mavenSession</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected org.graalvm.reachability.GraalVMReachabilityMetadataRepository</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepository">metadataRepository</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected <a href="config/MetadataRepositoryConfiguration.html" title="class in org.graalvm.buildtools.maven.config">MetadataRepositoryConfiguration</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepositoryConfiguration">metadataRepositoryConfiguration</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected java.util.Set&lt;org.graalvm.reachability.DirectoryConfiguration&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepositoryConfigurations">metadataRepositoryConfigurations</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepositoryInitialBackoffMillis">metadataRepositoryInitialBackoffMillis</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#metadataRepositoryMaxRetries">metadataRepositoryMaxRetries</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected org.apache.maven.plugin.descriptor.PluginDescriptor</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#plugin">plugin</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected org.apache.maven.plugin.BuildPluginManager</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#pluginManager">pluginManager</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
@@ -461,6 +471,26 @@ protected&nbsp;org.codehaus.plexus.logging.Logger logger</pre>
 <h4>mavenSession</h4>
 <pre>@Component
 protected&nbsp;org.apache.maven.execution.MavenSession mavenSession</pre>
+</li>
+</ul>
+<a id="mavenProject">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>mavenProject</h4>
+<pre>@Component
+protected&nbsp;org.apache.maven.project.MavenProject mavenProject</pre>
+</li>
+</ul>
+<a id="pluginManager">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>pluginManager</h4>
+<pre>@Component
+protected&nbsp;org.apache.maven.plugin.BuildPluginManager pluginManager</pre>
 </li>
 </ul>
 <a id="repositorySystem">

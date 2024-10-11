@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":6,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":6,"i7":10,"i8":9,"i9":9,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -332,7 +332,7 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 <!--   -->
 </a>
 <h3>Fields inherited from class&nbsp;org.graalvm.buildtools.maven.<a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></h3>
-<code><a href="AbstractNativeMojo.html#logger">logger</a>, <a href="AbstractNativeMojo.html#mavenSession">mavenSession</a>, <a href="AbstractNativeMojo.html#metadataRepository">metadataRepository</a>, <a href="AbstractNativeMojo.html#metadataRepositoryConfiguration">metadataRepositoryConfiguration</a>, <a href="AbstractNativeMojo.html#metadataRepositoryConfigurations">metadataRepositoryConfigurations</a>, <a href="AbstractNativeMojo.html#metadataRepositoryInitialBackoffMillis">metadataRepositoryInitialBackoffMillis</a>, <a href="AbstractNativeMojo.html#metadataRepositoryMaxRetries">metadataRepositoryMaxRetries</a>, <a href="AbstractNativeMojo.html#project">project</a>, <a href="AbstractNativeMojo.html#reachabilityMetadataOutputDirectory">reachabilityMetadataOutputDirectory</a>, <a href="AbstractNativeMojo.html#repositorySystem">repositorySystem</a></code></li>
+<code><a href="AbstractNativeMojo.html#logger">logger</a>, <a href="AbstractNativeMojo.html#mavenProject">mavenProject</a>, <a href="AbstractNativeMojo.html#mavenSession">mavenSession</a>, <a href="AbstractNativeMojo.html#metadataRepository">metadataRepository</a>, <a href="AbstractNativeMojo.html#metadataRepositoryConfiguration">metadataRepositoryConfiguration</a>, <a href="AbstractNativeMojo.html#metadataRepositoryConfigurations">metadataRepositoryConfigurations</a>, <a href="AbstractNativeMojo.html#metadataRepositoryInitialBackoffMillis">metadataRepositoryInitialBackoffMillis</a>, <a href="AbstractNativeMojo.html#metadataRepositoryMaxRetries">metadataRepositoryMaxRetries</a>, <a href="AbstractNativeMojo.html#pluginManager">pluginManager</a>, <a href="AbstractNativeMojo.html#project">project</a>, <a href="AbstractNativeMojo.html#reachabilityMetadataOutputDirectory">reachabilityMetadataOutputDirectory</a>, <a href="AbstractNativeMojo.html#repositorySystem">repositorySystem</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="fields.inherited.from.class.org.apache.maven.plugin.Mojo">
@@ -375,7 +375,7 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -424,37 +424,49 @@ extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools
 </td>
 </tr>
 <tr id="i8" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maybeAddGeneratedResourcesConfig(java.util.List)">maybeAddGeneratedResourcesConfig</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;into)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colFirst"><code>protected static java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getVersionInformation(org.codehaus.plexus.logging.Logger)">getVersionInformation</a></span>&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)</code></th>
+<td class="colLast">
+<div class="block">Returns the output of calling "native-image --version".</div>
+</td>
 </tr>
 <tr id="i9" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maybeAddReachabilityMetadata(java.util.List)">maybeAddReachabilityMetadata</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;configDirs)</code></th>
+<td class="colFirst"><code>protected static boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isOracleGraalVM(org.codehaus.plexus.logging.Logger)">isOracleGraalVM</a></span>&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#populateApplicationClasspath()">populateApplicationClasspath</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maybeAddGeneratedResourcesConfig(java.util.List)">maybeAddGeneratedResourcesConfig</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;into)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#populateClasspath()">populateClasspath</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maybeAddReachabilityMetadata(java.util.List)">maybeAddReachabilityMetadata</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;configDirs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i12" class="altColor">
+<td class="colFirst"><code>protected void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#populateApplicationClasspath()">populateApplicationClasspath</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>protected void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#populateClasspath()">populateClasspath</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processArtifact(org.apache.maven.artifact.Artifact,java.lang.String...)">processArtifact</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact,
                java.lang.String...&nbsp;artifactTypes)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>protected java.nio.file.Path</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#processSupportedArtifacts(org.apache.maven.artifact.Artifact)">processSupportedArtifacts</a></span>&#8203;(org.apache.maven.artifact.Artifact&nbsp;artifact)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#warnIfWrongMetaInfLayout(java.nio.file.Path,org.apache.maven.artifact.Artifact)">warnIfWrongMetaInfLayout</a></span>&#8203;(java.nio.file.Path&nbsp;jarFilePath,
                         org.apache.maven.artifact.Artifact&nbsp;artifact)</code></th>
@@ -1049,6 +1061,39 @@ protected&nbsp;AbstractNativeImageMojo()</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
+</li>
+</ul>
+<a id="isOracleGraalVM(org.codehaus.plexus.logging.Logger)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isOracleGraalVM</h4>
+<pre class="methodSignature">protected static&nbsp;boolean&nbsp;isOracleGraalVM&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)
+                                  throws org.apache.maven.plugin.MojoExecutionException</pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
+</li>
+</ul>
+<a id="getVersionInformation(org.codehaus.plexus.logging.Logger)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getVersionInformation</h4>
+<pre class="methodSignature">protected static&nbsp;java.lang.String&nbsp;getVersionInformation&#8203;(org.codehaus.plexus.logging.Logger&nbsp;logger)
+                                                 throws org.apache.maven.plugin.MojoExecutionException</pre>
+<div class="block">Returns the output of calling "native-image --version".</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>logger</code> - a logger, that may be null, to print warnings or useful information.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the output as a string joined by "\n".</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code> - when any errors occurred.</dd>
 </dl>
 </li>
 </ul>
