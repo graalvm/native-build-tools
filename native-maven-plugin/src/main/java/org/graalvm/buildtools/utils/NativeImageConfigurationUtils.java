@@ -93,8 +93,9 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
                 return null;
             }
         }
-
-        logger.info("Found GraalVM installation from " + javaHomeVariable + " variable.");
+        if (logger != null) {
+            logger.info("Found GraalVM installation from " + javaHomeVariable + " variable.");
+        }
         return nativeImageExe;
     }
 
@@ -119,7 +120,7 @@ public abstract class NativeImageConfigurationUtils implements SharedConstants {
 
         if (nativeImage == null) {
             nativeImage = getNativeImageFromPath();
-            if (nativeImage != null) {
+            if (nativeImage != null && logger != null) {
                 logger.info("Found GraalVM installation from PATH variable.");
             }
         }

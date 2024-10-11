@@ -213,6 +213,12 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
+    boolean outputContainsPattern(String pattern) {
+        def normalizedOutput = normalizeString(result.stdOut)
+        def lines = normalizedOutput.split('\n')
+        return lines.any { line -> line.trim().matches(pattern) }
+    }
+
     String after(String text) {
         def out = normalizeString(result.stdOut)
         out.substring(out.indexOf(normalizeString(text)))
