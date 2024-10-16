@@ -613,8 +613,8 @@ mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 [[metadata-support]]
 == GraalVM Reachability Metadata Support
 
-Since release 0.9.12, the plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
-This repository provides https://www.graalvm.org/22.2/reference-manual/native-image/ReachabilityMetadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
+The plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
+This repository provides https://www.graalvm.org/latest/reference-manual/native-image/metadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
 
 [NOTE]
 ====
