@@ -115,7 +115,7 @@ public class Fortune {
 ----
 . Delete the _fortune/src/test/java_ directory (you will add tests in a later stage).
 . Copy and paste the following file,
-https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json] under _fortune/src/main/resources/_.
+https://raw.githubusercontent.com/graalvm/graalvm-demos/refs/heads/master/fortune-demo/fortune-gradle/fortune/src/main/resources/fortunes.u8[fortunes.json] under _fortune/src/main/resources/_.
 Your project tree should be:
 +
 [source,shell]
