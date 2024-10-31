@@ -213,7 +213,7 @@ graalvmNative {
 +
 [source,shell]
 ----
-./gradlew nativeRun
+./gradlew nativeCompile
 ----
 +
 The native executable, named _fortune_, is created in the _/fortune/build/native/nativeCompile_ directory.
