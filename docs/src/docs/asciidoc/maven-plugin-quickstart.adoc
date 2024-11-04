@@ -132,7 +132,7 @@ public class Fortune {
 }
 ----
 . Copy and paste the following file,
-https://raw.githubusercontent.com/graalvm/graalvm-demos/master/fortune-demo/fortune/src/main/resources/fortunes.json[fortunes.json]
+https://raw.githubusercontent.com/graalvm/graalvm-demos/refs/heads/master/fortune-demo/fortune-maven/src/main/resources/fortunes.u8[fortunes.json]
 under the _resources_ directory (_src/main/resources/fortunes.json_). Your project tree should be:
 +
 [source,shell]
