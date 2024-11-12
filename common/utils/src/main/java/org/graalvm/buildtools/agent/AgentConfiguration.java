@@ -154,13 +154,13 @@ public class AgentConfiguration implements Serializable {
 
         try(InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
             if (accessFilterData == null) {
-                throw new IOException("Cannot find access-filter.json on default location: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
+                throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
 
             try {
                 Files.createDirectory(agentDir);
             } catch (FileAlreadyExistsException e) {
-                logger.info("Ignore directory creation because " + agentDir + " directory is already created.");
+                logger.info("Skip creation of directory " + agentDir + " (already created).");
             }
 
             long pid = ProcessHandle.current().pid();
@@ -172,7 +172,7 @@ public class AgentConfiguration implements Serializable {
                 Files.move(tmpAccessFilter, accessFilterFile, StandardCopyOption.ATOMIC_MOVE);
             } catch (FileAlreadyExistsException e) {
                 Files.delete(tmpAccessFilter);
-                logger.info("Access-filter file already exists. Delete the temporary one.");
+                logger.info(accessFilterFile + " already exists. Delete " + tmpAccessFilter);
             }
 
             accessFilterFiles.add(accessFilterFile.toString());
