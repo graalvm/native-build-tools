@@ -236,7 +236,7 @@ support for additional test engines should be possible with custom native config
 
 Currently, this feature requires the execution of the tests in the classic "JVM" mode _prior to_ the execution of tests in native mode. To execute the tests, execute:
 
-[source,bash]
+[source,bash, role="multi-language-sample"]
 ----
 ./gradlew nativeTest
 ----
@@ -323,7 +323,7 @@ The agent can run in multiple modes that dictate how the metadata is collected a
 
 Once the metadata is collected, it can be copied into the project using the `metadataCopy` task.
 
-[source,bash]
+[source,bash, role="multi-language-sample"]
 ----
 ./gradlew -Pagent run # Runs on JVM with native-image-agent.
 ./gradlew metadataCopy --task run --dir src/main/resources/META-INF/native-image # Copies the metadata collected by the agent into the project sources
@@ -476,7 +476,7 @@ In order to generate a binary with instrumentation enabled, you should run the `
 This will generate a binary under `build/native/nativeCompile` with the `-instrumented` suffix.
 You can run the binary to gather profiling data:
 
-[source,bash]
+[source,bash, role="multi-language-sample"]
 ----
 $ cd build/native/nativeCompile/
 $ ./my-application-instrumented`

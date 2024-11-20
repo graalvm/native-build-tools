@@ -1,0 +1,76 @@
+body {
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.85));
+    color: white;
+}
+
+#grabbit-logo {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 150px;
+}
+
+#toc {
+    background: none !important;
+}
+
+#toc > #toctitle {
+    color: #ffc107;
+}
+
+#header > h1:first-child {
+    color: white;
+    font-weight: 600;
+}
+
+#header>.details {
+    color: white;
+}
+
+#preamble>.sectionbody>[class="paragraph"]:first-of-type p {
+    color: white;
+}
+
+h2, h3, h4, .title {
+    color: #ffc107 !important;
+}
+
+p {
+    color: white;
+}
+
+a {
+    color: #00a8cd;
+}
+
+a:hover {
+    color: #ffc107;
+}
+
+.listingblock >.content>pre:not(.highlight) {
+    color: white;
+    background: none;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+}
+
+:not(pre):not([class^=L])>code {
+    background: #00758F;
+    color: white;
+}
+
+.admonitionblock td.icon .icon-tip::before {
+    color: white;
+}
+
+.admonitionblock td.icon .icon-note::before {
+    color: white;
+}
+
+.admonitionblock>table td.content {
+    color: white;
+}
+
+#footer {
+    background: rgba(0, 0, 0, 0.2);
+}
