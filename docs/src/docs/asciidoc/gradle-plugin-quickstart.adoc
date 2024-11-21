@@ -1,186 +1,767 @@
-= Getting Started with Gradle Plugin for GraalVM Native Image
+= Getting Started with Native Gradle Plugin
 The GraalVM team
 :highlighjsdir: {gradle-relative-srcdir}/highlight
 
 This guide shows how to get started with the <<gradle-plugin.adoc#,Gradle plugin for GraalVM Native Image>> and build a native executable for a Java application.
 
-You will create a sample application, enable the plugin, add support for dynamic features, build a native executable, and run JUnit tests.
+== Prerequisites
+[[prerequisites]]
 
-Two ways of building a native executable using the plugin will be demonstrated:
+- Before starting, make sure that you have GraalVM installed locally. You can https://www.graalvm.org/downloads/[download Oracle GraalVM from the official website].
+- In most cases you can run your Gradle project with almost any GraalVM version. All you have to do is to set `JAVA_HOME` environment variable to the release you want to use.
 
-- <<#build-a-native-executable-with-resources-autodetection,Build a Native Executable with Resources Autodetection>>
-- <<#build-a-native-executable-detecting-resources-with-the-agent,Build a Native Executable Detecting Resources with the Agent>>
+[WARNING]
+Note that in some cases, depending on the Gradle version you are using (https://docs.gradle.org/current/userguide/compatibility.html[see compatibility matrix]), you may not be able to run your project just by setting `JAVA_HOME` environment variable.
+You can run Gradle project with any GraalVM version you should set `GRAALVM_HOME` environment variable to point to whatever GraalVM release you want, and `JAVA_HOME` environment variable to some older version (like Java 17).
+This way, the Gradle plugin will build itself with Java specified in `JAVA_HOME` and your project with the version specified in `GRAALVM_HOME`.
 
-====
-The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
-The easiest way to install GraalVM is to use https://sdkman.io/jdks[SDKMAN!].
+== Adding plugin
 
-For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
-====
+In order to use Native Image through gradle you must add the following block into your `build.gradle` file inside `plugins` block:
 
-== Prepare a Demo Application
-
-====
-You start by creating a **Fortune Teller** sample application that simulates the traditional
-https://en.wikipedia.org/wiki/Fortune_(Unix)[fortune Unix program].
-The data for the fortune phrases is provided by https://github.com/your-fortune[YourFortune].
-====
-
-. Create a new Java project with *Gradle* using the following command (alternatively, you can use your IDE to generate a project):
-+
-[source,shell]
-----
-gradle init --project-name fortune-parent --type java-application --package demo --test-framework junit-jupiter --dsl groovy
-----
-. Rename the default _app_ directory to _fortune_, edit the _settings.gradle_ file to replace `app` with `fortune`, then rename the default filename _App.java_ to _Fortune.java_, and replace its contents with the following:
-+
-[source,java]
-----
-package demo;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-public class Fortune {
-
-    private static final Random RANDOM = new Random();
-    private final ArrayList<String> fortunes = new ArrayList<>();
-
-    public Fortune() throws JsonProcessingException {
-        // Scan the file into the array of fortunes
-        String json = readInputStream(ClassLoader.getSystemResourceAsStream("fortunes.json"));
-        ObjectMapper omap = new ObjectMapper();
-        JsonNode root = omap.readTree(json);
-        JsonNode data = root.get("data");
-        Iterator<JsonNode> elements = data.elements();
-        while (elements.hasNext()) {
-            JsonNode quote = elements.next().get("quote");
-            fortunes.add(quote.asText());
-        }
-    }
-
-    private String readInputStream(InputStream is) {
-        StringBuilder out = new StringBuilder();
-        try (InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-             BufferedReader reader = new BufferedReader(streamReader)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line);
-            }
-
-        } catch (IOException e) {
-            Logger.getLogger(Fortune.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return out.toString();
-    }
-
-    public String randomFortune() {
-        // Pick a random number
-        int r = RANDOM.nextInt(fortunes.size());
-        // Use the random number to pick a random fortune
-        return fortunes.get(r);
-    }
-
-    private void printRandomFortune() throws InterruptedException {
-        String f = randomFortune();
-        // Print out the fortune s.l.o.w.l.y
-        for (char c : f.toCharArray()) {
-            System.out.print(c);
-            Thread.sleep(100);
-        }
-        System.out.println();
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws InterruptedException, JsonProcessingException {
-        Fortune fortune = new Fortune();
-        fortune.printRandomFortune();
-    }
-}
-----
-. Delete the _fortune/src/test/java_ directory (you will add tests in a later stage).
-. Copy and paste the following file,
-https://raw.githubusercontent.com/graalvm/graalvm-demos/refs/heads/master/fortune-demo/fortune-gradle/fortune/src/main/resources/fortunes.u8[fortunes.json] under _fortune/src/main/resources/_.
-Your project tree should be:
-+
-[source,shell]
-----
-.
-├── fortune
-│   ├── build.gradle
-│   └── src
-│       ├── main
-│       │   ├── java
-│       │   │   └── demo
-│       │   │       └── Fortune.java
-│       │   └── resources
-│       │       └── fortunes.json
-│       └── test
-│           └── resources
-├── gradle
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew
-├── gradlew.bat
-└── settings.gradle
-----
-. Open the Gradle configuration file _build.gradle_, and update the main class in the `application` section:
-+
-[source,xml]
-----
-application {
-    mainClass = 'demo.Fortune'
-}
-----
-. Add explicit FasterXML Jackson dependencies that provide functionality to read and write JSON, data bindings (used in the demo application). 
-Insert the following three lines in the `dependencies` section of _build.gradle_:
-+
-[source,xml]
-----
-implementation 'com.fasterxml.jackson.core:jackson-core:2.13.2'
-implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
-implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.2'
-----
-+
-Also, remove the dependency on `guava` that will not be used.
-+
-The next steps demonstrate what you should do to enable the
-https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html[Gradle Plugin for GraalVM Native Image].
-. Register the plugin. Add the following to `plugins` section of your project’s _build.gradle_ file:
-+
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
-plugins {
   id 'org.graalvm.buildtools.native' version '{gradle-plugin-version}'
-}
 ----
-+
+
 [source,kotlin,subs="verbatim,attributes",role="multi-language-sample"]
 ----
-plugins {
   id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
+----
+
+You can also check other versions of the plugin https://github.com/graalvm/native-build-tools/releases[here]
+
+== First runs of your project
+
+This plugin works with the application plugin and will register a number of tasks that you may want to execute.
+The main tasks you may want to use are:
+
+- `nativeCompile` - triggers the generation of a native executable of your application
+- `nativeRun` - executes the generated native executable
+- `nativeTestCompile` - builds a native image with tests found in the test source set
+- `nativeTest` executes tests found in the test source set in native mode
+
+In the following sections you will find out how to use these tasks in practice.
+
+
+=== Run your tests
+
+Running your tests should be a straight forward thing.
+All you have to do is to write your tests under the test source (usually under __/src/test/java/__) and run
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew nativeTest
+----
+
+=== Run your application
+
+Once you added your plugin, you can try to build native image on a simple HelloWorld application (or with your main if you are not starting from the scratch).
+To build your main application add the following block into `build.gradle`:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    graalvmNative {
+        binaries.main {
+            imageName = "main"
+            mainClass = "org.example.Main"
+        }
+    }
 }
 ----
-+
-The `{gradle-plugin-version}` block pulls the latest plugin version.
-Replace it with a specific version if you prefer.
-The plugin discovers which JAR files it needs to pass to the `native-image` builder and what the executable main class should be.
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    graalvmNative {
+        binaries.main {
+            imageName.set("main")
+            mainClass.set("org.example.Main")
+        }
+    }
+}
+----
+
+and run
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew nativeCompile
+----
+
+This command will trigger native image build.
+Once the build is finished, run the following command to execute generated Native Image.
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew nativeRun
+----
+
+==== Run on JVM
+
+Note that **if you want to run your application (or maybe the native image agent later on your application) on the JVM** you should make the following changes in the `build.gradle`:
+
+- replace `java` plugin with the `application` plugin in the plugins section
+- add the following block which will tell the application where is the main entry point:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+application {
+    mainClass = "org.example.Main"
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+application {
+    mainClass.set("org.example.Main")
+}
+----
+
+- you can remove `mainClass = "org.example.Main"` from the `binaries.main` block
+- from now on, you will be able to execute your main application on the JVM as well with the
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew run
+----
+
+[TIP]
+Note that the added block points to the main class placed under __/src/main/java/org.example.Main.java__. User should adjust this according to its application source set.
+
+
+== Providing configuration options
+
+The main configuring point of this plugin is the `graalvmNative` block that you added into `build.gradle` file.
+You can apply configuring options specific to the main or the test binary (or you can provide options that applies to all binaries) like following:
+
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.main {
+        // options you want to pass only to the main binary
+    }
+    binaries.test {
+        // options you want to pass only to the test binary
+    }
+    binaries.all {
+        // common options you want to use for both main and test binaries
+    }
+}
+----
+
+Inside these blocks you can pass the following options:
+
+- `imageName` -The name of the native image, defaults to the project name
+- `mainClass` - The main class to use, defaults to the application.mainClass
+- `debug` - Determines if debug info should be generated, defaults to false (alternatively add --debug-native to the CLI)
+- `verbose` - Add verbose output (`false` by default)
+- `fallback` - Sets the fallback mode of native-image (`false` by default)
+- `sharedLibrary` - Determines if image is a shared library
+- `quickBuild` - Determines if image is being built in quick build mode
+- `richOutput` - Determines if native-image building should be done with rich output
+- `requiredVersion` - The minimal GraalVM version, can be `MAJOR`, `MAJOR.MINOR` or `MAJOR.MINOR.PATCH`
+- `systemProperties` - Sets the system properties to use for the native image builder
+- `configurationFileDirectories` - Adds a native image configuration file directory, containing files like reflection configuration
+- `excludeConfig` - Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
+- `jvmArgs` - Passes the given argument directly to the JVM running the native image builder
+- `useFatJar` - Instead of passing each jar individually, builds a fat jar
+
+You can also pass **build-time** and **run-time** options to the Native Image using:
+
+- `buildArgs.add('<buildArg>')` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
+- `runtimeArgs.add('<runtimeArg>')` - You can find more about possible runtime arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/[here]
+
+Here is the example of additional options usage:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.main {
+        imageName = 'application'
+        mainClass = 'org.test.Main'
+        fallback = true
+        sharedLibrary = false
+        richOutput = false
+        requiredVersion = '22.3'
+
+        systemProperties = [name1: 'value1', name2: 'value2']
+        configurationFileDirectories.from(file('src/my-config'))
+
+        buildArgs.add('--link-at-build-time')
+        runtimeArgs.add('--help')
+
+        jvmArgs.add('flag')
+        useFatJar = true
+    }
+
+    binaries.test {
+        debug = true
+        verbose = true
+    }
+
+    binaries.all {
+        quickBuild = false
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.main {
+        imageName.set('application')
+        mainClass.set('org.test.Main')
+        fallback.set(true)
+        sharedLibrary.set(false)
+        richOutput.set(false)
+        requiredVersion.set('22.3')
+
+        systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2"))
+        configurationFileDirectories.from(file('src/my-config'))
+
+        buildArgs.add('--link-at-build-time')
+        runtimeArgs.add('--help')
+
+        jvmArgs.add('flag')
+        useFatJar.set(true)
+    }
+
+    binaries.test {
+        debug.set(true)
+        verbose.set(true)
+    }
+
+    binaries.all {
+        quickBuild.set(false)
+    }
+}
+----
+
+== Collecting metadata
+[[collect-metadata]]
+
+When your test/application starts to be a bit more complex things like **reflection**, **resources**, **serialization**, **proxies** or **jni** may be required.
+Since the Native Image has closed world assumption, all of these things must be known in advance during the image build.
+The easiest way how this information can be passed to the Native Image is through metadata config file(s) - depending on the GraalVM version you are using, there could be
+a single `reachability-metadata.json` file (for newer GraalVM versions) or multiple json files (`reflect-config.json`, `resource-config.json`, `proxy-config.json`, `serialization-config.json`, `jni-config.json`).
+To learn more about metadata that Native Image consumes, https://www.graalvm.org/latest/reference-manual/native-image/metadata/[see this].
+
+For example, if you run the test that tries to load resource `resource.txt`, and you don't have entry for that resource in the metadata config file, the resource can't be loaded (will be null).
+
+To make your test/application work while using resources (like in this example) or other metadata, you should either generate metadata configurations or write them manually.
+To generate metadata automatically, you can run your tests (or the main application) with the Native Image Agent, that will collect all the metadata your test/application require.
+To enable the agent (through Native Gradle Plugin) you should either:
+
+- add `-Pagent` flag to the command you are executing
+- or add the following block to `graalvmNative` block in the `build.gradle`:
+
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+}
+----
+
+[.underline]#To generate the metadata file(s) for your `tests` just run:#
+
+- `./gradlew test` if you added the agent block to the configuration or `./gradlew -Pagent test` if you didn't. This command runs on JVM with native-image-agent and collects the metadata.
+- `./gradlew nativeTest` if you added the agent block to the configuration or `./gradlew -Pagent nativeTest` if you didn't. This command runs on JVM with the native-image agent, collects the metadata and uses it for testing on native-image.
+
+
+[.underline]#To generate the metadata file(s) for your `application` just run:#
+
+- `./gradlew run` if you added the agent block to the configuration or `./gradlew -Pagent run` if you didn't. This command runs on JVM with native-image-agent and collects the metadata.
+- `./gradlew nativeRun` if you added the agent block to the configuration or `./gradlew -Pagent nativeRun` if you didn't. This command runs on JVM with the native-image agent, collects the metadata and uses it for testing on native-image.
+
+
+[WARNING]
+====
+Unless you specify the following block in your `build.gradle` file, Gradle will pick up the Agent from the `JAVA_HOME` environment variable.
+This may cause problems if you set `GRAALVM_HOME` environment variable because your project will be build with one version and the Agent will generate metadata for the other one.
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+executable = providers.environmentVariable("GRAALVM_HOME").map {
+    "$it/bin/java"
+}.get()
+----
+
+This way, generated metadata config file(s) will have format that is specified in the GraalVM version (from `GRAALVM_HOME`) you are using.
+====
+
+
+[[metadata-copy]]
+=== Move generated metadata to non-default location
+
+By default, generated metadata will be placed inside `build/native/agent-output` directory.
+In many cases you may want to move generated metadata to some other location.
+To do so, you can configure and run `metadataCopy` task.
+
+==== Configure metadataCopy task
+
+First, you can configure `metadataCopy` task by adding a new block, named `metadataCopy` inside `agent` block that you added in the previous step.
+Inside this block, you can specify:
+
+- `outputDirectories` - location where you want to move the metadata
+- `inputTaskNames` - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step).
+- `mergeWithExisting` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
+
+For example: you want to execute `metadataCopy` task on the metadata generated from your tests.
+Your `agent` block should look like this:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/test/resources/META-INF/native-image/org.example")
+        mergeWithExisting = false
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("resources/META-INF/native-image/org.example")
+        mergeWithExisting.set(false)
+    }
+}
+----
+
+Explanation of the `metadataCopy` block from above:
+
+- __inputTaskNames.add("test")__ - means that metadata we want to copy was generated with the `./gradlew test` or `./gradlew nativeTest`
+- __outputDirectories.add("resources/META-INF/native-image/org.example")__ - means that we want to copy metadata into the given directory
+- __mergeWithExisting = false__ - means that we don't want to merge incoming metadata with the one that already exists on the location specified in `outputDirectories` (this makes sense since we don't have metadata on the given location already)
+
+==== Execute metadataCopy task
+
+Once the metadata is generated and the `metadataCopy` task is configured, you can run the task with:
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew metadataCopy
+----
+
+Besides that, you can configure `metadataCopy` task through the command line as well:
+
+[source,bash,subs="verbatim,attributes"]
+----
+./gradlew metadataCopy --task run   # if you used nativeRun (or just run) to collect metadata
+./gradlew metadataCopy --task test  # if you used nativeTest (or just test) to collect metadata
+./gradlew metadataCopy --dir <pathToSomeDirectory> # to specify the output directory
+----
+
+Here is an example of a valid `metadataCopy` usage:
+
+[source,bash,subs="verbatim,attributes"]
+----
+./gradlew metadataCopy --task test --dir resources/META-INF/native-image/org.example
+----
+
+[WARNING]
+====
+Note that **if you store generated metadata on location other than the default one**, you will need to pass that location as a Native Image `buildArg` with `-H:ConfigurationFileDirectories` option.
+For example, you can pass that argument inside the `binaries.all` (or `binaries.test` or `binaries.main` depending on your use-case) block like this:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+binaries.all {
+    buildArgs.add("-H:ConfigurationFileDirectories=path/to/metadata")
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+binaries.all {
+    buildArgs.add("-H:ConfigurationFileDirectories=path/to/metadata")
+}
+----
+====
+
+[[additional-agent-options]]
+=== Additional Native Image Agent options
+
+As your project grows, you should consider configuring the agent to gain more control over the generated metadata.
+
+First thing that you can configure is the agent mode.
+There are three possible agent modes:
+
+* `standard` - only generates metadata without any special processing (this is the default mode). No additional options available.
+* `conditional` - entries of the generated metadata will be included in the Native Image only if the condition in the entry is satisfied. Consumes following additional options:
+** `userCodeFilterPath` - specifies a filter file used to classify classes as user application classes. Generated conditions will only reference these classes See <<agent-filter-file, the following section>>
+** `extraFilterPath` - extra filter used to further filter the collected metadata. See <<agent-filter-file, the following section>>
+* `direct` - in this mode user configures the agent completely manually by adding all options with:
+** `options.add("<option>")`
+
+Each of the described modes has its own benefits.
+For example:
+
+- `standard` mode is a **great starting point** in your project development
+- `conditional` mode is mainly aimed towards **library maintainers** with the goal of reducing overall footprint
+- `direct` mode is for **experienced users** that knows how to configure the agent manually
+
+You can configure each mode (and declare the one that will be used for generating metadata) inside the `agent` block in `build.gradle` file.
+Here is the example of the `agent` block with configured conditional and direct modes, where the conditional mode is set as default and will be used to generate the metadata:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+    defaultMode = "conditional"
+    modes {
+        conditional {
+            userCodeFilterPath = "src/test/resources/metadata.with.starting.user-code-filter/user-code-filter.json"
+        }
+        direct {
+            options.add("config-output-dir=src/test/resources/direct-mode-metadata")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+    defaultMode.set("conditional")
+    modes {
+        conditional {
+            userCodeFilterPath.set("src/test/resources/metadata.with.starting.user-code-filter/user-code-filter.json")
+        }
+        direct {
+            options.add("config-output-dir=src/test/resources/direct-mode-metadata")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+}
+----
+
+If you want to **enable the agent through the command line**, you can specify in which mode you want to run it.
+For example
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew -Pagent=standard nativeTest
+./gradlew -Pagent=conditional nativeTest
+./gradlew -Pagent=direct nativeTest
+----
+
+==== Common options
+
+All the mentioned modes shares certain common configuration options like:
+
+- callerFilterFiles
+- accessFilterFiles
+- builtinCallerFilter
+- builtinHeuristicFilter
+- enableExperimentalPredefinedClasses
+- enableExperimentalUnsafeAllocationTracing
+- trackReflectionMetadata
+
+**These options are for advanced usages, and you can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here]**.
+
+Complete example of the agent block should look like this:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    defaultMode = "standard"
+    enabled = true
+
+    modes {
+        conditional {
+            userCodeFilterPath = "path-to-filter.json"
+            extraFilterPath = "path-to-another-filter.json"
+        }
+        direct {
+            options.add("config-output-dir={output_dir}")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+
+    callerFilterFiles.from("filter.json")
+    accessFilterFiles.from("filter.json")
+    builtinCallerFilter = true
+    builtinHeuristicFilter = true
+    enableExperimentalPredefinedClasses = false
+    enableExperimentalUnsafeAllocationTracing = false
+    trackReflectionMetadata = true
+
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/")
+        mergeWithExisting = true
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    defaultMode.set("standard")
+    enabled.set(true)
+
+    modes {
+        conditional {
+            userCodeFilterPath.set("path-to-filter.json")
+            extraFilterPath.set("path-to-another-filter.json")
+        }
+        direct {
+            options.add("config-output-dir={output_dir}")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+
+    callerFilterFiles.from("filter.json")
+    accessFilterFiles.from("filter.json")
+    builtinCallerFilter.set(true)
+    builtinHeuristicFilter.set(true)
+    enableExperimentalPredefinedClasses.set(false)
+    enableExperimentalUnsafeAllocationTracing.set(false)
+    trackReflectionMetadata.set(true)
+
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/")
+        mergeWithExisting.set(true)
+    }
+}
+----
+
+
+[[agent-filter-file]]
+=== Reduce the amount of generated metadata
+
+In some cases agent may include more metadata than it is actually needed. You can filter metadata using the agent filter files.
+These filter files that agent consumes have the following structure:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+ "rules": [
+    {"includeClasses": "some.class.to.include.**"},
+    {"excludeClasses": "some.class.to.exclude.**"},
+  ],
+  "regexRules": [
+    {"includeClasses": "regex\.example\.class.*"},
+    {"excludeClasses": "regex\.example\.exclude[0-9]+"},
+  ]
+}
+----
+
+The process how you can pass the config files to the agent is described in the <<additional-agent-options,previous section>>.
+
+We can see on the example how different filter files affect generated metadata:
+**Note that the following example was created with GraalVM 21 and that the format of the generated metadata can vary from version to version.**
+
+We are starting with the simple filter file:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "rules": [
+    {"includeClasses": "**"}
+  ]
+}
+----
+
+This filter file will instruct the agent to include everything and therefore, you will get a massive config files.
+For example this is how `resource-config.json` looks like:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{{
+  "resources":{
+  "includes":[{
+    "condition":{"typeReachable":"jdk.internal.logger.BootstrapLogger$DetectBackend$1"},
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "condition":{"typeReachable":"jdk.internal.logger.LoggerFinderLoader"},
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "condition":{"typeReachable":"java.nio.channels.spi.SelectorProvider$Holder"},
+    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
+  }, {
+    "condition":{"typeReachable":"java.time.zone.ZoneRulesProvider"},
+    "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
+  }, {
+    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
+    "pattern":"\\QMETA-INF/services/org.junit.platform.engine.TestEngine\\E"
+  }, {
+    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
+    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener\\E"
+  }, {
+    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
+    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.LauncherSessionListener\\E"
+  }, {
+    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
+    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.PostDiscoveryFilter\\E"
+  }, {
+    "condition":{"typeReachable":"java.util.Iterator"},
+    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.TestExecutionListener\\E"
+  }, {
+    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherConfigurationParameters"},
+    "pattern":"\\Qjunit-platform.properties\\E"
+  }, {
+    "condition":{"typeReachable":"org.slf4j.LoggerFactory"},
+    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
+  }, {
+    "condition":{"typeReachable":"worker.org.gradle.internal.classloader.FilteringClassLoader"},
+    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
+  }, {
+    "condition":{"typeReachable":"java.lang.ClassLoader"},
+    "pattern":"\\Qresource.txt\\E"
+  }]},
+  "bundles":[]
+}
+----
+
+As you can see, there are lots of resources that you may don't want.
+To reduce the amount of generated metadata, we will use the following `user-code-filter.json`:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "rules": [
+    {"includeClasses": "**"},
+    {"excludeClasses": "java.time.zone.**"},
+    {"excludeClasses": "org.junit.platform..**"}
+  ]
+}
+----
+
+After we regenerate the metadata with the new filter, `resource-config.json` generated on the same example as above will look like this:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "resources":{
+  "includes":[{
+    "condition":{"typeReachable":"jdk.internal.logger.BootstrapLogger$DetectBackend$1"},
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "condition":{"typeReachable":"jdk.internal.logger.LoggerFinderLoader"},
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "condition":{"typeReachable":"java.nio.channels.spi.SelectorProvider$Holder"},
+    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
+  }, {
+    "condition":{"typeReachable":"java.util.Iterator"},
+    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.TestExecutionListener\\E"
+  }, {
+    "condition":{"typeReachable":"org.slf4j.LoggerFactory"},
+    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
+  }, {
+    "condition":{"typeReachable":"worker.org.gradle.internal.classloader.FilteringClassLoader"},
+    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
+  }, {
+    "condition":{"typeReachable":"java.lang.ClassLoader"},
+    "pattern":"\\Qresource.txt\\E"
+  }]},
+  "bundles":[]
+}
+----
+
+As you can see there are no more entries that contain classes from `org.junit.platform.launcher` (as their condition) for example.
+
+
+== Maintain generated metadata
+
+If you are a library maintainer, or your application became huge, you may consider covering most of your code with tests.
+This way you can also track if your project requires updates of the existing metadata.
+Considering that you run your tests in certain CI, at some point (after updating some dependency or adding new feature/test) you may notice some test failures with missing resources errors or that something is reflectively missing...
+In that case, your metadata requires update.
+
+[WARNING]
+Be aware that if you modified existing metadata file(s) on the default location, generating a new metadata will overwrite the existing one and your manual changes will be lost.
+
+So if you modified existing metadata file(s) on the default location, please do the following:
+
+1. Move your metadata to some other, non-default location (with the `metadataCopy` task for example)
+2. Set `mergeWithExisting` option to true in the `metadataCopy` block
+3. Run your tests again to generate new metadata (as we already described in the <<collect-metadata, collect metadata section>>)
+4. Run `metadataCopy` task again (with `mergeWithExisting` set to true in step 2)
+
+This way you will keep your original metadata, and add a new one.
+
+
+== Reachability metadata repository
+
+Native Build Tools (both Gradle and Maven plugins) picks metadata from Reachability metadata repository to ensure your application works out-of-box (if all metadata required by your app is already contributed to the metadata repository).
+Furthermore, you can configure Reachability metadata support through `metadataRepository` block added to our main `graalvmNative` block inside `build.gradle`.
+Most common options you may want to configure in this block are:
+
+* `enabled` - determines if you want to use Reachability metadata support or not (`true` by default)
+* `version` - specifies exact Reachability metadata version you want to use
+* `uri` - specifies the url where the metadata is stored. This can be used to point to the local repository
+
+YYou can read more about __Reachability metadata support__ and other (advanced) configuring options, https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#_configuring_the_metadata_repository[here].
+
+In some cases, when you want to maintain multiple projects that share common metadata from various libraries, you should consider contributing metadata to https://github.com/oracle/graalvm-reachability-metadata[Reachability metadata project].
+https://github.com/oracle/graalvm-reachability-metadata/blob/master/CONTRIBUTING.md[Contributing to the repository] should be simple:
+
+- Clone repository locally:
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+git clone git@github.com:oracle/graalvm-reachability-metadata.git
+----
+
+- generate metadata and test stubs (replace with the GAV coordinates of library you are providing metadata for):
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew scaffold --coordinates com.example:my-library:1.0.0
+----
+
+- implement tests in test stubs that will show how you have generated metadata
+- collect metadata as described https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md#collecting-metadata-for-a-library[here]
+- create a pull request and fill the checklist
+
+== Track diagnostics
+
+If you want to explore details about native images you are generating, you can add:
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+buildArgs.add("--emit build-report")
+----
+For GraalVM versions starting from the GraalVM for JDK23
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+buildArgs.add("-H:+BuildReport")
+----
+For older GraalVM versions (starting from the GraalVM for JDK21)
+
+
+When the Native Image build is completed, you will find a path to the generated Build Report HTML in `Build artifacts` section in the build output like this:
+```
+------------------------------------------------------------------------------------
+Build artifacts:
+/build/native/nativeCompile/main (executable)
+/build/native/nativeCompile/main-build-report.html (build_info)
+====================================================================================
+```
+You can read more about build report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
+
+[NOTE]
+Note that Build Report features vary depending on a GraalVM version you use.
+
 
 [[build-a-native-executable-with-resources-autodetection]]
 == Build a Native Executable with Resources Autodetection
@@ -233,7 +814,7 @@ Using `resources.autodetect()` works because the application uses resources (_fo
 In the next section, the guide shows that you can use the tracing agent to do the same.
 
 [[build-a-native-executable-detecting-resources-with-the-agent]]
-== Build a Native Executable by Detecting Resources with the Agent
+=== Build a Native Executable by Detecting Resources with the Agent
 
 The Native Image Gradle plugin simplifies generation of the required metadata by injecting the
 https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#agent-support[

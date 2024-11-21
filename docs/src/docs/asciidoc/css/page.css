@@ -59,11 +59,9 @@ a:hover {
     color: white;
 }
 
-.admonitionblock td.icon .icon-tip::before {
-    color: white;
-}
-
-.admonitionblock td.icon .icon-note::before {
+.admonitionblock td.icon .icon-tip::before,
+.admonitionblock td.icon .icon-note::before,
+.admonitionblock td.icon .icon-warning::before {
     color: white;
 }
 
