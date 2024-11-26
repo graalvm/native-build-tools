@@ -95,7 +95,7 @@ graalvmNative {
 
         metadataCopy {
             inputTaskNames.add("test")
-            outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/")
+            outputDirectories.add("/META-INF/native-image/<groupId>/<artifactId>/")
             mergeWithExisting.set(true)
         }
 

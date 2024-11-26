@@ -9,8 +9,8 @@ all the way to some diagnostics tools that you can use to analyse native executa
 
 In case you only want to see how a simple application works in practise, you can check <<quickstart-gradle-plugin.adoc#,our demo>>.
 
-== Prerequisites
 [[prerequisites]]
+== Prerequisites
 
 - Before starting, make sure that you have GraalVM installed locally. You can https://www.graalvm.org/downloads/[download Oracle GraalVM from the official website].
 - In most cases you can run your Gradle project with almost any GraalVM version. All you have to do is to set `JAVA_HOME` environment variable to the release you want to use.
@@ -20,7 +20,7 @@ Note that in some cases, depending on the Gradle version you are using (https://
 You can run Gradle project with any GraalVM version you should set `GRAALVM_HOME` environment variable to point to whatever GraalVM release you want, and `JAVA_HOME` environment variable to some older version (like Java 17).
 This way, the Gradle plugin will build itself with Java specified in `JAVA_HOME` and your project with the version specified in `GRAALVM_HOME`.
 
-
+[[adding-plugin]]
 == Adding plugin
 
 In order to use Native Image through gradle you must add the following block into your `build.gradle` file inside `plugins` block:
@@ -37,6 +37,7 @@ In order to use Native Image through gradle you must add the following block int
 
 You can also check other versions of the plugin https://github.com/graalvm/native-build-tools/releases[here]
 
+[[run-your-project]]
 == First runs of your project
 
 This plugin works with the application plugin and will register a number of tasks that you may want to execute.
@@ -50,6 +51,7 @@ The main tasks you may want to use are:
 In the following sections you will find out how to use these tasks in practice.
 
 
+[[run-tests]]
 === Run your tests
 
 Running your tests should be a straight forward thing.
@@ -60,6 +62,7 @@ All you have to do is to write your tests under the test source (usually under _
 ./gradlew nativeTest
 ----
 
+[[run-application]]
 === Run your application
 
 Once you added your plugin, you can try to build native image on a simple HelloWorld application (or with your main if you are not starting from the scratch).
@@ -102,6 +105,7 @@ Once the build is finished, run the following command to execute generated Nativ
 ./gradlew nativeRun
 ----
 
+[[run-on-jvm]]
 ==== Run on JVM
 
 Note that **if you want to run your application (or maybe the native image agent later on your application) on the JVM** you should make the following changes in the `build.gradle`:
@@ -135,6 +139,7 @@ application {
 Note that the added block points to the main class placed under __/src/main/java/org.example.Main.java__. User should adjust this according to its application source set.
 
 
+[[configuration-options]]
 == Providing configuration options
 
 The main configuring point of this plugin is the `graalvmNative` block that you added into `build.gradle` file.
@@ -158,7 +163,7 @@ graalvmNative {
 
 Inside these blocks you can pass the following options:
 
-- `imageName` -The name of the native image, defaults to the project name
+- `imageName` -The name of the native image
 - `mainClass` - The main class to use, defaults to the application.mainClass
 - `debug` - Determines if debug info should be generated, defaults to false (alternatively add --debug-native to the CLI)
 - `verbose` - Add verbose output (`false` by default)
@@ -244,8 +249,8 @@ graalvmNative {
 }
 ----
 
-== Collecting metadata
 [[collect-metadata]]
+== Collecting metadata
 
 When your test/application starts to be a bit more complex things like **reflection**, **resources**, **serialization**, **proxies** or **jni** may be required.
 Since the Native Image has closed world assumption, all of these things must be known in advance during the image build.
@@ -354,6 +359,7 @@ Explanation of the `metadataCopy` block from above:
 - __outputDirectories.add("resources/META-INF/native-image/org.example")__ - means that we want to copy metadata into the given directory
 - __mergeWithExisting = false__ - means that we don't want to merge incoming metadata with the one that already exists on the location specified in `outputDirectories` (this makes sense since we don't have metadata on the given location already)
 
+[[execute-metadata-copy-task]]
 ==== Execute metadataCopy task
 
 Once the metadata is generated and the `metadataCopy` task is configured, you can run the task with:
@@ -467,7 +473,8 @@ For example
 ./gradlew -Pagent=direct nativeTest
 ----
 
-==== Common options
+[[common-agent-options]]
+==== Common agent options
 
 All the mentioned modes shares certain common configuration options like:
 
@@ -479,6 +486,7 @@ All the mentioned modes shares certain common configuration options like:
 - enableExperimentalUnsafeAllocationTracing
 - trackReflectionMetadata
 
+[WARNING]
 **These options are for advanced usages, and you can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here]**.
 
 Complete example of the agent block should look like this:
@@ -686,6 +694,7 @@ After we regenerate the metadata with the new filter, `resource-config.json` gen
 As you can see there are no more entries that contain classes from `org.junit.platform.launcher` (as their condition) for example.
 
 
+[[maintain-generated-metadata]]
 == Maintain generated metadata
 
 If you are a library maintainer, or your application became huge, you may consider covering most of your code with tests.
@@ -706,6 +715,7 @@ So if you modified existing metadata file(s) on the default location, please do 
 This way you will keep your original metadata, and add a new one.
 
 
+[[reachability-metadata-repository]]
 == Reachability metadata repository
 
 Native Build Tools (both Gradle and Maven plugins) picks metadata from Reachability metadata repository to ensure your application works out-of-box (if all metadata required by your app is already contributed to the metadata repository).
@@ -737,6 +747,7 @@ git clone git@github.com:oracle/graalvm-reachability-metadata.git
 - collect metadata as described https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md#collecting-metadata-for-a-library[here]
 - create a pull request and fill the checklist
 
+[[track-diagnostics]]
 == Track diagnostics
 
 If you want to explore details about native images you are generating, you can add:

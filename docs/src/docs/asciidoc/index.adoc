@@ -16,7 +16,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 In case you are new to the Native Build Tools (eiter as an end user or a library author), read our:
 
 - <<end-to-end-gradle-guide.adoc#,End-to-end Gradle guide>>
-- <<maven-plugin-quickstart.adoc#,Getting started with Maven plugin>>
+- <<end-to-end-maven-guide.adoc#,End-to-end Maven guide>>
 
 For detailed documentation, please refer to the following pages of the specific build tools:
 
