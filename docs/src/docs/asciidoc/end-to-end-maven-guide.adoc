@@ -6,6 +6,7 @@ The GraalVM team
 This guide leads you through the process of integrating Native Maven Plugin with your project.
 It starts from adding the plugin to your project, goes through some of the main functionalities that you may use (like collecting the metadata),
 all the way to some diagnostics tools that you can use to analyse native executables you have made.
+You can see an example of tests on which we tested whole guide <<example,here>>
 
 In case you only want to see how a simple application works in practise, you can check <<quickstart-maven-plugin.adoc#,our demo>>.
 
@@ -44,7 +45,8 @@ In order to use Native Image through Maven, you must add the following block int
       </execution>
     </executions>
     <configuration>
-      <!-- ... -->
+        <imageName>example-app</imageName>
+        <mainClass>org.example.Main</mainClass>
     </configuration>
 </plugin>
 ----
@@ -80,7 +82,8 @@ For convenience, you can create a maven profile and add plugin into it:
               </execution>
             </executions>
             <configuration>
-              <!-- ... -->
+              <imageName>example-app</imageName>
+              <mainClass>org.example.Main</mainClass>
             </configuration>
           </plugin>
         </plugins>
@@ -89,22 +92,23 @@ For convenience, you can create a maven profile and add plugin into it:
 </profiles>
 ----
 
-To make the plugin works, replace `${native.maven.plugin.version}` with the plugin version you may want to use (the latest plugin version is '{maven-plugin-version}').
+
+To make the plugin works replace _${native.maven.plugin.version}_ with the plugin version you may want to use (the latest plugin version is `{maven-plugin-version}`).
 You can also check other versions of the plugin https://github.com/graalvm/native-build-tools/releases[here].
 
 [TIP]
 ====
-You can also add `<properties>` block in your `pom.xml` and define the plugin version inside it.
+You can also define this property inside top level `<properties>` block in your `pom.xml`.
 That way, you don't need to replace `${native.maven.plugin.version}`.
 This is an example of the properties block with the plugin version definition:
 
 [source,xml, role="multi-language-sample"]
 ----
 <properties>
-    <native.maven.plugin.version>0.10.4</native.maven.plugin.version>
-    <junit.platform.native.version>0.10.4</junit.platform.native.version>
-    <imageName>example-app</imageName>
-    <mainClass>org.graalvm.demo.Application</mainClass>
+    <native.maven.plugin.version>0.10.3</native.maven.plugin.version>
+    <junit.platform.native.version>0.10.3</junit.platform.native.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
 </properties>
 ----
 ====
@@ -123,6 +127,44 @@ For example, you would run the `package` phase like this:
 ----
 mvn -Pnative package
 ----
+====
+
+This will generate native image under `target` directory.
+
+[TIP]
+====
+If you are experiencing error like this:
+
+----
+[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.
+----
+
+while running your tests, add the following plugin
+
+[source,xml, role="multi-language-sample"]
+----
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.0.0</version>
+</plugin>
+----
+====
+
+[TIP]
+====
+If you are running JUnit tests, you may need to add the following dependency:
+
+[source,xml, role="multi-language-sample"]
+----
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.10.0</version>
+    <scope>test</scope>
+</dependency>
+----
+
 ====
 
 [[configuration-options]]
@@ -146,13 +188,12 @@ By default the plugin consults several locations in the pom.xml file in the foll
 * `<systemPropertyVariables>` - Sets the system properties to use for the native image builder
 * `<environment>` - Sets the environment options for native image building
 * `<jvmArgs>` - Passes the given argument directly to the JVM running the native image builder
-* `<configurationFileDirectories>` - Adds a native image configuration file directory, containing files like reflection configuration
 * `<useArgFile>` - Use argument file for native-image building (__false__ by default)
 
-You can also pass **build-time** and **run-time** options to the Native Image inside the following blocks:
+You can also pass **build-time** options to the Native Image inside the following blocks:
 
-- `<buildArgs>` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
-- `???` - You can find more about possible runtime arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/[here]
+- `<buildArgs>` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/[here]
+and also https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
 
 To skip generation of the native image or tests execution set the following properties to `true`:
 
@@ -189,11 +230,6 @@ Here is an example of additional options usage:
         <propertyName1>value1</propertyName1>
         <propertyName1>value2</propertyName2>
     </systemPropertyVariables>
-
-    <configurationFileDirectories>
-        <dir>path/to/dir</dir>
-    </configurationFileDirectories>
-
 </configuration>
 ----
 
@@ -240,16 +276,17 @@ mvn -Pnative -Dagent=true test
 
 [WARNING]
 ====
-Executing your application with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.
+*Executing your application* with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.
 You can find out how to execute your application with the agent <<maven-plugin.adoc#agent-support-running-application,here>>.
 ====
 
 [[metadata-copy]]
 === Move generated metadata to non-default location
 
-By default, generated metadata will be placed inside `build/native/agent-output` directory.
-In many cases you may want to move generated metadata to some other location.
+By default, generated metadata will be placed inside `target/native/agent-output` directory.
+In many cases you may want to move generated metadata to some other location since the `target` directory gets removed every time you run `mvn clean` command.
 To do so, you can configure and run `metadataCopy` task.
+That way your metadata becomes persistent on the non-default location.
 
 ==== Configure metadataCopy task
 
@@ -290,17 +327,6 @@ mvn -Pnative test native:metadata-copy
 [WARNING]
 ====
 Note that **if you store generated metadata on location other than the default one**, you will need to pass that location like this:
-
-[source,xml, role="multi-language-sample"]
-----
-<configuration>
-    <configurationFileDirectories>
-        <dir>path/to/metadata</dir>
-    </configurationFileDirectories>
-</configuration>
-----
-
-or as a Native Image `buildArg` with `-H:ConfigurationFileDirectories` option:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -346,11 +372,15 @@ Here is an example of the `agent` block with configured conditional and direct m
         <conditional>
             <userCodeFilterPath>user-code-filter.json</userCodeFilterPath>
             <extraFilterPath>extra-filter.json</extraFilterPath>
-            <parallel>true</parallel>
         </conditional>
     </modes>
 </agent>
 ----
+
+[NOTE]
+====
+In order to make your project run with the above configuration, you must create <<agent-filter-file,filter files>> (_extraFilterPath_ is optional and you can remove the tag if it is redundant).
+====
 
 [[common-agent-options]]
 ==== Common agent options
@@ -380,7 +410,6 @@ Complete example of the agent block should look like this:
         <conditional>
             <userCodeFilterPath>path-to-filter.json</userCodeFilterPath>
             <extraFilterPath>path-to-another-filter.json</extraFilterPath>
-            <parallel>true</parallel>
         </conditional>
     </modes>
 
@@ -447,54 +476,162 @@ We are starting with the simple filter file:
 }
 ----
 
-This filter file will instruct the agent to include everything and therefore, you will get a massive config files.
-For example this is how `resource-config.json` looks like:
+This filter file will instruct the agent to include everything and therefore, you will get a massive config file.
+For example this is how `reachability-metadata.json` looks like:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
-{{
-  "resources":{
-  "includes":[{
-    "condition":{"typeReachable":"jdk.internal.logger.BootstrapLogger$DetectBackend$1"},
-    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
-  }, {
-    "condition":{"typeReachable":"jdk.internal.logger.LoggerFinderLoader"},
-    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
-  }, {
-    "condition":{"typeReachable":"java.nio.channels.spi.SelectorProvider$Holder"},
-    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
-  }, {
-    "condition":{"typeReachable":"java.time.zone.ZoneRulesProvider"},
-    "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
-  }, {
-    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
-    "pattern":"\\QMETA-INF/services/org.junit.platform.engine.TestEngine\\E"
-  }, {
-    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
-    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener\\E"
-  }, {
-    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
-    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.LauncherSessionListener\\E"
-  }, {
-    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherFactory"},
-    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.PostDiscoveryFilter\\E"
-  }, {
-    "condition":{"typeReachable":"java.util.Iterator"},
-    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.TestExecutionListener\\E"
-  }, {
-    "condition":{"typeReachable":"org.junit.platform.launcher.core.LauncherConfigurationParameters"},
-    "pattern":"\\Qjunit-platform.properties\\E"
-  }, {
-    "condition":{"typeReachable":"org.slf4j.LoggerFactory"},
-    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
-  }, {
-    "condition":{"typeReachable":"worker.org.gradle.internal.classloader.FilteringClassLoader"},
-    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
-  }, {
-    "condition":{"typeReachable":"java.lang.ClassLoader"},
-    "pattern":"\\Qresource.txt\\E"
-  }]},
-  "bundles":[]
+{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "java.util.concurrent.atomic.AtomicBoolean"
+      },
+      "type": "java.util.concurrent.atomic.AtomicBoolean",
+      "fields": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "type": "org.apache.maven.surefire.booter.spi.LegacyMasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "type": "org.apache.maven.surefire.booter.spi.SurefireMasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.platform.launcher.core.DefaultLauncher"
+      },
+      "type": "org.apiguardian.api.API"
+    },
+    {
+      "condition": {
+        "typeReached": "java.lang.Class"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "java.util.Collections$2"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.api.util.DefaultScanResult"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.jupiter.engine.JupiterTestEngine"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.jupiter.engine.discovery.ClassSelectorResolver$$Lambda/0x00007a5c0f03fbb8"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "java.security.Provider$Service"
+      },
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    }
+    ...
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "jdk.internal.logger.BootstrapLogger$DetectBackend$1"
+      },
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "condition": {
+        "typeReached": "jdk.internal.logger.LoggerFinderLoader"
+      },
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "glob": "META-INF/services/org.apache.maven.surefire.spi.MasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "java.lang.ClassLoader"
+      },
+      "glob": "TestResource.txt"
+    },
+    ...
+  ],
+  "bundles": [],
+  "jni": [
+    {
+      "condition": {
+        "typeReached": "sun.nio.ch.IOUtil"
+      },
+      "type": "java.lang.Boolean",
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "condition": {
+        "typeReached": "sun.management.VMManagementImpl"
+      },
+      "type": "sun.management.VMManagementImpl",
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    }
+  ]
 }
 ----
 
@@ -506,45 +643,48 @@ To reduce the amount of generated metadata, we will use the following `user-code
 {
   "rules": [
     {"includeClasses": "**"},
-    {"excludeClasses": "java.time.zone.**"},
-    {"excludeClasses": "org.junit.platform..**"}
+    {"excludeClasses": "org.apache.maven.**"},
+    {"excludeClasses": "org.junit.**"},
+    {"excludeClasses": "java.**"},
+    {"excludeClasses": "jdk.internal.**"},
+    {"excludeClasses": "sun.**"},
+    {"excludeClasses": "com.sun.**"}
   ]
 }
 ----
 
-After we regenerate the metadata with the new filter, `resource-config.json` generated on the same example as above will look like this:
+[WARNING]
+====
+Be careful to remove only redundant metadata and keep metadata necessary for your project.
+====
+
+After we regenerate the metadata with the new filter, `reachability-metadata.json` generated on the same example as above will look like this:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 {
-  "resources":{
-  "includes":[{
-    "condition":{"typeReachable":"jdk.internal.logger.BootstrapLogger$DetectBackend$1"},
-    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
-  }, {
-    "condition":{"typeReachable":"jdk.internal.logger.LoggerFinderLoader"},
-    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
-  }, {
-    "condition":{"typeReachable":"java.nio.channels.spi.SelectorProvider$Holder"},
-    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
-  }, {
-    "condition":{"typeReachable":"java.util.Iterator"},
-    "pattern":"\\QMETA-INF/services/org.junit.platform.launcher.TestExecutionListener\\E"
-  }, {
-    "condition":{"typeReachable":"org.slf4j.LoggerFactory"},
-    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
-  }, {
-    "condition":{"typeReachable":"worker.org.gradle.internal.classloader.FilteringClassLoader"},
-    "pattern":"\\Qorg/slf4j/impl/StaticLoggerBinder.class\\E"
-  }, {
-    "condition":{"typeReachable":"java.lang.ClassLoader"},
-    "pattern":"\\Qresource.txt\\E"
-  }]},
-  "bundles":[]
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "type": "org.example.NativeTests$Person",
+      "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "glob": "TestResource.txt"
+    }
+  ],
+  "bundles": []
 }
 ----
 
-As you can see there are no more entries that contain classes from `org.junit.platform.launcher` (as their condition) for example.
+As you can see there are no more entries that contain classes from `org.apache.maven` (as their condition) for example.
 
 [[maintain-generated-metadata]]
 == Maintain generated metadata
@@ -555,9 +695,13 @@ Considering that you run your tests in certain CI, at some point (after updating
 In that case, your metadata requires update.
 
 [WARNING]
-Be aware that if you modified existing metadata file(s) on the default location, generating a new metadata will overwrite the existing one and your manual changes will be lost.
+====
+As we already mentioned, metadata generated on the default location, under `target` directory, is not persistent because every run of the `mvn clean` removes the directory.
+To persist metadata, you should move it to some non-default location, as described <<metadata-copy, here>>
+However, note that if you modified existing metadata file(s) on the non-default location, generating a new metadata and moving it to the same (non-default) location will overwrite the existing metadata you have changed.
+====
 
-So if you modified existing metadata file(s) on the default location, please do the following:
+So if you modified existing metadata file(s), please do the following:
 
 1. Set `merge` option to true in the `metadataCopy` block
 2. Run your tests again to generate new metadata (as we already described <<execute-metadata-copy-task, here>>)
@@ -622,11 +766,65 @@ When the Native Image build is completed, you will find a path to the generated 
 ```
 ------------------------------------------------------------------------------------
 Build artifacts:
-/build/native/nativeCompile/main (executable)
-/build/native/nativeCompile/main-build-report.html (build_info)
+
+/tmp/target/native-tests (executable)
+/tmp/target/native-tests-build-report.html (build_info)
 ====================================================================================
 ```
 You can read more about build report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
 
 [NOTE]
 Note that Build Report features vary depending on a GraalVM version you use.
+
+[[example]]
+== Example
+
+Whole guide has been tested on the following test class:
+
+[source,java,subs="verbatim,attributes", role="multi-language-sample"]
+----
+import org.junit.jupiter.api.Test;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class NativeTests {
+
+    private static final List<String> resources = List.of("/TestResource.txt");
+
+    @Test
+    public void resourceTest() {
+        try (InputStream is = NativeTests.class.getResourceAsStream(resources.get(0))) {
+            if (is != null) {
+                var reader = new BufferedReader(new InputStreamReader(is));
+                reader.lines().forEach(System.out::println);
+            } else {
+                throw new IOException("Cannot read content of: " + resources.get(0));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static class Person {
+        private String name;
+        private String surname;
+    }
+
+    @Test
+    public void reflectionTest() {
+        Object person = new Person();
+        Field[] fields = person.getClass().getDeclaredFields();
+        List<String> actualFieldNames = Arrays.stream(fields).map(Field::getName).toList();
+
+        assertTrue(actualFieldNames.containsAll(Arrays.asList("name", "surname")));
+    }
+}
+----

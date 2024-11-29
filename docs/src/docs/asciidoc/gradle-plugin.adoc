@@ -169,9 +169,6 @@ graalvmNative {
 }
 ----
 
-[[configuration-options]]
-==== Configuration options
-
 The following configuration options are available for building images:
 
 .NativeImageOption configuration
@@ -184,25 +181,6 @@ include::../snippets/gradle/groovy/build.gradle[tags=all-config-options]
 ----
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 ----
-
-Native Image Agent options:
-
-* `defaultMode` - Default agent mode if one isn't specified using `-Pagent=mode_name`
-* `enabled` - Enables the agent
-* `modes`- you can configure following agent modes:
-    ** `standard` -The standard agent mode generates metadata without conditions
-    ** `conditional` - The conditional agent mode generates metadata with conditions
-        *** `userCodeFilterPath` - Path to a filter file that determines classes which will be used in the metadata conditions
-        *** `extraFilterPath` - Optional, extra filter used to further filter the collected metadata
-    ** `direct` - The direct agent mode allows users to directly pass options to the agent
-        *** `{output_dir}` - a special string expanded by the plugin to where the agent files would usually be output
-* `tasksToInstrumentPredicate` - By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
-This can be limited to only specific tasks that match this predicate.
-
-[TIP]
-Options like `callerFilterFiles`, `accessFilterFiles`, `builtinCallerFilter`, `builtinHeuristicFilter`, `enableExperimentalPredefinedClasses`, `enableExperimentalUnsafeAllocationTracing` and `trackReflectionMetadata`
-are common for all agent modes and intended to be used for more advanced purposes. You can read more about those options https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here].
-
 
 Native Image options:
 
@@ -221,13 +199,31 @@ Native Image options:
 - `jvmArgs` - Passes the given argument directly to the JVM running the native image builder
 - `useFatJar` - Instead of passing each jar individually, builds a fat jar
 
-You can also pass **build-time** and **run-time** options to the Native Image using:
+You can also pass **build-time** and **run-time** arguments:
 
 - `buildArgs.add('<buildArg>')` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
-- `runtimeArgs.add('<runtimeArg>')` - You can find more about possible runtime arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/[here]
+- `runtimeArgs.add('<runtimeArg>')` - Runtime arguments consumed by your application
 
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
+
+Native Image Agent options:
+
+* `defaultMode` - Default agent mode if one isn't specified using `-Pagent=mode_name`
+* `enabled` - Enables the agent
+* `modes`- you can configure following agent modes:
+    ** `standard` -The standard agent mode generates metadata without conditions
+    ** `conditional` - The conditional agent mode generates metadata with conditions
+        *** `userCodeFilterPath` - Path to a filter file that determines classes which will be used in the metadata conditions
+        *** `extraFilterPath` - Optional, extra filter used to further filter the collected metadata
+    ** `direct` - The direct agent mode allows users to directly pass options to the agent
+        *** `{output_dir}` - a special string expanded by the plugin to where the agent files would usually be output
+* `tasksToInstrumentPredicate` - By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
+This can be limited to only specific tasks that match this predicate.
+
+[TIP]
+Options like `callerFilterFiles`, `accessFilterFiles`, `builtinCallerFilter`, `builtinHeuristicFilter`, `enableExperimentalPredefinedClasses`, `enableExperimentalUnsafeAllocationTracing` and `trackReflectionMetadata`
+are common for all agent modes and intended to be used for more advanced purposes. You can read more about those options https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here].
 
 [[agent-support]]
 ==== Reflection support and running with the native agent

@@ -216,14 +216,6 @@ Build Configuration]. It is also possible to customize the plugin within a
     <arg>argument2</arg>
 </jvmArgs>
 ----
-`<configurationFileDirectories>`::
-   If you want to specify custom directories where configuration files should be looked up, supply the following in the configuration of the plugin:
-[source,xml, role="multi-language-sample"]
-----
-<configurationFileDirectories>
-    <dir>path/to/dir</dir>
-</configurationFileDirectories>
-----
 `<classpath>`::
    Sets a custom classpath instead of plugin generated one. Usage:
 [source,xml, role="multi-language-sample"]

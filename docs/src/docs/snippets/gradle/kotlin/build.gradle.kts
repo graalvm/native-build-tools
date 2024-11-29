@@ -68,6 +68,34 @@ if (providers.environmentVariable("ENABLE_TOOLCHAIN").isPresent()) {
 
 // tag::all-config-options[]
 graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("application")
+            mainClass.set("org.test.Main")
+            debug.set(true)
+            verbose.set(true)
+            fallback.set(true)
+            sharedLibrary.set(false)
+            richOutput.set(false)
+            requiredVersion.set('22.3')
+            quickBuild.set(false)
+
+            systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2"))
+            configurationFileDirectories.from(file("src/my-config"))
+            excludeConfig.put("org.example.test:artifact:version", listOf("^/META-INF/native-image/.*", "^/config/.*"))
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
+
+            // Advanced options
+            buildArgs.add("--link-at-build-time")
+            jvmArgs.add("flag")
+
+            // Runtime options
+            runtimeArgs.add("--help")
+
+            useFatJar.set(true)
+        }
+    }
+
     agent {
         defaultMode.set("standard")
         enabled.set(true)
@@ -100,34 +128,6 @@ graalvmNative {
         }
 
         tasksToInstrumentPredicate.set(t -> true)
-    }
-
-    binaries {
-        named("main") {
-            imageName.set("application")
-            mainClass.set("org.test.Main")
-            debug.set(true)
-            verbose.set(true)
-            fallback.set(true)
-            sharedLibrary.set(false)
-            richOutput.set(false)
-            requiredVersion.set('22.3')
-            quickBuild.set(false)
-
-            systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2"))
-            configurationFileDirectories.from(file("src/my-config"))
-            excludeConfig.put("org.example.test:artifact:version", listOf("^/META-INF/native-image/.*", "^/config/.*"))
-            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
-
-            // Advanced options
-            buildArgs.add("--link-at-build-time")
-            jvmArgs.add("flag")
-
-            // Runtime options
-            runtimeArgs.add("--help")
-
-            useFatJar.set(true)
-        }
     }
 }
 // end::all-config-options[]

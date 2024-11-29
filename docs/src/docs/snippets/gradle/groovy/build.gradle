@@ -67,6 +67,34 @@ if (providers.environmentVariable("ENABLE_TOOLCHAIN").isPresent()) {
 
 // tag::all-config-options[]
 graalvmNative {
+    binaries {
+        main {
+            imageName = 'application'
+            mainClass = 'org.test.Main'
+            debug = true
+            verbose = true
+            fallback = true
+            sharedLibrary = false
+            quickBuild = false
+            richOutput = false
+            requiredVersion = '22.3'
+
+            systemProperties = [name1: 'value1', name2: 'value2']
+            configurationFileDirectories.from(file('src/my-config'))
+            excludeConfig.put("org.example.test:artifact:version", ["^/META-INF/native-image/.*", "^/config/.*"])
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
+
+            // Advanced options
+            buildArgs.add('--link-at-build-time')
+            jvmArgs.add('flag')
+
+            // Runtime options
+            runtimeArgs.add('--help')
+
+            useFatJar = true
+        }
+    }
+
     agent {
         defaultMode = "standard"
         enabled = true
@@ -98,36 +126,7 @@ graalvmNative {
             mergeWithExisting = true
         }
 
-
         tasksToInstrumentPredicate = t -> true
-    }
-
-    binaries {
-        main {
-            imageName = 'application'
-            mainClass = 'org.test.Main'
-            debug = true
-            verbose = true
-            fallback = true
-            sharedLibrary = false
-            quickBuild = false
-            richOutput = false
-            requiredVersion = '22.3'
-
-            systemProperties = [name1: 'value1', name2: 'value2']
-            configurationFileDirectories.from(file('src/my-config'))
-            excludeConfig.put("org.example.test:artifact:version", ["^/META-INF/native-image/.*", "^/config/.*"])
-            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
-
-            // Advanced options
-            buildArgs.add('--link-at-build-time')
-            jvmArgs.add('flag')
-
-            // Runtime options
-            runtimeArgs.add('--help')
-
-            useFatJar = true
-        }
     }
 }
 // end::all-config-options[]
