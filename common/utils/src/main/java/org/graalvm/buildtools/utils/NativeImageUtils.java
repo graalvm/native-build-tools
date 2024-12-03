@@ -60,7 +60,7 @@ public class NativeImageUtils {
 
     private static final Pattern requiredVersionPattern = Pattern.compile("^([0-9]+)(?:\\.([0-9]+)?)?(?:\\.([0-9]+)?)?$");
 
-    private static final Pattern graalvmVersionPattern = Pattern.compile("^(GraalVM|native-image) ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
+    private static final Pattern graalvmVersionPattern = Pattern.compile("^(GraalVM|native-image) ([0-9]+)\\.([0-9]+)\\.([0-9]+).*", Pattern.DOTALL);
 
     private static final Pattern javaVersionPattern = Pattern.compile("^native-image ([0-9]+).*", Pattern.DOTALL);
     private static final Pattern javaVersionLegacyPattern = Pattern.compile(".* \\(Java Version ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
