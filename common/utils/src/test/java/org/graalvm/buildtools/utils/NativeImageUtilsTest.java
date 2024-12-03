@@ -138,6 +138,17 @@ class NativeImageUtilsTest {
     }
 
     @Test
+    void checkOtherGraalVMVersion() {
+        String otherGraalVMForJDK23 = "native-image 23.0.1 2024-10-15\nJava(TM) SE Runtime Environment Foo Bar 23.0.1+11.1 (build 23.0.1+11-foo-bar-jvmci-b01)\n" +
+                "Java HotSpot(TM) 64-Bit Server VM Foo Bar 23.0.1+11.1 (build 23.0.1+11-foo-bar-jvmci-b01, mixed mode, sharing)";
+        NativeImageUtils.checkVersion("22.3.0", otherGraalVMForJDK23);
+        NativeImageUtils.checkVersion("23", otherGraalVMForJDK23);
+        NativeImageUtils.checkVersion("23.0", otherGraalVMForJDK23);
+        NativeImageUtils.checkVersion("23.0.1", otherGraalVMForJDK23);
+        Assertions.assertEquals(23, NativeImageUtils.getMajorJDKVersion(otherGraalVMForJDK23));
+    }
+
+    @Test
     void checkGreaterVersion() {
         NativeImageUtils.checkVersion("22", "GraalVM 23.2.1");
         NativeImageUtils.checkVersion("23.1", "GraalVM 23.2.1");
