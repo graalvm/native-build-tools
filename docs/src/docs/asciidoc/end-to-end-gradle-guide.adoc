@@ -740,11 +740,11 @@ Considering that you run your tests on CI, at some point (after updating some de
 In that case, your metadata requires update.
 
 [WARNING]
-Be aware that if you modified existing metadata file(s) on the default location, generating a new metadata will overwrite the existing one and your manual changes will be lost.
+Be aware that if you modified existing metadata file(s) in the default (not permanent) location, generating a new metadata will overwrite the existing one and your manual changes will be lost.
 
-So if you modified existing metadata file(s) on the default location, please do the following:
+So if you modified existing metadata file(s), please do the following:
 
-1. Move your metadata to some other, non-default location (with the `metadataCopy` task for example)
+1. Move your metadata to some permanent location (with the `metadataCopy` task for example), if you didn't do that already.
 2. Set `mergeWithExisting` option to true in the `metadataCopy` block
 3. Run your tests again to generate new metadata (as we already described in the <<collect-metadata, collect metadata section>>)
 4. Run `metadataCopy` task again (with `mergeWithExisting` set to true in step 2)
