@@ -24,7 +24,7 @@ This way, the Gradle plugin will build itself with Java specified in `JAVA_HOME`
 [[adding-plugin]]
 == Adding the GraalVM Native Plugin
 
-In order to use Native Image through gradle you must add the following block into your `build.gradle` file inside `plugins` block:
+In order to use Native Image with Gradle you must add the following block into your `build.gradle` file inside `plugins` block:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----

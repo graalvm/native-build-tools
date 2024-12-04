@@ -17,9 +17,9 @@ In case you only want to see how a simple application works in practise, you can
 - You should set `JAVA_HOME` environment variable to point to your GraalVM installation.
 
 [[adding-plugin]]
-== Adding plugin
+== Adding the GraalVM Native Plugin
 
-In order to use Native Image through Maven, you must add the following block into your `pom.xml` file:
+In order to use Native Image with Maven, you must add the following block into your `pom.xml` file:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -94,7 +94,7 @@ For convenience, you can create a maven profile and add plugin into it:
 
 
 To make the plugin works replace _${native.maven.plugin.version}_ with the plugin version you may want to use (the latest plugin version is `{maven-plugin-version}`).
-You can also check other versions of the plugin https://github.com/graalvm/native-build-tools/releases[here].
+Older versions of the plugin are listed https://github.com/graalvm/native-build-tools/releases[here].
 
 [TIP]
 ====
@@ -180,7 +180,7 @@ By default the plugin consults several locations in the pom.xml file in the foll
 ** <maven-assembly-plugin> <archive> <manifest> <mainClass>
 ** <maven-jar-plugin> <archive> <manifest> <mainClass>
 
-* `<imageName>` - The name of the native image. If a custom image name is not supplied, the artifact ID of the project will be used by default.
+* `<imageName>` - The name of the native image. If a custom image name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
 * `<debug>` - Determines if debug info should be generated (__false__ by default)
 * `<verbose>` - Add verbose output (__false__ by default)
 * `<sharedLibrary>` - Determines if image is a shared library
@@ -245,16 +245,17 @@ For example if you want to temporarily enable verbose mode you can append `-Dver
 [[collect-metadata]]
 == Collecting metadata
 
-When your test/application starts to be a bit more complex things like **reflection**, **resources**, **serialization**, **proxies** or **jni** may be required.
+When your application starts to be more complex, additional configuration like **reflection**, **resources**, **serialization**, **proxies** or **jni** metadata may be required.
 Since the Native Image has closed world assumption, all of these things must be known in advance during the image build.
-The easiest way how this information can be passed to the Native Image is through metadata config file(s) - depending on the GraalVM version you are using, there could be
+The easiest way to pass this information to the Native Image is through configuration file(s) - depending on the GraalVM version you are using, there could be
 a single `reachability-metadata.json` file (for newer GraalVM versions) or multiple json files (`reflect-config.json`, `resource-config.json`, `proxy-config.json`, `serialization-config.json`, `jni-config.json`).
 To learn more about metadata that Native Image consumes, https://www.graalvm.org/latest/reference-manual/native-image/metadata/[see this].
 
-For example, if you run the test that tries to load resource `resource.txt`, and you don't have entry for that resource in the metadata config file, the resource can't be loaded (will be null).
+For example, if you run tests which make use of reflection, and you don't have entry for reflective calls in the metadata config file, your native tests will fail.
 
-To make your test/application work while using resources (like in this example) or other metadata, you should either generate metadata configurations or write them manually.
-To generate metadata automatically, you can run your tests (or the main application) with the Native Image Agent, that will collect all the metadata your test/application require.
+In order to make your test/application work natively while using reflection (like in this example) or other features which require additional metadata, you should either generate configuration files or write them manually.
+The easiest is to generate metadata automatically.
+For this you can run your tests (or the main application) with the Native Image Agent, which will collect all the metadata your test/application require and generate metadata for you.
 To enable the agent (through Native Maven Plugin) you should add the following block inside the `configuration` block of your plugin definition:
 
 [source,xml, role="multi-language-sample"]
@@ -281,7 +282,7 @@ You can find out how to execute your application with the agent <<maven-plugin.a
 ====
 
 [[metadata-copy]]
-=== Move generated metadata to non-default location
+=== Copy generated metadata to permanent location
 
 By default, generated metadata will be placed inside `target/native/agent-output` directory.
 In many cases you may want to move generated metadata to some other location since the `target` directory gets removed every time you run `mvn clean` command.
@@ -293,7 +294,7 @@ That way your metadata becomes persistent on the non-default location.
 First, you can configure `metadataCopy` task by adding a new block, named `metadataCopy` inside `agent` block that you added in the previous step.
 Inside this block, you can specify:
 
-- `<outputDirectory>` - location where you want to move the metadata
+- `<outputDirectory>` - location where you want to copy the generated metadata
 - `<disableStages>` - in case you don't want the agent output from the `main` or `test` phases, you can disable metadata copy for the concrete phase.
 - `<merge>` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
 
@@ -317,7 +318,7 @@ Your `agent` block should look like this:
 [[execute-metadata-copy-task]]
 ==== Execute metadataCopy task
 
-Once the `metadataCopy` task is configured, you can run the agent to collect the metadata and move it in the other location with:
+Once the `metadataCopy` task is configured, you can run the agent to collect the metadata and copy it in the other location with:
 
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -326,7 +327,7 @@ mvn -Pnative test native:metadata-copy
 
 [WARNING]
 ====
-Note that **if you store generated metadata on location other than the default one**, you will need to pass that location like this:
+Note that **if you store generated metadata outside of the standard resources directories (e.g `src/main/resources/META-INF/native-image/...`) **, you will need to pass that location as a Native Image `buildArg` with `-H:ConfigurationFileDirectories` option.
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -357,7 +358,7 @@ For example:
 
 - `standard` mode is a **great starting point** in your project development
 - `conditional` mode is mainly aimed towards **library maintainers** with the goal of reducing overall footprint
-- `direct` mode is for **experienced users** that knows how to configure the agent manually
+- `direct` mode is for **experienced users** who know how to configure the agent manually
 
 You can configure each mode (and declare the one that will be used for generating metadata) inside the `agent` block in `pom.xml` file.
 Here is an example of the `agent` block with configured conditional and direct modes, where the conditional mode is set as default and will be used to generate the metadata:
@@ -398,7 +399,7 @@ All the mentioned modes shares certain common configuration options like:
 [WARNING]
 **These options are for advanced usages, and you can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here]**.
 
-Complete example of the agent block should look like this:
+A Complete example of the agent block should look like this:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -462,10 +463,8 @@ These filter files that agent consumes have the following structure:
 
 The process how you can pass the config files to the agent is described in the <<additional-agent-options,previous section>>.
 
-We can see on the example how different filter files affect generated metadata:
-**Note that the following example was created with GraalVM 21 and that the format of the generated metadata can vary from version to version.**
-
-We are starting with the simple filter file:
+We can see on the <<example, example>> how different filter files affect generated metadata.
+Let's start with the simple filter file:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -476,7 +475,7 @@ We are starting with the simple filter file:
 }
 ----
 
-This filter file will instruct the agent to include everything and therefore, you will get a massive config file.
+This filter file will instruct the agent to include everything, which will result in a massive configuration file.
 For example this is how `reachability-metadata.json` looks like:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
@@ -635,7 +634,8 @@ For example this is how `reachability-metadata.json` looks like:
 }
 ----
 
-As you can see, there are lots of resources that you may don't want.
+As you can see, there are lots of entries that you likely don't want.
+They are present because the metadata was generated using tests, for example, and that the testing library was present at runtime during the agent execution pass, but in practice, your application will not use the testing library in production.
 To reduce the amount of generated metadata, we will use the following `user-code-filter.json`:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
@@ -655,10 +655,10 @@ To reduce the amount of generated metadata, we will use the following `user-code
 
 [WARNING]
 ====
-Be careful to remove only redundant metadata and keep metadata necessary for your project.
+Always be careful when removing entries in metadata, as this may result in a broken binary
 ====
 
-After we regenerate the metadata with the new filter, `reachability-metadata.json` generated on the same example as above will look like this:
+After updating our filters, we can regenerate the metadata, which will result in the following `reachability-metadata.json` file:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -684,20 +684,20 @@ After we regenerate the metadata with the new filter, `reachability-metadata.jso
 }
 ----
 
-As you can see there are no more entries that contain classes from `org.apache.maven` (as their condition) for example.
+As you can see there are no more entries that contain classes from `org.apache.maven` (as their condition).
 
 [[maintain-generated-metadata]]
 == Maintain generated metadata
 
-If you are a library maintainer, or your application became huge, you may consider covering most of your code with tests.
+If you are a library maintainer, or if your application grows large, you may consider covering most of your code with tests.
 This way you can also track if your project requires updates of the existing metadata.
-Considering that you run your tests in certain CI, at some point (after updating some dependency or adding new feature/test) you may notice some test failures with missing resources errors or that something is reflectively missing...
+Considering that you run your tests on CI, at some point (after updating some dependency or adding new feature/test) you may notice some test failures with missing resources errors or that something is reflectively missing...
 In that case, your metadata requires update.
 
 [WARNING]
 ====
 As we already mentioned, metadata generated on the default location, under `target` directory, is not persistent because every run of the `mvn clean` removes the directory.
-To persist metadata, you should move it to some non-default location, as described <<metadata-copy, here>>
+To persist metadata, you should copy it to some permanent location, as described <<metadata-copy, here>>
 However, note that if you modified existing metadata file(s) on the non-default location, generating a new metadata and moving it to the same (non-default) location will overwrite the existing metadata you have changed.
 ====
 
@@ -711,8 +711,8 @@ This way you will keep your original metadata, and add a new one.
 [[reachability-metadata-repository]]
 == Reachability metadata repository
 
-Native Build Tools (both Gradle and Maven plugins) picks metadata from Reachability metadata repository to ensure your application works out-of-box (if all metadata required by your app is already contributed to the metadata repository).
-Furthermore, you can configure Reachability metadata support through `metadataRepository` block added to our main plugins' `configuration` block inside `pom.xml`.
+While we have described how you can add metadata for your own code, Native Build Tools (both Gradle and Maven plugins) makes use of metadata from Reachability Metadata Repository to ensure your application works out-of-box with 3rd party libraries that you depend on.
+You can configure Reachability metadata support through `metadataRepository` block added to our main plugins' `configuration` block inside `pom.xml`.
 Most common options you may want to configure in this block are:
 
 * `<enabled>` - determines if you want to use Reachability metadata support or not (`true` by default)
@@ -742,9 +742,11 @@ git clone git@github.com:oracle/graalvm-reachability-metadata.git
 - create a pull request and fill the checklist
 
 [[track-diagnostics]]
-== Track diagnostics
+== Using diagnostics
 
 If you want to explore details about native images you are generating, you can add:
+
+For GraalVM versions starting from GraalVM for JDK 23
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -752,7 +754,8 @@ If you want to explore details about native images you are generating, you can a
     <buildArg>--emit build-report</buildArg>
 </buildArgs>
 ----
-For GraalVM versions starting from the GraalVM for JDK23
+
+For older GraalVM versions (starting from GraalVM for JDK 21)
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -760,7 +763,6 @@ For GraalVM versions starting from the GraalVM for JDK23
     <buildArg>-H:+BuildReport</buildArg>
 </buildArgs>
 ----
-For older GraalVM versions (starting from the GraalVM for JDK21)
 
 When the Native Image build is completed, you will find a path to the generated Build Report HTML in `Build artifacts` section in the build output like this:
 ```
