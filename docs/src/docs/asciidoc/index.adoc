@@ -13,7 +13,7 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [discrete]
 === Documentation
 
-In case you are new to the Native Build Tools (eiter as an end user or a library author), read our:
+In case you are new to the Native Build Tools (either as an end user or a library author), read our:
 
 - <<end-to-end-gradle-guide.adoc#,End-to-end Gradle guide>>
 - <<end-to-end-maven-guide.adoc#,End-to-end Maven guide>>
