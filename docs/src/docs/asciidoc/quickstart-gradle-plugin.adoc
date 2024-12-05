@@ -148,7 +148,7 @@ application {
     mainClass = 'demo.Fortune'
 }
 ----
-. Add explicit FasterXML Jackson dependencies that provide functionality to read and write JSON, data bindings (used in the demo application). 
+. Add explicit FasterXML Jackson dependencies that provide functionality to read and write JSON, data bindings (used in the demo application).
 Insert the following three lines in the `dependencies` section of _build.gradle_:
 +
 [source,xml]
@@ -336,6 +336,6 @@ graalvmNative {
 === Summary
 
 The Gradle plugin for GraalVM Native Image adds support for building and testing native executables using the https://gradle.org[Gradle].
-The plugin has many features, described in the 
+The plugin has many features, described in the
 https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html[plugin
 reference documentation].
