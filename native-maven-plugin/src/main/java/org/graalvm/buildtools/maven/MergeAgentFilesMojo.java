@@ -75,6 +75,8 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
 
     private static int numberOfExecutions = 0;
 
+    private static final List<String> DEFAULT_DIRS = Arrays.asList("main", "test");
+
     @Override
     public void execute() throws MojoExecutionException {
         // we need this mojo to be executed only once
@@ -96,14 +98,13 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
         }
 
         List<String> disabledPhases = agentConfiguration.getMetadataCopyConfiguration().getDisabledStages();
-        if (disabledPhases.size() == 2) {
+
+        Set<String> dirs = new HashSet<>(DEFAULT_DIRS);
+        dirs.removeAll(disabledPhases);
+        if (dirs.isEmpty()) {
             logger.info("Both phases are skipped.");
             return;
         }
-
-        Set<String> dirs = new HashSet(2);
-        dirs.addAll(Arrays.asList("main", "test"));
-        dirs.removeAll(disabledPhases);
 
         for (String dir : dirs) {
             String agentOutputDirectory = (target + "/native/agent-output/" + dir).replace('/', File.separatorChar);
