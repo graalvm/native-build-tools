@@ -47,6 +47,7 @@ import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public class AgentConfiguration implements Serializable {
@@ -143,41 +144,29 @@ public class AgentConfiguration implements Serializable {
             // this could only happen if we instantiated disabled agent configuration
             return;
         }
-
-        String tempDir = System.getProperty("java.io.tmpdir");
-        Path agentDir = Path.of(tempDir).resolve("agent-config");
-        Path accessFilterFile = agentDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
-        if (Files.exists(accessFilterFile)) {
-            accessFilterFiles.add(accessFilterFile.toString());
-            return;
-        }
-
-        try(InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
-            if (accessFilterData == null) {
-                throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
-            }
-
-            try {
-                Files.createDirectory(agentDir);
-            } catch (FileAlreadyExistsException e) {
-                logger.info("Skip creation of directory " + agentDir + " (already created).");
-            }
-
-            long pid = ProcessHandle.current().pid();
-            long time = System.currentTimeMillis();
-            Path tmpAccessFilter = agentDir.resolve(ACCESS_FILTER_PREFIX + '_' + pid  + '_' + time  + '_' + ACCESS_FILTER_SUFFIX);
-            Files.copy(accessFilterData, tmpAccessFilter);
-
-            try {
-                Files.move(tmpAccessFilter, accessFilterFile, StandardCopyOption.ATOMIC_MOVE);
-            } catch (FileAlreadyExistsException e) {
-                Files.delete(tmpAccessFilter);
-                logger.info(accessFilterFile + " already exists. Delete " + tmpAccessFilter);
-            }
-
-            accessFilterFiles.add(accessFilterFile.toString());
+        Path defaultAgentConfigTempFile = createDefaultAgentConfigTempFile();
+        try {
+            Files.writeString(defaultAgentConfigTempFile, getDefaultAgentConfigContent());
+            accessFilterFiles.add(defaultAgentConfigTempFile.toString());
         } catch (IOException e) {
-            throw new RuntimeException("Cannot add default access-filter.json" ,e);
+            throw new RuntimeException("Cannot write default access filter to temporary file "+ defaultAgentConfigTempFile.toAbsolutePath(), e);
+        }
+    }
+
+    private static Path createDefaultAgentConfigTempFile() {
+        try {
+            return Files.createTempFile(ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot create temporary file for access filter", e);
+        }
+    }
+
+    private static String getDefaultAgentConfigContent() {
+        try (InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
+            Objects.requireNonNull(accessFilterData, "Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
+            return new String(accessFilterData.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot access default "+DEFAULT_ACCESS_FILTER_FILE_LOCATION+" from the classpath" ,e);
         }
     }
 
