@@ -155,7 +155,9 @@ public class AgentConfiguration implements Serializable {
 
     private static Path createDefaultAgentConfigTempFile() {
         try {
-            return Files.createTempFile(ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
+            Path tempFile = Files.createTempFile(ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
+            tempFile.toFile().deleteOnExit();
+            return tempFile;
         } catch (IOException e) {
             throw new RuntimeException("Cannot create temporary file for access filter", e);
         }
