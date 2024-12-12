@@ -203,10 +203,6 @@ You can also pass **build-time** and **run-time** arguments:
 - `buildArgs.add('<buildArg>')`: Learn more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here].
 - `runtimeArgs.add('<runtimeArg>')`: Specifies runtime arguments consumed by your application.
 
-- `buildArgs.add('<buildArg>')` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
-- `runtimeArgs.add('<runtimeArg>')` - Runtime arguments consumed by your application
-
-
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
 ==== Native Image Tracing Agent options
