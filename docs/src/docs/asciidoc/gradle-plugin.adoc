@@ -26,7 +26,7 @@ You can find full samples in https://github.com/graalvm/native-build-tools/tree/
 ====
 
 
-Adding the Plugin
+== Adding the Plugin
 
 Add following to `plugins` section of your project's `build.gradle` / `build.gradle.kts`:
 
@@ -68,7 +68,7 @@ include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=
 ----
 ====
 
- Installing GraalVM
+== Installing GraalVM
 
 By default, the plugin attempts to use the `native-image` tool bundled with the JDK running Gradle. Therefore, you must ensure that Gradle runs on a GraalVM JDK.
 This means you must make sure that you run Gradle with a GraalVM JDK.
