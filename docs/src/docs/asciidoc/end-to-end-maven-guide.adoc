@@ -133,13 +133,13 @@ This will generate native image under `target` directory.
 
 [TIP]
 ====
-If you are experiencing error like this:
+If Maven Surefire is using an older version of the JUnit Platform, the build will fail with an error like:
 
 ----
 [ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.
 ----
 
-while running your tests, add the following plugin
+To solve this problem, we recommend using the following plugin:
 
 [source,xml, role="multi-language-sample"]
 ----
