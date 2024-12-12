@@ -1,9 +1,9 @@
 = Native Build Tools
 The GraalVM team
 
-The {doctitle} project provides plugins for different build tools to add support for building and testing native applications written in Java
-(or any other language compiled to JVM bytecode) using the https://www.graalvm.org/reference-manual/native-image/[GraalVM  Native Image].
-At the moment, you can build your native projects using our Gradle or Maven plugin.
+
+The {doctitle} project provides plugins for various build tools, enabling support for building and testing native applications written in Java (or any other language compiled to JVM bytecode) using https://www.graalvm.org/reference-manual/native-image/[GraalVM  Native Image].
+Currently, you can build your native applications using our Gradle or Maven plugins.
 
 Each plugin takes metadata for available libraries from the https://github.com/oracle/graalvm-reachability-metadata[GraalVM reachability metadata repository]
 to provide better experience during the development of your native project.
@@ -13,25 +13,25 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 [discrete]
 === Documentation
 
-In case you are new to the Native Build Tools (either as an end user or a library author), read our:
+If you're new to the Native Build Tools, whether as an end user or a library author, check out our:
 
 - <<end-to-end-gradle-guide.adoc#,End-to-end Gradle guide>>
 - <<end-to-end-maven-guide.adoc#,End-to-end Maven guide>>
 
-For detailed documentation, please refer to the following pages of the specific build tools:
+For detailed documentation, see the corresponding page for each build tool:
 
 - <<gradle-plugin.adoc#,The Gradle plugin documentation>>
 - <<maven-plugin.adoc#,The Maven plugin documentation>>
 
-You can see the full changelog <<changelog.adoc#,here>>.
+For updates to the Native Build Tools between releases, see the full changelog <<changelog.adoc#,here>>.
 
 [discrete]
 === Contributing
 
 If you are interested in contributing or reporting an issue related to the plugins, please refer to the https://github.com/graalvm/native-build-tools[Native Build Tools repository].
-Also, be aware that all contributors must sign the https://oca.opensource.oracle.com/[Oracle Contributor Agreement] (OCA).
+Please note that all contributors must sign the https://oca.opensource.oracle.com/[Oracle Contributor Agreement] (OCA).
 
 [TIP]
 --
-Please be aware that this repository should be used to report issues related to the Maven or Gradle plugins for GraalVM.
-Please report issues which are specific to the framework itself (for example https://spring.io/[Spring Framework] or the https://micronaut.io/[Micronaut framework]) to their specific repositories.
+This repository should be used for reporting issues related specifically to the Maven or Gradle plugins for GraalVM Native Image.
+For issues related to frameworks such as https://spring.io/[Spring Framework] or https://micronaut.io/[Micronaut framework], please report them to their respective repositories.

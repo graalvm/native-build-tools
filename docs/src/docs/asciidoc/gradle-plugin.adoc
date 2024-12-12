@@ -8,7 +8,7 @@ image:https://github.com/graalvm/native-build-tools/actions/workflows/test-nativ
 
 The {doctitle} adds support for building and testing native images using the https://gradle.org[Gradle build tool].
 
-For upgrading please take a look at the <<changelog.adoc#,Changelog>>.
+To upgrade, please take a look at the <<changelog.adoc#,project changelog>>.
 
 [[quickstart]]
 == Quickstart
@@ -26,7 +26,7 @@ You can find full samples in https://github.com/graalvm/native-build-tools/tree/
 ====
 
 
-== Adding the plugin
+Adding the Plugin
 
 Add following to `plugins` section of your project's `build.gradle` / `build.gradle.kts`:
 
@@ -68,14 +68,14 @@ include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=
 ----
 ====
 
-== Installing GraalVM Native Image tool
+ Installing GraalVM
 
-By default, the plugin will try to use the `native-image` tool that is bundled with the JDK that is used to run Gradle.
+By default, the plugin attempts to use the `native-image` tool bundled with the JDK running Gradle. Therefore, you must ensure that Gradle runs on a GraalVM JDK.
 This means you must make sure that you run Gradle with a GraalVM JDK.
 
 Alternatively, you may choose to:
 
-1. Set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation, in which case the JDK pointed at this location will be used for Native Image builds instead
+1. Set the `GRAALVM_HOME` environment variable to point to your GraalVM installation. When this variable is configured, the JDK specified at this location will be used for Native Image builds.
 2. <<configuration-toolchains-enabling, Enable toolchain support>>
 
 [NOTE]
@@ -134,7 +134,7 @@ Again, be aware that the toolchain detection _cannot_ distinguish between GraalV
 [[configuration]]
 == Configuration
 
-This plugin works with the `application` plugin and will register a number of tasks and extensions for you to configure.
+This plugin works with the `application` plugin and registers a number of tasks and extensions for you to configure.
 
 === Available tasks
 
@@ -149,7 +149,7 @@ Those tasks are configured with reasonable defaults using the `graalvmNative` ex
 
 The main executable is configured by the image named `main`, while the test executable is configured via the image named `test`.
 
-=== Native image options
+=== Configure Native Image
 
 The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
 The plugin allows configuring the final binary, the <<test-binary-config,tests>> one, as well as apply options to both.
@@ -182,24 +182,26 @@ include::../snippets/gradle/groovy/build.gradle[tags=all-config-options]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 ----
 
-Native Image options:
+==== Native Image options
 
-- `imageName` -The name of the native image, defaults to the project name
-- `mainClass` - The main class to use, defaults to the application.mainClass
-- `debug` - Determines if debug info should be generated, defaults to false (alternatively add --debug-native to the CLI)
-- `verbose` - Add verbose output (`false` by default)
-- `fallback` - Sets the fallback mode of native-image (`false` by default)
-- `sharedLibrary` - Determines if image is a shared library
-- `quickBuild` - Determines if image is being built in quick build mode
-- `richOutput` - Determines if native-image building should be done with rich output
-- `requiredVersion` - The minimal GraalVM version, can be `MAJOR`, `MAJOR.MINOR` or `MAJOR.MINOR.PATCH`
-- `systemProperties` - Sets the system properties to use for the native image builder
-- `configurationFileDirectories` - Adds a native image configuration file directory, containing files like reflection configuration
-- `excludeConfig` - Excludes configuration that matches one of given regexes from JAR of dependency with said coordinates.
-- `jvmArgs` - Passes the given argument directly to the JVM running the native image builder
-- `useFatJar` - Instead of passing each jar individually, builds a fat jar
+- `imageName` - The name of the native image, defaults to the project name
+- `mainClass` - The main class to use, defaults to the _application.mainClass_
+- `debug` - Determines if debug info should be generated; defaults to `false` (alternatively add `--debug-native` to the CLI)
+- `verbose` - Adds verbose output (`false` by default)
+- `fallback` - Sets the fallback mode of `native-image` (`false` by default)
+- `sharedLibrary` - Determines if the image is a shared library
+- `quickBuild` - Determines if the image is being built in quick build mode
+- `richOutput` - Determines whether `native-image` building should produce rich output
+- `systemProperties`: Defines the system properties to use for the `native-image` builder
+- `configurationFileDirectories`: Adds a directory containing configuration files for `native-image`, such as reflection configuration
+ -`excludeConfig`: Excludes configuration that matches any of the specified regex patterns from the JAR of a dependency with the given coordinates
+- `jvmArgs`: Passes the specified arguments directly to the JVM running the `native-image` builder
+- `useFatJar`: Builds a fat JAR instead of passing each JAR individually
 
 You can also pass **build-time** and **run-time** arguments:
+
+- `buildArgs.add('<buildArg>')`: Learn more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here].
+- `runtimeArgs.add('<runtimeArg>')`: Specifies runtime arguments consumed by your application.
 
 - `buildArgs.add('<buildArg>')` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
 - `runtimeArgs.add('<runtimeArg>')` - Runtime arguments consumed by your application
@@ -207,18 +209,18 @@ You can also pass **build-time** and **run-time** arguments:
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
-Native Image Agent options:
+==== Native Image Tracing Agent options
 
-* `defaultMode` - Default agent mode if one isn't specified using `-Pagent=mode_name`
+* `defaultMode` - Specifies the default agent mode if one isn't specified using `-Pagent=mode_name`
 * `enabled` - Enables the agent
-* `modes`- you can configure following agent modes:
+* `modes`- Configures the following agent modes::
     ** `standard` -The standard agent mode generates metadata without conditions
     ** `conditional` - The conditional agent mode generates metadata with conditions
-        *** `userCodeFilterPath` - Path to a filter file that determines classes which will be used in the metadata conditions
-        *** `extraFilterPath` - Optional, extra filter used to further filter the collected metadata
+        *** `userCodeFilterPath` - Path to a filter file that specifies which classes to include in metadata conditions
+        *** `extraFilterPath` - (Optional) An additional filter file to further refine the collected metadata
     ** `direct` - The direct agent mode allows users to directly pass options to the agent
-        *** `{output_dir}` - a special string expanded by the plugin to where the agent files would usually be output
-* `tasksToInstrumentPredicate` - By default, if `-Pagent` is specified, all tasks that extend JavaForkOptions are instrumented.
+        *** `{output_dir}` -  The output directory to store agent files
+* `tasksToInstrumentPredicate` - By default, when `-Pagent` is specified, all tasks extending `JavaForkOptions` are instrumented.
 This can be limited to only specific tasks that match this predicate.
 
 [TIP]
@@ -226,13 +228,13 @@ Options like `callerFilterFiles`, `accessFilterFiles`, `builtinCallerFilter`, `b
 are common for all agent modes and intended to be used for more advanced purposes. You can read more about those options https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here].
 
 [[agent-support]]
-==== Reflection support and running with the native agent
+==== Reflection Registration with the Tracing Agent
 
-If your project requires reflection, classpath resources, dynamic proxies or other features requiring explicit native configuration, it may prove helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[native-image-agent].
+If your project requires reflection, classpath resources, dynamic proxies, or other features that need explicit configuration, it may be helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[Native Image Tracing Agent].
 
 The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
 
-Any task that extends `JavaForkOptions` (like `test`, `run` etc) can be instrumented by passing `-Pagent` to gradle when running said tasks.
+Any task that extends `JavaForkOptions` (such as `test`, `run`, etc.) can be instrumented by passing `-Pagent` to Gradle when running those tasks.
 
 The agent can run in multiple modes that dictate how the metadata is collected and merged.
 
@@ -240,16 +242,16 @@ Once the metadata is collected, it can be copied into the project using the `met
 
 [source,bash, role="multi-language-sample"]
 ----
-./gradlew -Pagent run # Runs on JVM with native-image-agent.
+./gradlew -Pagent run # Runs on HotSpot with the agent
 ./gradlew metadataCopy --task run --dir src/main/resources/META-INF/native-image # Copies the metadata collected by the agent into the project sources
-./gradlew nativeCompile # Builds image using metadata acquired by the agent.
+./gradlew nativeCompile # Builds an image using the metadata acquired by the agent.
 
 # For testing
 ./gradlew -Pagent nativeTest # Runs on JVM with the native-image agent, collects the metadata and uses it for testing on native-image.
 ----
 
-The generated configuration files will be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, `build/native/agent-output/run`.
-The plugin will also substitute `{output_dir}` in the agent options to point to this directory during the agent run.
+The generated configuration files can be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, _build/native/agent-output/run_.
+The plugin also substitutes `{output_dir}` in the agent options to point to this directory during the agent run.
 
 [[max_parallel_builds]]
 ==== Max parallel builds
@@ -502,7 +504,7 @@ In order to generate a binary with instrumentation enabled, you should run the `
 
 `./gradlew nativeCompile --pgo-instrument`
 
-This will generate a binary under `build/native/nativeCompile` with the `-instrumented` suffix.
+This will generate a binary under _build/native/nativeCompile_ with the `-instrumented` suffix.
 You can run the binary to gather profiling data:
 
 [source,bash, role="multi-language-sample"]
