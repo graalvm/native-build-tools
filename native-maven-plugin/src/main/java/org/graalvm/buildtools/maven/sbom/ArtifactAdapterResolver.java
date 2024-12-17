@@ -44,9 +44,20 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.xml.Xpp3Dom;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
-import java.nio.file.*;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Optional;
@@ -136,7 +147,7 @@ final class ArtifactAdapterResolver {
             artifact.setPackageNames(packageNames);
             artifact.setJarPath(shadedJarPath.toUri());
             return Optional.of(artifact);
-        }   
+        }
         return Optional.empty();
     }
 
@@ -238,6 +249,7 @@ final class ArtifactAdapterResolver {
         return Optional.of(path);
     }
 
+    // Checkstyle: stop
     /**
      * Finds the paths to the directories containing the class files for the {@param artifact} inside the jar.
      * For example, if {@param artifact} represents commons-validator and the content of a fat jar looks like this:
@@ -280,6 +292,7 @@ final class ArtifactAdapterResolver {
      * @return A list of paths containing the class files for the artifact.
      * @throws IOException if an error occurs while reading the JAR.
      */
+    // Checkstyle: resume
     private Optional<Set<Path>> resolveArtifactClassFileDirectories(FileSystem jarFileSystem, Path jarPath, ArtifactAdapter artifact) throws IOException {
         if (pathToClassFilesDirectories.isEmpty()) {
             Set<Path> potentialDirectories = resolveDirectoriesContainingClassFiles(jarFileSystem.getPath("/"));
@@ -371,7 +384,9 @@ final class ArtifactAdapterResolver {
      */
     private Optional<Path> tryResolveUsingGAVCoordinates(Path rootPath, ArtifactAdapter artifact) throws IOException {
         Optional<Path> resolvedPath = resolveGAVCoordinates(rootPath, artifact, true);
-        if (resolvedPath.isPresent()) return resolvedPath;
+        if (resolvedPath.isPresent()) {
+            return resolvedPath;
+        }
         return resolveGAVCoordinates(rootPath, artifact, false);
     }
 

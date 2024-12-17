@@ -102,7 +102,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
             return;
         }
 
-        if(skipNativeBuildForPom && project.getPackaging().equals("pom")) {
+        if (skipNativeBuildForPom && project.getPackaging().equals("pom")) {
             logger.info("Skipping native-image generation (parameter 'skipNativeBuildForPom' is true).");
             return;
         }
