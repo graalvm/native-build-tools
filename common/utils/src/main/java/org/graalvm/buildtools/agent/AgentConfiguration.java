@@ -43,7 +43,10 @@ package org.graalvm.buildtools.agent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.file.*;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -152,7 +155,7 @@ public class AgentConfiguration implements Serializable {
             return;
         }
 
-        try(InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
+        try (InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
             if (accessFilterData == null) {
                 throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
@@ -177,7 +180,7 @@ public class AgentConfiguration implements Serializable {
 
             accessFilterFiles.add(accessFilterFile.toString());
         } catch (IOException e) {
-            throw new RuntimeException("Cannot add default access-filter.json" ,e);
+            throw new RuntimeException("Cannot add default access-filter.json", e);
         }
     }
 

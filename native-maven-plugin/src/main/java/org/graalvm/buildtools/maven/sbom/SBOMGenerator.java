@@ -62,7 +62,16 @@ import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.maven.NativeCompileNoForkMojo.AUGMENTED_SBOM_PARAM_NAME;
 import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
-import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executeMojo;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.goal;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.groupId;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.name;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
+import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
  * Generates a Software Bill of Materials (SBOM) that is augmented and refined by Native Image. This feature is only
@@ -83,7 +92,7 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
  * * Great Baseline: Produces an industry-standard SBOM at minimum.
  * * Enhanced Accuracy: Native Image augments and refines the SBOM, potentially significantly improving its accuracy.
  */
-final public class SBOMGenerator {
+public final class SBOMGenerator {
     public static final int requiredNativeImageVersion = 24;
 
     private final MavenProject mavenProject;
