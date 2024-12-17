@@ -41,9 +41,12 @@
 
 package org.graalvm.buildtools.maven.config;
 
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
@@ -58,6 +61,19 @@ public abstract class AbstractMergeAgentFilesMojo extends AbstractMojo {
     @Component
     protected Logger logger;
 
+    @Parameter(defaultValue = "${session}", readonly = true)
+    protected MavenSession session;
+
+    @Component
+    protected ToolchainManager toolchainManager;
+
+    /**
+        Set this to true to ensure that native-image is found in your toolchain and not in an unrelated JDK or in your PATH.
+        Will fail the build in case no toolchain was found or if it does not contain native-image.
+    */
+    @Parameter(property = "enforceToolchain")
+    protected boolean enforceToolchain;
+
     private File mergerExecutable;
 
     public File getMergerExecutable() throws MojoExecutionException {
@@ -69,7 +85,7 @@ public abstract class AbstractMergeAgentFilesMojo extends AbstractMojo {
     }
 
     private void initializeMergerExecutable() throws MojoExecutionException {
-        Path nativeImage = NativeImageConfigurationUtils.getNativeImage(logger);
+        Path nativeImage = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
         File nativeImageExecutable = nativeImage.toAbsolutePath().toFile();
         String nativeImageConfigureFileName = nativeImageConfigureFileName();
         File mergerExecutable = new File(nativeImageExecutable.getParentFile(), nativeImageConfigureFileName);
