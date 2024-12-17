@@ -65,11 +65,11 @@ class NativeImageUtilsTest {
 
     @Test
     void checkGraalVMCEVersion() {
-        String graalVMCE_22_3 = "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)";
-        NativeImageUtils.checkVersion("22", graalVMCE_22_3);
-        NativeImageUtils.checkVersion("22.3", graalVMCE_22_3);
-        NativeImageUtils.checkVersion("22.3.0", graalVMCE_22_3);
-        Assertions.assertEquals(17, NativeImageUtils.getMajorJDKVersion(graalVMCE_22_3));
+        String graalVMCE223 = "GraalVM 22.3.0 Java 17 CE (Java Version 17.0.5+8-jvmci-22.3-b08)";
+        NativeImageUtils.checkVersion("22", graalVMCE223);
+        NativeImageUtils.checkVersion("22.3", graalVMCE223);
+        NativeImageUtils.checkVersion("22.3.0", graalVMCE223);
+        Assertions.assertEquals(17, NativeImageUtils.getMajorJDKVersion(graalVMCE223));
 
         String graalVMCEForJDK17 = "native-image 17.0.7 2023-04-18\nGraalVM Runtime Environment GraalVM CE 17.0.7+4.1 (build 17.0.7+4-jvmci-23.0-b10)\nSubstrate VM GraalVM CE 17.0.7+4.1 (build 17.0.7+4, serial gc)";
         NativeImageUtils.checkVersion("22.3.0", graalVMCEForJDK17);
