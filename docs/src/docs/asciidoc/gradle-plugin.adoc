@@ -136,6 +136,7 @@ Again, be aware that the toolchain detection _cannot_ distinguish between GraalV
 
 This plugin works with the `application` plugin and registers a number of tasks and extensions for you to configure.
 
+[[available-tasks]]
 === Available tasks
 
 The main tasks that you will want to execute are:
@@ -149,6 +150,7 @@ Those tasks are configured with reasonable defaults using the `graalvmNative` ex
 
 The main executable is configured by the image named `main`, while the test executable is configured via the image named `test`.
 
+[[configure-native-image]]
 === Configure Native Image
 
 The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
@@ -182,6 +184,7 @@ include::../snippets/gradle/groovy/build.gradle[tags=all-config-options]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 ----
 
+[[native-image-options]]
 ==== Native Image options
 
 - `imageName` - The name of the native image, defaults to the project name
@@ -205,7 +208,42 @@ You can also pass **build-time** and **run-time** arguments:
 
 NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
 
-==== Native Image Tracing Agent options
+[[native-image-tracing-agent]]
+==== Native Image Tracing Agent
+
+If your project requires reflection, classpath resources, dynamic proxies, or other features that need explicit configuration, it may be helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[Native Image Tracing Agent].
+
+The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
+
+Any task that extends `JavaForkOptions` (such as `test`, `run`, etc.) can be instrumented by passing `-Pagent` to Gradle when running those tasks.
+
+You can enable the agent by simply adding the following block inside `graalvmNative` block:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+}
+----
+
+You can then run:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew -Pagent run # Runs on HotSpot with the agent
+----
+
+The generated configuration files can be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, _build/native/agent-output/run_.
+The plugin also substitutes `{output_dir}` in the agent options to point to this directory during the agent run.
+
+The agent can run in multiple modes that dictate how the metadata is collected and merged.
 
 * `defaultMode` - Specifies the default agent mode if one isn't specified using `-Pagent=mode_name`
 * `enabled` - Enables the agent
@@ -219,35 +257,361 @@ NOTE: For options that can be set using command-line, if both DSL and command-li
 * `tasksToInstrumentPredicate` - By default, when `-Pagent` is specified, all tasks extending `JavaForkOptions` are instrumented.
 This can be limited to only specific tasks that match this predicate.
 
-[TIP]
-Options like `callerFilterFiles`, `accessFilterFiles`, `builtinCallerFilter`, `builtinHeuristicFilter`, `enableExperimentalPredefinedClasses`, `enableExperimentalUnsafeAllocationTracing` and `trackReflectionMetadata`
-are common for all agent modes and intended to be used for more advanced purposes. You can read more about those options https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here].
-
-[[agent-support]]
-==== Reflection Registration with the Tracing Agent
-
-If your project requires reflection, classpath resources, dynamic proxies, or other features that need explicit configuration, it may be helpful to first run your application or tests using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[Native Image Tracing Agent].
-
-The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
-
-Any task that extends `JavaForkOptions` (such as `test`, `run`, etc.) can be instrumented by passing `-Pagent` to Gradle when running those tasks.
-
-The agent can run in multiple modes that dictate how the metadata is collected and merged.
-
-Once the metadata is collected, it can be copied into the project using the `metadataCopy` task.
-
-[source,bash, role="multi-language-sample"]
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
-./gradlew -Pagent run # Runs on HotSpot with the agent
-./gradlew metadataCopy --task run --dir src/main/resources/META-INF/native-image # Copies the metadata collected by the agent into the project sources
-./gradlew nativeCompile # Builds an image using the metadata acquired by the agent.
-
-# For testing
-./gradlew -Pagent nativeTest # Runs on JVM with the native-image agent, collects the metadata and uses it for testing on native-image.
+agent {
+    enabled = true
+    defaultMode = "conditional"
+    modes {
+        conditional {
+            userCodeFilterPath = "src/test/native-image/filters/user-code-filter.json"
+        }
+        direct {
+            options.add("config-output-dir=src/test/resources/direct-mode-metadata")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+}
 ----
 
-The generated configuration files can be found in the `${buildDir}/native/agent-output/${taskName}` directory, for example, _build/native/agent-output/run_.
-The plugin also substitutes `{output_dir}` in the agent options to point to this directory during the agent run.
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+    defaultMode.set("conditional")
+    modes {
+        conditional {
+            userCodeFilterPath.set("src/test/native-image/filters/user-code-filter.json")
+        }
+        direct {
+            options.add("config-output-dir=src/test/resources/direct-mode-metadata")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+}
+----
+
+If you want to **enable the agent through the command line**, you can specify in which mode you want to run it.
+For example
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew -Pagent=standard nativeTest
+./gradlew -Pagent=conditional nativeTest
+./gradlew -Pagent=direct nativeTest
+----
+
+==== MetadataCopy task
+
+Once the metadata is collected, it can be copied into the project using the metadataCopy task.
+To do so, add the following block inside your `agent` block:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/test/resources/META-INF/native-image/org.example")
+        mergeWithExisting = false
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("resources/META-INF/native-image/org.example")
+        mergeWithExisting.set(false)
+    }
+}
+----
+
+Inside this block, you configured:
+
+- `inputTaskNames` - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step).
+- `outputDirectories` - location where you want to copy the generated metadata
+- `mergeWithExisting` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
+
+
+then you can copy metadata to the location you specified with:
+
+[source,bash,subs="verbatim,attributes"]
+----
+./gradlew metadataCopy
+----
+
+[[TIP]]
+====
+Moreover, you can configure metadataCopy task through the command line as well:
+
+[source,bash,subs="verbatim,attributes"]
+----
+./gradlew metadataCopy --task run   # if you used nativeRun (or just run) to collect metadata
+./gradlew metadataCopy --task test  # if you used nativeTest (or just test) to collect metadata
+./gradlew metadataCopy --dir <pathToSomeDirectory> # to specify the output directory
+----
+====
+
+[[common-agent-options]]
+==== Common agent options
+
+All the mentioned modes shares certain common configuration options like:
+
+- callerFilterFiles
+- accessFilterFiles
+- builtinCallerFilter
+- builtinHeuristicFilter
+- enableExperimentalPredefinedClasses
+- enableExperimentalUnsafeAllocationTracing
+- trackReflectionMetadata
+
+[WARNING]
+**These options are for advanced usages, and you can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here]**.
+
+A Complete example of the agent block should look like this:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    defaultMode = "standard"
+    enabled = true
+
+    modes {
+        conditional {
+            userCodeFilterPath = "path-to-filter.json"
+            extraFilterPath = "path-to-another-filter.json"
+        }
+        direct {
+            options.add("config-output-dir={output_dir}")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+
+    callerFilterFiles.from("filter.json")
+    accessFilterFiles.from("filter.json")
+    builtinCallerFilter = true
+    builtinHeuristicFilter = true
+    enableExperimentalPredefinedClasses = false
+    enableExperimentalUnsafeAllocationTracing = false
+    trackReflectionMetadata = true
+
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/")
+        mergeWithExisting = true
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    defaultMode.set("standard")
+    enabled.set(true)
+
+    modes {
+        conditional {
+            userCodeFilterPath.set("path-to-filter.json")
+            extraFilterPath.set("path-to-another-filter.json")
+        }
+        direct {
+            options.add("config-output-dir={output_dir}")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+
+    callerFilterFiles.from("filter.json")
+    accessFilterFiles.from("filter.json")
+    builtinCallerFilter.set(true)
+    builtinHeuristicFilter.set(true)
+    enableExperimentalPredefinedClasses.set(false)
+    enableExperimentalUnsafeAllocationTracing.set(false)
+    trackReflectionMetadata.set(true)
+
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image/<groupId>/<artifactId>/")
+        mergeWithExisting.set(true)
+    }
+}
+----
+
+[[agent-filter-file]]
+==== Reduce the amount of generated metadata
+
+In some cases agent may include more metadata than it is actually needed. You can filter metadata using the agent filter files.
+These filter files that agent consumes have the following structure:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+ "rules": [
+    {"includeClasses": "some.class.to.include.**"},
+    {"excludeClasses": "some.class.to.exclude.**"},
+  ],
+  "regexRules": [
+    {"includeClasses": "regex\.example\.class.*"},
+    {"excludeClasses": "regex\.example\.exclude[0-9]+"},
+  ]
+}
+----
+
+The process how you can pass the config files to the agent is described in the <<additional-agent-options,previous section>>.
+
+We can see on a simple <<example, example>> how different filter files affect generated metadata.
+
+Let's start with the simple filter file:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "rules": [
+    {"includeClasses": "**"}
+  ]
+}
+----
+
+This filter file will instruct the agent to include everything, which will result in a massive configuration file.
+For example this is how `reachability-metadata.json` looks like:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  {
+    "reflection": [
+      {
+        "condition": {
+          "typeReached": "java.io.ObjectInputStream"
+        },
+        "type": "[Ljava.lang.Object;"
+      },
+      {
+        "condition": {
+          "typeReached": "java.io.ObjectInputStream"
+        },
+        "type": "java.util.LinkedHashSet"
+      },
+      {
+        "condition": {
+          "typeReached": "org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor"
+        },
+        "type": "org.example.NativeTests"
+      },
+      {
+        "condition": {
+          "typeReached": "org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor"
+        },
+        "type": "org.example.NativeTests",
+        "allDeclaredFields": true
+      },
+      {
+        "condition": {
+          "typeReached": "org.junit.jupiter.engine.descriptor.ExtensionUtils"
+        },
+        "type": "org.example.NativeTests"
+      },
+      ...
+    ],
+    "resources": [
+      {
+        "condition": {
+          "typeReached": "org.junit.platform.launcher.core.LauncherFactory"
+        },
+        "glob": "META-INF/services/org.junit.platform.engine.TestEngine"
+      },
+      {
+        "condition": {
+          "typeReached": "java.lang.ClassLoader"
+        },
+        "glob": "TestResource.txt"
+      },
+      ...
+    ],
+    "bundles": [],
+    "jni": [
+      {
+        "condition": {
+          "typeReached": "java.net.InetAddress"
+        },
+        "type": "java.lang.Boolean",
+        "methods": [
+          {
+            "name": "getBoolean",
+            "parameterTypes": [
+              "java.lang.String"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+----
+
+As you can see, there are lots of entries that you likely don't want.
+They are present because the metadata was generated using tests, for example, and that the testing library was present at runtime during the agent execution pass, but in practice, your application will not use the testing library in production.
+To reduce the amount of generated metadata, we will use the following `user-code-filter.json`:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "rules": [
+    {"includeClasses": "**"},
+    {"excludeClasses": "org.junit.**"},
+    {"excludeClasses": "org.gradle.**"},
+    {"excludeClasses": "worker.org.gradle.**"},
+    {"excludeClasses": "org.slf4j.**"},
+    {"excludeClasses": "java.**"}
+  ]
+}
+----
+
+[WARNING]
+====
+Always be careful when removing entries in metadata, as this may result in a broken binary.
+====
+
+After updating our filters, we can regenerate the metadata, which will result in the following `reachability-metadata.json` file:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "type": "org.example.NativeTests$Person",
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {
+        "typeReached": "sun.security.jca.GetInstance"
+      },
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "glob": "TestResource.txt"
+    }
+  ],
+  "bundles": []
+}
+----
+
+As you can see there are no more entries that contain classes from `org.junit` (as their condition).
 
 [[max_parallel_builds]]
 ==== Max parallel builds
@@ -335,7 +699,7 @@ There are cases where you might want to disable native testing support:
 - You don't actually want to run your tests in native mode.
 - Your library or application uses a testing framework that is not supported on the JUnit
   Platform.
-- You need to use the <<agent-support, agent>> when running tests on the JVM but do not
+- You need to use the <<native-image-tracing-agent, agent>> when running tests on the JVM but do not
   wish to run those same tests in native mode.
 
 In this case, you can disable native testing support by configuring the `graalvmNative`
