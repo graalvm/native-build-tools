@@ -2,31 +2,29 @@
 The GraalVM team
 :highlighjsdir: {maven-relative-srcdir}/highlight
 
+This guide walks you through integrating the Gradle plugin for Native Image into your project.
+It starts from enabling the plugin, building the first native image, and running it.
 
-This guide leads you through the process of integrating Native Maven Plugin with your project.
-It starts from adding the plugin to your project, goes through some of the main functionalities that you may use (like collecting the metadata),
-all the way to some diagnostics tools that you can use to analyse native executables you have made.
-You can see an example of tests on which we tested whole guide <<example,here>>
+Then it takes you to more advanced use-cases such us providing configuration.
+If you are an advanced user, you can skip the getting started part and go directly to the advanced section.
 
-In case you only want to see how a simple application works in practise, you can check <<quickstart-maven-plugin.adoc#,our demo>>.
+[[getting-started]]
+== Getting started
+To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Maven, enable the Maven plugin for Native Image building.
 
-[[prerequisites]]
-== Prerequisites
-
-- Before starting, make sure that you have GraalVM installed locally. You can https://www.graalvm.org/downloads/[download Oracle GraalVM from the official website].
-- You should set `JAVA_HOME` environment variable to point to your GraalVM installation.
+The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
 
 [[adding-plugin]]
-== Adding the GraalVM Native Plugin
+=== Adding the GraalVM Native Plugin
 
-In order to use Native Image with Maven, you must add the following block into your `pom.xml` file:
+- Add the following block into your `pom.xml` file:
 
 [source,xml, role="multi-language-sample"]
 ----
 <plugin>
     <groupId>org.graalvm.buildtools</groupId>
     <artifactId>native-maven-plugin</artifactId>
-    <version>${native.maven.plugin.version}</version>
+    <version>{maven-plugin-version}</version>
     <extensions>true</extensions>
     <executions>
       <execution>
@@ -45,7 +43,6 @@ In order to use Native Image with Maven, you must add the following block into y
       </execution>
     </executions>
     <configuration>
-        <imageName>example-app</imageName>
         <mainClass>org.example.Main</mainClass>
     </configuration>
 </plugin>
@@ -63,7 +60,7 @@ For convenience, you can create a maven profile and add plugin into it:
           <plugin>
             <groupId>org.graalvm.buildtools</groupId>
             <artifactId>native-maven-plugin</artifactId>
-            <version>${native.maven.plugin.version}</version>
+            <version>{maven-plugin-version}</version>
             <extensions>true</extensions>
             <executions>
               <execution>
@@ -82,7 +79,6 @@ For convenience, you can create a maven profile and add plugin into it:
               </execution>
             </executions>
             <configuration>
-              <imageName>example-app</imageName>
               <mainClass>org.example.Main</mainClass>
             </configuration>
           </plugin>
@@ -92,53 +88,46 @@ For convenience, you can create a maven profile and add plugin into it:
 </profiles>
 ----
 
-
-To make the plugin works replace _${native.maven.plugin.version}_ with the plugin version you may want to use (the latest plugin version is `{maven-plugin-version}`).
 Older versions of the plugin are listed https://github.com/graalvm/native-build-tools/releases[here].
 
-[TIP]
-====
-You can also define this property inside top level `<properties>` block in your `pom.xml`.
-That way, you don't need to replace `${native.maven.plugin.version}`.
-This is an example of the properties block with the plugin version definition:
+- You can configure the plugin inside the `<configuration>` tag like following:
 
 [source,xml, role="multi-language-sample"]
 ----
-<properties>
-    <native.maven.plugin.version>0.10.3</native.maven.plugin.version>
-    <junit.platform.native.version>0.10.3</junit.platform.native.version>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
-</properties>
+<configuration>
+  <imageName>example-app</imageName>
+  <mainClass>org.example.Main</mainClass>
+  <buildArgs>
+      <buildArg>-Ob</buildArg> <!-- for optimized build use -O3 -->
+  </buildArgs>
+</configuration>
 ----
-====
+
+It specifies the path for the application main class (the main entry point) and the name for a native executable file.
+Adjust this path according to your application sources.
+
+You can pass additional options to the Native Image tool using the `<buildArg>` tag.
+In this example, `-Ob` enables quick build mode.
+Learn more in https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[Providing Configuration Options].
 
 [[run-your-project]]
-== First runs of your project
+=== Build and run your project
 
 Once you registered the plugin, you can use standard https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[Maven phases].
 
-[Note]
-====
-If you added the plugin inside the native profile, you should run your commands with `-Pnative` passed.
-For example, you would run the `package` phase like this:
+Note that if you added the plugin inside the native profile, you should run your commands with `-Pnative` passed.
+For example, you can build a native executable directly with Maven using:
 
 [source,bash, role="multi-language-sample"]
 ----
 mvn -Pnative package
 ----
-====
 
-This will generate native image under `target` directory.
+This will generate native image under _target_ directory.
 
 [TIP]
 ====
-If Maven Surefire is using an older version of the JUnit Platform, the build will fail with an error like:
-
-----
-[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.
-----
-
+If Maven Surefire is using an older version of the JUnit Platform, you may experience some errors.
 To solve this problem, we recommend using the following plugin:
 
 [source,xml, role="multi-language-sample"]
@@ -151,54 +140,25 @@ To solve this problem, we recommend using the following plugin:
 ----
 ====
 
-[TIP]
-====
-If you are running JUnit tests, you may need to add the following dependency:
+[[advanced-use-cases]]
+== Advanced Use Cases
 
-[source,xml, role="multi-language-sample"]
-----
-<dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter</artifactId>
-    <version>5.10.0</version>
-    <scope>test</scope>
-</dependency>
-----
-
-====
+For advanced users, the guide explains how to collect metadata, use diagnostics tools to analyze native executables, and includes examples of tests that demonstrate the guide's concepts.
 
 [[configuration-options]]
-== Providing configuration options
+=== Providing configuration options
 
 You can provide configuring options to the native image inside `<configuration>` block specified inside the plugin block.
 
 You can pass the following options:
 
 * `<mainClass>` - If the execution fails with the no main manifest attribute, in target/<name>.jar error, the main class should be specified.
-By default the plugin consults several locations in the pom.xml file in the following order to determine what the main class of the image should be:
-** <maven-shade-plugin> <transformers> <transformer> <mainClass>
-** <maven-assembly-plugin> <archive> <manifest> <mainClass>
-** <maven-jar-plugin> <archive> <manifest> <mainClass>
-
 * `<imageName>` - The name of the native image. If a custom image name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
 * `<debug>` - Determines if debug info should be generated (__false__ by default)
 * `<verbose>` - Add verbose output (__false__ by default)
-* `<sharedLibrary>` - Determines if image is a shared library
 * `<quickBuild>` - Determines if image is being built in quick build mode
-* `<systemPropertyVariables>` - Sets the system properties to use for the native image builder
-* `<environment>` - Sets the environment options for native image building
-* `<jvmArgs>` - Passes the given argument directly to the JVM running the native image builder
-* `<useArgFile>` - Use argument file for native-image building (__false__ by default)
-
+* <<maven-plugin.adoc#native-image-options,and many more...>>
 You can also pass **build-time** options to the Native Image inside the following blocks:
-
-- `<buildArgs>` - You can find more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/[here]
-and also https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here]
-
-To skip generation of the native image or tests execution set the following properties to `true`:
-
-- `<skipNativeBuild>` - To skip generation of the native image
-- `<skipNativeTests>` - To skip generation and execution of the native image compiled tests
 
 Here is an example of additional options usage:
 
@@ -207,56 +167,23 @@ Here is an example of additional options usage:
 <configuration>
     <mainClass>org.graalvm.demo.Application</mainClass>
     <imageName>demoApp</imageName>
-
-    <skipNativeBuild>true</skipNativeBuild>
-    <skipNativeTests>false</skipNativeTests>
-
     <quickBuild>true</quickBuild>
     <debug>true</debug>
     <verbose>true</verbose>
-    <sharedLibrary>false</sharedLibrary>
-    <useArgFile>false</useArgFile>
 
-    <jvmArgs>
-        <arg>argument1</arg>
-        <arg>argument2</arg>
-    </jvmArgs>
-
-    <environment>
-        <variable1>value1</variable1>
-        <variable2>value2</variable2>
-    </environment>
-    <systemPropertyVariables>
-        <propertyName1>value1</propertyName1>
-        <propertyName1>value2</propertyName2>
-    </systemPropertyVariables>
+    <buildArgs>
+        <buildArg>--emit build-report</buildArg>
+    </buildArgs>
 </configuration>
 ----
 
-[TIP]
-Those are not the only options you can pass to the Native Image! To see the full options specification <<maven-plugin.adoc#configuration-options ,see this>>
-
-[TIP]
-====
-Most of the aforementioned properties can also be set from command line as a part of Maven invocation.
-For example if you want to temporarily enable verbose mode you can append `-Dverbose` to your Maven invocation.
-====
-
 [[collect-metadata]]
-== Collecting metadata
+=== Collecting metadata with Tracing Agent
 
-When your application starts to be more complex, additional configuration like **reflection**, **resources**, **serialization**, **proxies** or **jni** metadata may be required.
-Since the Native Image has closed world assumption, all of these things must be known in advance during the image build.
-The easiest way to pass this information to the Native Image is through configuration file(s) - depending on the GraalVM version you are using, there could be
-a single `reachability-metadata.json` file (for newer GraalVM versions) or multiple json files (`reflect-config.json`, `resource-config.json`, `proxy-config.json`, `serialization-config.json`, `jni-config.json`).
-To learn more about metadata that Native Image consumes, https://www.graalvm.org/latest/reference-manual/native-image/metadata/[see this].
+When your application uses dynamic language features such as **reflection**, **resources**, **serialization**, **proxies** or **jni**, additional metadata may be required.
+The easiest way to collect missing metadata is with the Native Image Tracing Agent (link).
 
-For example, if you run tests which make use of reflection, and you don't have entry for reflective calls in the metadata config file, your native tests will fail.
-
-In order to make your test/application work natively while using reflection (like in this example) or other features which require additional metadata, you should either generate configuration files or write them manually.
-The easiest is to generate metadata automatically.
-For this you can run your tests (or the main application) with the Native Image Agent, which will collect all the metadata your test/application require and generate metadata for you.
-To enable the agent (through Native Maven Plugin) you should add the following block inside the `configuration` block of your plugin definition:
+To enable the agent you should add the following block:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -265,9 +192,14 @@ To enable the agent (through Native Maven Plugin) you should add the following b
 </agent>
 ----
 
+From that point on, commands you execute will have the Native Image agent attached.
+
+You can learn how to fine tune the agent <<maven-plugin.adoc#agent-support-configuring-options,here>>.
+
 [TIP]
 ====
-To enable the agent via the command line, supply the `-Dagent=true` flag when running Maven. For example, you can run the agent defined in your __native profile__ like this:
+To enable the agent via the command line, supply the `-Dagent=true` flag when running Maven.
+For example, you can run the agent defined in your __native profile__ like this:
 
 [source,bash, role="multi-language-sample"]
 ----
@@ -275,30 +207,17 @@ mvn -Pnative -Dagent=true test
 ----
 ====
 
-[WARNING]
-====
-*Executing your application* with the agent is more involved and requires you to configure a separate mojo execution which allows forking the Java process.
-You can find out how to execute your application with the agent <<maven-plugin.adoc#agent-support-running-application,here>>.
-====
-
 [[metadata-copy]]
-=== Copy generated metadata to permanent location
+=== Copy generated metadata to your source directory
 
-By default, generated metadata will be placed inside `target/native/agent-output` directory.
-In many cases you may want to move generated metadata to some other location since the `target` directory gets removed every time you run `mvn clean` command.
+By default, generated metadata will be placed inside _target/native/agent-output_ directory.
+In many cases you may want to copy generated metadata to your _resources/META-INF_ directory.
 To do so, you can configure and run `metadataCopy` task.
-That way your metadata becomes persistent on the non-default location.
 
 ==== Configure metadataCopy task
 
 First, you can configure `metadataCopy` task by adding a new block, named `metadataCopy` inside `agent` block that you added in the previous step.
-Inside this block, you can specify:
 
-- `<outputDirectory>` - location where you want to copy the generated metadata
-- `<disableStages>` - in case you don't want the agent output from the `main` or `test` phases, you can disable metadata copy for the concrete phase.
-- `<merge>` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
-
-For example: you want to execute `metadataCopy` task on the metadata generated from your tests.
 Your `agent` block should look like this:
 
 [source,xml, role="multi-language-sample"]
@@ -315,401 +234,37 @@ Your `agent` block should look like this:
 </agent>
 ----
 
+Inside this block, you can specify:
+
+- `<outputDirectory>` - location where you want to copy the generated metadata
+- `<disableStages>` - in case you don't want the agent output from the `main` or `test` phases, you can disable metadata copy for the concrete phase.
+- `<merge>` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
+
 [[execute-metadata-copy-task]]
 ==== Execute metadataCopy task
 
-Once the `metadataCopy` task is configured, you can run the agent to collect the metadata and copy it in the other location with:
+Once the `metadataCopy` task is configured, you can run the agent to collect the metadata (in this case for your tests) and copy it on the other location with:
 
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 mvn -Pnative test native:metadata-copy
 ----
 
-[WARNING]
-====
-Note that **if you store generated metadata outside of the standard resources directories (e.g `src/main/resources/META-INF/native-image/...`) **, you will need to pass that location as a Native Image `buildArg` with `-H:ConfigurationFileDirectories` option.
-
-[source,xml, role="multi-language-sample"]
-----
-<configuration>
-    <buildArgs>
-        <buildArg>-H:ConfigurationFileDirectories=path/to/metadata</buildArg>
-    </buildArgs>
-</configuration>
-----
-====
-
-[[additional-agent-options]]
-=== Additional Native Image Agent options
-
-As your project grows, you should consider configuring the agent to gain more control over the generated metadata.
-
-First thing that you can configure is the agent mode.
-There are three possible agent modes:
-
-* `standard` - only generates metadata without any special processing (this is the default mode). No additional options available.
-* `conditional` - entries of the generated metadata will be included in the Native Image only if the condition in the entry is satisfied. Consumes following additional options:
-** `userCodeFilterPath` - specifies a filter file used to classify classes as user application classes. Generated conditions will only reference these classes See <<agent-filter-file, the following section>>
-** `extraFilterPath` - extra filter used to further filter the collected metadata. See <<agent-filter-file, the following section>>
-* `direct` - in this mode user configures the agent completely manually
-
-Each of the described modes has its own benefits.
-For example:
-
-- `standard` mode is a **great starting point** in your project development
-- `conditional` mode is mainly aimed towards **library maintainers** with the goal of reducing overall footprint
-- `direct` mode is for **experienced users** who know how to configure the agent manually
-
-You can configure each mode (and declare the one that will be used for generating metadata) inside the `agent` block in `pom.xml` file.
-Here is an example of the `agent` block with configured conditional and direct modes, where the conditional mode is set as default and will be used to generate the metadata:
-
-[source,xml, role="multi-language-sample"]
-----
-<agent>
-    <enabled>true</enabled>
-    <defaultMode>Conditional</defaultMode>
-    <modes>
-        <direct>config-output-dir=${project.build.directory}/native/agent-output</direct>
-        <conditional>
-            <userCodeFilterPath>user-code-filter.json</userCodeFilterPath>
-            <extraFilterPath>extra-filter.json</extraFilterPath>
-        </conditional>
-    </modes>
-</agent>
-----
-
-[NOTE]
-====
-In order to make your project run with the above configuration, you must create <<agent-filter-file,filter files>> (_extraFilterPath_ is optional and you can remove the tag if it is redundant).
-====
-
-[[common-agent-options]]
-==== Common agent options
-
-All the mentioned modes shares certain common configuration options like:
-
-- callerFilterFiles
-- accessFilterFiles
-- builtinCallerFilter
-- builtinHeuristicFilter
-- enableExperimentalPredefinedClasses
-- enableExperimentalUnsafeAllocationTracing
-- trackReflectionMetadata
-
-[WARNING]
-**These options are for advanced usages, and you can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here]**.
-
-A Complete example of the agent block should look like this:
-
-[source,xml, role="multi-language-sample"]
-----
-<agent>
-    <enabled>true</enabled>
-    <defaultMode>Standard</defaultMode>
-    <modes>
-        <direct>config-output-dir=${project.build.directory}/native/agent-output</direct>
-        <conditional>
-            <userCodeFilterPath>path-to-filter.json</userCodeFilterPath>
-            <extraFilterPath>path-to-another-filter.json</extraFilterPath>
-        </conditional>
-    </modes>
-
-    <options>
-        <callerFilterFiles>
-            <filterFile>caller-filter-file.json</filterFile>
-        </callerFilterFiles>
-        <accessFilterFiles>
-            <filterFile>access-filter-file1.json</filterFile>
-            <filterFile>access-filter-file2.json</filterFile>
-        </accessFilterFiles>
-        <builtinCallerFilter>true</builtinCallerFilter>
-        <builtinHeuristicFilter>true</builtinHeuristicFilter>
-        <enableExperimentalPredefinedClasses>true</enableExperimentalPredefinedClasses>
-        <enableExperimentalUnsafeAllocationTracing>
-            true
-        </enableExperimentalUnsafeAllocationTracing>
-        <trackReflectionMetadata>true</trackReflectionMetadata>
-    </options>
-
-    <metadataCopy>
-        <disabledStages>
-            <stage>main</stage>
-        </disabledStages>
-        <merge>true</merge>
-        <outputDirectory>/tmp/test-output-dir</outputDirectory>
-    </metadataCopy>
-</agent>
-----
-
-[[agent-filter-file]]
-=== Reduce the amount of generated metadata
-
-In some cases agent may include more metadata than it is actually needed. You can filter metadata using the agent filter files.
-These filter files that agent consumes have the following structure:
-
-[source,json,subs="verbatim,attributes", role="multi-language-sample"]
-----
-{
- "rules": [
-    {"includeClasses": "some.class.to.include.**"},
-    {"excludeClasses": "some.class.to.exclude.**"},
-  ],
-  "regexRules": [
-    {"includeClasses": "regex\.example\.class.*"},
-    {"excludeClasses": "regex\.example\.exclude[0-9]+"},
-  ]
-}
-----
-
-The process how you can pass the config files to the agent is described in the <<additional-agent-options,previous section>>.
-
-We can see on the <<example, example>> how different filter files affect generated metadata.
-Let's start with the simple filter file:
-
-[source,json,subs="verbatim,attributes", role="multi-language-sample"]
-----
-{
-  "rules": [
-    {"includeClasses": "**"}
-  ]
-}
-----
-
-This filter file will instruct the agent to include everything, which will result in a massive configuration file.
-For example this is how `reachability-metadata.json` looks like:
-
-[source,json,subs="verbatim,attributes", role="multi-language-sample"]
-----
-{
-  "reflection": [
-    {
-      "condition": {
-        "typeReached": "java.util.concurrent.atomic.AtomicBoolean"
-      },
-      "type": "java.util.concurrent.atomic.AtomicBoolean",
-      "fields": [
-        {
-          "name": "value"
-        }
-      ]
-    },
-    {
-      "condition": {
-        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
-      },
-      "type": "org.apache.maven.surefire.booter.spi.LegacyMasterProcessChannelProcessorFactory"
-    },
-    {
-      "condition": {
-        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
-      },
-      "type": "org.apache.maven.surefire.booter.spi.SurefireMasterProcessChannelProcessorFactory"
-    },
-    {
-      "condition": {
-        "typeReached": "org.junit.platform.launcher.core.DefaultLauncher"
-      },
-      "type": "org.apiguardian.api.API"
-    },
-    {
-      "condition": {
-        "typeReached": "java.lang.Class"
-      },
-      "type": "org.example.NativeTests"
-    },
-    {
-      "condition": {
-        "typeReached": "java.util.Collections$2"
-      },
-      "type": "org.example.NativeTests"
-    },
-    {
-      "condition": {
-        "typeReached": "org.apache.maven.surefire.api.util.DefaultScanResult"
-      },
-      "type": "org.example.NativeTests"
-    },
-    {
-      "condition": {
-        "typeReached": "org.junit.jupiter.engine.JupiterTestEngine"
-      },
-      "type": "org.example.NativeTests"
-    },
-    {
-      "condition": {
-        "typeReached": "org.junit.jupiter.engine.discovery.ClassSelectorResolver$$Lambda/0x00007a5c0f03fbb8"
-      },
-      "type": "org.example.NativeTests"
-    },
-    {
-      "condition": {
-        "typeReached": "java.security.Provider$Service"
-      },
-      "type": "sun.security.provider.SHA",
-      "methods": [
-        {
-          "name": "<init>",
-          "parameterTypes": []
-        }
-      ]
-    }
-    ...
-  ],
-  "resources": [
-    {
-      "condition": {
-        "typeReached": "jdk.internal.logger.BootstrapLogger$DetectBackend$1"
-      },
-      "glob": "META-INF/services/java.lang.System$LoggerFinder"
-    },
-    {
-      "condition": {
-        "typeReached": "jdk.internal.logger.LoggerFinderLoader"
-      },
-      "glob": "META-INF/services/java.lang.System$LoggerFinder"
-    },
-    {
-      "condition": {
-        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
-      },
-      "glob": "META-INF/services/org.apache.maven.surefire.spi.MasterProcessChannelProcessorFactory"
-    },
-    {
-      "condition": {
-        "typeReached": "java.lang.ClassLoader"
-      },
-      "glob": "TestResource.txt"
-    },
-    ...
-  ],
-  "bundles": [],
-  "jni": [
-    {
-      "condition": {
-        "typeReached": "sun.nio.ch.IOUtil"
-      },
-      "type": "java.lang.Boolean",
-      "methods": [
-        {
-          "name": "getBoolean",
-          "parameterTypes": [
-            "java.lang.String"
-          ]
-        }
-      ]
-    },
-    {
-      "condition": {
-        "typeReached": "sun.management.VMManagementImpl"
-      },
-      "type": "sun.management.VMManagementImpl",
-      "fields": [
-        {
-          "name": "compTimeMonitoringSupport"
-        },
-        {
-          "name": "currentThreadCpuTimeSupport"
-        },
-        {
-          "name": "objectMonitorUsageSupport"
-        },
-        {
-          "name": "otherThreadCpuTimeSupport"
-        },
-        {
-          "name": "remoteDiagnosticCommandsSupport"
-        },
-        {
-          "name": "synchronizerUsageSupport"
-        },
-        {
-          "name": "threadAllocatedMemorySupport"
-        },
-        {
-          "name": "threadContentionMonitoringSupport"
-        }
-      ]
-    }
-  ]
-}
-----
-
-As you can see, there are lots of entries that you likely don't want.
-They are present because the metadata was generated using tests, for example, and that the testing library was present at runtime during the agent execution pass, but in practice, your application will not use the testing library in production.
-To reduce the amount of generated metadata, we will use the following `user-code-filter.json`:
-
-[source,json,subs="verbatim,attributes", role="multi-language-sample"]
-----
-{
-  "rules": [
-    {"includeClasses": "**"},
-    {"excludeClasses": "org.apache.maven.**"},
-    {"excludeClasses": "org.junit.**"},
-    {"excludeClasses": "java.**"},
-    {"excludeClasses": "jdk.internal.**"},
-    {"excludeClasses": "sun.**"},
-    {"excludeClasses": "com.sun.**"}
-  ]
-}
-----
-
-[WARNING]
-====
-Always be careful when removing entries in metadata, as this may result in a broken binary
-====
-
-After updating our filters, we can regenerate the metadata, which will result in the following `reachability-metadata.json` file:
-
-[source,json,subs="verbatim,attributes", role="multi-language-sample"]
-----
-{
-  "reflection": [
-    {
-      "condition": {
-        "typeReached": "org.example.NativeTests"
-      },
-      "type": "org.example.NativeTests$Person",
-      "allDeclaredFields": true
-    }
-  ],
-  "resources": [
-    {
-      "condition": {
-        "typeReached": "org.example.NativeTests"
-      },
-      "glob": "TestResource.txt"
-    }
-  ],
-  "bundles": []
-}
-----
-
-As you can see there are no more entries that contain classes from `org.apache.maven` (as their condition).
-
 [[maintain-generated-metadata]]
-== Maintain generated metadata
+=== Maintain generated metadata
 
-If you are a library maintainer, or if your application grows large, you may consider covering most of your code with tests.
-This way you can also track if your project requires updates of the existing metadata.
-Considering that you run your tests on CI, at some point (after updating some dependency or adding new feature/test) you may notice some test failures with missing resources errors or that something is reflectively missing...
-In that case, your metadata requires update.
-
-[WARNING]
-====
-As we already mentioned, metadata generated on the default location, under `target` directory, is not persistent because every run of the `mvn clean` removes the directory.
-To persist metadata, you should copy it to some permanent location, as described <<metadata-copy, here>>
-However, note that if you modified existing metadata file(s) on the non-default location, generating a new metadata and moving it to the same (non-default) location will overwrite the existing metadata you have changed.
-====
-
-So if you modified existing metadata file(s), please do the following:
+As your project develops, metadata files may need to be updated.
+The best way to detect missing metadata is to run your native tests in your CI/CD pipeline.
+When the native tests fail, due to missing metadata, you should:
 
 1. Set `merge` option to true in the `metadataCopy` block
-2. Run your tests again to generate new metadata (as we already described <<execute-metadata-copy-task, here>>)
+2. Run your tests again to generate new metadata (as we <<execute-metadata-copy-task, previously described>>)
+3. Verify the correctness of the produced metadata and commit it to your repository
 
 This way you will keep your original metadata, and add a new one.
 
 [[reachability-metadata-repository]]
-== Reachability metadata repository
+=== Reachability metadata repository
 
 While we have described how you can add metadata for your own code, Native Build Tools (both Gradle and Maven plugins) makes use of metadata from Reachability Metadata Repository to ensure your application works out-of-box with 3rd party libraries that you depend on.
 You can configure Reachability metadata support through `metadataRepository` block added to our main plugins' `configuration` block inside `pom.xml`.
@@ -720,113 +275,8 @@ Most common options you may want to configure in this block are:
 
 You can read more about __Reachability metadata support__ and other (advanced) configuring options, https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#_configuring_the_metadata_repository[here].
 
-In some cases, when you want to maintain multiple projects that share common metadata from various libraries, you should consider contributing metadata to https://github.com/oracle/graalvm-reachability-metadata[Reachability metadata project].
-https://github.com/oracle/graalvm-reachability-metadata/blob/master/CONTRIBUTING.md[Contributing to the repository] should be simple:
-
-- Clone repository locally:
-
-[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
-----
-git clone git@github.com:oracle/graalvm-reachability-metadata.git
-----
-
-- generate metadata and test stubs (replace with the GAV coordinates of library you are providing metadata for):
-
-[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
-----
-./gradlew scaffold --coordinates com.example:my-library:1.0.0
-----
-
-- implement tests in test stubs that will show how you have generated metadata
-- collect metadata as described https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md#collecting-metadata-for-a-library[here]
-- create a pull request and fill the checklist
-
 [[track-diagnostics]]
-== Using diagnostics
+=== Using diagnostics
 
-If you want to explore details about native images you are generating, you can add:
-
-For GraalVM versions starting from GraalVM for JDK 23
-
-[source,xml, role="multi-language-sample"]
-----
-<buildArgs>
-    <buildArg>--emit build-report</buildArg>
-</buildArgs>
-----
-
-For older GraalVM versions (starting from GraalVM for JDK 21)
-
-[source,xml, role="multi-language-sample"]
-----
-<buildArgs>
-    <buildArg>-H:+BuildReport</buildArg>
-</buildArgs>
-----
-
-When the Native Image build is completed, you will find a path to the generated Build Report HTML in `Build artifacts` section in the build output like this:
-```
-------------------------------------------------------------------------------------
-Build artifacts:
-
-/tmp/target/native-tests (executable)
-/tmp/target/native-tests-build-report.html (build_info)
-====================================================================================
-```
-You can read more about build report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
-
-[NOTE]
-Note that Build Report features vary depending on a GraalVM version you use.
-
-[[example]]
-== Example
-
-Whole guide has been tested on the following test class:
-
-[source,java,subs="verbatim,attributes", role="multi-language-sample"]
-----
-import org.junit.jupiter.api.Test;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-public class NativeTests {
-
-    private static final List<String> resources = List.of("/TestResource.txt");
-
-    @Test
-    public void resourceTest() {
-        try (InputStream is = NativeTests.class.getResourceAsStream(resources.get(0))) {
-            if (is != null) {
-                var reader = new BufferedReader(new InputStreamReader(is));
-                reader.lines().forEach(System.out::println);
-            } else {
-                throw new IOException("Cannot read content of: " + resources.get(0));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static class Person {
-        private String name;
-        private String surname;
-    }
-
-    @Test
-    public void reflectionTest() {
-        Object person = new Person();
-        Field[] fields = person.getClass().getDeclaredFields();
-        List<String> actualFieldNames = Arrays.stream(fields).map(Field::getName).toList();
-
-        assertTrue(actualFieldNames.containsAll(Arrays.asList("name", "surname")));
-    }
-}
-----
+If you want to explore details about native images you are generating, check our https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[build reports].
+You can pass those options as standard build arguments in your `<configuration>` block.

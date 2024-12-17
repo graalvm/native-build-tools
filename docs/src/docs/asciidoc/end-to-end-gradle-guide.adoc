@@ -15,17 +15,6 @@ To compile your application ahead of time with https://www.graalvm.org/latest/re
 
 The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
 
-As an example in this case we will use simple HelloWorld application:
-
-[source,java, role="multi-language-sample"]
-----
-public class Main {
-    public static void main(String[] args) {
-        System.out.println("Hello native!");
-    }
-}
-----
-
 [[adding-plugin]]
 === Enable the Plugin
 
@@ -87,12 +76,19 @@ Learn more in https://www.graalvm.org/latest/reference-manual/native-image/overv
 The executable is created in the _build/native/nativeCompile/_ directory of the project.
 
 - Run the application from the native executable:
+
 [source,bash,role="multi-language-sample"]
 ----
 ./gradlew nativeRun
 ----
 
-The Gradle plugin for Native Image registers more tasks that you may want to use, for example, `nativeTest` (add snippet) that executes tests found in the test sources in native mode.
+Besides that, the Gradle plugin allows you to execute your native tests (found in the test sources) with:
+
+
+[source,bash,role="multi-language-sample"]
+----
+./gradlew nativeTest
+----
 
 Continue reading below to learn more about the plugin.
 
@@ -106,7 +102,6 @@ For advanced users, the guide explains how to collect metadata, use diagnostics 
 
 The main configuration point of this plugin is the `graalvmNative` block that you added into `build.gradle` file.
 You can apply configuring options specific to the main or the test binary (or you can provide options that applies to all binaries) like following:
-
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -304,4 +299,4 @@ You can read more about __Reachability metadata support__ and other (advanced) c
 === Using diagnostics
 
 If you want to explore details about native images you are generating, check our https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[build reports].
-You can pass those options a standard build arguments in your `graalvmNative` block.
+You can pass those options as standard build arguments in your `graalvmNative` block.

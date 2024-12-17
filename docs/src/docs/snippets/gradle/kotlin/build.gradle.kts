@@ -77,7 +77,6 @@ graalvmNative {
             fallback.set(true)
             sharedLibrary.set(false)
             richOutput.set(false)
-            requiredVersion.set('22.3')
             quickBuild.set(false)
 
             systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2"))

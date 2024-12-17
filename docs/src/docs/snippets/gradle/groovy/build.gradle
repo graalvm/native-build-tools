@@ -77,7 +77,6 @@ graalvmNative {
             sharedLibrary = false
             quickBuild = false
             richOutput = false
-            requiredVersion = '22.3'
 
             systemProperties = [name1: 'value1', name2: 'value2']
             configurationFileDirectories.from(file('src/my-config'))

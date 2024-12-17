@@ -8,7 +8,7 @@ image:https://github.com/graalvm/native-build-tools/actions/workflows/test-nativ
 
 The {doctitle} adds support for building and testing native images using the https://gradle.org[Gradle build tool].
 
-To upgrade, please take a look at the <<changelog.adoc#,project changelog>>.
+To upgrade, please take a look at the <<changelog.adoc#,project changelog>>
 
 [[quickstart]]
 == Quickstart

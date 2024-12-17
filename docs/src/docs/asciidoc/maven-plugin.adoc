@@ -15,19 +15,13 @@ For upgrading please take a look at the <<index.adoc#changelog,Changelog>>.
 == Quickstart
 
 ====
-<<maven-plugin-quickstart.adoc#,Getting Started with Maven Plugin for GraalVM Native Image>>
-====
-
-====
-You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
-====
-
-====
 The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
 
 The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
 
 For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
+
+You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
 ====
 
 [[configuration-registering-plugin]]
@@ -74,9 +68,22 @@ Add the following profile to your `pom.xml` file to register the `native-maven-p
 ```
 
 You can then build a native executable directly with Maven using the `mvn -Pnative -DskipTests package` command without running the `native-image` command as a separate step.
+[TIP]
+====
+If Maven Surefire is using an older version of the JUnit Platform, you may experience some errors.
+To solve this problem, we recommend using the following plugin:
 
-The plugin figures out which JAR files it needs to pass to the native image and
-what the executable main class should be.
+[source,xml, role="multi-language-sample"]
+----
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.0.0</version>
+</plugin>
+----
+====
+
+The plugin figures out which JAR files it needs to pass to the native image and what the executable main class should be.
 If the heuristics fail with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
 specified in the `<configuration>` node of the plugin.
 When `mvn -Pnative package` completes, an executable is ready for use, generated in the `target` directory of the project.
@@ -326,7 +333,7 @@ Agent can be run in one of the following modes:
 * `conditional` - in this mode you can provide additional files that can be used as a filter for the agent output. You
 can read more about conditional mode https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/[here].
 
-Each option and how you should use it is described bellow:
+Here is an explanation for each option you can specify in the agent block:
 
 * `enabled` - a simple flag that specifies whether the agent is enabled or not. Can be set to true or false.
 * `defaultMode` - agent mode switcher. Can be set to: standard, direct or conditional.
@@ -338,24 +345,6 @@ Each option and how you should use it is described bellow:
    partial-config file, and merge it with conditional merge, otherwise agent will generate same kind of output as other modes.
 * `options` - list of options that can be specify independent from agent mode. More about common options can be found
 https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/[here].
-
-
-[[metadata-copy]]
-==== Metadata copy
-`metadataCopy` provides additional options for manipulating the agent output after agent finishes its job.
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../snippets/maven/metadataCopy.xml[tag=native-plugin-agent-metadata-copy]
-
-You can set values for the following tags:
-
-* `<outputDirectory>` - where you want to copy agent output.
-* `<merge>` - in case you already have some other config files inside `output directory`, you can choose whether you want to override those files or
-    merge new files with the existing once (set merge value to true).
-* `<disabledStages>` - in case you don't want to copy output of the certain stage (main or test) you can disable them and metadataCopy will not look at
-    the agent output for that stage. For example, if you want to copy only config files generated in tests, you can disable main stage. Also, if you want
-    to copy only files generated in main phase, you can disable test stage. Therefore, if you skip both stages, metadataCopy will not be executed.
-
 
 [[agent-support-running-tests]]
 ==== Running tests with the agent
@@ -412,8 +401,270 @@ with those configuration files, you then need to execute the following command:
 mvn -Pnative -Dagent=true -DskipTests package exec:exec@native
 ```
 
+[[agent-filter-file]]
+==== Reduce the amount of generated metadata
+
+In some cases agent may include more metadata than it is actually needed. You can filter metadata using the agent filter files.
+These filter files that agent consumes have the following structure:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+ "rules": [
+    {"includeClasses": "some.class.to.include.**"},
+    {"excludeClasses": "some.class.to.exclude.**"},
+  ],
+  "regexRules": [
+    {"includeClasses": "regex\.example\.class.*"},
+    {"excludeClasses": "regex\.example\.exclude[0-9]+"},
+  ]
+}
+----
+
+The process how you can pass the config files to the agent is described in the <<agent-support-configuring-options,previous section>>.
+
+We can see on the <<example, example>> how different filter files affect generated metadata.
+Let's start with the simple filter file:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "rules": [
+    {"includeClasses": "**"}
+  ]
+}
+----
+
+This filter file will instruct the agent to include everything, which will result in a massive configuration file.
+For example this is how `reachability-metadata.json` looks like:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "java.util.concurrent.atomic.AtomicBoolean"
+      },
+      "type": "java.util.concurrent.atomic.AtomicBoolean",
+      "fields": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "type": "org.apache.maven.surefire.booter.spi.LegacyMasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "type": "org.apache.maven.surefire.booter.spi.SurefireMasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.platform.launcher.core.DefaultLauncher"
+      },
+      "type": "org.apiguardian.api.API"
+    },
+    {
+      "condition": {
+        "typeReached": "java.lang.Class"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "java.util.Collections$2"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.api.util.DefaultScanResult"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.jupiter.engine.JupiterTestEngine"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.jupiter.engine.discovery.ClassSelectorResolver$$Lambda/0x00007a5c0f03fbb8"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "java.security.Provider$Service"
+      },
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    }
+    ...
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "jdk.internal.logger.BootstrapLogger$DetectBackend$1"
+      },
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "condition": {
+        "typeReached": "jdk.internal.logger.LoggerFinderLoader"
+      },
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "glob": "META-INF/services/org.apache.maven.surefire.spi.MasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "java.lang.ClassLoader"
+      },
+      "glob": "TestResource.txt"
+    },
+    ...
+  ],
+  "bundles": [],
+  "jni": [
+    {
+      "condition": {
+        "typeReached": "sun.nio.ch.IOUtil"
+      },
+      "type": "java.lang.Boolean",
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "condition": {
+        "typeReached": "sun.management.VMManagementImpl"
+      },
+      "type": "sun.management.VMManagementImpl",
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    }
+  ]
+}
+----
+
+As you can see, there are lots of entries that you likely don't want.
+They are present because the metadata was generated using tests, for example, and that the testing library was present at runtime during the agent execution pass, but in practice, your application will not use the testing library in production.
+To reduce the amount of generated metadata, we will use the following `user-code-filter.json`:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "rules": [
+    {"includeClasses": "**"},
+    {"excludeClasses": "org.apache.maven.**"},
+    {"excludeClasses": "org.junit.**"},
+    {"excludeClasses": "java.**"},
+    {"excludeClasses": "jdk.internal.**"},
+    {"excludeClasses": "sun.**"},
+    {"excludeClasses": "com.sun.**"}
+  ]
+}
+----
+
+[WARNING]
+====
+Always be careful when removing entries in metadata, as this may result in a broken binary
+====
+
+After updating our filters, we can regenerate the metadata, which will result in the following `reachability-metadata.json` file:
+
+[source,json,subs="verbatim,attributes", role="multi-language-sample"]
+----
+{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "type": "org.example.NativeTests$Person",
+      "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "glob": "TestResource.txt"
+    }
+  ],
+  "bundles": []
+}
+----
+
+As you can see there are no more entries that contain classes from `org.apache.maven` (as their condition).
+
+[[metadata-copy]]
+==== Metadata copy
+`metadataCopy` provides additional options for manipulating the agent output after agent finishes its job.
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../snippets/maven/metadataCopy.xml[tag=native-plugin-agent-metadata-copy]
+
+You can set values for the following tags:
+
+* `<outputDirectory>` - where you want to copy agent output.
+* `<merge>` - in case you already have some other config files inside `output directory`, you can choose whether you want to override those files or
+    merge new files with the existing once (set merge value to true).
+* `<disabledStages>` - in case you don't want to copy output of the certain stage (main or test) you can disable them and metadataCopy will not look at
+    the agent output for that stage. For example, if you want to copy only config files generated in tests, you can disable main stage. Also, if you want
+    to copy only files generated in main phase, you can disable test stage. Therefore, if you skip both stages, metadataCopy will not be executed.
+
+
 [[configuration-reusing-config-from-parent]]
-=== Reusing configuration from a parent POM
+== Reusing configuration from a parent POM
 
 The `<buildArgs>` element can be combined between parent and children POMs. Suppose you have the following parent POM definition:
 
@@ -662,7 +913,9 @@ For debugging purposes you can use a local repository:
 ----
 include::../../../../samples/native-config-integration/pom.xml[tag=metadata-local]
 ----
-<1> The local path can point to an _exploded_ directory, or to a compressed ZIP file.
+
+[NOTE]
+The local path can point to an _exploded_ directory, or to a compressed ZIP file.
 
 For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.
 In case you want to use another version of the metadata use:
