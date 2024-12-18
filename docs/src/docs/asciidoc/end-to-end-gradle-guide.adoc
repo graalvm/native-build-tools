@@ -1,0 +1,302 @@
+= End-to-end Native Gradle Plugin guide
+The GraalVM team
+:highlighjsdir: {gradle-relative-srcdir}/highlight
+
+
+This guide walks you through integrating the Gradle plugin for Native Image into your project.
+It starts from enabling the plugin, building the first native image, and running it.
+
+Then it takes you to more advanced use-cases such us providing configuration.
+If you are an advanced user, you can skip the getting started part and go directly to the advanced section.
+
+[[getting-started]]
+== Getting started
+To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Gradle, enable the Gradle plugin for Native Image building.
+
+The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
+
+[[adding-plugin]]
+=== Enable the Plugin
+
+- Add the plugin declaration into your _build.gradle_ file inside `plugins` block:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+  id 'org.graalvm.buildtools.native' version '{gradle-plugin-version}'
+----
+
+[source,kotlin,subs="verbatim,attributes",role="multi-language-sample"]
+----
+  id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
+----
+
+Older versions of the plugin are listed https://github.com/graalvm/native-build-tools/releases[here]
+
+- In _build.gradle_, add the following block that configures the plugin:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+  graalvmNative {
+      binaries.main {
+          imageName = "imageName"
+          mainClass = "org.example.Main"
+          buildArgs.add('-Ob') # for optimized build use -O3
+      }
+  }
+----
+
+[source,kotlin,subs="verbatim,attributes",role="multi-language-sample"]
+----
+  graalvmNative {
+        binaries.main {
+            imageName.set("imageName")
+            mainClass.set("org.example.Main")
+            buildArgs.add('-Ob') // for optimized build use -O3
+        }
+    }
+----
+
+It specifies the path for the application main class (the main entry point) and the name for a native executable file.
+Adjust this path according to your application sources.
+
+You can pass additional options to the Native Image tool using the `buildArgs.add('')` syntax.
+In this example, `-Ob` enables quick build mode.
+Learn more in https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[Providing Configuration Options].
+
+[[run-your-project]]
+=== Build and run your project
+
+- Compile and build a native executable of your application:
+
+[source,bash,role="multi-language-sample"]
+----
+./gradlew nativeCompile
+----
+
+The executable is created in the _build/native/nativeCompile/_ directory of the project.
+
+- Run the application from the native executable:
+
+[source,bash,role="multi-language-sample"]
+----
+./gradlew nativeRun
+----
+
+Besides that, the Gradle plugin allows you to execute your native tests (found in the test sources) with:
+
+
+[source,bash,role="multi-language-sample"]
+----
+./gradlew nativeTest
+----
+
+Continue reading below to learn more about the plugin.
+
+[[advanced-use-cases]]
+== Advanced Use Cases
+
+For advanced users, the guide explains how to collect metadata, use diagnostics tools to analyze native executables, and includes examples of tests that demonstrate the guide's concepts.
+
+[[configuration-options]]
+=== Providing configuration options
+
+The main configuration point of this plugin is the `graalvmNative` block that you added into `build.gradle` file.
+You can apply configuring options specific to the main or the test binary (or you can provide options that applies to all binaries) like following:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.all {
+        // common options you want to use for both main and test binaries
+    }
+    binaries.main {
+        // options you want to pass only to the main binary
+    }
+    binaries.test {
+        // options you want to pass only to the test binary
+    }
+}
+----
+
+Inside these blocks you can pass options like:
+
+- `imageName` -The name of the native image (defaults to the project name)
+- `mainClass` - The main class to use, defaults to the application.mainClass
+- `debug` - Determines if debug info should be generated, `false` by default (alternatively add --debug-native to the CLI)
+- `verbose` - Add verbose output (`false` by default)
+- `quickBuild` - Determines if image is being built in quick build mode
+- <<gradle-plugin.adoc#native-image-options,and many more...>>
+
+Here is an example of additional options usage:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.all {
+        quickBuild = false
+    }
+
+    binaries.main {
+        imageName = 'application'
+        mainClass = 'org.test.Main'
+
+        buildArgs.add('--emit build-report')
+    }
+
+    binaries.test {
+        debug = true
+        verbose = true
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.all {
+        quickBuild.set(false)
+    }
+
+    binaries.main {
+        imageName.set('application')
+        mainClass.set('org.test.Main')
+
+        buildArgs.add('--emit build-report')
+    }
+
+    binaries.test {
+        debug.set(true)
+        verbose.set(true)
+    }
+}
+----
+
+[[collect-metadata]]
+=== Collecting metadata with Tracing Agent
+
+When your application uses dynamic language features such as **reflection**, **resources**, **serialization**, **proxies** or **jni**, additional metadata may be required.
+The easiest way to collect missing metadata is with the Native Image Tracing Agent (link).
+
+To enable the agent (through Native Gradle Plugin) you should either:
+
+- add `-Pagent` flag to the command line: `./gradlew -Pagent test` to run your tests with the agent or `./gradlew -Pagent run` to run your application with the agent
+- or add the following block to `graalvmNative` block in the `build.gradle`:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+}
+----
+
+With this block `./gradlew test` runs your tests with the agent and `./gradlew run` runs your application with the agent.
+
+You can learn how to fine tune the agent <<gradle-plugin.adoc#native-image-tracing-agent,here>>.
+
+[[metadata-copy]]
+=== Copy generated metadata to your source directory
+
+By default, generated metadata will be placed inside _build/native/agent-output_ directory.
+In many cases you may want to copy generated metadata to your _resources/META-INF_ directory.
+To do so, you can configure and run `metadataCopy` task.
+
+==== Configure metadataCopy task
+
+First, you can configure `metadataCopy` task by adding a new block, named `metadataCopy` inside `agent` block that you added in the previous step.
+
+Your `agent` block should look like this:
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled = true
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/test/resources/META-INF/native-image/org.example")
+        mergeWithExisting = true
+    }
+}
+----
+
+[source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
+----
+agent {
+    enabled.set(true)
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("resources/META-INF/native-image/org.example")
+        mergeWithExisting.set(true)
+    }
+}
+----
+
+Inside this block, you configured:
+
+- `inputTaskNames` - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step).
+- `outputDirectories` - location where you want to copy the generated metadata
+- `mergeWithExisting` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
+
+
+[[execute-metadata-copy-task]]
+==== Execute metadataCopy task
+
+Once the metadata is generated and the `metadataCopy` task is configured, you can run the task with:
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew metadataCopy
+----
+
+Besides that, you can configure `metadataCopy` task through the command line as well:
+
+[source,bash,subs="verbatim,attributes"]
+----
+./gradlew metadataCopy --task run   # if you used nativeRun (or just run) to collect metadata
+./gradlew metadataCopy --task test  # if you used nativeTest (or just test) to collect metadata
+./gradlew metadataCopy --dir <pathToSomeDirectory> # to specify the output directory
+----
+
+Here is an example of a complete `metadataCopy` usage that does not require configuration in the build file:
+
+[source,bash,subs="verbatim,attributes", role="multi-language-sample"]
+----
+./gradlew metadataCopy --task test --dir resources/META-INF/native-image/org.example
+----
+
+[[maintain-generated-metadata]]
+=== Maintain generated metadata
+
+As your project develops, metadata files may need to be updated.
+The best way to detect missing metadata is to run your native tests in your CI/CD pipeline.
+When the native tests fail, due to missing metadata, you should:
+
+1. Set `mergeWithExisting` option to true in the `metadataCopy` block
+2. Run your tests again to generate new metadata (as we already described in the <<collect-metadata, collect metadata section>>)
+3. Run `metadataCopy` task again
+4. Verify the correctness of the produced metadata and commit it to your repository
+
+[[reachability-metadata-repository]]
+=== Reachability metadata repository
+
+While we have described how you can add metadata for your own code, Native Build Tools (both Gradle and Maven plugins) makes use of metadata from Reachability Metadata Repository to ensure your application works out-of-box with 3rd party libraries that you depend on.
+You can configure Reachability metadata support through `metadataRepository` block added to our main `graalvmNative` block inside `build.gradle`.
+Most common options you may want to configure in this block are:
+
+* `enabled` - determines if you want to use Reachability metadata support or not (`true` by default)
+* `version` - specifies exact Reachability metadata version you want to use
+* `uri` - specifies the url where the metadata is stored. This can be used to point to the local repository. If not set, it defaults to metadata which is shipped inside the Native Build Tools.
+
+You can read more about __Reachability metadata support__ and other (advanced) configuring options, https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#_configuring_the_metadata_repository[here].
+
+[[track-diagnostics]]
+=== Using diagnostics
+
+If you want to explore details about native images you are generating, check our https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[build reports].
+You can pass those options as standard build arguments in your `graalvmNative` block.
