@@ -1,23 +1,24 @@
-= End-to-end Native Maven Plugin guide
+= End-to-end Native Image Maven plugin guide
+OR 
+== Building Native Images with Maven: An End-to-End Guide
 The GraalVM team
 :highlighjsdir: {maven-relative-srcdir}/highlight
 
-This guide walks you through integrating the Gradle plugin for Native Image into your project.
+This guide walks you through integrating the Maven plugin for Native Image into your project.
 It starts from enabling the plugin, building the first native image, and running it.
 
-Then it takes you to more advanced use-cases such us providing configuration.
+Then it takes you to more advanced use-cases such us applying optimizations, enabling monitoring features, and troubleshooting.
 If you are an advanced user, you can skip the getting started part and go directly to the advanced section.
 
 [[getting-started]]
 == Getting started
-To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Maven, enable the Maven plugin for Native Image building.
-
+To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Maven, enable the Maven plugin for Native Image building. 
 The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
 
 [[adding-plugin]]
-=== Adding the GraalVM Native Plugin
+=== Add the plugin
 
-- Add the following block into your `pom.xml` file:
+- Add the plugin declaration to your _pom.xml_:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -34,13 +35,6 @@ The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM]
         </goals>
         <phase>package</phase>
       </execution>
-      <execution>
-        <id>test-native</id>
-        <goals>
-          <goal>test</goal>
-        </goals>
-        <phase>test</phase>
-      </execution>
     </executions>
     <configuration>
         <mainClass>org.example.Main</mainClass>
@@ -48,7 +42,7 @@ The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM]
 </plugin>
 ----
 
-For convenience, you can create a maven profile and add plugin into it:
+For convenience, you can create a Maven profile and add the plugin into it:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -70,13 +64,6 @@ For convenience, you can create a maven profile and add plugin into it:
                 </goals>
                 <phase>package</phase>
               </execution>
-              <execution>
-                <id>test-native</id>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <phase>test</phase>
-              </execution>
             </executions>
             <configuration>
               <mainClass>org.example.Main</mainClass>
@@ -88,62 +75,61 @@ For convenience, you can create a maven profile and add plugin into it:
 </profiles>
 ----
 
-Older versions of the plugin are listed https://github.com/graalvm/native-build-tools/releases[here].
+All plugin versions are listed https://github.com/graalvm/native-build-tools/releases[here].
 
-- You can configure the plugin inside the `<configuration>` tag like following:
-
+The plugin supports passing additional options to Native Image inside the `<configuration>` block.
+For example:
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-  <imageName>example-app</imageName>
   <mainClass>org.example.Main</mainClass>
+  <imageName>example-app</imageName>
   <buildArgs>
       <buildArg>-Ob</buildArg> <!-- for optimized build use -O3 -->
   </buildArgs>
 </configuration>
 ----
 
-It specifies the path for the application main class (the main entry point) and the name for a native executable file.
-Adjust this path according to your application sources.
-
-You can pass additional options to the Native Image tool using the `<buildArg>` tag.
-In this example, `-Ob` enables quick build mode.
-Learn more in https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[Providing Configuration Options].
+The `<imageName>` tag specifies a name for the native image, and `<mainClass>` provides the path to the application main class (the main entry point).
+Adjust the path according to your application sources.
+Using `<buildArg>`, you can pass any other Native Image build option listed on [this page](https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/).
+In this example, the additional option `-Ob` enables quick build mode.
+Learn more in https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[Providing Build Configuration Options].
 
 [[run-your-project]]
 === Build and run your project
 
 Once you registered the plugin, you can use standard https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[Maven phases].
+If you added the plugin inside the `native` profile, you should run your commands with `-Pnative`.
 
-Note that if you added the plugin inside the native profile, you should run your commands with `-Pnative` passed.
-For example, you can build a native executable directly with Maven using:
-
+1. Build a native executable of your application. 
 [source,bash, role="multi-language-sample"]
 ----
 mvn -Pnative package
 ----
 
-This will generate native image under _target_ directory.
+It creates a native executable in the _target/_ directory of the project.
 
-[TIP]
-====
-If Maven Surefire is using an older version of the JUnit Platform, you may experience some errors.
-To solve this problem, we recommend using the following plugin:
+2. Run the application from the native executable:
+[source,bash, role="multi-language-sample"]
+----
+./target/yourName
+----
 
-[source,xml, role="multi-language-sample"]
-----
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-surefire-plugin</artifactId>
-    <version>3.0.0</version>
-</plugin>
-----
-====
+You can have multiple profiles, which is very convenient if you want to produce different versions of your native images for your application (optimized, non-optimized, and others).
+Continue reading below to learn more.
 
 [[advanced-use-cases]]
 == Advanced Use Cases
 
-For advanced users, the guide explains how to collect metadata, use diagnostics tools to analyze native executables, and includes examples of tests that demonstrate the guide's concepts.
+For advanced users, the guide covers running tests on native code, configuring the build process, collecting metadata, enabling diagnostic tools for analyzing native images, troubleshooting, and other advanced topics.
+It also includes examples of tests using a demonstration application.
+
+# Run Junit tests
+# Gather execution profiles
+# Build an optimized native image
+# Collect metadata
+# Enable diagnostics tools
 
 [[configuration-options]]
 === Providing configuration options
