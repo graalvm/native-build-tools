@@ -49,7 +49,7 @@ maven {
 }
 
 dependencies {
-    implementation(libs.jackson.databind)
+    implementation(libs.openjson)
     testImplementation(platform(libs.test.junit.bom))
     testImplementation(libs.test.junit.jupiter.core)
 }
