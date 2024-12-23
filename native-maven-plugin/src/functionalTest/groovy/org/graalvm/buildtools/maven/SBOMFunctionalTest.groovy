@@ -41,11 +41,10 @@
 
 package org.graalvm.buildtools.maven
 
-import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.openjson.JSONObject
 import org.graalvm.buildtools.maven.sbom.SBOMGenerator
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Requires
-import com.fasterxml.jackson.databind.ObjectMapper
 
 class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     private static boolean EE() {
@@ -140,12 +139,11 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
                 return false
             }
 
-            def mapper = new ObjectMapper()
-            def rootNode = mapper.readTree(sbom)
+            def rootNode = new JSONObject(sbom.getText())
 
             // Check root fields
             assert rootNode.has('bomFormat')
-            assert rootNode.get('bomFormat').asText() == 'CycloneDX'
+            assert rootNode.getString('bomFormat') == 'CycloneDX'
             assert rootNode.has('specVersion')
             assert rootNode.has('serialNumber')
             assert rootNode.has('version')
@@ -154,20 +152,20 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
             assert rootNode.has('dependencies')
 
             // Check metadata/component
-            def metadataComponent = rootNode.path('metadata').path('component')
+            def metadataComponent = rootNode.getJSONObject('metadata').getJSONObject('component')
             assert metadataComponent.has('group')
-            assert metadataComponent.get('group').asText() == 'org.graalvm.buildtools.examples'
+            assert metadataComponent.getString('group') == 'org.graalvm.buildtools.examples'
             assert metadataComponent.has('name')
-            assert metadataComponent.get('name').asText() == 'maven'
+            assert metadataComponent.getString('name') == 'maven'
 
             // Check that components and dependencies are non-empty
-            assert !rootNode.get('components').isEmpty()
-            assert !rootNode.get('dependencies').isEmpty()
+            assert !rootNode.getJSONArray('components').isEmpty()
+            assert !rootNode.getJSONArray('dependencies').isEmpty()
 
             // Check that the main component has no dependencies
-            def mainComponentId = metadataComponent.get('bom-ref').asText()
-            def mainComponentDependency = rootNode.get('dependencies').find { it.get('ref').asText() == mainComponentId } as ObjectNode
-            assert mainComponentDependency.get('dependsOn').isEmpty()
+            def mainComponentId = metadataComponent.getString('bom-ref')
+            def mainComponentDependency = rootNode.getJSONArray('dependencies').iterator().find { it.getString('ref') == mainComponentId } as JSONObject
+            assert mainComponentDependency.getJSONArray('dependsOn').isEmpty()
 
             // Check that the main component is not found in "components"
             assert !rootNode.get('components').any { component ->
