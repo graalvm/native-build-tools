@@ -41,10 +41,30 @@
 
 package org.graalvm.buildtools.maven
 
+import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+
+    def getCurrentJDKVersion() {
+        return NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString())
+    }
+
+    def metadataInSingleConfigFile() {
+        return getCurrentJDKVersion() >= 23
+    }
+
+    def metadataExistsAt(String path) {
+        if (metadataInSingleConfigFile()) {
+            return file("${path}/reachability-metadata.json").exists()
+        }
+
+        boolean allFilesExist = ['jni', 'proxy', 'reflect', 'resource', 'serialization'].every { name ->
+            file("${path}/${name}-config.json").exists()
+        }
+
+        return allFilesExist
+    }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/179")
     def "agent is used for JVM tests when native image tests are skipped via -DskipNativeTests"() {
@@ -60,11 +80,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         // Agent is used with Surefire
         outputContains '-agentlib:native-image-agent='
 
+
         and:
         // Agent generates files
-        ['jni', 'proxy', 'reflect', 'resource', 'serialization'].each { name ->
-            assert file("target/native/agent-output/test/${name}-config.json").exists()
-        }
+        metadataExistsAt("target/native/agent-output/test/")
 
         and:
         // Surefire / JVM tests run
