@@ -167,7 +167,7 @@ public class AgentConfiguration implements Serializable {
             }
 
             long pid = ProcessHandle.current().pid();
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             Path tmpAccessFilter = agentDir.resolve(ACCESS_FILTER_PREFIX + '_' + pid  + '_' + time  + '_' + ACCESS_FILTER_SUFFIX);
             Files.copy(accessFilterData, tmpAccessFilter);
 
