@@ -40,23 +40,15 @@
  */
 package org.graalvm.reachability.internal.index.modules;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Collections;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class ModuleEntry {
     private final String module;
     private final String moduleDirectory;
     private final List<String> requires;
 
-    @JsonCreator
-    public ModuleEntry(@JsonProperty("module") String module,
-                       @JsonProperty("directory") String moduleDirectory,
-                       @JsonProperty("requires") List<String> requires) {
+    public ModuleEntry(String module, String moduleDirectory, List<String> requires) {
         this.module = module;
         this.moduleDirectory = moduleDirectory;
         this.requires = requires == null ? Collections.emptyList() : requires;

@@ -40,18 +40,20 @@
  */
 package org.graalvm.reachability.internal.index.artifacts;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.internal.UncheckedIOException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -66,13 +68,13 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
 
     private Map<String, List<Artifact>> parseIndexFile(Path rootPath) {
         Path indexFile = rootPath.resolve("index.json");
-        ObjectMapper objectMapper = new ObjectMapper();
-        TypeFactory typeFactory = objectMapper.getTypeFactory();
-        try (BufferedReader reader = Files.newBufferedReader(indexFile)) {
-            List<Artifact> entries = objectMapper.readValue(
-                    reader,
-                    typeFactory.constructCollectionType(List.class, Artifact.class)
-            );
+        try {
+            String fileContent = Files.readString(indexFile);
+            JSONArray json = new JSONArray(fileContent);
+            List<Artifact> entries = new ArrayList<>();
+            for (int i = 0; i < json.length(); i++) {
+                entries.add(fromJson(json.getJSONObject(i)));
+            }
             return entries.stream()
                     .collect(Collectors.groupingBy(Artifact::getModule));
         } catch (IOException e) {
@@ -130,6 +132,26 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
                 .findFirst()
                 .map(artifact -> new DirectoryConfiguration(groupId, artifactId, version,
                         moduleRoot.resolve(artifact.getDirectory()), artifact.isOverride()));
+    }
+
+    private Artifact fromJson(JSONObject json) {
+        String module = json.optString("module", null);
+        Set<String> testVersions = readTestedVersions(json.optJSONArray("tested-versions"));
+        String directory = json.optString("metadata-version", null);
+        boolean latest = json.optBoolean("latest");
+        boolean override = json.optBoolean("override");
+        String defaultFor = json.optString("default-for", null);
+        return new Artifact(module, testVersions, directory, latest, override, defaultFor);
+    }
+
+    private Set<String> readTestedVersions(JSONArray array) {
+        Set<String> testVersions = new LinkedHashSet<>();
+        if (array != null) {
+            for (int i = 0; i < array.length(); i++) {
+                testVersions.add(array.getString(i));
+            }
+        }
+        return testVersions;
     }
 
 }
