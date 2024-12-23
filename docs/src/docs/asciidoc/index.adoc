@@ -1,7 +1,6 @@
 = Native Build Tools
 The GraalVM team
 
-
 The {doctitle} project provides plugins for various build tools, enabling support for building and testing native applications written in Java (or any other language compiled to JVM bytecode) using https://www.graalvm.org/reference-manual/native-image/[GraalVM  Native Image].
 Currently, you can build your native applications using our Gradle or Maven plugins.
 
@@ -15,13 +14,13 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 If you're new to the Native Build Tools, whether as an end user or a library author, check out our:
 
-- <<end-to-end-gradle-guide.adoc#,End-to-end Gradle guide>>
-- <<end-to-end-maven-guide.adoc#,End-to-end Maven guide>>
+- <<end-to-end-gradle-guide.adoc#,Building Native Images with Maven: An End-to-End Guide>>
+- <<end-to-end-maven-guide.adoc#,Building Native Images with Gradle: An End-to-End Guide>>
 
 For detailed documentation, see the corresponding page for each build tool:
 
-- <<gradle-plugin.adoc#,The Gradle plugin documentation>>
-- <<maven-plugin.adoc#,The Maven plugin documentation>>
+- <<gradle-plugin.adoc#,Gradle plugin documentation>>
+- <<maven-plugin.adoc#,Maven plugin documentation>>
 
 For updates to the Native Build Tools between releases, see the full changelog <<changelog.adoc#,here>>.
 

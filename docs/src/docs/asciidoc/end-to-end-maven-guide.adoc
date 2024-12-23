@@ -1,24 +1,22 @@
-= End-to-end Native Image Maven plugin guide
-OR 
-== Building Native Images with Maven: An End-to-End Guide
+= Building Native Images with Maven: An End-to-End Guide
 The GraalVM team
 :highlighjsdir: {maven-relative-srcdir}/highlight
 
 This guide walks you through integrating the Maven plugin for Native Image into your project.
 It starts from enabling the plugin, building the first native image, and running it.
 
-Then it takes you to more advanced use-cases such us applying optimizations, enabling monitoring features, and troubleshooting.
+Then it takes you to more advanced use-cases such as plugin's configuration, applying optimizations, running native tests, and troubleshooting.
 If you are an advanced user, you can skip the getting started part and go directly to the advanced section.
 
 [[getting-started]]
-== Getting started
-To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Maven, enable the Maven plugin for Native Image building. 
+== Getting Started
+To compile your application ahead of time with https://www.graalvm.org/reference-manual/native-image/[GraalVM Native Image] and Maven, enable the Maven plugin for Native Image building. 
 The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
 
-[[adding-plugin]]
-=== Add the plugin
+[[add-plugin]]
+=== Add the Plugin
 
-- Add the plugin declaration to your _pom.xml_:
+Add the plugin declaration to your _pom.xml_:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -75,136 +73,311 @@ For convenience, you can create a Maven profile and add the plugin into it:
 </profiles>
 ----
 
+Replace `{maven-plugin-version}` with the latest available plugin version.
 All plugin versions are listed https://github.com/graalvm/native-build-tools/releases[here].
 
-The plugin supports passing additional options to Native Image inside the `<configuration>` block.
-For example:
-[source,xml, role="multi-language-sample"]
-----
-<configuration>
-  <mainClass>org.example.Main</mainClass>
-  <imageName>example-app</imageName>
-  <buildArgs>
-      <buildArg>-Ob</buildArg> <!-- for optimized build use -O3 -->
-  </buildArgs>
-</configuration>
-----
-
-The `<imageName>` tag specifies a name for the native image, and `<mainClass>` provides the path to the application main class (the main entry point).
+The `<mainClass>` tag provides the path to the application main class (the main entry point).
 Adjust the path according to your application sources.
-Using `<buildArg>`, you can pass any other Native Image build option listed on [this page](https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/).
-In this example, the additional option `-Ob` enables quick build mode.
-Learn more in https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[Providing Build Configuration Options].
 
 [[run-your-project]]
-=== Build and run your project
+=== Build and Run Your Application
 
 Once you registered the plugin, you can use standard https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[Maven phases].
-If you added the plugin inside the `native` profile, you should run your commands with `-Pnative`.
+If you added the plugin inside the `native` profile, run your commands with the `-Pnative` option.
 
-1. Build a native executable of your application. 
+- Build a native executable of your application.
+This command will compile your application and create a native executable in the _target/_ directory.
+
 [source,bash, role="multi-language-sample"]
 ----
 mvn -Pnative package
 ----
 
-It creates a native executable in the _target/_ directory of the project.
-
-2. Run the application from the native executable:
+- Run the application from the native executable:
 [source,bash, role="multi-language-sample"]
 ----
-./target/yourName
+./target/myApp
 ----
 
-You can have multiple profiles, which is very convenient if you want to produce different versions of your native images for your application (optimized, non-optimized, and others).
-Continue reading below to learn more.
+You can have multiple profiles, which is very convenient if you want to produce different versions of your native images for your application (optimized, static, and others).
+Continue to advanced use cases to learn more.
 
 [[advanced-use-cases]]
-== Advanced Use Cases
+== Advanced Use Cases: How to
 
-For advanced users, the guide covers running tests on native code, configuring the build process, collecting metadata, enabling diagnostic tools for analyzing native images, troubleshooting, and other advanced topics.
-It also includes examples of tests using a demonstration application.
+For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configurations, and enabling diagnostic tools to analyze native images.
 
-# Run Junit tests
-# Gather execution profiles
-# Build an optimized native image
-# Collect metadata
-# Enable diagnostics tools
+[[configure-image-build]]
+=== Configure Native Image Build
 
-[[configuration-options]]
-=== Providing configuration options
+The plugin supports passing options directly to Native Image inside the `<configuration>` block.
+Using `<buildArg>`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this website page].
 
-You can provide configuring options to the native image inside `<configuration>` block specified inside the plugin block.
+The plugin also provides special tags to configure the build:
 
-You can pass the following options:
-
-* `<mainClass>` - If the execution fails with the no main manifest attribute, in target/<name>.jar error, the main class should be specified.
-* `<imageName>` - The name of the native image. If a custom image name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
-* `<debug>` - Determines if debug info should be generated (__false__ by default)
-* `<verbose>` - Add verbose output (__false__ by default)
-* `<quickBuild>` - Determines if image is being built in quick build mode
-* <<maven-plugin.adoc#native-image-options,and many more...>>
-You can also pass **build-time** options to the Native Image inside the following blocks:
+- `<environment>` - Sets the environment options
+- `<imageName>` - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
+- `<jvmArgs>` - Passes the given argument directly to the JVM running the `native-image` tool
+- `<quickBuild>` - Enables quick build mode
+- `<verbose>` - Enables the verbose output
+- and many more listed https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#configuration-options[here].
 
 Here is an example of additional options usage:
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <mainClass>org.example.Main</mainClass>
+  <imageName>myApp</imageName>
+  <quickBuild>true</quickBuild>
+  <verbose>true</verbose>
+  <buildArgs>
+      <buildArg>-O3</buildArg> <!-- enables additional compiler optimizations -->
+  </buildArgs>
+  <environment>
+      <variable1>value1</variable1>
+      <variable2>value2</variable2>
+  </environment>
+  <jvmArgs>
+      <arg>your-argument</arg>
+  </jvmArgs>
+</configuration>
+----
+
+[TIP]
+====
+As an alternative, you can pass additional build options via the `NATIVE_IMAGE_OPTIONS` environment variable, on the command line.
+This works similarly to `JAVA_TOOL_OPTIONS``, where the value of the environment variable is prefixed to the options supplied to `native-image`.
+====
+
+Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
+
+[[run-junit-tests]]
+=== Run Junit Tests
+
+This plugin supports running tests on the JUnit Platform.
+The tests are compiled ahead of time and executed as native code.
+
+- To execute tests, add one more `<execution>` to the plugin declaration:
+
+[source,xml, role="multi-language-sample"]
+----
+<execution>
+  <id>test-native</id>
+  <goals>
+    <goal>test</goal>
+  </goals>
+  <phase>test</phase>
+</execution>
+----
+
+- Add the JUnit 5 dependency to _pom.xml_ to include the testing framework. It will only be used during the `test` phase and not included in the final build artifact:
+
+[source,xml, role="multi-language-sample"]
+----
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.10.0</version>
+    <scope>test</scope>
+</dependency>
+----
+
+- Run the tests:
+[source,bash, role="multi-language-sample"]
+----
+mvn -Pnative test
+----
+
+The new execution you have just added, `test-native`, integrates with the Maven `test` phase.
+First, Maven runs the tests on the JVM, then compiles them ahead of time and executes them as native code.
+
+==== Disable tests
+
+If you wish to disable tests on the JVM as well as running native code tests, invoke Maven with the `-DskipTests` flag. 
+This flag is supported by the Maven Surefire plugin and Native Build Tools. 
+
+[source,bash, role="multi-language-sample"]
+----
+mvn -Pnative -DskipTests package
+----
+
+If you wish to run tests on the JVM with Maven Surefire, but skip running tests as native code, invoke Maven with the `-DskipNativeTests` flag.
+This flag is specific to Native Build Tools.
+
+[source,bash, role="multi-language-sample"]
+----
+mvn -Pnative -DskipNativeTests package
+----
+
+Alternatively, set `<skipNativeTests>` to `true` in the plugin configuration: 
 
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-    <mainClass>org.graalvm.demo.Application</mainClass>
-    <imageName>demoApp</imageName>
-    <quickBuild>true</quickBuild>
-    <debug>true</debug>
-    <verbose>true</verbose>
-
-    <buildArgs>
-        <buildArg>--emit build-report</buildArg>
-    </buildArgs>
+  <mainClass>org.example.Main</mainClass>
+  <skipNativeTests>true</skipNativeTests>
 </configuration>
 ----
 
-[[collect-metadata]]
-=== Collecting metadata with Tracing Agent
+This way you configure your Maven profile to skip generation and execution of tests as native code.
 
-When your application uses dynamic language features such as **reflection**, **resources**, **serialization**, **proxies** or **jni**, additional metadata may be required.
-The easiest way to collect missing metadata is with the Native Image Tracing Agent (link).
+[[gather-execution-profiles]]
+=== Gather Execution Profiles and Build Optimized Images
 
-To enable the agent you should add the following block:
+You may want to gather profiling information from your application's execution to pinpoint areas of inefficiency.
+With this profiling data, you can also build an optimized native image.
 
-[source,xml, role="multi-language-sample"]
-----
-<agent>
-    <enabled>true</enabled>
-</agent>
-----
-
-From that point on, commands you execute will have the Native Image agent attached.
-
-You can learn how to fine tune the agent <<maven-plugin.adoc#agent-support-configuring-options,here>>.
+The technique for building native images optimized on profiles is called https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/[Profile-Guided Optimization (PGO)].
+With PGO you can “train” your native application for specific workloads to improve performance and throughput.
+The PGO workflow includes three steps.
 
 [TIP]
 ====
-To enable the agent via the command line, supply the `-Dagent=true` flag when running Maven.
-For example, you can run the agent defined in your __native profile__ like this:
+PGO is available in Oracle GraalVM.
+====
+
+Step 1: **Build an instrumented native image** by passing the `--pgo-instrument` option to `native-image` using `<buildArg>`.
+To prevent overwriting a previously built native executable, we recommend either creating a separate Maven profile for each build or specifying a unique file name using the `<imageName>` tag.
+For example:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <mainClass>org.example.Main</mainClass>
+  <imageName>instrumentedApp</imageName>
+  <buildArgs>
+      <buildArg>--pgo-instrument</buildArg>
+  </buildArgs>
+</configuration>
+----
+
+Step 2: **Gather profiles** by running the instrumented executable.
+By default, the _default.iprof_ file, if not specified otherwise, is generated alongside the native executable.
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative -Dagent=true test
+./target/instrumentedApp
 ----
+
+Step 3. **Build an optimized native image with profiles** by passing the `--pgo` option.
+You may want to provide a different name for the native image or create another Maven profile to handle this configuration:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <mainClass>org.example.Main</mainClass>
+  <imageName>optimizedApp</imageName>
+  <buildArgs>
+      <buildArg>--pgo</buildArg>
+  </buildArgs>
+</configuration>
+----
+
+If the profile file has the default name and location, it will be automatically picked up. Alternatively, you can specify the file path as following: `--pgo=myprofile.iprof`.
+
+Once the optimized image is built, run it.
+The application's performance when running from this native executable should be comparable to, or even faster than, running on the JVM.
+Learn more about PGO https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage[on the website].
+
+[[troubleshoot-missing-configuration]]
+=== Troubleshoot Missing Configuration
+ 
+[[detect-missing-metadata]]
+==== Detect Missing Metadata
+
+Quite possibly, your application relies on external libraries.
+If your application uses a well-supported framework such as Spring or Micronaut, its dependencies should be compatible with Native Image.
+Frameworks and libraries that support Native Image by default provide configurations in the https://github.com/oracle/graalvm-reachability-metadata[GraalVM Reachability Metadata Repository]. 
+When you build a native image, Native Build Tools reference this repository to apply the required configuration automatically.
+
+[TIP]
+====
+You can find an extensive list of libraries and frameworks from the Java ecosystem tested with Native Image on https://www.graalvm.org/native-image/libraries-and-frameworks/[this page].
 ====
 
-[[metadata-copy]]
-=== Copy generated metadata to your source directory
+However, it may happen, that your native image crashes at run time with a missing class error.
+To address this, start by checking if any required configuration is missing.
 
-By default, generated metadata will be placed inside _target/native/agent-output_ directory.
-In many cases you may want to copy generated metadata to your _resources/META-INF_ directory.
-To do so, you can configure and run `metadataCopy` task.
+The best way to detect missing metadata is by running your native tests in a CI/CD pipeline.
+Alternatively, you can **identify missing configuration manually** using the following method.
 
-==== Configure metadataCopy task
+- Pass the `--exact-reachablity-metadata` option to the `native-image` tool in _pom.xml_, as shown below:
 
-First, you can configure `metadataCopy` task by adding a new block, named `metadataCopy` inside `agent` block that you added in the previous step.
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <mainClass>org.example.Main</mainClass>
+  <buildArgs>
+      <buildArg>--exact-reachablity-metadata</buildArg>
+  </buildArgs>
+</configuration>
+----
 
-Your `agent` block should look like this:
+- Rebuild the application with Maven:
+
+[source,bash, role="multi-language-sample"]
+----
+mvn -Pnative package
+----
+
+- Run the application from the native executable with the `-XX:MissingRegistrationReportingMode=Warn` option: 
+
+[source,bash, role="multi-language-sample"]
+----
+./target/yourApp -XX:MissingRegistrationReportingMode=Warn
+----
+
+- If there is any missing metadata printed to the console, **add it to the configuration file manually**, as described https://www.graalvm.org/reference-manual/native-image/metadata/#specifying-metadata-with-json[here], or **collect it automatically using the Tracing agent**.
+(See next.) 
+
+- Rebuild your native image and test again.
+
+[[collect-metadata]]
+==== Collect Metadata Automatically with Tracing Agent
+
+Your application may use dynamic Java features such as reflection, serialization, or resource loading.
+It is also possible that a framework your application relies on uses a library dependency incompatible with Native Image.
+In such cases, additional metadata is required.
+
+The easiest way to collect the missing metadata is by using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[Tracing Agent].
+This agent tracks all usages of dynamic features during application execution on the JVM and generates the necessary configuration.
+
+The agent is disabled by default.
+You can enable it on the command line or in _pom.xml_.
+
+To enable the agent via the command line, pass the `-Dagent=true` option when running Maven:
+
+[source,bash, role="multi-language-sample"]
+----
+mvn -Pnative -Dagent=true package
+----
+
+[TIP]
+====
+Enabling the agent via the command line only attaches it for a specific run; it does not automatically run every time you build the application.
+====
+
+To enable the agent in _pom.xml_ and collect missing metadata, do the following.
+
+Step 1: **Enable the agent** by setting `<agent>` to `true` in the `native` profile:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+    <mainClass>org.example.Main</mainClass>
+    <agent>
+        <enabled>true</enabled>
+    </agent>
+</configuration>
+----
+From that point on, commands you execute run with the agent attached.
+By default, the agent creates the metadata in the _target/native/agent-output_ directory.
+
+Step 2: **Copy the generated metadata** from the default location, _target/native/agent-output/_, to the resources directory, for example, _resources/META-INF/_.
+To do that with Maven, configure and run the `metadataCopy` task.
+
+Add a new task named `metadataCopy` inside the `agent` block that you added in step 1. 
+Your configuration should look like this:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -215,54 +388,67 @@ Your `agent` block should look like this:
             <stage>main</stage>
         </disabledStages>
         <merge>true</merge>
-        <outputDirectory>/tmp/test-output-dir</outputDirectory>
+        <outputDirectory>resources/META-INF/</outputDirectory>
     </metadataCopy>
 </agent>
 ----
 
-Inside this block, you can specify:
+In this block:
+ 
+- `<outputDirectory>` specifies location where you want to copy the generated metadata.
+- `<disableStages>` - you can disable metadata copy for a concrete Maven phase. In this you do not want the agent output from the `main` phase.
+- `<merge>` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists in the given location, or not. This only makes sense when there is already some existing metadata, created before.
 
-- `<outputDirectory>` - location where you want to copy the generated metadata
-- `<disableStages>` - in case you don't want the agent output from the `main` or `test` phases, you can disable metadata copy for the concrete phase.
-- `<merge>` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
-
-[[execute-metadata-copy-task]]
-==== Execute metadataCopy task
-
-Once the `metadataCopy` task is configured, you can run the agent to collect the metadata (in this case for your tests) and copy it on the other location with:
+Step 3: Now that the `metadataCopy` task is configured, **run the agent to collect the metadata and copy it to the other location** with:
 
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 mvn -Pnative test native:metadata-copy
 ----
 
-[[maintain-generated-metadata]]
-=== Maintain generated metadata
+Step 4: Finally, **build the native image with the metadata** and run:
+[source,bash, role="multi-language-sample"]
+----
+mvn -Pnative package
+----
 
-As your project develops, metadata files may need to be updated.
-The best way to detect missing metadata is to run your native tests in your CI/CD pipeline.
-When the native tests fail, due to missing metadata, you should:
+If your native image is successfully build, but fails at run time, check the troubleshooting guide https://www.graalvm.org/reference-manual/native-image/guides/troubleshoot-run-time-errors/[Troubleshoot Native Image Run-Time Errors].
 
-1. Set `merge` option to true in the `metadataCopy` block
-2. Run your tests again to generate new metadata (as we <<execute-metadata-copy-task, previously described>>)
-3. Verify the correctness of the produced metadata and commit it to your repository
+Learn more about how to fine-tune the agent further <<maven-plugin.adoc#agent-support-configuring-options,here>>.
 
-This way you will keep your original metadata, and add a new one.
+[[use-diagnostics-tools]]
+=== Use Diagnostics Tools
 
-[[reachability-metadata-repository]]
-=== Reachability metadata repository
+If you need to diagnose the native applications you generate, or monitor your Java application when launched from a native executable, Native Image offers tools for debugging and analyzing the produced binary.
+For example:
 
-While we have described how you can add metadata for your own code, Native Build Tools (both Gradle and Maven plugins) makes use of metadata from Reachability Metadata Repository to ensure your application works out-of-box with 3rd party libraries that you depend on.
-You can configure Reachability metadata support through `metadataRepository` block added to our main plugins' `configuration` block inside `pom.xml`.
-Most common options you may want to configure in this block are:
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+    <mainClass>org.example.Main</mainClass>
+    <debug>true</debug>
+    <buildArgs>
+        <buildArg>--emit build-report</buildArg>
+        <buildArg>--enable-monitoring=jfr</buildArg>
+    </buildArgs>
+</configuration>
+----
 
-* `<enabled>` - determines if you want to use Reachability metadata support or not (`true` by default)
-* `<version>` - specifies exact Reachability metadata version you want to use
+- The `--emit build-report` option generates an HTML page report alongside the native executable that you can open in a browser.
+It provides broad information about each build stage as well as the generated binary’s contents. You can read more about Build Report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
 
-You can read more about __Reachability metadata support__ and other (advanced) configuring options, https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#_configuring_the_metadata_repository[here].
+[TIP]
+====
+Build Report is available in Oracle GraalVM.
+When running on GraalVM for JDK 21, pass the `-H:+BuildReport` option instead to generate a build report.
+====
 
-[[track-diagnostics]]
-=== Using diagnostics
+- The `--enable-monitoring=jfr` instructs the plugin to https://www.graalvm.org/reference-manual/native-image/guides/build-and-run-native-executable-with-jfr/[build a native executable with the JDK Flight Recorder (JFR) support]. 
 
-If you want to explore details about native images you are generating, check our https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[build reports].
-You can pass those options as standard build arguments in your `<configuration>` block.
+- The `<debug>` option generates a native executable with debug information for https://www.graalvm.org/reference-manual/native-image/guides/debug-native-image-process/[source-level debugging with the GNU Debugger (GDB)].
+
+All the monitoring and debugging tools https://www.graalvm.org/reference-manual/native-image/debugging-and-diagnostics/[listed on the website], can be enabled in the plugin configuration using `<buildArgs>`.
+
+=== Learn more
+
+To continue learning, refer to the <<changelog.adoc#,extensive reference documentation for the GraalVM Native Image Maven plugin>>.
