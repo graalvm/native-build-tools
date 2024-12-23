@@ -61,7 +61,7 @@ maven {
 
 dependencies {
     implementation(libs.utils)
-    implementation(libs.jackson.databind)
+    implementation(libs.openjson)
     implementation(libs.jvmReachabilityMetadata)
     implementation(libs.plexus.utils)
     implementation(libs.plexus.xml)

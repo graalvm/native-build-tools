@@ -40,14 +40,14 @@
  */
 package org.graalvm.reachability.internal.index.modules;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 import org.graalvm.reachability.internal.UncheckedIOException;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -68,13 +68,13 @@ public class JsonModuleToConfigDirectoryIndex implements ModuleToConfigDirectory
 
     private Map<String, Set<Path>> parseIndexFile(Path rootPath) {
         Path indexFile = rootPath.resolve("index.json");
-        ObjectMapper objectMapper = new ObjectMapper();
-        TypeFactory typeFactory = objectMapper.getTypeFactory();
-        try (BufferedReader reader = Files.newBufferedReader(indexFile)) {
-            List<ModuleEntry> entries = objectMapper.readValue(
-                    reader,
-                    typeFactory.constructCollectionType(List.class, ModuleEntry.class)
-            );
+        try {
+            String fileContent = Files.readString(indexFile);
+            JSONArray json = new JSONArray(fileContent);
+            List<ModuleEntry> entries = new ArrayList<>();
+            for (int i = 0; i < json.length(); i++) {
+                entries.add(fromJson(json.getJSONObject(i)));
+            }
             Map<String, List<ModuleEntry>> moduleToEntries = entries.stream()
                     .collect(Collectors.groupingBy(ModuleEntry::getModule));
             Map<String, Set<Path>> index = new HashMap<>(moduleToEntries.size());
@@ -102,6 +102,23 @@ public class JsonModuleToConfigDirectoryIndex implements ModuleToConfigDirectory
             throw new UncheckedIOException(e);
         }
 
+    }
+
+    private ModuleEntry fromJson(JSONObject json) {
+        String module = json.optString("module", null);
+        String moduleDirectory = json.optString("directory", null);
+        List<String> requires = readRequires(json.optJSONArray("requires"));
+        return new ModuleEntry(module, moduleDirectory, requires);
+    }
+
+    private List<String> readRequires(JSONArray array) {
+        List<String> requires = new ArrayList<>();
+        if (array != null) {
+            for (int i = 0; i < array.length(); i++) {
+                requires.add(array.getString(i));
+            }
+        }
+        return requires;
     }
 
     /**
