@@ -52,7 +52,7 @@ import java.nio.charset.StandardCharsets;
 public class ResourcesConfigModelSerializer {
     public static void serialize(ResourcesConfigModel model,  File outputFile) throws IOException {
         JSONObject json = toJson(model);
-        String pretty = json.toString(4);
+        String pretty = json.toString(2);
         File outputDir = outputFile.getParentFile();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
@@ -73,11 +73,17 @@ public class ResourcesConfigModelSerializer {
     private static JSONObject toJson(ResourcesModel model) {
         JSONObject json = new JSONObject();
         JSONArray includes = new JSONArray();
-        model.getIncludes().forEach(includes::put);
+        model.getIncludes().forEach(patternValue -> includes.put(toJson(patternValue)));
         json.put("includes", includes);
         JSONArray excludes = new JSONArray();
-        model.getExcludes().forEach(excludes::put);
+        model.getExcludes().forEach(patternValue -> excludes.put(toJson(patternValue)));
         json.put("excludes", excludes);
+        return json;
+    }
+
+    private static JSONObject toJson(PatternValue patternValue) {
+        JSONObject json = new JSONObject();
+        json.put("pattern", patternValue.getPattern());
         return json;
     }
 

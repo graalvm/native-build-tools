@@ -78,13 +78,15 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest 
 
         and:
         matches(file("build/native/generated/generateResourcesConfigFile/resource-config.json").text, '''{
-  "resources" : {
-    "includes" : [ {
-      "pattern" : "\\\\Qmessage.txt\\\\E"
-    } ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\\\Qmessage.txt\\\\E"
+      }
+    ],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }''')
 
         where:
@@ -152,15 +154,18 @@ graalvmNative {
 
         and:
         matches(file("build/native/generated/generateTestResourcesConfigFile/resource-config.json").text, '''{
-  "resources" : {
-    "includes" : [ {
-      "pattern" : "\\\\Qmessage.txt\\\\E"
-    }, {
-      "pattern" : "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
-    } ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\\\Qmessage.txt\\\\E"
+      },
+      {
+        "pattern": "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
+      }
+    ],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }''')
 
         where:
@@ -205,11 +210,11 @@ graalvmNative {
         resourcesFile.parentFile.mkdirs()
         resourcesFile << """
 {
-  "resources" : {
-    "includes" : [ ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }
         """
 
@@ -243,13 +248,15 @@ graalvmNative {
 
         and:
         matches(file("build/native/generated/generateResourcesConfigFile/resource-config.json").text, '''{
-  "resources" : {
-    "includes" : [ {
-      "pattern" : "\\\\Qmessage.txt\\\\E"
-    } ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\\\Qmessage.txt\\\\E"
+      }
+    ],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }''')
 
         when:
