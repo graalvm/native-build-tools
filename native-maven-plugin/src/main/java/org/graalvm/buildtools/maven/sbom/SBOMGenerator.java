@@ -252,7 +252,7 @@ public final class SBOMGenerator {
         }
 
         /* Save the augmented SBOM back to the file */
-        Files.writeString(baseSBOMPath, sbomJson.toString(4));
+        Files.writeString(baseSBOMPath, sbomJson.toString(2));
     }
 
     /**
