@@ -43,65 +43,6 @@ jobs:
         id: set-matrix
         run: ./gradlew -PmatrixType=gradle :native-gradle-plugin:dumpFunctionalTestList
 
-  test-native-gradle-plugin:
-    name: "Sanity checks"
-    runs-on: "ubuntu-20.04"
-    timeout-minutes: 50
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [ 17 ]
-        os: [ ubuntu-20.04 ]
-    steps:
-      - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
-      - name: "🔧 Prepare environment"
-        uses: ./.github/actions/prepare-environment
-        with:
-          java-version: ${{ matrix.java-version }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "❓ Unit tests and inspections"
-        run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
-      - name: "📜 Upload unit test results"
-        uses: actions/upload-artifact@v3
-        with:
-          name: unit-tests-results
-          path: native-gradle-plugin/build/reports/tests/test/
-
-  functional-testing-gradle-plugin-dev:
-    name: "Functional testing (GraalVM Dev Build)"
-    runs-on: ${{ matrix.os }}
-    env:
-      IS_GRAALVM_DEV_BUILD: 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [ 17 ]
-        os: [ ubuntu-20.04 ]
-    steps:
-      - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
-      - name: "🔧 Prepare environment"
-        uses: ./.github/actions/prepare-environment
-        with:
-          java-version: ${{ matrix.java-version }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: "🔧 Install GraalVM (dev)"
-        uses: graalvm/setup-graalvm@main
-        with:
-          java-version: 'dev'
-          distribution: 'graalvm'
-          github-token: ${{ inputs.github-token }}
-          set-java-home: 'false'
-      - name: "❓ Check and test the plugin"
-        run: ./gradlew :native-gradle-plugin:functionalTest
-      - name: "📜 Upload functional tests results"
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: functional-tests-results-graalvm-dev
-          path: native-gradle-plugin/build/reports/tests/functionalTest/
-
   functional-testing-gradle-plugin:
     name: "🧪 Gradle: ${{ matrix.test }} on ${{ matrix.os }} with gradle version: ${{ matrix.gradle-version }}"
     runs-on: ${{ matrix.os }}
@@ -170,4 +111,63 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: functional-tests-results-${{ matrix.gradle-config-cache-version }}
+          path: native-gradle-plugin/build/reports/tests/functionalTest/
+
+  test-native-gradle-plugin:
+    name: "Sanity checks"
+    runs-on: "ubuntu-20.04"
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [ 17 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Unit tests and inspections"
+        run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
+      - name: "📜 Upload unit test results"
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-tests-results
+          path: native-gradle-plugin/build/reports/tests/test/
+
+  functional-testing-gradle-plugin-dev:
+    name: "Functional testing (GraalVM Dev Build)"
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_GRAALVM_DEV_BUILD: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [ 17 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "🔧 Install GraalVM (dev)"
+        uses: graalvm/setup-graalvm@main
+        with:
+          java-version: 'dev'
+          distribution: 'graalvm'
+          github-token: ${{ inputs.github-token }}
+          set-java-home: 'false'
+      - name: "❓ Check and test the plugin"
+        run: ./gradlew :native-gradle-plugin:functionalTest
+      - name: "📜 Upload functional tests results"
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: functional-tests-results-graalvm-dev
           path: native-gradle-plugin/build/reports/tests/functionalTest/

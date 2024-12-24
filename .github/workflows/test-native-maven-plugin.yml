@@ -68,3 +68,37 @@ jobs:
         with:
           name: maven-functional-tests-results-${{ matrix.os }}
           path: native-maven-plugin/build/reports/tests/
+
+  functional-testing-maven-plugin-dev:
+    name: "Functional testing (GraalVM Dev Build)"
+    runs-on: ${{ matrix.os }}
+    env:
+      IS_GRAALVM_DEV_BUILD: 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [ 17 ]
+        os: [ ubuntu-20.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "🔧 Install GraalVM (dev)"
+        uses: graalvm/setup-graalvm@main
+        with:
+          java-version: 'dev'
+          distribution: 'graalvm'
+          github-token: ${{ inputs.github-token }}
+          set-java-home: 'false'
+      - name: "❓ Check and test the plugin"
+        run: ./gradlew :native-maven-plugin:functionalTest
+      - name: "📜 Upload functional tests results"
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: functional-tests-results-graalvm-dev
+          path: native-maven-plugin/build/reports/tests/functionalTest/
