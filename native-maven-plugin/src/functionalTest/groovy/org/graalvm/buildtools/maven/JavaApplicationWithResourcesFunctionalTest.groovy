@@ -32,11 +32,11 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         resourcesFile.parentFile.mkdirs()
         resourcesFile << """
 {
-  "resources" : {
-    "includes" : [ ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }
         """
 
@@ -49,21 +49,23 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         and:
         if (ignoreExistingResourcesConfig) {
             matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
-  "resources" : {
-    "includes" : [ {
-      "pattern" : "\\\\Qmessage.txt\\\\E"
-    } ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [
+      {
+        "pattern" : "\\\\Qmessage.txt\\\\E"
+      }
+    ],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }''')
         } else {
             matches(file("target/native/generated/generateResourceConfig/resource-config.json").text, '''{
-  "resources" : {
-    "includes" : [ ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }''')
         }
 
@@ -102,15 +104,18 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
 
         and:
         matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, '''{
-  "resources" : {
-    "includes" : [ {
-      "pattern" : "\\\\Qmessage.txt\\\\E"
-    }, {
-      "pattern" : "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
-    } ],
-    "excludes" : [ ]
+  "resources": {
+    "includes": [
+      {
+        "pattern": "\\\\Qmessage.txt\\\\E"
+      },
+      {
+        "pattern": "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
+      }
+    ],
+    "excludes": []
   },
-  "bundles" : [ ]
+  "bundles": []
 }''')
 
         where:
