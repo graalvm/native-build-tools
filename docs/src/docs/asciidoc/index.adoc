@@ -14,8 +14,8 @@ If you are using alternative build systems, see <<alternative-build-systems.adoc
 
 If you're new to the Native Build Tools, whether as an end user or a library author, check out our:
 
-- <<end-to-end-gradle-guide.adoc#,Building Native Images with Maven: An End-to-End Guide>>
-- <<end-to-end-maven-guide.adoc#,Building Native Images with Gradle: An End-to-End Guide>>
+- <<end-to-end-gradle-guide.adoc#,Building Native Images with Gradle: An End-to-End Guide>>
+- <<end-to-end-maven-guide.adoc#,Building Native Images with Maven: An End-to-End Guide>>
 
 For detailed documentation, see the corresponding page for each build tool:
 
