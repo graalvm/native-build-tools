@@ -97,7 +97,7 @@ Here is an example of additional options usage:
 graalvmNative {
     binaries.all {
         // common options
-        jvmArgs.add('flag')
+        verbose = true
     }
     binaries.main {
         // options to configure the main binary
@@ -109,7 +109,6 @@ graalvmNative {
         // options to configure the test binary
         quickBuild = true
         debug = true
-        verbose = true
     }
 }
 ----
@@ -119,7 +118,7 @@ graalvmNative {
 graalvmNative {
     binaries.all {
         // common options
-        buildArgs.add('--emit build-report')
+        verbose.set(true)
     }
 
     binaries.main {
@@ -133,7 +132,6 @@ graalvmNative {
         // options to configure the test binary
         quickBuild.set(true)
         debug.set(true)
-        verbose.set(true)
     }
 }
 ----
@@ -175,8 +173,7 @@ testImplementation('junit:junit:4.13.2')
 ./gradlew nativeTest
 ----
 
-First, the tests run on the JVM.
-Then, they are compiled ahead of time and executed as native code.
+The tests are compiled ahead of time and executed as native code.
 
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
@@ -207,7 +204,7 @@ By default, the _default.iprof_ file, if not specified otherwise, is generated a
 
 [source,bash, role="multi-language-sample"]
 ----
-./build/native/nativeCompile/my-application-instrumented
+./build/native/nativeCompile/application-instrumented
 ----
 
 Step 3. **Build an optimized native image with profiles**.
@@ -251,13 +248,13 @@ To address this, start by checking if any required configuration is missing.
 The best way to detect missing metadata is by running your native tests.
 Alternatively, you can **identify missing configuration manually** using the following method.
 
-- Pass the `--exact-reachablity-metadata` option to the `native-image` tool inside `graalvmNative` block of your _build.gradle_, as shown below:
+- Pass the `--exact-reachability-metadata` option to the `native-image` tool inside `graalvmNative` block of your _build.gradle_, as shown below:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
     binaries.all {
-        buildArgs.add('--exact-reachablity-metadata')
+        buildArgs.add('--exact-reachability-metadata')
         runtimeArgs.add('-XX:MissingRegistrationReportingMode=Warn')
     }
 }
@@ -267,7 +264,7 @@ graalvmNative {
 ----
 graalvmNative {
     binaries.all {
-        buildArgs.add('--exact-reachablity-metadata')
+        buildArgs.add('--exact-reachability-metadata')
         runtimeArgs.add('-XX:MissingRegistrationReportingMode=Warn')
     }
 }
@@ -317,10 +314,8 @@ Step 1: **Enable the agent** by setting `agent` to `true` in the `graalvmNative`
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
-    binaries.all {
-        agent {
-            enabled = true
-        }
+    agent {
+        enabled = true
     }
 }
 ----
@@ -328,10 +323,8 @@ graalvmNative {
 [source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
-    binaries.all {
-        agent {
-            enabled.set(true)
-        }
+    agent {
+        enabled.set(true)
     }
 }
 ----

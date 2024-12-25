@@ -303,14 +303,14 @@ To address this, start by checking if any required configuration is missing.
 The best way to detect missing metadata is by running your native tests.
 Alternatively, you can **identify missing configuration manually** using the following method.
 
-- Pass the `--exact-reachablity-metadata` option to the `native-image` tool in _pom.xml_, as shown below:
+- Pass the `--exact-reachability-metadata` option to the `native-image` tool in _pom.xml_, as shown below:
 
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
   <mainClass>org.example.Main</mainClass>
   <buildArgs>
-      <buildArg>--exact-reachablity-metadata</buildArg>
+      <buildArg>--exact-reachability-metadata</buildArg>
   </buildArgs>
 </configuration>
 ----
