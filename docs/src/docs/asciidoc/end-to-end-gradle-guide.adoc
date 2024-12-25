@@ -13,10 +13,15 @@ If you are an advanced user, you can skip the getting started part and go direct
 To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Gradle, enable the Gradle plugin for Native Image building.
 The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
 
+[TIP]
+====
+A JDK version between 17 and 21 is required to execute Gradle (see the https://docs.gradle.org/current/userguide/compatibility.html[Gradle Compatibility Matrix]).
+====
+
 [[add-plugin]]
 === Add the Plugin
 
-- Add the plugin declaration into your _build.gradle_ file inside `plugins` block:
+- Add the plugin declaration to your _build.gradle_ / _build.gradle.kts_ file inside the `plugins` block:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -28,13 +33,27 @@ The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM]
   id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
 ----
 
-All plugin versions are listed https://github.com/graalvm/native-build-tools/releases[here]
+Replace `{maven-plugin-version}` with the latest released version.
+All plugin versions are listed https://github.com/graalvm/native-build-tools/releases[here].
+
+
+- Provide the application main class in _build.gradle_ / _build.gradle.kts_ as shown below.
+Adjust the path according to your application sources.
+
+[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
+----
+application {
+    mainClass.set('org.example.Main')
+}
+----
 
 [[run-your-project]]
-=== Build and run your project
+=== Build and Run Your Application
+
+This plugin works with the `application` plugin and registers a number of tasks and extensions for you to configure.
 
 - Build a native executable of your application.
-This command will compile your application and create a native executable in the _build/native/nativeCompile/_ directory.
+This command will compile your application and create a native executable in the _build/native/nativeCompile/_ directory:
 
 [source,bash,role="multi-language-sample"]
 ----
@@ -58,34 +77,18 @@ For advanced use cases, this guide provides instructions for configuring the bui
 [[configure-image-build]]
 === Configure Native Image Build
 
-The plugin supports passing options directly to Native Image inside the `graalvmNative` block inside _build.gradle_ file.
-You can apply configuring options specific to the main or the test binary (or you can provide options that applies to all binaries) like following:
-
-[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
-----
-graalvmNative {
-    binaries.all {
-        // common options you want to use for both main and test binaries
-    }
-    binaries.main {
-        // options you want to pass only to the main binary
-    }
-    binaries.test {
-        // options you want to pass only to the test binary
-    }
-}
-----
-
+The plugin supports passing options directly to Native Image inside the `graalvmNative` block in the _build.gradle_ / _build.gradle.kts_ file.
 Using `buildArgs.add("<option>")`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this website page].
+You can pass options to configure the `main` or the `test` native binary, or both at the same time.
 
 The plugin also provides special properties to configure the build:
 
-- `mainClass` - The main class to use, defaults to the application.mainClass
+- `mainClass` - Provides the main class to use, defaults to the `application.mainClass`
 - `imageName` - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
 - `jvmArgs` - Passes the given argument directly to the JVM running the `native-image` tool
 - `quickBuild` - Enables quick build mode
 - `verbose` - Enables the verbose output
-- <<gradle-plugin.adoc#native-image-options,and many more...>>
+- and many more https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#_native_image_options[listed here].
 
 Here is an example of additional options usage:
 
@@ -93,17 +96,17 @@ Here is an example of additional options usage:
 ----
 graalvmNative {
     binaries.all {
-        buildArgs.add('--emit build-report')
+        // common options
+        jvmArgs.add('flag')
     }
-
     binaries.main {
+        // options to configure the main binary
         imageName = 'application'
         mainClass = 'org.test.Main'
-
-        buildArgs.add('-O3')
+        buildArgs.add('-O3') // enables additional compiler optimizations
     }
-
     binaries.test {
+        // options to configure the test binary
         quickBuild = true
         debug = true
         verbose = true
@@ -115,17 +118,19 @@ graalvmNative {
 ----
 graalvmNative {
     binaries.all {
+        // common options
         buildArgs.add('--emit build-report')
     }
 
     binaries.main {
+        // options to configure the main binary
         imageName.set('application')
         mainClass.set('org.test.Main')
-
-        buildArgs.add('-O3')
+        buildArgs.add('-O3')  // enables additional compiler optimizations
     }
 
     binaries.test {
+        // options to configure the test binary
         quickBuild.set(true)
         debug.set(true)
         verbose.set(true)
@@ -136,7 +141,7 @@ graalvmNative {
 [TIP]
 ====
 As an alternative, you can pass additional build options via the `NATIVE_IMAGE_OPTIONS` environment variable, on the command line.
-This works similarly to `JAVA_TOOL_OPTIONS``, where the value of the environment variable is prefixed to the options supplied to `native-image`.
+This works similarly to `JAVA_TOOL_OPTIONS`, where the value of the environment variable is prefixed to the options supplied to `native-image`.
 ====
 
 Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
@@ -147,7 +152,7 @@ Learn more about Native Image build configuration https://www.graalvm.org/refere
 This plugin supports running tests on the JUnit Platform.
 The tests are compiled ahead of time and executed as native code.
 
-- Add the JUnit 5 dependency to _build.gradle_ to include the testing framework. For example:
+- Add the JUnit 5 dependency to _build.gradle_ / _build.gradle.kts_ to include the testing framework:
 
 [source,groovy,role="multi-language-sample"]
 ----
@@ -170,6 +175,9 @@ testImplementation('junit:junit:4.13.2')
 ./gradlew nativeTest
 ----
 
+First, the tests run on the JVM.
+Then, they are compiled ahead of time and executed as native code.
+
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
 
@@ -185,35 +193,33 @@ The PGO workflow includes three steps.
 PGO is available in Oracle GraalVM.
 ====
 
-Step 1: **Build an instrumented native image** by passing the `--pgo-instrument` option the compile command:
+Step 1: **Build an instrumented native image** by passing the `--pgo-instrument` option directly to the compile command:
 
 [source,bash, role="multi-language-sample"]
 ----
 ./gradlew nativeCompile --pgo-instrument
 ----
 
-This will generate a binary under _build/native/nativeCompile_ with the _-instrumented_ suffix.
+This generates a native executable under _build/native/nativeCompile_ with the _-instrumented_ suffix.
 
 Step 2: **Gather profiles** by running the instrumented executable.
 By default, the _default.iprof_ file, if not specified otherwise, is generated alongside the native executable.
 
 [source,bash, role="multi-language-sample"]
 ----
-cd build/native/nativeCompile/
-./my-application-instrumented`
+./build/native/nativeCompile/my-application-instrumented
 ----
 
-Step 3. **Build an optimized native image with profiles**. The last phase consists in copying the generated profile, so that it’s automatically used when building the native binary.
-The conventional location for profiles is `src/pgo-profiles/<name of the binary>` (main or test).
-Copy the default.iprof file into that directory, then run:
+Step 3. **Build an optimized native image with profiles**.
+This step involves copying the generated profile to the conventional directory, ensuring it is automatically used during the build process.
+Place the _default.iprof_ file in the _src/pgo-profiles/_ directory, and then run:
 
 [source,bash, role="multi-language-sample"]
 ----
 ./gradlew nativeCompile
 ----
 
-The profile will automatically be used and the binary compiled with PGO
-After that, you can run your optimized executable with:
+Once the optimized image is built, run it:
 
 [source,bash, role="multi-language-sample"]
 ----
@@ -239,10 +245,10 @@ When you build a native image, Native Build Tools reference this repository to a
 You can find an extensive list of libraries and frameworks from the Java ecosystem tested with Native Image on https://www.graalvm.org/native-image/libraries-and-frameworks/[this page].
 ====
 
-However, it may happen, that your native image crashes at run time with a missing class or missing resource error.
+However, it may happen, that your native image crashes at run time with a missing class or resource.
 To address this, start by checking if any required configuration is missing.
 
-The best way to detect missing metadata is by running your native tests in a CI/CD pipeline.
+The best way to detect missing metadata is by running your native tests.
 Alternatively, you can **identify missing configuration manually** using the following method.
 
 - Pass the `--exact-reachablity-metadata` option to the `native-image` tool inside `graalvmNative` block of your _build.gradle_, as shown below:
@@ -267,7 +273,7 @@ graalvmNative {
 }
 ----
 
-- Rerun the application with Gradle:
+- Rebuild and re-run the application:
 
 [source,bash, role="multi-language-sample"]
 ----
@@ -290,7 +296,7 @@ The easiest way to collect the missing metadata is by using the https://www.graa
 This agent tracks all usages of dynamic features during application execution on the JVM and generates the necessary configuration.
 
 The agent is disabled by default.
-You can enable it on the command line or inside `graalvmNative` block of your _build.gradle_.
+You can enable it on the command line or inside the `graalvmNative` block in _build.gradle_ / _build.gradle.kts_.
 
 To enable the agent via the command line, pass the `-Pagent` option when running Gradle:
 
@@ -304,15 +310,17 @@ To enable the agent via the command line, pass the `-Pagent` option when running
 Enabling the agent via the command line only attaches it for a specific run; it does not automatically run every time you build the application.
 ====
 
-To enable the agent in _build.gradle_ and collect missing metadata, do the following.
+To enable the agent inside the build configuration and collect missing metadata, do the following.
 
 Step 1: **Enable the agent** by setting `agent` to `true` in the `graalvmNative` block:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
-    agent {
-        enabled = true
+    binaries.all {
+        agent {
+            enabled = true
+        }
     }
 }
 ----
@@ -320,20 +328,22 @@ graalvmNative {
 [source,kotlin,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 graalvmNative {
-    agent {
-        enabled.set(true)
+    binaries.all {
+        agent {
+            enabled.set(true)
+        }
     }
 }
 ----
 
-From that point on, commands you execute run with the agent attached.
+From that point on, commands you execute will run with the agent attached.
 By default, the agent creates the metadata in the _build/native/agent-output_ directory.
 
 Step 2: **Copy the generated metadata** from the default location, _build/native/agent-output_, to the resources directory, for example, _resources/META-INF/_.
 To do that with Gradle, configure and run the `metadataCopy` task.
 
 Add a new task named `metadataCopy` inside the `graalvmNative` block.
-Your configuration should look like this:
+Your `agent` configuration should look like this:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -361,27 +371,39 @@ agent {
 
 In this block:
 
-- `inputTaskNames` - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step).
-- `outputDirectories` - location where you want to copy the generated metadata
-- `mergeWithExisting` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
+- `inputTaskNames` - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step)
+- `outputDirectories` - specifies the location where you want to copy the generated metadata
+- `mergeWithExisting` - specifies whether the metadata you want to copy should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
 
-Step 3: Now that the `metadataCopy` task is configured, **run the metadataCopy task** with:
+Step 3: Now that the `metadataCopy` task is configured, **run the metadataCopy task**:
 
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 ./gradlew metadataCopy
 ----
 
-Step 4: Finally, when you build the native image again, with `./gradlew nativeRun`, metadata will be picked automatically from the resources directory.
+Step 4: Finally, **build the native image with the metadata**:
 
-If your native image is successfully build, but fails at run time, check the troubleshooting guide https://www.graalvm.org/reference-manual/native-image/guides/troubleshoot-run-time-errors/[Troubleshoot Native Image Run-Time Errors].
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeCompile
+----
+
+Run it:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeRun
+----
+
+If your native image is successfully build, but still fails at run time, check the troubleshooting guide https://www.graalvm.org/reference-manual/native-image/guides/troubleshoot-run-time-errors/[Troubleshoot Native Image Run-Time Errors].
 
 Learn more about how to fine-tune the agent further <<gradle-plugin.adoc#native-image-tracing-agent,here>>.
 
 [[use-diagnostics-tools]]
 === Use Diagnostics Tools
 
-If you need to diagnose the native applications you generate, or monitor your Java application when launched from a native executable, Native Image offers tools for debugging and analyzing the produced binary.
+If you need to diagnose the native applications you build, or monitor your Java application when launched from a native executable, Native Image offers tools for debugging and analyzing the produced binary.
 For example:
 
 [source,groovy, role="multi-language-sample"]
@@ -407,7 +429,8 @@ graalvmNative {
 ----
 
 - The `--emit build-report` option generates an HTML page report alongside the native executable that you can open in a browser.
-It provides broad information about each build stage as well as the generated binary’s contents. You can read more about Build Report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
+It provides broad information about each build stage as well as the generated binary’s contents.
+You can read more about Build Report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
 
 [TIP]
 ====
@@ -423,4 +446,4 @@ All the monitoring and debugging tools https://www.graalvm.org/reference-manual/
 
 === Learn more
 
-To continue learning, refer to the <<changelog.adoc#,extensive reference documentation for the GraalVM Native Image Maven plugin>>.
+To continue learning, refer to the <<changelog.adoc#,extensive reference documentation for the GraalVM Native Image Gradle plugin>>.
