@@ -102,7 +102,7 @@ graalvmNative {
     binaries.main {
         // options to configure the main binary
         imageName = 'application'
-        mainClass = 'org.test.Main'
+        mainClass = 'org.example.Main'
         buildArgs.add('-O3') // enables additional compiler optimizations
     }
     binaries.test {
@@ -120,11 +120,10 @@ graalvmNative {
         // common options
         verbose.set(true)
     }
-
     binaries.main {
         // options to configure the main binary
         imageName.set('application')
-        mainClass.set('org.test.Main')
+        mainClass.set('org.example.Main')
         buildArgs.add('-O3')  // enables additional compiler optimizations
     }
 
@@ -299,7 +298,7 @@ To enable the agent via the command line, pass the `-Pagent` option when running
 
 [source,bash, role="multi-language-sample"]
 ----
-./gradlew -Pagent nativeRun
+./gradlew -Pagent run
 ----
 
 [TIP]
@@ -329,10 +328,12 @@ graalvmNative {
 }
 ----
 
-From that point on, commands you execute will run with the agent attached.
+From that point on, commands like `run` or `test` will be executed with the agent attached.
 By default, the agent creates the metadata in the _build/native/agent-output_ directory.
 
-Step 2: **Copy the generated metadata** from the default location, _build/native/agent-output_, to the resources directory, for example, _resources/META-INF/_.
+Step 2: **Copy the generated metadata** from the default location, _build/native/agent-output_, to the resources directory, for example, _resources/META-INF/native-image_.
+Native Image automatically takes metadata from that location.
+
 To do that with Gradle, configure and run the `metadataCopy` task.
 
 Add a new task named `metadataCopy` inside the `graalvmNative` block.
@@ -343,8 +344,8 @@ Your `agent` configuration should look like this:
 agent {
     enabled = true
     metadataCopy {
-        inputTaskNames.add("test")
-        outputDirectories.add("src/test/resources/META-INF/native-image/org.example")
+        inputTaskNames.add("run")
+        outputDirectories.add("src/main/resources/META-INF/native-image/org.example")
         mergeWithExisting = true
     }
 }
@@ -355,8 +356,8 @@ agent {
 agent {
     enabled.set(true)
     metadataCopy {
-        inputTaskNames.add("test")
-        outputDirectories.add("resources/META-INF/native-image/org.example")
+        inputTaskNames.add("run")
+        outputDirectories.add("src/main/resources/META-INF/native-image/org.example")
         mergeWithExisting.set(true)
     }
 }
