@@ -13,7 +13,7 @@ If you are an advanced user, you can skip the getting started part and go direct
 To compile your application ahead of time with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image] and Gradle, enable the Gradle plugin for Native Image building.
 The plugin requires that you https://www.graalvm.org/downloads/[install GraalVM].
 
-[TIP]
+[NOTE]
 ====
 A JDK version between 17 and 21 is required to execute Gradle (see the https://docs.gradle.org/current/userguide/compatibility.html[Gradle Compatibility Matrix]).
 ====
@@ -184,7 +184,7 @@ The technique for building native images optimized on profiles is called https:/
 With PGO you can “train” your native application for specific workloads to improve performance and throughput.
 The PGO workflow includes three steps.
 
-[TIP]
+[NOTE]
 ====
 PGO is available in Oracle GraalVM.
 ====
@@ -269,6 +269,11 @@ graalvmNative {
 }
 ----
 
+[NOTE]
+====
+The `--exact-reachability-metadata` option was introduced in GraalVM for JDK 23. With older versions, use `-H:ThrowMissingRegistrationErrors=` instead.
+====
+
 - Rebuild and re-run the application:
 
 [source,bash, role="multi-language-sample"]
@@ -288,7 +293,7 @@ Your application may use dynamic Java features such as reflection, serialization
 It is also possible that a framework your application relies on uses a library dependency incompatible with Native Image.
 In such cases, additional metadata is required.
 
-The easiest way to collect the missing metadata is by using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[Tracing Agent].
+The easiest way to collect this metadata is by using the https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/[Tracing Agent].
 This agent tracks all usages of dynamic features during application execution on the JVM and generates the necessary configuration.
 
 The agent is disabled by default.
@@ -301,7 +306,7 @@ To enable the agent via the command line, pass the `-Pagent` option when running
 ./gradlew -Pagent run
 ----
 
-[TIP]
+[NOTE]
 ====
 Enabling the agent via the command line only attaches it for a specific run; it does not automatically run every time you build the application.
 ====
@@ -328,11 +333,11 @@ graalvmNative {
 }
 ----
 
-From that point on, commands like `run` or `test` will be executed with the agent attached.
+From that point on, commands such as `run` or `test` will execute with the agent attached.
 By default, the agent creates the metadata in the _build/native/agent-output_ directory.
 
 Step 2: **Copy the generated metadata** from the default location, _build/native/agent-output_, to the resources directory, for example, _resources/META-INF/native-image_.
-Native Image automatically takes metadata from that location.
+Native Image automatically uses the metadata from this location.
 
 To do that with Gradle, configure and run the `metadataCopy` task.
 
@@ -426,7 +431,7 @@ graalvmNative {
 It provides broad information about each build stage as well as the generated binary’s contents.
 You can read more about Build Report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
 
-[TIP]
+[NOTE]
 ====
 Build Report is available in Oracle GraalVM.
 When running on GraalVM for JDK 21, pass the `-H:+BuildReport` option instead to generate a build report.

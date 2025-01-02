@@ -182,7 +182,7 @@ The tests are compiled ahead of time and executed as native code.
 </dependency>
 ----
 
-- Add surefire plugin into plugins section of your profile:
+- Add the Maven Surefire Plugin into the `plugins` section of the `native` profile:
 
 [source,xml, role="multi-language-sample"]
 ----
@@ -197,7 +197,7 @@ The tests are compiled ahead of time and executed as native code.
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative test
+./mvnw -Pnative test
 ----
 
 The new execution you have just added, `test-native`, integrates with the Maven `test` phase.
@@ -210,15 +210,15 @@ This flag is supported by the Maven Surefire plugin and Native Build Tools.
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative -DskipTests package
+./mvnw -Pnative -DskipTests package
 ----
 
-If you wish to run tests on the JVM with Maven Surefire, but skip running tests as native code, invoke Maven with the `-DskipNativeTests` flag.
+If you wish to run tests on the JVM with the Maven Surefire plugin, but skip running tests as native code, invoke Maven with the `-DskipNativeTests` flag.
 This flag is specific to Native Build Tools.
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative -DskipNativeTests package
+./mvnw -Pnative -DskipNativeTests package
 ----
 
 Alternatively, set `<skipNativeTests>` to `true` in the plugin configuration: 
@@ -243,7 +243,7 @@ The technique for building native images optimized on profiles is called https:/
 With PGO you can “train” your native application for specific workloads to improve performance and throughput.
 The PGO workflow includes three steps.
 
-[TIP]
+[NOTE]
 ====
 PGO is available in Oracle GraalVM.
 ====
@@ -326,11 +326,16 @@ Alternatively, you can **identify missing configuration manually** using the fol
 </configuration>
 ----
 
+[NOTE]
+====
+The `--exact-reachability-metadata` option was introduced in GraalVM for JDK 23. With older versions, use `-H:ThrowMissingRegistrationErrors=` instead.
+====
+
 - Rebuild the application:
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative package
+./mvnw -Pnative package
 ----
 
 - Run the application from the native executable with the `-XX:MissingRegistrationReportingMode=Warn` option: 
@@ -357,9 +362,8 @@ This agent tracks all usages of dynamic features during application execution on
 
 [NOTE]
 ====
-In this guide we will show you how to generate metadata from your tests.
-Generating metadata from your main application requires <<maven-plugin.adoc#agent-support-running-application,more configuring>>.
-Other than that, the guide remains the same, except that you use the `package` phase instead of the `test` phase.
+This guide demonstrates how to generate metadata from your tests.
+Generating metadata from your main application requires <<maven-plugin.adoc#agent-support-running-application,more configuration>>. The process is otherwise identical, except that you use the `package` phase instead of the `test` phase.
 ====
 
 The agent is disabled by default.
@@ -369,10 +373,10 @@ To enable the agent via the command line, pass the `-Dagent=true` option when ru
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative -Dagent=true test
+./mvnw -Pnative -Dagent=true test
 ----
 
-[TIP]
+[NOTE]
 ====
 Enabling the agent via the command line only attaches it for a specific run; it does not automatically run every time you build the application.
 ====
@@ -392,8 +396,8 @@ Step 1: **Enable the agent** by setting `<agent>` to `true` in the `native` prof
 From that point on, commands you execute will run with the agent attached.
 By default, the agent creates the metadata in the _target/native/agent-output_ directory.
 
-Step 2: **Copy the generated metadata** from the default location, _target/native/agent-output/_, to the resources directory, for example, _resources/META-INF/native-image_.
-Native Image automatically takes metadata from that location.
+Step 2: **Copy the generated metadata** from the default location, _target/native/agent-output_, to the resources directory, for example, _resources/META-INF/native-image_.
+Native Image automatically uses the metadata from this location.
 
 To do that with Maven, configure and run the `metadataCopy` task.
 
@@ -423,15 +427,15 @@ Step 3: Now that the `metadataCopy` task is configured, **run the agent to colle
 
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
-mvn -Pnative -Dagent=true test native:metadata-copy
+./mvnw -Pnative -Dagent=true test native:metadata-copy
 ----
 
-Step 4: Finally, you can proceed without the agent and **build the native image with the metadata from `META-INF` directory**.
+Step 4: Finally, proceed without the agent and **build the native image with the metadata**.
 From that point on, you can run your tests with:
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative test
+./mvnw -Pnative test
 ----
 
 If your native image is successfully build, but still fails at run time, check the troubleshooting guide https://www.graalvm.org/reference-manual/native-image/guides/troubleshoot-run-time-errors/[Troubleshoot Native Image Run-Time Errors].
@@ -460,7 +464,7 @@ For example:
 It provides broad information about each build stage as well as the generated binary’s contents.
 You can read more about Build Report features https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/[here].
 
-[TIP]
+[NOTE]
 ====
 Build Report is available in Oracle GraalVM.
 When running on GraalVM for JDK 21, pass the `-H:+BuildReport` option instead to generate a build report.
@@ -472,11 +476,11 @@ When running on GraalVM for JDK 21, pass the `-H:+BuildReport` option instead to
 
 All the monitoring and debugging tools https://www.graalvm.org/reference-manual/native-image/debugging-and-diagnostics/[listed on the website], can be enabled in the plugin configuration using `<buildArgs>`.
 
-You will see the output of these tools among generated artifacts when you run:
+You will find the output of these tools among the generated artifacts after running:
 
 [source,bash, role="multi-language-sample"]
 ----
-mvn -Pnative -DskipNativeTests package
+./mvnw -Pnative -DskipNativeTests package
 ----
 
 === Learn more
