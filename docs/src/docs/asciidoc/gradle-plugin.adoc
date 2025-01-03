@@ -1,36 +1,23 @@
-= Gradle plugin for GraalVM Native Image building
+= Gradle Plugin for GraalVM Native Image
 The GraalVM team
 :highlighjsdir: {gradle-relative-srcdir}/highlight
 
 image:https://github.com/graalvm/native-build-tools/actions/workflows/test-native-gradle-plugin.yml/badge.svg[]
 
+[[introduction]]
 == Introduction
 
 The {doctitle} adds support for building and testing native images using the https://gradle.org[Gradle build tool].
 
-To upgrade, please take a look at the <<changelog.adoc#,project changelog>>
+Find the differences between the versions in the <<changelog.adoc#,project changelog>>
 
-[[quickstart]]
-== Quickstart
+You can find sample applications in the https://github.com/graalvm/native-build-tools/tree/master/samples[source repository].
 
-====
-The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[setup GraalVM].
+[[adding-the-plugin]]
+== Adding the plugin
 
-The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
+Add following to `plugins` section of the project's _build.gradle_ / _build.gradle.kts_ file:
 
-For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
-====
-
-====
-You can find full samples in https://github.com/graalvm/native-build-tools/tree/master/samples[the source repository].
-====
-
-
-== Adding the Plugin
-
-Add following to `plugins` section of your project's `build.gradle` / `build.gradle.kts`:
-
-.Applying the plugin
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 plugins {
@@ -51,12 +38,14 @@ plugins {
 }
 ----
 
-NOTE: This plugin supplements and heavily relies on regular Java plugins (e.g. `application`, `java-library`, `java` etc). Not having them included in your project will most probably cause errors.
+[NOTE]
+====
+This plugin supplements and heavily relies on regular Java plugins such as `application`, `java-library`, `java`, and others. Not having them included in your project will most probably cause errors.
+====
 
 [TIP]
-.Testing pre-releases
 ====
-You can use development versions of the plugin by adding our snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
+You can use development versions of the plugin by adding the snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/settings.gradle[tags=pre-release, indent=0]
@@ -68,22 +57,26 @@ include::../snippets/gradle/kotlin/settings.gradle.kts[tags=pre-release, indent=
 ----
 ====
 
+[[installing-graalvm]]
 == Installing GraalVM
 
-By default, the plugin attempts to use the `native-image` tool bundled with the JDK running Gradle. Therefore, you must ensure that Gradle runs on a GraalVM JDK.
-This means you must make sure that you run Gradle with a GraalVM JDK.
+The plugin requires that you https://www.graalvm.org/latest/docs/getting-started/[install GraalVM].
+The easiest way to install GraalVM is to use the https://sdkman.io/jdks[SDKMAN!].
+For other installation options, go to https://www.graalvm.org/downloads/[GraalVM Downloads].
 
-Alternatively, you may choose to:
+By default, the plugin attempts to use the `native-image` tool bundled with the JDK running Gradle. 
+Therefore, you must ensure that Gradle runs on a GraalVM JDK.
+
+You may choose to:
 
 1. Set the `GRAALVM_HOME` environment variable to point to your GraalVM installation. When this variable is configured, the JDK specified at this location will be used for Native Image builds.
-2. <<configuration-toolchains-enabling, Enable toolchain support>>
+2. <<configuration-toolchains-enabling, Enable toolchain support>>.
 
-[NOTE]
+[TIP]
 ====
-Please check out https://docs.gradle.org/current/userguide/compatibility.html[which Java versions are compatible with the Gradle version] you are using.
-In case the Gradle version you are using is not compatible with the GraalVM release version you want to build your project with,
-you should set up a `GRAALVM_HOME` environment variable pointing to your GraalVM installation,
-and `JAVA_HOME` environment variable pointing to some JDK that is compatible with the Gradle you are using.
+Check out https://docs.gradle.org/current/userguide/compatibility.html[which Java versions are compatible with the Gradle version] you are using.
+In case the Gradle version you are using is not compatible with the GraalVM version,
+you can set up the `GRAALVM_HOME` environment variable pointing to your GraalVM installation, and the `JAVA_HOME` environment variable pointing to some JDK that is compatible with the Gradle on your system.
 ====
 
 [[configuration-toolchains]]
@@ -95,11 +88,11 @@ and `JAVA_HOME` environment variable pointing to some JDK that is compatible wit
 Instead of relying on the JDK which is used to run Gradle, you can use the https://docs.gradle.org/current/userguide/toolchains.html[Gradle toolchain support] to select a specific GraalVM installation.
 
 However, because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
-In particular, this will only work properly if you _only_ have GraalVM JDKs installed on the machine: **Otherwise, Gradle will not be able to reliably detect GraalVM JDKs**, nor detect GraalVM distributions from different vendors.
+In particular, this will only work properly if you _only_ have GraalVM JDKs installed on the machine.
+**Otherwise, Gradle will not be able to reliably detect GraalVM JDKs**, nor detect GraalVM distributions from different vendors.
 
 Should you still want to enable toolchain support, you do it via the `graalvmNative` extension:
 
-.Enabling toolchain detection
 [source,groovy,role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=enabling-toolchain, indent=0]
@@ -112,13 +105,11 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=enabling-toolchain, ind
 
 ==== Selecting the GraalVM toolchain
 
-By default, the plugin will select a Java 11 GraalVM toolchain using the vendor string `GraalVM`,
-which works properly for GraalVM up to version 22.3 included.
+By default, the plugin will select a Java 11 GraalVM toolchain using the vendor string `GraalVM`, which works properly for GraalVM up to version 22.3 included.
 More recent versions of GraalVM do not have a specific version and are aligned with the language version they support.
 
-If you want to use a different toolchain, for example a distribution compatible with Java 20 from Oracle, you can configure the toolchain like this:
+If you want to use a different toolchain, for example, a distribution compatible with Java 20 from Oracle, you can configure the toolchain like this:
 
-.Selecting the GraalVM toolchain
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
@@ -129,29 +120,30 @@ include::../snippets/gradle/groovy/build.gradle[tags=select-toolchain]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=select-toolchain]
 ----
 
-Again, be aware that the toolchain detection _cannot_ distinguish between GraalVM JDKs and standard JDKs without Native Image support: if you have both installed on the machine, Gradle may randomly pick one or the other.
+Again, be aware that the toolchain detection _cannot_ distinguish between GraalVM JDKs and standard JDKs without Native Image support.
+If you have both installed on the machine, Gradle may randomly pick one or the other.
 
 [[configuration]]
-== Configuration
+== Plugin configuration
 
-This plugin works with the `application` plugin and registers a number of tasks and extensions for you to configure.
+The plugin works with the `application` plugin and registers a number of tasks and extensions for you to configure.
 
 [[available-tasks]]
 === Available tasks
 
-The main tasks that you will want to execute are:
+The main tasks that you may want to execute are:
 
-- `nativeCompile`, which will trigger the generation of a native executable of your application
-- `nativeRun`, which executes the generated native executable
-- `nativeTestCompile`, which will build a native image with tests found in the `test` source set
-- `nativeTest`, which will <<testing-support,execute tests>> found in the `test` source set in native mode
+- `nativeCompile` triggers the generation of a native executable of your application
+- `nativeRun` executes the generated native executable
+- `nativeTestCompile` builds a native image with tests found in the `test` source set
+- `nativeTest` <<testing-support,executes tests>> found in the `test` source set in native mode
 
 Those tasks are configured with reasonable defaults using the `graalvmNative` extension `binaries` container of type link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions].
 
 The main executable is configured by the image named `main`, while the test executable is configured via the image named `test`.
 
 [[configure-native-image]]
-=== Configure Native Image
+=== Native Image configuration
 
 The link:javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html[NativeImageOptions] allows you to tweak how the native image is going to be built.
 The plugin allows configuring the final binary, the <<test-binary-config,tests>> one, as well as apply options to both.
@@ -160,20 +152,19 @@ The plugin allows configuring the final binary, the <<test-binary-config,tests>>
 ----
 graalvmNative {
     binaries.main {
-        // options you want to pass only to the main binary
+        // options for the main binary
     }
     binaries.test {
-        // options you want to pass only to the test binary
+        // options for the test binary
     }
     binaries.all {
-        // common options you want to use for both main and test binaries
+        // common options for both main and test binaries
     }
 }
 ----
 
-The following configuration options are available for building images:
+The following configuration options are available for building native images:
 
-.NativeImageOption configuration
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=all-config-options]
@@ -187,15 +178,15 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 [[native-image-options]]
 ==== Native Image options
 
-- `imageName` - The name of the native image, defaults to the project name
+- `imageName` - The name of the native executable, defaults to the project name
 - `mainClass` - The main class to use, defaults to the _application.mainClass_
-- `debug` - Determines if debug info should be generated; defaults to `false` (alternatively add `--debug-native` to the CLI)
+- `debug` - Determines if debug info should be generated; defaults to `false` (alternatively, add `--debug-native` to the CLI)
 - `verbose` - Adds verbose output (`false` by default)
 - `fallback` - Sets the fallback mode of `native-image` (`false` by default)
 - `sharedLibrary` - Determines if the image is a shared library
 - `quickBuild` - Determines if the image is being built in quick build mode
-- `richOutput` - Determines whether `native-image` building should produce rich output
-- `systemProperties`: Defines the system properties to use for the `native-image` builder
+- `richOutput` - Determines whether `native-image` building should produce a rich output
+- `systemProperties`: Defines the system properties to use for the `native-image` tool
 - `configurationFileDirectories`: Adds a directory containing configuration files for `native-image`, such as reflection configuration
  -`excludeConfig`: Excludes configuration that matches any of the specified regex patterns from the JAR of a dependency with the given coordinates
 - `jvmArgs`: Passes the specified arguments directly to the JVM running the `native-image` builder
@@ -203,10 +194,13 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=all-config-options]
 
 You can also pass **build-time** and **run-time** arguments:
 
-- `buildArgs.add('<buildArg>')`: Learn more about possible build arguments https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildConfiguration/[here].
+- `buildArgs.add('<buildArg>')`: Configures the build by passing options directly to `native-image`. You can pass any Native Image build option listed https://www.graalvm.org/reference-manual/native-image/overview/Options/[here].
 - `runtimeArgs.add('<runtimeArg>')`: Specifies runtime arguments consumed by your application.
 
-NOTE: For options that can be set using command-line, if both DSL and command-line options are present, command-line options take precedence.
+[NOTE]
+====
+For options that can be set using the command line, if both DSL and command-line options are present, command-line options take precedence.
+====
 
 [[native-image-tracing-agent]]
 ==== Native Image Tracing Agent
@@ -215,9 +209,9 @@ If your project requires reflection, classpath resources, dynamic proxies, or ot
 
 The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).
 
-Any task that extends `JavaForkOptions` (such as `test`, `run`, etc.) can be instrumented by passing `-Pagent` to Gradle when running those tasks.
+Any task that extends `JavaForkOptions` (such as `test`, `run`, and so on) can be instrumented by passing `-Pagent` to Gradle when running those tasks.
 
-You can enable the agent by simply adding the following block inside `graalvmNative` block:
+Enable the agent by adding the following block inside `graalvmNative`:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -233,7 +227,7 @@ agent {
 }
 ----
 
-You can then run:
+You can then run it:
 
 [source,bash, role="multi-language-sample"]
 ----
@@ -247,12 +241,12 @@ The agent can run in multiple modes that dictate how the metadata is collected a
 
 * `defaultMode` - Specifies the default agent mode if one isn't specified using `-Pagent=mode_name`
 * `enabled` - Enables the agent
-* `modes`- Configures the following agent modes::
-    ** `standard` -The standard agent mode generates metadata without conditions
-    ** `conditional` - The conditional agent mode generates metadata with conditions
+* `modes`- Configures the following agent modes:
+    ** `standard` - Generates metadata without conditions
+    ** `conditional` - Generates metadata with conditions
         *** `userCodeFilterPath` - Path to a filter file that specifies which classes to include in metadata conditions
         *** `extraFilterPath` - (Optional) An additional filter file to further refine the collected metadata
-    ** `direct` - The direct agent mode allows users to directly pass options to the agent
+    ** `direct` - Allows users to directly pass options to the agent
         *** `{output_dir}` -  The output directory to store agent files
 * `tasksToInstrumentPredicate` - By default, when `-Pagent` is specified, all tasks extending `JavaForkOptions` are instrumented.
 This can be limited to only specific tasks that match this predicate.
@@ -291,8 +285,8 @@ agent {
 }
 ----
 
-If you want to **enable the agent through the command line**, you can specify in which mode you want to run it.
-For example
+If you want to **enable the agent on the command line**, you can specify in which mode you want to run it. For example:
+
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 ./gradlew -Pagent=standard nativeTest
@@ -302,7 +296,7 @@ For example
 
 ==== MetadataCopy task
 
-Once the metadata is collected, it can be copied into the project using the metadataCopy task.
+Once the metadata is collected, it can be copied into the project using the `metadataCopy` task.
 To do so, add the following block inside your `agent` block:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
@@ -329,27 +323,26 @@ agent {
 }
 ----
 
-Inside this block, you configured:
+Inside this block, you configure:
 
 - `inputTaskNames` - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step).
-- `outputDirectories` - location where you want to copy the generated metadata
+- `outputDirectories` -  specifies the location where you want to copy the generated metadata
 - `mergeWithExisting` - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.
 
-
-then you can copy metadata to the location you specified with:
+Then you can copy metadata to the location you specified with:
 
 [source,bash,subs="verbatim,attributes"]
 ----
 ./gradlew metadataCopy
 ----
 
-[[TIP]]
+[TIP]
 ====
-Moreover, you can configure metadataCopy task through the command line as well:
+You can configure the `metadataCopy` task on the command line as well:
 
 [source,bash,subs="verbatim,attributes"]
 ----
-./gradlew metadataCopy --task run   # if you used nativeRun (or just run) to collect metadata
+./gradlew metadataCopy --task run  # if you used nativeRun (or just run) to collect metadata
 ./gradlew metadataCopy --task test  # if you used nativeTest (or just test) to collect metadata
 ./gradlew metadataCopy --dir <pathToSomeDirectory> # to specify the output directory
 ----
@@ -358,20 +351,22 @@ Moreover, you can configure metadataCopy task through the command line as well:
 [[common-agent-options]]
 ==== Common agent options
 
-All the mentioned modes shares certain common configuration options like:
+All the mentioned modes share certain common configuration options like:
 
-- callerFilterFiles
-- accessFilterFiles
-- builtinCallerFilter
-- builtinHeuristicFilter
-- enableExperimentalPredefinedClasses
-- enableExperimentalUnsafeAllocationTracing
-- trackReflectionMetadata
+- `callerFilterFiles`
+- `accessFilterFiles`
+- `builtinCallerFilter`
+- `builtinHeuristicFilter`
+- `enableExperimentalPredefinedClasses`
+- `enableExperimentalUnsafeAllocationTracing`
+- `trackReflectionMetadata`
 
 [WARNING]
-**These options are for advanced usages, and you can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here]**.
+====
+These options are for advanced usages. You can read more about them https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage[here].
+====
 
-A Complete example of the agent block should look like this:
+A complete example of the agent block should look like this:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -442,7 +437,8 @@ agent {
 [[agent-filter-file]]
 ==== Reduce the amount of generated metadata
 
-In some cases agent may include more metadata than it is actually needed. You can filter metadata using the agent filter files.
+In some cases the agent may include more metadata than it is actually needed.
+You can filter metadata using the agent filter files.
 These filter files that agent consumes have the following structure:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
@@ -461,9 +457,9 @@ These filter files that agent consumes have the following structure:
 
 The process how you can pass the config files to the agent is described in the <<additional-agent-options,previous section>>.
 
-We can see on a simple <<example, example>> how different filter files affect generated metadata.
+You can see on some simple Java application how different filter files affect generated metadata.
 
-Let's start with the simple filter file:
+Let's start with this filter:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -474,8 +470,8 @@ Let's start with the simple filter file:
 }
 ----
 
-This filter file will instruct the agent to include everything, which will result in a massive configuration file.
-For example this is how `reachability-metadata.json` looks like:
+This filter instructs the agent to include everything, which will result in a massive configuration file.
+For example, this is how _reachability-metadata.json_ looks like:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -550,9 +546,9 @@ For example this is how `reachability-metadata.json` looks like:
   }
 ----
 
-As you can see, there are lots of entries that you likely don't want.
-They are present because the metadata was generated using tests, for example, and that the testing library was present at runtime during the agent execution pass, but in practice, your application will not use the testing library in production.
-To reduce the amount of generated metadata, we will use the following `user-code-filter.json`:
+As you can see, there are lots of entries that you likely do not want.
+They are present because the metadata was generated using tests, and that the testing library was present at run time during the agent execution pass, but in practice, your application will not use the testing library in production.
+To reduce the amount of generated metadata, use the following _user-code-filter.json_:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -573,7 +569,7 @@ To reduce the amount of generated metadata, we will use the following `user-code
 Always be careful when removing entries in metadata, as this may result in a broken binary.
 ====
 
-After updating our filters, we can regenerate the metadata, which will result in the following `reachability-metadata.json` file:
+After updating the filters, you can regenerate the metadata, which will result in the following _reachability-metadata.json_ file:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -616,18 +612,18 @@ As you can see there are no more entries that contain classes from `org.junit` (
 [[max_parallel_builds]]
 ==== Max parallel builds
 
-When using Gradle parallel builds, the plugin will automatically limit the number of native images which can be built concurrently, in order to limit CPU and memory usage.
-By default, it's limited to the number of CPU cores / 16, but you can change this limit either by setting the `org.graalvm.buildtools.max.parallel.builds` gradle property (e.g in your `gradle.properties` file) or by setting the `GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS` environment variable.
+When using Gradle parallel builds, the plugin automatically limits the number of native images which can be built concurrently, in order to limit CPU and memory usage.
+By default, it is limited to the number of CPU cores / 16, but you can change this limit either by setting the `org.graalvm.buildtools.max.parallel.builds` gradle property (in your _gradle.properties_ file), or by setting the `GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS` environment variable.
 
 [[configuration-advanced]]
 
 [[long_classpath_and_fat_jar_support]]
-==== Long classpath, @argument file and fat jar support
+==== Long classpath, @argument file, and fat JAR support
 
-Since release 0.9.10, the plugin will automatically pass arguments to the `native-image` tool using an argument file, which should prevent all https://github.com/graalvm/native-build-tools/issues/85[long classpath issues] under Windows.
-However, if you are using an older GraalVM release (older than 21.3) which doesn't support argument files, you will need to rely on creating a "fat jar", which includes all entries from the classpath automatically, to workaround the problem:
+The plugin automatically passes arguments to the `native-image` tool using an argument file, which should prevent all https://github.com/graalvm/native-build-tools/issues/85[long classpath issues] under Windows.
+However, if you are using an older GraalVM release (older than 21.3) which doesn't support argument files, you will need to rely on creating a "fat JAR", which includes all entries from the classpath automatically, to workaround the problem:
 
-.Enabling the fat jar creation
+.Enabling the fat JAR creation
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=enable-fatjar]
@@ -638,9 +634,8 @@ include::../snippets/gradle/groovy/build.gradle[tags=enable-fatjar]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=enable-fatjar]
 ----
 
-Alternatively, it is possible to use your own fat jar (for example created using the https://imperceptiblethoughts.com/shadow/[Shadow plugin]) by setting the `classpathJar` property directly on the _task_:
+Alternatively, it is possible to use your own JAR file (for example, created using the https://imperceptiblethoughts.com/shadow/[Shadow plugin]) by setting the `classpathJar` property directly on the _task_:
 
-.Enabling a custom fat jar creation
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=custom-fatjar]
@@ -656,19 +651,19 @@ When the `classpathJar` property is set, the `classpath` property is _ignored_.
 [[testing-support]]
 == Testing support
 
-This plugin supports running tests on the
-https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] as native images. This
-means that tests will be compiled and executed as native code.
+The plugin supports running tests on the
+https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] as native images.
+This means that tests are compiled and executed as native code.
 
-NOTE: The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1)
+[NOTE]
+====
+The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1).
+====
 
-In theory, any `TestEngine` supported on the JUnit Platform should be supported by this
-plugin as long as the programming language used by the `TestEngine` and the programming
-language used to write the tests is supported in a GraalVM native image. This plugin
-provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and
-support for additional test engines should be possible with custom native configuration.
+In theory, any `TestEngine` supported on the JUnit Platform should be supported by the plugin as long as the programming language used by the `TestEngine` and the programming language used to write the tests is supported by GraalVM Native Image.The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and support for additional test engines should be possible with custom native configuration.
 
-Currently, this feature requires the execution of the tests in the classic "JVM" mode _prior to_ the execution of tests in native mode. To execute the tests, execute:
+Currently, this feature requires the execution of the tests on the JVM _prior to_ the execution of tests as native code.
+To execute the tests, run:
 
 [source,bash, role="multi-language-sample"]
 ----
@@ -694,16 +689,13 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=configure-test-binary]
 [[testing-support-disabling]]
 === Disabling testing support
 
-There are cases where you might want to disable native testing support:
+There are cases where you might want to disable running native tests:
 
-- You don't actually want to run your tests in native mode.
-- Your library or application uses a testing framework that is not supported on the JUnit
-  Platform.
-- You need to use the <<native-image-tracing-agent, agent>> when running tests on the JVM but do not
-  wish to run those same tests in native mode.
+- You don't actually want to run your tests as native code.
+- Your library or application uses a testing framework that is not supported on the JUnit Platform.
+- You need to use the <<native-image-tracing-agent, agent>> when running tests on the JVM, but do not wish to run the same tests as native code.
 
-In this case, you can disable native testing support by configuring the `graalvmNative`
-extension as follows:
+In this case, you can disable native testing support by configuring the `graalvmNative` option as follows:
 
 .Disabling testing support
 [source,groovy,role="multi-language-sample"]
@@ -719,14 +711,13 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-test-support]
 [[extra-test-suites]]
 === Configuring additional test suites
 
-It's common to have multiple test source sets in a Gradle build.
+It is common to have multiple test source sets in a Gradle build.
 Typically, you may have an integration test suite, or a functional test suite, in addition to the unit test suite.
 The plugin supports running those tests as native binaries too.
 
 For example, imagine that you have a source set named `integTest` and that its corresponding test task is named `integTest`.
-In this case you can register a new native test binary via the `graalvmNative` extension:
+In this case you can register a new native test binary with `graalvmNative`:
 
-.Registering a new test suite
 [source, groovy, role="multi-language-sample"]
 ----
 include::../../../../samples/java-application-with-custom-tests/build.gradle[tag=register-native-test]
@@ -737,26 +728,30 @@ include::../../../../samples/java-application-with-custom-tests/build.gradle[tag
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=custom-binary]
 ----
 
-The plugin will then automatically create the following tasks:
+The plugin then automatically creates the following tasks:
 
-- `nativeIntegTestCompile`, to compile a native image using the `integTest` source set
-- `nativeIntegTest`, to execute the tests in native mode
+- `nativeIntegTestCompile` to compile a native image using the `integTest` source set
+- `nativeIntegTest` to execute the tests as native code
 
 The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.
 
 [[metadata-support]]
-== GraalVM Reachability Metadata Support
+== GraalVM Reachability Metadata support
 
-The plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM reachability metadata repository].
-This repository provides https://www.graalvm.org/latest/reference-manual/native-image/metadata/[reachability metadata] for libraries that do not support GraalVM Native Image.
+The plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM Reachability Metadata Repository].
+This repository provides the https://www.graalvm.org/latest/reference-manual/native-image/metadata/[configuration] for libraries that do not support GraalVM Native Image.
 
-NOTE: This version of the plugin defaults to the using the metadata repository in version {metadata-repository-version}. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates: `org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata` with the `repository` classifier and `zip` extension, e.g. `graalvm-reachability-metadata-{gradle-plugin-version}-repository.zip`.
+[NOTE]
+====
+The GraalVM Reachability Metadata Repository is also published on Maven Central at the following coordinates: `org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata` with the `repository` classifier and `zip` extension, for example, `graalvm-reachability-metadata-{gradle-plugin-version}-repository.zip`.
+====
 
 === Configuring the metadata repository
 
-Metadata repository support is enabled by default. Support can be disabled explicitly:
+The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.
 
-.Disabling the metadata repository
+The support is enabled by default, but can be disabled explicitly:
+
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=disable-metadata-repository]
@@ -767,10 +762,8 @@ include::../snippets/gradle/groovy/build.gradle[tags=disable-metadata-repository
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=disable-metadata-repository]
 ----
 
-A metadata repository consists of configuration files for GraalVM.
-The plugin will automatically download the configuration metadata from the official repository if you supply the version of the repository you want to use:
+To override the repository version, use:
 
-.Overriding the repository version
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-repository-version]
@@ -783,7 +776,6 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-reposi
 
 Alternatively, it is possible to use a _local repository_, in which case you can specify the path to the repository:
 
-.Using a local repository
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-repository-file]
@@ -794,11 +786,10 @@ include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-repository
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-repository-file]
 ----
 
-For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository.
+For each library dependency, the plugin automatically searches for the configuration metadata in the repository.
 In some cases, you may need to exclude a particular module from the search.
 This can be done by adding it to the exclude list:
 
-.Excluding a module from search
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=exclude-module-from-metadata-repo]
@@ -809,10 +800,9 @@ include::../snippets/gradle/groovy/build.gradle[tags=exclude-module-from-metadat
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=exclude-module-from-metadata-repo]
 ----
 
-Last, it is possible for you to override the _metadata version_ of a particular module.
-This may be interesting if there's no specific metadata available for the particular version of the library that you use, but that you know that a version works:
+Lastly, it is possible for you to override the _metadata version_ of a particular module.
+This may be interesting if there is no specific metadata available for the particular version of the library that you use, but that you know that a version works:
 
-.Specifying the metadata version to use for a particular library
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-version-for-library]
@@ -825,18 +815,17 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-versio
 
 === Including metadata repository files
 
-By default, reachability metadata will be used only when your native image is generated.
-In some situations, you may want a copy of the reachability metadata to use directly.
+By default, reachability metadata is used only when your native image is being generated.
+In some situations, you may want a copy of the reachability metadata to use it directly.
 
-For example, copying the reachability metadata into your jar can be useful when some other process is responsible for converting your jar into a native image.
-You might be generating a shaded jar and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
+For example, copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
+You might be generating a shaded JAR file and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
 
-To download a copy of the metadata into the `build/native-reachability-metadata` directory you can the `collectReachabilityMetadata` task.
+To download a copy of the metadata into the _build/native-reachability-metadata_ directory, you can the `collectReachabilityMetadata` task.
 Files will be downloaded into `META-INF/native-image/<groupId>/<versionId>` subdirectories.
 
-To include metadata repository inside your jar you can link to the task using the `jar` DSL `from` directive:
+To include metadata repository inside the JAR file, you can link to the task using the `jar` DSL `from` directive:
 
-.Including metadata repository files
 [source, groovy, role="multi-language-sample"]
 ----
 include::../snippets/gradle/groovy/build.gradle[tags=include-metadata]
@@ -847,63 +836,70 @@ include::../snippets/gradle/groovy/build.gradle[tags=include-metadata]
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=include-metadata]
 ----
 
-For more advanced configurations you can declare a `org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata` task and set the appropriate properties.
+For more advanced configurations you can declare the `org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata` task and set the appropriate properties.
 
 [[pgo-support]]
-== Profile-guided optimizations
+== Profile-Guided Optimization
 
-The plugin supports building images with https://www.graalvm.org/latest/reference-manual/native-image/guides/optimize-native-executable-with-pgo/[Profile-Guided Optimizations].
+The plugin supports building images with https://www.graalvm.org/latest/reference-manual/native-image/guides/optimize-native-executable-with-pgo/[Profile-Guided Optimization (PGO)].
 
 It works in 3 phases:
 
-- the first one consists in generating a binary with instrumentation enabled
-- the second phase consists in running the binary in order to gather profiling information
-- the third phase consists in compiling the binary with the generated profile
+- the first one consists in generating a native image with instrumentation enabled
+- the second phase consists in running the image in order to gather profiling information
+- the third phase consists in creating an optimized native image based on the profiles
 
-In order to generate a binary with instrumentation enabled, you should run the `nativeCompile` command with the `--pgo-instrument` command line option:
-
-`./gradlew nativeCompile --pgo-instrument`
-
-This will generate a binary under _build/native/nativeCompile_ with the `-instrumented` suffix.
-You can run the binary to gather profiling data:
+To generate a binary with instrumentation enabled, you should run the `nativeCompile` command with the `--pgo-instrument` command line option:
 
 [source,bash, role="multi-language-sample"]
 ----
-$ cd build/native/nativeCompile/
-$ ./my-application-instrumented`
+./gradlew nativeCompile --pgo-instrument
 ----
 
-A `default.iprof` file will be generated once the application is stopped.
+This generates a native image under _build/native/nativeCompile_ with the `-instrumented` suffix.
+You can run this image to gather profiling data:
+
+[source,bash, role="multi-language-sample"]
+----
+./my-app-instrumented
+----
+
+A _default.iprof_ file will be generated once the application is stopped.
 Alternatively, you can have Gradle both generate and run the instrumented binary in a single command by running:
 
-`./gradlew nativeCompile --pgo-instrument nativeRun`
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeCompile --pgo-instrument nativeRun
+----
 
-In which case the profile will automatically be stored into `build/native/nativeCompile`.
+In this case, the profile will automatically be stored under _build/native/nativeCompile_.
 
-The last phase consists in copying the generated profile, so that it's automatically used when building the native binary.
-The conventional location for profiles is `src/pgo-profiles/<name of the binary>`.
-By default, we're using the `main` binary so the location will be `src/pgo-profiles/main`.
-Copy the `default.iprof` file into that directory, then run:
+The last phase consists in copying the generated profile, so that it is automatically used when building an optimized native image.
+The conventional location for profiles is _src/pgo-profiles/<name of the binary>_.
+By default, the location will be _src/pgo-profiles/main_.
+Copy _default.iprof_ into that directory, and then run:
 
-`./gradlew nativeCompile`
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeCompile
+----
 
-The profile will automatically be used and the binary compiled with PGO.
-It is possible to include more than one profile, in which case you should rename the `.iprof` files in the `src/pgo-profiles/main` directory.
+The profile will automatically be used.
+It is possible to include more than one profile, in which case you should rename the _.iprof_ files in the _src/pgo-profiles/main_ directory.
 
 [[plugin-configurations]]
 == Configurations defined by the plugin
 
 For each binary (`main` and `test`), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:
 
-- `nativeImageCompileOnly` (for the `main` binary) and `nativeImageTestCompileOnly` (for the `test` binary) can be used to declare dependencies which are only needed at image compilation.
-- `nativeImageClasspath` (for the `main` binary) and `nativeImageTestClasspath` (for the `test` binary) are the configurations which are resolved to determine the image classpaths.
+- `nativeImageCompileOnly` (for the `main` binary) and `nativeImageTestCompileOnly` (for the `test` binary) can be used to declare dependencies which are only needed during the ahead-of-time compilation.
+- `nativeImageClasspath` (for the `main` binary) and `nativeImageTestClasspath` (for the `test` binary) are the configurations which are resolved to determine the image classpath.
 
-The native image "compile only" configurations can typically be used to declare dependencies which are only required when building a native binary, and therefore shouldn't leak to the classic "JVM" runtime.
+The native image "compile only" configurations can typically be used to declare dependencies which are only required when building a native binary, and therefore should not leak when running on the JVM.
 
-For example, you could declare a source set which uses the GraalVM SDK to implement native features.
+For example, you can declare a source set which uses the GraalVM SDK to implement native features.
 This source set would contain code which is only relevant to native images building:
 
-.Declaring a custom source set
 [source, groovy, role="multi-language-sample"]
 ----
 include::../../../../samples/java-application-with-extra-sourceset/build.gradle[tag=extra-sourceset]
