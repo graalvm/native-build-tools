@@ -1,4 +1,4 @@
-= Gradle Plugin for GraalVM Native Image
+= Gradle plugin for GraalVM Native Image
 The GraalVM team
 :highlighjsdir: {gradle-relative-srcdir}/highlight
 
@@ -9,7 +9,7 @@ image:https://github.com/graalvm/native-build-tools/actions/workflows/test-nativ
 
 The {doctitle} adds support for building and testing native images using the https://gradle.org[Gradle build tool].
 
-Find the differences between the versions in the <<changelog.adoc#,project changelog>>
+Find the differences between the versions in the <<changelog.adoc#,project changelog>>.
 
 You can find sample applications in the https://github.com/graalvm/native-build-tools/tree/master/samples[source repository].
 
@@ -331,10 +331,7 @@ Inside this block, you configure:
 
 Then you can copy metadata to the location you specified with:
 
-[source,bash,subs="verbatim,attributes"]
-----
-./gradlew metadataCopy
-----
+
 
 [TIP]
 ====
@@ -566,10 +563,10 @@ To reduce the amount of generated metadata, use the following _user-code-filter.
 
 [WARNING]
 ====
-Always be careful when removing entries in metadata, as this may result in a broken binary.
+Always be careful when removing entries in metadata, as this may result in a broken native image.
 ====
 
-After updating the filters, you can regenerate the metadata, which will result in the following _reachability-metadata.json_ file:
+After updating the filter, you can regenerate the metadata, which will result in the following _reachability-metadata.json_ file:
 
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
@@ -620,7 +617,7 @@ By default, it is limited to the number of CPU cores / 16, but you can change th
 [[long_classpath_and_fat_jar_support]]
 ==== Long classpath, @argument file, and fat JAR support
 
-The plugin automatically passes arguments to the `native-image` tool using an argument file, which should prevent all https://github.com/graalvm/native-build-tools/issues/85[long classpath issues] under Windows.
+The plugin automatically passes arguments to the `native-image` tool from the argument file, which should prevent all https://github.com/graalvm/native-build-tools/issues/85[long classpath issues] under Windows.
 However, if you are using an older GraalVM release (older than 21.3) which doesn't support argument files, you will need to rely on creating a "fat JAR", which includes all entries from the classpath automatically, to workaround the problem:
 
 .Enabling the fat JAR creation
@@ -660,7 +657,8 @@ This means that tests are compiled and executed as native code.
 The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1).
 ====
 
-In theory, any `TestEngine` supported on the JUnit Platform should be supported by the plugin as long as the programming language used by the `TestEngine` and the programming language used to write the tests is supported by GraalVM Native Image.The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and support for additional test engines should be possible with custom native configuration.
+In theory, any `TestEngine` supported on the JUnit Platform should be supported by the plugin as long as the programming language used by the `TestEngine` and the programming language used to write the tests is supported by GraalVM Native Image.
+The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and support for additional test engines should be possible with custom native configuration.
 
 Currently, this feature requires the execution of the tests on the JVM _prior to_ the execution of tests as native code.
 To execute the tests, run:
@@ -818,8 +816,8 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-versio
 By default, reachability metadata is used only when your native image is being generated.
 In some situations, you may want a copy of the reachability metadata to use it directly.
 
-For example, copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
-You might be generating a shaded JAR file and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
+Copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
+For example, you might be generating a shaded JAR file and using a https://paketo.io/[Paketo buildpack] to convert it to a native image.
 
 To download a copy of the metadata into the _build/native-reachability-metadata_ directory, you can the `collectReachabilityMetadata` task.
 Files will be downloaded into `META-INF/native-image/<groupId>/<versionId>` subdirectories.
@@ -912,4 +910,4 @@ include::../../../../samples/java-application-with-extra-sourceset/build.gradle.
 
 == Javadocs
 
-In addition, you can consult the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
+For further reference, you can review the link:javadocs/native-gradle-plugin/index.html[Javadocs of the plugin].
