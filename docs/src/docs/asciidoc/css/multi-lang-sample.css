@@ -109,9 +109,9 @@
 
 .multi-language-selector .language-option {
     color: #ffc107;
-    border: 1px solid gray;
+    border: 0.4px solid #71d0ff;
     background: none;
-    border-radius: 4px 4px 0 0;
+    border-radius: 4px;
     cursor: pointer;
     display: inline-block;
     font-weight: normal;
@@ -126,12 +126,16 @@
 }
 
 .multi-language-selector .language-option.selected {
-    color: #ffc107;
-    border: 1px solid #ffc107;
+    color: #f29111;
+    border: 0.4px solid #f29111;
+    box-shadow: 0px 0px 4px 0px #F29111;
+    
     font-weight: bold;
     filter: none;
     -webkit-filter: none;
 }
+
+
 
 .multi-language-text.hidden,
 .multi-language-selector + .multi-language-sample.hidden,
@@ -148,19 +152,20 @@
 .copytoclipboard {
     font-family: "Open Sans";
     cursor: pointer;
-    border: 1px solid #ffc107;
+    border: 0.4px solid #8ec9e696;
     border-top: none;
     float: right;
     padding: 10px 15px;
     font-size: 10px;
     margin-right: 0px;
+    margin-top: -1px;
     display: block;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
 }
 
 .copytoclipboard:hover {
-    background: #ffc107;
-    color: #00758F;
-    font-weight: 600;
+  background: #8EC9E6;
+  color: #171F26;
+  font-weight: 600;
 }
