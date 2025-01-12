@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
 <meta name="author" content="The GraalVM team">
-<title>Maven plugin for GraalVM Native Image building</title>
+<title>Maven plugin for GraalVM Native Image</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -444,8 +444,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <link rel="icon" type="image/png" sizes="16x16" href="https://www.graalvm.org/resources/img/favicon/favicon-16x16.png">
 </head>
 <body class="article toc2 toc-left">
+<div id="grabbit-logo">
+    <img src="css/images/Grabbit.svg" alt="">
+</div>
 <div id="header">
-<h1>Maven plugin for GraalVM Native Image building</h1>
+<h1>Maven plugin for GraalVM Native Image</h1>
 <div class="details">
 <span id="author" class="author">The GraalVM team</span><br>
 <span id="revnumber">version 0.10.5-SNAPSHOT</span>
@@ -454,13 +457,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#quickstart">Quickstart</a></li>
-<li><a href="#configuration">Reference documentation</a>
+<li><a href="#adding-the-plugin">Adding the plugin</a></li>
+<li><a href="#configuration-options">Plugin configuration</a>
 <ul class="sectlevel2">
-<li><a href="#configuration-registering-plugin">Registering the plugin</a></li>
-<li><a href="#configuration-options">Configuration options</a></li>
+<li><a href="#native-image-options">Native Image options</a></li>
+<li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a></li>
 </ul>
 </li>
+<li><a href="#configuration-reusing-config-from-parent">Reusing configuration from a parent POM</a></li>
 <li><a href="#testing-support">Testing support</a>
 <ul class="sectlevel2">
 <li><a href="#testing-support-version-compatibility">Version compatibility</a></li>
@@ -468,15 +472,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#long_classpath_and_shading_support">Long classpath, @argument file and shading support</a></li>
-<li><a href="#agent-support">Reflection support and running with the native agent</a>
-<ul class="sectlevel2">
-<li><a href="#agent-support-enabling">Enabling the agent</a></li>
-<li><a href="#agent-support-configuring-options">Configuring agent options</a></li>
-<li><a href="#agent-support-running-tests">Running tests with the agent</a></li>
-<li><a href="#agent-support-running-application">Running your application with the agent</a></li>
-</ul>
-</li>
-<li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
+<li><a href="#metadata-support">GraalVM Reachability Metadata support</a>
 <ul class="sectlevel2">
 <li><a href="#_configuring_the_metadata_repository">Configuring the metadata repository</a></li>
 <li><a href="#_adding_metadata_repository_files">Adding metadata repository files</a></li>
@@ -498,54 +494,23 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="introduction"><a class="anchor" href="#introduction"></a>Introduction</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Maven plugin for GraalVM Native Image building adds support for building and testing native images using <a href="https://maven.apache.org">Apache Maven</a>™.</p>
+<p>The Maven plugin for GraalVM Native Image adds support for building and testing native images using <a href="https://maven.apache.org">Apache Maven</a>™.</p>
 </div>
 <div class="paragraph">
-<p>For upgrading please take a look at the <a href="index.html#changelog">Changelog</a>.</p>
+<p>Find the differences between the versions in the <a href="changelog.html">project changelog</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can find sample applications in the <a href="https://github.com/graalvm/native-build-tools/tree/master/samples">source repository</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="quickstart"><a class="anchor" href="#quickstart"></a>Quickstart</h2>
+<h2 id="adding-the-plugin"><a class="anchor" href="#adding-the-plugin"></a>Adding the plugin</h2>
 <div class="sectionbody">
-<div class="exampleblock">
-<div class="content">
 <div class="paragraph">
-<p><a href="maven-plugin-quickstart.html">Getting Started with Maven Plugin for GraalVM Native Image</a></p>
+<p>Add the following profile to the project&#8217;s <em>pom.xml</em> file to register the plugin:</p>
 </div>
-</div>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>You can find full samples in <a href="https://github.com/graalvm/native-build-tools/tree/master/samples">the source repository</a>.</p>
-</div>
-</div>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>The plugin requires that you <a href="https://www.graalvm.org/latest/docs/getting-started/">setup GraalVM</a>.</p>
-</div>
-<div class="paragraph">
-<p>The easiest way to install GraalVM is to use the <a href="https://sdkman.io/jdks">SDKMAN!</a>.</p>
-</div>
-<div class="paragraph">
-<p>For other installation options, go to <a href="https://www.graalvm.org/downloads/">GraalVM Downloads</a>.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="configuration"><a class="anchor" href="#configuration"></a>Reference documentation</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="configuration-registering-plugin"><a class="anchor" href="#configuration-registering-plugin"></a>Registering the plugin</h3>
-<div class="paragraph">
-<p>Add the following profile to your <code>pom.xml</code> file to register the <code>native-maven-plugin</code>.</p>
-</div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">  &lt;profiles&gt;
     &lt;profile&gt;
@@ -584,14 +549,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>You can then build a native executable directly with Maven using the <code>mvn -Pnative -DskipTests package</code> command without running the <code>native-image</code> command as a separate step.</p>
+<p>You can then build a native image directly with Maven:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative package</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p>The plugin figures out which JAR files it needs to pass to the native image and
-what the executable main class should be.
+<p>The <code>native-maven-plugin</code> plugin figures out which JAR file it needs to pass to <code>native-image</code>, and what the executable main class should be.
 If the heuristics fail with the <code>no main manifest attribute, in target/&lt;name&gt;.jar</code> error, the main class should be
-specified in the <code>&lt;configuration&gt;</code> node of the plugin.
-When <code>mvn -Pnative package</code> completes, an executable is ready for use, generated in the <code>target</code> directory of the project.</p>
+specified in the <code>&lt;configuration&gt;</code> block of the plugin.
+A native image is generated in the <em>target</em> directory of the project.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -600,7 +569,9 @@ When <code>mvn -Pnative package</code> completes, an executable is ready for use
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Building native image without attaching to the <code>package</code> phase can be done by invoking the forking <code>compile</code> goal directly, e.g. <code>mvn native:compile</code>
+<div class="paragraph">
+<p>Building a native executable without attaching to the <code>package</code> phase can be done by invoking the <code>compile</code> goal directly. For example: <code>./mvnw native:compile</code>.</p>
+</div>
 </td>
 </tr>
 </table>
@@ -612,11 +583,10 @@ Building native image without attaching to the <code>package</code> phase can be
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-<div class="title">Testing pre-releases</div>
 <div class="paragraph">
-<p>You can use development versions of the plugin by adding our snapshot repository. Pre-releases are provided for convenience, without any guarantee.</p>
+<p>You can use development versions of the plugin by adding the snapshot repository. Pre-releases are provided for convenience, without any guarantee.</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;pluginRepositories&gt;
     &lt;pluginRepository&gt;
@@ -638,14 +608,17 @@ Building native image without attaching to the <code>package</code> phase can be
 </table>
 </div>
 </div>
+</div>
+<div class="sect1">
+<h2 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Plugin configuration</h2>
+<div class="sectionbody">
 <div class="sect2">
-<h3 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Configuration options</h3>
+<h3 id="native-image-options"><a class="anchor" href="#native-image-options"></a>Native Image options</h3>
 <div class="paragraph">
-<p>If you use Native Image Maven plugin, it will pick up all the configuration for your
-application stored below the <code>META-INF/native-image/</code> resource location, as described in
-<a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image
-Build Configuration</a>. It is also possible to customize the plugin within a
-<code>&lt;configuration&gt;</code> node. The following configuration options are available.</p>
+<p>The plugin picks up all the configuration for your application stored below the <em>META-INF/native-image/</em> resource location, as described in
+<a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image Build Configuration</a>.
+It is also possible to customize the plugin within the <code>&lt;configuration&gt;</code> block.
+The following configuration options are available:</p>
 </div>
 <div class="dlist">
 <dl>
@@ -653,8 +626,7 @@ Build Configuration</a>. It is also possible to customize the plugin within a
 <dd>
 <p>If the execution fails with the <code>no main manifest attribute, in target/&lt;name&gt;.jar</code>
 error, the main class should be specified. By default the plugin consults several
-locations in the <code>pom.xml</code> file in the following order to determine what the main class
-of the image should be.</p>
+locations in <em>pom.xml</em> in the following order to determine what the main class should be:</p>
 <div class="ulist">
 <ul>
 <li>
@@ -671,17 +643,16 @@ of the image should be.</p>
 </dd>
 <dt class="hdlist1"><code>&lt;imageName&gt;</code></dt>
 <dd>
-<p>Use <code>&lt;imageName&gt;</code> to set a custom filename for the generated native image. If a custom
+<p>Use <code>&lt;imageName&gt;</code> to set a custom filename for the native image. If a custom
 image name is not supplied, the artifact ID of the project will be used by default.</p>
 </dd>
 <dt class="hdlist1"><code>&lt;buildArgs&gt;</code></dt>
 <dd>
-<p>If you want to pass additional arguments to the native image builder, use <code>&lt;buildArgs&gt;</code>
-in the configuration of the plugin:</p>
+<p>If you want to pass additional build options to <code>native-image</code>, use the <code>&lt;buildArgs&gt;</code> tag. You can pass any Native Image build option listed <a href="https://www.graalvm.org/reference-manual/native-image/overview/Options/">here</a>.</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;buildArgs&gt;
     &lt;buildArg&gt;--argument&lt;/buildArg&gt;
@@ -692,11 +663,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;skipNativeBuild&gt;</code></dt>
 <dd>
-<p>To skip generation of the native image, supply the following in the configuration of the plugin:</p>
+<p>To skip generation of the native image, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeBuild&gt;true&lt;/skipNativeBuild&gt;</code></pre>
 </div>
@@ -705,11 +676,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;skipNativeTests&gt;</code></dt>
 <dd>
-<p>To skip generation and execution of the native image compiled tests, supply the following in the configuration of the plugin:</p>
+<p>To skip generation and execution of the native image compiled tests, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeTests&gt;true&lt;/skipNativeTests&gt;</code></pre>
 </div>
@@ -718,11 +689,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;debug&gt;</code></dt>
 <dd>
-<p>If you want to enable generation of debugging information supply the following in the configuration of the plugin:</p>
+<p>If you want to enable generation of debugging information, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;debug&gt;true&lt;/debug&gt;</code></pre>
 </div>
@@ -731,11 +702,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;verbose&gt;</code></dt>
 <dd>
-<p>If you want to enable verbose output during native-image building supply the following in the configuration of the plugin:</p>
+<p>If you want to enable verbose output during the native image build, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;verbose&gt;true&lt;/verbose&gt;</code></pre>
 </div>
@@ -744,11 +715,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;sharedLibrary&gt;</code></dt>
 <dd>
-<p>If you want to build image as a shared library supply the following in the configuration of the plugin:</p>
+<p>If you want to build image as a shared library, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;sharedLibrary&gt;true&lt;/sharedLibrary&gt;</code></pre>
 </div>
@@ -757,11 +728,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;useArgFile&gt;</code></dt>
 <dd>
-<p>If you want to use argument file for native-image building supply the following in the configuration of the plugin:</p>
+<p>If you want to use the argument file for a native image building, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;useArgFile&gt;true&lt;/useArgFile&gt;</code></pre>
 </div>
@@ -770,11 +741,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;quickBuild&gt;</code></dt>
 <dd>
-<p>If you want to build the image using <a href="https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/#qbm-use-quick-build-mode-for-faster-builds">quick build mode</a>, supply the following in the configuration of the plugin (alternatively set the <code>GRAALVM_QUICK_BUILD</code> environment variable to <code>true</code>):</p>
+<p>If you want to build a native image using <a href="https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/#qbm-use-quick-build-mode-for-faster-builds">quick build mode</a>, add (alternatively, set the <code>GRAALVM_QUICK_BUILD</code> environment variable to <code>true</code>):</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;quickBuild&gt;true&lt;/quickBuild&gt;</code></pre>
 </div>
@@ -783,11 +754,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;excludeConfig&gt;</code></dt>
 <dd>
-<p>In order to exclude configuration from present jar files, specify:</p>
+<p>To exclude configuration from present JAR files, specify:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;excludeConfig&gt;
     &lt;entry&gt;
@@ -801,11 +772,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;environment&gt;</code></dt>
 <dd>
-<p>To set environment options for native-image building supply the following in the configuration of the plugin:</p>
+<p>To set environment options for a native image build, use:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;environment&gt;
     &lt;variable&gt;value&lt;/variable&gt;
@@ -816,11 +787,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;systemPropertyVariables&gt;</code></dt>
 <dd>
-<p>To specify system properties used for native-image building supply the following in the configuration of the plugin:</p>
+<p>To specify system properties used for a native image build, use:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;systemPropertyVariables&gt;
     &lt;propertyName&gt;value&lt;/propertyName&gt;
@@ -831,11 +802,11 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;jvmArgs&gt;</code></dt>
 <dd>
-<p>To specify JVM arguments used for native-image building supply the following in the configuration of the plugin:</p>
+<p>To specify JVM arguments used for a native image build, use:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;jvmArgs&gt;
     &lt;arg&gt;argument1&lt;/arg&gt;
@@ -845,28 +816,13 @@ in the configuration of the plugin:</p>
 </div>
 <div class="dlist">
 <dl>
-<dt class="hdlist1"><code>&lt;configurationFileDirectories&gt;</code></dt>
-<dd>
-<p>If you want to specify custom directories where configuration files should be looked up, supply the following in the configuration of the plugin:</p>
-</dd>
-</dl>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configurationFileDirectories&gt;
-    &lt;dir&gt;path/to/dir&lt;/dir&gt;
-&lt;/configurationFileDirectories&gt;</code></pre>
-</div>
-</div>
-<div class="dlist">
-<dl>
 <dt class="hdlist1"><code>&lt;classpath&gt;</code></dt>
 <dd>
-<p>Sets a custom classpath instead of plugin generated one. Usage:</p>
+<p>Sets a custom classpath instead of the plugin generated one, use:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;classpath&gt;
     &lt;param&gt;path/to/file.jar&lt;/param&gt;
@@ -878,13 +834,13 @@ in the configuration of the plugin:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;classesDirectory&gt;</code></dt>
 <dd>
-<p>   If you want to specify custom path to packed JAR, or a custom directory that contains
-only application classes, but want the plugin to still automatically add classpath entries for
-dependencies, simply add:</p>
+<p>   If you want to specify custom path to the JAR, or a custom directory that contains
+only application classes, but you want the plugin to still automatically add classpath entries for
+dependencies, add:</p>
 </dd>
 </dl>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;classesDirectory&gt;
     path/to/dir
@@ -901,14 +857,12 @@ and <a href="#agent-support-configuring-options">Configuring agent options</a> f
 </dl>
 </div>
 <div class="paragraph">
-<p>For example, to build a native image named <code>executable-name</code> that uses
-<code>org.example.ClassName</code> as its main class with assertions enabled, add the following
-<code>&lt;configuration&gt;</code> block for the <code>native-maven-plugin</code>.</p>
+<p>For example, to build a native image named <code>myapp</code> that uses <code>org.example.ClassName</code> as its main class with assertions enabled, the <code>&lt;configuration&gt;</code> should look like this:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
-  &lt;imageName&gt;executable-name&lt;/imageName&gt;
+  &lt;imageName&gt;myapp&lt;/imageName&gt;
   &lt;mainClass&gt;org.example.ClassName&lt;/mainClass&gt;
   &lt;fallback&gt;false&lt;/fallback&gt;
   &lt;verbose&gt;true&lt;/verbose&gt;
@@ -922,480 +876,38 @@ and <a href="#agent-support-configuring-options">Configuring agent options</a> f
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Most of the aforementioned properties can also be set from command line as a part of Maven invocation&#8201;&#8212;&#8201;for example if you want to temporarily enable verbose mode you can append <code>-Dverbose</code> to your Maven invocation.
+<div class="paragraph">
+<p>Most of the aforementioned properties can also be set on the command line as a part of Maven invocation. For example, if you want to temporarily enable verbose mode, you can append <code>-Dverbose</code> to your Maven command.</p>
+</div>
 </td>
 </tr>
 </table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-If you use GraalVM Enterprise as the <code>JAVA_HOME</code> environment, the plugin builds a native image with enterprise features enabled&#8201;&#8212;&#8201;for example, an executable will automatically be built with <a href="https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e">compressed references</a> and other optimizations enabled.
-</td>
-</tr>
-</table>
-</div>
-<div class="sect3">
-<h4 id="configuration-reusing-config-from-parent"><a class="anchor" href="#configuration-reusing-config-from-parent"></a>Reusing configuration from a parent POM</h4>
-<div class="paragraph">
-<p>The <code>&lt;buildArgs&gt;</code> element can be combined between parent and children POMs. Suppose you have the following parent POM definition:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-  &lt;version&gt;${current_plugin_version}&lt;/version&gt;
-  &lt;configuration&gt;
-    &lt;imageName&gt;${project.artifactId}&lt;/imageName&gt;
-    &lt;mainClass&gt;${exec.mainClass}&lt;/mainClass&gt;
-    &lt;buildArgs&gt;
-      &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
-    &lt;/buildArgs&gt;
-  &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Children projects have the ability to append <code>&lt;buildArg&gt;</code> arguments in the following way:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-  &lt;configuration&gt;
-    &lt;buildArgs combine.children="append"&gt;
-      &lt;buildArg&gt;--verbose&lt;/buildArg&gt;
-    &lt;/buildArgs&gt;
-  &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In this case, the arguments that will be passed to the <code>native-image</code> executable will be:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">--no-fallback --verbose</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing support</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This plugin supports running tests on the
-<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images. This
-means that tests will be compiled and executed as native code.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1)
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>In theory, any <code>TestEngine</code> supported on the JUnit Platform should be supported by this
-plugin as long as the programming language used by the <code>TestEngine</code> and the programming
-language used to write the tests is supported in a GraalVM native image. This plugin
-provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and
-support for additional test engines should be possible with custom native configuration.</p>
-</div>
-<div class="paragraph">
-<p>In order to use the recommended JUnit Platform test listener mode, you need to enable
-extensions for the <code>native-maven-plugin</code> by adding <code>&lt;extensions&gt;true&lt;/extensions&gt;</code> as follows.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;extensions&gt;true&lt;/extensions&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Running <code>mvn -Pnative test</code> will then build and run native tests.</p>
-</div>
-<div class="sect2">
-<h3 id="testing-support-version-compatibility"><a class="anchor" href="#testing-support-version-compatibility"></a>Version compatibility</h3>
-<div class="paragraph">
-<p>This plugin requires Maven Surefire 2.22.0 or higher to run tests within a native image.</p>
-</div>
-<div class="paragraph">
-<p>Each version of the Maven Surefire plugin has a dependency on a particular version of the
-JUnit Platform. You therefore need to ensure that Maven Surefire is using at least version
-1.8 of the JUnit Platform. Beginning with version 3.0 M4, Maven Surefire will
-automatically align the JUnit Platform version used by Surefire with the version needed by
-the user&#8217;s configured version of JUnit Jupiter or JUnit Vintage. Since the examples in
-this document use Maven Surefire 3.0 M5, their maven POMs do not require any special
-configuration regarding the JUnit Platform version. However, if you are using a version of
-Maven Surefire prior to 3.0 M4 you will need to add an explicit dependency on the
-<code>junit-platform-launcher</code> artifact to the <code>dependencies</code> section of your <code>native</code> profile
-configuration as in the following example.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependencies&gt;
-	&lt;dependency&gt;
-		&lt;groupId&gt;org.junit.platform&lt;/groupId&gt;
-		&lt;artifactId&gt;junit-platform-launcher&lt;/artifactId&gt;
-		&lt;version&gt;1.8.2&lt;/version&gt;
-		&lt;scope&gt;test&lt;/scope&gt;
-	&lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre>
-</div>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-If you have imported the <code>junit</code> BOM or are using a plugin that manages JUnit
-versions for you&#8201;&#8212;&#8201;for example, Spring Boot&#8201;&#8212;&#8201;you may want to omit the <code>&lt;version&gt;</code>
-configuration in the above example.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>If Maven Surefire is using an older version of the JUnit Platform, the build will fail
-with an error similar to the following when attempting to run tests in a native image.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.</pre>
-</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
-<div class="paragraph">
-<p>If you wish to disable tests on the JVM as well as tests within a native image, you can
-invoke Maven with the <code>-DskipTests</code> flag. This flag is supported by Maven Surefire and
-Native Build Tools. Several examples in <a href="#agent-support-running-application">Running your application with the agent</a> demonstrate
-the use of this flag.</p>
-</div>
-<div class="paragraph">
-<p>If you wish to run tests on the JVM with Maven Surefire but skip testing within a native
-image, you can invoke Maven with the <code>-DskipNativeTests</code> flag. This flag is specific to
-Native Build Tools. For example, you might wish to disable only native testing support for
-use cases such as the following:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>You don&#8217;t actually want to run your tests in native mode.</p>
-</li>
-<li>
-<p>Your library or application uses a testing framework that is not supported on the JUnit
-Platform.</p>
-</li>
-<li>
-<p>You need to use the <a href="#agent-support">agent</a> when running tests on the JVM but do not
-wish to run those same tests in native mode.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath, @argument file and shading support</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.</p>
-</div>
-<div class="paragraph">
-<p>To avoid this, since release 0.9.10, the plugin will use an argument file to pass the arguments to the <code>native-image</code> tool, instead of passing them directly.</p>
-</div>
-<div class="paragraph">
-<p>There is also a <code>native:write-args-file</code> goal that can be used to generate this argument file. This can be useful in situations where the Native Build Tools plugin is not available, for example, when running native-image in a Docker container. The path to the args file is stored in the project properties
-under the key <code>graalvm.native-image.args-file</code>, so that other Maven plugins further in the lifecycle can use it.</p>
-</div>
-<div class="paragraph">
-<p>In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn&#8217;t supported.</p>
-</div>
-<div class="paragraph">
-<p>One option is to use a <a href="https://maven.apache.org/plugins/maven-shade-plugin">shaded jar</a> and use it instead of individual jars on classpath.</p>
-</div>
-<div class="paragraph">
-<p>First, you&#8217;ll need to setup the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin</a>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
-    &lt;version&gt;3.2.4&lt;/version&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;shade&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;configuration&gt;
-                &lt;shadedArtifactAttached&gt;true&lt;/shadedArtifactAttached&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>If you need testing support, add the JUnit Platform Native dependency explicitly:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-        &lt;artifactId&gt;junit-platform-native&lt;/artifactId&gt;
-        &lt;version&gt;${junit.platform.native.version}&lt;/version&gt;
-        &lt;scope&gt;test&lt;/scope&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Then the native plugin needs to be configured to use this jar instead of the full classpath:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;extensions&gt;true&lt;/extensions&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;build-native&lt;/id&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;compile-no-fork&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-    &lt;configuration&gt;
-        &lt;skip&gt;false&lt;/skip&gt;
-        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
-        &lt;imageName&gt;${imageName}&lt;/imageName&gt;
-        &lt;fallback&gt;false&lt;/fallback&gt;
-        &lt;classpath&gt;
-            &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar&lt;/param&gt;
-        &lt;/classpath&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Depending on the other plugins your build uses (typically the Spring Boot plugin), you might have to configure, in addition, the main class:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-	&lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-	&lt;version&gt;${native.buildtools.version}&lt;/version&gt;
-	&lt;configuration&gt;
-		&lt;imageName&gt;${project.artifactId}&lt;/imageName&gt;
-		&lt;mainClass&gt;${exec.mainClass}&lt;/mainClass&gt;
-		&lt;buildArgs&gt;
-			&lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
-		&lt;/buildArgs&gt;
-		&lt;classpath&gt;
-			&lt;param&gt;
-				${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
-			&lt;/param&gt;
-		&lt;/classpath&gt;
-...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To be able to <a href="#testing-support">execute tests in native mode</a>, you will need more setup:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Create a <code>src/assembly/test-jar-with-dependencies.xml</code> file with the following contents:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd"&gt;
-    &lt;id&gt;tests&lt;/id&gt;
-    &lt;formats&gt;
-        &lt;format&gt;jar&lt;/format&gt;
-    &lt;/formats&gt;
-    &lt;fileSets&gt;
-        &lt;fileSet&gt;
-            &lt;directory&gt;${project.build.directory}/test-classes&lt;/directory&gt;
-            &lt;outputDirectory&gt;/&lt;/outputDirectory&gt;
-        &lt;/fileSet&gt;
-        &lt;fileSet&gt;
-            &lt;directory&gt;${project.build.outputDirectory}&lt;/directory&gt;
-            &lt;outputDirectory&gt;/&lt;/outputDirectory&gt;
-        &lt;/fileSet&gt;
-    &lt;/fileSets&gt;
-    &lt;includeBaseDirectory&gt;false&lt;/includeBaseDirectory&gt;
-    &lt;dependencySets&gt;
-        &lt;dependencySet&gt;
-            &lt;outputDirectory&gt;/&lt;/outputDirectory&gt;
-            &lt;useProjectArtifact&gt;true&lt;/useProjectArtifact&gt;
-            &lt;unpack&gt;true&lt;/unpack&gt;
-            &lt;scope&gt;test&lt;/scope&gt;
-        &lt;/dependencySet&gt;
-    &lt;/dependencySets&gt;
-&lt;/assembly&gt;</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Add the assembly plugin to your <code>native</code> profile:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.4.1&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;descriptors&gt;
-            &lt;descriptor&gt;src/assembly/test-jar-with-dependencies.xml&lt;/descriptor&gt;
-        &lt;/descriptors&gt;
-    &lt;/configuration&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;make-test-jar&lt;/id&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;single&lt;/goal&gt;
-            &lt;/goals&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Due to a limitation in Maven, you will need to move the tests execution to the "integration-test" phase:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
-    &lt;version&gt;3.0.0-M5&lt;/version&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;extensions&gt;true&lt;/extensions&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;test-native&lt;/id&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;test&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;phase&gt;integration-test&lt;/phase&gt;
-            &lt;configuration&gt;
-                &lt;classpath&gt;
-                    &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-tests.jar&lt;/param&gt;
-                &lt;/classpath&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-        &lt;execution&gt;
-            &lt;id&gt;build-native&lt;/id&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;compile-no-fork&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-            &lt;configuration&gt;
-                &lt;classpath&gt;
-                    &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar&lt;/param&gt;
-                &lt;/classpath&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-    &lt;configuration&gt;
-        &lt;skip&gt;false&lt;/skip&gt;
-        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
-        &lt;imageName&gt;${imageName}&lt;/imageName&gt;
-        &lt;fallback&gt;false&lt;/fallback&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Finally, you will need to execute tests using the <code>integration-test</code> phase instead of <code>test</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvn -Pnative integration-test</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Please refer to the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin documentation</a> for more details on how to configure shading and the <a href="https://maven.apache.org/plugins/maven-assembly-plugin">Maven Assembly plugin documentation</a> to tweak what to include in tests.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="agent-support"><a class="anchor" href="#agent-support"></a>Reflection support and running with the native agent</h2>
-<div class="sectionbody">
+<h3 id="native-image-tracing-agent"><a class="anchor" href="#native-image-tracing-agent"></a>Native Image Tracing Agent</h3>
 <div class="paragraph">
 <p>If your project requires reflection, classpath resources, dynamic proxies or other
 features requiring explicit native configuration, it may prove helpful to first run your
 application or tests using the
-<a href="https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/"><code>native-image-agent</code></a>.</p>
+<a href="https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/">Native Image Tracing Agent</a>.</p>
 </div>
 <div class="paragraph">
-<p>The Native Image Maven plugin simplifies generation of the required configuration files by
-injecting the agent automatically for you (this includes, but is not limited to the
-reflection file).</p>
+<p>The Native Image Maven plugin simplifies generation of the required configuration files by injecting the agent automatically for you (this includes, but is not limited to the reflection configuration).</p>
 </div>
 <div class="paragraph">
-<p>The agent generates the native configuration files in subdirectories of
-<code>target/native/agent-output</code>. Although those files will be automatically used if you run
-your build with the agent enabled, you should consider reviewing the generated files and
-adding them to your sources instead.</p>
+<p>The agent generates the configuration file(s) under <em>target/native/agent-output</em>.
+Although those files will be automatically used by <code>native-image</code>, you should consider reviewing the generated files and adding them to your sources instead.</p>
 </div>
-<div class="sect2">
-<h3 id="agent-support-enabling"><a class="anchor" href="#agent-support-enabling"></a>Enabling the agent</h3>
+<div class="sect3">
+<h4 id="agent-support-enabling"><a class="anchor" href="#agent-support-enabling"></a>Enabling the agent</h4>
 <div class="paragraph">
-<p>The agent is disabled by default, but it can be enabled within your <code>pom.xml</code> file or via
-the command line.</p>
+<p>The agent is disabled by default, but it can be enabled in the <em>pom.xml</em> file or on the command line.</p>
 </div>
 <div class="paragraph">
-<p>To enable the agent by default, specify <code>&lt;enabled&gt;true&lt;/enabled&gt;</code> as follows in the
-configuration of the <code>native-maven-plugin</code> in your POM.</p>
+<p>To enable the agent by default, specify <code>&lt;enabled&gt;true&lt;/enabled&gt;</code> as follows in the configuration of <code>native-maven-plugin</code>:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
   &lt;agent&gt;
@@ -1405,9 +917,8 @@ configuration of the <code>native-maven-plugin</code> in your POM.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>To enable the agent via the command line, supply the <code>-Dagent=true</code> flag when running
-Maven. The examples in the following sections demonstrate how to do this for your
-application and for tests.</p>
+<p>To enable the agent on the command line, pass the <code>-Dagent=true</code> option when running Maven.
+The examples in the following sections demonstrate how to do this for your application and for tests.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1417,25 +928,22 @@ application and for tests.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>If you have enabled the agent within your POM, you can still disable it via the command
-line by supplying the <code>-Dagent=false</code> flag.</p>
+<p>If you have enabled the agent in <em>pom.xml</em>, you can still disable it on the command line by passing <code>-Dagent=false</code>.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h3>
+<div class="sect3">
+<h4 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h4>
 <div class="paragraph">
-<p>If you would like to configure the options for the agent&#8201;&#8212;&#8201;for example, to configure
-agent mode or advanced features
-such as
+<p>If you would like to configure the options for the agent&#8201;&#8212;&#8201;for example, to configure agent mode or advanced features such as
 <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#caller-based-filters">Caller-based Filters</a>
 and <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#access-filters">Access Filters</a>
-- you can specify them in your POM as described bellow.</p>
+- you can specify them in <em>pom.xml</em> as described bellow.</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
     &lt;agent&gt;
@@ -1474,8 +982,8 @@ and <a href="https://www.graalvm.org/latest/reference-manual/native-image/metada
 </div>
 </div>
 <div class="paragraph">
-<p>This example shows all possibilities you can use for native agent configuration. If you don&#8217;t need some of the options,
-just remove them.</p>
+<p>This example shows all possibilities you can use for the agent configuration.
+If you do not need some of the options, just remove them.</p>
 </div>
 <div class="paragraph">
 <p>Agent can be run in one of the following modes:</p>
@@ -1483,106 +991,63 @@ just remove them.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>standard</code> - in this mode you run agent only with options provided in <code>options</code> section.</p>
+<p><code>standard</code> - in this mode you run agent only with options provided in the <code>options</code> section.</p>
 </li>
 <li>
-<p><code>direct</code> - in this mode you can provide command line that you want to be executed as an agent configuration. In this
-mode, user is fully responsible for agent configuration, and the rest of the agent configuration, provided in pom.xml file, will be ignored.</p>
+<p><code>direct</code> - in this mode you can provide command line options for the agent. In this
+mode, a user is fully responsible for agent configuration, and the rest of the agent configuration, provided in <em>pom.xml</em> file, will be ignored.</p>
 </li>
 <li>
-<p><code>conditional</code> - in this mode you can provide additional files that can be used as a filter for the agent output. You
-can read more about conditional mode <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/">here</a>.</p>
+<p><code>conditional</code> - in this mode you can provide additional files that can be used as a filter for the agent output. Read more about conditional mode <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/ExperimentalAgentOptions/">here</a>.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Each option and how you should use it is described bellow:</p>
+<p>Here is an explanation for each option you can specify in the agent block:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>enabled</code> - a simple flag that specifies whether the agent is enabled or not. Can be set to true or false.</p>
+<p><code>enabled</code> - Specifies whether the agent is enabled or not. Can be set to <code>true</code> or <code>false</code>.</p>
 </li>
 <li>
-<p><code>defaultMode</code> - agent mode switcher. Can be set to: standard, direct or conditional.</p>
+<p><code>defaultMode</code> - Agent mode switcher. Can be set to: <code>standard</code>, <code>direct</code>, or <code>conditional</code>.</p>
 </li>
 <li>
-<p><code>modes</code> - list of additional mode options, specific for certain mode type. Inside this tag, you can specify options for
-direct or conditional modes. Standard mode doesn&#8217;t have any specific options.</p>
+<p><code>modes</code> - A list of additional mode options, specific for certain mode type. Inside this tag, you can specify options for
+direct or conditional modes. Standard mode does not have any specific options.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>in case of <code>direct</code> mode you can specify <code>&lt;direct&gt;</code> tag, with the agent command line as its value</p>
+<p>in case of <code>direct</code> mode, you can specify <code>&lt;direct&gt;</code> tag, with the agent command line as its value</p>
 </li>
 <li>
-<p>in case of <code>conditional</code> mode you can specify <code>&lt;conditional&gt;</code> tag, and set additional <a href="https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md">filter files</a>
-inside <code>&lt;userCodeFilterPath&gt;</code> and <code>&lt;extraCodeFilterPath&gt;</code>. Also, you can set value for <code>&lt;parallel&gt;</code> tag. If the value is true, agent will create
-partial-config file, and merge it with conditional merge, otherwise agent will generate same kind of output as other modes.</p>
+<p>in case of <code>conditional</code> mode, you can specify <code>&lt;conditional&gt;</code> tag, and set additional <a href="https://github.com/oracle/graalvm-reachability-metadata/blob/master/docs/CollectingMetadata.md">filter files</a> inside <code>&lt;userCodeFilterPath&gt;</code> and <code>&lt;extraCodeFilterPath&gt;</code>. Also, you can set value for <code>&lt;parallel&gt;</code> tag. If the value is <code>true</code>, the agent will create the <em>partial-config</em> file, and merge it with conditional merge. Otherwise the agent will generate the same kind of output as other modes.</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p><code>options</code> - list of options that can be specify independent from agent mode. More about common options can be found
-<a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/">here</a>.</p>
+<p><code>options</code> - A list of options that can be specified independently from the agent mode. Learn more about these options <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/">here</a>.</p>
 </li>
 </ul>
+</div>
 </div>
 <div class="sect3">
-<h4 id="metadata-copy"><a class="anchor" href="#metadata-copy"></a>Metadata copy</h4>
-<div class="paragraph">
-<p><code>metadataCopy</code> provides additional options for manipulating the agent output after agent finishes its job.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataCopy&gt;
-    &lt;disabledStages&gt;
-        &lt;stage&gt;main&lt;/stage&gt;
-    &lt;/disabledStages&gt;
-    &lt;merge&gt;true&lt;/merge&gt;
-    &lt;outputDirectory&gt;/tmp/test-output-dir&lt;/outputDirectory&gt;
-&lt;/metadataCopy&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can set values for the following tags:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>&lt;outputDirectory&gt;</code> - where you want to copy agent output.</p>
-</li>
-<li>
-<p><code>&lt;merge&gt;</code> - in case you already have some other config files inside <code>output directory</code>, you can choose whether you want to override those files or
-merge new files with the existing once (set merge value to true).</p>
-</li>
-<li>
-<p><code>&lt;disabledStages&gt;</code> - in case you don&#8217;t want to copy output of the certain stage (main or test) you can disable them and metadataCopy will not look at
-the agent output for that stage. For example, if you want to copy only config files generated in tests, you can disable main stage. Also, if you want
-to copy only files generated in main phase, you can disable test stage. Therefore, if you skip both stages, metadataCopy will not be executed.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="agent-support-running-tests"><a class="anchor" href="#agent-support-running-tests"></a>Running tests with the agent</h3>
+<h4 id="agent-support-running-tests"><a class="anchor" href="#agent-support-running-tests"></a>Running tests with the agent</h4>
 <div class="paragraph">
 <p>The simplest way to use the agent is to do it via execution of your tests.</p>
 </div>
 <div class="paragraph">
 <p>Run your test suite with:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true test</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative -Dagent=true test</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>When the <code>agent</code> system property is set to <code>true</code> (or when the agent is
-<a href="#agent-support-enabling">enabled in the POM</a>), the agent will be automatically attached
-to your Maven Surefire test execution, and the generated files can be found in the
-<code>target/native/agent-output/test</code> directory.</p>
+<p>When the <code>agent</code> system property is set to <code>true</code> (or when the agent is <a href="#agent-support-enabling">enabled in the POM</a>), the agent will be automatically attached to your Maven Surefire test execution, and the generated files will be stored in the <em>target/native/agent-output/test</em> directory.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1592,12 +1057,12 @@ to your Maven Surefire test execution, and the generated files can be found in t
 </td>
 <td class="content">
 <div class="paragraph">
-<p>If you want to run metadataCopy as well, first define its configuration as described <a href="#metadata-copy">above</a> and add <code>native:metadata-copy</code>
-at the end of the agent invocation command. Example:</p>
+<p>If you want to run the <em>metadataCopy</em> task as well, first define its configuration as described <a href="#metadata-copy">above</a>, and add <code>native:metadata-copy</code>
+at the end of the agent invocation command. For example:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true test native:metadata-copy</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative -Dagent=true test native:metadata-copy</code></pre>
 </div>
 </div>
 </td>
@@ -1605,16 +1070,15 @@ at the end of the agent invocation command. Example:</p>
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="agent-support-running-application"><a class="anchor" href="#agent-support-running-application"></a>Running your application with the agent</h3>
+<div class="sect3">
+<h4 id="agent-support-running-application"><a class="anchor" href="#agent-support-running-application"></a>Running your application with the agent</h4>
 <div class="paragraph">
-<p>Executing your application with the agent is more involved and requires you to configure a
-separate mojo execution which allows forking the Java process.</p>
+<p>Executing your application with the agent is more involved and requires you to configure a separate Mojo execution which allows forking the Java process.</p>
 </div>
 <div class="paragraph">
-<p>In your <code>native</code> Maven profile section, add the following:</p>
+<p>In your <code>native</code> profile section, add the following:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
     &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
@@ -1667,30 +1131,378 @@ separate mojo execution which allows forking the Java process.</p>
 <div class="paragraph">
 <p>Then you can execute your application with the agent by running:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Both of the above commands will generate configuration files in the
-<code>target/native/agent-output/main</code> directory. If you want to run your native application
-with those configuration files, you then need to execute the following command:</p>
+<p>Both of the above commands generate configuration files in the <em>target/native/agent-output/main</em> directory.
+If you want to run your native application with those configuration files, you then need to execute the following command:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">mvn -Pnative -Dagent=true -DskipTests package exec:exec@native</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative -Dagent=true -DskipTests package exec:exec@native</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="agent-filter-file"><a class="anchor" href="#agent-filter-file"></a>Reduce the amount of generated metadata</h4>
+<div class="paragraph">
+<p>In some cases the agent may include more metadata than it is actually needed.
+You can filter metadata using the agent filter file(s).
+These filter files that agent consumes have the following structure:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+ "rules": [
+    {"includeClasses": "some.class.to.include.**"},
+    {"excludeClasses": "some.class.to.exclude.**"},
+  ],
+  "regexRules": [
+    {"includeClasses": "regex\.example\.class.*"},
+    {"excludeClasses": "regex\.example\.exclude[0-9]+"},
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The process how you can pass the configuration files to the agent is described in the <a href="#agent-support-configuring-options">previous section</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can see on some simple Java application how different filter files affect generated metadata.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s start with this filter:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "rules": [
+    {"includeClasses": "**"}
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This filter instructs the agent to include everything, which will result in a massive configuration file.
+For example, this is how <em>reachability-metadata.json</em> looks like:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "java.util.concurrent.atomic.AtomicBoolean"
+      },
+      "type": "java.util.concurrent.atomic.AtomicBoolean",
+      "fields": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "type": "org.apache.maven.surefire.booter.spi.LegacyMasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "type": "org.apache.maven.surefire.booter.spi.SurefireMasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.platform.launcher.core.DefaultLauncher"
+      },
+      "type": "org.apiguardian.api.API"
+    },
+    {
+      "condition": {
+        "typeReached": "java.lang.Class"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "java.util.Collections$2"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.api.util.DefaultScanResult"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.jupiter.engine.JupiterTestEngine"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "org.junit.jupiter.engine.discovery.ClassSelectorResolver$$Lambda/0x00007a5c0f03fbb8"
+      },
+      "type": "org.example.NativeTests"
+    },
+    {
+      "condition": {
+        "typeReached": "java.security.Provider$Service"
+      },
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "&lt;init&gt;",
+          "parameterTypes": []
+        }
+      ]
+    }
+    ...
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "jdk.internal.logger.BootstrapLogger$DetectBackend$1"
+      },
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "condition": {
+        "typeReached": "jdk.internal.logger.LoggerFinderLoader"
+      },
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "condition": {
+        "typeReached": "org.apache.maven.surefire.booter.ForkedBooter"
+      },
+      "glob": "META-INF/services/org.apache.maven.surefire.spi.MasterProcessChannelProcessorFactory"
+    },
+    {
+      "condition": {
+        "typeReached": "java.lang.ClassLoader"
+      },
+      "glob": "TestResource.txt"
+    },
+    ...
+  ],
+  "bundles": [],
+  "jni": [
+    {
+      "condition": {
+        "typeReached": "sun.nio.ch.IOUtil"
+      },
+      "type": "java.lang.Boolean",
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "condition": {
+        "typeReached": "sun.management.VMManagementImpl"
+      },
+      "type": "sun.management.VMManagementImpl",
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, there are lots of entries that you likely do not want.
+They are present because the metadata was generated using tests, and that the testing library was present at run time during the agent execution pass, but in practice, your application will not use the testing library in production.
+To reduce the amount of generated metadata, use the following <em>user-code-filter.json</em>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "rules": [
+    {"includeClasses": "**"},
+    {"excludeClasses": "org.apache.maven.**"},
+    {"excludeClasses": "org.junit.**"},
+    {"excludeClasses": "java.**"},
+    {"excludeClasses": "jdk.internal.**"},
+    {"excludeClasses": "sun.**"},
+    {"excludeClasses": "com.sun.**"}
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Always be careful when removing entries in metadata, as this may result in a broken native image.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After updating the filter, you can regenerate the metadata, which will result in the following <em>reachability-metadata.json</em> file:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "type": "org.example.NativeTests$Person",
+      "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "glob": "TestResource.txt"
+    }
+  ],
+  "bundles": []
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, there are no more entries that contain classes from <code>org.apache.maven</code> (as their condition).</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="metadata-copy"><a class="anchor" href="#metadata-copy"></a>Metadata copy</h4>
+<div class="paragraph">
+<p>The <code>metadataCopy</code> task provides additional options for manipulating the agent output after it finishes its job.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataCopy&gt;
+    &lt;disabledStages&gt;
+        &lt;stage&gt;main&lt;/stage&gt;
+    &lt;/disabledStages&gt;
+    &lt;merge&gt;true&lt;/merge&gt;
+    &lt;outputDirectory&gt;/tmp/test-output-dir&lt;/outputDirectory&gt;
+&lt;/metadataCopy&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can set values for the following tags:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>&lt;outputDirectory&gt;</code> - where you want to copy agent output.</p>
+</li>
+<li>
+<p><code>&lt;merge&gt;</code> - in case you already have some other configuration files inside output directory, you can choose whether you want to override those files or
+merge new files with the existing once (set <code>merge</code> to <code>true</code>).</p>
+</li>
+<li>
+<p><code>&lt;disabledStages&gt;</code> - in case you do not want to copy output of the certain stage (main or test), you can disable them, and <code>metadataCopy</code> will not look at
+the agent output for that stage. For example, if you want to copy only configuration files generated in tests, you can disable main stage. Also, if you want to copy only files generated in the main phase, you can disable the test stage. Therefore, if you skip both stages, <code>metadataCopy</code> will not be executed.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata Support</h2>
+<h2 id="configuration-reusing-config-from-parent"><a class="anchor" href="#configuration-reusing-config-from-parent"></a>Reusing configuration from a parent POM</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM reachability metadata repository</a>.
-This repository provides <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/">reachability metadata</a> for libraries that do not support GraalVM Native Image.</p>
+<p>The <code>&lt;buildArgs&gt;</code> element can be combined between parent and children POMs.
+Suppose you have the following parent POM definition:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;version&gt;${current_plugin_version}&lt;/version&gt;
+  &lt;configuration&gt;
+    &lt;imageName&gt;${project.artifactId}&lt;/imageName&gt;
+    &lt;mainClass&gt;${exec.mainClass}&lt;/mainClass&gt;
+    &lt;buildArgs&gt;
+      &lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
+    &lt;/buildArgs&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Children projects have the ability to append <code>&lt;buildArg&gt;</code> arguments in the following way:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;configuration&gt;
+    &lt;buildArgs combine.children="append"&gt;
+      &lt;buildArg&gt;--verbose&lt;/buildArg&gt;
+    &lt;/buildArgs&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, the arguments that are passed to the <code>native-image</code> executable will be:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">--no-fallback --verbose</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This plugin supports running tests on the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images.
+This means that tests will be compiled and executed as native code.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1700,9 +1512,374 @@ This repository provides <a href="https://www.graalvm.org/latest/reference-manua
 </td>
 <td class="content">
 <div class="paragraph">
-<p>This version of the plugin defaults to the using the metadata repository in version 0.3.14. There is nothing for you to configure if you are fine with this version. The repository is also published on Maven Central at the following coordinates:</p>
+<p>The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In theory, any <code>TestEngine</code> supported on the JUnit Platform should be supported by the plugin as long as the programming language used by the <code>TestEngine</code> and the programming language used to write the tests is supported by GraalVM Native Image.
+The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and support for additional test engines should be possible with custom native configuration.</p>
+</div>
+<div class="paragraph">
+<p>To use the recommended JUnit Platform test listener mode, you need to enable extensions for <code>native-maven-plugin</code> by adding <code>&lt;extensions&gt;true&lt;/extensions&gt;</code> as follows.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
+    &lt;extensions&gt;true&lt;/extensions&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Running the <code>./mvnw -Pnative test</code> will then build and run tests as native code.</p>
+</div>
+<div class="sect2">
+<h3 id="testing-support-version-compatibility"><a class="anchor" href="#testing-support-version-compatibility"></a>Version compatibility</h3>
+<div class="paragraph">
+<p>This plugin requires the Maven Surefire plugin 3.0.0 or higher to run tests as native code.</p>
+</div>
+<div class="paragraph">
+<p>Each version of the Maven Surefire plugin has a dependency on a particular version of the JUnit Platform.
+You therefore need to ensure that Maven Surefire is using at least version 1.8 of the JUnit Platform.
+Beginning with version 3.0 M4, Maven Surefire automatically aligns the JUnit Platform version used by Surefire with the version needed by the user&#8217;s configured version of JUnit Jupiter or JUnit Vintage.
+Since the examples here use Maven Surefire 3.0 M5, their maven POMs do not require any special configuration regarding the JUnit Platform version.
+However, if you are using a version of Maven Surefire prior to 3.0 M4, you will need to add an explicit dependency on the <code>junit-platform-launcher</code> artifact to the <code>dependencies</code> section of your <code>native</code> profile configuration. For example:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependencies&gt;
+	&lt;dependency&gt;
+		&lt;groupId&gt;org.junit.platform&lt;/groupId&gt;
+		&lt;artifactId&gt;junit-platform-launcher&lt;/artifactId&gt;
+		&lt;version&gt;1.8.2&lt;/version&gt;
+		&lt;scope&gt;test&lt;/scope&gt;
+	&lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If you import the <code>junit</code> BOM or are using a plugin that manages JUnit
+versions for you&#8201;&#8212;&#8201;for example, Spring Boot&#8201;&#8212;&#8201;you may want to omit the <code>&lt;version&gt;</code>
+configuration in the above example.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If Maven Surefire is using an older version of the JUnit Platform, the build will fail with an error similar to the following when attempting to run tests in a native image:</p>
 </div>
 <div class="listingblock">
+<div class="content">
+<pre>[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
+<div class="paragraph">
+<p>If you wish to disable running tests on the JVM as well as tests as native code, you can invoke Maven with the <code>-DskipTests</code> flag.
+This flag is supported by Maven Surefire and Native Build Tools.
+Several examples in <a href="#agent-support-running-application">Running your application with the agent</a> demonstrate the use of this flag.</p>
+</div>
+<div class="paragraph">
+<p>If you wish to run tests on the JVM with Maven Surefire but skip running tests as native code, you can invoke Maven with the <code>-DskipNativeTests</code> flag.
+This flag is specific to Native Build Tools.
+For example, you might wish to disable only native testing support for use cases such as the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You do not actually want to run your tests as native code.</p>
+</li>
+<li>
+<p>Your library or application uses a testing framework that is not supported on the JUnit Platform.</p>
+</li>
+<li>
+<p>You need to use the <a href="#agent-support">agent</a> when running tests on the JVM but do not wish to run those same tests as native code.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath, @argument file and shading support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.</p>
+</div>
+<div class="paragraph">
+<p>The plugin automatically passes arguments to the <code>native-image</code> tool from the argument file, instead of passing them directly.</p>
+</div>
+<div class="paragraph">
+<p>There is also the <code>native:write-args-file</code> goal that can be used to generate this argument file.
+This can be useful in situations where <code>native-maven-plugin</code> is not available, for example, when running <code>native-image</code> in a Docker container.
+The path to the arguments file is stored in the project properties under the key <code>graalvm.native-image.args-file</code>, so that other Maven plugins further in the lifecycle can use it.</p>
+</div>
+<div class="paragraph">
+<p>In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn&#8217;t supported.</p>
+</div>
+<div class="paragraph">
+<p>One option is to use a <a href="https://maven.apache.org/plugins/maven-shade-plugin">shaded JAR</a> and use it instead of individual JAR files on classpath.
+For that, you need to setup the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin</a>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-shade-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.2.4&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;shade&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+                &lt;shadedArtifactAttached&gt;true&lt;/shadedArtifactAttached&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you need the testing support, add the JUnit Platform dependency explicitly:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+        &lt;artifactId&gt;junit-platform-native&lt;/artifactId&gt;
+        &lt;version&gt;${junit.platform.native.version}&lt;/version&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then <code>native-maven-plugin</code> needs to be configured to use this JAR instead of the full classpath:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
+    &lt;extensions&gt;true&lt;/extensions&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;build-native&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;compile-no-fork&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+    &lt;configuration&gt;
+        &lt;skip&gt;false&lt;/skip&gt;
+        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
+        &lt;imageName&gt;${imageName}&lt;/imageName&gt;
+        &lt;fallback&gt;false&lt;/fallback&gt;
+        &lt;classpath&gt;
+            &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar&lt;/param&gt;
+        &lt;/classpath&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Depending on the other plugins your build uses (typically the Spring Boot plugin), you might have to configure, in addition, the main class:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+	&lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+	&lt;version&gt;${native.buildtools.version}&lt;/version&gt;
+	&lt;configuration&gt;
+		&lt;imageName&gt;${project.artifactId}&lt;/imageName&gt;
+		&lt;mainClass&gt;${exec.mainClass}&lt;/mainClass&gt;
+		&lt;buildArgs&gt;
+			&lt;buildArg&gt;--no-fallback&lt;/buildArg&gt;
+		&lt;/buildArgs&gt;
+		&lt;classpath&gt;
+			&lt;param&gt;
+				${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
+			&lt;/param&gt;
+		&lt;/classpath&gt;
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To be able to <a href="#testing-support">execute tests as native code</a>, you also need:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a <em>src/assembly/test-jar-with-dependencies.xml</em> file with the following contents:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd"&gt;
+    &lt;id&gt;tests&lt;/id&gt;
+    &lt;formats&gt;
+        &lt;format&gt;jar&lt;/format&gt;
+    &lt;/formats&gt;
+    &lt;fileSets&gt;
+        &lt;fileSet&gt;
+            &lt;directory&gt;${project.build.directory}/test-classes&lt;/directory&gt;
+            &lt;outputDirectory&gt;/&lt;/outputDirectory&gt;
+        &lt;/fileSet&gt;
+        &lt;fileSet&gt;
+            &lt;directory&gt;${project.build.outputDirectory}&lt;/directory&gt;
+            &lt;outputDirectory&gt;/&lt;/outputDirectory&gt;
+        &lt;/fileSet&gt;
+    &lt;/fileSets&gt;
+    &lt;includeBaseDirectory&gt;false&lt;/includeBaseDirectory&gt;
+    &lt;dependencySets&gt;
+        &lt;dependencySet&gt;
+            &lt;outputDirectory&gt;/&lt;/outputDirectory&gt;
+            &lt;useProjectArtifact&gt;true&lt;/useProjectArtifact&gt;
+            &lt;unpack&gt;true&lt;/unpack&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependencySet&gt;
+    &lt;/dependencySets&gt;
+&lt;/assembly&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the Maven Assembly plugin to your <code>native</code> profile:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.4.1&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;descriptors&gt;
+            &lt;descriptor&gt;src/assembly/test-jar-with-dependencies.xml&lt;/descriptor&gt;
+        &lt;/descriptors&gt;
+    &lt;/configuration&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;make-test-jar&lt;/id&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;single&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Due to a limitation in Maven, you need to move the tests execution to the <code>integration-test</code> phase:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.0.0-M5&lt;/version&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
+    &lt;extensions&gt;true&lt;/extensions&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;test-native&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;test&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;phase&gt;integration-test&lt;/phase&gt;
+            &lt;configuration&gt;
+                &lt;classpath&gt;
+                    &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-tests.jar&lt;/param&gt;
+                &lt;/classpath&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+        &lt;execution&gt;
+            &lt;id&gt;build-native&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;compile-no-fork&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+            &lt;configuration&gt;
+                &lt;classpath&gt;
+                    &lt;param&gt;${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar&lt;/param&gt;
+                &lt;/classpath&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+    &lt;configuration&gt;
+        &lt;skip&gt;false&lt;/skip&gt;
+        &lt;useArgFile&gt;false&lt;/useArgFile&gt;
+        &lt;imageName&gt;${imageName}&lt;/imageName&gt;
+        &lt;fallback&gt;false&lt;/fallback&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finally, you need to execute tests using the <code>integration-test</code> phase instead of <code>test</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative integration-test</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Refer to the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin documentation</a> for more details on how to configure shading, and the <a href="https://maven.apache.org/plugins/maven-assembly-plugin">Maven Assembly plugin documentation</a> to tweak what to include in tests.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM Reachability Metadata Repository</a>.
+This repository provides the <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/">configuration</a> for libraries that do not support GraalVM Native Image.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The repository is also published on Maven Central at the following coordinates:</p>
+</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
@@ -1714,7 +1891,7 @@ This repository provides <a href="https://www.graalvm.org/latest/reference-manua
 </div>
 </div>
 <div class="paragraph">
-<p>e.g. <code>graalvm-reachability-metadata-0.10.5-SNAPSHOT-repository.zip</code>.</p>
+<p>For example: <code>graalvm-reachability-metadata-0.10.5-SNAPSHOT-repository.zip</code>.</p>
 </div>
 </td>
 </tr>
@@ -1723,10 +1900,12 @@ This repository provides <a href="https://www.graalvm.org/latest/reference-manua
 <div class="sect2">
 <h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
 <div class="paragraph">
-<p>Metadata repository is enabled by default. Support can be disabled by including the following into the <code>&lt;configuration&gt;</code> element:</p>
+<p>The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.</p>
 </div>
-<div class="listingblock">
-<div class="title">Disabling the metadata repository</div>
+<div class="paragraph">
+<p>The support is enabled by default, but can be disabled explicitly:</p>
+</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
     &lt;enabled&gt;false&lt;/enabled&gt;
@@ -1736,8 +1915,7 @@ This repository provides <a href="https://www.graalvm.org/latest/reference-manua
 <div class="paragraph">
 <p>Alternatively, you can use a <em>remote repository</em>, in which case you can specify the URL of the ZIP file:</p>
 </div>
-<div class="listingblock">
-<div class="title">Enabling a remote repository</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
     &lt;enabled&gt;true&lt;/enabled&gt;
@@ -1748,8 +1926,7 @@ This repository provides <a href="https://www.graalvm.org/latest/reference-manua
 <div class="paragraph">
 <p>For debugging purposes you can use a local repository:</p>
 </div>
-<div class="listingblock">
-<div class="title">Enabling a local repository</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
     &lt;enabled&gt;true&lt;/enabled&gt;
@@ -1757,20 +1934,14 @@ This repository provides <a href="https://www.graalvm.org/latest/reference-manua
 &lt;/metadataRepository&gt;</code></pre>
 </div>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>The local path can point to an <em>exploded</em> directory, or to a compressed ZIP file.</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.</p>
 </div>
 <div class="paragraph">
-<p>For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.
-In case you want to use another version of the metadata use:</p>
+<p>For each library dependency, the plugin automatically searches for the configuration metadata in the repository.
+In some cases, you may want to override the repository version:</p>
 </div>
-<div class="listingblock">
-<div class="title">Choosing a version for the metadata repository</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
     &lt;enabled&gt;true&lt;/enabled&gt;
@@ -1779,11 +1950,10 @@ In case you want to use another version of the metadata use:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>In some cases, you may need to exclude a particular module from the search.
+<p>You may want to exclude a particular module from the search.
 This can be done by configuring that particular dependency:</p>
 </div>
-<div class="listingblock">
-<div class="title">Excluding a module from search</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
     &lt;enabled&gt;true&lt;/enabled&gt;
@@ -1799,11 +1969,10 @@ This can be done by configuring that particular dependency:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Last, it is possible for you to override the <em>metadata version</em> of a particular module.
-This may be interesting if there&#8217;s no specific metadata available for the particular version of the library that you use, but that you know that a version works:</p>
+<p>Lastly, it is possible for you to override the <em>metadata version</em> of a particular module.
+This may be interesting if there is no specific metadata available for the particular version of the library that you use, but that you know that a version works:</p>
 </div>
-<div class="listingblock">
-<div class="title">Specifying the metadata version to use for a particular library</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
     &lt;enabled&gt;true&lt;/enabled&gt;
@@ -1822,19 +1991,18 @@ This may be interesting if there&#8217;s no specific metadata available for the 
 <div class="sect2">
 <h3 id="_adding_metadata_repository_files"><a class="anchor" href="#_adding_metadata_repository_files"></a>Adding metadata repository files</h3>
 <div class="paragraph">
-<p>By default, repository metadata will be used only when your native image is generated.
-In some situations, you may want to include the metadata directly inside your jar.</p>
+<p>By default, reachability metadata is used only when your native image is being generated.
+In some situations, you may want to include the metadata directly inside your JAR file.</p>
 </div>
 <div class="paragraph">
-<p>Adding metadata to your jar can be useful when some other process is responsible for converting your jar into a native image.
-For example, you might be generating a shaded jar and using a <a href="https://paketo.io/">Paketo buildpack</a> to convert it to a native image.</p>
+<p>Copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
+For example, you might be generating a shaded JAR file and using a <a href="https://paketo.io/">Paketo buildpack</a> to convert it to a native image.</p>
 </div>
 <div class="paragraph">
-<p>To include metadata repository inside your jar you can use the <code>add-reachability-metadata</code> goal.
-Typically the goal will be included in an execution step where by default it will be bound to the <code>generate-resources</code> phase:</p>
+<p>To include metadata repository inside the JAR file, you can use the <code>add-reachability-metadata</code> goal.
+Typically, the goal will be included in an execution step where, by default, it will be bound to the <code>generate-resources</code> phase:</p>
 </div>
-<div class="listingblock">
-<div class="title">Configuring the <code>add-reachability-metadata</code> goal to execute with the <code>generate-resources</code> phase</div>
+<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;executions&gt;
     &lt;execution&gt;
@@ -1853,7 +2021,7 @@ Typically the goal will be included in an execution step where by default it wil
 <h2 id="javadocs"><a class="anchor" href="#javadocs"></a>Javadocs</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In addition, you can consult the <a href="javadocs/native-maven-plugin/index.html">Javadocs of the plugin</a>.</p>
+<p>For further reference, you can review the <a href="javadocs/native-maven-plugin/index.html">Javadocs of the plugin</a>.</p>
 </div>
 </div>
 </div>
@@ -1862,10 +2030,11 @@ Typically the goal will be included in an execution step where by default it wil
 <script src="highlight/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
 <link rel="stylesheet" href="css/multi-lang-sample.css">
+<link rel="stylesheet" href="css/page.css">
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
-        <img src="img/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
+        <img src="css/images/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
     </div>
 </div>
 </body>

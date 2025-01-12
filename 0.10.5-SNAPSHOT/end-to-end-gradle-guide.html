@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
 <meta name="author" content="The GraalVM team">
-<title>Getting Started with Maven Plugin for GraalVM Native Image</title>
+<title>Building Native Images with Gradle: An End-to-End Guide</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -444,8 +444,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <link rel="icon" type="image/png" sizes="16x16" href="https://www.graalvm.org/resources/img/favicon/favicon-16x16.png">
 </head>
 <body class="article toc2 toc-left">
+<div id="grabbit-logo">
+    <img src="css/images/Grabbit.svg" alt="">
+</div>
 <div id="header">
-<h1>Getting Started with Maven Plugin for GraalVM Native Image</h1>
+<h1>Building Native Images with Gradle: An End-to-End Guide</h1>
 <div class="details">
 <span id="author" class="author">The GraalVM team</span><br>
 <span id="revnumber">version 0.10.5-SNAPSHOT</span>
@@ -453,11 +456,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_prepare_a_demo_application">Prepare a Demo Application</a></li>
-<li><a href="#_build_a_native_executable_by_detecting_resources_with_the_agent">Build a Native Executable by Detecting Resources with the Agent</a></li>
-<li><a href="#_add_junit_testing">Add JUnit Testing</a>
+<li><a href="#getting-started">Getting Started</a>
 <ul class="sectlevel2">
-<li><a href="#_summary">Summary</a></li>
+<li><a href="#add-plugin">Add the Plugin</a></li>
+<li><a href="#run-your-project">Build and Run Your Application</a></li>
+</ul>
+</li>
+<li><a href="#advanced-use-cases">Advanced Use Cases: How to</a>
+<ul class="sectlevel2">
+<li><a href="#configure-image-build">Configure Native Image Build</a></li>
+<li><a href="#run-junit-tests">Run Junit Tests</a></li>
+<li><a href="#gather-execution-profiles">Gather Execution Profiles and Build Optimized Images</a></li>
+<li><a href="#troubleshoot-missing-configuration">Troubleshoot Missing Configuration</a></li>
+<li><a href="#use-diagnostics-tools">Use Diagnostics Tools</a></li>
+<li><a href="#_learn_more">Learn more</a></li>
 </ul>
 </li>
 </ul>
@@ -467,569 +479,636 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This guide shows how to get started with the <a href="maven-plugin.html">Maven plugin for GraalVM Native Image</a> and build a native executable for a Java application.</p>
+<p>This guide walks you through integrating the Gradle plugin for Native Image into your project.
+It starts from enabling the plugin, building the first native image, and running it.</p>
 </div>
 <div class="paragraph">
-<p>You will create a sample application, enable the plugin, add support for dynamic features, build a native executable, and run JUnit tests.</p>
-</div>
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>The plugin requires that you <a href="https://www.graalvm.org/latest/docs/getting-started/">setup GraalVM</a>.</p>
-</div>
-<div class="paragraph">
-<p>The easiest way to install GraalVM is to use <a href="https://sdkman.io/jdks">SDKMAN!</a>.</p>
-</div>
-<div class="paragraph">
-<p>For other installation options, go to <a href="https://www.graalvm.org/downloads/">GraalVM Downloads</a>.</p>
-</div>
-</div>
+<p>Then it takes you to more advanced use-cases such as plugin&#8217;s configuration, applying optimizations, running native tests, and troubleshooting.
+If you are an advanced user, you can skip the getting started part and go directly to the advanced section.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_prepare_a_demo_application"><a class="anchor" href="#_prepare_a_demo_application"></a>Prepare a Demo Application</h2>
-<div class="sectionbody">
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>You start by creating a <strong>Fortune Teller</strong> sample application that simulates the traditional
-<a href="https://en.wikipedia.org/wiki/Fortune_(Unix)">fortune Unix program</a>.
-The data for the fortune phrases is provided by <a href="https://github.com/your-fortune">YourFortune</a>.</p>
-</div>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Create a new Java project with <strong>Maven</strong> in your favorite IDE, called <em>Fortune</em>, in the package named <em>demo</em>. Make sure to choose
-<a href="https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter">JUnit Jupiter</a> as the test engine. The <em>pom.xml</em> file
-should look similar to the following.</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
-    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
-
-    &lt;groupId&gt;demo&lt;/groupId&gt;
-    &lt;artifactId&gt;fortune&lt;/artifactId&gt;
-    &lt;version&gt;1.0.0&lt;/version&gt;
-    &lt;name&gt;Fortune Teller GraalVM Demo&lt;/name&gt;
-
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
-            &lt;artifactId&gt;junit-jupiter&lt;/artifactId&gt;
-            &lt;version&gt;5.10.1&lt;/version&gt;
-            &lt;scope&gt;test&lt;/scope&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/project&gt;</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Create the <em>Fortune.java</em> (<em>src/main/java/demo/Fortune.java</em>) class.</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="java" class="language-java hljs">package demo;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-public class Fortune {
-
-    private static final Random RANDOM = new Random();
-    private final ArrayList&lt;String&gt; fortunes = new ArrayList&lt;&gt;();
-
-    public Fortune() throws JsonProcessingException {
-        // Scan the file into the array of fortunes
-        String json = readInputStream(ClassLoader.getSystemResourceAsStream("fortunes.json"));
-        ObjectMapper omap = new ObjectMapper();
-        JsonNode root = omap.readTree(json);
-        JsonNode data = root.get("data");
-        Iterator&lt;JsonNode&gt; elements = data.elements();
-        while (elements.hasNext()) {
-            JsonNode quote = elements.next().get("quote");
-            fortunes.add(quote.asText());
-        }
-    }
-
-    private String readInputStream(InputStream is) {
-        StringBuilder out = new StringBuilder();
-        try (InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-            BufferedReader reader = new BufferedReader(streamReader)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line);
-            }
-
-        } catch (IOException e) {
-            Logger.getLogger(Fortune.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return out.toString();
-    }
-
-    private void printRandomFortune() throws InterruptedException {
-        //Pick a random fortune
-        String f = randomFortune();
-        // Print out the fortune s.l.o.w.l.y
-        for (char c : f.toCharArray()) {
-            System.out.print(c);
-            Thread.sleep(100);
-        }
-        System.out.println();
-    }
-
-    public String randomFortune() {
-        //Pick a random number
-        int r = RANDOM.nextInt(fortunes.size());
-        //Use the random number to pick a random fortune
-        return fortunes.get(r);
-    }
-
-    /**
-    * @param args the command line arguments
-    * @throws java.lang.InterruptedException
-    * @throws com.fasterxml.jackson.core.JsonProcessingException
-    */
-    public static void main(String[] args) throws InterruptedException, JsonProcessingException {
-        Fortune fortune = new Fortune();
-        fortune.printRandomFortune();
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Copy and paste the following file,
-<a href="https://raw.githubusercontent.com/graalvm/graalvm-demos/refs/heads/master/fortune-demo/fortune-maven/src/main/resources/fortunes.u8">fortunes.json</a>
-under the <em>resources</em> directory (<em>src/main/resources/fortunes.json</em>). Your project tree should be:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">.
-├── pom.xml
-└── src
-    └── main
-        ├── java
-        │   └── demo
-        │       └── Fortune.java
-        └── resources
-            └── fortunes.json</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Add the <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind">FasterXML Jackson</a>
-dependency that provide functionality to read and write JSON, data bindings (used in the demo application). Open the
-<em>pom.xml</em> file (a Maven configuration file), and insert the following in the <code>&lt;dependencies&gt;</code> section:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
-    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
-    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
-    &lt;version&gt;2.16.0&lt;/version&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>There should be two dependencies, the FasterXML Jackson dependency and the JUnit 5 dependency as shown below.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
-        &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
-        &lt;version&gt;2.16.0&lt;/version&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.junit.jupiter&lt;/groupId&gt;
-        &lt;artifactId&gt;junit-jupiter&lt;/artifactId&gt;
-        &lt;version&gt;5.10.1&lt;/version&gt;
-        &lt;scope&gt;test&lt;/scope&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Add regular Maven plugins for building and assembling a Maven project into an executable JAR.
-Insert the following into the <code>build</code> section in the <em>pom.xml</em> file:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">    &lt;build&gt;
-        &lt;plugins&gt;
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
-                &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
-                &lt;version&gt;3.1.1&lt;/version&gt;
-                &lt;executions&gt;
-                    &lt;execution&gt;
-                        &lt;id&gt;java&lt;/id&gt;
-                        &lt;goals&gt;
-                            &lt;goal&gt;java&lt;/goal&gt;
-                        &lt;/goals&gt;
-                        &lt;configuration&gt;
-                            &lt;mainClass&gt;${mainClass}&lt;/mainClass&gt;
-                        &lt;/configuration&gt;
-                    &lt;/execution&gt;
-                &lt;/executions&gt;
-            &lt;/plugin&gt;
-
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;
-                &lt;version&gt;3.11.0&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;source&gt;${maven.compiler.source}&lt;/source&gt;
-                    &lt;target&gt;${maven.compiler.source}&lt;/target&gt;
-                &lt;/configuration&gt;
-            &lt;/plugin&gt;
-
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-                &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
-                &lt;version&gt;3.3.0&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;archive&gt;
-                        &lt;manifest&gt;
-                            &lt;addClasspath&gt;true&lt;/addClasspath&gt;
-                            &lt;mainClass&gt;${mainClass}&lt;/mainClass&gt;
-                        &lt;/manifest&gt;
-                    &lt;/archive&gt;
-                &lt;/configuration&gt;
-            &lt;/plugin&gt;
-
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-                &lt;artifactId&gt;maven-assembly-plugin&lt;/artifactId&gt;
-                &lt;version&gt;3.6.0&lt;/version&gt;
-                &lt;executions&gt;
-                    &lt;execution&gt;
-                        &lt;phase&gt;package&lt;/phase&gt;
-                        &lt;goals&gt;
-                            &lt;goal&gt;single&lt;/goal&gt;
-                        &lt;/goals&gt;
-                    &lt;/execution&gt;
-                &lt;/executions&gt;
-                &lt;configuration&gt;
-                    &lt;archive&gt;
-                        &lt;manifest&gt;
-                            &lt;addClasspath&gt;true&lt;/addClasspath&gt;
-                            &lt;mainClass&gt;${mainClass}&lt;/mainClass&gt;
-                        &lt;/manifest&gt;
-                    &lt;/archive&gt;
-                    &lt;descriptorRefs&gt;
-                        &lt;descriptorRef&gt;jar-with-dependencies&lt;/descriptorRef&gt;
-                    &lt;/descriptorRefs&gt;
-                &lt;/configuration&gt;
-            &lt;/plugin&gt;
-        &lt;/plugins&gt;
-    &lt;/build&gt;</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Replace the default <code>&lt;properties&gt;</code> section in the <em>pom.xml</em> file with this content:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">    &lt;properties&gt;
-        &lt;native.maven.plugin.version&gt;0.10.5-SNAPSHOT&lt;/native.maven.plugin.version&gt;
-        &lt;maven.compiler.source&gt;${java.specification.version}&lt;/maven.compiler.source&gt;
-        &lt;maven.compiler.target&gt;${java.specification.version}&lt;/maven.compiler.target&gt;
-        &lt;imageName&gt;fortune&lt;/imageName&gt;
-        &lt;mainClass&gt;demo.Fortune&lt;/mainClass&gt;
-    &lt;/properties&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The statements "hardcoded" plugin versions and the entry point class to your application.
-The next steps demonstrate what you should do to enable the
-<a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html">Maven plugin for GraalVM Native Image</a>.</p>
-</div>
-</li>
-<li>
-<p>Register the Maven plugin for GraalVM Native Image, <code>native-maven-plugin</code>, within a Maven profile, <code>native</code>, by adding the following to the <em>pom.xml</em> file:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">    &lt;profiles&gt;
-        &lt;profile&gt;
-            &lt;id&gt;native&lt;/id&gt;
-            &lt;build&gt;
-                &lt;plugins&gt;
-                    &lt;plugin&gt;
-                        &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-                        &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-                        &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-                        &lt;executions&gt;
-                            &lt;execution&gt;
-                                &lt;id&gt;build-native&lt;/id&gt;
-                                &lt;goals&gt;
-                                    &lt;goal&gt;compile-no-fork&lt;/goal&gt;
-                                &lt;/goals&gt;
-                                &lt;phase&gt;package&lt;/phase&gt;
-                            &lt;/execution&gt;
-                            &lt;execution&gt;
-                                &lt;id&gt;test-native&lt;/id&gt;
-                                &lt;goals&gt;
-                                    &lt;goal&gt;test&lt;/goal&gt;
-                                &lt;/goals&gt;
-                                &lt;phase&gt;test&lt;/phase&gt;
-                            &lt;/execution&gt;
-                        &lt;/executions&gt;
-                        &lt;configuration&gt;
-                            &lt;fallback&gt;false&lt;/fallback&gt;
-                        &lt;/configuration&gt;
-                    &lt;/plugin&gt;
-                &lt;/plugins&gt;
-            &lt;/build&gt;
-        &lt;/profile&gt;
-    &lt;/profiles&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It pulls the latest plugin version.
-Replace <code>${native.maven.plugin.version}</code> with a specific version if you prefer.
-The plugin discovers which JAR files it needs to pass to the <code>native-image</code> builder and what the executable main class should be.
-With this plugin you can already build a native executable directly with Maven by running <code>mvn -Pnative package</code> (if your application does not call any methods reflectively at run time).</p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_build_a_native_executable_by_detecting_resources_with_the_agent"><a class="anchor" href="#_build_a_native_executable_by_detecting_resources_with_the_agent"></a>Build a Native Executable by Detecting Resources with the Agent</h2>
+<h2 id="getting-started"><a class="anchor" href="#getting-started"></a>Getting Started</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This demo application and requires metadata before building a native executable.
-You do not have to configure anything manually: the plugin can generate the required configuration for you by injecting the <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#agent-support">tracing agent</a> at package time.
-The agent is disabled by default, and can be enabled in project&#8217;s <em>pom.xml</em> file or via the command line.</p>
+<p>To compile your application ahead of time with <a href="https://www.graalvm.org/latest/reference-manual/native-image/">GraalVM Native Image</a> and Gradle, enable the Gradle plugin for Native Image building.
+The plugin requires that you <a href="https://www.graalvm.org/downloads/">install GraalVM</a>.</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>To enable the agent via the <em>pom.xml</em> file, specify <code>&lt;enabled&gt;true&lt;/enabled&gt;</code> in the <code>native-maven-plugin</code> plugin configuration:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
-    &lt;fallback&gt;false&lt;/fallback&gt;
-    &lt;agent&gt;
-        &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;/agent&gt;
-&lt;/configuration&gt;</code></pre>
-</div>
-</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
 <div class="paragraph">
-<p>To enable the agent via the command line, pass the <code>-Dagent=true</code> option when running Maven.</p>
+<p>A JDK version between 17 and 21 is required to execute Gradle (see the <a href="https://docs.gradle.org/current/userguide/compatibility.html">Gradle Compatibility Matrix</a>).</p>
 </div>
-</li>
-<li>
-<p>Before running with the agent, register a separate Mojo execution in the <code>native</code> profile which allows forking the Java process.
-It is required to run your application with the agent.</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
-    &lt;artifactId&gt;exec-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;3.1.1&lt;/version&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;java-agent&lt;/id&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;exec&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;configuration&gt;
-                &lt;executable&gt;java&lt;/executable&gt;
-                &lt;workingDirectory&gt;${project.build.directory}&lt;/workingDirectory&gt;
-                &lt;arguments&gt;
-                    &lt;argument&gt;-classpath&lt;/argument&gt;
-                    &lt;classpath/&gt;
-                    &lt;argument&gt;${mainClass}&lt;/argument&gt;
-                &lt;/arguments&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-        &lt;execution&gt;
-            &lt;id&gt;native&lt;/id&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;exec&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;configuration&gt;
-                &lt;executable&gt;${project.build.directory}/${imageName}&lt;/executable&gt;
-                &lt;workingDirectory&gt;${project.build.directory}&lt;/workingDirectory&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now you are all set to to build a native executable.</p>
-</div>
-</li>
-<li>
-<p>Compile the project on the JVM to create a runnable JAR with all dependencies.
-Open a terminal window and, from the root application directory, run:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">mvn clean package</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Run your application with the agent enabled:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">mvn -Pnative -Dagent exec:exec@java-agent</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The agent collects the metadata and generates the configuration files in a subdirectory of <em>target/native/agent-output</em>.
-Those files will be automatically used by the <code>native-image</code> tool if you pass the appropriate options.</p>
-</div>
-</li>
-<li>
-<p>Now build a native executable with the Maven profile:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">mvn -DskipTests=true -Pnative -Dagent package</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When the command completes, a native executable, <em>fortune</em>, is created in the <em>target</em> directory of the project and ready for use.</p>
-</div>
-<div class="paragraph">
-<p>The executable&#8217;s name is derived from the artifact ID, but you can specify any custom name in <code>native-maven-plugin</code>
-by providing the <code>&lt;imageName&gt;fortuneteller&lt;/imageName&gt;</code> within a <code>&lt;configuration&gt;</code> node:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
-    &lt;imageName&gt;fortuneteller&lt;/imageName&gt;
-    &lt;fallback&gt;false&lt;/fallback&gt;
-    &lt;agent&gt;
-        &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;/agent&gt;
-&lt;/configuration&gt;</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Run the demo directly or with the Maven profile:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./target/fortune</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The application starts and prints a random quote.</p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_add_junit_testing"><a class="anchor" href="#_add_junit_testing"></a>Add JUnit Testing</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Maven plugin for GraalVM Native Image can run
-<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> tests on a native executable.
-This means that tests will be compiled and executed as native code.</p>
-</div>
-<div class="paragraph">
-<p>This plugin requires JUnit Platform 1.10 or higher and Maven Surefire 2.22.0 or higher to run tests on a native
-executable.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Enable extensions in the plugin&#8217;s configuration, <code>&lt;extensions&gt;true&lt;/extensions&gt;</code>:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
-    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-    &lt;extensions&gt;true&lt;/extensions&gt;
-    ...
-&lt;/plugin&gt;</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Add an explicit dependency on the <code>junit-platform-launcher</code> artifact in the dependencies section of your native profile configuration as in the following example:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;profile&gt;
-    &lt;id&gt;native&lt;/id&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.junit.platform&lt;/groupId&gt;
-            &lt;artifactId&gt;junit-platform-launcher&lt;/artifactId&gt;
-            &lt;version&gt;1.10.0&lt;/version&gt;
-            &lt;scope&gt;test&lt;/scope&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-    ...
-&lt;/profile&gt;</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Create the following test in the <em>src/test/java/demo/FortuneTest.java</em> file:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="java" class="language-java hljs">package demo;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
-class FortuneTest {
-    @Test
-    @DisplayName("Returns a fortune")
-    void testItWorks() throws JsonProcessingException {
-        Fortune fortune = new Fortune();
-        assertFalse(fortune.randomFortune().isEmpty());
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Run JUnit tests:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">mvn -Pnative -Dagent test</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>-Pnative</code> profile will then build and run JUnit tests.</p>
-</div>
-</li>
-</ol>
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
-<h3 id="_summary"><a class="anchor" href="#_summary"></a>Summary</h3>
+<h3 id="add-plugin"><a class="anchor" href="#add-plugin"></a>Add the Plugin</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the plugin declaration to your <em>build.gradle</em> / <em>build.gradle.kts</em> file inside the <code>plugins</code> block:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">  id 'org.graalvm.buildtools.native' version '0.10.5-SNAPSHOT'</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">  id("org.graalvm.buildtools.native") version "0.10.5-SNAPSHOT"</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>The Maven plugin for GraalVM Native Image adds support for building and testing native executables using <a href="https://maven.apache.org/">Apache Maven™</a>.
-The plugin has many features, described in the <a href="maven-plugin.html">plugin reference documentation</a>.</p>
+<p>All plugin versions are listed <a href="https://github.com/graalvm/native-build-tools/releases">here</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="run-your-project"><a class="anchor" href="#run-your-project"></a>Build and Run Your Application</h3>
+<div class="paragraph">
+<p>This plugin works with the <code>application</code> plugin and registers a number of tasks and extensions for you to configure.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Build a native executable of your application.
+This command will compile your application and create a native executable in the <em>build/native/nativeCompile/</em> directory:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Run the application from the native executable:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeRun</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Continue reading below to learn more about the plugin.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="advanced-use-cases"><a class="anchor" href="#advanced-use-cases"></a>Advanced Use Cases: How to</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.</p>
+</div>
+<div class="sect2">
+<h3 id="configure-image-build"><a class="anchor" href="#configure-image-build"></a>Configure Native Image Build</h3>
+<div class="paragraph">
+<p>The plugin supports passing options directly to Native Image inside the <code>graalvmNative</code> block in the <em>build.gradle</em> / <em>build.gradle.kts</em> file.
+Using <code>buildArgs.add("&lt;option&gt;")</code>, you can pass any Native Image build option listed on <a href="https://www.graalvm.org/reference-manual/native-image/overview/Options/">this page</a>.
+You can pass options to <a href="gradle-plugin.html#configure-native-image">configure the <code>main</code> or the <code>test</code> native binary</a>, or both at the same time.</p>
+</div>
+<div class="paragraph">
+<p>The plugin also provides special properties to configure the build:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>mainClass</code> - Provides the main class to use, defaults to the <code>application.mainClass</code></p>
+</li>
+<li>
+<p><code>imageName</code> - Specifies the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).</p>
+</li>
+<li>
+<p><code>jvmArgs</code> - Passes the given argument directly to the JVM running the <code>native-image</code> tool</p>
+</li>
+<li>
+<p><code>quickBuild</code> - Enables quick build mode</p>
+</li>
+<li>
+<p><code>verbose</code> - Enables the verbose output</p>
+</li>
+<li>
+<p>and many more <a href="gradle-plugin.html#native-image-options">listed here</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here is an example of additional options usage:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.all {
+        // common options
+        verbose = true
+    }
+
+    binaries.main {
+        // options to configure the main binary
+        imageName = 'myApp'
+        mainClass = 'org.example.Main'
+        buildArgs.add('-O3') // enables additional compiler optimizations
+    }
+
+    binaries.test {
+        // options to configure the test binary
+        quickBuild = true
+        debug = true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries.all {
+        // common options
+        verbose.set(true)
+    }
+
+    binaries.main {
+        // options to configure the main binary
+        imageName.set('application')
+        mainClass.set('org.example.Main')
+        buildArgs.add('-O3')  // enables additional compiler optimizations
+    }
+
+    binaries.test {
+        // options to configure the test binary
+        quickBuild.set(true)
+        debug.set(true)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As an alternative, you can pass additional build options via the <code>NATIVE_IMAGE_OPTIONS</code> environment variable, on the command line.
+This works similarly to <code>JAVA_TOOL_OPTIONS</code>, where the value of the environment variable is prefixed to the options supplied to <code>native-image</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Learn more about Native Image build configuration <a href="https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/">on the website</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="run-junit-tests"><a class="anchor" href="#run-junit-tests"></a>Run Junit Tests</h3>
+<div class="paragraph">
+<p>This plugin supports running tests on the JUnit Platform.
+The tests are compiled ahead of time and executed as native code.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the JUnit 5 dependency to <em>build.gradle</em> / <em>build.gradle.kts</em> to include the testing framework:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+testImplementation 'junit:junit:4.13.2'</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.1')
+testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.8.1')
+testImplementation('junit:junit:4.13.2')</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Run the tests:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeTest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The tests are compiled ahead of time and executed as native code.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="gather-execution-profiles"><a class="anchor" href="#gather-execution-profiles"></a>Gather Execution Profiles and Build Optimized Images</h3>
+<div class="paragraph">
+<p>You may want to gather profiling information from your application&#8217;s execution to pinpoint areas of inefficiency.
+With this profiling data, you can also build an optimized native image.</p>
+</div>
+<div class="paragraph">
+<p>The technique for building native images optimized on profiles is called <a href="https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/">Profile-Guided Optimization (PGO)</a>.
+With PGO you can “train” your native application for specific workloads to improve performance and throughput.
+The PGO workflow includes three steps.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>PGO is available in Oracle GraalVM.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Step 1: <strong>Build an instrumented native image</strong> by passing the <code>--pgo-instrument</code> option directly to the compile command:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile --pgo-instrument</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This generates a native executable under <em>build/native/nativeCompile</em> with the <em>-instrumented</em> suffix.</p>
+</div>
+<div class="paragraph">
+<p>Step 2: <strong>Gather profiles</strong> by running the instrumented executable.
+By default, the <em>default.iprof</em> file, if not specified otherwise, is generated alongside the native executable.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./build/native/nativeCompile/application-instrumented</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Step 3. <strong>Build an optimized native image with profiles</strong>.
+This step involves copying the generated profile to the conventional directory, ensuring it is automatically used during the build process.
+Place the <em>default.iprof</em> file in the <em>src/pgo-profiles/main</em> directory, and then run:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If everything was done properly, you will see <em>"PGO: user-provided"</em> in the native image build output.
+Once the optimized image is built, run it:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeRun</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The application&#8217;s performance when running from this native executable should be comparable to, or even faster than, running on the JVM.
+Learn more about PGO <a href="https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage">on the website</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="troubleshoot-missing-configuration"><a class="anchor" href="#troubleshoot-missing-configuration"></a>Troubleshoot Missing Configuration</h3>
+<div class="sect3">
+<h4 id="detect-missing-metadata"><a class="anchor" href="#detect-missing-metadata"></a>Detect Missing Metadata</h4>
+<div class="paragraph">
+<p>Quite possibly, your application relies on external libraries.
+If your application uses a well-supported framework such as Spring or Micronaut, its dependencies should be compatible with Native Image.
+Frameworks and libraries that support Native Image by default provide configurations in the <a href="https://github.com/oracle/graalvm-reachability-metadata">GraalVM Reachability Metadata Repository</a>.
+When you build a native image, Native Build Tools reference this repository to apply the required configuration automatically.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can find an extensive list of libraries and frameworks from the Java ecosystem tested with Native Image on <a href="https://www.graalvm.org/native-image/libraries-and-frameworks/">this page</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>However, it may happen, that your native image crashes at run time with a missing class or resource.
+To address this, start by checking if any required configuration is missing.</p>
+</div>
+<div class="paragraph">
+<p>The best way to detect missing metadata is by running your native tests.
+Alternatively, you can <strong>identify missing configuration manually</strong> using the following method.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Pass the <code>--exact-reachability-metadata</code> option to the <code>native-image</code> tool inside <code>graalvmNative</code> block of your <em>build.gradle</em>, as shown below:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.all {
+        buildArgs.add('--exact-reachability-metadata')
+        runtimeArgs.add('-XX:MissingRegistrationReportingMode=Warn')
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries.all {
+        buildArgs.add('--exact-reachability-metadata')
+        runtimeArgs.add('-XX:MissingRegistrationReportingMode=Warn')
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <code>--exact-reachability-metadata</code> option was introduced in GraalVM for JDK 23. With older versions, use <code>-H:ThrowMissingRegistrationErrors=</code> instead.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Rebuild and re-run the application:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeRun</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If there is any missing metadata printed to the console, <strong>add it to the configuration file manually</strong>, as described <a href="https://www.graalvm.org/reference-manual/native-image/metadata/#specifying-metadata-with-json">here</a>, or <strong>collect it automatically using the Tracing agent</strong>.
+(See next.)</p>
+</li>
+<li>
+<p>Rebuild your native image and test again.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="collect-metadata"><a class="anchor" href="#collect-metadata"></a>Collect Metadata Automatically with Tracing Agent</h4>
+<div class="paragraph">
+<p>Your application may use dynamic Java features such as reflection, serialization, or resource loading.
+It is also possible that a framework your application relies on uses a library dependency incompatible with Native Image.
+In such cases, additional metadata is required.</p>
+</div>
+<div class="paragraph">
+<p>The easiest way to collect this metadata is by using the <a href="https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/">Tracing Agent</a>.
+This agent tracks all usages of dynamic features during application execution on the JVM and generates the necessary configuration.</p>
+</div>
+<div class="paragraph">
+<p>The agent is disabled by default.
+You can enable it on the command line or inside the <code>graalvmNative</code> block in <em>build.gradle</em> / <em>build.gradle.kts</em>.</p>
+</div>
+<div class="paragraph">
+<p>To enable the agent via the command line, pass the <code>-Pagent</code> option when running Gradle:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent run</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Enabling the agent via the command line only attaches it for a specific run; it does not automatically run every time you build the application.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To enable the agent inside the build configuration and collect missing metadata, do the following.</p>
+</div>
+<div class="paragraph">
+<p>Step 1: <strong>Enable the agent</strong> by setting <code>agent</code> to <code>true</code> in the <code>graalvmNative</code> block:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    agent {
+        enabled = true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    agent {
+        enabled.set(true)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From that point on, commands such as <code>run</code> or <code>test</code> will execute with the agent attached.
+For example you can execute the following command and the agent will be attached automatically:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew run</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, the agent creates the metadata in the <em>build/native/agent-output</em> directory.</p>
+</div>
+<div class="paragraph">
+<p>Step 2: <strong>Copy the generated metadata</strong> from the default location, <em>build/native/agent-output</em>, to the resources directory, for example, <em>resources/META-INF/native-image</em>.
+Native Image automatically uses the metadata from this location.</p>
+</div>
+<div class="paragraph">
+<p>To do that with Gradle, configure and run the <code>metadataCopy</code> task.</p>
+</div>
+<div class="paragraph">
+<p>Add a new task named <code>metadataCopy</code> inside the <code>graalvmNative</code> block.
+Your <code>agent</code> configuration should look like this:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">agent {
+    enabled = true
+    metadataCopy {
+        inputTaskNames.add("run")
+        outputDirectories.add("src/main/resources/META-INF/native-image/org.example")
+        mergeWithExisting = true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">agent {
+    enabled.set(true)
+    metadataCopy {
+        inputTaskNames.add("run")
+        outputDirectories.add("src/main/resources/META-INF/native-image/org.example")
+        mergeWithExisting.set(true)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this block:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>inputTaskNames</code> - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step)</p>
+</li>
+<li>
+<p><code>outputDirectories</code> - specifies the location where you want to copy the generated metadata</p>
+</li>
+<li>
+<p><code>mergeWithExisting</code> - specifies whether the metadata you want to copy should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Step 3: Now that the <code>metadataCopy</code> task is configured, <strong>run the metadataCopy task</strong>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew metadataCopy</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Step 4: Finally, <strong>build the native image with the metadata</strong>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run it:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeRun</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If your native image is successfully build, but still fails at run time, check the troubleshooting guide <a href="https://www.graalvm.org/reference-manual/native-image/guides/troubleshoot-run-time-errors/">Troubleshoot Native Image Run-Time Errors</a>.</p>
+</div>
+<div class="paragraph">
+<p>Learn more about how to fine-tune the agent further <a href="gradle-plugin.html#native-image-tracing-agent">here</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="use-diagnostics-tools"><a class="anchor" href="#use-diagnostics-tools"></a>Use Diagnostics Tools</h3>
+<div class="paragraph">
+<p>If you need to diagnose the native applications you build, or monitor your Java application when launched from a native executable, Native Image offers tools for debugging and analyzing the produced binary.
+For example:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.all {
+        buildArgs.add('--emit build-report')
+        buildArgs.add('--enable-monitoring=jfr')
+        debug = true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries.all {
+        buildArgs.add('--emit build-report')
+        buildArgs.add('--enable-monitoring=jfr')
+        debug.set(true)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>--emit build-report</code> option generates an HTML page report alongside the native executable that you can open in a browser.
+It provides broad information about each build stage as well as the generated binary’s contents.
+You can read more about Build Report features <a href="https://www.graalvm.org/latest/reference-manual/native-image/overview/build-report/">here</a>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Build Report is available in Oracle GraalVM.
+When running on GraalVM for JDK 21, pass the <code>-H:+BuildReport</code> option instead to generate a build report.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>--enable-monitoring=jfr</code> instructs the plugin to <a href="https://www.graalvm.org/reference-manual/native-image/guides/build-and-run-native-executable-with-jfr/">build a native executable with the JDK Flight Recorder (JFR) support</a>.</p>
+</li>
+<li>
+<p>The <code>&lt;debug&gt;</code> option generates a native executable with debug information for <a href="https://www.graalvm.org/reference-manual/native-image/guides/debug-native-image-process/">source-level debugging with the GNU Debugger (GDB)</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>All the monitoring and debugging tools <a href="https://www.graalvm.org/reference-manual/native-image/debugging-and-diagnostics/">listed on the website</a>, can be enabled in the plugin configuration using <code>buildArgs</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_learn_more"><a class="anchor" href="#_learn_more"></a>Learn more</h3>
+<div class="paragraph">
+<p>To continue learning, refer to the <a href="changelog.html">extensive reference documentation for the GraalVM Native Image Gradle plugin</a>.</p>
 </div>
 </div>
 </div>
@@ -1039,10 +1118,11 @@ The plugin has many features, described in the <a href="maven-plugin.html">plugi
 <script src="highlight/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
 <link rel="stylesheet" href="css/multi-lang-sample.css">
+<link rel="stylesheet" href="css/page.css">
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
-        <img src="img/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
+        <img src="css/images/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
     </div>
 </div>
 </body>

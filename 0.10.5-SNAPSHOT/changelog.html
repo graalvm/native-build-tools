@@ -5,8 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<meta name="author" content="The GraalVM team">
-<title>Getting Started with Gradle Plugin for GraalVM Native Image</title>
+<title>Changelog</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -444,455 +443,1108 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <link rel="icon" type="image/png" sizes="16x16" href="https://www.graalvm.org/resources/img/favicon/favicon-16x16.png">
 </head>
 <body class="article toc2 toc-left">
-<div id="header">
-<h1>Getting Started with Gradle Plugin for GraalVM Native Image</h1>
-<div class="details">
-<span id="author" class="author">The GraalVM team</span><br>
-<span id="revnumber">version 0.10.5-SNAPSHOT</span>
+<div id="grabbit-logo">
+    <img src="css/images/Grabbit.svg" alt="">
 </div>
+<div id="header">
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_prepare_a_demo_application">Prepare a Demo Application</a></li>
-<li><a href="#build-a-native-executable-with-resources-autodetection">Build a Native Executable with Resources Autodetection</a></li>
-<li><a href="#build-a-native-executable-detecting-resources-with-the-agent">Build a Native Executable by Detecting Resources with the Agent</a></li>
-<li><a href="#_add_junit_testing">Add JUnit Testing</a>
+<li><a href="#changelog">Changelog</a>
 <ul class="sectlevel2">
-<li><a href="#_summary">Summary</a></li>
+<li><a href="#_release_0_10_3">Release 0.10.3</a></li>
+<li><a href="#_release_0_10_2">Release 0.10.2</a></li>
+<li><a href="#_release_0_10_1">Release 0.10.1</a></li>
+<li><a href="#_release_0_10_0">Release 0.10.0</a></li>
+<li><a href="#_release_0_9_28">Release 0.9.28</a></li>
+<li><a href="#_release_0_9_27">Release 0.9.27</a></li>
+<li><a href="#_release_0_9_26">Release 0.9.26</a></li>
+<li><a href="#_release_0_9_25">Release 0.9.25</a></li>
+<li><a href="#_release_0_9_24">Release 0.9.24</a></li>
+<li><a href="#_release_0_9_23">Release 0.9.23</a></li>
+<li><a href="#_release_0_9_22">Release 0.9.22</a></li>
+<li><a href="#_release_0_9_21">Release 0.9.21</a></li>
+<li><a href="#_release_0_9_20">Release 0.9.20</a></li>
+<li><a href="#_release_0_9_19">Release 0.9.19</a></li>
+<li><a href="#_release_0_9_18">Release 0.9.18</a></li>
+<li><a href="#_release_0_9_17">Release 0.9.17</a></li>
+<li><a href="#_release_0_9_16">Release 0.9.16</a></li>
+<li><a href="#_release_0_9_15">Release 0.9.15</a></li>
+<li><a href="#_release_0_9_14">Release 0.9.14</a></li>
+<li><a href="#_release_0_9_13">Release 0.9.13</a></li>
+<li><a href="#_release_0_9_12">Release 0.9.12</a></li>
+<li><a href="#_release_0_9_11">Release 0.9.11</a></li>
+<li><a href="#_release_0_9_10">Release 0.9.10</a></li>
+<li><a href="#_release_0_9_9">Release 0.9.9</a></li>
+<li><a href="#_release_0_9_8">Release 0.9.8</a></li>
+<li><a href="#_release_0_9_7_1">Release 0.9.7.1</a></li>
+<li><a href="#_release_0_9_7">Release 0.9.7</a></li>
+<li><a href="#_release_0_9_6">Release 0.9.6</a></li>
+<li><a href="#_release_0_9_5">Release 0.9.5</a></li>
+<li><a href="#_release_0_9_4">Release 0.9.4</a></li>
+<li><a href="#_release_0_9_3">Release 0.9.3</a></li>
+<li><a href="#_release_0_9_2">Release 0.9.2</a></li>
+<li><a href="#_release_0_9_1">Release 0.9.1</a></li>
+<li><a href="#_release_0_9_0">Release 0.9.0</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 <div id="content">
-<div id="preamble">
+<div class="sect1">
+<h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>This guide shows how to get started with the <a href="gradle-plugin.html">Gradle plugin for GraalVM Native Image</a> and build a native executable for a Java application.</p>
-</div>
-<div class="paragraph">
-<p>You will create a sample application, enable the plugin, add support for dynamic features, build a native executable, and run JUnit tests.</p>
-</div>
-<div class="paragraph">
-<p>Two ways of building a native executable using the plugin will be demonstrated:</p>
-</div>
+<div class="sect2">
+<h3 id="_release_0_10_3"><a class="anchor" href="#_release_0_10_3"></a>Release 0.10.3</h3>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#build-a-native-executable-with-resources-autodetection">Build a Native Executable with Resources Autodetection</a></p>
+<p>Remove usage of macro from merger tool initialization and throw better error if executable does not exist</p>
 </li>
 <li>
-<p><a href="#build-a-native-executable-detecting-resources-with-the-agent">Build a Native Executable Detecting Resources with the Agent</a></p>
+<p>Add support for the new reachability-metadata.json config file</p>
+</li>
+<li>
+<p>Remove custom post-processing task for filtering config files entries and use access-filter.json instead</p>
 </li>
 </ul>
 </div>
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>The plugin requires that you <a href="https://www.graalvm.org/latest/docs/getting-started/">setup GraalVM</a>.</p>
-</div>
-<div class="paragraph">
-<p>The easiest way to install GraalVM is to use <a href="https://sdkman.io/jdks">SDKMAN!</a>.</p>
-</div>
-<div class="paragraph">
-<p>For other installation options, go to <a href="https://www.graalvm.org/downloads/">GraalVM Downloads</a>.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_prepare_a_demo_application"><a class="anchor" href="#_prepare_a_demo_application"></a>Prepare a Demo Application</h2>
-<div class="sectionbody">
-<div class="exampleblock">
-<div class="content">
-<div class="paragraph">
-<p>You start by creating a <strong>Fortune Teller</strong> sample application that simulates the traditional
-<a href="https://en.wikipedia.org/wiki/Fortune_(Unix)">fortune Unix program</a>.
-The data for the fortune phrases is provided by <a href="https://github.com/your-fortune">YourFortune</a>.</p>
-</div>
-</div>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
+<div class="sect3">
+<h4 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
 <li>
-<p>Create a new Java project with <strong>Gradle</strong> using the following command (alternatively, you can use your IDE to generate a project):</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">gradle init --project-name fortune-parent --type java-application --package demo --test-framework junit-jupiter --dsl groovy</code></pre>
+<p>Add retries when downloading the metadata repository when using a URL directly</p>
+</li>
+</ul>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add retries when downloading the metadata repository when using a URL directly</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_10_2"><a class="anchor" href="#_release_0_10_2"></a>Release 0.10.2</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix class path directory analyzer</p>
 </li>
 <li>
-<p>Rename the default <em>app</em> directory to <em>fortune</em>, edit the <em>settings.gradle</em> file to replace <code>app</code> with <code>fortune</code>, then rename the default filename <em>App.java</em> to <em>Fortune.java</em>, and replace its contents with the following:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="java" class="language-java hljs">package demo;
+<p>Update Reachability Metadata repository version</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_2"><a class="anchor" href="#_gradle_plugin_2"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Update Default Target Directory for MetadataCopy Task</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Update Getting Started with Maven Plugin doc</p>
+</li>
+<li>
+<p>Delete old stale args file</p>
+</li>
+<li>
+<p>Add a parameter to be able to skip build native for pom type modules, leave it as false per default for backward compat</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_10_1"><a class="anchor" href="#_release_0_10_1"></a>Release 0.10.1</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Mark additional JUnit 5 types for build-time initialization for compatibility with Native Image&#8217;s <code>--strict-image-heap</code> option.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_10_0"><a class="anchor" href="#_release_0_10_0"></a>Release 0.10.0</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Update version of GraalVM dependency to 22.3.5</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_3"><a class="anchor" href="#_gradle_plugin_3"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Update plugin to use metadata repository by default. Metadata repository <a href="gradle-plugin.html#_configuring_the_metadata_repository">can be disabled manually.</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Update plugin to use metadata repository by default. Metadata repository <a href="maven-plugin.html#_configuring_the_metadata_repository">can be disabled manually.</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_28"><a class="anchor" href="#_release_0_9_28"></a>Release 0.9.28</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix path escaping problem for Windows users</p>
+</li>
+<li>
+<p>Fix and improve major JDK version detection.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_4"><a class="anchor" href="#_gradle_plugin_4"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Remove use of deprecated <code>getConvention</code> APIs</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_27"><a class="anchor" href="#_release_0_9_27"></a>Release 0.9.27</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Update JUnit configuration for native testing on GraalVM for JDK 21 with <code>--strict-image-heap</code> mode.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_26"><a class="anchor" href="#_release_0_9_26"></a>Release 0.9.26</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Relax GraalVM version check for dev versions</p>
+</li>
+<li>
+<p>Prepare plugins for release of <em>GraalVM for JDK 21</em>. They no longer deploy any experimental options.</p>
+</li>
+<li>
+<p>Bump Java compliance of the plugins from Java 8+ to Java 11+.</p>
+</li>
+<li>
+<p>Fix compatibility with Maven 3.9.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_5"><a class="anchor" href="#_gradle_plugin_5"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix compatibility with Gradle 8.3</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_25"><a class="anchor" href="#_release_0_9_25"></a>Release 0.9.25</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Upgrade metadata to 0.3.4</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_24"><a class="anchor" href="#_release_0_9_24"></a>Release 0.9.24</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Upgrade metadata to 0.3.3</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_6"><a class="anchor" href="#_gradle_plugin_6"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add support for PGO</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_23"><a class="anchor" href="#_release_0_9_23"></a>Release 0.9.23</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Upgrade metadata to 0.3.2</p>
+</li>
+<li>
+<p>Display the GraalVM logo on the generated NBT docs</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_7"><a class="anchor" href="#_gradle_plugin_7"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Remove use of GFileUtils</p>
+</li>
+<li>
+<p>Fix "collect reachability metadata" with config cache</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_22"><a class="anchor" href="#_release_0_9_22"></a>Release 0.9.22</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Upgrade metadata to 0.3.0</p>
+</li>
+<li>
+<p>Add support for default-for attribute</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_8"><a class="anchor" href="#_gradle_plugin_8"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix lookup of metadata repository</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_21"><a class="anchor" href="#_release_0_9_21"></a>Release 0.9.21</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Deprecate <code>requiredVersion</code> check without replacement.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_9"><a class="anchor" href="#_gradle_plugin_9"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Bump minimal version of Gradle to 7.4</p>
+</li>
+<li>
+<p>Fix compatibility with Gradle&#8217;s <a href="https://docs.gradle.org/8.0.2/userguide/configuration_cache.html#header">configuration cache</a> (requires Gradle 7.5+)</p>
+</li>
+<li>
+<p>Remove use of deprecated Gradle APIs</p>
+</li>
+<li>
+<p>[Behavior change] Toolchain detection is now disabled by default</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_4"><a class="anchor" href="#_maven_plugin_4"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add a new <code>native:write-args-file</code> goal that can be used to write the arguments passed to <code>native-image</code> to a file</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_20"><a class="anchor" href="#_release_0_9_20"></a>Release 0.9.20</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_10"><a class="anchor" href="#_gradle_plugin_10"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix <code>collectReachabilityMetadata</code> not being thread-safe</p>
+</li>
+<li>
+<p>Add an option to configure the maximum number of images which can be built in parallel</p>
+</li>
+<li>
+<p>Fix GraalVM version check being too strict</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_5"><a class="anchor" href="#_maven_plugin_5"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add agent modes to Maven plugin</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_19"><a class="anchor" href="#_release_0_9_19"></a>Release 0.9.19</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_11"><a class="anchor" href="#_gradle_plugin_11"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix <code>nativeCompile</code> being out-of-date whenever native runtime arguments change</p>
+</li>
+<li>
+<p>Fix GraalVM metadata repository not downloaded from project repositories by default</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_6"><a class="anchor" href="#_maven_plugin_6"></a>Maven plugin</h4>
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-public class Fortune {
-
-    private static final Random RANDOM = new Random();
-    private final ArrayList&lt;String&gt; fortunes = new ArrayList&lt;&gt;();
-
-    public Fortune() throws JsonProcessingException {
-        // Scan the file into the array of fortunes
-        String json = readInputStream(ClassLoader.getSystemResourceAsStream("fortunes.json"));
-        ObjectMapper omap = new ObjectMapper();
-        JsonNode root = omap.readTree(json);
-        JsonNode data = root.get("data");
-        Iterator&lt;JsonNode&gt; elements = data.elements();
-        while (elements.hasNext()) {
-            JsonNode quote = elements.next().get("quote");
-            fortunes.add(quote.asText());
-        }
-    }
-
-    private String readInputStream(InputStream is) {
-        StringBuilder out = new StringBuilder();
-        try (InputStreamReader streamReader = new InputStreamReader(is, StandardCharsets.UTF_8);
-             BufferedReader reader = new BufferedReader(streamReader)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                out.append(line);
-            }
-
-        } catch (IOException e) {
-            Logger.getLogger(Fortune.class.getName()).log(Level.SEVERE, null, e);
-        }
-        return out.toString();
-    }
-
-    public String randomFortune() {
-        // Pick a random number
-        int r = RANDOM.nextInt(fortunes.size());
-        // Use the random number to pick a random fortune
-        return fortunes.get(r);
-    }
-
-    private void printRandomFortune() throws InterruptedException {
-        String f = randomFortune();
-        // Print out the fortune s.l.o.w.l.y
-        for (char c : f.toCharArray()) {
-            System.out.print(c);
-            Thread.sleep(100);
-        }
-        System.out.println();
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) throws InterruptedException, JsonProcessingException {
-        Fortune fortune = new Fortune();
-        fortune.printRandomFortune();
-    }
-}</code></pre>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_18"><a class="anchor" href="#_release_0_9_18"></a>Release 0.9.18</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Trim GraalVM version to fix Windows support</p>
+</li>
+<li>
+<p>Add tests for NativeImageUtils.escapeArg</p>
+</li>
+<li>
+<p>Do not escape quoted regexp args when using argsfile</p>
+</li>
+<li>
+<p>Upgrade to GraalVM metadata repository 0.2.5</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_17"><a class="anchor" href="#_release_0_9_17"></a>Release 0.9.17</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Add a <code>requiredVersion</code> property to check the minimal GraalVM version</p>
+</li>
+<li>
+<p>Make GraalVM installation check lazy</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_16"><a class="anchor" href="#_release_0_9_16"></a>Release 0.9.16</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixed regression with a reachability-metadata repository</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_15"><a class="anchor" href="#_release_0_9_15"></a>Release 0.9.15</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Upgrade to GraalVM metadata repository 0.2.3.</p>
+</li>
+<li>
+<p>Ship the metadata repository as an artifact alongside the plugin</p>
+</li>
+<li>
+<p>Add ability to collect GraalVM metadata of dependencies to a custom location</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_12"><a class="anchor" href="#_gradle_plugin_12"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Improved diagnostics to help users figure out what GraalVM toolchain was selected</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_14"><a class="anchor" href="#_release_0_9_14"></a>Release 0.9.14</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_13"><a class="anchor" href="#_gradle_plugin_13"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add ability to set environment variables to the native image builder process</p>
+</li>
+<li>
+<p>Argument files are now stored in the <code>build</code> directory (workaround for absolute path issue on Windows with older GraalVM versions)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_7"><a class="anchor" href="#_maven_plugin_7"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Added <code>native:compile</code> forking goal that can be started from the command line as <code>mvn native:compile</code>.</p>
+</li>
+<li>
+<p>Deprecated <code>build</code> goal in favour of <code>compile-no-fork</code> goal. This goal should now be used for attaching to the <code>package</code> phase in <code>pom.xml</code>. Attaching the <code>build</code> goal will (for now) produce a runtime warning.</p>
+</li>
+<li>
+<p>Argument files are now stored in the <code>target</code> directory (workaround for absolute path issue on Windows with older GraalVM versions).</p>
+</li>
+<li>
+<p>Default and test outputs are now much less noisy.</p>
+</li>
+<li>
+<p>When running tests in JVM mode with the native-image-agent, GraalVM&#8217;s <code>java</code> executable is now always used.</p>
+</li>
+<li>
+<p>Maven plugin now shouldn&#8217;t require that JVM running it must be GraalVM.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_13"><a class="anchor" href="#_release_0_9_13"></a>Release 0.9.13</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_14"><a class="anchor" href="#_gradle_plugin_14"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Reverted a change in the <code>NativeImagePlugin</code> that removed publicly accessible constants. This should prevent breakage of external plugins.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_junit_testing_support"><a class="anchor" href="#_junit_testing_support"></a>JUnit testing support</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Adapted the JUnit automatic metadata registration to changes in annotation handling on newer native image versions.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_12"><a class="anchor" href="#_release_0_9_12"></a>Release 0.9.12</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_15"><a class="anchor" href="#_gradle_plugin_15"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Completely reworked agent support - <strong>BREAKING CHANGE</strong></p>
+</li>
+<li>
+<p>The agent block is no longer tied to the target binary.</p>
+</li>
+<li>
+<p>The agent can now instrument any task that extends <code>JavaForkOptions</code>.</p>
+</li>
+<li>
+<p>Introduced the <code>metadataCopy</code> task.</p>
+</li>
+<li>
+<p>Introduced the concept of agent modes.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Under the hood, the agent mode dictates what options are passed to the agent and how metadata produced by multiple runs get merged.</p>
+</li>
+</ul>
 </div>
 </li>
 <li>
-<p>Delete the <em>fortune/src/test/java</em> directory (you will add tests in a later stage).</p>
+<p>Added <code>excludeConfig</code> configuration option that allows skipping of configuration files that are present in dependencies.</p>
 </li>
 <li>
-<p>Copy and paste the following file,
-<a href="https://raw.githubusercontent.com/graalvm/graalvm-demos/refs/heads/master/fortune-demo/fortune-gradle/fortune/src/main/resources/fortunes.u8">fortunes.json</a> under <em>fortune/src/main/resources/</em>.
-Your project tree should be:</p>
+<p><code>useArgFile</code> is now set to true by default only on Windows.</p>
+</li>
+<li>
+<p>Added <code>quickBuild</code> configuration option.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_8"><a class="anchor" href="#_maven_plugin_8"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Added support for GraalVM Reachability Metadata Repository.</p>
+</li>
+<li>
+<p>Completely reworked Maven plugin (should fix many of previous issues and inconsistencies between main and test builds).</p>
+</li>
+<li>
+<p>Added <code>classesDirectory</code>, <code>debug</code>, <code>fallback</code>, <code>verbose</code>, <code>sharedLibrary</code>, <code>configurationFileDirectories</code>, <code>excludeConfig</code>, <code>quickBuild</code>, and <code>jvmArgs</code> properties in order to match those present in the Gradle plugin.</p>
+<div class="paragraph">
+<p>See <a href="maven-plugin.html">docs</a> for more information.</p>
+</div>
+</li>
+<li>
+<p><code>useArgFile</code> is now set to true by default only on Windows.</p>
+</li>
+<li>
+<p>Changed lookup order for <code>native-image</code> discovery&#8201;&#8212;&#8201;<code>GRAALVM_HOME</code>, <code>JAVA_HOME</code>, <code>PATH</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_11"><a class="anchor" href="#_release_0_9_11"></a>Release 0.9.11</h3>
+<div class="sect3">
+<h4 id="_maven_plugin_9"><a class="anchor" href="#_maven_plugin_9"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix long classpath issue under Windows when running native tests</p>
+</li>
+<li>
+<p>Inherit environment variables and system properties from the surefire plugin configuration when executing tests</p>
+</li>
+<li>
+<p>Fix invocation of <code>native-image</code> when classpath contains spaces</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_16"><a class="anchor" href="#_gradle_plugin_16"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add support for environment variables in native test execution</p>
+</li>
+<li>
+<p>Fix invocation of <code>native-image</code> when classpath contains spaces</p>
+</li>
+<li>
+<p>Add experimental support for the JVM reachability metadata repository</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_10"><a class="anchor" href="#_release_0_9_10"></a>Release 0.9.10</h3>
+<div class="sect3">
+<h4 id="_maven_plugin_10"><a class="anchor" href="#_maven_plugin_10"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Native testing support can now be explicitly disabled via <code>skipNativeTests</code>.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See <a href="maven-plugin.html#testing-support-disabling">Disabling testing support</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Fixed race condition which prevented the agent files to be generated properly if tests were executed concurrently</p>
+</li>
+<li>
+<p>Documented version compatibility for the JUnit Platform and Maven Surefire plugin.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See <a href="maven-plugin.html#testing-support-version-compatibility">Version compatibility</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Add support for long classpath by using an argument file when invoking <code>native-image</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin_17"><a class="anchor" href="#_gradle_plugin_17"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixed <code>nativeRun</code> not working properly under Windows</p>
+</li>
+<li>
+<p>Fixed race condition which prevented the agent files to be generated properly if tests were executed concurrently</p>
+</li>
+<li>
+<p>Add support for long classpath by using an argument file when invoking <code>native-image</code></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_9"><a class="anchor" href="#_release_0_9_9"></a>Release 0.9.9</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_18"><a class="anchor" href="#_gradle_plugin_18"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixed resource inference not working on custom binaries</p>
+</li>
+<li>
+<p>Fixed <code>disableToolchainDetection</code> not working if a GraalVM installation isn&#8217;t present. Please use <code>graalvmNative.toolchainDetection.set(false)</code> instead.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_8"><a class="anchor" href="#_release_0_9_8"></a>Release 0.9.8</h3>
+<div class="sect3">
+<h4 id="_gradle_plugin_19"><a class="anchor" href="#_gradle_plugin_19"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>[Breaking change] The <code>agent</code> option has been replaced with an <code>agent { &#8230;&#8203; }</code> configuration block which includes an <code>enabled</code> property.</p>
+</li>
+<li>
+<p>Toolchain support can now be disabled altogether, which can be useful when using GraalVM Enterprise Edition.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See <a href="gradle-plugin.html#configuration-toolchains-disabling">Disabling toolchain detection</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Fixed a bug when using a <em>fat jar</em> which assumed that all entries to be repackaged were jars.</p>
+</li>
+<li>
+<p>Agent options are now configurable.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Note that the <code>experimental-class-loader-support</code> agent option is no longer added by default.</p>
+</li>
+<li>
+<p>See <a href="gradle-plugin.html#agent-support-configuring-options">Configuring agent options</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Added an option to perform resource detection in classpath entries which contain a <code>native-image/resource-config.json</code> file.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin_11"><a class="anchor" href="#_maven_plugin_11"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>The agent can now be enabled in the POM.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>See <a href="maven-plugin.html#agent-support-enabling">Enabling the agent</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Agent options are now configurable.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Note that the <code>experimental-class-loader-support</code> agent option is no longer added by default.</p>
+</li>
+<li>
+<p>See <a href="maven-plugin.html#agent-support-configuring-options">Configuring agent options</a> for details.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Added an option to perform resource detection in classpath entries which contain a <code>native-image/resource-config.json</code> file.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_junit_platform_native"><a class="anchor" href="#_junit_platform_native"></a>JUnit Platform Native</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Builds now correctly fail if a container-level extension or lifecycle method fails&#8201;&#8212;&#8201;for example, if an <code>@BeforeAll</code> method in a JUnit Jupiter test class throws an exception.</p>
+</li>
+<li>
+<p>Builds no longer fail when tests are aborted&#8201;&#8212;&#8201;for example, via a failed assumption.</p>
+</li>
+<li>
+<p>Improved documentation for JUnit Platform and Maven Surefire support in the plugins.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_7_1"><a class="anchor" href="#_release_0_9_7_1"></a>Release 0.9.7.1</h3>
+<div class="sect3">
+<h4 id="_bugfixes"><a class="anchor" href="#_bugfixes"></a>Bugfixes</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixed <a href="https://github.com/graalvm/native-build-tools/issues/144">Maven plugin configuration not applied if declared in a parent POM</a>.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_7"><a class="anchor" href="#_release_0_9_7"></a>Release 0.9.7</h3>
+<div class="paragraph">
+<p>Release didn&#8217;t include any fixes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_6"><a class="anchor" href="#_release_0_9_6"></a>Release 0.9.6</h3>
+<div class="sect3">
+<h4 id="_upgrade_to_junit_5_8"><a class="anchor" href="#_upgrade_to_junit_5_8"></a>Upgrade to JUnit 5.8</h4>
+<div class="paragraph">
+<p>The plugins now depend on JUnit 5.8 which provides an official test listener which is used by these plugins.
+As a consequence, Maven users will have to configure their builds to enable the plugin extensions:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">.
-├── fortune
-│   ├── build.gradle
-│   └── src
-│       ├── main
-│       │   ├── java
-│       │   │   └── demo
-│       │   │       └── Fortune.java
-│       │   └── resources
-│       │       └── fortunes.json
-│       └── test
-│           └── resources
-├── gradle
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew
-├── gradlew.bat
-└── settings.gradle</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Open the Gradle configuration file <em>build.gradle</em>, and update the main class in the <code>application</code> section:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">application {
-    mainClass = 'demo.Fortune'
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Add explicit FasterXML Jackson dependencies that provide functionality to read and write JSON, data bindings (used in the demo application).
-Insert the following three lines in the <code>dependencies</code> section of <em>build.gradle</em>:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">implementation 'com.fasterxml.jackson.core:jackson-core:2.13.2'
-implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.2.2'
-implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.2'</code></pre>
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+    &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+    &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
+    &lt;extensions&gt;true&lt;/extensions&gt;
+    ...
+&lt;/plugin&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Also, remove the dependency on <code>guava</code> that will not be used.</p>
+<p>The dependency on <code>junit-platform-native</code> which used to be required pre-0.9.6 can now safely be removed.</p>
 </div>
 <div class="paragraph">
-<p>The next steps demonstrate what you should do to enable the
-<a href="https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html">Gradle Plugin for GraalVM Native Image</a>.</p>
-</div>
-</li>
-<li>
-<p>Register the plugin. Add the following to <code>plugins</code> section of your project’s <em>build.gradle</em> file:</p>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">plugins {
-  id 'org.graalvm.buildtools.native' version '0.10.5-SNAPSHOT'
-}</code></pre>
+<p>For Gradle users, there&#8217;s no impact on the configuration, however a good consequence is that the <code>junit-native-platform</code> dependency no longer leaks into your application&#8217;s classpath.</p>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">plugins {
-  id("org.graalvm.buildtools.native") version "0.10.5-SNAPSHOT"
-}</code></pre>
+<div class="sect3">
+<h4 id="_agent_support_for_maven_plugin"><a class="anchor" href="#_agent_support_for_maven_plugin"></a>Agent support for Maven plugin</h4>
+<div class="paragraph">
+<p>The Maven plugin now supports the GraalVM agent to generate configuration files.
+Please refer to the <a href="maven-plugin.html#agent-support">Maven plugin documentation</a> for details.</p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_disabling_testing_support"><a class="anchor" href="#_disabling_testing_support"></a>Disabling testing support</h4>
+<div class="paragraph">
+<p>The Gradle plugin now provides an option to disable testing support.
+This can be useful if the test framework you are using doesn&#8217;t work with this plugin or that you simply don&#8217;t want to execute tests natively.</p>
 </div>
 <div class="paragraph">
-<p>The <code>0.10.5-SNAPSHOT</code> block pulls the latest plugin version.
-Replace it with a specific version if you prefer.
-The plugin discovers which JAR files it needs to pass to the <code>native-image</code> builder and what the executable main class should be.</p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="build-a-native-executable-with-resources-autodetection"><a class="anchor" href="#build-a-native-executable-with-resources-autodetection"></a>Build a Native Executable with Resources Autodetection</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You can already build a native executable by running <code>./gradlew nativeCompile</code> or run it directly by invoking <code>./gradlew nativeRun</code>.
-However, at this stage, running the native executable will fail because this application requires additional metadata: you need to provide it with a list of resources to load.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Instruct the plugin to automatically detect resources to be included in the native executable.
-Add this to your <em>build.gradle</em> file:</p>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    binaries.all {
-        resources.autodetect()
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
-    binaries.all {
-        resources.autodetect()
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Compile the project and build a native executable at one step:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./gradlew nativeRun</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The native executable, named <em>fortune</em>, is created in the <em>/fortune/build/native/nativeCompile</em> directory.</p>
-</div>
-</li>
-<li>
-<p>Run the native executable:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./fortune/build/native/nativeCompile/fortune</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The application starts and prints a random quote.</p>
-</div>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Configuring the <code>graalvmNative</code> plugin to automatically detect resources (<code>resources.autodetect()</code>) to be included in a binary is one way to make this example work.
-Using <code>resources.autodetect()</code> works because the application uses resources (<em>fortunes.json</em>) which are directly available in the <code>src/main/resources</code> location.</p>
-</div>
-<div class="paragraph">
-<p>In the next section, the guide shows that you can use the tracing agent to do the same.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="build-a-native-executable-detecting-resources-with-the-agent"><a class="anchor" href="#build-a-native-executable-detecting-resources-with-the-agent"></a>Build a Native Executable by Detecting Resources with the Agent</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Native Image Gradle plugin simplifies generation of the required metadata by injecting the
-<a href="https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#agent-support">
-tracing agent</a> automatically for you at compile time.
-To enable the agent, just pass the <code>-Pagent</code> option to any Gradle tasks that extends <code>JavaForkOptions</code> (for example, <code>test</code> or <code>run</code>).</p>
-</div>
-<div class="paragraph">
-<p>The following steps illustrate how to collect metadata using the agent, and then build a native executable using that metadata.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>To demonstrate this approach, remove the <code>resources.autodetect()</code> block from your <em>build.gradle</em> file:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">binaries.all {
-    resources.autodetect()
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Run your application with the agent enabled:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./gradlew -Pagent run</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>It runs your application on the JVM with the agent, collects the metadata, and generates configuration files in the <em>${buildDir}/native/agent-output/${taskName}</em> directory.</p>
-</div>
-</li>
-<li>
-<p>Copy the configuration files into the project&#8217;s <em>/META-INF/native-image</em> directory using the <code>metadataCopy</code> task:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./gradlew metadataCopy --task run --dir src/main/resources/META-INF/native-image</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Build a native executable using metadata acquired by the agent:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./gradlew nativeCompile</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The native executable, named <em>fortune</em>, is created in the <em>build/native/nativeCompile</em> directory.</p>
-</div>
-</li>
-<li>
-<p>Run the native executable:</p>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">./fortune/build/native/nativeCompile/fortune</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The application starts and prints a random quote.</p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_add_junit_testing"><a class="anchor" href="#_add_junit_testing"></a>Add JUnit Testing</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Gradle plugin for GraalVM Native Image can run
-<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> tests on your native executable.
-This means that the tests will be compiled and run as native code.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Create the following test in the
-<em>fortune/src/test/java/demo/FortuneTest.java</em> file:</p>
-<div class="listingblock">
-<div class="title">fortune/src/test/java/demo/FortuneTest.java</div>
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="java" class="language-java hljs">package demo;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-class FortuneTest {
-    @Test
-    @DisplayName("Returns a fortune")
-    void testItWorks() throws JsonProcessingException {
-        Fortune fortune = new Fortune();
-        assertTrue(fortune.randomFortune().length()&gt;0);
-    }
-}</code></pre>
-</div>
-</div>
-</li>
-<li>
-<p>Run JUnit tests:</p>
-</li>
-</ol>
+<p>To disable tests, use the <code>graalvmNative</code> configuration block:</p>
 </div>
 <div class="listingblock">
-<div class="content">
-<pre>./gradlew nativeTest</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The plugin runs tests on the JVM prior to running tests from the native executable.
-To disable testing support (which comes by default), add the following configuration to the <em>build.gradle</em> file:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
-    testSupport = false
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
     testSupport.set(false)
 }</code></pre>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_summary"><a class="anchor" href="#_summary"></a>Summary</h3>
+</div>
+<div class="sect3">
+<h4 id="_configuring_additional_test_images"><a class="anchor" href="#_configuring_additional_test_images"></a>Configuring additional test images</h4>
 <div class="paragraph">
-<p>The Gradle plugin for GraalVM Native Image adds support for building and testing native executables using the <a href="https://gradle.org">Gradle</a>.
-The plugin has many features, described in the
-<a href="https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html">plugin
-reference documentation</a>.</p>
+<p>The Gradle plugin now supports building multiple test images, which can be used to execute tests natively for more kinds of tests: integration tests, functional tests, &#8230;&#8203;</p>
+</div>
+<div class="paragraph">
+<p>For more information, please refer to <a href="gradle-plugin.html#extra-test-suites">the Gradle plugin documentation</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_5"><a class="anchor" href="#_release_0_9_5"></a>Release 0.9.5</h3>
+<div class="paragraph">
+<p>This release contains, in preparation for supporting more images in the Gradle plugin:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>nativeBuild</code> and <code>nativeTest</code> extensions are now deprecated. A top-level container for configuring native images has been introduced. Instead of:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeBuild {
+   verbose = true
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you need to use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+  binaries {
+    main {
+      verbose = true
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and instead of:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">nativeTest {
+    buildArgs("...")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you need to use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+  binaries {
+    test {
+      verbose = true
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>nativeBuild</code> task has been renamed to <code>nativeCompile</code>.</p>
+</li>
+<li>
+<p>The <code>nativeTestBuild</code> task has been renamed to <code>nativeTestCompile</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both <code>nativeBuild</code> and <code>nativeTestBuild</code> task invocations are still supported but deprecated and will be removed in a future release.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_4"><a class="anchor" href="#_release_0_9_4"></a>Release 0.9.4</h3>
+<div class="paragraph">
+<p>This release works around a limitation for Windows users who encounter an issue with long classpath entries on CLI: the Gradle plugin will now automatically handle this problem by creating a fat jar instead of passing all entries on classpath (this behavior can be <a href="gradle-plugin.html#long_classpath_and_fat_jar_support">disabled</a>) if needed).
+Maven users will have to <a href="maven-plugin.html#long_classpath_and_shading_support">configure their build differently</a> to use shading.</p>
+</div>
+<div class="paragraph">
+<p>In addition to this, we&#8217;re now publishing development snapshots of this plugin. For Gradle, you will need to declare this repository in your settings.gradle(.kts) file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version '0.9.5-SNAPSHOT'
+    }
+    repositories {
+        maven {
+            url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
+        }
+        gradlePluginPortal()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For Maven, you need to use this repository configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;pluginRepositories&gt;
+    &lt;pluginRepository&gt;
+        &lt;id&gt;graalvm-native-build-tools-snapshots&lt;/id&gt;
+        &lt;name&gt;GraalVM native-build-tools Snapshots&lt;/name&gt;
+        &lt;url&gt;https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots&lt;/url&gt;
+        &lt;releases&gt;
+            &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;/releases&gt;
+        &lt;snapshots&gt;
+            &lt;enabled&gt;true&lt;/enabled&gt;
+        &lt;/snapshots&gt;
+    &lt;/pluginRepository&gt;
+&lt;/pluginRepositories&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_3"><a class="anchor" href="#_release_0_9_3"></a>Release 0.9.3</h3>
+<div class="paragraph">
+<p>This release contains:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix for mainClass not being optional (Gradle plugin)</p>
+</li>
+<li>
+<p>Fix for Gradle &lt; 7 failing to determine GraalVM toolchain</p>
+</li>
+<li>
+<p>Gradle plugin now registers proper groups</p>
+</li>
+<li>
+<p>Automatic native-image tool fetching via gu (Gradle plugin)</p>
+</li>
+<li>
+<p>FIxed issue where nativeTest would fail when tests are annotated with Timeout</p>
+</li>
+<li>
+<p>Added a sharedLibrary configuration option for Gradle plugin</p>
+</li>
+<li>
+<p>Removed broken server configuration option from Gradle plugin</p>
+</li>
+<li>
+<p>Added a documentation website with proper CI integration</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In addition to those improvements, several behind-the-scenes changes were made:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Introduced "Dockerless" Maven plugin functional testing</p>
+</li>
+<li>
+<p>Parallelized Gradle testing in CI</p>
+</li>
+<li>
+<p>Replaced groovy-json with jackson-databind for JSON handling</p>
+</li>
+<li>
+<p>Fixed Github Actions syntax to enable manual workflow invoking</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_2"><a class="anchor" href="#_release_0_9_2"></a>Release 0.9.2</h3>
+<div class="paragraph">
+<p>This release contains:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Revamped Gradle plugin that is now a lot more idiomatic.</p>
+</li>
+<li>
+<p>Fixes for several issues regarding JUnit testing.</p>
+</li>
+<li>
+<p>Removal of Test Discovery mode from the Maven plugin.</p>
+</li>
+<li>
+<p>Fix for Maven creating empty test images when no tests are present.</p>
+</li>
+<li>
+<p>Added support for Kotlin tests in Gradle.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In addition to those improvements, several behind-the-scenes changes were made in order to ensure better compatibility moving forward:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Test coverage has been greatly improved for all subprojects.</p>
+</li>
+<li>
+<p>Build tooling for this repository has been improved significantly.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that there has been a breaking change in the Gradle plugin - <code>persistConfig</code> configuration option was removed.
+Using said option will cause existing builds to break, so users are advised to remove it from their configuration prior to upgrading.
+System property <code>-DpersistConfig</code> will have no effect going forward.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_1"><a class="anchor" href="#_release_0_9_1"></a>Release 0.9.1</h3>
+<div class="paragraph">
+<p>This release contains:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Fixes for most of the known issues regarding Gradle and Maven plugins</p>
+</li>
+<li>
+<p>Massively improved automatic JUnit support as well as initial JUnit Vintage support</p>
+</li>
+<li>
+<p>Improved JavaDoc and tests for the Gradle plugin</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_9_0"><a class="anchor" href="#_release_0_9_0"></a>Release 0.9.0</h3>
+<div class="paragraph">
+<p>Initial release</p>
 </div>
 </div>
 </div>
@@ -902,10 +1554,11 @@ reference documentation</a>.</p>
 <script src="highlight/highlight.min.js"></script>
 <script>hljs.initHighlighting()</script>
 <link rel="stylesheet" href="css/multi-lang-sample.css">
+<link rel="stylesheet" href="css/page.css">
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
     <div id="footer-text">
-        <img src="img/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
+        <img src="css/images/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
     </div>
 </div>
 </body>
