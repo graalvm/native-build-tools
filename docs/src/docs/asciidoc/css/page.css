@@ -1,13 +1,59 @@
 body {
-    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.85));
+    background: #161D24;
     color: white;
+    font-family: 'OracleSans', sans-serif;
 }
 
-#grabbit-logo {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 150px;
+#content, #header {
+  max-width: 1200px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.topscreen {
+  background: url('../css/images/grain.png') repeat, url('../css/images/metaimage-main-01.svg') 100% 20%/650px no-repeat, radial-gradient(142.83% 143.5% at 0.12% 128.91%, #264d6d 0%, rgba(38, 84, 107, 0) 100%), #171E25;
+}
+
+.topscreen__body {
+  padding: 0 20px;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.topscreen__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.topscreen__content {
+  font-family: 'Oracle Sans', sans-serif;
+  color: #FFFFFF;
+  padding: 0px 0px 0px 0px;
+}
+
+.graalvm-logo img {
+  padding-top: 28px;
+  max-width: 55%;
+}
+
+.graalvm-rabbit {
+  padding: 10px 0px 0px 20px;
+  max-width: 8%;
+}
+@media (min-width: 320px) and (max-width: 372px) {
+  .graalvm-rabbit {
+    display: none;
+  }
+}
+@media (min-width: 373px) and (max-width: 1024px) {
+  .graalvm-rabbit {
+    max-width: 80px;
+  }
 }
 
 #toc {
@@ -31,20 +77,47 @@ body {
     color: white;
 }
 
-h2, h3, h4, .title {
-    color: #ffc107 !important;
-}
-
 p {
     color: white;
 }
 
 a {
-    color: #00a8cd;
+    color: #f29111;
+}
+
+#toc a {
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+ul.sectlevel2 a {
+  font-size: 16px !important;
+  line-height: 20px !important;
+  font-weight: 200 !important;
+}
+
+ul.sectlevel2 a:hover {
+  font-weight: 400 !important;
+}
+
+#toc a:hover {
+  color: #8EC9E6;
 }
 
 a:hover {
-    color: #ffc107;
+    color: #8EC9E6;
+}
+
+#toc.toc2 {
+  background: #1f2a33 !important;
+}
+
+#toctitle {
+  font-weight: 600;
+  margin-bottom: 24px !important;
+  color: #afe4ff !important;
 }
 
 .listingblock >.content>pre:not(.highlight) {
@@ -69,6 +142,20 @@ a:hover {
     color: white;
 }
 
-#footer {
-    background: rgba(0, 0, 0, 0.2);
+#toc > #toctitle {
+  color: #FFFFFF;
+}
+
+:not(pre):not([class^=L])>code {
+  background: #8EC9E6;
+  color: #171F26;
+}
+
+.listingblock pre.highlightjs>code {
+  background: #1f2a33;
+  border: 0.4px solid #8ec9e696;
+}
+
+.admonitionblock td.content>.title, .paragraph>.title {
+  color: #8EC9E6;
 }
