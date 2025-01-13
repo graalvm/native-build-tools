@@ -33,19 +33,7 @@ A JDK version between 17 and 21 is required to execute Gradle (see the https://d
   id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
 ----
 
-Replace `{maven-plugin-version}` with the latest released version.
-All plugin versions are listed https://github.com/graalvm/native-build-tools/releases[here].
-
-
-- Provide the application main class in _build.gradle_ / _build.gradle.kts_ as shown below.
-Adjust the path according to your application sources.
-
-[source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
-----
-application {
-    mainClass.set('org.example.Main')
-}
-----
+All plugin versions are listed https://github.com/graalvm/native-build-tools/releases[here]
 
 [[run-your-project]]
 === Build and Run Your Application
@@ -72,23 +60,23 @@ Continue reading below to learn more about the plugin.
 [[advanced-use-cases]]
 == Advanced Use Cases: How to
 
-For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configurations, and enabling diagnostic tools to analyze native images.
+For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.
 
 [[configure-image-build]]
 === Configure Native Image Build
 
 The plugin supports passing options directly to Native Image inside the `graalvmNative` block in the _build.gradle_ / _build.gradle.kts_ file.
-Using `buildArgs.add("<option>")`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this website page].
-You can pass options to configure the `main` or the `test` native binary, or both at the same time.
+Using `buildArgs.add("<option>")`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this page].
+You can pass options to <<gradle-plugin.adoc#configure-native-image,configure the `main` or the `test` native binary>>, or both at the same time.
 
 The plugin also provides special properties to configure the build:
 
 - `mainClass` - Provides the main class to use, defaults to the `application.mainClass`
-- `imageName` - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
+- `imageName` - Specifies the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
 - `jvmArgs` - Passes the given argument directly to the JVM running the `native-image` tool
 - `quickBuild` - Enables quick build mode
 - `verbose` - Enables the verbose output
-- and many more https://graalvm.github.io/native-build-tools/latest/gradle-plugin.html#_native_image_options[listed here].
+- and many more <<gradle-plugin.adoc#native-image-options,listed here>>.
 
 Here is an example of additional options usage:
 
@@ -99,12 +87,14 @@ graalvmNative {
         // common options
         verbose = true
     }
+
     binaries.main {
         // options to configure the main binary
-        imageName = 'application'
+        imageName = 'myApp'
         mainClass = 'org.example.Main'
         buildArgs.add('-O3') // enables additional compiler optimizations
     }
+
     binaries.test {
         // options to configure the test binary
         quickBuild = true
@@ -120,6 +110,7 @@ graalvmNative {
         // common options
         verbose.set(true)
     }
+
     binaries.main {
         // options to configure the main binary
         imageName.set('application')
@@ -208,13 +199,14 @@ By default, the _default.iprof_ file, if not specified otherwise, is generated a
 
 Step 3. **Build an optimized native image with profiles**.
 This step involves copying the generated profile to the conventional directory, ensuring it is automatically used during the build process.
-Place the _default.iprof_ file in the _src/pgo-profiles/_ directory, and then run:
+Place the _default.iprof_ file in the _src/pgo-profiles/main_ directory, and then run:
 
 [source,bash, role="multi-language-sample"]
 ----
 ./gradlew nativeCompile
 ----
 
+If everything was done properly, you will see _"PGO: user-provided"_ in the native image build output.
 Once the optimized image is built, run it:
 
 [source,bash, role="multi-language-sample"]
@@ -334,6 +326,13 @@ graalvmNative {
 ----
 
 From that point on, commands such as `run` or `test` will execute with the agent attached.
+For example you can execute the following command and the agent will be attached automatically:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew run
+----
+
 By default, the agent creates the metadata in the _build/native/agent-output_ directory.
 
 Step 2: **Copy the generated metadata** from the default location, _build/native/agent-output_, to the resources directory, for example, _resources/META-INF/native-image_.
