@@ -69,7 +69,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     }
 
     @Requires({ supportedAugmentedSBOMVersion() })
-    def "sbom is created when buildArg '--enable-sbom=export,embed' is used"() {
+    def "sbom is exported and embedded when buildArg '--enable-sbom=export,embed' is used"() {
         withSample 'java-application'
 
         when:
@@ -82,29 +82,26 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\) and exported as JSON \\(see build artifacts\\)\\."
         outputDoesNotContain "Use '--enable-sbom' to assemble a Software Bill of Materials (SBOM)"
-        validateSbom sbom
+        validateExportedSBOM sbom
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
     }
 
     /**
-     * If user sets {@link NativeCompileNoForkMojo#AUGMENTED_SBOM_PARAM_NAME} to true then an SBOM should be generated
-     * with default SBOM arguments even if user did not explicitly specify '--enable-sbom' as a buildArg.
+     * If user sets {@link NativeCompileNoForkMojo#AUGMENTED_SBOM_PARAM_NAME} to true then Native Image should be
+     * invoked with '--enable-sbom' and an SBOM should be embedded in the image.
      */
     @Requires({ supportedAugmentedSBOMVersion() })
-    def "sbom is created when only the augmented sbom parameter is used (but not the '--enable-sbom' buildArg)"() {
+    def "sbom is embedded when only the augmented sbom parameter is used (but not the '--enable-sbom' buildArg)"() {
         withSample 'java-application'
 
         when:
         mvn '-Pnative-augmentedSBOM-only', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
-        def sbom = file("target/example-app.sbom.json")
-
         then:
         buildSucceeded
         outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\)."
         outputDoesNotContain "Use '--enable-sbom' to assemble a Software Bill of Materials (SBOM)"
-        validateSbom sbom
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
     }
@@ -132,11 +129,11 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     }
 
     /**
-     * Validates the SBOM produced from 'java-application'.
+     * Validates the exported SBOM produced from 'java-application'.
      * @param sbom path to the SBOM.
      * @return true if validation succeeded.
      */
-    private static boolean validateSbom(File sbom) {
+    private static boolean validateExportedSBOM(File sbom) {
         try {
             if (!sbom.exists()) {
                 println "SBOM not found: ${sbom}"
