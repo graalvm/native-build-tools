@@ -1,7 +1,6 @@
 = Building Native Images with Maven: An End-to-End Guide
 The GraalVM team
 :highlighjsdir: {maven-relative-srcdir}/highlight
-:stylesheet: docs-back.css
 
 This guide walks you through integrating the Maven plugin for Native Image into your project.
 It starts from enabling the plugin, building the first native image, and running it.
@@ -22,22 +21,22 @@ Add the plugin declaration to your _pom.xml_:
 [source,xml, role="multi-language-sample"]
 ----
 <plugin>
-    <groupId>org.graalvm.buildtools</groupId>
-    <artifactId>native-maven-plugin</artifactId>
-    <version>{maven-plugin-version}</version>
-    <extensions>true</extensions>
-    <executions>
-      <execution>
-        <id>build-native</id>
-        <goals>
-          <goal>compile-no-fork</goal>
-        </goals>
-        <phase>package</phase>
-      </execution>
-    </executions>
-    <configuration>
-        <mainClass>org.example.Main</mainClass>
-    </configuration>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <version>${native.maven.plugin.version}</version>
+  <extensions>true</extensions>
+  <executions>
+    <execution>
+      <id>build-native</id>
+      <goals>
+        <goal>compile-no-fork</goal>
+      </goals>
+      <phase>package</phase>
+    </execution>
+  </executions>
+  <configuration>
+      <mainClass>org.example.Main</mainClass>
+  </configuration>
 </plugin>
 ----
 
@@ -46,31 +45,31 @@ For convenience, you can create a Maven profile and add the plugin into it:
 [source,xml, role="multi-language-sample"]
 ----
 <profiles>
-    <profile>
-      <id>native</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <version>{maven-plugin-version}</version>
-            <extensions>true</extensions>
-            <executions>
-              <execution>
-                <id>build-native</id>
-                <goals>
-                  <goal>compile-no-fork</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <mainClass>org.example.Main</mainClass>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
+  <profile>
+    <id>native</id>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.graalvm.buildtools</groupId>
+          <artifactId>native-maven-plugin</artifactId>
+          <version>${native.maven.plugin.version}</version>
+          <extensions>true</extensions>
+          <executions>
+            <execution>
+              <id>build-native</id>
+              <goals>
+                <goal>compile-no-fork</goal>
+              </goals>
+              <phase>package</phase>
+            </execution>
+          </executions>
+          <configuration>
+            <mainClass>org.example.Main</mainClass>
+          </configuration>
+        </plugin>
+      </plugins>
+    </build>
+  </profile>
 </profiles>
 ----
 
@@ -107,13 +106,13 @@ Continue to advanced use cases to learn more.
 [[advanced-use-cases]]
 == Advanced Use Cases: How to
 
-For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configurations, and enabling diagnostic tools to analyze native images.
+For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.
 
 [[configure-image-build]]
 === Configure Native Image Build
 
 The plugin supports passing options directly to Native Image inside the `<configuration>` block.
-Using `<buildArg>`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this website page].
+Using `<buildArg>`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this page].
 
 The plugin also provides special properties to configure the build:
 
@@ -132,14 +131,14 @@ Here is an example of additional options usage:
   <imageName>myApp</imageName>
   <verbose>true</verbose>
   <buildArgs>
-      <buildArg>-O3</buildArg> <!-- enables additional compiler optimizations -->
+    <buildArg>-O3</buildArg> <!-- enables additional compiler optimizations -->
   </buildArgs>
   <environment>
-      <variable1>value1</variable1>
-      <variable2>value2</variable2>
+    <variable1>value1</variable1>
+    <variable2>value2</variable2>
   </environment>
   <jvmArgs>
-      <arg>your-argument</arg>
+    <arg>your-argument</arg>
   </jvmArgs>
 </configuration>
 ----
@@ -176,10 +175,10 @@ The tests are compiled ahead of time and executed as native code.
 [source,xml, role="multi-language-sample"]
 ----
 <dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter</artifactId>
-    <version>5.10.0</version>
-    <scope>test</scope>
+  <groupId>org.junit.jupiter</groupId>
+  <artifactId>junit-jupiter</artifactId>
+  <version>5.10.0</version>
+  <scope>test</scope>
 </dependency>
 ----
 
@@ -188,9 +187,9 @@ The tests are compiled ahead of time and executed as native code.
 [source,xml, role="multi-language-sample"]
 ----
 <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-surefire-plugin</artifactId>
-    <version>3.0.0</version>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-surefire-plugin</artifactId>
+  <version>3.0.0</version>
 </plugin>
 ----
 
@@ -227,7 +226,6 @@ Alternatively, set `<skipNativeTests>` to `true` in the plugin configuration:
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-  <mainClass>org.example.Main</mainClass>
   <skipNativeTests>true</skipNativeTests>
 </configuration>
 ----
@@ -256,12 +254,18 @@ For example:
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-  <mainClass>org.example.Main</mainClass>
   <imageName>instrumentedApp</imageName>
   <buildArgs>
       <buildArg>--pgo-instrument</buildArg>
   </buildArgs>
 </configuration>
+----
+
+Run the build command:
+
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative package
 ----
 
 Step 2: **Gather profiles** by running the instrumented executable.
@@ -278,7 +282,6 @@ You may want to provide a different name for the native image or create another 
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-  <mainClass>org.example.Main</mainClass>
   <imageName>optimizedApp</imageName>
   <buildArgs>
       <buildArg>--pgo</buildArg>
@@ -286,10 +289,18 @@ You may want to provide a different name for the native image or create another 
 </configuration>
 ----
 
+Run the build command:
+ 
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative package
+----
+
 If the profile file has the default name and location, it will be automatically picked up.
 Alternatively, you can specify the file path as following: `--pgo=myprofile.iprof`.
 
-Once the optimized image is built, run it.
+If everything was done properly, you will see _"PGO: user-provided"_ in the native image build output.
+Once the optimized image is built, run it: `./target/optimizedApp`.
 The application's performance when running from this native executable should be comparable to, or even faster than, running on the JVM.
 Learn more about PGO https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage[on the website].
 
@@ -320,16 +331,15 @@ Alternatively, you can **identify missing configuration manually** using the fol
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-  <mainClass>org.example.Main</mainClass>
   <buildArgs>
-      <buildArg>--exact-reachability-metadata</buildArg>
+    <buildArg>--exact-reachability-metadata</buildArg>
   </buildArgs>
 </configuration>
 ----
 
 [NOTE]
 ====
-The `--exact-reachability-metadata` option was introduced in GraalVM for JDK 23. With older versions, use `-H:ThrowMissingRegistrationErrors=` instead.
+The `--exact-reachability-metadata` option was introduced in GraalVM for JDK 23. With older versions, use `-H:ThrowMissingRegistrationErrors=` instead. 
 ====
 
 - Rebuild the application:
@@ -343,10 +353,15 @@ The `--exact-reachability-metadata` option was introduced in GraalVM for JDK 23.
 
 [source,bash, role="multi-language-sample"]
 ----
-./target/yourApp -XX:MissingRegistrationReportingMode=Warn
+./target/myApp -XX:MissingRegistrationReportingMode=Warn
 ----
 
-- If there is any missing metadata printed to the console, **add it to the configuration file manually**, as described https://www.graalvm.org/reference-manual/native-image/metadata/#specifying-metadata-with-json[here], or **collect it automatically using the Tracing agent**.
+[NOTE]
+====
+With GraalVM versions older than JDK 23, pass `-H:MissingRegistrationReportingMode=Warn` at build time instead.
+====
+
+- If there is any missing metadata printed to the console, **add it to the configuration file manually**, as described https://www.graalvm.org/latest/reference-manual/native-image/metadata/#specifying-metadata-with-json[here], or **collect it automatically using the Tracing agent**.
 (See next.) 
 
 - Rebuild your native image and test again.
@@ -389,13 +404,12 @@ Step 1: **Enable the agent** by setting `<agent>` to `true` in the `native` prof
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-    <agent>
-        <enabled>true</enabled>
-    </agent>
+  <agent>
+    <enabled>true</enabled>
+  </agent>
 </configuration>
 ----
 From that point on, commands you execute will run with the agent attached.
-By default, the agent creates the metadata in the _target/native/agent-output_ directory.
 
 Step 2: **Copy the generated metadata** from the default location, _target/native/agent-output_, to the resources directory, for example, _resources/META-INF/native-image_.
 Native Image automatically uses the metadata from this location.
@@ -408,13 +422,14 @@ Your `agent` configuration should look like this:
 [source,xml, role="multi-language-sample"]
 ----
 <agent>
-    <metadataCopy>
-        <disabledStages>
-            <stage>main</stage>
-        </disabledStages>
-        <merge>true</merge>
-        <outputDirectory>src/test/resources/META-INF/native-image</outputDirectory>
-    </metadataCopy>
+  <enabled>true</enabled>
+  <metadataCopy>
+    <disabledStages>
+      <stage>main</stage>
+    </disabledStages>
+    <merge>true</merge>
+    <outputDirectory>src/test/resources/META-INF/native-image</outputDirectory>
+  </metadataCopy>
 </agent>
 ----
 
@@ -428,7 +443,7 @@ Step 3: Now that the `metadataCopy` task is configured, **run the agent to colle
 
 [source,bash,subs="verbatim,attributes", role="multi-language-sample"]
 ----
-./mvnw -Pnative -Dagent=true test native:metadata-copy
+./mvnw -Pnative test native:metadata-copy
 ----
 
 Step 4: Finally, proceed without the agent and **build the native image with the metadata**.
@@ -452,12 +467,11 @@ For example:
 [source,xml, role="multi-language-sample"]
 ----
 <configuration>
-    <mainClass>org.example.Main</mainClass>
-    <debug>true</debug>
-    <buildArgs>
-        <buildArg>--emit build-report</buildArg>
-        <buildArg>--enable-monitoring=jfr</buildArg>
-    </buildArgs>
+  <debug>true</debug>
+  <buildArgs>
+    <buildArg>--emit build-report</buildArg>
+    <buildArg>--enable-monitoring=jfr</buildArg>
+  </buildArgs>
 </configuration>
 ----
 
@@ -481,7 +495,7 @@ You will find the output of these tools among the generated artifacts after runn
 
 [source,bash, role="multi-language-sample"]
 ----
-./mvnw -Pnative -DskipNativeTests package
+./mvnw -Pnative package
 ----
 
 === Learn more
