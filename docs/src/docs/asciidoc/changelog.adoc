@@ -4,6 +4,20 @@
 == Release 0.10.5
 
 - Add missing getters to `DirectoryConfiguration`
+- Refactor Native Build Tools documentation and add end-to-end guides for both Gradle and Maven plugins
+- Restyle Native Build Tools documentation
+- Improve GraalVM version check
+
+==== Gradle plugin
+
+- Fix sporadic failures with: access-filter.json already exists
+
+==== Maven plugin
+
+- Add maven functional testing in github actions
+- Fix Broken Maven Functional Tests when Using New Metadata Format
+- Fix SBOM integration test bug
+- Make metadataCopy task work with custom disabled stages
 
 === Release 0.10.3
 
