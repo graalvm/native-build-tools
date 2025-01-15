@@ -1,6 +1,10 @@
 [[changelog]]
 == Changelog
 
+== Release 0.10.5
+
+- Add missing getters to `DirectoryConfiguration`
+
 === Release 0.10.3
 
 - Remove usage of macro from merger tool initialization and throw better error if executable does not exist
