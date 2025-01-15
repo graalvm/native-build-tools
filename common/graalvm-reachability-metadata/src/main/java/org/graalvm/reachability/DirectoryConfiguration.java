@@ -80,6 +80,18 @@ public class DirectoryConfiguration {
         return override;
     }
 
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
     public static void copy(Collection<DirectoryConfiguration> configurations, Path destinationDirectory) throws IOException {
         Path nativeImageDestination = destinationDirectory.resolve("META-INF").resolve("native-image");
         for (DirectoryConfiguration configuration : configurations) {
@@ -129,5 +141,3 @@ public class DirectoryConfiguration {
         }
     }
 }
-
-
