@@ -40,7 +40,8 @@
  */
 package org.graalvm.buildtools.model.resources;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -50,8 +51,8 @@ import java.nio.charset.StandardCharsets;
 
 public class ResourcesConfigModelSerializer {
     public static void serialize(ResourcesConfigModel model,  File outputFile) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(model);
+        JSONObject json = toJson(model);
+        String pretty = json.toString(2);
         File outputDir = outputFile.getParentFile();
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(outputFile), StandardCharsets.UTF_8)) {
@@ -59,4 +60,37 @@ public class ResourcesConfigModelSerializer {
             }
         }
     }
+
+    private static JSONObject toJson(ResourcesConfigModel model) {
+        JSONObject json = new JSONObject();
+        json.put("resources", toJson(model.getResources()));
+        JSONArray namedValues = new JSONArray();
+        model.getBundles().forEach(namedValue -> namedValues.put(toJson(namedValue)));
+        json.put("bundles", namedValues);
+        return json;
+    }
+
+    private static JSONObject toJson(ResourcesModel model) {
+        JSONObject json = new JSONObject();
+        JSONArray includes = new JSONArray();
+        model.getIncludes().forEach(patternValue -> includes.put(toJson(patternValue)));
+        json.put("includes", includes);
+        JSONArray excludes = new JSONArray();
+        model.getExcludes().forEach(patternValue -> excludes.put(toJson(patternValue)));
+        json.put("excludes", excludes);
+        return json;
+    }
+
+    private static JSONObject toJson(PatternValue patternValue) {
+        JSONObject json = new JSONObject();
+        json.put("pattern", patternValue.getPattern());
+        return json;
+    }
+
+    private static JSONObject toJson(NamedValue namedValue) {
+        JSONObject json = new JSONObject();
+        json.put("name", namedValue.getName());
+        return json;
+    }
+
 }
