@@ -219,7 +219,7 @@ function createCopyToClipboardElement() {
     var copyToClipboardSpan = document.createElement("span");
     copyToClipboardSpan.setAttribute("class", "copytoclipboard");
     copyToClipboardSpan.setAttribute("onclick", "copyToClipboard(this);");
-    copyToClipboardSpan.innerText = "Copy to Clipboard";
+    copyToClipboardSpan.innerText = "Copy";
     copyToClipboardDiv.appendChild(copyToClipboardSpan);
     return copyToClipboardDiv;
 }

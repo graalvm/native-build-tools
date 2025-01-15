@@ -441,11 +441,25 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <link rel="apple-touch-icon" sizes="180x180" href="https://www.graalvm.org/resources/img/favicon/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://www.graalvm.org/resources/img/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://www.graalvm.org/resources/img/favicon/favicon-16x16.png">
+
+<section class="topscreen">
+  <div class="wrapper">
+      <div class="topscreen__body">
+          <div class="topscreen__row">
+            <div class="topscreen__content">
+              <a class="graalvm-logo" href="https://graalvm.github.io/native-build-tools/">
+                <img src="css/images/graalvm-logo.svg" alt="graalvm-icon">
+              </a>
+            </div>
+            <div class="graalvm-rabbit">
+              <img src="css/images/graalvm-rabbit-icon.svg" alt="graalvm-icon">
+            </div>
+          </div>
+      </div>
+  </div>
+</section>
 </head>
 <body class="article toc2 toc-left">
-<div id="grabbit-logo">
-    <img src="css/images/Grabbit.svg" alt="">
-</div>
 <div id="header">
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -1569,10 +1583,16 @@ System property <code>-DpersistConfig</code> will have no effect going forward.<
 <script>hljs.initHighlighting()</script>
 <link rel="stylesheet" href="css/multi-lang-sample.css">
 <link rel="stylesheet" href="css/page.css">
+<link rel="stylesheet" href="css/typography.css">
+<link rel="stylesheet" href="css/footer.css">
 <script src="js/multi-lang-sample.js"></script>
 <div id="footer">
-    <div id="footer-text">
-        <img src="css/images/GraalVM-rgb.svg" alt="GraalVM"> (c) 2025. Licensed under the Universal Permissive License (UPL), Version 1.0
+    <div class="foot-container">
+      <div class="foot-content">
+        <div id="footer-text">
+          <h5>Copyright © 2025. Licensed under the Universal Permissive License (UPL), Version 1.0 </h5>
+        </div>
+      </div>
     </div>
 </div>
 </body>
