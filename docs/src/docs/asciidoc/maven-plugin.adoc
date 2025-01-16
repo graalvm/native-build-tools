@@ -4,9 +4,6 @@ The GraalVM team
 
 image:https://github.com/graalvm/native-build-tools/actions/workflows/test-native-maven-plugin.yml/badge.svg[]
 
-[[introduction]]
-== Introduction
-
 The {doctitle} adds support for building and testing native images using https://maven.apache.org[Apache Maven]™.
 
 Find the differences between the versions in the <<changelog.adoc#,project changelog>>.
@@ -14,91 +11,15 @@ Find the differences between the versions in the <<changelog.adoc#,project chang
 You can find sample applications in the https://github.com/graalvm/native-build-tools/tree/master/samples[source repository].
 
 [[adding-the-plugin]]
-== Adding the plugin
+== Adding the Plugin
 
-Add the following profile to the project's _pom.xml_ file to register the plugin:
-
-[source,xml, role="multi-language-sample"]
-```xml
-  <profiles>
-    <profile>
-      <id>native</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.graalvm.buildtools</groupId>
-            <artifactId>native-maven-plugin</artifactId>
-            <version>${native.maven.plugin.version}</version>
-            <extensions>true</extensions>
-            <executions>
-              <execution>
-                <id>build-native</id>
-                <goals>
-                  <goal>compile-no-fork</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-              <execution>
-                <id>test-native</id>
-                <goals>
-                  <goal>test</goal>
-                </goals>
-                <phase>test</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <!-- ... -->
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-```
-
-You can then build a native image directly with Maven:
-
-[source,bash,subs="verbatim,attributes"]
-----
-./mvnw -Pnative package
-----
-
-The `native-maven-plugin` plugin figures out which JAR file it needs to pass to `native-image`, and what the executable main class should be.
-If the heuristics fail with the `no main manifest attribute, in target/<name>.jar` error, the main class should be
-specified in the `<configuration>` block of the plugin.
-A native image is generated in the _target_ directory of the project.
-
-[NOTE]
-====
-Building a native executable without attaching to the `package` phase can be done by invoking the `compile` goal directly. For example: `./mvnw native:compile`.
-====
-
-[TIP]
-====
-You can use development versions of the plugin by adding the snapshot repository. Pre-releases are provided for convenience, without any guarantee.
-[source,xml, role="multi-language-sample"]
-----
-<pluginRepositories>
-    <pluginRepository>
-        <id>graalvm-native-build-tools-snapshots</id>
-        <name>GraalVM native-build-tools Snapshots</name>
-        <url>https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots</url>
-        <releases>
-            <enabled>false</enabled>
-        </releases>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </pluginRepository>
-</pluginRepositories>
-----
-====
+Refer to the <<end-to-end-maven-guide.adoc#,Getting Started Maven Guide>> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.
 
 [[configuration-options]]
-== Plugin configuration
+== Plugin Configuration
 
 [[native-image-options]]
-=== Native Image options
+=== Native Image Options
 
 The plugin picks up all the configuration for your application stored below the _META-INF/native-image/_ resource location, as described in
 https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/[Native Image Build Configuration].
@@ -243,7 +164,7 @@ Most of the aforementioned properties can also be set on the command line as a p
 ====
 
 [[native-image-tracing-agent]]
-=== Native Image Tracing Agent
+== Native Image Tracing Agent
 
 If your project requires reflection, classpath resources, dynamic proxies or other
 features requiring explicit native configuration, it may prove helpful to first run your
@@ -256,7 +177,7 @@ The agent generates the configuration file(s) under _target/native/agent-output_
 Although those files will be automatically used by `native-image`, you should consider reviewing the generated files and adding them to your sources instead.
 
 [[agent-support-enabling]]
-==== Enabling the agent
+=== Enabling the Agent
 
 The agent is disabled by default, but it can be enabled in the _pom.xml_ file or on the command line.
 
@@ -280,7 +201,7 @@ If you have enabled the agent in _pom.xml_, you can still disable it on the comm
 ====
 
 [[agent-support-configuring-options]]
-==== Configuring agent options
+=== Configuring the Agent
 
 If you would like to configure the options for the agent -- for example, to configure agent mode or advanced features such as
 https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#caller-based-filters[Caller-based Filters]
@@ -311,7 +232,7 @@ Here is an explanation for each option you can specify in the agent block:
 * `options` - A list of options that can be specified independently from the agent mode. Learn more about these options https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/[here].
 
 [[agent-support-running-tests]]
-==== Running tests with the agent
+=== Running Tests with the Agent
 
 The simplest way to use the agent is to do it via execution of your tests.
 
@@ -336,7 +257,7 @@ at the end of the agent invocation command. For example:
 ====
 
 [[agent-support-running-application]]
-==== Running your application with the agent
+=== Running the Application with the Agent
 
 Executing your application with the agent is more involved and requires you to configure a separate Mojo execution which allows forking the Java process.
 
@@ -361,7 +282,7 @@ If you want to run your native application with those configuration files, you t
 ----
 
 [[agent-filter-file]]
-==== Reduce the amount of generated metadata
+=== Reducing the Amount of Generated Metadata
 
 In some cases the agent may include more metadata than it is actually needed.
 You can filter metadata using the agent filter file(s).
@@ -559,7 +480,6 @@ As you can see, there are lots of entries that you likely do not want.
 They are present because the metadata was generated using tests, and that the testing library was present at run time during the agent execution pass, but in practice, your application will not use the testing library in production.
 To reduce the amount of generated metadata, use the following _user-code-filter.json_:
 
-
 [source,json,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 {
@@ -609,7 +529,7 @@ After updating the filter, you can regenerate the metadata, which will result in
 As you can see, there are no more entries that contain classes from `org.apache.maven` (as their condition).
 
 [[metadata-copy]]
-==== Metadata copy
+=== Metadata Copy
 
 The `metadataCopy` task provides additional options for manipulating the agent output after it finishes its job.
 
@@ -625,7 +545,7 @@ You can set values for the following tags:
     the agent output for that stage. For example, if you want to copy only configuration files generated in tests, you can disable main stage. Also, if you want to copy only files generated in the main phase, you can disable the test stage. Therefore, if you skip both stages, `metadataCopy` will not be executed.
 
 [[configuration-reusing-config-from-parent]]
-== Reusing configuration from a parent POM
+== Reusing Configuration from a Parent POM
 
 The `<buildArgs>` element can be combined between parent and children POMs.
 Suppose you have the following parent POM definition:
@@ -669,7 +589,7 @@ In this case, the arguments that are passed to the `native-image` executable wil
 ----
 
 [[testing-support]]
-== Testing support
+== Testing Support
 
 This plugin supports running tests on the https://junit.org/junit5/docs/current/user-guide/[JUnit Platform] as native images.
 This means that tests will be compiled and executed as native code.
@@ -690,7 +610,7 @@ include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plug
 Running the `./mvnw -Pnative test` will then build and run tests as native code.
 
 [[testing-support-version-compatibility]]
-=== Version compatibility
+=== Version Compatibility
 
 This plugin requires the Maven Surefire plugin 3.0.0 or higher to run tests as native code.
 
@@ -726,7 +646,7 @@ If Maven Surefire is using an older version of the JUnit Platform, the build wil
 ----
 
 [[testing-support-disabling]]
-=== Disabling testing support
+=== Disabling Testing Support
 
 If you wish to disable running tests on the JVM as well as tests as native code, you can invoke Maven with the `-DskipTests` flag.
 This flag is supported by Maven Surefire and Native Build Tools. 
@@ -741,7 +661,7 @@ For example, you might wish to disable only native testing support for use cases
 - You need to use the <<agent-support, agent>> when running tests on the JVM but do not wish to run those same tests as native code.
 
 [[long_classpath_and_shading_support]]
-== Long classpath, @argument file and shading support
+== Long classpath, @argument File and Shading Support
 
 Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
 
@@ -818,7 +738,7 @@ Finally, you need to execute tests using the `integration-test` phase instead of
 Refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading, and the https://maven.apache.org/plugins/maven-assembly-plugin[Maven Assembly plugin documentation] to tweak what to include in tests.
 
 [[metadata-support]]
-== GraalVM Reachability Metadata support
+== GraalVM Reachability Metadata Support
 
 The plugin adds support for the https://github.com/oracle/graalvm-reachability-metadata/[GraalVM Reachability Metadata Repository].
 This repository provides the https://www.graalvm.org/latest/reference-manual/native-image/metadata/[configuration] for libraries that do not support GraalVM Native Image.
@@ -840,7 +760,7 @@ The repository is also published on Maven Central at the following coordinates:
 For example: `graalvm-reachability-metadata-{maven-plugin-version}-repository.zip`.
 ====
 
-=== Configuring the metadata repository
+=== Configuring the Metadata Repository
 
 The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.
 
@@ -891,7 +811,7 @@ This may be interesting if there is no specific metadata available for the parti
 include::../../../../samples/native-config-integration/pom.xml[tag=metadata-force-version]
 ----
 
-=== Adding metadata repository files
+=== Adding Metadata Repository Files
 
 By default, reachability metadata is used only when your native image is being generated.
 In some situations, you may want to include the metadata directly inside your JAR file.
