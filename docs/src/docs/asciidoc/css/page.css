@@ -98,10 +98,6 @@ ul.sectlevel2 a {
   font-weight: 200 !important;
 }
 
-ul.sectlevel2 a:hover {
-  font-weight: 400 !important;
-}
-
 #toc a:hover {
   color: #8EC9E6;
 }
