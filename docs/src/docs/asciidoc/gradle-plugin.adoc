@@ -15,6 +15,11 @@ You can find sample applications in the https://github.com/graalvm/native-build-
 
 Refer to the <<end-to-end-gradle-guide.adoc#,Getting Started Gradle Guide>> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.
 
+[NOTE]
+====
+The plugin requires that you install a https://www.graalvm.org/downloads/[GraalVM JDK].
+====
+
 The plugin is enabled by adding its declaration to the  _build.gradle_ / _build.gradle.kts_ file within the `plugins` block:
 
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
@@ -27,10 +32,7 @@ The plugin is enabled by adding its declaration to the  _build.gradle_ / _build.
   id("org.graalvm.buildtools.native") version "{gradle-plugin-version}"
 ----
 
-[NOTE]
-====
 This plugin supplements and heavily relies on regular Java plugins such as `application`, `java-library`, `java`, and others. Not having them included in your project will most probably cause errors.
-====
 
 You can use development versions of the plugin by adding the snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.
 [source, groovy, role="multi-language-sample"]
