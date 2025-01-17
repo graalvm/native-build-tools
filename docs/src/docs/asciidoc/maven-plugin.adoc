@@ -15,6 +15,11 @@ You can find sample applications in the https://github.com/graalvm/native-build-
 
 Refer to the <<end-to-end-maven-guide.adoc#,Getting Started Maven Guide>> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.
 
+[NOTE]
+====
+The plugin requires that you install a https://www.graalvm.org/downloads/[GraalVM JDK].
+====
+
 [[configuration-options]]
 == Plugin Configuration
 
