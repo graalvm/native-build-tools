@@ -59,6 +59,8 @@ you can set up the `GRAALVM_HOME` environment variable pointing to your GraalVM 
 [[configuration-toolchains-enabling]]
 === Enabling Toolchain Detection
 
+WARNING: Toolchain support has many pitfalls. Unless you have a single JDK installed on your machine, which is the GraalVM version that you want to use, we do not recommend enabling them yet. We are working with the Gradle team on improvements in the future.
+
 Instead of relying on the JDK which is used to run Gradle, you can use the https://docs.gradle.org/current/userguide/toolchains.html[Gradle toolchain support] to select a specific GraalVM installation.
 
 However, because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
