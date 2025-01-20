@@ -170,7 +170,14 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
             assert mainComponentDependency.get('dependsOn').isEmpty()
 
             // Check that the main component is not found in "components"
-            assert !rootNode.get('components').any { it.get('bom-ref').asText() == mainComponentId }
+            assert !rootNode.get('components').any { component ->
+                def bomRef = component.get('bom-ref')
+                if (!bomRef) {
+                    return false
+                }
+                def bomRefValue = bomRef instanceof String ? bomRef : bomRef.asText()
+                bomRefValue == mainComponentId
+            }
 
             return true
         } catch (AssertionError | Exception e) {
