@@ -470,34 +470,45 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#adding-the-plugin">Adding the plugin</a></li>
-<li><a href="#installing-graalvm">Installing GraalVM</a>
+<li><a href="#adding-the-plugin">Adding the Plugin</a></li>
+<li><a href="#configuration-toolchains">Using Gradle Toolchains</a>
 <ul class="sectlevel2">
-<li><a href="#configuration-toolchains">Using Gradle toolchains</a></li>
+<li><a href="#configuration-toolchains-enabling">Enabling Toolchain Detection</a></li>
+<li><a href="#_selecting_the_graalvm_toolchain">Selecting the GraalVM Toolchain</a></li>
 </ul>
 </li>
-<li><a href="#configuration">Plugin configuration</a>
+<li><a href="#configuration">Plugin Configuration</a>
 <ul class="sectlevel2">
-<li><a href="#available-tasks">Available tasks</a></li>
-<li><a href="#configure-native-image">Native Image configuration</a></li>
+<li><a href="#available-tasks">Available Tasks</a></li>
+<li><a href="#configure-native-image">Native Image Configuration</a></li>
+<li><a href="#native-image-options">Native Image options</a></li>
 </ul>
 </li>
-<li><a href="#testing-support">Testing support</a>
+<li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a>
 <ul class="sectlevel2">
-<li><a href="#test-binary-config">Configuring test image options</a></li>
-<li><a href="#testing-support-disabling">Disabling testing support</a></li>
-<li><a href="#extra-test-suites">Configuring additional test suites</a></li>
+<li><a href="#resources-autodetecting">Resources Autodetecting</a></li>
+<li><a href="#metadatacopy-task">MetadataCopy Task</a></li>
+<li><a href="#common-agent-options">Common Agent Options</a></li>
+<li><a href="#agent-filter-file">Reduce the Amount of Generated Metadata</a></li>
+<li><a href="#max_parallel_builds">Max Parallel Builds</a></li>
+<li><a href="#long_classpath_and_fat_jar_support">Long classpath, @argument File, and a Fat JAR Support</a></li>
 </ul>
 </li>
-<li><a href="#metadata-support">GraalVM Reachability Metadata support</a>
+<li><a href="#testing-support">Testing Support</a>
 <ul class="sectlevel2">
-<li><a href="#_configuring_the_metadata_repository">Configuring the metadata repository</a></li>
-<li><a href="#_including_metadata_repository_files">Including metadata repository files</a></li>
+<li><a href="#test-binary-config">Configuring Test Image Options</a></li>
+<li><a href="#testing-support-disabling">Disabling Testing Support</a></li>
+<li><a href="#extra-test-suites">Configuring Additional Test Suites</a></li>
+</ul>
+</li>
+<li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
+<ul class="sectlevel2">
+<li><a href="#_configuring_the_metadata_repository">Configuring the Metadata Repository</a></li>
+<li><a href="#_including_metadata_repository_files">Including Metadata Repository Files</a></li>
 </ul>
 </li>
 <li><a href="#pgo-support">Profile-Guided Optimization</a></li>
-<li><a href="#plugin-configurations">Configurations defined by the plugin</a></li>
+<li><a href="#plugin-configurations">Configurations Defined by the Plugin</a></li>
 <li><a href="#_javadocs">Javadocs</a></li>
 </ul>
 </div>
@@ -508,11 +519,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p><span class="image"><img src="https://github.com/graalvm/native-build-tools/actions/workflows/test-native-gradle-plugin.yml/badge.svg" alt="badge"></span></p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="introduction"><a class="anchor" href="#introduction"></a>Introduction</h2>
-<div class="sectionbody">
 <div class="paragraph">
 <p>The Gradle plugin for GraalVM Native Image adds support for building and testing native images using the <a href="https://gradle.org">Gradle build tool</a>.</p>
 </div>
@@ -525,30 +531,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="adding-the-plugin"><a class="anchor" href="#adding-the-plugin"></a>Adding the plugin</h2>
+<h2 id="adding-the-plugin"><a class="anchor" href="#adding-the-plugin"></a>Adding the Plugin</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Add following to <code>plugins</code> section of the project&#8217;s <em>build.gradle</em> / <em>build.gradle.kts</em> file:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">plugins {
-  // ...
-
-  // Apply GraalVM Native Image plugin
-  id 'org.graalvm.buildtools.native' version '0.10.5-SNAPSHOT'
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">plugins {
-  // ...
-
-  // Apply GraalVM Native Image plugin
-  id("org.graalvm.buildtools.native") version "0.10.5-SNAPSHOT"
-}</code></pre>
-</div>
+<p>Refer to the <a href="end-to-end-gradle-guide.html">Getting Started Gradle Guide</a> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -558,19 +544,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </td>
 <td class="content">
 <div class="paragraph">
-<p>This plugin supplements and heavily relies on regular Java plugins such as <code>application</code>, <code>java-library</code>, <code>java</code>, and others. Not having them included in your project will most probably cause errors.</p>
+<p>The plugin requires that you install a <a href="https://www.graalvm.org/downloads/">GraalVM JDK</a>.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
+<div class="paragraph">
+<p>The plugin is enabled by adding its declaration to the  <em>build.gradle</em> / <em>build.gradle.kts</em> file within the <code>plugins</code> block:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">  id 'org.graalvm.buildtools.native' version '0.10.5-SNAPSHOT'</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">  id("org.graalvm.buildtools.native") version "0.10.5-SNAPSHOT"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This plugin supplements and heavily relies on regular Java plugins such as <code>application</code>, <code>java-library</code>, <code>java</code>, and others. Not having them included in your project will most probably cause errors.</p>
+</div>
 <div class="paragraph">
 <p>You can use development versions of the plugin by adding the snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.</p>
 </div>
@@ -598,36 +593,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 }</code></pre>
 </div>
 </div>
-</td>
-</tr>
-</table>
-</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="installing-graalvm"><a class="anchor" href="#installing-graalvm"></a>Installing GraalVM</h2>
+<h2 id="configuration-toolchains"><a class="anchor" href="#configuration-toolchains"></a>Using Gradle Toolchains</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The plugin requires that you <a href="https://www.graalvm.org/latest/docs/getting-started/">install GraalVM</a>.
-The easiest way to install GraalVM is to use the <a href="https://sdkman.io/jdks">SDKMAN!</a>.
-For other installation options, go to <a href="https://www.graalvm.org/downloads/">GraalVM Downloads</a>.</p>
-</div>
-<div class="paragraph">
-<p>By default, the plugin attempts to use the <code>native-image</code> tool bundled with the JDK running Gradle.
-Therefore, you must ensure that Gradle runs on a GraalVM JDK.</p>
-</div>
-<div class="paragraph">
-<p>You may choose to:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Set the <code>GRAALVM_HOME</code> environment variable to point to your GraalVM installation. When this variable is configured, the JDK specified at this location will be used for Native Image builds.</p>
-</li>
-<li>
-<p><a href="#configuration-toolchains-enabling">Enable toolchain support</a>.</p>
-</li>
-</ol>
+<p>Check out <a href="https://docs.gradle.org/current/userguide/compatibility.html">which Java versions are compatible with the Gradle version</a> you are using.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -637,8 +609,7 @@ Therefore, you must ensure that Gradle runs on a GraalVM JDK.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Check out <a href="https://docs.gradle.org/current/userguide/compatibility.html">which Java versions are compatible with the Gradle version</a> you are using.
-In case the Gradle version you are using is not compatible with the GraalVM version,
+<p>If the Gradle version you are using is not compatible with the GraalVM version,
 you can set up the <code>GRAALVM_HOME</code> environment variable pointing to your GraalVM installation, and the <code>JAVA_HOME</code> environment variable pointing to some JDK that is compatible with the Gradle on your system.</p>
 </div>
 </td>
@@ -646,9 +617,19 @@ you can set up the <code>GRAALVM_HOME</code> environment variable pointing to yo
 </table>
 </div>
 <div class="sect2">
-<h3 id="configuration-toolchains"><a class="anchor" href="#configuration-toolchains"></a>Using Gradle toolchains</h3>
-<div class="sect3">
-<h4 id="configuration-toolchains-enabling"><a class="anchor" href="#configuration-toolchains-enabling"></a>Enabling toolchain detection</h4>
+<h3 id="configuration-toolchains-enabling"><a class="anchor" href="#configuration-toolchains-enabling"></a>Enabling Toolchain Detection</h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Toolchain support has many pitfalls. Unless you have a single JDK installed on your machine, which is the GraalVM version that you want to use, we do not recommend enabling them yet. We are working with the Gradle team on improvements in the future.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Instead of relying on the JDK which is used to run Gradle, you can use the <a href="https://docs.gradle.org/current/userguide/toolchains.html">Gradle toolchain support</a> to select a specific GraalVM installation.</p>
 </div>
@@ -675,8 +656,8 @@ In particular, this will only work properly if you <em>only</em> have GraalVM JD
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_selecting_the_graalvm_toolchain"><a class="anchor" href="#_selecting_the_graalvm_toolchain"></a>Selecting the GraalVM toolchain</h4>
+<div class="sect2">
+<h3 id="_selecting_the_graalvm_toolchain"><a class="anchor" href="#_selecting_the_graalvm_toolchain"></a>Selecting the GraalVM Toolchain</h3>
 <div class="paragraph">
 <p>By default, the plugin will select a Java 11 GraalVM toolchain using the vendor string <code>GraalVM</code>, which works properly for GraalVM up to version 22.3 included.
 More recent versions of GraalVM do not have a specific version and are aligned with the language version they support.</p>
@@ -719,15 +700,14 @@ If you have both installed on the machine, Gradle may randomly pick one or the o
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="configuration"><a class="anchor" href="#configuration"></a>Plugin configuration</h2>
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>Plugin Configuration</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The plugin works with the <code>application</code> plugin and registers a number of tasks and extensions for you to configure.</p>
 </div>
 <div class="sect2">
-<h3 id="available-tasks"><a class="anchor" href="#available-tasks"></a>Available tasks</h3>
+<h3 id="available-tasks"><a class="anchor" href="#available-tasks"></a>Available Tasks</h3>
 <div class="paragraph">
 <p>The main tasks that you may want to execute are:</p>
 </div>
@@ -755,7 +735,7 @@ If you have both installed on the machine, Gradle may randomly pick one or the o
 </div>
 </div>
 <div class="sect2">
-<h3 id="configure-native-image"><a class="anchor" href="#configure-native-image"></a>Native Image configuration</h3>
+<h3 id="configure-native-image"><a class="anchor" href="#configure-native-image"></a>Native Image Configuration</h3>
 <div class="paragraph">
 <p>The <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a> allows you to tweak how the native image is going to be built.
 The plugin allows configuring the final binary, the <a href="#test-binary-config">tests</a> one, as well as apply options to both.</p>
@@ -910,8 +890,9 @@ The plugin allows configuring the final binary, the <a href="#test-binary-config
 }</code></pre>
 </div>
 </div>
-<div class="sect3">
-<h4 id="native-image-options"><a class="anchor" href="#native-image-options"></a>Native Image options</h4>
+</div>
+<div class="sect2">
+<h3 id="native-image-options"><a class="anchor" href="#native-image-options"></a>Native Image options</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -981,8 +962,11 @@ The plugin allows configuring the final binary, the <a href="#test-binary-config
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="native-image-tracing-agent"><a class="anchor" href="#native-image-tracing-agent"></a>Native Image Tracing Agent</h4>
+</div>
+</div>
+<div class="sect1">
+<h2 id="native-image-tracing-agent"><a class="anchor" href="#native-image-tracing-agent"></a>Native Image Tracing Agent</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>If your project requires reflection, classpath resources, dynamic proxies, or other features that need explicit configuration, it may be helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/">Native Image Tracing Agent</a>.</p>
 </div>
@@ -1115,9 +1099,24 @@ This can be limited to only specific tasks that match this predicate.</p>
 ./gradlew -Pagent=direct nativeTest</code></pre>
 </div>
 </div>
+<div class="sect2">
+<h3 id="resources-autodetecting"><a class="anchor" href="#resources-autodetecting"></a>Resources Autodetecting</h3>
+<div class="paragraph">
+<p>You can instruct the plugin to automatically detect resources to be included in a native executable at build time:
+Add this to your <em>build.gradle</em> file:</p>
 </div>
-<div class="sect3">
-<h4 id="_metadatacopy_task"><a class="anchor" href="#_metadatacopy_task"></a>MetadataCopy task</h4>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.all {
+        resources.autodetect()
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="metadatacopy-task"><a class="anchor" href="#metadatacopy-task"></a>MetadataCopy Task</h3>
 <div class="paragraph">
 <p>Once the metadata is collected, it can be copied into the project using the <code>metadataCopy</code> task.
 To do so, add the following block inside your <code>agent</code> block:</p>
@@ -1165,6 +1164,11 @@ To do so, add the following block inside your <code>agent</code> block:</p>
 <div class="paragraph">
 <p>Then you can copy metadata to the location you specified with:</p>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew metadataCopy</code></pre>
+</div>
+</div>
 <div class="admonitionblock tip">
 <table>
 <tr>
@@ -1187,8 +1191,8 @@ To do so, add the following block inside your <code>agent</code> block:</p>
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="common-agent-options"><a class="anchor" href="#common-agent-options"></a>Common agent options</h4>
+<div class="sect2">
+<h3 id="common-agent-options"><a class="anchor" href="#common-agent-options"></a>Common Agent Options</h3>
 <div class="paragraph">
 <p>All the mentioned modes share certain common configuration options like:</p>
 </div>
@@ -1301,8 +1305,8 @@ To do so, add the following block inside your <code>agent</code> block:</p>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="agent-filter-file"><a class="anchor" href="#agent-filter-file"></a>Reduce the amount of generated metadata</h4>
+<div class="sect2">
+<h3 id="agent-filter-file"><a class="anchor" href="#agent-filter-file"></a>Reduce the Amount of Generated Metadata</h3>
 <div class="paragraph">
 <p>In some cases the agent may include more metadata than it is actually needed.
 You can filter metadata using the agent filter files.
@@ -1493,21 +1497,20 @@ To reduce the amount of generated metadata, use the following <em>user-code-filt
 <p>As you can see there are no more entries that contain classes from <code>org.junit</code> (as their condition).</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="max_parallel_builds"><a class="anchor" href="#max_parallel_builds"></a>Max parallel builds</h4>
+<div class="sect2">
+<h3 id="max_parallel_builds"><a class="anchor" href="#max_parallel_builds"></a>Max Parallel Builds</h3>
 <div class="paragraph">
 <p>When using Gradle parallel builds, the plugin automatically limits the number of native images which can be built concurrently, in order to limit CPU and memory usage.
 By default, it is limited to the number of CPU cores / 16, but you can change this limit either by setting the <code>org.graalvm.buildtools.max.parallel.builds</code> gradle property (in your <em>gradle.properties</em> file), or by setting the <code>GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS</code> environment variable.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath, @argument file, and fat JAR support</h4>
+<div class="sect2">
+<h3 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath, @argument File, and a Fat JAR Support</h3>
 <div class="paragraph">
 <p>The plugin automatically passes arguments to the <code>native-image</code> tool from the argument file, which should prevent all <a href="https://github.com/graalvm/native-build-tools/issues/85">long classpath issues</a> under Windows.
 However, if you are using an older GraalVM release (older than 21.3) which doesn&#8217;t support argument files, you will need to rely on creating a "fat JAR", which includes all entries from the classpath automatically, to workaround the problem:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Enabling the fat JAR creation</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     useArgFile = false // required for older GraalVM releases
@@ -1554,9 +1557,8 @@ However, if you are using an older GraalVM release (older than 21.3) which doesn
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing support</h2>
+<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The plugin supports running tests on the
@@ -1591,7 +1593,7 @@ To execute the tests, run:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="test-binary-config"><a class="anchor" href="#test-binary-config"></a>Configuring test image options</h3>
+<h3 id="test-binary-config"><a class="anchor" href="#test-binary-config"></a>Configuring Test Image Options</h3>
 <div class="paragraph">
 <p>You can fine-tune the test binary using the <code>test</code> binary configuration.
 The following example prints additional data for troubleshooting and sets the minimal optimizations.</p>
@@ -1623,7 +1625,7 @@ The following example prints additional data for troubleshooting and sets the mi
 </div>
 </div>
 <div class="sect2">
-<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
+<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling Testing Support</h3>
 <div class="paragraph">
 <p>There are cases where you might want to disable running native tests:</p>
 </div>
@@ -1644,7 +1646,6 @@ The following example prints additional data for troubleshooting and sets the mi
 <p>In this case, you can disable native testing support by configuring the <code>graalvmNative</code> option as follows:</p>
 </div>
 <div class="listingblock multi-language-sample">
-<div class="title">Disabling testing support</div>
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
     testSupport = false
@@ -1660,7 +1661,7 @@ The following example prints additional data for troubleshooting and sets the mi
 </div>
 </div>
 <div class="sect2">
-<h3 id="extra-test-suites"><a class="anchor" href="#extra-test-suites"></a>Configuring additional test suites</h3>
+<h3 id="extra-test-suites"><a class="anchor" href="#extra-test-suites"></a>Configuring Additional Test Suites</h3>
 <div class="paragraph">
 <p>It is common to have multiple test source sets in a Gradle build.
 Typically, you may have an integration test suite, or a functional test suite, in addition to the unit test suite.
@@ -1710,7 +1711,7 @@ In this case you can register a new native test binary with <code>graalvmNative<
 </div>
 </div>
 <div class="sect1">
-<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata support</h2>
+<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM Reachability Metadata Repository</a>.
@@ -1731,7 +1732,7 @@ This repository provides the <a href="https://www.graalvm.org/latest/reference-m
 </table>
 </div>
 <div class="sect2">
-<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
+<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the Metadata Repository</h3>
 <div class="paragraph">
 <p>The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.</p>
 </div>
@@ -1851,7 +1852,7 @@ This may be interesting if there is no specific metadata available for the parti
 </div>
 </div>
 <div class="sect2">
-<h3 id="_including_metadata_repository_files"><a class="anchor" href="#_including_metadata_repository_files"></a>Including metadata repository files</h3>
+<h3 id="_including_metadata_repository_files"><a class="anchor" href="#_including_metadata_repository_files"></a>Including Metadata Repository Files</h3>
 <div class="paragraph">
 <p>By default, reachability metadata is used only when your native image is being generated.
 In some situations, you may want a copy of the reachability metadata to use it directly.</p>
@@ -1891,21 +1892,35 @@ Files will be downloaded into <code>META-INF/native-image/&lt;groupId&gt;/&lt;ve
 <h2 id="pgo-support"><a class="anchor" href="#pgo-support"></a>Profile-Guided Optimization</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The plugin supports building images with <a href="https://www.graalvm.org/latest/reference-manual/native-image/guides/optimize-native-executable-with-pgo/">Profile-Guided Optimization (PGO)</a>.</p>
+<p>The plugin supports building optimized images with <a href="https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/">Profile-Guided Optimization (PGO)</a> to improve performance and throughput.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>PGO is available in Oracle GraalVM.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>It works in 3 phases:</p>
+<p>The PGO workflow includes three steps:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>the first one consists in generating a native image with instrumentation enabled</p>
+<p>First, generate a native image with instrumentation enabled.</p>
 </li>
 <li>
-<p>the second phase consists in running the image in order to gather profiling information</p>
+<p>Next, run the image to gather profiling information.</p>
 </li>
 <li>
-<p>the third phase consists in creating an optimized native image based on the profiles</p>
+<p>Then, create an optimized native image based on the profiles.</p>
 </li>
 </ul>
 </div>
@@ -1923,7 +1938,7 @@ You can run this image to gather profiling data:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./my-app-instrumented</code></pre>
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./myApp-instrumented</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1951,12 +1966,16 @@ Copy <em>default.iprof</em> into that directory, and then run:</p>
 </div>
 <div class="paragraph">
 <p>The profile will automatically be used.
-It is possible to include more than one profile, in which case you should rename the <em>.iprof</em> files in the <em>src/pgo-profiles/main</em> directory.</p>
+If everything was done properly, you will see <em>"PGO: user-provided"</em> in the native image build output.</p>
+</div>
+<div class="paragraph">
+<p>It is possible to include more than one profile, in which case you should rename the <em>.iprof</em> files in the <em>src/pgo-profiles/main</em> directory.
+Learn more about PGO <a href="https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage">on the website</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="plugin-configurations"><a class="anchor" href="#plugin-configurations"></a>Configurations defined by the plugin</h2>
+<h2 id="plugin-configurations"><a class="anchor" href="#plugin-configurations"></a>Configurations Defined by the Plugin</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For each binary (<code>main</code> and <code>test</code>), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:</p>

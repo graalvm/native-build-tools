@@ -470,28 +470,37 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#adding-the-plugin">Adding the plugin</a></li>
-<li><a href="#configuration-options">Plugin configuration</a>
+<li><a href="#adding-the-plugin">Adding the Plugin</a></li>
+<li><a href="#configuration-options">Plugin Configuration</a>
 <ul class="sectlevel2">
-<li><a href="#native-image-options">Native Image options</a></li>
-<li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a></li>
+<li><a href="#native-image-options">Native Image Options</a></li>
 </ul>
 </li>
-<li><a href="#configuration-reusing-config-from-parent">Reusing configuration from a parent POM</a></li>
-<li><a href="#testing-support">Testing support</a>
+<li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a>
 <ul class="sectlevel2">
-<li><a href="#testing-support-version-compatibility">Version compatibility</a></li>
-<li><a href="#testing-support-disabling">Disabling testing support</a></li>
+<li><a href="#agent-support-enabling">Enabling the Agent</a></li>
+<li><a href="#agent-support-configuring-options">Configuring the Agent</a></li>
+<li><a href="#agent-support-running-tests">Running Tests with the Agent</a></li>
+<li><a href="#agent-support-running-application">Running the Application with the Agent</a></li>
+<li><a href="#agent-filter-file">Reducing the Amount of Generated Metadata</a></li>
+<li><a href="#metadata-copy">Metadata Copy</a></li>
 </ul>
 </li>
-<li><a href="#long_classpath_and_shading_support">Long classpath, @argument file and shading support</a></li>
-<li><a href="#metadata-support">GraalVM Reachability Metadata support</a>
+<li><a href="#configuration-reusing-config-from-parent">Reusing Configuration from a Parent POM</a></li>
+<li><a href="#testing-support">Testing Support</a>
 <ul class="sectlevel2">
-<li><a href="#_configuring_the_metadata_repository">Configuring the metadata repository</a></li>
-<li><a href="#_adding_metadata_repository_files">Adding metadata repository files</a></li>
+<li><a href="#testing-support-version-compatibility">Version Compatibility</a></li>
+<li><a href="#testing-support-disabling">Disabling Testing Support</a></li>
 </ul>
 </li>
+<li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
+<ul class="sectlevel2">
+<li><a href="#_configuring_the_metadata_repository">Configuring the Metadata Repository</a></li>
+<li><a href="#_adding_metadata_repository_files">Adding Metadata Repository Files</a></li>
+</ul>
+</li>
+<li><a href="#pgo-support">Profile-Guided Optimization</a></li>
+<li><a href="#long_classpath_and_shading_support">Long classpath, @argument File and Shading Support</a></li>
 <li><a href="#javadocs">Javadocs</a></li>
 </ul>
 </div>
@@ -502,11 +511,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p><span class="image"><img src="https://github.com/graalvm/native-build-tools/actions/workflows/test-native-maven-plugin.yml/badge.svg" alt="badge"></span></p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="introduction"><a class="anchor" href="#introduction"></a>Introduction</h2>
-<div class="sectionbody">
 <div class="paragraph">
 <p>The Maven plugin for GraalVM Native Image adds support for building and testing native images using <a href="https://maven.apache.org">Apache Maven</a>™.</p>
 </div>
@@ -519,62 +523,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="adding-the-plugin"><a class="anchor" href="#adding-the-plugin"></a>Adding the plugin</h2>
+<h2 id="adding-the-plugin"><a class="anchor" href="#adding-the-plugin"></a>Adding the Plugin</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Add the following profile to the project&#8217;s <em>pom.xml</em> file to register the plugin:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">  &lt;profiles&gt;
-    &lt;profile&gt;
-      &lt;id&gt;native&lt;/id&gt;
-      &lt;build&gt;
-        &lt;plugins&gt;
-          &lt;plugin&gt;
-            &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-            &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
-            &lt;version&gt;${native.maven.plugin.version}&lt;/version&gt;
-            &lt;extensions&gt;true&lt;/extensions&gt;
-            &lt;executions&gt;
-              &lt;execution&gt;
-                &lt;id&gt;build-native&lt;/id&gt;
-                &lt;goals&gt;
-                  &lt;goal&gt;compile-no-fork&lt;/goal&gt;
-                &lt;/goals&gt;
-                &lt;phase&gt;package&lt;/phase&gt;
-              &lt;/execution&gt;
-              &lt;execution&gt;
-                &lt;id&gt;test-native&lt;/id&gt;
-                &lt;goals&gt;
-                  &lt;goal&gt;test&lt;/goal&gt;
-                &lt;/goals&gt;
-                &lt;phase&gt;test&lt;/phase&gt;
-              &lt;/execution&gt;
-            &lt;/executions&gt;
-            &lt;configuration&gt;
-              &lt;!-- ... --&gt;
-            &lt;/configuration&gt;
-          &lt;/plugin&gt;
-        &lt;/plugins&gt;
-      &lt;/build&gt;
-    &lt;/profile&gt;
-  &lt;/profiles&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can then build a native image directly with Maven:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative package</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The <code>native-maven-plugin</code> plugin figures out which JAR file it needs to pass to <code>native-image</code>, and what the executable main class should be.
-If the heuristics fail with the <code>no main manifest attribute, in target/&lt;name&gt;.jar</code> error, the main class should be
-specified in the <code>&lt;configuration&gt;</code> block of the plugin.
-A native image is generated in the <em>target</em> directory of the project.</p>
+<p>Refer to the <a href="end-to-end-maven-guide.html">Getting Started Maven Guide</a> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -584,38 +536,7 @@ A native image is generated in the <em>target</em> directory of the project.</p>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Building a native executable without attaching to the <code>package</code> phase can be done by invoking the <code>compile</code> goal directly. For example: <code>./mvnw native:compile</code>.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>You can use development versions of the plugin by adding the snapshot repository. Pre-releases are provided for convenience, without any guarantee.</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;pluginRepositories&gt;
-    &lt;pluginRepository&gt;
-        &lt;id&gt;graalvm-native-build-tools-snapshots&lt;/id&gt;
-        &lt;name&gt;GraalVM native-build-tools Snapshots&lt;/name&gt;
-        &lt;url&gt;https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots&lt;/url&gt;
-        &lt;releases&gt;
-            &lt;enabled&gt;false&lt;/enabled&gt;
-        &lt;/releases&gt;
-        &lt;snapshots&gt;
-            &lt;enabled&gt;true&lt;/enabled&gt;
-        &lt;/snapshots&gt;
-    &lt;/pluginRepository&gt;
-&lt;/pluginRepositories&gt;</code></pre>
-</div>
+<p>The plugin requires that you install a <a href="https://www.graalvm.org/downloads/">GraalVM JDK</a>.</p>
 </div>
 </td>
 </tr>
@@ -624,10 +545,10 @@ A native image is generated in the <em>target</em> directory of the project.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Plugin configuration</h2>
+<h2 id="configuration-options"><a class="anchor" href="#configuration-options"></a>Plugin Configuration</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="native-image-options"><a class="anchor" href="#native-image-options"></a>Native Image options</h3>
+<h3 id="native-image-options"><a class="anchor" href="#native-image-options"></a>Native Image Options</h3>
 <div class="paragraph">
 <p>The plugin picks up all the configuration for your application stored below the <em>META-INF/native-image/</em> resource location, as described in
 <a href="https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/">Native Image Build Configuration</a>.
@@ -865,8 +786,8 @@ dependencies, add:</p>
 <dl>
 <dt class="hdlist1"><code>&lt;agent&gt;</code></dt>
 <dd>
-<p>Configuration of the <a href="#agent-support">native agent</a>. See <a href="#agent-support-enabling">Enabling the agent</a>
-and <a href="#agent-support-configuring-options">Configuring agent options</a> for details.</p>
+<p>Configuration of the <a href="#agent-support">native agent</a>. See <a href="#agent-support-enabling">Enabling the Agent</a>
+and <a href="#agent-support-configuring-options">Configuring the Agent</a> for details.</p>
 </dd>
 </dl>
 </div>
@@ -898,8 +819,11 @@ and <a href="#agent-support-configuring-options">Configuring agent options</a> f
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="native-image-tracing-agent"><a class="anchor" href="#native-image-tracing-agent"></a>Native Image Tracing Agent</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="native-image-tracing-agent"><a class="anchor" href="#native-image-tracing-agent"></a>Native Image Tracing Agent</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>If your project requires reflection, classpath resources, dynamic proxies or other
 features requiring explicit native configuration, it may prove helpful to first run your
@@ -913,8 +837,8 @@ application or tests using the
 <p>The agent generates the configuration file(s) under <em>target/native/agent-output</em>.
 Although those files will be automatically used by <code>native-image</code>, you should consider reviewing the generated files and adding them to your sources instead.</p>
 </div>
-<div class="sect3">
-<h4 id="agent-support-enabling"><a class="anchor" href="#agent-support-enabling"></a>Enabling the agent</h4>
+<div class="sect2">
+<h3 id="agent-support-enabling"><a class="anchor" href="#agent-support-enabling"></a>Enabling the Agent</h3>
 <div class="paragraph">
 <p>The agent is disabled by default, but it can be enabled in the <em>pom.xml</em> file or on the command line.</p>
 </div>
@@ -949,8 +873,8 @@ The examples in the following sections demonstrate how to do this for your appli
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring agent options</h4>
+<div class="sect2">
+<h3 id="agent-support-configuring-options"><a class="anchor" href="#agent-support-configuring-options"></a>Configuring the Agent</h3>
 <div class="paragraph">
 <p>If you would like to configure the options for the agent&#8201;&#8212;&#8201;for example, to configure agent mode or advanced features such as
 <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#caller-based-filters">Caller-based Filters</a>
@@ -1047,8 +971,8 @@ direct or conditional modes. Standard mode does not have any specific options.</
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="agent-support-running-tests"><a class="anchor" href="#agent-support-running-tests"></a>Running tests with the agent</h4>
+<div class="sect2">
+<h3 id="agent-support-running-tests"><a class="anchor" href="#agent-support-running-tests"></a>Running Tests with the Agent</h3>
 <div class="paragraph">
 <p>The simplest way to use the agent is to do it via execution of your tests.</p>
 </div>
@@ -1084,8 +1008,8 @@ at the end of the agent invocation command. For example:</p>
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="agent-support-running-application"><a class="anchor" href="#agent-support-running-application"></a>Running your application with the agent</h4>
+<div class="sect2">
+<h3 id="agent-support-running-application"><a class="anchor" href="#agent-support-running-application"></a>Running the Application with the Agent</h3>
 <div class="paragraph">
 <p>Executing your application with the agent is more involved and requires you to configure a separate Mojo execution which allows forking the Java process.</p>
 </div>
@@ -1160,8 +1084,8 @@ If you want to run your native application with those configuration files, you t
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="agent-filter-file"><a class="anchor" href="#agent-filter-file"></a>Reduce the amount of generated metadata</h4>
+<div class="sect2">
+<h3 id="agent-filter-file"><a class="anchor" href="#agent-filter-file"></a>Reducing the Amount of Generated Metadata</h3>
 <div class="paragraph">
 <p>In some cases the agent may include more metadata than it is actually needed.
 You can filter metadata using the agent filter file(s).
@@ -1424,8 +1348,8 @@ To reduce the amount of generated metadata, use the following <em>user-code-filt
 <p>As you can see, there are no more entries that contain classes from <code>org.apache.maven</code> (as their condition).</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="metadata-copy"><a class="anchor" href="#metadata-copy"></a>Metadata copy</h4>
+<div class="sect2">
+<h3 id="metadata-copy"><a class="anchor" href="#metadata-copy"></a>Metadata Copy</h3>
 <div class="paragraph">
 <p>The <code>metadataCopy</code> task provides additional options for manipulating the agent output after it finishes its job.</p>
 </div>
@@ -1461,9 +1385,8 @@ the agent output for that stage. For example, if you want to copy only configura
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="configuration-reusing-config-from-parent"><a class="anchor" href="#configuration-reusing-config-from-parent"></a>Reusing configuration from a parent POM</h2>
+<h2 id="configuration-reusing-config-from-parent"><a class="anchor" href="#configuration-reusing-config-from-parent"></a>Reusing Configuration from a Parent POM</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <code>&lt;buildArgs&gt;</code> element can be combined between parent and children POMs.
@@ -1512,7 +1435,7 @@ Suppose you have the following parent POM definition:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing support</h2>
+<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This plugin supports running tests on the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images.
@@ -1552,7 +1475,7 @@ The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage tes
 <p>Running the <code>./mvnw -Pnative test</code> will then build and run tests as native code.</p>
 </div>
 <div class="sect2">
-<h3 id="testing-support-version-compatibility"><a class="anchor" href="#testing-support-version-compatibility"></a>Version compatibility</h3>
+<h3 id="testing-support-version-compatibility"><a class="anchor" href="#testing-support-version-compatibility"></a>Version Compatibility</h3>
 <div class="paragraph">
 <p>This plugin requires the Maven Surefire plugin 3.0.0 or higher to run tests as native code.</p>
 </div>
@@ -1601,11 +1524,11 @@ configuration in the above example.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling testing support</h3>
+<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling Testing Support</h3>
 <div class="paragraph">
 <p>If you wish to disable running tests on the JVM as well as tests as native code, you can invoke Maven with the <code>-DskipTests</code> flag.
 This flag is supported by Maven Surefire and Native Build Tools.
-Several examples in <a href="#agent-support-running-application">Running your application with the agent</a> demonstrate the use of this flag.</p>
+Several examples in <a href="#agent-support-running-application">Running the Application with the Agent</a> demonstrate the use of this flag.</p>
 </div>
 <div class="paragraph">
 <p>If you wish to run tests on the JVM with Maven Surefire but skip running tests as native code, you can invoke Maven with the <code>-DskipNativeTests</code> flag.
@@ -1629,7 +1552,247 @@ For example, you might wish to disable only native testing support for use cases
 </div>
 </div>
 <div class="sect1">
-<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath, @argument file and shading support</h2>
+<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM Reachability Metadata Repository</a>.
+This repository provides the <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/">configuration</a> for libraries that do not support GraalVM Native Image.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The repository is also published on Maven Central at the following coordinates:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
+   &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+    &lt;artifactId&gt;graalvm-reachability-metadata&lt;/artifactId&gt;
+    &lt;version&gt;{maven-plugin-version}&lt;/version&gt;
+    &lt;classifier&gt;repository&lt;/classifier&gt;
+    &lt;type&gt;zip&lt;/type&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example: <code>graalvm-reachability-metadata-0.10.5-SNAPSHOT-repository.zip</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the Metadata Repository</h3>
+<div class="paragraph">
+<p>The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.</p>
+</div>
+<div class="paragraph">
+<p>The support is enabled by default, but can be disabled explicitly:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;false&lt;/enabled&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can use a <em>remote repository</em>, in which case you can specify the URL of the ZIP file:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;url&gt;${metadata.url}&lt;/url&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For debugging purposes you can use a local repository:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt; <i class="conum" data-value="1"></i><b>(1)</b>
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.</p>
+</div>
+<div class="paragraph">
+<p>For each library dependency, the plugin automatically searches for the configuration metadata in the repository.
+In some cases, you may want to override the repository version:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;version&gt;0.2.3&lt;/version&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You may want to exclude a particular module from the search.
+This can be done by configuring that particular dependency:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
+            &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
+            &lt;excluded&gt;true&lt;/excluded&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lastly, it is possible for you to override the <em>metadata version</em> of a particular module.
+This may be interesting if there is no specific metadata available for the particular version of the library that you use, but that you know that a version works:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
+    &lt;enabled&gt;true&lt;/enabled&gt;
+    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
+            &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
+            &lt;metadataVersion&gt;2&lt;/metadataVersion&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/metadataRepository&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_adding_metadata_repository_files"><a class="anchor" href="#_adding_metadata_repository_files"></a>Adding Metadata Repository Files</h3>
+<div class="paragraph">
+<p>By default, reachability metadata is used only when your native image is being generated.
+In some situations, you may want to include the metadata directly inside your JAR file.</p>
+</div>
+<div class="paragraph">
+<p>Copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
+For example, you might be generating a shaded JAR file and using a <a href="https://paketo.io/">Paketo buildpack</a> to convert it to a native image.</p>
+</div>
+<div class="paragraph">
+<p>To include metadata repository inside the JAR file, you can use the <code>add-reachability-metadata</code> goal.
+Typically, the goal will be included in an execution step where, by default, it will be bound to the <code>generate-resources</code> phase:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;executions&gt;
+    &lt;execution&gt;
+        &lt;id&gt;add-reachability-metadata&lt;/id&gt;
+        &lt;goals&gt;
+            &lt;goal&gt;add-reachability-metadata&lt;/goal&gt;
+        &lt;/goals&gt;
+    &lt;/execution&gt;
+&lt;/executions&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="pgo-support"><a class="anchor" href="#pgo-support"></a>Profile-Guided Optimization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin supports building optimized images with <a href="https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/">Profile-Guided Optimization (PGO)</a> to improve performance and throughput.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>PGO is available in Oracle GraalVM.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The PGO workflow includes three steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>First, generate a native image with instrumentation enabled.</p>
+</li>
+<li>
+<p>Next, run the image to gather profiling information.</p>
+</li>
+<li>
+<p>Then, create an optimized native image based on the profiles.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To generate a binary with instrumentation enabled, pass the <code>--pgo-instrument</code> option to <code>native-image</code> using <code>&lt;buildArg&gt;</code>, and run the build command <code>./mvnw -Pnative package</code>.
+To prevent overwriting a previously built native executable, we recommend either creating a separate Maven profile for each build or specifying a unique file name using the <code>&lt;imageName&gt;</code> tag:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+  &lt;imageName&gt;instrumentedApp&lt;/imageName&gt;
+  &lt;buildArgs&gt;
+      &lt;buildArg&gt;--pgo-instrument&lt;/buildArg&gt;
+  &lt;/buildArgs&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, gather execution profiles by running the instrumented executable:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./target/instrumentedApp</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, the <em>default.iprof</em> file, if not specified otherwise, is generated alongside the native executable once the application is stopped.</p>
+</div>
+<div class="paragraph">
+<p>Lastly, build an optimized native image with profiles by passing the <code>--pgo</code> option in the plugin configuration:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+  &lt;imageName&gt;optimizedApp&lt;/imageName&gt;
+  &lt;buildArgs&gt;
+      &lt;buildArg&gt;--pgo&lt;/buildArg&gt;
+  &lt;/buildArgs&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the profile file has the default name and location, it will be automatically used.
+Alternatively, you can specify the file path as following: <code>--pgo=myprofile.iprof</code>.
+If everything was done properly, you will see <em>"PGO: user-provided"</em> in the native image build output.</p>
+</div>
+<div class="paragraph">
+<p>It is possible to include more than one profile, in which case you should rename the <em>.iprof</em> files.
+Learn more about PGO <a href="https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage">on the website</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="long_classpath_and_shading_support"><a class="anchor" href="#long_classpath_and_shading_support"></a>Long classpath, @argument File and Shading Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Under Windows, <a href="https://github.com/graalvm/native-build-tools/issues/85">it is possible that the length of the classpath exceeds what the operating system supports</a> when invoking the CLI to build a native image.</p>
@@ -1873,161 +2036,6 @@ For that, you need to setup the <a href="https://maven.apache.org/plugins/maven-
 </div>
 <div class="paragraph">
 <p>Refer to the <a href="https://maven.apache.org/plugins/maven-shade-plugin">Maven Shade plugin documentation</a> for more details on how to configure shading, and the <a href="https://maven.apache.org/plugins/maven-assembly-plugin">Maven Assembly plugin documentation</a> to tweak what to include in tests.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata support</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM Reachability Metadata Repository</a>.
-This repository provides the <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/">configuration</a> for libraries that do not support GraalVM Native Image.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The repository is also published on Maven Central at the following coordinates:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;dependency&gt;
-   &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
-    &lt;artifactId&gt;graalvm-reachability-metadata&lt;/artifactId&gt;
-    &lt;version&gt;{maven-plugin-version}&lt;/version&gt;
-    &lt;classifier&gt;repository&lt;/classifier&gt;
-    &lt;type&gt;zip&lt;/type&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For example: <code>graalvm-reachability-metadata-0.10.5-SNAPSHOT-repository.zip</code>.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="sect2">
-<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the metadata repository</h3>
-<div class="paragraph">
-<p>The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.</p>
-</div>
-<div class="paragraph">
-<p>The support is enabled by default, but can be disabled explicitly:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;false&lt;/enabled&gt;
-&lt;/metadataRepository&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Alternatively, you can use a <em>remote repository</em>, in which case you can specify the URL of the ZIP file:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;url&gt;${metadata.url}&lt;/url&gt;
-&lt;/metadataRepository&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For debugging purposes you can use a local repository:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt; <i class="conum" data-value="1"></i><b>(1)</b>
-&lt;/metadataRepository&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>For each library included in the native image, the plugin will automatically search for GraalVM image build configuration metadata in the repository that was released together with the plugin.</p>
-</div>
-<div class="paragraph">
-<p>For each library dependency, the plugin automatically searches for the configuration metadata in the repository.
-In some cases, you may want to override the repository version:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;version&gt;0.2.3&lt;/version&gt;
-&lt;/metadataRepository&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You may want to exclude a particular module from the search.
-This can be done by configuring that particular dependency:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
-            &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
-            &lt;excluded&gt;true&lt;/excluded&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/metadataRepository&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Lastly, it is possible for you to override the <em>metadata version</em> of a particular module.
-This may be interesting if there is no specific metadata available for the particular version of the library that you use, but that you know that a version works:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;metadataRepository&gt;
-    &lt;enabled&gt;true&lt;/enabled&gt;
-    &lt;localPath&gt;${project.basedir}/config-directory&lt;/localPath&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.graalvm.internal&lt;/groupId&gt;
-            &lt;artifactId&gt;library-with-reflection&lt;/artifactId&gt;
-            &lt;metadataVersion&gt;2&lt;/metadataVersion&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/metadataRepository&gt;</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_adding_metadata_repository_files"><a class="anchor" href="#_adding_metadata_repository_files"></a>Adding metadata repository files</h3>
-<div class="paragraph">
-<p>By default, reachability metadata is used only when your native image is being generated.
-In some situations, you may want to include the metadata directly inside your JAR file.</p>
-</div>
-<div class="paragraph">
-<p>Copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
-For example, you might be generating a shaded JAR file and using a <a href="https://paketo.io/">Paketo buildpack</a> to convert it to a native image.</p>
-</div>
-<div class="paragraph">
-<p>To include metadata repository inside the JAR file, you can use the <code>add-reachability-metadata</code> goal.
-Typically, the goal will be included in an execution step where, by default, it will be bound to the <code>generate-resources</code> phase:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;executions&gt;
-    &lt;execution&gt;
-        &lt;id&gt;add-reachability-metadata&lt;/id&gt;
-        &lt;goals&gt;
-            &lt;goal&gt;add-reachability-metadata&lt;/goal&gt;
-        &lt;/goals&gt;
-    &lt;/execution&gt;
-&lt;/executions&gt;</code></pre>
-</div>
-</div>
 </div>
 </div>
 </div>
