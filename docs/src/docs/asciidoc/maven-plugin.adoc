@@ -665,83 +665,6 @@ For example, you might wish to disable only native testing support for use cases
 - Your library or application uses a testing framework that is not supported on the JUnit Platform.
 - You need to use the <<agent-support, agent>> when running tests on the JVM but do not wish to run those same tests as native code.
 
-[[long_classpath_and_shading_support]]
-== Long classpath, @argument File and Shading Support
-
-Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
-
-The plugin automatically passes arguments to the `native-image` tool from the argument file, instead of passing them directly.
-
-There is also the `native:write-args-file` goal that can be used to generate this argument file.
-This can be useful in situations where `native-maven-plugin` is not available, for example, when running `native-image` in a Docker container.
-The path to the arguments file is stored in the project properties under the key `graalvm.native-image.args-file`, so that other Maven plugins further in the lifecycle can use it.
-
-In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn't supported.
-
-One option is to use a https://maven.apache.org/plugins/maven-shade-plugin[shaded JAR] and use it instead of individual JAR files on classpath.
-For that, you need to setup the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin]:
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../../../../samples/java-application/pom.xml[tag=shade-plugin]
-
-If you need the testing support, add the JUnit Platform dependency explicitly:
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../../../../samples/java-application-with-tests/pom.xml[tag=junit-platform-native-dependency]
-
-Then `native-maven-plugin` needs to be configured to use this JAR instead of the full classpath:
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../../../../samples/java-application/pom.xml[tag=native-plugin]
-
-Depending on the other plugins your build uses (typically the Spring Boot plugin), you might have to configure, in addition, the main class:
-
-[source,xml, role="multi-language-sample"]
-----
-<plugin>
-    <groupId>org.graalvm.buildtools</groupId>
-	<artifactId>native-maven-plugin</artifactId>
-	<version>${native.buildtools.version}</version>
-	<configuration>
-		<imageName>${project.artifactId}</imageName>
-		<mainClass>${exec.mainClass}</mainClass>
-		<buildArgs>
-			<buildArg>--no-fallback</buildArg>
-		</buildArgs>
-		<classpath>
-			<param>
-				${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
-			</param>
-		</classpath>
-...
-----
-
-To be able to <<testing-support,execute tests as native code>>, you also need:
-
-- Create a _src/assembly/test-jar-with-dependencies.xml_ file with the following contents:
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../../../../samples/java-application-with-tests/src/assembly/test-jar-with-dependencies.xml[tag=assembly]
-
-- Add the Maven Assembly plugin to your `native` profile:
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../../../../samples/java-application-with-tests/pom.xml[tag=assembly-plugin]
-
-- Due to a limitation in Maven, you need to move the tests execution to the `integration-test` phase:
-
-[source,xml, indent=0, role="multi-language-sample"]
-include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plugin]
-
-Finally, you need to execute tests using the `integration-test` phase instead of `test`:
-
-[source,bash, role="multi-language-sample"]
-```bash
-./mvnw -Pnative integration-test
-```
-
-Refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading, and the https://maven.apache.org/plugins/maven-assembly-plugin[Maven Assembly plugin documentation] to tweak what to include in tests.
-
 [[metadata-support]]
 == GraalVM Reachability Metadata Support
 
@@ -831,6 +754,140 @@ Typically, the goal will be included in an execution step where, by default, it 
 ----
 include::../../../../samples/native-config-integration/pom.xml[tag=add-reachability-metadata-execution]
 ----
+
+[[pgo-support]]
+== Profile-Guided Optimization
+
+The plugin supports building optimized images with https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/[Profile-Guided Optimization (PGO)] to improve performance and throughput.
+
+[NOTE]
+====
+PGO is available in Oracle GraalVM.
+====
+
+The PGO workflow includes three steps:
+
+- First, generate a native image with instrumentation enabled.
+- Next, run the image to gather profiling information.
+- Then, create an optimized native image based on the profiles.
+
+To generate a binary with instrumentation enabled, pass the `--pgo-instrument` option to `native-image` using `<buildArg>`, and run the build command `./mvnw -Pnative package`.
+To prevent overwriting a previously built native executable, we recommend either creating a separate Maven profile for each build or specifying a unique file name using the `<imageName>` tag:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <imageName>instrumentedApp</imageName>
+  <buildArgs>
+      <buildArg>--pgo-instrument</buildArg>
+  </buildArgs>
+</configuration>
+----
+
+Next, gather execution profiles by running the instrumented executable:
+
+[source,bash, role="multi-language-sample"]
+----
+./target/instrumentedApp
+----
+
+By default, the _default.iprof_ file, if not specified otherwise, is generated alongside the native executable once the application is stopped.
+
+Lastly, build an optimized native image with profiles by passing the `--pgo` option in the plugin configuration:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <imageName>optimizedApp</imageName>
+  <buildArgs>
+      <buildArg>--pgo</buildArg>
+  </buildArgs>
+</configuration>
+----
+
+If the profile file has the default name and location, it will be automatically used.
+Alternatively, you can specify the file path as following: `--pgo=myprofile.iprof`.
+If everything was done properly, you will see _"PGO: user-provided"_ in the native image build output.
+
+It is possible to include more than one profile, in which case you should rename the _.iprof_ files. 
+Learn more about PGO https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage[on the website].
+
+[[long_classpath_and_shading_support]]
+== Long classpath, @argument File and Shading Support
+
+Under Windows, https://github.com/graalvm/native-build-tools/issues/85[it is possible that the length of the classpath exceeds what the operating system supports] when invoking the CLI to build a native image.
+
+The plugin automatically passes arguments to the `native-image` tool from the argument file, instead of passing them directly.
+
+There is also the `native:write-args-file` goal that can be used to generate this argument file.
+This can be useful in situations where `native-maven-plugin` is not available, for example, when running `native-image` in a Docker container.
+The path to the arguments file is stored in the project properties under the key `graalvm.native-image.args-file`, so that other Maven plugins further in the lifecycle can use it.
+
+In case you are using a GraalVM version older than 21.3, you will however have to use a workaround, since the argument file wasn't supported.
+
+One option is to use a https://maven.apache.org/plugins/maven-shade-plugin[shaded JAR] and use it instead of individual JAR files on classpath.
+For that, you need to setup the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin]:
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../../../../samples/java-application/pom.xml[tag=shade-plugin]
+
+If you need the testing support, add the JUnit Platform dependency explicitly:
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=junit-platform-native-dependency]
+
+Then `native-maven-plugin` needs to be configured to use this JAR instead of the full classpath:
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../../../../samples/java-application/pom.xml[tag=native-plugin]
+
+Depending on the other plugins your build uses (typically the Spring Boot plugin), you might have to configure, in addition, the main class:
+
+[source,xml, role="multi-language-sample"]
+----
+<plugin>
+    <groupId>org.graalvm.buildtools</groupId>
+	<artifactId>native-maven-plugin</artifactId>
+	<version>${native.buildtools.version}</version>
+	<configuration>
+		<imageName>${project.artifactId}</imageName>
+		<mainClass>${exec.mainClass}</mainClass>
+		<buildArgs>
+			<buildArg>--no-fallback</buildArg>
+		</buildArgs>
+		<classpath>
+			<param>
+				${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar
+			</param>
+		</classpath>
+...
+----
+
+To be able to <<testing-support,execute tests as native code>>, you also need:
+
+- Create a _src/assembly/test-jar-with-dependencies.xml_ file with the following contents:
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../../../../samples/java-application-with-tests/src/assembly/test-jar-with-dependencies.xml[tag=assembly]
+
+- Add the Maven Assembly plugin to your `native` profile:
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=assembly-plugin]
+
+- Due to a limitation in Maven, you need to move the tests execution to the `integration-test` phase:
+
+[source,xml, indent=0, role="multi-language-sample"]
+include::../../../../samples/java-application-with-tests/pom.xml[tag=native-plugin]
+
+Finally, you need to execute tests using the `integration-test` phase instead of `test`:
+
+[source,bash, role="multi-language-sample"]
+```bash
+./mvnw -Pnative integration-test
+```
+
+Refer to the https://maven.apache.org/plugins/maven-shade-plugin[Maven Shade plugin documentation] for more details on how to configure shading, and the https://maven.apache.org/plugins/maven-assembly-plugin[Maven Assembly plugin documentation] to tweak what to include in tests.
 
 [[javadocs]]
 == Javadocs

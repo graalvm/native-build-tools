@@ -827,6 +827,63 @@ include::../snippets/gradle/kotlin/build.gradle.kts[tags=include-metadata]
 
 For more advanced configurations you can declare the `org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata` task and set the appropriate properties.
 
+[[pgo-support]]
+== Profile-Guided Optimization
+
+The plugin supports building optimized images with https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/[Profile-Guided Optimization (PGO)] to improve performance and throughput.
+
+[NOTE]
+====
+PGO is available in Oracle GraalVM.
+====
+
+The PGO workflow includes three steps:
+
+- First, generate a native image with instrumentation enabled.
+- Next, run the image to gather profiling information.
+- Then, create an optimized native image based on the profiles.
+
+To generate a binary with instrumentation enabled, you should run the `nativeCompile` command with the `--pgo-instrument` command line option:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeCompile --pgo-instrument
+----
+
+This generates a native image under _build/native/nativeCompile_ with the `-instrumented` suffix.
+You can run this image to gather profiling data:
+
+[source,bash, role="multi-language-sample"]
+----
+./myApp-instrumented
+----
+
+A _default.iprof_ file will be generated once the application is stopped.
+Alternatively, you can have Gradle both generate and run the instrumented binary in a single command by running:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeCompile --pgo-instrument nativeRun
+----
+
+In this case, the profile will automatically be stored under _build/native/nativeCompile_.
+
+The last phase consists in copying the generated profile, so that it is automatically used when building an optimized native image.
+The conventional location for profiles is _src/pgo-profiles/<name of the binary>_.
+By default, the location will be _src/pgo-profiles/main_.
+Copy _default.iprof_ into that directory, and then run:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew nativeCompile
+----
+
+The profile will automatically be used.
+If everything was done properly, you will see _"PGO: user-provided"_ in the native image build output.
+
+It is possible to include more than one profile, in which case you should rename the _.iprof_ files in the _src/pgo-profiles/main_ directory.
+Learn more about PGO https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage[on the website].
+
 [[plugin-configurations]]
 == Configurations Defined by the Plugin
 
