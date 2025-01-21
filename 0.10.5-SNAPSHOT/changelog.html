@@ -466,7 +466,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel1">
 <li><a href="#changelog">Changelog</a></li>
 <li><a href="#_release_0_10_5">Release 0.10.5</a>
-<ul class="sectlevel2">
+<ul class="sectlevel3">
+<li><a href="#_gradle_plugin">Gradle plugin</a></li>
+<li><a href="#_maven_plugin">Maven plugin</a></li>
+<li><a href="#_release_0_10_4">Release 0.10.4</a></li>
 <li><a href="#_release_0_10_3">Release 0.10.3</a></li>
 <li><a href="#_release_0_10_2">Release 0.10.2</a></li>
 <li><a href="#_release_0_10_1">Release 0.10.1</a></li>
@@ -521,7 +524,64 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p>Add missing getters to <code>DirectoryConfiguration</code></p>
 </li>
+<li>
+<p>Refactor Native Build Tools documentation and add end-to-end guides for both Gradle and Maven plugins</p>
+</li>
+<li>
+<p>Restyle Native Build Tools documentation</p>
+</li>
+<li>
+<p>Improve GraalVM version check</p>
+</li>
+<li>
+<p>Upgrade the use of Jackson to plain old JSONObject</p>
+</li>
 </ul>
+</div>
+<div class="sect3">
+<h4 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Fix sporadic failures with: access-filter.json already exists</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Add maven functional testing in github actions</p>
+</li>
+<li>
+<p>Fix Broken Maven Functional Tests when Using New Metadata Format</p>
+</li>
+<li>
+<p>Fix SBOM integration test bug</p>
+</li>
+<li>
+<p>Make metadataCopy task work with custom disabled stages</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_release_0_10_4"><a class="anchor" href="#_release_0_10_4"></a>Release 0.10.4</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Improve Native Image SBOM Generation</p>
+</li>
+<li>
+<p>Make accessFilter file registration thread safe</p>
+</li>
+<li>
+<p>Fix broken links in the projects documentation</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_release_0_10_3"><a class="anchor" href="#_release_0_10_3"></a>Release 0.10.3</h3>
@@ -539,7 +599,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_2"><a class="anchor" href="#_gradle_plugin_2"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -549,7 +609,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin"><a class="anchor" href="#_maven_plugin"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -572,7 +632,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_2"><a class="anchor" href="#_gradle_plugin_2"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_3"><a class="anchor" href="#_gradle_plugin_3"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -582,7 +642,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_2"><a class="anchor" href="#_maven_plugin_2"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -618,7 +678,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_3"><a class="anchor" href="#_gradle_plugin_3"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_4"><a class="anchor" href="#_gradle_plugin_4"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -628,7 +688,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_3"><a class="anchor" href="#_maven_plugin_3"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_4"><a class="anchor" href="#_maven_plugin_4"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -651,7 +711,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_4"><a class="anchor" href="#_gradle_plugin_4"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_5"><a class="anchor" href="#_gradle_plugin_5"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -690,7 +750,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_5"><a class="anchor" href="#_gradle_plugin_5"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_6"><a class="anchor" href="#_gradle_plugin_6"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -720,7 +780,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_6"><a class="anchor" href="#_gradle_plugin_6"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_7"><a class="anchor" href="#_gradle_plugin_7"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -743,7 +803,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_7"><a class="anchor" href="#_gradle_plugin_7"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_8"><a class="anchor" href="#_gradle_plugin_8"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -769,7 +829,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_8"><a class="anchor" href="#_gradle_plugin_8"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_9"><a class="anchor" href="#_gradle_plugin_9"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -789,7 +849,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_9"><a class="anchor" href="#_gradle_plugin_9"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_10"><a class="anchor" href="#_gradle_plugin_10"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -808,7 +868,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_4"><a class="anchor" href="#_maven_plugin_4"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_5"><a class="anchor" href="#_maven_plugin_5"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -821,7 +881,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_20"><a class="anchor" href="#_release_0_9_20"></a>Release 0.9.20</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_10"><a class="anchor" href="#_gradle_plugin_10"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_11"><a class="anchor" href="#_gradle_plugin_11"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -837,7 +897,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_5"><a class="anchor" href="#_maven_plugin_5"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_6"><a class="anchor" href="#_maven_plugin_6"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -850,7 +910,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_19"><a class="anchor" href="#_release_0_9_19"></a>Release 0.9.19</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_11"><a class="anchor" href="#_gradle_plugin_11"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_12"><a class="anchor" href="#_gradle_plugin_12"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -863,7 +923,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_6"><a class="anchor" href="#_maven_plugin_6"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_7"><a class="anchor" href="#_maven_plugin_7"></a>Maven plugin</h4>
 
 </div>
 </div>
@@ -925,7 +985,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_12"><a class="anchor" href="#_gradle_plugin_12"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_13"><a class="anchor" href="#_gradle_plugin_13"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -938,7 +998,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_14"><a class="anchor" href="#_release_0_9_14"></a>Release 0.9.14</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_13"><a class="anchor" href="#_gradle_plugin_13"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_14"><a class="anchor" href="#_gradle_plugin_14"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -951,7 +1011,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_7"><a class="anchor" href="#_maven_plugin_7"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_8"><a class="anchor" href="#_maven_plugin_8"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -979,7 +1039,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_13"><a class="anchor" href="#_release_0_9_13"></a>Release 0.9.13</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_14"><a class="anchor" href="#_gradle_plugin_14"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_15"><a class="anchor" href="#_gradle_plugin_15"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1002,7 +1062,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_12"><a class="anchor" href="#_release_0_9_12"></a>Release 0.9.12</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_15"><a class="anchor" href="#_gradle_plugin_15"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_16"><a class="anchor" href="#_gradle_plugin_16"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1040,7 +1100,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_8"><a class="anchor" href="#_maven_plugin_8"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_9"><a class="anchor" href="#_maven_plugin_9"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1068,7 +1128,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_11"><a class="anchor" href="#_release_0_9_11"></a>Release 0.9.11</h3>
 <div class="sect3">
-<h4 id="_maven_plugin_9"><a class="anchor" href="#_maven_plugin_9"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_10"><a class="anchor" href="#_maven_plugin_10"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1084,7 +1144,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_16"><a class="anchor" href="#_gradle_plugin_16"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_17"><a class="anchor" href="#_gradle_plugin_17"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1103,7 +1163,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_10"><a class="anchor" href="#_release_0_9_10"></a>Release 0.9.10</h3>
 <div class="sect3">
-<h4 id="_maven_plugin_10"><a class="anchor" href="#_maven_plugin_10"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_11"><a class="anchor" href="#_maven_plugin_11"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1136,7 +1196,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_gradle_plugin_17"><a class="anchor" href="#_gradle_plugin_17"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_18"><a class="anchor" href="#_gradle_plugin_18"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1155,7 +1215,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_9"><a class="anchor" href="#_release_0_9_9"></a>Release 0.9.9</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_18"><a class="anchor" href="#_gradle_plugin_18"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_19"><a class="anchor" href="#_gradle_plugin_19"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1171,7 +1231,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_release_0_9_8"><a class="anchor" href="#_release_0_9_8"></a>Release 0.9.8</h3>
 <div class="sect3">
-<h4 id="_gradle_plugin_19"><a class="anchor" href="#_gradle_plugin_19"></a>Gradle plugin</h4>
+<h4 id="_gradle_plugin_20"><a class="anchor" href="#_gradle_plugin_20"></a>Gradle plugin</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1210,7 +1270,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect3">
-<h4 id="_maven_plugin_11"><a class="anchor" href="#_maven_plugin_11"></a>Maven plugin</h4>
+<h4 id="_maven_plugin_12"><a class="anchor" href="#_maven_plugin_12"></a>Maven plugin</h4>
 <div class="ulist">
 <ul>
 <li>
