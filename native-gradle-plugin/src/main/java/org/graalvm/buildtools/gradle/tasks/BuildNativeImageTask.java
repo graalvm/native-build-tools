@@ -100,18 +100,88 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     }
 
     @Option(option = "quick-build-native", description = "Enables quick build mode")
-    public void overrideQuickBuild() {
-        getOptions().get().getQuickBuild().set(true);
+    public void overrideQuickBuild(boolean quickBuild) {
+        getOptions().get().getQuickBuild().set(quickBuild);
     }
 
     @Option(option = "debug-native", description = "Enables debug mode")
-    public void overrideDebugBuild() {
-        getOptions().get().getDebug().set(true);
+    public void overrideDebugBuild(boolean debug) {
+        getOptions().get().getDebug().set(debug);
+    }
+
+    @Option(option = "verbose", description = "Enables verbose mode")
+    public void overrideVerboseBuild(boolean verbose) {
+        getOptions().get().getVerbose().set(verbose);
+    }
+
+    @Option(option = "fallback", description = "Enables fallback mode")
+    public void overrideFallbackBuild(boolean fallback) {
+        getOptions().get().getFallback().set(fallback);
     }
 
     @Option(option = "pgo-instrument", description = "Enables PGO instrumentation")
-    public void overridePgoInstrument() {
-        getOptions().get().getPgoInstrument().set(true);
+    public void overridePgoInstrument(boolean pgo) {
+        getOptions().get().getPgoInstrument().set(pgo);
+    }
+
+    @Option(option = "main-class", description = "The fully qualified name of the entry point for native image compilation")
+    public void overrideMainClass(String mainClass) {
+        getCompileOptions().getMainClass().set(mainClass);
+    }
+
+    @Option(option = "build-args", description = "Adds arguments for the native-image compilation")
+    public void appendBuildArgs(List<String> buildArgs) {
+        getOptions().get().buildArgs(buildArgs);
+    }
+
+    @Option(option = "force-build-args", description = "Adds arguments for the native-image compilation")
+    public void overrideBuildArgs(List<String> buildArgs) {
+        getOptions().get().getBuildArgs().set(buildArgs);
+    }
+
+    @Option(option = "rich-output", description = "Enables rich output")
+    public void overrideRichOutput(boolean richOutput) {
+        getOptions().get().getRichOutput().set(richOutput);
+    }
+
+    @Option(option = "image-name", description = "The name of the generated native image")
+    public void overrideImageName(String imageName) {
+        getOptions().get().getImageName().set(imageName);
+    }
+
+    @Option(option = "fatjar", description = "Uses a fat jar as an input, instead of exploded classpath")
+    public void overrideFatJar(boolean fatJar) {
+        getOptions().get().getUseFatJar().set(fatJar);
+    }
+
+    @Option(option = "sysprop-native", description = "Adds a system property to the native image build (format key=value)")
+    public void addSystemProperty(String property) {
+        String[] parts = property.split("=", 2);
+        if (parts.length == 2) {
+            getOptions().get().systemProperty(parts[0], parts[1]);
+        } else {
+            getLogger().warn("Ignoring invalid system property: " + property);
+        }
+    }
+
+    @Option(option = "env-native", description = "Adds a environment variable to the native image build (format key=value)")
+    public void addEnvVar(String property) {
+        String[] parts = property.split("=", 2);
+        if (parts.length == 2) {
+            getOptions().get().getEnvironmentVariables().put(parts[0], parts[1]);
+        } else {
+            getLogger().warn("Ignoring invalid environment variable: " + property);
+        }
+    }
+
+    @Option(option = "jvm-args-native", description = "Adds arguments to the JVM used to build the native image")
+    public void appendJvmArgs(List<String> jvmArgs) {
+        getOptions().get().jvmArgs(jvmArgs);
+    }
+
+    @Option(option = "force-jvm-args-native", description = "Overrides arguments passed to the JVM used to build the native image")
+    public void overrideJvmArgs(List<String> jvmArgs) {
+        getOptions().get().getJvmArgs().set(jvmArgs);
     }
 
     @Inject
@@ -136,7 +206,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Internal
     public Provider<String> getExecutableShortName() {
         return getOptions().flatMap(options ->
-                options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo) ? "-instrumented" : "")))
+            options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo) ? "-instrumented" : "")))
         );
     }
 
@@ -184,16 +254,16 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     private List<String> buildActualCommandLineArgs(int majorJDKVersion) {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
-                getOptions(),
-                getExecutableShortName(),
-                getProviders().provider(() -> getWorkingDirectory().get().getAsFile().getAbsolutePath()),
-                // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
-                // a mapped value before the task was called, when we are actually calling it...
-                getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
-                getClasspathJar(),
-                getUseArgFile(),
-                getProviders().provider(() -> majorJDKVersion),
-                getProviders().provider(() -> useColors)).asArguments();
+            getOptions(),
+            getExecutableShortName(),
+            getProviders().provider(() -> getWorkingDirectory().get().getAsFile().getAbsolutePath()),
+            // Can't use getOutputDirectory().map(...) because Gradle would complain that we use
+            // a mapped value before the task was called, when we are actually calling it...
+            getProviders().provider(() -> getOutputDirectory().getAsFile().get().getAbsolutePath()),
+            getClasspathJar(),
+            getUseArgFile(),
+            getProviders().provider(() -> majorJDKVersion),
+            getProviders().provider(() -> useColors)).asArguments();
     }
 
     // This property provides access to the service instance
@@ -208,12 +278,12 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
-                options.getJavaLauncher(),
-                getDisableToolchainDetection(),
-                getGraalVMHome(),
-                getExecOperations(),
-                logger,
-                diagnostics);
+            options.getJavaLauncher(),
+            getDisableToolchainDetection(),
+            getGraalVMHome(),
+            getExecOperations(),
+            logger,
+            diagnostics);
         String versionString = getVersionString(getExecOperations(), executablePath);
         if (options.getRequiredVersion().isPresent()) {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
