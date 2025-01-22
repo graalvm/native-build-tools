@@ -2,7 +2,7 @@ name: "Deploy snapshots"
 
 on:
   workflow_run:
-    workflows: [ "deploy-documentation", "test-native-gradle-plugin", "test-native-maven-plugin", "test-junit-platform-native" ]
+    workflows: [ "Deploy documentation to website", "Test native-gradle-plugin", "Test native-maven-plugin", "Test junit-platform-native" ]
     branches: [ "master" ]
     types:
       - completed
