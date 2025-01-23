@@ -228,6 +228,10 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         !normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
+    List<String> getOutputLines() {
+        return normalizeString(result.stdOut).split("\n")
+    }
+
     static boolean matches(String actual, String expected) {
         normalizeString(actual) == normalizeString(expected)
     }
