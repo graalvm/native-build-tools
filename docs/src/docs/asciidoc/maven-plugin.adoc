@@ -137,6 +137,16 @@ The following configuration options are available:
     <param>path/to/classes</param>
 </classpath>
 ----
+`<exclusions>`::
+   This can be used to exclude artifacts from native-image compilation.
+----
+<exclusions>
+    <exclusion>
+       <groupId>org.example</groupId>
+       <artifactId>example</artifactId>
+    </exclusion>
+</exclusions>
+----
 `<classesDirectory>`::
    If you want to specify custom path to the JAR, or a custom directory that contains
 only application classes, but you want the plugin to still automatically add classpath entries for
