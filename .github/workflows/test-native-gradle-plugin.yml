@@ -110,7 +110,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: functional-tests-results-${{ matrix.gradle-config-cache-version }}
+          name: functional-tests-results-${{ matrix.gradle-config-cache-version }}-${{ matrix.os }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
 
   test-native-gradle-plugin:
@@ -135,7 +135,7 @@ jobs:
       - name: "📜 Upload unit test results"
         uses: actions/upload-artifact@v4
         with:
-          name: unit-tests-results
+          name: unit-tests-results-${{ matrix.java-version }}-${{ matrix.os }}
           path: native-gradle-plugin/build/reports/tests/test/
 
   functional-testing-gradle-plugin-dev:
@@ -169,5 +169,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: functional-tests-results-graalvm-dev
+          name: functional-tests-results-graalvm-dev-${{ matrix.java-version }}-${{ matrix.os }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/

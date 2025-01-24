@@ -44,5 +44,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: tests-results
+          name: tests-results-${{ matrix.java-version }}-${{ matrix.os }}
           path: common/graalvm-reachability-metadata/build/reports/tests/
