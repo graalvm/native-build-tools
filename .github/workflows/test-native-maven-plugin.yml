@@ -66,7 +66,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: maven-functional-tests-results-${{ matrix.os }}
+          name: maven-functional-tests-results-${{ matrix.os }}-${{ matrix.test }}
           path: native-maven-plugin/build/reports/tests/
 
   functional-testing-maven-plugin-dev:
@@ -100,5 +100,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: functional-tests-results-graalvm-dev
+          name: functional-tests-results-graalvm-dev-${{ matrix.os }}-${{ matrix.test }}
           path: native-maven-plugin/build/reports/tests/functionalTest/
