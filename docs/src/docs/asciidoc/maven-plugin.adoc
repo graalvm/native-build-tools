@@ -13,7 +13,7 @@ You can find sample applications in the https://github.com/graalvm/native-build-
 [[adding-the-plugin]]
 == Adding the Plugin
 
-Refer to the <<end-to-end-maven-guide.adoc#,Getting Started Maven Guide>> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.
+Refer to the <<end-to-end-maven-guide.adoc#,Getting Started Maven Guide>> which provides step-by-step directions on adding the Maven plugin to your project, building your first native image, and running it.
 
 [NOTE]
 ====
