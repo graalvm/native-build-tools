@@ -177,7 +177,16 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         }
 
         var sbomGenerator = new SBOMGenerator(mavenProject, mavenSession, pluginManager, repositorySystem, mainClass, logger);
-        sbomGenerator.generate();
+        try {
+            sbomGenerator.generate();
+        } catch (MojoExecutionException e) {
+            /* Only throw exception for users that explicitly opt-in to using augmented SBOMs. */
+            if (optionWasSet) {
+                throw e;
+            }
+            logger.warn(String.format("Could not generate an augmented SBOM: %s. Fallback to generating a non-augmented SBOM.",
+                    e.getCause().getMessage()));
+        }
     }
 
     private String consumeConfigurationNodeValue(String pluginKey, String... nodeNames) {
