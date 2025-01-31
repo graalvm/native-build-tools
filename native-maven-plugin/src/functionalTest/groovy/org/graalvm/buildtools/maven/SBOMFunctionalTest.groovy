@@ -81,6 +81,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\) and exported as JSON \\(see build artifacts\\)\\."
         outputDoesNotContain "Use '--enable-sbom' to assemble a Software Bill of Materials (SBOM)"
+        outputDoesNotContain "Could not generate an augmented SBOM"
         validateExportedSBOM sbom
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
@@ -101,6 +102,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\)."
         outputDoesNotContain "Use '--enable-sbom' to assemble a Software Bill of Materials (SBOM)"
+        outputDoesNotContain "Could not generate an augmented SBOM"
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
     }

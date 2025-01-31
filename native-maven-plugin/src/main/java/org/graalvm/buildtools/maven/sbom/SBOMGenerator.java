@@ -237,15 +237,15 @@ public final class SBOMGenerator {
     private void augmentSBOM(Path baseSBOMPath, Set<ArtifactAdapter> artifacts) throws IOException {
         JSONObject sbomJson = new JSONObject(Files.readString(baseSBOMPath));
 
+        JSONArray componentsArray = sbomJson.optJSONArray("components");
+        if (componentsArray != null) {
+            componentsArray.forEach(componentNode -> augmentComponentNode((JSONObject) componentNode, artifacts));
+        }
+
         /* Augment the main component in "metadata/component" */
         JSONObject metadataNode = sbomJson.optJSONObject("metadata");
         if (metadataNode != null && metadataNode.has("component")) {
             augmentComponentNode(metadataNode.getJSONObject("component"), artifacts);
-        }
-
-        JSONArray componentsArray = sbomJson.optJSONArray("components");
-        if (componentsArray != null) {
-            componentsArray.forEach(componentNode -> augmentComponentNode((JSONObject) componentNode, artifacts));
         }
 
         /* Save the augmented SBOM back to the file */
