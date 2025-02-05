@@ -64,9 +64,9 @@ jobs:
         run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast --tests ${{ matrix.test }}
       - name: "📜 Upload unit test results"
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: maven-functional-tests-results-${{ matrix.os }}
+          name: maven-functional-tests-results-${{ strategy.job-index }}-${{ matrix.os }}-${{ matrix.test }}
           path: native-maven-plugin/build/reports/tests/
 
   functional-testing-maven-plugin-dev:
@@ -98,7 +98,7 @@ jobs:
         run: ./gradlew :native-maven-plugin:functionalTest
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: functional-tests-results-graalvm-dev
+          name: functional-tests-results-graalvm-dev-${{ strategy.job-index }}-${{ matrix.os }}-${{ matrix.test }}
           path: native-maven-plugin/build/reports/tests/functionalTest/
