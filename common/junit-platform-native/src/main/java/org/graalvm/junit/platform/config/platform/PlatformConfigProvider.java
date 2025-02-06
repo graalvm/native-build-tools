@@ -43,58 +43,15 @@ package org.graalvm.junit.platform.config.platform;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.hosted.RuntimeSerialization;
+import org.junit.platform.launcher.TestIdentifier;
+
 
 public class PlatformConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        config.initializeAtBuildTime(
-                "org.junit.platform.launcher.TestIdentifier",
-                "org.junit.platform.launcher.core.InternalTestPlan",
-                "org.junit.platform.commons.util.StringUtils",
-                "org.junit.platform.launcher.core.TestExecutionListenerRegistry",
-                "org.junit.platform.commons.logging.LoggerFactory$DelegatingLogger",
-                "org.junit.platform.launcher.core.EngineDiscoveryOrchestrator",
-                "org.junit.platform.launcher.core.LauncherConfigurationParameters",
-                "org.junit.platform.commons.logging.LoggerFactory",
-                "org.junit.platform.engine.UniqueIdFormat",
-                "org.junit.platform.commons.util.ReflectionUtils",
-                // https://github.com/graalvm/native-build-tools/issues/300
-                "org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener",
-                // https://github.com/graalvm/native-build-tools/issues/602
-                "org.junit.platform.commons.util.LruCache"
-        );
-
-        if (getMajorJDKVersion() >= 21) {
-            /* new with --strict-image-heap */
-            config.initializeAtBuildTime(
-                    "org.junit.platform.engine.support.descriptor.ClassSource",
-                    "org.junit.platform.engine.support.descriptor.MethodSource",
-                    "org.junit.platform.engine.support.hierarchical.Node$ExecutionMode",
-                    "org.junit.platform.engine.TestDescriptor$Type",
-                    "org.junit.platform.engine.UniqueId",
-                    "org.junit.platform.engine.UniqueId$Segment",
-                    "org.junit.platform.launcher.core.DefaultLauncher",
-                    "org.junit.platform.launcher.core.DefaultLauncherConfig",
-                    "org.junit.platform.launcher.core.EngineExecutionOrchestrator",
-                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$1",
-                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$2",
-                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$3",
-                    "org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvider$4",
-                    "org.junit.platform.launcher.core.LauncherDiscoveryResult",
-                    "org.junit.platform.launcher.core.LauncherListenerRegistry",
-                    "org.junit.platform.launcher.core.ListenerRegistry",
-                    "org.junit.platform.launcher.core.SessionPerRequestLauncher",
-                    "org.junit.platform.launcher.LauncherSessionListener$1",
-                    "org.junit.platform.launcher.listeners.UniqueIdTrackingListener",
-                    "org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1",
-                    "org.junit.platform.suite.engine.SuiteEngineDescriptor",
-                    "org.junit.platform.suite.engine.SuiteLauncher",
-                    "org.junit.platform.suite.engine.SuiteTestDescriptor",
-                    "org.junit.platform.suite.engine.SuiteTestEngine"
-            );
-        }
-
+        RuntimeSerialization.register(TestIdentifier.class.getDeclaredClasses());
         try {
             /* Verify if the core JUnit Platform test class is available on the classpath */
             Class.forName("org.junit.platform.commons.annotation.Testable");
