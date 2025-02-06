@@ -65,6 +65,7 @@ import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -764,14 +765,19 @@ public class NativeImagePlugin implements Plugin<Project> {
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
+
         ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
         runtimeArgs.add("--xml-output-dir");
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "-native").map(d -> d.getAsFile().getAbsolutePath()));
+        runtimeArgs.add("--test-ids");
+        runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "/testlist").map(d -> d.getAsFile().getAbsolutePath()));
+
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(configs.getImageClasspathConfiguration());
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
+
         return testExtension;
     }
 
