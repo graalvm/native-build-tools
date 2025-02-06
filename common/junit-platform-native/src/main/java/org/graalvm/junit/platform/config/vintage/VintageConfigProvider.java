@@ -43,33 +43,16 @@ package org.graalvm.junit.platform.config.vintage;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
 public class VintageConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        config.initializeAtBuildTime(
-                "org.junit.vintage.engine.descriptor.RunnerTestDescriptor",
-                "org.junit.vintage.engine.support.UniqueIdReader",
-                "org.junit.vintage.engine.support.UniqueIdStringifier",
-                "org.junit.runner.Description",
-                "org.junit.runners.BlockJUnit4ClassRunner",
-                "org.junit.runners.JUnit4",
-                /* Workaround until we can register serializable classes from a native-image feature */
-                "org.junit.runner.Result"
-        );
-
-        if (getMajorJDKVersion() >= 21) {
-            /* new with simulated class initialization */
-            config.initializeAtBuildTime(
-                    "java.lang.annotation.Annotation",
-                    "org.junit.runners.model.FrameworkMethod",
-                    "org.junit.runners.model.TestClass",
-                    "org.junit.runners.ParentRunner$1",
-                    "org.junit.Test",
-                    "org.junit.vintage.engine.descriptor.VintageEngineDescriptor",
-                    "org.junit.vintage.engine.VintageTestEngine"
-            );
+        try {
+            RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
+        } catch (ClassNotFoundException e) {
+            System.out.println("Cannot register declared classes of org.junit.runner.Result for serialization. Vintage JUnit not available.");
         }
     }
 
