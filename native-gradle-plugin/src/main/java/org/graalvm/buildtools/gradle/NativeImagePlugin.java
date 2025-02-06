@@ -761,7 +761,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         );
         setupExtensionConfigExcludes(testExtension, configs);
 
-        testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
+        testExtension.getMainClass().set("org.junit.platform.console.ConsoleLauncher");
         testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
         ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
@@ -772,6 +772,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         classpath.from(configs.getImageClasspathConfiguration());
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
+
         return testExtension;
     }
 

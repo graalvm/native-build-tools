@@ -44,7 +44,6 @@ package org.graalvm.junit.platform;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
-import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -85,14 +84,11 @@ public final class JUnitPlatformFeature implements Feature {
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
-
         List<Path> classpathRoots = access.getApplicationClassPath();
         List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
 
         Launcher launcher = LauncherFactory.create();
         TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
-        ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
     }
 
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
@@ -170,6 +166,7 @@ public final class JUnitPlatformFeature implements Feature {
     }
 
     public static boolean debug() {
+        // TODO check what happens here -> lookup for singleton that is not added
         return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
     }
 

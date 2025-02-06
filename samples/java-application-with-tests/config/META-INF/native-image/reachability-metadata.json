@@ -1,0 +1,629 @@
+{
+  "reflection": [
+    {
+      "type": "groovy.lang.Closure"
+    },
+    {
+      "type": "java.io.Console",
+      "methods": [
+        {
+          "name": "isTerminal",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ClassLoader",
+      "fields": [
+        {
+          "name": "classLoaderValueMap"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Object",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "java.lang.ProcessBuilder",
+      "methods": [
+        {
+          "name": "redirectError",
+          "parameterTypes": [
+            "java.lang.ProcessBuilder$Redirect"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.ProcessBuilder$Redirect",
+      "fields": [
+        {
+          "name": "INHERIT"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.System",
+      "methods": [
+        {
+          "name": "console",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.nio.file.Path"
+    },
+    {
+      "type": "java.nio.file.Paths"
+    },
+    {
+      "type": "java.sql.Connection"
+    },
+    {
+      "type": "java.sql.Driver"
+    },
+    {
+      "type": "java.sql.DriverManager"
+    },
+    {
+      "type": "java.sql.Time"
+    },
+    {
+      "type": "java.sql.Timestamp"
+    },
+    {
+      "type": "java.time.Duration"
+    },
+    {
+      "type": "java.time.Instant"
+    },
+    {
+      "type": "java.time.LocalDate"
+    },
+    {
+      "type": "java.time.LocalDateTime"
+    },
+    {
+      "type": "java.time.LocalTime"
+    },
+    {
+      "type": "java.time.MonthDay"
+    },
+    {
+      "type": "java.time.OffsetDateTime"
+    },
+    {
+      "type": "java.time.OffsetTime"
+    },
+    {
+      "type": "java.time.Period"
+    },
+    {
+      "type": "java.time.Year"
+    },
+    {
+      "type": "java.time.YearMonth"
+    },
+    {
+      "type": "java.time.ZoneId"
+    },
+    {
+      "type": "java.time.ZoneOffset"
+    },
+    {
+      "type": "java.time.ZonedDateTime"
+    },
+    {
+      "type": "java.util.function.Consumer"
+    },
+    {
+      "type": "jdk.internal.misc.Unsafe"
+    },
+    {
+      "type": "org.apiguardian.api.API"
+    },
+    {
+      "type": "org.graalvm.demo.CalculatorTest",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        },
+        {
+          "name": "add",
+          "parameterTypes": [
+            "int",
+            "int",
+            "int"
+          ]
+        },
+        {
+          "name": "addsTwoNumbers",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.internal.AssumptionViolatedException"
+    },
+    {
+      "type": "org.junit.jupiter.api.DisplayName"
+    },
+    {
+      "type": "org.junit.jupiter.api.Test"
+    },
+    {
+      "type": "org.junit.jupiter.api.TestTemplate"
+    },
+    {
+      "type": "org.junit.jupiter.api.extension.ExtendWith"
+    },
+    {
+      "type": "org.junit.jupiter.engine.JupiterTestEngine"
+    },
+    {
+      "type": "org.junit.jupiter.params.ParameterizedTest"
+    },
+    {
+      "type": "org.junit.jupiter.params.ParameterizedTestExtension",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.jupiter.params.provider.AnnotationBasedArgumentsProvider"
+    },
+    {
+      "type": "org.junit.jupiter.params.provider.ArgumentsProvider"
+    },
+    {
+      "type": "org.junit.jupiter.params.provider.ArgumentsSource"
+    },
+    {
+      "type": "org.junit.jupiter.params.provider.CsvArgumentsProvider",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.jupiter.params.provider.CsvSource"
+    },
+    {
+      "type": "org.junit.jupiter.params.support.AnnotationConsumer"
+    },
+    {
+      "type": "org.junit.platform.commons.annotation.Testable"
+    },
+    {
+      "type": "org.junit.platform.console.options.AnsiColorOptionMixin",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.BannerOptionMixin",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.BaseCommand",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.ClasspathEntriesConverter",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.DiscoverTestsCommand",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.ExecuteTestsCommand",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.ExecuteTestsCommand$ReportingOptions",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.ListTestEnginesCommand",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.MainCommand",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.ManifestVersionProvider",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Class",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$ClasspathResource",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Directory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$File",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Identifier",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Iteration",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Method",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Module",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Package",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.SelectorConverter$Uri",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.TestConsoleOutputOptionsMixin",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.TestConsoleOutputOptionsMixin$ConsoleOutputOptions",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.TestDiscoveryOptionsMixin",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.TestDiscoveryOptionsMixin$FilterOptions",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "org.junit.platform.console.options.TestDiscoveryOptionsMixin$RuntimeConfigurationOptions",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.console.options.TestDiscoveryOptionsMixin$SelectorOptions",
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "org.junit.platform.launcher.TestIdentifier$SerializedForm",
+      "serializable": true
+    },
+    {
+      "type": "org.junit.platform.launcher.listeners.UniqueIdTrackingListener"
+    },
+    {
+      "type": "org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener"
+    },
+    {
+      "type": "org.junit.platform.suite.engine.SuiteTestEngine"
+    },
+    {
+      "type": "org.junit.vintage.engine.VintageTestEngine"
+    },
+    {
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "glob": "META-INF/services/com.oracle.graal.phases.preciseinline.priorityinline.PolicyFactory"
+    },
+    {
+      "glob": "META-INF/services/java.lang.System$LoggerFinder"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.engine.TestEngine"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.LauncherDiscoveryListener"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.LauncherSessionListener"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.PostDiscoveryFilter"
+    },
+    {
+      "glob": "META-INF/services/org.junit.platform.launcher.TestExecutionListener"
+    },
+    {
+      "glob": "junit-platform.properties"
+    },
+    {
+      "module": "com.oracle.graal.graal_enterprise",
+      "glob": "com/oracle/graal/enterprise/hotspot/replacements/HotSpotBulkAllocationSnippets.class"
+    },
+    {
+      "module": "com.oracle.graal.graal_enterprise",
+      "glob": "com/oracle/graal/vector/nodes/consumer/MaterializeVectorNode.class"
+    },
+    {
+      "module": "com.oracle.graal.graal_enterprise",
+      "glob": "com/oracle/graal/vector/replacements/CopyOfSnippets.class"
+    },
+    {
+      "module": "com.oracle.graal.graal_enterprise",
+      "glob": "com/oracle/graal/vector/replacements/UncheckedCopyOfNode.class"
+    },
+    {
+      "module": "com.oracle.graal.graal_enterprise",
+      "glob": "com/oracle/graal/vector/replacements/VectorSnippets.class"
+    },
+    {
+      "module": "java.base",
+      "glob": "java/lang/Class.class"
+    },
+    {
+      "module": "java.base",
+      "glob": "java/lang/Integer.class"
+    },
+    {
+      "module": "java.base",
+      "glob": "java/lang/Long.class"
+    },
+    {
+      "module": "java.base",
+      "glob": "java/lang/Math.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/ClassGetHubNode.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/HotSpotAllocationSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/HotSpotG1WriteBarrierSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/HotSpotHashCodeSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/HotSpotIsArraySnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/HotSpotReplacementsUtil.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/InstanceOfSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/ObjectCloneSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/replacements/TypeCheckSnippetUtils.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/stubs/ExceptionHandlerStub.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/stubs/ForeignCallSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/stubs/IntrinsicStubsGen.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/hotspot/stubs/LookUpSecondarySupersTableStub.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/nodes/PiNode.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/nodes/java/NewArrayNode.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/AllocationSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/BoxingSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/IdentityHashCodeSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/IsArraySnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/ReplacementsUtil.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/SnippetCounter.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/SnippetIntegerHistogram.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/arraycopy/ArrayCopyCallNode.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/arraycopy/ArrayCopySnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/arraycopy/ArrayCopyWithDelayedLoweringNode.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/gc/G1WriteBarrierSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/gc/WriteBarrierSnippets.class"
+    },
+    {
+      "module": "jdk.graal.compiler",
+      "glob": "jdk/graal/compiler/replacements/nodes/AssertionNode.class"
+    },
+    {
+      "module": "jdk.internal.vm.ci",
+      "glob": "jdk/vm/ci/code/CodeUtil.class"
+    },
+    {
+      "module": "org.graalvm.word",
+      "glob": "org/graalvm/word/LocationIdentity.class"
+    }
+  ],
+  "bundles": [],
+  "jni": [
+    {
+      "type": "java.lang.Boolean",
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -114,7 +114,7 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
         }
 
         // Main class comes last
-        args << "org.graalvm.junit.platform.NativeImageJUnitLauncher"
+        args << "org.junit.platform.console.ConsoleLauncher"
 
         args.collect { it.toString() }
     }

@@ -68,10 +68,5 @@ public interface NativeImageConfiguration {
             registerForReflection(clazz.getDeclaredFields());
         }
     }
-
-    default void initializeAtBuildTime(String... classNames) {
-        initializeAtBuildTime(Utils.toClasses(classNames));
-    };
-
     void initializeAtBuildTime(Class<?>... classes);
 }
