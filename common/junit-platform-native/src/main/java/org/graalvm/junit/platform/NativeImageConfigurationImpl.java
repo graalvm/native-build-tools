@@ -64,10 +64,4 @@ class NativeImageConfigurationImpl implements NativeImageConfiguration {
     public void registerForReflection(Field... fields) {
         RuntimeReflection.register(fields);
     }
-
-
-    @Override
-    public void initializeAtBuildTime(Class<?>... classes) {
-        RuntimeClassInitialization.initializeAtBuildTime(classes);
-    }
 }
