@@ -41,8 +41,14 @@
 
 pluginManagement {
     plugins {
-        id 'org.graalvm.buildtools.native' version getProperty('native.gradle.plugin.version')
+        id 'org.graalvm.buildtools.native' version "0.10.5-SNAPSHOT"
     }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
 }
 
 rootProject.name = 'java-application'

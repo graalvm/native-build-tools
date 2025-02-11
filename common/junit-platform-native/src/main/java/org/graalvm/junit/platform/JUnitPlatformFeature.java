@@ -94,11 +94,14 @@ public final class JUnitPlatformFeature implements Feature {
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
         try {
             Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
+            System.out.println("outputDir = " + outputDir);
             String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
+            System.out.println("prefix = " + prefix);
             List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
                     .map(DiscoverySelectors::selectUniqueId)
                     .collect(Collectors.toList());
+            System.out.println("selectors = " + selectors);
             if (!selectors.isEmpty()) {
                 System.out.printf(
                         "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
