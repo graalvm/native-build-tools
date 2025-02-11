@@ -75,6 +75,7 @@ body {
 
 #preamble>.sectionbody>[class="paragraph"]:first-of-type p {
     color: white;
+    font-size: 1.0625rem;
 }
 
 p {
