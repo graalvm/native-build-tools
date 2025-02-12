@@ -84,6 +84,7 @@ graalvmNative {
     binaries {
         test {
             verbose = true
+            buildArgs.add("-Ob")
         }
     }
 }

@@ -43,11 +43,15 @@ package org.graalvm.junit.platform.config.platform;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.hosted.RuntimeSerialization;
+import org.junit.platform.launcher.TestIdentifier;
+
 
 public class PlatformConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
+        RuntimeSerialization.register(TestIdentifier.class.getDeclaredClasses());
         try {
             /* Verify if the core JUnit Platform test class is available on the classpath */
             Class.forName("org.junit.platform.commons.annotation.Testable");

@@ -164,7 +164,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
 
         imageName = NATIVE_TESTS_EXE;
-        mainClass = "org.junit.platform.console.ConsoleLauncher";
+        mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
 
         buildImage();
         runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
