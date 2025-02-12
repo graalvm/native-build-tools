@@ -41,7 +41,7 @@
 
 plugins {
     id 'application'
-    id 'org.graalvm.buildtools.native' version "0.10.5-SNAPSHOT"
+    id 'org.graalvm.buildtools.native' version "0.10.5-JUNIT"
 }
 
 repositories {
@@ -63,10 +63,4 @@ dependencies {
 
 test {
     useJUnitPlatform()
-}
-
-graalvmNative {
-    binaries.all {
-        buildArgs.add("--emit build-report")
-    }
 }

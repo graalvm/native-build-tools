@@ -57,7 +57,7 @@ public interface NativeImageConfiguration {
 
     default void registerAllClassMembersForReflection(String... classNames) {
         registerAllClassMembersForReflection(Utils.toClasses(classNames));
-    };
+    }
 
     default void registerAllClassMembersForReflection(Class<?>... classes) {
         for (Class<?> clazz : classes) {

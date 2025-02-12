@@ -86,22 +86,18 @@ public final class JUnitPlatformFeature implements Feature {
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         List<Path> classpathRoots = access.getApplicationClassPath();
         List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
-
-        Launcher launcher = LauncherFactory.create();
-        TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
+        registerTestClassesForReflection(selectors);
     }
 
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
         try {
             Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
-            System.out.println("outputDir = " + outputDir);
             String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
-            System.out.println("prefix = " + prefix);
+
             List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
                     .map(DiscoverySelectors::selectUniqueId)
                     .collect(Collectors.toList());
-            System.out.println("selectors = " + selectors);
             if (!selectors.isEmpty()) {
                 System.out.printf(
                         "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
@@ -121,18 +117,15 @@ public final class JUnitPlatformFeature implements Feature {
     }
 
     /**
-     * Use the JUnit Platform Launcher to discover tests and register classes
-     * for reflection.
+     * Use the JUnit Platform Launcher to register classes for reflection.
      */
-    private TestPlan discoverTestsAndRegisterTestClassesForReflection(Launcher launcher,
-            List<? extends DiscoverySelector> selectors) {
-
+    private void registerTestClassesForReflection(List<? extends DiscoverySelector> selectors) {
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
                 .selectors(selectors)
                 .build();
 
+        Launcher launcher = LauncherFactory.create();
         TestPlan testPlan = launcher.discover(request);
-
         testPlan.getRoots().stream()
                 .flatMap(rootIdentifier -> testPlan.getDescendants(rootIdentifier).stream())
                 .map(TestIdentifier::getSource)
@@ -142,8 +135,6 @@ public final class JUnitPlatformFeature implements Feature {
                 .map(ClassSource.class::cast)
                 .map(ClassSource::getJavaClass)
                 .forEach(this::registerTestClassForReflection);
-
-        return testPlan;
     }
 
     private void registerTestClassForReflection(Class<?> clazz) {
@@ -169,7 +160,6 @@ public final class JUnitPlatformFeature implements Feature {
     }
 
     public static boolean debug() {
-        // TODO check what happens here -> lookup for singleton that is not added
         return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
     }
 
@@ -191,5 +181,4 @@ public final class JUnitPlatformFeature implements Feature {
             (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
                     && path.getFileName().toString().startsWith(prefix)));
     }
-
 }

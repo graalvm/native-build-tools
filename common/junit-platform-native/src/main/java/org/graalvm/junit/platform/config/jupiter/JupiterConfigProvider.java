@@ -79,7 +79,6 @@ public class JupiterConfigProvider implements PluginConfigProvider {
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ArgumentsSource.class, ArgumentsSource::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ExtendWith.class, ExtendWith::value);
         AnnotationUtils.forEachAnnotatedMethod(testClass, EnumSource.class, (m, annotation) -> handleEnumSource(m, annotation, registry));
-        handleTestOrderer(testClass, registry);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisplayNameGeneration.class, DisplayNameGeneration::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, IndicativeSentencesGeneration.class, IndicativeSentencesGeneration::generator);
         AnnotationUtils.forEachAnnotatedMethodParameter(testClass, ConvertWith.class, annotation -> registry.registerAllClassMembersForReflection(annotation.value()));
@@ -141,14 +140,4 @@ public class JupiterConfigProvider implements PluginConfigProvider {
             debug("Method doesn't have at least 1 parameter - skipping enum registration. Method: %s", method);
         }
     }
-
-    private static void handleTestOrderer(Class<?> testClass, NativeImageConfiguration registry) {
-        Optional<TestMethodOrder> annotation = AnnotationSupport.findAnnotation(testClass, TestMethodOrder.class);
-        if (annotation.isPresent()) {
-            TestMethodOrder testMethodOrder = annotation.get();
-            Class<?> clazz = testMethodOrder.value();
-            registry.initializeAtBuildTime(clazz);
-        }
-    }
-
 }

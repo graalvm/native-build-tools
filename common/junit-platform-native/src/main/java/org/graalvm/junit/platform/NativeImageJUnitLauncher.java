@@ -42,11 +42,9 @@
 package org.graalvm.junit.platform;
 
 import org.graalvm.nativeimage.ImageInfo;
-import org.graalvm.nativeimage.ImageSingletons;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
-import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.launcher.*;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
@@ -72,54 +70,15 @@ public class NativeImageJUnitLauncher {
         return String.format("%1$-20s", input);
     }
 
-    private static TestPlan getTestPlan(Launcher launcher, String testIDs) {
-        List<? extends DiscoverySelector> selectors = getSelectors(testIDs);
-
-        if (selectors == null) {
-            throw new RuntimeException("Cannot find selectors");
-        }
-
-        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
-                .selectors(selectors)
-                .build();
-
-        return launcher.discover(request);
-    }
-
-    private static List<? extends DiscoverySelector> getSelectors(String testIDs) {
-        try {
-            Path outputDir = Paths.get(testIDs);
-            System.out.println("outputDir = " + outputDir);
-            String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
-                    UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
-            List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
-                    .map(DiscoverySelectors::selectUniqueId)
-                    .collect(Collectors.toList());
-            if (!selectors.isEmpty()) {
-                System.out.printf(
-                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
-                                + "found in folder [%s] and its subfolders.%n",
-                        prefix, outputDir.toAbsolutePath());
-                return selectors;
-            }
-        } catch (Exception ex) {
-            System.out.println("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
-        }
-
-        System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
-
-        return null;
-    }
-
     public static void main(String... args) {
         if (!ImageInfo.inImageCode()) {
             System.err.println("NativeImageJUnitLauncher can only be used for native-image compiled tests.");
             System.exit(1);
         }
 
+        /* scan runtime arguments */
         String xmlOutput = DEFAULT_OUTPUT_FOLDER;
-        // TODO replace ""
-        String testIds = "";
+        String testIds = null;
         boolean silent = false;
 
         LinkedList<String> arguments = new LinkedList<>(Arrays.asList(args));
@@ -152,12 +111,18 @@ public class NativeImageJUnitLauncher {
             }
         }
 
+        if (xmlOutput == null) {
+            throw new RuntimeException("xml-output-dir argument passed incorrectly to the launcher class.");
+        }
+
+        if (testIds == null) {
+            throw new RuntimeException("Test ids not provided to the launcher class.");
+        }
 
         Launcher launcher = LauncherFactory.create();
         TestPlan testPlan = getTestPlan(launcher, testIds);
 
         PrintWriter out = new PrintWriter(System.out);
-
         if (!silent) {
             out.println("JUnit Platform on Native Image - report");
             out.println("----------------------------------------\n");
@@ -180,6 +145,41 @@ public class NativeImageJUnitLauncher {
         System.exit(failedCount > 0 ? 1 : 0);
     }
 
+    private static TestPlan getTestPlan(Launcher launcher, String testIDs) {
+        List<? extends DiscoverySelector> selectors = getSelectors(testIDs);
+        if (selectors == null) {
+            throw new RuntimeException("Cannot compute test selectors from test ids.");
+        }
+
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectors)
+                .build();
+
+        return launcher.discover(request);
+    }
+
+    private static List<? extends DiscoverySelector> getSelectors(String testIDs) {
+        try {
+            Path outputDir = Paths.get(testIDs);
+            System.out.println("outputDir = " + outputDir);
+            String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
+                    UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
+            List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
+                    .map(DiscoverySelectors::selectUniqueId)
+                    .collect(Collectors.toList());
+            if (!selectors.isEmpty()) {
+                System.out.printf(
+                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
+                                + "found in folder [%s] and its subfolders.%n",
+                        prefix, outputDir.toAbsolutePath());
+                return selectors;
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
+        }
+
+        return null;
+    }
 
     private static Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
         return findFiles(dir, prefix).map(outputFile -> {
@@ -199,5 +199,4 @@ public class NativeImageJUnitLauncher {
                 (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
                         && path.getFileName().toString().startsWith(prefix)));
     }
-
 }
