@@ -15,7 +15,7 @@ native-image
     ...
     --no-fallback
     --features=org.graalvm.junit.platform.JUnitPlatformFeature
-    org.graalvm.junit.platform.NativeImageJUnitLauncher
+    org.junit.platform.console.ConsoleLauncher
 ```
 to your `native-image` invocation should be sufficient.
 

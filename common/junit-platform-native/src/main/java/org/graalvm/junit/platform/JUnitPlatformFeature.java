@@ -44,7 +44,6 @@ package org.graalvm.junit.platform;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
-import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -85,14 +84,9 @@ public final class JUnitPlatformFeature implements Feature {
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
-
         List<Path> classpathRoots = access.getApplicationClassPath();
         List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
-
-        Launcher launcher = LauncherFactory.create();
-        TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
-        ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
+        registerTestClassesForReflection(selectors);
     }
 
     private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
@@ -100,6 +94,7 @@ public final class JUnitPlatformFeature implements Feature {
             Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
             String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
+
             List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
                     .map(DiscoverySelectors::selectUniqueId)
                     .collect(Collectors.toList());
@@ -122,18 +117,15 @@ public final class JUnitPlatformFeature implements Feature {
     }
 
     /**
-     * Use the JUnit Platform Launcher to discover tests and register classes
-     * for reflection.
+     * Use the JUnit Platform Launcher to register classes for reflection.
      */
-    private TestPlan discoverTestsAndRegisterTestClassesForReflection(Launcher launcher,
-            List<? extends DiscoverySelector> selectors) {
-
+    private void registerTestClassesForReflection(List<? extends DiscoverySelector> selectors) {
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
                 .selectors(selectors)
                 .build();
 
+        Launcher launcher = LauncherFactory.create();
         TestPlan testPlan = launcher.discover(request);
-
         testPlan.getRoots().stream()
                 .flatMap(rootIdentifier -> testPlan.getDescendants(rootIdentifier).stream())
                 .map(TestIdentifier::getSource)
@@ -143,14 +135,18 @@ public final class JUnitPlatformFeature implements Feature {
                 .map(ClassSource.class::cast)
                 .map(ClassSource::getJavaClass)
                 .forEach(this::registerTestClassForReflection);
-
-        return testPlan;
     }
 
     private void registerTestClassForReflection(Class<?> clazz) {
         debug("Registering test class for reflection: %s", clazz.getName());
         nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
         forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));
+
+        Class<?>[] interfaces = clazz.getInterfaces();
+        for (Class<?> inter : interfaces) {
+            registerTestClassForReflection(inter);
+        }
+
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null && superClass != Object.class) {
             registerTestClassForReflection(superClass);
@@ -191,5 +187,4 @@ public final class JUnitPlatformFeature implements Feature {
             (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
                     && path.getFileName().toString().startsWith(prefix)));
     }
-
 }

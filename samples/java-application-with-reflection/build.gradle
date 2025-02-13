@@ -41,10 +41,11 @@
 
 plugins {
     id 'application'
-    id 'org.graalvm.buildtools.native'
+    id 'org.graalvm.buildtools.native' version "0.10.5-JUNIT"
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -83,6 +84,7 @@ graalvmNative {
     binaries {
         test {
             verbose = true
+            buildArgs.add("-Ob")
         }
     }
 }
