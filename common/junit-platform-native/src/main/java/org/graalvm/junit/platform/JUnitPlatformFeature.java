@@ -141,6 +141,12 @@ public final class JUnitPlatformFeature implements Feature {
         debug("Registering test class for reflection: %s", clazz.getName());
         nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
         forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));
+
+        Class<?>[] interfaces = clazz.getInterfaces();
+        for (Class<?> inter : interfaces) {
+            registerTestClassForReflection(inter);
+        }
+
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null && superClass != Object.class) {
             registerTestClassForReflection(superClass);
