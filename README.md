@@ -7,6 +7,9 @@ Repository which contains build tool plugins for interoperability with [GraalVM 
 End-user documentation about the plugins can be found [here](https://graalvm.github.io/native-build-tools/).
 
 ## Contributing
+
+Documentation for common developer tasks can be found [here](DEVELOPING.md).
+
 ### Projects
  * [native-maven-plugin](native-maven-plugin/README.md)
  * [native-gradle-plugin](native-gradle-plugin/README.md)
