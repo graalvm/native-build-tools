@@ -947,18 +947,84 @@ The plugin allows configuring the final binary, the <a href="#test-binary-config
 </li>
 </ul>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
+<div class="sect3">
+<h4 id="_command_line_options"><a class="anchor" href="#_command_line_options"></a>Command line options</h4>
 <div class="paragraph">
-<p>For options that can be set using the command line, if both DSL and command-line options are present, command-line options take precedence.</p>
+<p>The preferred way to configure native binaries is by using the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.
+However, in some circumstances, for experimentation, it may be useful to override parameters from command line.
+The following flags are available and (unless stated otherwise) will take precedence over the DSL configuration:</p>
 </div>
-</td>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command line option</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--image-name=&lt;name&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides the <code>imageName</code> property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--main-class=&lt;class&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides the <code>mainClass</code> property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)debug-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables debug info generation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)verbose</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables verbose output</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)fallback</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables the fallback mode</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)quick-build-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables quick build mode</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)rich-output</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables rich output</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)pgo-instrument</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables PGO instrumentation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--build-args</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds build arguments</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--force-build-args</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides build arguments (DSL will be ignored)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)fat-jar</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables creation of a far jar for compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--sysprop-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds a system property for compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--env-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds an environment variable for compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jvm-args-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds JVM arguments for compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--force-jvm-args-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides JVM arguments (DSL will be ignored)</p></td>
+</tr>
+</tbody>
 </table>
 </div>
 </div>

@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":10,"i3":6,"i4":6,"i5":10,"i6":10,"i7":10,"i8":6,"i9":6,"i10":6,"i11":10,"i12":6,"i13":6,"i14":6,"i15":6,"i16":9,"i17":6,"i18":10,"i19":10,"i20":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":6,"i6":10,"i7":6,"i8":6,"i9":10,"i10":10,"i11":10,"i12":6,"i13":6,"i14":6,"i15":10,"i16":6,"i17":6,"i18":6,"i19":6,"i20":9,"i21":6,"i22":10,"i23":10,"i24":10,"i25":10,"i26":10,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -226,108 +226,168 @@ extends org.gradle.api.DefaultTask</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#exec()">exec</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#addEnvVar(java.lang.String)">addEnvVar</a></span>&#8203;(java.lang.String&nbsp;property)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#addSystemProperty(java.lang.String)">addSystemProperty</a></span>&#8203;(java.lang.String&nbsp;property)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#appendBuildArgs(java.util.List)">appendBuildArgs</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;buildArgs)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#appendJvmArgs(java.util.List)">appendJvmArgs</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;jvmArgs)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#exec()">exec</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.file.RegularFileProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getClasspathJar()">getClasspathJar</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected <a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCompileOptions()">getCompileOptions</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDisableToolchainDetection()">getDisableToolchainDetection</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.process.ExecOperations</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecOperations()">getExecOperations</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecutableName()">getExecutableName</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getExecutableShortName()">getExecutableShortName</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>protected org.gradle.api.provider.Provider&lt;java.lang.String&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getGraalVMHome()">getGraalVMHome</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.model.ObjectFactory</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getObjects()">getObjects</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;<a href="../dsl/NativeImageOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageOptions</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOptions()">getOptions</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOutputDirectory()">getOutputDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>org.gradle.api.provider.Provider&lt;org.gradle.api.file.RegularFile&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getOutputFile()">getOutputFile</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.provider.ProviderFactory</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getProviders()">getProviders</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Object&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getService()">getService</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getTestListDirectory()">getTestListDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>abstract org.gradle.api.provider.Property&lt;java.lang.Boolean&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUseArgFile()">getUseArgFile</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getVersionString(org.gradle.process.ExecOperations,java.io.File)">getVersionString</a></span>&#8203;(org.gradle.process.ExecOperations&nbsp;execOperations,
                 java.io.File&nbsp;executablePath)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>protected abstract org.gradle.api.file.DirectoryProperty</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWorkingDirectory()">getWorkingDirectory</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideDebugBuild()">overrideDebugBuild</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideBuildArgs(java.util.List)">overrideBuildArgs</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;buildArgs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overridePgoInstrument()">overridePgoInstrument</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideDebugBuild(boolean)">overrideDebugBuild</a></span>&#8203;(boolean&nbsp;debug)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideQuickBuild()">overrideQuickBuild</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideFallbackBuild(boolean)">overrideFallbackBuild</a></span>&#8203;(boolean&nbsp;fallback)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i25" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideFatJar(boolean)">overrideFatJar</a></span>&#8203;(boolean&nbsp;fatJar)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i26" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideImageName(java.lang.String)">overrideImageName</a></span>&#8203;(java.lang.String&nbsp;imageName)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i27" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideJvmArgs(java.util.List)">overrideJvmArgs</a></span>&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;jvmArgs)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i28" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideMainClass(java.lang.String)">overrideMainClass</a></span>&#8203;(java.lang.String&nbsp;mainClass)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i29" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overridePgoInstrument(boolean)">overridePgoInstrument</a></span>&#8203;(boolean&nbsp;pgo)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i30" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideQuickBuild(boolean)">overrideQuickBuild</a></span>&#8203;(boolean&nbsp;quickBuild)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i31" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideRichOutput(boolean)">overrideRichOutput</a></span>&#8203;(boolean&nbsp;richOutput)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i32" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#overrideVerboseBuild(boolean)">overrideVerboseBuild</a></span>&#8203;(boolean&nbsp;verbose)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </table>
@@ -413,31 +473,139 @@ public abstract&nbsp;org.gradle.api.provider.Property&lt;<a href="../dsl/NativeI
 <pre class="methodSignature">protected&nbsp;<a href="../dsl/NativeImageCompileOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl">NativeImageCompileOptions</a>&nbsp;getCompileOptions()</pre>
 </li>
 </ul>
-<a id="overrideQuickBuild()">
+<a id="overrideQuickBuild(boolean)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>overrideQuickBuild</h4>
-<pre class="methodSignature">public&nbsp;void&nbsp;overrideQuickBuild()</pre>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideQuickBuild&#8203;(boolean&nbsp;quickBuild)</pre>
 </li>
 </ul>
-<a id="overrideDebugBuild()">
+<a id="overrideDebugBuild(boolean)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>overrideDebugBuild</h4>
-<pre class="methodSignature">public&nbsp;void&nbsp;overrideDebugBuild()</pre>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideDebugBuild&#8203;(boolean&nbsp;debug)</pre>
 </li>
 </ul>
-<a id="overridePgoInstrument()">
+<a id="overrideVerboseBuild(boolean)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideVerboseBuild</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideVerboseBuild&#8203;(boolean&nbsp;verbose)</pre>
+</li>
+</ul>
+<a id="overrideFallbackBuild(boolean)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideFallbackBuild</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideFallbackBuild&#8203;(boolean&nbsp;fallback)</pre>
+</li>
+</ul>
+<a id="overridePgoInstrument(boolean)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>overridePgoInstrument</h4>
-<pre class="methodSignature">public&nbsp;void&nbsp;overridePgoInstrument()</pre>
+<pre class="methodSignature">public&nbsp;void&nbsp;overridePgoInstrument&#8203;(boolean&nbsp;pgo)</pre>
+</li>
+</ul>
+<a id="overrideMainClass(java.lang.String)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideMainClass</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideMainClass&#8203;(java.lang.String&nbsp;mainClass)</pre>
+</li>
+</ul>
+<a id="appendBuildArgs(java.util.List)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>appendBuildArgs</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;appendBuildArgs&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;buildArgs)</pre>
+</li>
+</ul>
+<a id="overrideBuildArgs(java.util.List)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideBuildArgs</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideBuildArgs&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;buildArgs)</pre>
+</li>
+</ul>
+<a id="overrideRichOutput(boolean)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideRichOutput</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideRichOutput&#8203;(boolean&nbsp;richOutput)</pre>
+</li>
+</ul>
+<a id="overrideImageName(java.lang.String)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideImageName</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideImageName&#8203;(java.lang.String&nbsp;imageName)</pre>
+</li>
+</ul>
+<a id="overrideFatJar(boolean)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideFatJar</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideFatJar&#8203;(boolean&nbsp;fatJar)</pre>
+</li>
+</ul>
+<a id="addSystemProperty(java.lang.String)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addSystemProperty</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;addSystemProperty&#8203;(java.lang.String&nbsp;property)</pre>
+</li>
+</ul>
+<a id="addEnvVar(java.lang.String)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addEnvVar</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;addEnvVar&#8203;(java.lang.String&nbsp;property)</pre>
+</li>
+</ul>
+<a id="appendJvmArgs(java.util.List)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>appendJvmArgs</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;appendJvmArgs&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;jvmArgs)</pre>
+</li>
+</ul>
+<a id="overrideJvmArgs(java.util.List)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>overrideJvmArgs</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;overrideJvmArgs&#8203;(java.util.List&lt;java.lang.String&gt;&nbsp;jvmArgs)</pre>
 </li>
 </ul>
 <a id="getExecOperations()">

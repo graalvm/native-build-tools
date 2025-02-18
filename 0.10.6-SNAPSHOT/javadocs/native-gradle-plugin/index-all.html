@@ -103,6 +103,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  you want to add more excludes but still want the conventional ones to be
  added.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#addEnvVar(java.lang.String)">addEnvVar(String)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#addSystemProperty(java.lang.String)">addSystemProperty(String)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html#agent(org.gradle.api.Action)">agent(Action&lt;? super AgentOptions&gt;)</a></span> - Method in interface org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html#agent(org.gradle.api.Action)">agent(Action&lt;? super AgentOptions&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/DefaultGraalVmExtension.html" title="class in org.graalvm.buildtools.gradle.internal">DefaultGraalVmExtension</a></dt>
@@ -122,6 +126,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentModeOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">AgentModeOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/dsl/agent/AgentOptions.html" title="interface in org.graalvm.buildtools.gradle.dsl.agent"><span class="typeNameLink">AgentOptions</span></a> - Interface in <a href="org/graalvm/buildtools/gradle/dsl/agent/package-summary.html">org.graalvm.buildtools.gradle.dsl.agent</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#appendBuildArgs(java.util.List)">appendBuildArgs(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#appendJvmArgs(java.util.List)">appendJvmArgs(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html#apply(org.gradle.api.Project)">apply(Project)</a></span> - Method in class org.graalvm.buildtools.gradle.<a href="org/graalvm/buildtools/gradle/NativeImagePlugin.html" title="class in org.graalvm.buildtools.gradle">NativeImagePlugin</a></dt>
 <dd>&nbsp;</dd>
@@ -1044,15 +1052,31 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/gradle/tasks/actions/package-summary.html">org.graalvm.buildtools.gradle.tasks.actions</a> - package org.graalvm.buildtools.gradle.tasks.actions</dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideDebugBuild()">overrideDebugBuild()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideBuildArgs(java.util.List)">overrideBuildArgs(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideDebugBuild(boolean)">overrideDebugBuild(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideFallbackBuild(boolean)">overrideFallbackBuild(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideFatJar(boolean)">overrideFatJar(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideImageName(java.lang.String)">overrideImageName(String)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#overrideInputTaskNames(java.util.List)">overrideInputTaskNames(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideJvmArgs(java.util.List)">overrideJvmArgs(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideMainClass(java.lang.String)">overrideMainClass(String)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html#overrideOutputDirectories(java.util.List)">overrideOutputDirectories(List&lt;String&gt;)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/MetadataCopyTask.html" title="class in org.graalvm.buildtools.gradle.tasks">MetadataCopyTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overridePgoInstrument()">overridePgoInstrument()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overridePgoInstrument(boolean)">overridePgoInstrument(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideQuickBuild()">overrideQuickBuild()</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideQuickBuild(boolean)">overrideQuickBuild(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideRichOutput(boolean)">overrideRichOutput(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html#overrideVerboseBuild(boolean)">overrideVerboseBuild(boolean)</a></span> - Method in class org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/BuildNativeImageTask.html" title="class in org.graalvm.buildtools.gradle.tasks">BuildNativeImageTask</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a id="I:R">
