@@ -6,11 +6,13 @@ End-user documentation about the plugins can be found [here](https://graalvm.git
 
 ## Building
 
-This plugin can be built with this command:
+This plugin can be built with this command (from the root directory):
 
 ```bash
-./gradlew publishToMavenLocal --no-parallel
+./gradlew :native-gradle-plugin:publishToMavenLocal --no-parallel
 ```
+
+For more details, see the [Developer documentation](../DEVELOPING.md).
 
 In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-native` artifact.
 
