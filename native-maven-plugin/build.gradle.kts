@@ -63,22 +63,20 @@ dependencies {
     implementation(libs.utils)
     implementation(libs.openjson)
     implementation(libs.jvmReachabilityMetadata)
-    implementation(libs.plexus.utils)
-    implementation(libs.plexus.xml)
     implementation(libs.cyclonedx.maven.plugin)
     implementation(libs.plugin.executor.maven)
 
+    compileOnly(libs.plexus.utils)
+    compileOnly(libs.plexus.xml)
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
     compileOnly(libs.maven.artifact)
     compileOnly(libs.maven.pluginAnnotations)
 
     mavenEmbedder(libs.maven.embedder)
-    mavenEmbedder(libs.maven.aether.connector)
-    mavenEmbedder(libs.maven.aether.wagon)
-    mavenEmbedder(libs.maven.wagon.http)
-    mavenEmbedder(libs.maven.wagon.file)
-    mavenEmbedder(libs.maven.wagon.provider)
+    mavenEmbedder(libs.maven.resolver.basic)
+    mavenEmbedder(libs.maven.resolver.transport.http)
+    mavenEmbedder(libs.maven.resolver.transport.file)
     mavenEmbedder(libs.maven.compat)
     mavenEmbedder(libs.slf4j.simple)
 
@@ -180,4 +178,3 @@ tasks.withType<Checkstyle>().configureEach {
     // generated code
     exclude("**/RuntimeMetadata*")
 }
-

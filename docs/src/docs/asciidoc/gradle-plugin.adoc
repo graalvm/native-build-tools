@@ -173,10 +173,31 @@ You can also pass **build-time** and **run-time** arguments:
 - `buildArgs.add('<buildArg>')`: Configures the build by passing options directly to `native-image`. You can pass any Native Image build option listed https://www.graalvm.org/reference-manual/native-image/overview/Options/[here].
 - `runtimeArgs.add('<runtimeArg>')`: Specifies runtime arguments consumed by your application.
 
-[NOTE]
-====
-For options that can be set using the command line, if both DSL and command-line options are present, command-line options take precedence.
-====
+==== Command line options
+
+The preferred way to configure native binaries is by using the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.
+However, in some circumstances, for experimentation, it may be useful to override parameters from command line.
+The following flags are available and (unless stated otherwise) will take precedence over the DSL configuration:
+
+|===
+|Command line option|Description
+|`--image-name=<name>`|Overrides the `imageName` property
+|`--main-class=<class>`|Overrides the `mainClass` property
+|`--(no-)debug-native`|Enables or disables debug info generation
+|`--(no-)verbose`|Enables or disables verbose output
+|`--(no-)fallback`|Enables or disables the fallback mode
+|`--(no-)quick-build-native`|Enables or disables quick build mode
+|`--(no-)rich-output`|Enables or disables rich output
+|`--(no-)pgo-instrument`|Enables or disables PGO instrumentation
+|`--build-args`|Adds build arguments
+|`--force-build-args`|Overrides build arguments (DSL will be ignored)
+|`--(no-)fat-jar`|Enables or disables creation of a far jar for compilation
+|`--sysprop-native`|Adds a system property for compilation
+|`--env-native`|Adds an environment variable for compilation
+|`--jvm-args-native`|Adds JVM arguments for compilation
+|`--force-jvm-args-native`|Overrides JVM arguments (DSL will be ignored)
+|===
+
 
 [[native-image-tracing-agent]]
 == Native Image Tracing Agent

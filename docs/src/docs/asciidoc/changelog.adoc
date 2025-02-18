@@ -7,6 +7,10 @@
 
 - Add support for dependency exclusions
 
+=== Gradle plugin
+
+- Added options to override parameters from command line
+
 == Release 0.10.5
 
 - Add missing getters to `DirectoryConfiguration`

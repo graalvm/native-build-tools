@@ -112,7 +112,7 @@ final class ArtifactToPackageNameResolver {
         return artifactsWithPackageNameMappings;
     }
 
-    private Optional<ArtifactAdapter> resolvePackageNamesFromArtifact(Artifact artifact) throws ArtifactResolutionException, IOException {
+    private Optional<ArtifactAdapter> resolvePackageNamesFromArtifact(Artifact artifact) throws IOException {
         File artifactFile = artifact.getFile();
         if (artifactFile != null && artifactFile.exists()) {
             return resolvePackageNamesFromArtifactFile(artifactFile, ArtifactAdapter.fromMavenArtifact(artifact));
@@ -124,7 +124,13 @@ final class ArtifactToPackageNameResolver {
                     .setArtifact(sourceArtifact)
                     .setRepositories(remoteRepositories);
 
-            ArtifactResult result = repositorySystem.resolveArtifact(repositorySystemSession, request);
+            ArtifactResult result;
+            try {
+                result = repositorySystem.resolveArtifact(repositorySystemSession, request);
+            } catch (ArtifactResolutionException e) {
+                return Optional.empty();
+            }
+
             if (result != null && result.getArtifact() != null && result.getArtifact().getFile() != null) {
                 File sourceFile = result.getArtifact().getFile();
                 return resolvePackageNamesFromArtifactFile(sourceFile, ArtifactAdapter.fromEclipseArtifact(result.getArtifact()));
