@@ -52,7 +52,7 @@ public class VintageConfigProvider implements PluginConfigProvider {
         try {
             RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            System.out.println("Cannot register declared classes of org.junit.runner.Result for serialization. Vintage JUnit not available.");
         }
     }
 
