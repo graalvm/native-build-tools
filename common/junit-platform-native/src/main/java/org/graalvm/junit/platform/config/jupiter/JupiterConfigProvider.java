@@ -46,7 +46,6 @@ import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.junit.platform.config.util.AnnotationUtils;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.IndicativeSentencesGeneration;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -68,10 +67,6 @@ public class JupiterConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        config.registerAllClassMembersForReflection(
-                "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
-                "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
-        );
     }
 
     @Override

@@ -44,7 +44,9 @@ package org.graalvm.junit.platform;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
+import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
+
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -95,15 +97,20 @@ public final class JUnitPlatformFeature implements Feature {
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        List<Path> classpathRoots = access.getApplicationClassPath();
-        List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
+        /* Before GraalVM version 22 we couldn't have classes initialized at run-time
+           that are also used at build-time but not added to the image heap */
+        if (Runtime.version().feature() <= 21) {
+            RuntimeClassInitialization.initializeAtBuildTime("org.junit");
+        }
+
+        List<? extends DiscoverySelector> selectors = getSelectors();
         registerTestClassesForReflection(selectors);
 
-        /* support for Vintage  */
+        /* support for JUnit Vintage */
         registerClassesForHamcrestSupport(access);
     }
 
-    private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
+    private List<? extends DiscoverySelector> getSelectors() {
         try {
             Path uniqueIdDirectory = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
             String uniqueIdFilePrefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
@@ -123,11 +130,7 @@ public final class JUnitPlatformFeature implements Feature {
             debug("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
         }
 
-        System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
-        if (debug) {
-            classpathRoots.forEach(entry -> debug("Selecting classpath root: " + entry));
-        }
-        return DiscoverySelectors.selectClasspathRoots(new HashSet<>(classpathRoots));
+        throw new RuntimeException("Cannot compute test selectors from test ids.");
     }
 
     /**
