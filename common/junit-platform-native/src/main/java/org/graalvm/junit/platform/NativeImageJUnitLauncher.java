@@ -147,10 +147,6 @@ public class NativeImageJUnitLauncher {
 
     private static TestPlan getTestPlan(Launcher launcher, String testIDs) {
         List<? extends DiscoverySelector> selectors = getSelectors(testIDs);
-        if (selectors == null) {
-            throw new RuntimeException("Cannot compute test selectors from test ids.");
-        }
-
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
                 .selectors(selectors)
                 .build();
@@ -178,7 +174,7 @@ public class NativeImageJUnitLauncher {
             throw new RuntimeException("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
         }
 
-        return null;
+        throw new RuntimeException("Cannot compute test selectors from test ids.");
     }
 
     private static Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
