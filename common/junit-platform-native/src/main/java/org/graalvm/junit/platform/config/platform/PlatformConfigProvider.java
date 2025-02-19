@@ -52,14 +52,6 @@ public class PlatformConfigProvider implements PluginConfigProvider {
     @Override
     public void onLoad(NativeImageConfiguration config) {
         RuntimeSerialization.register(TestIdentifier.class.getDeclaredClasses());
-        try {
-            /* Verify if the core JUnit Platform test class is available on the classpath */
-            Class.forName("org.junit.platform.commons.annotation.Testable");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Missing some JUnit Platform classes for runtime reflection configuration. \n" +
-                    "Check if JUnit Platform is on your classpath or if that version is supported. \n" +
-                    "Original error: " + e);
-        }
     }
 
     @Override
