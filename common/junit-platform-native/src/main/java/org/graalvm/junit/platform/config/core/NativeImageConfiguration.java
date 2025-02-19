@@ -68,5 +68,4 @@ public interface NativeImageConfiguration {
             registerForReflection(clazz.getDeclaredFields());
         }
     }
-    void initializeAtBuildTime(Class<?>... classes);
 }
