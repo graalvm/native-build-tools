@@ -64,7 +64,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -101,6 +100,7 @@ public final class JUnitPlatformFeature implements Feature {
            that are also used at build-time but not added to the image heap */
         if (Runtime.version().feature() <= 21) {
             RuntimeClassInitialization.initializeAtBuildTime("org.junit");
+            RuntimeClassInitialization.initializeAtBuildTime("java");
         }
 
         List<? extends DiscoverySelector> selectors = getSelectors();
