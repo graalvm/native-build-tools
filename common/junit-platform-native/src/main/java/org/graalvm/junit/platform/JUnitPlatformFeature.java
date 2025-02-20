@@ -63,7 +63,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -112,7 +111,7 @@ public final class JUnitPlatformFeature implements Feature {
 
     private List<? extends DiscoverySelector> getSelectors() {
         try {
-            Path uniqueIdDirectory = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
+            Path uniqueIdDirectory = Path.of(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
             String uniqueIdFilePrefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
 

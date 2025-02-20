@@ -38,6 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
 def agentOutput = layout.buildDirectory.dir("agent")
 
 ext {
@@ -143,4 +144,5 @@ tasks.register("nativeTest", Exec) {
     dependsOn nativeTestCompile
     workingDir = "${buildDir}"
     executable = "${buildDir}/native-image-tests"
+    args = ["-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"]
 }
