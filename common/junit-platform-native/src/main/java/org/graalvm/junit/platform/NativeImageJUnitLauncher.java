@@ -42,37 +42,33 @@
 package org.graalvm.junit.platform;
 
 import org.graalvm.nativeimage.ImageInfo;
-import org.graalvm.nativeimage.ImageSingletons;
+import org.junit.platform.engine.DiscoverySelector;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.junit.platform.engine.discovery.UniqueIdSelector;
 import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.TestExecutionListener;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TestPlan;
+import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
+import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
+import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 import org.junit.platform.reporting.legacy.xml.LegacyXmlReportGeneratingListener;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NativeImageJUnitLauncher {
     static final String DEFAULT_OUTPUT_FOLDER = Paths.get("test-results-native").resolve("test").toString();
-
-    final Launcher launcher;
-    final TestPlan testPlan;
-
-    public NativeImageJUnitLauncher(Launcher launcher, TestPlan testPlan) {
-        this.launcher = launcher;
-        this.testPlan = testPlan;
-    }
-
-    public void registerTestExecutionListeners(TestExecutionListener testExecutionListener) {
-        launcher.registerTestExecutionListeners(testExecutionListener);
-    }
-
-    public void execute() {
-        launcher.execute(testPlan);
-    }
 
     static String stringPad(String input) {
         return String.format("%1$-20s", input);
@@ -84,7 +80,9 @@ public class NativeImageJUnitLauncher {
             System.exit(1);
         }
 
+        /* scan runtime arguments */
         String xmlOutput = DEFAULT_OUTPUT_FOLDER;
+        String testIds = null;
         boolean silent = false;
 
         LinkedList<String> arguments = new LinkedList<>(Arrays.asList(args));
@@ -96,12 +94,16 @@ public class NativeImageJUnitLauncher {
                     System.out.println("----------------------------------------\n");
                     System.out.println("Flags:");
                     System.out.println(stringPad("--xml-output-dir") + "Selects report xml output directory (default: `" + DEFAULT_OUTPUT_FOLDER + "`)");
+                    System.out.println(stringPad("--test-ids") + "Provides path to generated testIDs");
                     System.out.println(stringPad("--silent") + "Only output xml without stdout summary");
                     System.out.println(stringPad("--help") + "Displays this help screen");
                     System.exit(0);
                     break;
                 case "--xml-output-dir":
                     xmlOutput = arguments.poll();
+                    break;
+                case "--test-ids":
+                    testIds = arguments.poll();
                     break;
                 case "--silent":
                     silent = true;
@@ -113,9 +115,20 @@ public class NativeImageJUnitLauncher {
             }
         }
 
-        PrintWriter out = new PrintWriter(System.out);
-        NativeImageJUnitLauncher launcher = ImageSingletons.lookup(NativeImageJUnitLauncher.class);
+        if (xmlOutput == null) {
+            throw new RuntimeException("xml-output-dir argument passed incorrectly to the launcher class.");
+        }
 
+        if (testIds == null) {
+            System.out.println("[junit-platform-native] WARNING: test-ids not provided to the NativeImageJUnitLauncher. " +
+                    "This should only happen if you are running tests binary manually (instead of using 'gradle nativeTest' command)");
+            testIds = getTestIDsFromDefaultLocations();
+        }
+
+        Launcher launcher = LauncherFactory.create();
+        TestPlan testPlan = getTestPlan(launcher, testIds);
+
+        PrintWriter out = new PrintWriter(System.out);
         if (!silent) {
             out.println("JUnit Platform on Native Image - report");
             out.println("----------------------------------------\n");
@@ -126,7 +139,7 @@ public class NativeImageJUnitLauncher {
         SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
         launcher.registerTestExecutionListeners(summaryListener);
         launcher.registerTestExecutionListeners(new LegacyXmlReportGeneratingListener(Paths.get(xmlOutput), out));
-        launcher.execute();
+        launcher.execute(testPlan);
 
         TestExecutionSummary summary = summaryListener.getSummary();
         if (!silent) {
@@ -137,4 +150,85 @@ public class NativeImageJUnitLauncher {
         long failedCount = summary.getTotalFailureCount();
         System.exit(failedCount > 0 ? 1 : 0);
     }
+
+    private static TestPlan getTestPlan(Launcher launcher, String testIDs) {
+        List<? extends DiscoverySelector> selectors = getSelectors(testIDs);
+        LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectors)
+                .build();
+
+        return launcher.discover(request);
+    }
+
+    private static List<? extends DiscoverySelector> getSelectors(String testIDs) {
+        try {
+            Path outputDir = Paths.get(testIDs);
+            String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
+                    UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
+            List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
+                    .map(DiscoverySelectors::selectUniqueId)
+                    .collect(Collectors.toList());
+            if (!selectors.isEmpty()) {
+                System.out.printf(
+                        "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
+                                + "found in folder [%s] and its subfolders.%n",
+                        prefix, outputDir.toAbsolutePath());
+                return selectors;
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
+        }
+
+        throw new RuntimeException("Cannot compute test selectors from test ids.");
+    }
+
+    private static Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
+        return findFiles(dir, prefix).map(outputFile -> {
+            try {
+                return Files.readAllLines(outputFile);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            }
+        }).flatMap(List::stream);
+    }
+
+    private static Stream<Path> findFiles(Path dir, String prefix) throws IOException {
+        if (!Files.exists(dir)) {
+            return Stream.empty();
+        }
+        return Files.find(dir, Integer.MAX_VALUE,
+                (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
+                        && path.getFileName().toString().startsWith(prefix)));
+    }
+
+    private static String getTestIDsFromDefaultLocations() {
+        System.out.println("[junit-platform-native] WARNING: Trying to find test-ids on default locations.");
+        Path defaultGradleTestIDsLocation = Path.of("build")
+                .resolve("test-results")
+                .resolve("test")
+                .resolve("testlist")
+                .toAbsolutePath();
+
+        Path defaultMavenTestIDsLocation = Path.of("target")
+                .resolve("test-ids")
+                .toAbsolutePath();
+
+        if (Files.exists(defaultGradleTestIDsLocation) && Files.exists(defaultMavenTestIDsLocation)) {
+            throw new RuntimeException("[junit-platform-native] test-ids found in both " + defaultGradleTestIDsLocation + " and " + defaultMavenTestIDsLocation +
+                    ". Please specify the test-ids location by passing the '--test-ids <path-to-test-ids>' argument to your tests executable.");
+        }
+
+        if (Files.exists(defaultGradleTestIDsLocation)) {
+            System.out.println("[junit-platform-native] WARNING: Using test-ids from default Gradle project location:" + defaultGradleTestIDsLocation);
+            return defaultGradleTestIDsLocation.toString();
+        }
+
+        if (Files.exists(defaultMavenTestIDsLocation)) {
+            System.out.println("[junit-platform-native] WARNING: Using test-ids from default Maven project location:" + defaultMavenTestIDsLocation);
+            return defaultMavenTestIDsLocation.toString();
+        }
+
+        throw new RuntimeException("[junit-platform-native] test-ids not provided to the NativeImageJUnitLauncher and cannot be found on default locations.");
+    }
+
 }
