@@ -219,11 +219,6 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             throw new MojoExecutionException("Failed creating xml output directory");
         }
 
-        Path testIdsLocation = Path.of(NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
-        if (!testIdsLocation.toFile().exists()) {
-            throw new MojoExecutionException("Test-ids not available under target/test-ids");
-        }
-
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(executable.toAbsolutePath().toString());
             processBuilder.inheritIO();
@@ -232,8 +227,6 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             List<String> command = new ArrayList<>();
             command.add("--xml-output-dir");
             command.add(xmlLocation.toString());
-            command.add("--test-ids");
-            command.add(testIdsLocation.toString());
             systemProperties.forEach((key, value) -> command.add("-D" + key + "=" + value));
 
             processBuilder.command().addAll(command);
