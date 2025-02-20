@@ -42,7 +42,6 @@
 package org.graalvm.junit.platform;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
-import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
 import java.lang.reflect.Executable;
