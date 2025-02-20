@@ -45,7 +45,9 @@ import org.graalvm.nativeimage.ImageInfo;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
-import org.junit.platform.launcher.*;
+import org.junit.platform.launcher.Launcher;
+import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
@@ -59,7 +61,9 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -116,7 +120,9 @@ public class NativeImageJUnitLauncher {
         }
 
         if (testIds == null) {
-            throw new RuntimeException("Test ids not provided to the launcher class.");
+            System.out.println("[junit-platform-native] WARNING: test-ids not provided to the NativeImageJUnitLauncher. " +
+                    "This should only happen if you are running tests binary manually (instead of using 'gradle nativeTest' command)");
+            testIds = getTestIDsFromDefaultLocations();
         }
 
         Launcher launcher = LauncherFactory.create();
@@ -157,7 +163,6 @@ public class NativeImageJUnitLauncher {
     private static List<? extends DiscoverySelector> getSelectors(String testIDs) {
         try {
             Path outputDir = Paths.get(testIDs);
-            System.out.println("outputDir = " + outputDir);
             String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
             List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
@@ -195,4 +200,48 @@ public class NativeImageJUnitLauncher {
                 (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
                         && path.getFileName().toString().startsWith(prefix)));
     }
+
+    private static String getTestIDsFromDefaultLocations() {
+        System.out.println("[junit-platform-native] WARNING: Trying to find test-ids on default locations.");
+        Path defaultGradleTestIDsLocation = getGradleTestIdsDefaultLocation();
+        Path defaultMavenTestIDsLocation = getMavenTestIDsDefaultLocation();
+
+        if (Files.exists(defaultGradleTestIDsLocation) && Files.exists(defaultMavenTestIDsLocation)) {
+            throw new RuntimeException("[junit-platform-native] test-ids found in both " + defaultGradleTestIDsLocation + " and " + defaultMavenTestIDsLocation +
+                    ". Please specify the test-ids location by passing the '--test-ids <path-to-test-ids>' argument to your tests executable.");
+        }
+
+        if (Files.exists(defaultGradleTestIDsLocation)) {
+            System.out.println("[junit-platform-native] WARNING: Using test-ids from default Gradle project location:" + defaultGradleTestIDsLocation);
+            return defaultGradleTestIDsLocation.toString();
+        }
+
+        if (Files.exists(defaultMavenTestIDsLocation)) {
+            System.out.println("[junit-platform-native] WARNING: Using test-ids from default Maven project location:" + defaultMavenTestIDsLocation);
+            return defaultMavenTestIDsLocation.toString();
+        }
+
+        throw new RuntimeException("[junit-platform-native] test-ids not provided to the NativeImageJUnitLauncher and cannot be found on default locations. " +
+                "Searched in: " + defaultGradleTestIDsLocation + " and " + defaultMavenTestIDsLocation);
+    }
+
+    private static Path getGradleTestIdsDefaultLocation() {
+        return Path.of(getBuildDirectory("/build/"))
+                .resolve("test-results")
+                .resolve("test")
+                .resolve("testlist")
+                .toAbsolutePath();
+    }
+
+    private static Path getMavenTestIDsDefaultLocation() {
+        return Path.of(getBuildDirectory("/target/"))
+                .resolve("test-ids")
+                .toAbsolutePath();
+    }
+
+    private static String getBuildDirectory(String buildDir) {
+        String executableLocation = Path.of(".").toAbsolutePath().toString();
+        return executableLocation.substring(0, executableLocation.indexOf(buildDir) + buildDir.length());
+    }
+
 }

@@ -65,7 +65,6 @@ import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.graalvm.buildtools.utils.SharedConstants;
-import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
