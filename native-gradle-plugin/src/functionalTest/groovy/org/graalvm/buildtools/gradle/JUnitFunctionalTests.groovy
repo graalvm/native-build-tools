@@ -64,6 +64,7 @@ class JUnitFunctionalTests extends AbstractFunctionalTest {
         tasks {
             succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
         }
+        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
         outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
         outputContains """
 [        10 containers found      ]
