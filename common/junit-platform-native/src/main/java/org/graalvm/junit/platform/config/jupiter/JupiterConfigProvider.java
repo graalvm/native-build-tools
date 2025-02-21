@@ -67,10 +67,16 @@ public class JupiterConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
+        /* Provide support for Timeout annotation */
+        config.registerAllClassMembersForReflection(
+                "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
+                "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
+        );
     }
 
     @Override
     public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+        /* Provide support for various annotations */
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, TestMethodOrder.class, TestMethodOrder::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ArgumentsSource.class, ArgumentsSource::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ExtendWith.class, ExtendWith::value);
