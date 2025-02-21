@@ -51,6 +51,7 @@ class JUnitFunctionalTests extends AbstractGraalVMMavenFunctionalTest {
 
         then:
         buildSucceeded
+        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
         outputContains "[junit-platform-native] Running in 'test listener' mode"
         outputContains """
 [        10 containers found      ]
