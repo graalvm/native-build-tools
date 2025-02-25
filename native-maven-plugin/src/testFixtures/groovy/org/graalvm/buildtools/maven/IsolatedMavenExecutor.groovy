@@ -109,7 +109,7 @@ class IsolatedMavenExecutor {
         // adhoc filtering of Maven's download progress which is only
         // possible to silence since 3.6.5+
         return input.replaceAll("[0-9]+/[0-9]+ [KMG]?B\\s+", "")
-                .replaceAll("^Download(ing|ed)( from)? : .+\$", "")
+                .replaceAll("^Download(ing|ed)( from)? (seed|common): .+\$", "")
                 .replaceAll("^Progress \\([0-9]+\\).+\$", "")
                 .trim()
     }
