@@ -218,6 +218,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         if (!xmlLocation.toFile().exists() && !xmlLocation.toFile().mkdirs()) {
             throw new MojoExecutionException("Failed creating xml output directory");
         }
+
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(executable.toAbsolutePath().toString());
             processBuilder.inheritIO();
@@ -227,6 +228,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             command.add("--xml-output-dir");
             command.add(xmlLocation.toString());
             systemProperties.forEach((key, value) -> command.add("-D" + key + "=" + value));
+
             processBuilder.command().addAll(command);
             processBuilder.environment().putAll(environment);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,24 +39,34 @@
  * SOFTWARE.
  */
 
-package org.graalvm.junit.platform.config.vintage;
+package org.graalvm.buildtools.maven
 
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
-import org.graalvm.junit.platform.config.core.PluginConfigProvider;
-import org.graalvm.nativeimage.hosted.RuntimeSerialization;
+class JUnitFunctionalTests extends AbstractGraalVMMavenFunctionalTest {
 
-public class VintageConfigProvider implements PluginConfigProvider {
+    def "run junit tests"() {
+        withSample("junit-tests")
 
-    @Override
-    public void onLoad(NativeImageConfiguration config) {
-        try {
-            RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
-        } catch (ClassNotFoundException e) {
-            System.out.println("Cannot register declared classes of org.junit.runner.Result for serialization. Vintage JUnit not available.");
-        }
+        when:
+        mvn '-DquickBuild', '-Pnative', 'test'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContains """
+[        10 containers found      ]
+[         0 containers skipped    ]
+[        10 containers started    ]
+[         0 containers aborted    ]
+[        10 containers successful ]
+[         0 containers failed     ]
+[        24 tests found           ]
+[         1 tests skipped         ]
+[        23 tests started         ]
+[         0 tests aborted         ]
+[        23 tests successful      ]
+[         0 tests failed          ]
+""".trim()
     }
 
-    @Override
-    public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
-    }
 }

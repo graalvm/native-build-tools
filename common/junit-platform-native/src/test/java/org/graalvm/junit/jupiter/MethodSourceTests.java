@@ -78,12 +78,17 @@ public class MethodSourceTests {
         protected static void traceArgs(int a, int b) {
             actualArgs.add(new int[]{a, b});
         }
+
+        protected static void clearPreviousExpectedArgs() {
+            expectedArgs.clear();
+        }
     }
 
     public static class EmptyMethodSourceTests extends ArgumentTestBase {
 
         @BeforeAll
         public static void setup() {
+            clearPreviousExpectedArgs();
             addExpectedArgs(1, 5);
             addExpectedArgs(7, 12);
         }
@@ -106,6 +111,7 @@ public class MethodSourceTests {
 
         @BeforeAll
         public static void setup() {
+            clearPreviousExpectedArgs();
             addExpectedArgs(31, 32);
             addExpectedArgs(1, 3);
         }
@@ -128,6 +134,7 @@ public class MethodSourceTests {
 
         @BeforeAll
         public static void setup() {
+            clearPreviousExpectedArgs();
             addExpectedArgs(33, 35);
             addExpectedArgs(99, 1);
         }
@@ -143,6 +150,7 @@ public class MethodSourceTests {
 
         @BeforeAll
         public static void setup() {
+            clearPreviousExpectedArgs();
             addExpectedArgs(33, 35);
             addExpectedArgs(99, 1);
             addExpectedArgs(31, 32);
