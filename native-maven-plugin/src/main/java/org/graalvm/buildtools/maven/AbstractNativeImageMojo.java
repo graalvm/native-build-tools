@@ -43,6 +43,7 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Exclusion;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -56,7 +57,6 @@ import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import javax.inject.Inject;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,6 +173,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     @Parameter(property = "requiredVersion")
     protected String requiredVersion;
+
+    @Parameter(property = "exclusions")
+    protected List<Exclusion> exclusions;
 
     @Component
     protected ToolchainManager toolchainManager;
@@ -306,7 +310,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected void addArtifactToClasspath(Artifact artifact) throws MojoExecutionException {
-        Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(imageClasspath::add);
+        if (!isExcluded(artifact)) {
+            Optional.ofNullable(processSupportedArtifacts(artifact)).ifPresent(imageClasspath::add);
+        }
     }
 
     private static FileSystem openFileSystem(URI uri) throws IOException {
@@ -367,6 +373,22 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
     }
 
+    @Override
+    protected void maybeAddDependencyMetadata(Artifact dependency, Consumer<File> excludeAction) {
+        if (isExcluded(dependency)) {
+            return;
+        }
+        super.maybeAddDependencyMetadata(dependency, excludeAction);
+    }
+
+    protected boolean isExcluded(Artifact dependency) {
+        if (exclusions == null) {
+            return false;
+        }
+        return exclusions.stream()
+            .anyMatch(e -> e.getGroupId().equals(dependency.getGroupId()) && e.getArtifactId().equals(dependency.getArtifactId()));
+    }
+
     /**
      * Returns path to where application classes are stored, or jar artifact if it is produced.
      * @return Path to application classes
@@ -404,7 +426,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected String getClasspath() throws MojoExecutionException {
-        populateClasspath();
+        if (imageClasspath.isEmpty()) {
+            populateClasspath();
+        }
         if (imageClasspath.isEmpty()) {
             throw new MojoExecutionException("Image classpath is empty. " +
                     "Check if your classpath configuration is correct.");
