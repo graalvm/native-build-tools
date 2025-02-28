@@ -42,17 +42,9 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-import spock.lang.Ignore
-import spock.lang.IgnoreIf
-import spock.lang.Issue
-import spock.lang.Requires
-import spock.lang.Unroll
-
-import java.nio.file.Files
 
 class JUnitFunctionalTests extends AbstractFunctionalTest {
-    @Unroll("test if JUint support works with various annotations, reflection and resources")
-    def "run junit tests"() {
+    def "test if JUint support works with various annotations, reflection and resources"() {
 
         given:
         withSample("junit-tests")
@@ -80,6 +72,5 @@ class JUnitFunctionalTests extends AbstractFunctionalTest {
 [        23 tests successful      ]
 [         0 tests failed          ]
 """.trim()
-
     }
 }
