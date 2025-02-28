@@ -195,21 +195,22 @@ public class NativeImageJUnitLauncher {
 
     private static Path getTestIDsFromDefaultLocations() {
         System.out.println("[junit-platform-native] WARNING: Trying to find test-ids on default locations. " +
+                "As this is a fallback mode, it could take a while. " +
                 "This should only happen if you are running tests executable manually.");
         Path defaultGradleTestIDsLocation = getGradleTestIdsDefaultLocation();
         Path defaultMavenTestIDsLocation = getMavenTestIDsDefaultLocation();
 
-        if (Files.exists(defaultGradleTestIDsLocation) && Files.exists(defaultMavenTestIDsLocation)) {
+        if (testIdsDirectoryExists(defaultGradleTestIDsLocation) && testIdsDirectoryExists(defaultMavenTestIDsLocation)) {
             throw new RuntimeException("[junit-platform-native] test-ids found in both " + defaultGradleTestIDsLocation + " and " + defaultMavenTestIDsLocation +
                   ". Please specify the test-ids location by passing the '--test-ids <path-to-test-ids>' argument to your tests executable.");
         }
 
-        if (Files.exists(defaultGradleTestIDsLocation)) {
+        if (testIdsDirectoryExists(defaultGradleTestIDsLocation)) {
             System.out.println("[junit-platform-native] WARNING: Using test-ids from default Gradle project location:" + defaultGradleTestIDsLocation);
             return defaultGradleTestIDsLocation;
         }
 
-        if (Files.exists(defaultMavenTestIDsLocation)) {
+        if (testIdsDirectoryExists(defaultMavenTestIDsLocation)) {
             System.out.println("[junit-platform-native] WARNING: Using test-ids from default Maven project location:" + defaultMavenTestIDsLocation);
             return defaultMavenTestIDsLocation;
         }
@@ -219,17 +220,13 @@ public class NativeImageJUnitLauncher {
     }
 
     private static Path getGradleTestIdsDefaultLocation() {
-        return Path.of(getBuildDirectory(File.separator + "build" + File.separator))
-                .resolve("test-results")
-                .resolve("test")
-                .resolve("testlist")
-                .toAbsolutePath();
+        File gradleBuildDirectory = new File(getBuildDirectory(File.separator + "build" + File.separator));
+        return searchForDirectory(gradleBuildDirectory, "testlist");
     }
 
     private static Path getMavenTestIDsDefaultLocation() {
-        return Path.of(getBuildDirectory(File.separator + "target" + File.separator))
-                .resolve("test-ids")
-                .toAbsolutePath();
+        File mavenTargetDirectory = new File(getBuildDirectory(File.separator + "target" + File.separator));
+        return searchForDirectory(mavenTargetDirectory, "test-ids");
     }
 
     private static String getBuildDirectory(String buildDir) {
@@ -240,6 +237,34 @@ public class NativeImageJUnitLauncher {
         }
 
         return executableLocation.substring(0, index + buildDir.length());
+    }
+
+    private static Path searchForDirectory(File root, String target) {
+        if (root == null || !root.isDirectory()) {
+            return null;
+        }
+
+        if (root.getName().equals(target)) {
+            return Path.of(root.getAbsolutePath());
+        }
+
+        File[] content = root.listFiles();
+        if (content == null) {
+            return null;
+        }
+
+        for (File file : content) {
+            Path result = searchForDirectory(file, target);
+            if (result != null) {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    private static boolean testIdsDirectoryExists(Path directory) {
+        return directory != null && Files.exists(directory);
     }
 
 }
