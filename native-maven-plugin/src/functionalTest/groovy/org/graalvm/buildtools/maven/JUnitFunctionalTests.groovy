@@ -42,8 +42,7 @@
 package org.graalvm.buildtools.maven
 
 class JUnitFunctionalTests extends AbstractGraalVMMavenFunctionalTest {
-
-    def "run junit tests"() {
+    def "test if JUint support works with various annotations, reflection and resources"() {
         withSample("junit-tests")
 
         when:
@@ -68,5 +67,4 @@ class JUnitFunctionalTests extends AbstractGraalVMMavenFunctionalTest {
 [         0 tests failed          ]
 """.trim()
     }
-
 }
