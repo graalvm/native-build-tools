@@ -1,6 +1,6 @@
 # Documentation for Developers
 
-This document describes how to set up and develop native-build-tools on your local machine.
+This document describes how to set up and develop Native Build Tools on your local machine.
 
 ## Environment
 
@@ -8,12 +8,12 @@ The project uses Gradle as its build system. At the very minimum, you should set
 
 Some build tasks require a GraalVM JDK (e.g., tests). You should set `GRAALVM_HOME` to an appropriate GraalVM JDK.
 
-## IDE setup
+## IDE Setup
 
-The native-build-tools repo is set up as a multi-project Gradle project, with the Maven and Gradle plugins declared as subprojects of the root project.
+The Native Build Tools repo is set up as a multi-project Gradle project, with the Maven and Gradle plugins declared as subprojects of the root project.
 To set the project up in your IDE (e.g., IntelliJ IDEA), import the root project and the IDE should automatically import the subprojects.
 
-## Building & testing
+## Building and Testing
 
 You can use the various commands in the [Gradle build lifecycle](https://docs.gradle.org/current/userguide/build_lifecycle.html) to build and test the project.
 Some examples (all executed from the root of the repository):
@@ -30,7 +30,7 @@ Some examples (all executed from the root of the repository):
 ```
 
 
-## Debugging plugin(s)
+## Debugging Plugin(s)
 It is often useful to attach a debugger to the Gradle and Maven plugins during a project build.
 
 For the Gradle plugin, this can be accomplished by passing debugger options to the Gradle daemon via `org.gradle.jvmargs`, for example:
@@ -43,7 +43,7 @@ The Gradle daemon will suspend on start-up, wait for you to attach a debugger, a
 
 For the Maven plugin, simply use the `mvnDebug` command in place of the `mvn` command.
 
-## Testing local changes with an existing project
+## Testing Local Changes with an Existing Project
 A common development task is to modify a plugin and then test it with an existing project.
 
 To do this, first modify the project as necessary, and then build and publish the plugins to the local Maven repository:
@@ -85,7 +85,4 @@ For Maven, simply bump the version and it should try the local repository automa
 +        <native.maven.plugin.version>0.10.5-SNAPSHOT</native.maven.plugin.version>
 ```
 
-Then, run your build as usual. Gradle should find the plugin in the local repository and use it for the build.
-
-
-
+Then, run your build as usual. Gradle/Maven should find the plugin in the local repository and use it for the build.
