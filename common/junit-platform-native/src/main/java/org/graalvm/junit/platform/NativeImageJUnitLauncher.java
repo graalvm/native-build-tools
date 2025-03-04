@@ -154,9 +154,9 @@ public class NativeImageJUnitLauncher {
         try {
             String systemPropertyBasedLocation = System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME);
             Path uniqueIdDirectory = systemPropertyBasedLocation != null ? Path.of(systemPropertyBasedLocation) : getTestIDsFromDefaultLocations();
+
             String uniqueIdFilePrefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
-
             if (uniqueIdFilePrefix == null) {
                 throw new RuntimeException("Test-ids unique id file prefix not provided to the NativeImageJUnitLauncher.");
             }
