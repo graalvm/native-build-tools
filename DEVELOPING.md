@@ -19,13 +19,19 @@ You can use the various commands in the [Gradle build lifecycle](https://docs.gr
 Some examples (all executed from the root of the repository):
 
 ```bash
-# Build all projects
+# Compile all projects
 ./gradlew assemble
 
-# Build only the native-gradle-plugin (for example)
+# Run unit tests in all projects
+./gradlew test
+
+# Run functional tests in all projects
+./gradlew funTest
+
+# Compile only the native-gradle-plugin (for example)
 ./gradlew :native-gradle-plugin:assemble
 
-# Build and run all tests
+# Build and run all tests, complete (and very long) build
 ./gradlew build
 ```
 
@@ -53,7 +59,7 @@ To do this, first modify the project as necessary, and then build and publish th
 The above command publishes to a "common" repository located at `build/common-repo`.
 
 Next, update the project build files:
-1. Update the version string. The version can be found manually by searching for the published artifacts in `~/.m2/repository/org/graalvm/buildtools/native/`, or alternatively by checking the `nativeBuildTools` property [here](gradle/libs.versions.toml).
+1. Update the version string. The version can be found manually by searching for the published artifacts in `build/common-repo`, or alternatively by checking the `nativeBuildTools` property [here](gradle/libs.versions.toml).
 2. Update the list of repositories to include and prioritize the common repo.
 
 ### Gradle
