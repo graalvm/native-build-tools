@@ -26,7 +26,7 @@ concurrency:
 jobs:
   populate-matrix:
     name: "Set matrix"
-    runs-on: "ubuntu-20.04"
+    runs-on: "ubuntu-22.04"
     timeout-minutes: 5
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -78,7 +78,7 @@ jobs:
       fail-fast: false
       matrix:
         java-version: [ 17 ]
-        os: [ ubuntu-20.04 ]
+        os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4

@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         java-version: [ 17 ]
-        os: [ ubuntu-20.04 ]
+        os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
