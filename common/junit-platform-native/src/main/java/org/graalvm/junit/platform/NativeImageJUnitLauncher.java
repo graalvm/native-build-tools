@@ -157,6 +157,10 @@ public class NativeImageJUnitLauncher {
             String uniqueIdFilePrefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
 
+            if (uniqueIdFilePrefix == null) {
+                throw new RuntimeException("Test-ids unique id file prefix not provided to the NativeImageJUnitLauncher.");
+            }
+
             List<UniqueIdSelector> selectors = readAllFiles(uniqueIdDirectory, uniqueIdFilePrefix)
                     .map(DiscoverySelectors::selectUniqueId)
                     .collect(Collectors.toList());
