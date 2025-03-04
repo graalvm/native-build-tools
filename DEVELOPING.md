@@ -46,16 +46,18 @@ For the Maven plugin, simply use the `mvnDebug` command in place of the `mvn` co
 ## Testing Local Changes with an Existing Project
 A common development task is to modify a plugin and then test it with an existing project.
 
-To do this, first modify the project as necessary, and then build and publish the plugins to the local Maven repository:
+To do this, first modify the project as necessary, and then build and publish the plugins:
 ```bash
-./gradlew publishToMavenLocal --no-parallel
+./gradlew publishAllPublicationsToCommonRepository --no-parallel
 ```
+The above command publishes to a "common" repository located at `build/common-repo`.
 
-Next, update the plugin version string in the project build files.
-The version can be found manually by searching for the published artifacts in `~/.m2/repository/org/graalvm/buildtools/native/`, or alternatively by checking the `nativeBuildTools` property [here](gradle/libs.versions.toml).
+Next, update the project build files:
+1. Update the version string. The version can be found manually by searching for the published artifacts in `~/.m2/repository/org/graalvm/buildtools/native/`, or alternatively by checking the `nativeBuildTools` property [here](gradle/libs.versions.toml).
+2. Update the list of repositories to include and prioritize the common repo.
 
-For Gradle, the change looks like the following.
-You may also need to direct Gradle to use the local Maven repository to resolve the plugin:
+### Gradle
+Make the following changes to the build files:
 ```bash
 # build.gradle
  plugins {
@@ -64,25 +66,48 @@ You may also need to direct Gradle to use the local Maven repository to resolve 
 +    id 'org.graalvm.buildtools.native' version '0.10.5-SNAPSHOT'
  }
 
-  repositories {
-+    mavenLocal()
+ repositories {
++    maven {
++        name = "common"
++        url = "$NATIVE_BUILD_TOOLS_ROOT/build/common-repo"
++    }
      ...
  }
 
 # settings.gradle
-pluginManagement {
-  repositories {
-+     mavenLocal()
-      ...
-  }
-}
+ pluginManagement {
+     repositories {
++        maven {
++            name = "common"
++            url = "$NATIVE_BUILD_TOOLS_ROOT/build/common-repo"
++        }
+         # NB: If repositories were not specified before, declaring the common
+         # repo will overwrite the default repository; you may also need to
+         # declare that repository explicitly.
+         mavenCentral()
+         ...
+     }
+ }
 ```
+Then, run the Gradle command as usual.
 
-For Maven, simply bump the version and it should try the local repository automatically:
+### Maven
+Make the following changes to pom.xml:
 ```bash
 # pom.xml
--        <native.maven.plugin.version>0.9.25</native.maven.plugin.version>
-+        <native.maven.plugin.version>0.10.5-SNAPSHOT</native.maven.plugin.version>
+ <project ...>
+   <properties>
+-    <native.maven.plugin.version>0.9.25</native.maven.plugin.version>
++    <native.maven.plugin.version>0.10.5-SNAPSHOT</native.maven.plugin.version>
+   </properties>
+   ...
++  <pluginRepositories>
++    <pluginRepository>
++      <id>common</id>
++      <url>file://$NATIVE_BUILD_TOOLS_ROOT/build/common-repo</url>
++    </pluginRepository>
++  </pluginRepositories>
+ </project>
 ```
 
-Then, run your build as usual. Gradle/Maven should find the plugin in the local repository and use it for the build.
+Then, run the Maven command with the `-U` flag to force Maven to use an updated snapshot (e.g., `mvn -Pnative package -U`).
