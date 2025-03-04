@@ -111,10 +111,18 @@ public final class JUnitPlatformFeature implements Feature {
 
     private List<? extends DiscoverySelector> getSelectors() {
         try {
-            Path uniqueIdDirectory = Path.of(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
+            String uniqueIdDirectoryProperty = System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME);
+            if (uniqueIdDirectoryProperty == null) {
+                throw new IllegalStateException("Cannot determine test-ids directory because junit.platform.listeners.uid.tracking.output.dir property is null");
+            }
+
             String uniqueIdFilePrefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
+            if (uniqueIdFilePrefix == null) {
+                throw new IllegalStateException("Cannot determine unique test-ids prefix because junit.platform.listeners.uid.tracking.output.file.prefix property is null");
+            }
 
+            Path uniqueIdDirectory = Path.of(uniqueIdDirectoryProperty);
             List<UniqueIdSelector> selectors = readAllFiles(uniqueIdDirectory, uniqueIdFilePrefix)
                     .map(DiscoverySelectors::selectUniqueId)
                     .collect(Collectors.toList());
