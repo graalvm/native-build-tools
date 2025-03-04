@@ -9,9 +9,9 @@ End-user documentation about the plugins can be found [here](https://graalvm.git
 This plugin can be built with this command (from the root directory):
 
 ```bash
-./gradlew :native-maven-plugin:publishToMavenLocal --no-parallel
+./gradlew :native-maven-plugin:publishAllPublicationsToCommonRepository --no-parallel
 ```
 
-For more details, see the [Developer documentation](../DEVELOPING.md).
+A snapshot will be published to `build/common-repo`. For more details, see the [Developer documentation](../DEVELOPING.md).
 
 *You can also take a look at CI workflow [here](../.github/workflows/test-native-maven-plugin.yml).*
