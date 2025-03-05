@@ -4,19 +4,19 @@ This document describes how to set up and develop Native Build Tools on your loc
 
 ## Environment
 
-The project uses Gradle as its build system. At the very minimum, you should set `JAVA_HOME` to a [Gradle-compatible JDK](https://docs.gradle.org/current/userguide/compatibility.html).
+Start by setting `JAVA_HOME` to a [Gradle-compatible JDK](https://docs.gradle.org/current/userguide/compatibility.html).
 
 Some build tasks require a GraalVM JDK (e.g., tests). You should set `GRAALVM_HOME` to an appropriate GraalVM JDK.
 
 ## IDE Setup
 
-The Native Build Tools repo is set up as a multi-project Gradle project, with the Maven and Gradle plugins declared as subprojects of the root project.
-To set the project up in your IDE (e.g., IntelliJ IDEA), import the root project and the IDE should automatically import the subprojects.
+The Native Build Tools repository is structured as a Gradle multi-project, with the Maven and Gradle plugins declared as subprojects of the root project.
+To configure it in your IDE (e.g., IntelliJ IDEA), import the root project, and the IDE should automatically detect and include the subprojects.
 
 ## Building and Testing
 
 You can use the various commands in the [Gradle build lifecycle](https://docs.gradle.org/current/userguide/build_lifecycle.html) to build and test the project.
-Some examples (all executed from the root of the repository):
+Some examples are (all executed from the root of the repository):
 
 ```bash
 # Compile all projects
@@ -35,8 +35,8 @@ Some examples (all executed from the root of the repository):
 ./gradlew build
 ```
 
-
 ## Debugging Plugin(s)
+
 It is often useful to attach a debugger to the Gradle and Maven plugins during a project build.
 
 For the Gradle plugin, this can be accomplished by passing debugger options to the Gradle daemon via `org.gradle.jvmargs`, for example:
@@ -50,6 +50,7 @@ The Gradle daemon will suspend on start-up, wait for you to attach a debugger, a
 For the Maven plugin, simply use the `mvnDebug` command in place of the `mvn` command.
 
 ## Testing Local Changes with an Existing Project
+
 A common development task is to modify a plugin and then test it with an existing project.
 
 To do this, first modify the project as necessary, and then build and publish the plugins:
@@ -63,6 +64,7 @@ Next, update the project build files:
 2. Update the list of repositories to include and prioritize the common repo.
 
 ### Gradle
+
 Make the following changes to the build files:
 ```bash
 # build.gradle
@@ -98,7 +100,8 @@ Make the following changes to the build files:
 Then, run the Gradle command as usual.
 
 ### Maven
-Make the following changes to pom.xml:
+
+Make the following changes to _pom.xml_:
 ```bash
 # pom.xml
  <project ...>
