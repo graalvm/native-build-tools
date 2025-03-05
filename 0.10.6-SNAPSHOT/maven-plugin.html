@@ -767,6 +767,24 @@ image name is not supplied, the artifact ID of the project will be used by defau
 </div>
 <div class="dlist">
 <dl>
+<dt class="hdlist1"><code>&lt;exclusions&gt;</code></dt>
+<dd>
+<p>This can be used to exclude artifacts from native-image compilation.</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>&lt;exclusions&gt;
+    &lt;exclusion&gt;
+       &lt;groupId&gt;org.example&lt;/groupId&gt;
+       &lt;artifactId&gt;example&lt;/artifactId&gt;
+    &lt;/exclusion&gt;
+&lt;/exclusions&gt;</pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
 <dt class="hdlist1"><code>&lt;classesDirectory&gt;</code></dt>
 <dd>
 <p>   If you want to specify custom path to the JAR, or a custom directory that contains
