@@ -12,7 +12,7 @@ This plugin can be built with this command (from the root directory):
 ./gradlew :native-gradle-plugin:publishAllPublicationsToCommonRepository --no-parallel
 ```
 
-A snapshot will be published to `build/common-repo`. For more details, see the [Developer documentation](../DEVELOPING.md).
+The command will publish a snapshot to `build/common-repo`. For more details, see the [Developer documentation](../DEVELOPING.md).
 
 In order to run testing part of this plugin you need to get (or build) corresponding `junit-platform-native` artifact.
 
