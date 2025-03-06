@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,24 +39,10 @@
  * SOFTWARE.
  */
 
-package org.graalvm.junit.platform.config.vintage;
-
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
-import org.graalvm.junit.platform.config.core.PluginConfigProvider;
-import org.graalvm.nativeimage.hosted.RuntimeSerialization;
-
-public class VintageConfigProvider implements PluginConfigProvider {
-
-    @Override
-    public void onLoad(NativeImageConfiguration config) {
-        try {
-            RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
-        } catch (ClassNotFoundException e) {
-            System.out.println("Cannot register declared classes of org.junit.runner.Result for serialization. Vintage JUnit not available.");
-        }
-    }
-
-    @Override
-    public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version getProperty('native.gradle.plugin.version')
     }
 }
+
+rootProject.name = 'junit-tests'
