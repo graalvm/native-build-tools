@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>graalvm-reachability-metadata</artifactId>
+  <versioning>
+    <latest>0.10.6-SNAPSHOT</latest>
+    <versions>
+      <version>0.10.6-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20250306140612</lastUpdated>
+  </versioning>
+</metadata>
