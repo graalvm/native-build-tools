@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.tasks.LayerOptions;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileSystemLocation;
@@ -73,6 +74,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<Boolean> useArgFile;
     private final Provider<Integer> majorJDKVersion;
     private final Provider<Boolean> useColors;
+    private final Provider<List<LayerOptions>> layerOptions;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
@@ -81,7 +83,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile,
                                           Provider<Integer> majorJDKVersion,
-                                          Provider<Boolean> useColors) {
+                                          Provider<Boolean> useColors,
+                                          Provider<List<LayerOptions>> layerOptions) {
         this.options = options;
         this.executableName = executableName;
         this.workingDirectory = workingDirectory;
@@ -90,6 +93,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         this.useArgFile = useArgFile;
         this.majorJDKVersion = majorJDKVersion;
         this.useColors = useColors;
+        this.layerOptions = layerOptions;
     }
 
     @Nested
@@ -112,14 +116,68 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         return classpathJar;
     }
 
+    @Input
+    public Provider<List<LayerOptions>> getLayerOptions() {
+        return layerOptions;
+    }
+
     @Override
     public List<String> asArguments() {
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
+        boolean hasLayers = layerOptions.isPresent() && !layerOptions.get().isEmpty();
+        String layerCreateName = null;
+        if (hasLayers) {
+            cliArgs.add("-H:+UnlockExperimentalVMOptions");
+            var layers = getLayerOptions().get();
+            StringBuilder arg = new StringBuilder();
+            for (LayerOptions layer : layers) {
+                if (arg.length() > 0) {
+                    arg.append(" ");
+                }
+                switch (layer.getMode().get()) {
+                    case CREATE:
+                        arg.append("-H:LayerCreate");
+                        layerCreateName = layer.getLayerName().get();
+                        break;
+                    case USE:
+                        arg.append("-H:LayerUse");
+                        break;
+                }
+                arg.append("=").append(layer.getLayerName().get()).append(".nil");
+                var modules = layer.getModules().get();
+                var classpath = layer.getJars();
+                boolean hasModules = !modules.isEmpty();
+                boolean hasPackage = layer.getPackages().isPresent() && !layer.getPackages().get().isEmpty();
+                boolean hasJars = !classpath.getFiles().isEmpty();
+                if (hasModules || hasPackage || hasJars) {
+                    var packages = layer.getPackages().get();
+                    arg.append(",");
+                    if (hasModules) {
+                        arg.append(modules.stream().map(m -> "module=" + m).collect(Collectors.joining(",")));
+                    }
+                    if (hasPackage) {
+                        if (hasModules) {
+                            arg.append(",");
+                        }
+                        arg.append(packages.stream().map(p -> "package=" + p).collect(Collectors.joining(",")));
+                    }
+                    if (hasJars) {
+                        if (hasModules||hasPackage) {
+                            arg.append(",");
+                        }
+                        arg.append(classpath.getFiles().stream().map(p -> "path=" + p).collect(Collectors.joining(",")));
+                    }
+                }
+            }
+            cliArgs.add(arg.toString());
+        }
         cliArgs.addAll(options.getExcludeConfigArgs().get());
-        cliArgs.add("-cp");
-        String classpathString = buildClasspathString(options);
-        cliArgs.add(classpathString);
+        String classpathString = buildClasspathString(options).trim();
+        if (!classpathString.isEmpty()) {
+            cliArgs.add("-cp");
+            cliArgs.add(classpathString);
+        }
         appendBooleanOption(cliArgs, options.getDebug(), "-g");
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
         appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
@@ -131,12 +189,17 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getPgoInstrument(), "--pgo-instrument");
 
         String targetOutputPath = getExecutableName().get();
+        if (layerCreateName != null) {
+            targetOutputPath = layerCreateName;
+            if (!layerCreateName.startsWith("lib")) {
+                targetOutputPath = "lib-" + targetOutputPath;
+            }
+        }
         if (getOutputDirectory().isPresent()) {
             targetOutputPath = getOutputDirectory().get() + File.separator + targetOutputPath;
         }
         cliArgs.add("-o");
         cliArgs.add(targetOutputPath);
-
         options.getSystemProperties().get().forEach((n, v) -> {
             if (v != null) {
                 cliArgs.add("-D" + n + "=\"" + v + "\"");
@@ -146,12 +209,12 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         options.getJvmArgs().get().forEach(jvmArg -> cliArgs.add("-J" + jvmArg));
 
         String configFiles = options.getConfigurationFileDirectories()
-                .getElements()
-                .get()
-                .stream()
-                .map(FileSystemLocation::getAsFile)
-                .map(File::getAbsolutePath)
-                .collect(Collectors.joining(","));
+            .getElements()
+            .get()
+            .stream()
+            .map(FileSystemLocation::getAsFile)
+            .map(File::getAbsolutePath)
+            .collect(Collectors.joining(","));
         if (!configFiles.isEmpty()) {
             cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
         }

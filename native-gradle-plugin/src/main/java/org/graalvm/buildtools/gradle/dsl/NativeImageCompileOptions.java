@@ -232,4 +232,11 @@ public interface NativeImageCompileOptions {
     @PathSensitive(PathSensitivity.NONE)
     @Optional
     DirectoryProperty getPgoProfilesDirectory();
+
+    /**
+     * If set to true, the build will use layered images.
+     * @return the use layers flag
+     */
+    @Input
+    Property<Boolean> getUseLayers();
 }

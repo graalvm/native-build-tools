@@ -171,4 +171,9 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     public DirectoryProperty getPgoProfilesDirectory() {
         return options.getPgoProfilesDirectory();
     }
+
+    @Override
+    public Property<Boolean> getUseLayers() {
+        return options.getUseLayers();
+    }
 }

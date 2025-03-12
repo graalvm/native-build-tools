@@ -270,6 +270,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         DirectoryProperty pgoProfileDir = objectFactory.directoryProperty();
         pgoProfileDir.convention(layout.getProjectDirectory().dir("src/pgo-profiles/" + name));
         getPgoProfilesDirectory().convention(pgoProfileDir.map(d -> d.getAsFile().exists() ? d : null));
+        getUseLayers().convention(false);
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
