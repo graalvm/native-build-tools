@@ -179,13 +179,13 @@ public class NativeImageJUnitLauncher {
     }
 
     private static Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
-        return findFiles(dir, prefix).map(outputFile -> {
+        return findFiles(dir, prefix).flatMap(outputFile -> {
             try {
-                return Files.readAllLines(outputFile);
+                return Files.readAllLines(outputFile).stream();
             } catch (IOException ex) {
                 throw new UncheckedIOException(ex);
             }
-        }).flatMap(List::stream);
+        });
     }
 
     private static Stream<Path> findFiles(Path dir, String prefix) throws IOException {
