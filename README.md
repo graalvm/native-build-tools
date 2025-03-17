@@ -17,10 +17,10 @@ Documentation for common developer tasks can be found [here](DEVELOPING.md).
 ### Common subprojects
  * [junit-platform-native](common/junit-platform-native/README.md)
 
-### Getting Started
+### Walkthroughs
 
-* [Getting Started with the Maven Plugin](https://graalvm.github.io/native-build-tools/latest/maven-plugin-quickstart.html)
-* [Getting Started with the Gradle Plugin](https://graalvm.github.io/native-build-tools/latest/gradle-plugin-quickstart.html)
+* [Maven Plugin End-to-End Guide](https://graalvm.github.io/native-build-tools/latest/end-to-end-maven-guide.html)
+* [Gradle Plugin End-to-End Guide](https://graalvm.github.io/native-build-tools/latest/end-to-end-gradle-guide.html)
 
 ### Samples
 
