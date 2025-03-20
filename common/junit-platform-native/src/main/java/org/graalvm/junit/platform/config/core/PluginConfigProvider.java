@@ -41,10 +41,18 @@
 
 package org.graalvm.junit.platform.config.core;
 
-public interface PluginConfigProvider {
+public abstract class PluginConfigProvider {
 
-    void onLoad(NativeImageConfiguration config);
+    protected ClassLoader applicationClassLoader;
+    protected NativeImageConfiguration nativeImageConfigImpl;
 
-    void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
 
+    public abstract void onLoad(NativeImageConfiguration config);
+
+    public abstract void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
+
+    public final void initialize(ClassLoader classLoader, NativeImageConfiguration nic) {
+        applicationClassLoader = classLoader;
+        nativeImageConfigImpl = nic;
+    }
 }

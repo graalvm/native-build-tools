@@ -63,7 +63,7 @@ import java.util.List;
 
 import static org.graalvm.junit.platform.JUnitPlatformFeature.debug;
 
-public class JupiterConfigProvider implements PluginConfigProvider {
+public class JupiterConfigProvider extends PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
