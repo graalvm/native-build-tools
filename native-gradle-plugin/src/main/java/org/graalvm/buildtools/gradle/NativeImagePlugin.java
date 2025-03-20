@@ -650,7 +650,6 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Following ensures that required feature jar is on classpath for every project
         injectTestPluginDependencies(project, graalExtension.getTestSupport());
-
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(deriveTaskName(name, "native", "Compile"), BuildNativeImageTask.class, task -> {
             task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
             task.getTestListDirectory().set(testListDirectory);
@@ -662,6 +661,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             // Later this will be replaced by a dedicated task not requiring execution of tests
             testList.from(testListDirectory).builtBy(testTask);
             testOptions.getClasspath().from(testList);
+            testOptions.getRuntimeArgs().add("-D" + JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR + "=" + testResultsDir.dir(testTask.getName() + "/testlist").get().getAsFile().getAbsolutePath());
         });
         if (isPrimaryTest) {
             tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
@@ -764,14 +764,17 @@ public class NativeImagePlugin implements Plugin<Project> {
         testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
         testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
+
         ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
         runtimeArgs.add("--xml-output-dir");
         runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "-native").map(d -> d.getAsFile().getAbsolutePath()));
+
         testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(configs.getImageClasspathConfiguration());
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
+
         return testExtension;
     }
 
