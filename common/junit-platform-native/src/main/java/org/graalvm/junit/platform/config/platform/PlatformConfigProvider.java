@@ -47,7 +47,7 @@ import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 import org.junit.platform.launcher.TestIdentifier;
 
 
-public class PlatformConfigProvider implements PluginConfigProvider {
+public class PlatformConfigProvider extends PluginConfigProvider {
 
     @Override
     public void onLoad(NativeImageConfiguration config) {

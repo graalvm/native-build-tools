@@ -84,6 +84,11 @@ public final class JUnitPlatformFeature implements Feature {
         }
     }
 
+    @Override
+    public void afterRegistration(AfterRegistrationAccess access) {
+        extensionConfigProviders.forEach(p -> p.initialize(access.getApplicationClassLoader(), nativeImageConfigImpl));
+    }
+
     public static boolean debug() {
         return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
     }
