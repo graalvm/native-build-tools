@@ -198,7 +198,8 @@ public class NativeImageJUnitLauncher {
     }
 
     private static Path getTestIDsFromDefaultLocations() {
-        System.out.println("[junit-platform-native] WARNING: Trying to find test-ids on default locations. " +
+        System.out.println("[junit-platform-native] WARNING: -djunit.platform.listeners.uid.tracking.output.dir not specified, " +
+                "trying to find test-ids on default Gradle/Maven locations. " +
                 "As this is a fallback mode, it could take a while. " +
                 "This should only happen if you are running tests executable manually.");
         Path defaultGradleTestIDsLocation = getGradleTestIdsDefaultLocation();
@@ -219,8 +220,7 @@ public class NativeImageJUnitLauncher {
             return defaultMavenTestIDsLocation;
         }
 
-        throw new RuntimeException("[junit-platform-native] test-ids not provided to the NativeImageJUnitLauncher and cannot be found on default locations. " +
-                  "Searched in: " + defaultGradleTestIDsLocation + " and " + defaultMavenTestIDsLocation);
+        throw new RuntimeException("[junit-platform-native] test-ids not provided to the NativeImageJUnitLauncher and cannot be found on default locations.");
     }
 
     private static Path getGradleTestIdsDefaultLocation() {
