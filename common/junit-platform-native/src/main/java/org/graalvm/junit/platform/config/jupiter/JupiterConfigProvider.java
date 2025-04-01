@@ -84,7 +84,10 @@ public class JupiterConfigProvider implements PluginConfigProvider {
                 "org.junit.jupiter.params.provider.EnumSource$Mode",
                 // new in Junit 5.10
                 "org.junit.platform.launcher.core.LauncherConfig",
-                "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
+                "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter",
+                // new in Junit 5.13?
+                "org.junit.jupiter.api.DisplayNameGenerator$IndicativeSentences",
+                "org.junit.jupiter.engine.discovery.ClassSelectorResolver"
         );
 
         if (getMajorJDKVersion() >= 21) {
