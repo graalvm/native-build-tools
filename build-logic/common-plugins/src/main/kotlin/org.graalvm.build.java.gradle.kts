@@ -59,6 +59,13 @@ java {
 
 repositories {
     mavenCentral()
+    maven(url = "https://oss.sonatype.org/content/repositories/snapshots") {
+        mavenContent {
+            snapshotsOnly()
+            includeGroup("org.junit")
+            includeGroupByRegex("org\\.junit\\..*")
+        }
+    }
 }
 
 group = "org.graalvm.buildtools"
