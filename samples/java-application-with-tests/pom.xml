@@ -104,6 +104,7 @@
                             <skip>false</skip>
                             <imageName>${imageName}</imageName>
                             <fallback>false</fallback>
+                            <verbose>true</verbose>
                         </configuration>
                     </plugin>
                 </plugins>
