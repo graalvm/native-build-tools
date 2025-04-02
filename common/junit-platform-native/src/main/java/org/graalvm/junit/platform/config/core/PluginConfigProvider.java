@@ -41,6 +41,10 @@
 
 package org.graalvm.junit.platform.config.core;
 
+import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
+
+import java.util.List;
+
 public abstract class PluginConfigProvider {
 
     protected ClassLoader applicationClassLoader;
@@ -54,5 +58,11 @@ public abstract class PluginConfigProvider {
     public final void initialize(ClassLoader classLoader, NativeImageConfiguration nic) {
         applicationClassLoader = classLoader;
         nativeImageConfigImpl = nic;
+    }
+
+    protected void initializeClassesForOlderJDKs(List<String> packages) {
+        if (Runtime.version().feature() <= 21) {
+            packages.forEach(RuntimeClassInitialization::initializeAtBuildTime);
+        }
     }
 }

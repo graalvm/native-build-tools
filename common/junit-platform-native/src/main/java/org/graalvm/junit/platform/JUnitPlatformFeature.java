@@ -44,7 +44,6 @@ package org.graalvm.junit.platform;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
-import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
 import org.junit.platform.engine.DiscoverySelector;
@@ -100,13 +99,6 @@ public final class JUnitPlatformFeature implements Feature {
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        /* Before GraalVM version 22 we couldn't have classes initialized at run-time
-           that are also used at build-time but not added to the image heap */
-        if (Runtime.version().feature() <= 21) {
-            RuntimeClassInitialization.initializeAtBuildTime("org.junit");
-            RuntimeClassInitialization.initializeAtBuildTime("java");
-        }
-
         List<? extends DiscoverySelector> selectors = getSelectors();
         registerTestClassesForReflection(selectors);
 
