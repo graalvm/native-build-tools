@@ -62,6 +62,7 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -297,8 +298,17 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             .stream()
             .map(ArtifactResult::getArtifact)
             .filter(a -> !modulesAlreadyOnClasspath.contains(new Module(a.getGroupId(), a.getArtifactId())))
+            .filter(a -> imageClasspath.stream().noneMatch(entry -> matchGroup(entry, a.getGroupId()) && matchArtifact(entry, a.getArtifactId())))
             .map(a -> a.getFile().toPath())
             .collect(Collectors.toList());
+    }
+
+    private boolean matchGroup(Path entry, String groupId) {
+        return entry.toString().contains(groupId.replace(".", File.separator));
+    }
+
+    private boolean matchArtifact(Path entry, String artifactId) {
+        return entry.toString().contains(artifactId);
     }
 
     private static final class Module {
