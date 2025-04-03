@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.openjson)
     testImplementation(platform(libs.test.junit.bom))
     testImplementation(libs.test.junit.jupiter.core)
+    testRuntimeOnly(libs.test.junit.platform.launcher)
 }
 
 tasks.withType<FetchRepositoryMetadata>().configureEach {

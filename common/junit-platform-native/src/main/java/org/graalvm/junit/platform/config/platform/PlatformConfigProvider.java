@@ -62,7 +62,9 @@ public class PlatformConfigProvider implements PluginConfigProvider {
                 // https://github.com/graalvm/native-build-tools/issues/300
                 "org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener",
                 // https://github.com/graalvm/native-build-tools/issues/602
-                "org.junit.platform.commons.util.LruCache"
+                "org.junit.platform.commons.util.LruCache",
+                // new in Junit 5.13?
+                "org.junit.platform.engine.support.store.NamespacedHierarchicalStore$EvaluatedValue"
         );
 
         if (getMajorJDKVersion() >= 21) {

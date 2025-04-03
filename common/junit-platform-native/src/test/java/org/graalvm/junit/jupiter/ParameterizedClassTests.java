@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,63 +39,46 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+package org.graalvm.junit.jupiter;
 
-/**
- * Defines common logic used by all libraries GraalVM projects in this repository
- */
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-plugins {
-    java
-}
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+@ParameterizedClass
+@ValueSource(ints = { 1, 2 })
+class ParameterizedClassTests {
+
+    @Parameter
+    int i;
+
+    @ParameterizedTest
+    @ValueSource(ints = { 1, 2 })
+    void parameterizedTest(int j) {
+        assertTrue(0 < i && i < 3);
+        assertTrue(0 < j && j < 3);
     }
-    withJavadocJar()
-    withSourcesJar()
-}
 
-repositories {
-    mavenCentral()
-    maven(url = "https://oss.sonatype.org/content/repositories/snapshots") {
-        mavenContent {
-            snapshotsOnly()
-            includeGroup("org.junit")
-            includeGroupByRegex("org\\.junit\\..*")
+    @Nested
+    @ParameterizedClass
+    @ValueSource(ints = { 1, 2 })
+    class Inner {
+
+        final int j;
+
+        Inner(int j) {
+            this.j = j;
+        }
+
+        @Test
+        void regularTest() {
+            assertTrue(0 < i && i < 3);
+            assertTrue(0 < j && j < 3);
         }
     }
-}
-
-group = "org.graalvm.buildtools"
-
-extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    val versionFromCatalog = catalogs.named("libs")
-            .findVersion("nativeBuildTools")
-    if (versionFromCatalog.isPresent()) {
-        version = versionFromCatalog.get().requiredVersion
-    } else {
-        throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
-    }
-}
-
-tasks.javadoc {
-    // Use a different toolchain version from the compilation
-    // so that we can generate HTML5 docs
-    javadocTool.set(javaToolchains.javadocToolFor {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    })
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
-}
-
-val inspections by tasks.registering {
-    dependsOn(tasks.withType<Checkstyle>())
 }

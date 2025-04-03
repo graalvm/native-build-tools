@@ -61,6 +61,7 @@ public class MethodSourceTests {
         @BeforeAll
         public static void setup() {
             actualArgs.clear();
+            expectedArgs.clear();
         }
 
         @AfterAll

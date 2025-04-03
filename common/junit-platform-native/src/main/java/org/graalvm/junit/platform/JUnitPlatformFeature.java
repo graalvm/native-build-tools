@@ -59,6 +59,7 @@ import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -154,6 +155,11 @@ public final class JUnitPlatformFeature implements Feature {
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null && superClass != Object.class) {
             registerTestClassForReflection(superClass);
+        }
+        for (var declaredClass : clazz.getDeclaredClasses()) {
+            if (!Modifier.isStatic(declaredClass.getModifiers())) {
+                registerTestClassForReflection(declaredClass);
+            }
         }
     }
 
