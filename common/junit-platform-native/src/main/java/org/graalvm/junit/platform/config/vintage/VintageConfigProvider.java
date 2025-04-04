@@ -43,37 +43,54 @@ package org.graalvm.junit.platform.config.vintage;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.hosted.RuntimeReflection;
+import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
-public class VintageConfigProvider implements PluginConfigProvider {
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.List;
+
+public class VintageConfigProvider extends PluginConfigProvider {
+
+    /* Before GraalVM version 22 we couldn't have classes initialized at run-time
+    that are also used at build-time but not added to the image heap */
+    private final List<String> packagesForOldInitializationStrategy = List.of(
+            "org.junit.vintage.engine",
+            "org.junit.runner",
+            "org.junit.runners",
+            "org.junit.internal.runners.rules.RuleMemberValidator");
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        config.initializeAtBuildTime(
-                "org.junit.vintage.engine.descriptor.RunnerTestDescriptor",
-                "org.junit.vintage.engine.support.UniqueIdReader",
-                "org.junit.vintage.engine.support.UniqueIdStringifier",
-                "org.junit.runner.Description",
-                "org.junit.runners.BlockJUnit4ClassRunner",
-                "org.junit.runners.JUnit4",
-                /* Workaround until we can register serializable classes from a native-image feature */
-                "org.junit.runner.Result"
-        );
+        initializeClassesForOlderJDKs(packagesForOldInitializationStrategy);
 
-        if (getMajorJDKVersion() >= 21) {
-            /* new with simulated class initialization */
-            config.initializeAtBuildTime(
-                    "java.lang.annotation.Annotation",
-                    "org.junit.runners.model.FrameworkMethod",
-                    "org.junit.runners.model.TestClass",
-                    "org.junit.runners.ParentRunner$1",
-                    "org.junit.Test",
-                    "org.junit.vintage.engine.descriptor.VintageEngineDescriptor",
-                    "org.junit.vintage.engine.VintageTestEngine"
-            );
+        try {
+            RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
+            RuntimeReflection.register(Class.forName("org.junit.runner.Description").getDeclaredFields());
+        } catch (ClassNotFoundException e) {
+            System.out.println("Cannot register declared classes of org.junit.runner.Result for serialization or fields of org.junit.runner.Description for reflection. Vintage JUnit not available.");
         }
     }
 
     @Override
     public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+        registerAnnotationClassesForReflection("org.junit.runner.RunWith", "value", testClass);
+        registerAnnotationClassesForReflection("org.junit.runners.Parameterized.UseParametersRunnerFactory", "value", testClass);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerAnnotationClassesForReflection(String annotationClass, String classProviderMethod, Class<?> testClass) {
+        try {
+            Class<Annotation> annotation = (Class<Annotation>) applicationClassLoader.loadClass(annotationClass);
+            Method classProvider = annotation.getDeclaredMethod(classProviderMethod);
+
+            Annotation classAnnotation = testClass.getAnnotation(annotation);
+            if (classAnnotation != null) {
+                Class<?> annotationArgument = (Class<?>) classProvider.invoke(classAnnotation);
+                nativeImageConfigImpl.registerAllClassMembersForReflection(annotationArgument);
+            }
+        } catch (ReflectiveOperationException e) {
+             // intentionally ignored
+        }
     }
 }

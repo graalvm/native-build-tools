@@ -55,59 +55,29 @@ import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.commons.support.AnnotationSupport;
+import org.junit.jupiter.params.provider.FieldSource;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.graalvm.junit.platform.JUnitPlatformFeature.debug;
 
-public class JupiterConfigProvider implements PluginConfigProvider {
+public class JupiterConfigProvider extends PluginConfigProvider {
+
+    /* Before GraalVM version 22 we couldn't have classes initialized at run-time
+    that are also used at build-time but not added to the image heap */
+    private final List<String> packagesForOldInitializationStrategy = List.of(
+            "org.junit.jupiter.engine",
+            "org.junit.jupiter.api",
+            "org.junit.jupiter.params",
+            "java.beans.Introspector");
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        config.initializeAtBuildTime(
-                "org.junit.jupiter.api.condition.OS",
-                "org.junit.jupiter.engine.config.EnumConfigurationParameterConverter",
-                "org.junit.jupiter.engine.descriptor.ClassTestDescriptor",
-                "org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor",
-                "org.junit.jupiter.engine.descriptor.TestFactoryTestDescriptor",
-                "org.junit.jupiter.engine.descriptor.JupiterTestDescriptor",
-                "org.junit.jupiter.engine.descriptor.JupiterTestDescriptor$1",
-                "org.junit.jupiter.engine.descriptor.MethodBasedTestDescriptor",
-                "org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor",
-                "org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor",
-                "org.junit.jupiter.engine.execution.ConditionEvaluator",
-                "org.junit.jupiter.engine.execution.ExecutableInvoker",
-                "org.junit.jupiter.params.provider.EnumSource$Mode",
-                // new in Junit 5.10
-                "org.junit.platform.launcher.core.LauncherConfig",
-                "org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter"
-        );
+        initializeClassesForOlderJDKs(packagesForOldInitializationStrategy);
 
-        if (getMajorJDKVersion() >= 21) {
-            /* new with simulated class initialization */
-            config.initializeAtBuildTime(
-                    "org.junit.jupiter.api.DisplayNameGenerator$Standard",
-                    "org.junit.jupiter.api.extension.ConditionEvaluationResult",
-                    "org.junit.jupiter.api.TestInstance$Lifecycle",
-                    "org.junit.jupiter.engine.config.CachingJupiterConfiguration",
-                    "org.junit.jupiter.engine.config.DefaultJupiterConfiguration",
-                    "org.junit.jupiter.engine.descriptor.DynamicDescendantFilter",
-                    "org.junit.jupiter.engine.descriptor.JupiterEngineDescriptor",
-                    "org.junit.jupiter.engine.descriptor.NestedClassTestDescriptor",
-                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker",
-                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall",
-                    "org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall$VoidMethodInterceptorCall",
-                    "org.junit.jupiter.engine.execution.InvocationInterceptorChain",
-                    "org.junit.jupiter.engine.JupiterTestEngine",
-                    "org.junit.jupiter.params.provider.EnumSource$Mode$Validator"
-            );
-        }
-
-
+        /* Provide support for Timeout annotation */
         config.registerAllClassMembersForReflection(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
                 "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
@@ -116,20 +86,26 @@ public class JupiterConfigProvider implements PluginConfigProvider {
 
     @Override
     public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+        /* Provide support for various annotations */
+        AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, TestMethodOrder.class, TestMethodOrder::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ArgumentsSource.class, ArgumentsSource::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ExtendWith.class, ExtendWith::value);
-        AnnotationUtils.forEachAnnotatedMethod(testClass, EnumSource.class, (m, annotation) -> handleEnumSource(m, annotation, registry));
-        handleTestOrderer(testClass, registry);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisplayNameGeneration.class, DisplayNameGeneration::value);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, IndicativeSentencesGeneration.class, IndicativeSentencesGeneration::generator);
         AnnotationUtils.forEachAnnotatedMethodParameter(testClass, ConvertWith.class, annotation -> registry.registerAllClassMembersForReflection(annotation.value()));
         AnnotationUtils.forEachAnnotatedMethodParameter(testClass, AggregateWith.class, annotation -> registry.registerAllClassMembersForReflection(annotation.value()));
+        AnnotationUtils.forEachAnnotatedMethod(testClass, EnumSource.class, (m, annotation) -> handleEnumSource(m, annotation, registry));
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, MethodSource.class, JupiterConfigProvider::handleMethodSource);
+        AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, FieldSource.class, JupiterConfigProvider::handleFieldSource);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, EnabledIf.class, JupiterConfigProvider::handleEnabledIf);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisabledIf.class, JupiterConfigProvider::handleDisabledIf);
     }
 
     private static Class<?>[] handleMethodSource(MethodSource annotation) {
+        return handleMethodReference(annotation.value());
+    }
+
+    private static Class<?>[] handleFieldSource(FieldSource annotation) {
         return handleMethodReference(annotation.value());
     }
 
@@ -181,14 +157,4 @@ public class JupiterConfigProvider implements PluginConfigProvider {
             debug("Method doesn't have at least 1 parameter - skipping enum registration. Method: %s", method);
         }
     }
-
-    private static void handleTestOrderer(Class<?> testClass, NativeImageConfiguration registry) {
-        Optional<TestMethodOrder> annotation = AnnotationSupport.findAnnotation(testClass, TestMethodOrder.class);
-        if (annotation.isPresent()) {
-            TestMethodOrder testMethodOrder = annotation.get();
-            Class<?> clazz = testMethodOrder.value();
-            registry.initializeAtBuildTime(clazz);
-        }
-    }
-
 }

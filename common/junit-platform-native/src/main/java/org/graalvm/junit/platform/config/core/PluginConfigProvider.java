@@ -41,14 +41,28 @@
 
 package org.graalvm.junit.platform.config.core;
 
-public interface PluginConfigProvider {
+import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 
-    void onLoad(NativeImageConfiguration config);
+import java.util.List;
 
-    void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
+public abstract class PluginConfigProvider {
 
-    default int getMajorJDKVersion() {
-        return Runtime.version().feature();
+    protected ClassLoader applicationClassLoader;
+    protected NativeImageConfiguration nativeImageConfigImpl;
+
+
+    public abstract void onLoad(NativeImageConfiguration config);
+
+    public abstract void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
+
+    public final void initialize(ClassLoader classLoader, NativeImageConfiguration nic) {
+        applicationClassLoader = classLoader;
+        nativeImageConfigImpl = nic;
     }
 
+    protected void initializeClassesForOlderJDKs(List<String> packages) {
+        if (Runtime.version().feature() <= 21) {
+            packages.forEach(RuntimeClassInitialization::initializeAtBuildTime);
+        }
+    }
 }
