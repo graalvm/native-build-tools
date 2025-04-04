@@ -68,7 +68,6 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         EE() && jdkVersionSupportsAugmentedSBOM()
     }
 
-    @Ignore
     @Requires({ supportedAugmentedSBOMVersion() })
     def "sbom is exported and embedded when buildArg '--enable-sbom=export,embed' is used"() {
         withSample 'java-application'
@@ -93,7 +92,6 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
      * If user sets {@link NativeCompileNoForkMojo#AUGMENTED_SBOM_PARAM_NAME} to true then Native Image should be
      * invoked with '--enable-sbom' and an SBOM should be embedded in the image.
      */
-    @Ignore
     @Requires({ supportedAugmentedSBOMVersion() })
     def "sbom is embedded when only the augmented sbom parameter is used (but not the '--enable-sbom' buildArg)"() {
         withSample 'java-application'
