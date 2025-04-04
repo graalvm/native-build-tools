@@ -113,7 +113,8 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             Artifact.SCOPE_COMPILE,
             Artifact.SCOPE_RUNTIME,
             Artifact.SCOPE_TEST,
-            Artifact.SCOPE_COMPILE_PLUS_RUNTIME
+            Artifact.SCOPE_COMPILE_PLUS_RUNTIME,
+            Artifact.SCOPE_PROVIDED
         );
     }
 
