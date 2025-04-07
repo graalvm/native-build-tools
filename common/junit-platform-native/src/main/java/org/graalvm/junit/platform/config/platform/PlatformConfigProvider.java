@@ -46,22 +46,10 @@ import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 import org.junit.platform.launcher.TestIdentifier;
 
-import java.util.List;
-
-
 public class PlatformConfigProvider extends PluginConfigProvider {
-
-    /* Before GraalVM version 22 we couldn't have classes initialized at run-time
-    that are also used at build-time but not added to the image heap */
-    private final List<String> packagesForOldInitializationStrategy = List.of(
-            "org.junit.platform.engine",
-            "org.junit.platform.launcher",
-            "org.junit.platform.commons",
-            "org.junit.validator.PublicClassValidator");
 
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        initializeClassesForOlderJDKs(packagesForOldInitializationStrategy);
         RuntimeSerialization.register(TestIdentifier.class.getDeclaredClasses());
     }
 

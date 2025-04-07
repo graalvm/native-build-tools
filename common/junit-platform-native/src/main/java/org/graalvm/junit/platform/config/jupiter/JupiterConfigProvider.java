@@ -65,18 +65,8 @@ import static org.graalvm.junit.platform.JUnitPlatformFeature.debug;
 
 public class JupiterConfigProvider extends PluginConfigProvider {
 
-    /* Before GraalVM version 22 we couldn't have classes initialized at run-time
-    that are also used at build-time but not added to the image heap */
-    private final List<String> packagesForOldInitializationStrategy = List.of(
-            "org.junit.jupiter.engine",
-            "org.junit.jupiter.api",
-            "org.junit.jupiter.params",
-            "java.beans.Introspector");
-
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        initializeClassesForOlderJDKs(packagesForOldInitializationStrategy);
-
         /* Provide support for Timeout annotation */
         config.registerAllClassMembersForReflection(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",

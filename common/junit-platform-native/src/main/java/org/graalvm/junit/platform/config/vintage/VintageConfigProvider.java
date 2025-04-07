@@ -48,22 +48,11 @@ import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.List;
 
 public class VintageConfigProvider extends PluginConfigProvider {
 
-    /* Before GraalVM version 22 we couldn't have classes initialized at run-time
-    that are also used at build-time but not added to the image heap */
-    private final List<String> packagesForOldInitializationStrategy = List.of(
-            "org.junit.vintage.engine",
-            "org.junit.runner",
-            "org.junit.runners",
-            "org.junit.internal.runners.rules.RuleMemberValidator");
-
     @Override
     public void onLoad(NativeImageConfiguration config) {
-        initializeClassesForOlderJDKs(packagesForOldInitializationStrategy);
-
         try {
             RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
             RuntimeReflection.register(Class.forName("org.junit.runner.Description").getDeclaredFields());
