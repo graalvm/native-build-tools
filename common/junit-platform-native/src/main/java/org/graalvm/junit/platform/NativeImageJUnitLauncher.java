@@ -201,7 +201,7 @@ public class NativeImageJUnitLauncher {
         System.out.println("[junit-platform-native] WARNING: -djunit.platform.listeners.uid.tracking.output.dir not specified, " +
                 "trying to find test-ids on default Gradle/Maven locations. " +
                 "As this is a fallback mode, it could take a while. " +
-                "This should only happen if you are running tests executable manually.");
+                "This should only happen if you are running tests executable manually and you didn't pass uid output directory with -djunit.platform.listeners.uid.tracking.output.dir=<path>.");
         Path defaultGradleTestIDsLocation = getGradleTestIdsDefaultLocation();
         Path defaultMavenTestIDsLocation = getMavenTestIDsDefaultLocation();
 

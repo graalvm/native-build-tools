@@ -44,6 +44,7 @@ package org.graalvm.junit.platform;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
+import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
 import org.junit.platform.engine.DiscoverySelector;
@@ -58,7 +59,10 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -99,6 +103,12 @@ public final class JUnitPlatformFeature implements Feature {
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
+        /* Before GraalVM version 22 we couldn't have classes initialized at run-time
+         * that are also used at build-time but not added to the image heap */
+        if (Runtime.version().feature() <= 21) {
+            initializeClassesForJDKsBefore21();
+        }
+
         List<? extends DiscoverySelector> selectors = getSelectors();
         registerTestClassesForReflection(selectors);
 
@@ -219,6 +229,17 @@ public final class JUnitPlatformFeature implements Feature {
             return loader.loadClass(className);
         } catch (ClassNotFoundException e) {
             return null;
+        }
+    }
+
+    private static void initializeClassesForJDKsBefore21() {
+        try (InputStream is = JUnitPlatformFeature.class.getResourceAsStream("/initialize-at-buildtime")) {
+            if (is != null) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                br.lines().forEach(RuntimeClassInitialization::initializeAtBuildTime);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
