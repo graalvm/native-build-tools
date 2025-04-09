@@ -80,8 +80,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
         then:
         buildSucceeded
-        outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\) and exported as JSON \\(see build artifacts\\)\\."
-        outputDoesNotContain "Use '--enable-sbom' to assemble a Software Bill of Materials (SBOM)"
+        outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\) and exported as JSON \\(see build artifacts\\)\\..*"
         outputDoesNotContain "Could not generate an augmented SBOM"
         validateExportedSBOM sbom
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
@@ -101,8 +100,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
         then:
         buildSucceeded
-        outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\)."
-        outputDoesNotContain "Use '--enable-sbom' to assemble a Software Bill of Materials (SBOM)"
+        outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\)\\..*"
         outputDoesNotContain "Could not generate an augmented SBOM"
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
@@ -120,7 +118,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     }
 
     @Requires({ EE() && unsupportedJDKVersion() })
-    def "error is thrown when augmented sbom parameter is used with EE but not with an unsupported JDK version"() {
+    def "error is thrown when augmented sbom parameter is used with EE but with an unsupported JDK version"() {
         withSample 'java-application'
 
         when:
