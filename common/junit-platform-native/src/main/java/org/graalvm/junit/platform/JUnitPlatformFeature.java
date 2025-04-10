@@ -106,7 +106,7 @@ public final class JUnitPlatformFeature implements Feature {
         /* Before GraalVM version 22 we couldn't have classes initialized at run-time
          * that are also used at build-time but not added to the image heap */
         if (Runtime.version().feature() <= 21) {
-            initializeClassesForJDKsBefore21();
+            initializeClassesForJDK21OrEarlier();
         }
 
         List<? extends DiscoverySelector> selectors = getSelectors();
@@ -232,14 +232,15 @@ public final class JUnitPlatformFeature implements Feature {
         }
     }
 
-    private static void initializeClassesForJDKsBefore21() {
+    private static void initializeClassesForJDK21OrEarlier() {
         try (InputStream is = JUnitPlatformFeature.class.getResourceAsStream("/initialize-at-buildtime")) {
             if (is != null) {
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
                 br.lines().forEach(RuntimeClassInitialization::initializeAtBuildTime);
+                br.close();
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to process build time initializations for JDK 21 or earlier");
         }
     }
 }
