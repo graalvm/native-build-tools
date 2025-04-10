@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "native-gradle-plugin",
+    "version": "0.10.7-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.10.7-SNAPSHOT.jar",
+          "url": "native-gradle-plugin-0.10.7-SNAPSHOT.jar",
+          "size": 111197,
+          "sha512": "cc81fe6f4a222ae251d98218f0891db6723ee4fb5c2447b751d2bd255392d511db80eca5cab73c26e0407d542ed21febeb65df3c4c13206733a148665da01022",
+          "sha256": "f10913e14ad6f66ca43125e5396c4f7d58131392b7fa160da467354a7a333a42",
+          "sha1": "a6d881ac8de9caec7e578ebe0b45ebfbf2a2a4b1",
+          "md5": "721ab75ca256da46b6b04e03e9dc014a"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "utils",
+          "version": {
+            "requires": "0.10.7-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "graalvm-reachability-metadata",
+          "version": {
+            "requires": "0.10.7-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.10.7-SNAPSHOT.jar",
+          "url": "native-gradle-plugin-0.10.7-SNAPSHOT.jar",
+          "size": 111197,
+          "sha512": "cc81fe6f4a222ae251d98218f0891db6723ee4fb5c2447b751d2bd255392d511db80eca5cab73c26e0407d542ed21febeb65df3c4c13206733a148665da01022",
+          "sha256": "f10913e14ad6f66ca43125e5396c4f7d58131392b7fa160da467354a7a333a42",
+          "sha1": "a6d881ac8de9caec7e578ebe0b45ebfbf2a2a4b1",
+          "md5": "721ab75ca256da46b6b04e03e9dc014a"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.10.7-SNAPSHOT-javadoc.jar",
+          "url": "native-gradle-plugin-0.10.7-SNAPSHOT-javadoc.jar",
+          "size": 495555,
+          "sha512": "95149b2a0a1abee0e1b5cc9fc93de7f9baa164e7f2948135eca5fd5cb3cf1a574ae0bfe88ce24262faf135dc16d3881ba66034d43932ae6031ceea6a47b6dffb",
+          "sha256": "619856c6117a93896b70cb2cff2dbdca93c3835a984da887e464f4e228cad53a",
+          "sha1": "399888d0f8cd34dc88a1a91ddd75f25d9bc158df",
+          "md5": "16d1b32b6d6d3a9ce7e6da906b1645ee"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.10.7-SNAPSHOT-sources.jar",
+          "url": "native-gradle-plugin-0.10.7-SNAPSHOT-sources.jar",
+          "size": 88860,
+          "sha512": "d90ff2fe8ba1f9c9dc899fd23a0e02692738d3f7d35cb97c073de3d7bf3c85926e143c629a5188c2391d0bc5101027b6eca3624c9702bb36d032d16b8edaec72",
+          "sha256": "800f4d98d73c1584859fa5a93eeb9fb772f981df3c6c55d17cbcbe2b0bcb1296",
+          "sha1": "6b6e8752f48e81dacc3a1cfc92610d752d0be428",
+          "md5": "0c38e4142402f17237650c308d029550"
+        }
+      ]
+    }
+  ]
+}

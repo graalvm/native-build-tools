@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>junit-platform-native</artifactId>
+  <versioning>
+    <latest>0.10.7-SNAPSHOT</latest>
+    <versions>
+      <version>0.10.7-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20250410143901</lastUpdated>
+  </versioning>
+</metadata>
