@@ -46,9 +46,6 @@ import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
 public class VintageConfigProvider extends PluginConfigProvider {
 
     @Override
@@ -63,23 +60,14 @@ public class VintageConfigProvider extends PluginConfigProvider {
 
     @Override
     public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
-        registerAnnotationClassesForReflection("org.junit.runner.RunWith", "value", testClass);
-        registerAnnotationClassesForReflection("org.junit.runners.Parameterized.UseParametersRunnerFactory", "value", testClass);
+        registerAnnotationClassesForReflection(testClass, "org.junit.runner.RunWith", "value");
+        registerAnnotationClassesForReflection(testClass, "org.junit.runners.Parameterized.UseParametersRunnerFactory", "value");
     }
 
-    @SuppressWarnings("unchecked")
-    private void registerAnnotationClassesForReflection(String annotationClass, String classProviderMethod, Class<?> testClass) {
-        try {
-            Class<Annotation> annotation = (Class<Annotation>) applicationClassLoader.loadClass(annotationClass);
-            Method classProvider = annotation.getDeclaredMethod(classProviderMethod);
-
-            Annotation classAnnotation = testClass.getAnnotation(annotation);
-            if (classAnnotation != null) {
-                Class<?> annotationArgument = (Class<?>) classProvider.invoke(classAnnotation);
-                nativeImageConfigImpl.registerAllClassMembersForReflection(annotationArgument);
-            }
-        } catch (ReflectiveOperationException e) {
-             // intentionally ignored
+    private void registerAnnotationClassesForReflection(Class<?> testClass, String annotationName, String annotationElementName) {
+        Class<?> annotationArgument = getAnnotationElementValue(testClass, annotationName, annotationElementName);
+        if (annotationArgument != null) {
+            nativeImageConfigImpl.registerAllClassMembersForReflection(annotationArgument);
         }
     }
 }
