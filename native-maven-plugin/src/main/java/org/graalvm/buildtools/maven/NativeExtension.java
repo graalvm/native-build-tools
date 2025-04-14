@@ -205,10 +205,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static void configureAgentForSurefire(Plugin surefirePlugin, String agentArgument) {
         updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
             Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
+            Xpp3Dom surefireArgLine = findOrAppend(configuration, "argLine");
             Xpp3Dom agent = findOrAppend(systemProperties, NATIVEIMAGE_IMAGECODE);
             agent.setValue("agent");
             Xpp3Dom argLine = new Xpp3Dom("argLine");
-            argLine.setValue(agentArgument);
+            String testArgLine = surefireArgLine.getValue() == null ? "" : surefireArgLine.getValue() + " ";
+            argLine.setValue(testArgLine + agentArgument);
             configuration.addChild(argLine);
             findOrAppend(configuration, "jvm").setValue(getGraalvmJava());
         });
