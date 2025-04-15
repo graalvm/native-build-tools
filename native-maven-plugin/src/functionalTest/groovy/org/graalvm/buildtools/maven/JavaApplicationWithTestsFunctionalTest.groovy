@@ -153,4 +153,26 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "SurefirePlugin - Tests run: 8, Failures: 0, Errors: 0, Skipped: 0"
     }
 
+    def "dependencies with scope provided are on classpath for test binary"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', '-DquickBuild', 'test'
+
+        then:
+        buildSucceeded
+        outputContains "local-repo/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar"
+    }
+
+    def "dependencies with scope provided are not on classpath for main binary"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', '-DquickBuild', '-DskipNativeTests', 'package'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "local-repo/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar"
+    }
+
 }
