@@ -45,6 +45,8 @@ import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
+import org.graalvm.nativeimage.hosted.RuntimeReflection;
+
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -57,15 +59,17 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.UniqueIdTrackingListener;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -74,9 +78,23 @@ import java.util.stream.Stream;
 public final class JUnitPlatformFeature implements Feature {
 
     public final boolean debug = System.getProperty("debug") != null;
-
     private static final NativeImageConfigurationImpl nativeImageConfigImpl = new NativeImageConfigurationImpl();
     private final ServiceLoader<PluginConfigProvider> extensionConfigProviders = ServiceLoader.load(PluginConfigProvider.class);
+
+    public static void debug(String format, Object... args) {
+        if (debug()) {
+            System.out.printf("[Debug] " + format + "%n", args);
+        }
+    }
+
+    @Override
+    public void afterRegistration(AfterRegistrationAccess access) {
+        extensionConfigProviders.forEach(p -> p.initialize(access.getApplicationClassLoader(), nativeImageConfigImpl));
+    }
+
+    public static boolean debug() {
+        return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
+    }
 
     @Override
     public void duringSetup(DuringSetupAccess access) {
@@ -85,55 +103,60 @@ public final class JUnitPlatformFeature implements Feature {
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        RuntimeClassInitialization.initializeAtBuildTime(NativeImageJUnitLauncher.class);
+        /* Before GraalVM version 22 we couldn't have classes initialized at run-time
+         * that are also used at build-time but not added to the image heap */
+        if (Runtime.version().feature() <= 21) {
+            initializeClassesForJDK21OrEarlier();
+        }
 
-        List<Path> classpathRoots = access.getApplicationClassPath();
-        List<? extends DiscoverySelector> selectors = getSelectors(classpathRoots);
+        List<? extends DiscoverySelector> selectors = getSelectors();
+        registerTestClassesForReflection(selectors);
 
-        Launcher launcher = LauncherFactory.create();
-        TestPlan testplan = discoverTestsAndRegisterTestClassesForReflection(launcher, selectors);
-        ImageSingletons.add(NativeImageJUnitLauncher.class, new NativeImageJUnitLauncher(launcher, testplan));
+        /* support for JUnit Vintage */
+        registerClassesForHamcrestSupport(access);
     }
 
-    private List<? extends DiscoverySelector> getSelectors(List<Path> classpathRoots) {
+    private List<? extends DiscoverySelector> getSelectors() {
         try {
-            Path outputDir = Paths.get(System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME));
-            String prefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
+            String uniqueIdDirectoryProperty = System.getProperty(UniqueIdTrackingListener.OUTPUT_DIR_PROPERTY_NAME);
+            if (uniqueIdDirectoryProperty == null) {
+                throw new IllegalStateException("Cannot determine test-ids directory because junit.platform.listeners.uid.tracking.output.dir property is null");
+            }
+
+            String uniqueIdFilePrefix = System.getProperty(UniqueIdTrackingListener.OUTPUT_FILE_PREFIX_PROPERTY_NAME,
                     UniqueIdTrackingListener.DEFAULT_OUTPUT_FILE_PREFIX);
-            List<UniqueIdSelector> selectors = readAllFiles(outputDir, prefix)
+            if (uniqueIdFilePrefix == null) {
+                throw new IllegalStateException("Cannot determine unique test-ids prefix because junit.platform.listeners.uid.tracking.output.file.prefix property is null");
+            }
+
+            Path uniqueIdDirectory = Path.of(uniqueIdDirectoryProperty);
+            List<UniqueIdSelector> selectors = readAllFiles(uniqueIdDirectory, uniqueIdFilePrefix)
                     .map(DiscoverySelectors::selectUniqueId)
                     .collect(Collectors.toList());
             if (!selectors.isEmpty()) {
                 System.out.printf(
                         "[junit-platform-native] Running in 'test listener' mode using files matching pattern [%s*] "
                                 + "found in folder [%s] and its subfolders.%n",
-                        prefix, outputDir.toAbsolutePath());
+                        uniqueIdFilePrefix, uniqueIdDirectory.toAbsolutePath());
                 return selectors;
             }
         } catch (Exception ex) {
             debug("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
         }
 
-        System.out.println("[junit-platform-native] Running in 'test discovery' mode. Note that this is a fallback mode.");
-        if (debug) {
-            classpathRoots.forEach(entry -> debug("Selecting classpath root: " + entry));
-        }
-        return DiscoverySelectors.selectClasspathRoots(new HashSet<>(classpathRoots));
+        throw new RuntimeException("Cannot compute test selectors from test ids.");
     }
 
     /**
-     * Use the JUnit Platform Launcher to discover tests and register classes
-     * for reflection.
+     * Use the JUnit Platform Launcher to register classes for reflection.
      */
-    private TestPlan discoverTestsAndRegisterTestClassesForReflection(Launcher launcher,
-            List<? extends DiscoverySelector> selectors) {
-
+    private void registerTestClassesForReflection(List<? extends DiscoverySelector> selectors) {
         LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
                 .selectors(selectors)
                 .build();
 
+        Launcher launcher = LauncherFactory.create();
         TestPlan testPlan = launcher.discover(request);
-
         testPlan.getRoots().stream()
                 .flatMap(rootIdentifier -> testPlan.getDescendants(rootIdentifier).stream())
                 .map(TestIdentifier::getSource)
@@ -143,14 +166,18 @@ public final class JUnitPlatformFeature implements Feature {
                 .map(ClassSource.class::cast)
                 .map(ClassSource::getJavaClass)
                 .forEach(this::registerTestClassForReflection);
-
-        return testPlan;
     }
 
     private void registerTestClassForReflection(Class<?> clazz) {
         debug("Registering test class for reflection: %s", clazz.getName());
         nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
         forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));
+
+        Class<?>[] interfaces = clazz.getInterfaces();
+        for (Class<?> inter : interfaces) {
+            registerTestClassForReflection(inter);
+        }
+
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null && superClass != Object.class) {
             registerTestClassForReflection(superClass);
@@ -161,16 +188,6 @@ public final class JUnitPlatformFeature implements Feature {
         for (PluginConfigProvider provider : extensionConfigProviders) {
             consumer.accept(provider);
         }
-    }
-
-    public static void debug(String format, Object... args) {
-        if (debug()) {
-            System.out.printf("[Debug] " + format + "%n", args);
-        }
-    }
-
-    public static boolean debug() {
-        return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
     }
 
     private Stream<String> readAllFiles(Path dir, String prefix) throws IOException {
@@ -192,4 +209,38 @@ public final class JUnitPlatformFeature implements Feature {
                     && path.getFileName().toString().startsWith(prefix)));
     }
 
+    private static void registerClassesForHamcrestSupport(BeforeAnalysisAccess access) {
+        ClassLoader applicationLoader = access.getApplicationClassLoader();
+        Class<?> typeSafeMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeMatcher");
+        Class<?> typeSafeDiagnosingMatcher = findClassOrNull(applicationLoader, "org.hamcrest.TypeSafeDiagnosingMatcher");
+        if (typeSafeMatcher != null || typeSafeDiagnosingMatcher != null) {
+            BiConsumer<DuringAnalysisAccess, Class<?>> registerMatcherForReflection = (a, c) -> RuntimeReflection.register(c.getDeclaredMethods());
+            if (typeSafeMatcher != null) {
+                access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeMatcher);
+            }
+            if (typeSafeDiagnosingMatcher != null) {
+                access.registerSubtypeReachabilityHandler(registerMatcherForReflection, typeSafeDiagnosingMatcher);
+            }
+        }
+    }
+
+    private static Class<?> findClassOrNull(ClassLoader loader, String className) {
+        try {
+            return loader.loadClass(className);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
+    }
+
+    private static void initializeClassesForJDK21OrEarlier() {
+        try (InputStream is = JUnitPlatformFeature.class.getResourceAsStream("/initialize-at-buildtime")) {
+            if (is != null) {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                br.lines().forEach(RuntimeClassInitialization::initializeAtBuildTime);
+                br.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to process build time initializations for JDK 21 or earlier");
+        }
+    }
 }

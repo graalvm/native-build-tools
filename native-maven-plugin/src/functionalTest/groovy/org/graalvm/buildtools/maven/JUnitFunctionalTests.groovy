@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,38 +39,32 @@
  * SOFTWARE.
  */
 
-package org.graalvm.junit.platform.config.core;
+package org.graalvm.buildtools.maven
 
-import org.graalvm.junit.platform.JUnitPlatformFeature;
-import org.graalvm.junit.platform.config.util.Utils;
+class JUnitFunctionalTests extends AbstractGraalVMMavenFunctionalTest {
+    def "test if JUint support works with various annotations, reflection and resources"() {
+        withSample("junit-tests")
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
+        when:
+        mvn '-DquickBuild', '-Pnative', 'test'
 
-public interface NativeImageConfiguration {
-
-    void registerForReflection(Class<?>... classes);
-
-    void registerForReflection(Executable... methods);
-
-    void registerForReflection(Field... fields);
-
-    default void registerAllClassMembersForReflection(String... classNames) {
-        registerAllClassMembersForReflection(Utils.toClasses(classNames));
-    }
-
-    default void registerAllClassMembersForReflection(Class<?>... classes) {
-        for (Class<?> clazz : classes) {
-            JUnitPlatformFeature.debug("[Native Image Configuration] Registering for reflection: %s", clazz.getName());
-            registerForReflection(clazz);
-            registerForReflection(clazz.getDeclaredConstructors());
-            registerForReflection(clazz.getDeclaredMethods());
-            registerForReflection(clazz.getDeclaredFields());
-
-            Class<?>[] declaredClasses = clazz.getDeclaredClasses();
-            for (Class<?> cls : declaredClasses) {
-                registerAllClassMembersForReflection(cls);
-            }
-        }
+        then:
+        buildSucceeded
+        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContains """
+[        10 containers found      ]
+[         0 containers skipped    ]
+[        10 containers started    ]
+[         0 containers aborted    ]
+[        10 containers successful ]
+[         0 containers failed     ]
+[        24 tests found           ]
+[         1 tests skipped         ]
+[        23 tests started         ]
+[         0 tests aborted         ]
+[        23 tests successful      ]
+[         0 tests failed          ]
+""".trim()
     }
 }

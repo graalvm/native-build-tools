@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,38 +39,27 @@
  * SOFTWARE.
  */
 
-package org.graalvm.junit.platform.config.core;
-
-import org.graalvm.junit.platform.JUnitPlatformFeature;
-import org.graalvm.junit.platform.config.util.Utils;
-
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-
-public interface NativeImageConfiguration {
-
-    void registerForReflection(Class<?>... classes);
-
-    void registerForReflection(Executable... methods);
-
-    void registerForReflection(Field... fields);
-
-    default void registerAllClassMembersForReflection(String... classNames) {
-        registerAllClassMembersForReflection(Utils.toClasses(classNames));
-    }
-
-    default void registerAllClassMembersForReflection(Class<?>... classes) {
-        for (Class<?> clazz : classes) {
-            JUnitPlatformFeature.debug("[Native Image Configuration] Registering for reflection: %s", clazz.getName());
-            registerForReflection(clazz);
-            registerForReflection(clazz.getDeclaredConstructors());
-            registerForReflection(clazz.getDeclaredMethods());
-            registerForReflection(clazz.getDeclaredFields());
-
-            Class<?>[] declaredClasses = clazz.getDeclaredClasses();
-            for (Class<?> cls : declaredClasses) {
-                registerAllClassMembersForReflection(cls);
-            }
-        }
-    }
+plugins {
+    id 'application'
+    id 'org.graalvm.buildtools.native'
 }
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+    testImplementation "org.junit.vintage:junit-vintage-engine:5.11.0"
+}
+
+application {
+    // Define the main class for the application.
+    mainClass = 'tests.App'
+}
+
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+

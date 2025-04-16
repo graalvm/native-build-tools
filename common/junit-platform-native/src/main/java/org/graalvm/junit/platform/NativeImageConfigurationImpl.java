@@ -42,7 +42,6 @@
 package org.graalvm.junit.platform;
 
 import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
-import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
 import java.lang.reflect.Executable;
@@ -63,11 +62,5 @@ class NativeImageConfigurationImpl implements NativeImageConfiguration {
     @Override
     public void registerForReflection(Field... fields) {
         RuntimeReflection.register(fields);
-    }
-
-
-    @Override
-    public void initializeAtBuildTime(Class<?>... classes) {
-        RuntimeClassInitialization.initializeAtBuildTime(classes);
     }
 }

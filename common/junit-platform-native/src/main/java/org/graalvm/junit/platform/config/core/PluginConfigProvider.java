@@ -41,14 +41,38 @@
 
 package org.graalvm.junit.platform.config.core;
 
-public interface PluginConfigProvider {
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
-    void onLoad(NativeImageConfiguration config);
+public abstract class PluginConfigProvider {
 
-    void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
+    protected ClassLoader applicationClassLoader;
+    protected NativeImageConfiguration nativeImageConfigImpl;
 
-    default int getMajorJDKVersion() {
-        return Runtime.version().feature();
+
+    public abstract void onLoad(NativeImageConfiguration config);
+
+    public abstract void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
+
+    public final void initialize(ClassLoader classLoader, NativeImageConfiguration nic) {
+        applicationClassLoader = classLoader;
+        nativeImageConfigImpl = nic;
     }
 
+    @SuppressWarnings("unchecked")
+    protected final <T> T getAnnotationElementValue(Class<?> annotatedClass, String annotationName, String annotationElementName) {
+        try {
+            Class<Annotation> annotation = (Class<Annotation>) applicationClassLoader.loadClass(annotationName);
+            Method classProvider = annotation.getDeclaredMethod(annotationElementName);
+
+            Annotation classAnnotation = annotatedClass.getAnnotation(annotation);
+            if (classAnnotation != null) {
+                return (T) classProvider.invoke(classAnnotation);
+            }
+        } catch (ReflectiveOperationException e) {
+            // intentionally ignored
+        }
+
+        return null;
+    }
 }
