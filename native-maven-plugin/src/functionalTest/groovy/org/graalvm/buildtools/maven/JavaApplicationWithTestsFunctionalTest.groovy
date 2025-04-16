@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.maven
 
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
@@ -153,6 +154,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "SurefirePlugin - Tests run: 8, Failures: 0, Errors: 0, Skipped: 0"
     }
 
+    @IgnoreIf({ os.windows })
     def "dependencies with scope provided are on classpath for test binary"() {
         withSample("java-application-with-tests")
 
@@ -166,6 +168,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains expectedOutput
     }
 
+    @IgnoreIf({ os.windows })
     def "dependencies with scope provided are not on classpath for main binary"() {
         withSample("java-application-with-tests")
 
