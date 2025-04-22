@@ -91,6 +91,17 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
     @Input
     abstract Property<Boolean> getDiscovery()
 
+    @InputDirectory
+    abstract DirectoryProperty getExcludeConfigDir()
+
+    List<String> addExcludeConfig() {
+        String[] jarPatternPair = getExcludeConfigDir().get().file("exclude-config").getAsFile().readLines().get(0).split(":")
+        var jar = jarPatternPair[0]
+        var pattern = jarPatternPair[1]
+
+        return ["--exclude-config", jar, pattern]
+    }
+
     @Override
     Iterable<String> asArguments() {
         def args = [
@@ -100,6 +111,9 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
                 "-o", "native-image-tests",
                 "-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"
         ]
+
+        args.addAll(addExcludeConfig())
+
         if (agentOutputDir.isPresent()) {
             def outputDir = agentOutputDir.get().asFile
             if (!outputDir.exists()) {
@@ -135,6 +149,7 @@ tasks.register("nativeTestCompile", Exec) {
     def argsProvider = objects.newInstance(NativeTestArgumentProvider)
     argsProvider.classpath.from(test.classpath)
     argsProvider.testIdsDir.set(testIdsDir)
+    argsProvider.excludeConfigDir.set(layout.buildDirectory.dir("resources").get().dir("main").dir("extra-build-args"))
     argsProvider.agentOutputDir.set(agentOutput)
     argsProvider.discovery.set(providers.systemProperty("testDiscovery").map(v -> Boolean.valueOf(v)).orElse(false))
     argumentProviders.add(argsProvider)
