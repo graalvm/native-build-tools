@@ -1,1 +1,1 @@
-.*.jar:META-INF\/native-image\/org.junit.*.properties.*
+.*.jar,META-INF\/native-image\/org.junit.*.properties.*
