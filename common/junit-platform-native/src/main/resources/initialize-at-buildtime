@@ -33,6 +33,7 @@ org.junit.jupiter.engine.descriptor.TestFactoryTestDescriptor
 org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor
 org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor
 org.junit.jupiter.engine.discovery.AbstractOrderingVisitor
+org.junit.jupiter.engine.discovery.AbstractOrderingVisitor$DescriptorWrapperOrderer
 org.junit.jupiter.engine.discovery.ClassOrderingVisitor
 org.junit.jupiter.engine.discovery.ClassSelectorResolver
 org.junit.jupiter.engine.discovery.ClassSelectorResolver$DummyClassTemplateInvocationContext
@@ -44,6 +45,7 @@ org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$1
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$2
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$3
 org.junit.jupiter.engine.discovery.predicates.IsTestClassWithTests
+org.junit.jupiter.engine.discovery.predicates.IsTestFactoryMethod
 org.junit.jupiter.engine.execution.ConditionEvaluator
 org.junit.jupiter.engine.execution.InterceptingExecutableInvoker
 org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall
@@ -72,6 +74,7 @@ org.junit.platform.engine.UniqueId$Segment
 org.junit.platform.engine.UniqueIdFormat
 org.junit.platform.launcher.core.DefaultLauncher
 org.junit.platform.launcher.core.DefaultLauncherConfig
+org.junit.platform.launcher.core.DiscoveryIssueCollector
 org.junit.platform.launcher.core.DiscoveryIssueNotifier
 org.junit.platform.launcher.core.EngineDiscoveryOrchestrator
 org.junit.platform.launcher.core.EngineExecutionOrchestrator
