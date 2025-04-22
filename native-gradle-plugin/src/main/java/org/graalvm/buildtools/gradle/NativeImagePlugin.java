@@ -64,6 +64,7 @@ import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
+import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.Action;
@@ -774,6 +775,9 @@ public class NativeImagePlugin implements Plugin<Project> {
         classpath.from(configs.getImageClasspathConfiguration());
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
+
+        /* in version 5.12.0 JUnit added initialize-at-builditime properties files which we need to exclude */
+        testExtension.getBuildArgs().addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
 
         return testExtension;
     }

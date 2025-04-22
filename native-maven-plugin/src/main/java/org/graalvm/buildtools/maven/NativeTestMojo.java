@@ -60,6 +60,8 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.graalvm.buildtools.utils.FileUtils;
+import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.IOException;
@@ -74,6 +76,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -156,6 +159,9 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
 
         configureEnvironment();
         buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+
+        /* in version 5.12.0 JUnit added initialize-at-builditime properties files which we need to exclude */
+        buildArgs.addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
 
         if (systemProperties == null) {
             systemProperties = new HashMap<>();
