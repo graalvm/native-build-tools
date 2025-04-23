@@ -1,6 +1,12 @@
 [[changelog]]
 == Changelog
 
+== Release 0.10.7
+
+=== Gradle plugin
+
+- Added experimental support for layered images
+
 == Release 0.10.6
 
 === Gradle plugin

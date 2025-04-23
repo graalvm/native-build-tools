@@ -44,8 +44,13 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
+import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.LayerOptions;
+import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
@@ -73,6 +78,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.graalvm.buildtools.gradle.NativeImagePlugin.compileTaskNameForBinary;
+
 
 /**
  * Class that declares native image options.
@@ -82,8 +89,11 @@ import java.util.stream.StreamSupport;
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private static final GraalVMLogger LOGGER = GraalVMLogger.of(Logging.getLogger(BaseNativeImageOptions.class));
+    private final DomainObjectSet<LayerOptions> layers;
 
     private final String name;
+    private final transient TaskContainer tasks;
+    private final ObjectFactory objects;
 
     @Override
     @Internal
@@ -270,6 +280,9 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         DirectoryProperty pgoProfileDir = objectFactory.directoryProperty();
         pgoProfileDir.convention(layout.getProjectDirectory().dir("src/pgo-profiles/" + name));
         getPgoProfilesDirectory().convention(pgoProfileDir.map(d -> d.getAsFile().exists() ? d : null));
+        this.layers = objectFactory.domainObjectSet(LayerOptions.class);
+        this.tasks = tasks;
+        this.objects = objectFactory;
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
@@ -403,5 +416,36 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     @Override
     public void agent(Action<? super DeprecatedAgentOptions> spec) {
         spec.execute(getAgent());
+    }
+
+    @Override
+    public DomainObjectSet<LayerOptions> getLayers() {
+        return layers;
+    }
+
+    @Override
+    public void layers(Action<? super DomainObjectSet<LayerOptions>> spec) {
+        spec.execute(layers);
+    }
+
+    @Override
+    public void useLayer(String name) {
+        var taskName = compileTaskNameForBinary(name);
+        var layer = objects.newInstance(UseLayerOptions.class);
+        layer.getLayerName().convention(name);
+        layer.getLayerFile().convention(tasks.named(taskName, BuildNativeImageTask.class).flatMap(BuildNativeImageTask::getCreatedLayerFile));
+        layers(options -> options.add(layer));
+    }
+
+    @Override
+    public void createLayer(Action<? super CreateLayerOptions> spec) {
+        var layer = objects.newInstance(CreateLayerOptions.class);
+        var binaryName = getName();
+        if (!binaryName.startsWith("lib")) {
+            throw new IllegalArgumentException("Binary name for a layer must start with 'lib'");
+        }
+        layer.getLayerName().convention(binaryName);
+        spec.execute(layer);
+        layers(options -> options.add(layer));
     }
 }
