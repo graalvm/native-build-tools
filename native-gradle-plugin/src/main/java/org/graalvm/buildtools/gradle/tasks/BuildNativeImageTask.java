@@ -51,6 +51,7 @@ import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
@@ -204,6 +205,15 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     }
 
     @Internal
+    public Provider<RegularFile> getCreatedLayerFile() {
+        return getOptions().zip(getOutputDirectory(), (options, dir) -> dir.file(options.getLayers().stream()
+            .filter(CreateLayerOptions.class::isInstance)
+            .map(cl -> cl.getLayerName().get() + ".nil")
+            .findFirst()
+            .orElseThrow()));
+    }
+
+    @Internal
     public Provider<String> getExecutableShortName() {
         return getOptions().flatMap(options ->
             options.getImageName().zip(options.getPgoInstrument(), serializableBiFunctionOf((name, pgo) -> name + (Boolean.TRUE.equals(pgo) ? "-instrumented" : "")))
@@ -263,7 +273,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getClasspathJar(),
             getUseArgFile(),
             getProviders().provider(() -> majorJDKVersion),
-            getProviders().provider(() -> useColors)).asArguments();
+            getProviders().provider(() -> useColors))
+            .asArguments();
     }
 
     // This property provides access to the service instance
@@ -271,6 +282,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     // we have to use a more generic type, see https://github.com/gradle/gradle/issues/17559
     @Internal
     public abstract Property<Object> getService();
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     @TaskAction
     public void exec() {
@@ -298,6 +312,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         }
         String executable = executablePath.getAbsolutePath();
         File outputDir = getOutputDirectory().getAsFile().get();
+        getFileSystemOperations().delete(d -> d.delete(outputDir));
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             getExecOperations().exec(spec -> {
                 MapProperty<String, Object> environmentVariables = options.getEnvironmentVariables();

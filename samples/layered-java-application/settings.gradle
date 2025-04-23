@@ -39,55 +39,10 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
-/**
- * Defines common logic used by all libraries GraalVM projects in this repository
- */
-
-plugins {
-    java
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-    withJavadocJar()
-    withSourcesJar()
-}
-
-repositories {
-    mavenCentral()
-}
-
-group = "org.graalvm.buildtools"
-
-extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    if (catalogs.find("libs").isPresent) {
-        val versionFromCatalog = catalogs.named("libs")
-            .findVersion("nativeBuildTools")
-        if (versionFromCatalog.isPresent()) {
-            version = versionFromCatalog.get().requiredVersion
-        } else {
-            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
-        }
-    } else {
-        version = "undefined"
+pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version getProperty('native.gradle.plugin.version')
     }
 }
 
-tasks.javadoc {
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
-}
-
-val inspections by tasks.registering {
-    dependsOn(tasks.withType<Checkstyle>())
-}
+rootProject.name = 'layered-java-application'
