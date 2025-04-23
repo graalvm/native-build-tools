@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,56 +38,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.tasks;
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
- * Defines common logic used by all libraries GraalVM projects in this repository
+ * Layer creation options.
  */
+public interface CreateLayerOptions extends LayerOptions {
+    /**
+     * The list of packages to include in the layer.
+     * @return the package list (can be empty)
+     */
+    @Input
+    @Optional
+    ListProperty<String> getPackages();
 
-plugins {
-    java
-}
+    /**
+     * If set, all classes in the supplied jars will be included
+     * in the generated layer.
+     * @return the classpath to include
+     */
+    @Classpath
+    @Optional
+    ConfigurableFileCollection getJars();
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-    withJavadocJar()
-    withSourcesJar()
-}
-
-repositories {
-    mavenCentral()
-}
-
-group = "org.graalvm.buildtools"
-
-extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    if (catalogs.find("libs").isPresent) {
-        val versionFromCatalog = catalogs.named("libs")
-            .findVersion("nativeBuildTools")
-        if (versionFromCatalog.isPresent()) {
-            version = versionFromCatalog.get().requiredVersion
-        } else {
-            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
-        }
-    } else {
-        version = "undefined"
-    }
-}
-
-tasks.javadoc {
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
-}
-
-val inspections by tasks.registering {
-    dependsOn(tasks.withType<Checkstyle>())
+    /**
+     * Module names to include in the package. For a base layer,
+     * this should typically include "java.base".
+     * @return the list of modules to include in the layer
+     */
+    @Input
+    ListProperty<String> getModules();
 }

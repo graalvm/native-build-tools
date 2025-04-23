@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,56 +38,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.tasks;
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 /**
- * Defines common logic used by all libraries GraalVM projects in this repository
+ * Configures a layer for use.
  */
-
-plugins {
-    java
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-    withJavadocJar()
-    withSourcesJar()
-}
-
-repositories {
-    mavenCentral()
-}
-
-group = "org.graalvm.buildtools"
-
-extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    if (catalogs.find("libs").isPresent) {
-        val versionFromCatalog = catalogs.named("libs")
-            .findVersion("nativeBuildTools")
-        if (versionFromCatalog.isPresent()) {
-            version = versionFromCatalog.get().requiredVersion
-        } else {
-            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
-        }
-    } else {
-        version = "undefined"
-    }
-}
-
-tasks.javadoc {
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
-}
-
-val inspections by tasks.registering {
-    dependsOn(tasks.withType<Checkstyle>())
+public interface UseLayerOptions extends LayerOptions {
+    /**
+     * The path to the layer to use.
+     * @return the path property.
+     */
+    @InputFile
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    RegularFileProperty getLayerFile();
 }

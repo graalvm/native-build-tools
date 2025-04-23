@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,56 +38,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.tasks.scanner;
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.graalvm.buildtools.utils.JarScanner;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformOutputs;
+import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 
-/**
- * Defines common logic used by all libraries GraalVM projects in this repository
- */
+import java.io.File;
+import java.io.IOException;
 
-plugins {
-    java
-}
+public abstract class JarAnalyzerTransform implements TransformAction<TransformParameters.None> {
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-    withJavadocJar()
-    withSourcesJar()
-}
+    @InputArtifact
+    public abstract Provider<FileSystemLocation> getInputArtifact();
 
-repositories {
-    mavenCentral()
-}
-
-group = "org.graalvm.buildtools"
-
-extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    if (catalogs.find("libs").isPresent) {
-        val versionFromCatalog = catalogs.named("libs")
-            .findVersion("nativeBuildTools")
-        if (versionFromCatalog.isPresent()) {
-            version = versionFromCatalog.get().requiredVersion
-        } else {
-            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+    @Override
+    public void transform(TransformOutputs outputs) {
+        File inputFile = getInputArtifact().get().getAsFile();
+        File outputFile = outputs.file(inputFile.getName().replace(".jar", ".properties"));
+        try {
+            JarScanner.scanJar(inputFile.toPath(), outputFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-    } else {
-        version = "undefined"
     }
-}
-
-tasks.javadoc {
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
-}
-
-val inspections by tasks.registering {
-    dependsOn(tasks.withType<Checkstyle>())
 }

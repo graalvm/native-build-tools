@@ -41,11 +41,18 @@
 package org.graalvm.buildtools.gradle.dsl;
 
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
+import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.LayerOptions;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -56,6 +63,8 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.jvm.toolchain.JavaLauncher;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -232,4 +241,35 @@ public interface NativeImageCompileOptions {
     @PathSensitive(PathSensitivity.NONE)
     @Optional
     DirectoryProperty getPgoProfilesDirectory();
+
+    @Nested
+    DomainObjectSet<LayerOptions> getLayers();
+
+    void layers(Action<? super DomainObjectSet<LayerOptions>> spec);
+
+    void useLayer(String name);
+
+    void createLayer(Action<? super CreateLayerOptions> spec);
+
+    default Provider<List<File>> externalDependenciesOf(Provider<Configuration> configurationProvider) {
+        return configurationProvider.flatMap(this::externalDependenciesOf);
+    }
+
+    default Provider<List<File>> externalDependenciesOf(Configuration configuration) {
+        return configuration.getIncoming()
+            .artifactView(view -> {
+                view.setLenient(false);
+                view.componentFilter(id -> id instanceof ModuleComponentIdentifier);
+            })
+            .getArtifacts()
+            .getResolvedArtifacts()
+            .map(artifacts -> {
+                var files = new ArrayList<File>();
+                // not using .stream() intentionally because of https://github.com/gradle/gradle/issues/33152
+                for (var artifact : artifacts) {
+                    files.add(artifact.getFile());
+                }
+                return files;
+            });
+    }
 }

@@ -39,55 +39,47 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
-/**
- * Defines common logic used by all libraries GraalVM projects in this repository
- */
-
 plugins {
-    java
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-    withJavadocJar()
-    withSourcesJar()
+    id 'application'
+    id 'org.graalvm.buildtools.native'
 }
 
 repositories {
     mavenCentral()
 }
 
-group = "org.graalvm.buildtools"
+application {
+    mainClass.set('org.graalvm.demo.Application')
+}
 
-extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    if (catalogs.find("libs").isPresent) {
-        val versionFromCatalog = catalogs.named("libs")
-            .findVersion("nativeBuildTools")
-        if (versionFromCatalog.isPresent()) {
-            version = versionFromCatalog.get().requiredVersion
-        } else {
-            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+def junitVersion = providers.gradleProperty('junit.jupiter.version')
+        .get()
+
+dependencies {
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.18")
+    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.named("nativeRun") {
+    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
+}
+
+graalvmNative {
+    binaries {
+        libdependencies {
+            createLayer {
+                modules = ["java.base"]
+                jars.from(externalDependenciesOf(configurations.runtimeClasspath))
+            }
         }
-    } else {
-        version = "undefined"
+        main {
+            useLayer("libdependencies")
+        }
     }
-}
-
-tasks.javadoc {
-    (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
-    (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
-}
-
-val inspections by tasks.registering {
-    dependsOn(tasks.withType<Checkstyle>())
 }
