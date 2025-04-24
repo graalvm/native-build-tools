@@ -235,9 +235,9 @@ public final class JUnitPlatformFeature implements Feature {
     private static void initializeClassesForJDK21OrEarlier() {
         try (InputStream is = JUnitPlatformFeature.class.getResourceAsStream("/initialize-at-buildtime")) {
             if (is != null) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                br.lines().forEach(RuntimeClassInitialization::initializeAtBuildTime);
-                br.close();
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                    br.lines().forEach(RuntimeClassInitialization::initializeAtBuildTime);
+                }
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to process build time initializations for JDK 21 or earlier");
