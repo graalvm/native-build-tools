@@ -1,4 +1,3 @@
-java.beans.Introspector
 org.junit.internal.runners.rules.RuleMemberValidator
 org.junit.jupiter.api.condition.OS
 org.junit.jupiter.api.DisplayNameGenerator$IndicativeSentences
