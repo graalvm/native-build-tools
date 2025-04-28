@@ -66,11 +66,6 @@ public interface NativeImageConfiguration {
             registerForReflection(clazz.getDeclaredConstructors());
             registerForReflection(clazz.getDeclaredMethods());
             registerForReflection(clazz.getDeclaredFields());
-
-            Class<?>[] declaredClasses = clazz.getDeclaredClasses();
-            for (Class<?> cls : declaredClasses) {
-                registerAllClassMembersForReflection(cls);
-            }
         }
     }
 }

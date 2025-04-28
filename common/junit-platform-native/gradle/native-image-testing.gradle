@@ -94,7 +94,7 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
     @InputDirectory
     abstract DirectoryProperty getExcludeConfigDir()
 
-    List<String> addExcludeConfig() {
+    private List<String> addExcludeConfig() {
         String[] jarPatternPair = getExcludeConfigDir().get().file("exclude-config").getAsFile().readLines().get(0).split(",")
         var jar = jarPatternPair[0]
         var pattern = jarPatternPair[1]

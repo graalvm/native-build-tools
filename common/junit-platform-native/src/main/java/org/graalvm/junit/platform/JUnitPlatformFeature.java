@@ -92,7 +92,7 @@ public final class JUnitPlatformFeature implements Feature {
         extensionConfigProviders.forEach(p -> p.initialize(access.getApplicationClassLoader(), nativeImageConfigImpl));
     }
 
-    public static boolean debug() {
+    private static boolean debug() {
         return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
     }
 
@@ -172,6 +172,11 @@ public final class JUnitPlatformFeature implements Feature {
         debug("Registering test class for reflection: %s", clazz.getName());
         nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
         forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));
+
+        Class<?>[] declaredClasses = clazz.getDeclaredClasses();
+        for (Class<?> declaredClass : declaredClasses) {
+            registerTestClassForReflection(declaredClass);
+        }
 
         Class<?>[] interfaces = clazz.getInterfaces();
         for (Class<?> inter : interfaces) {
