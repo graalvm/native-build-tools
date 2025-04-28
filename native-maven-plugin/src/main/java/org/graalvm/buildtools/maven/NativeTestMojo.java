@@ -161,7 +161,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         configureEnvironment();
         buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
 
-        /* in version 5.12.0 JUnit added initialize-at-builditime properties files which we need to exclude */
+        /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
         buildArgs.addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
 
         if (systemProperties == null) {

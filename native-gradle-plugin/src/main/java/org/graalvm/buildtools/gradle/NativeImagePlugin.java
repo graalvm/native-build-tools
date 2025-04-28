@@ -776,7 +776,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
 
-        /* in version 5.12.0 JUnit added initialize-at-builditime properties files which we need to exclude */
+        /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
         testExtension.getBuildArgs().addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
 
         return testExtension;
