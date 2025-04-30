@@ -66,9 +66,11 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -168,7 +170,28 @@ public final class JUnitPlatformFeature implements Feature {
                 .forEach(this::registerTestClassForReflection);
     }
 
+    private final Set<Class<?>> registeredClasses = new HashSet<>();
+
+    private boolean shouldRegisterClass(Class<?> clazz) {
+        /* avoid registering java internal classes */
+        if (ModuleLayer.boot().modules().contains(clazz.getModule())) {
+            return false;
+        }
+
+        /* avoid loops (possible case: class B is inner class of A, and B extends A) */
+        if (registeredClasses.contains(clazz)) {
+            return false;
+        }
+        registeredClasses.add(clazz);
+
+        return true;
+    }
+
     private void registerTestClassForReflection(Class<?> clazz) {
+        if (!shouldRegisterClass(clazz)) {
+            return;
+        }
+
         debug("Registering test class for reflection: %s", clazz.getName());
         nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
         forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));
