@@ -45,6 +45,12 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Requires
+import spock.util.concurrent.PollingConditions
+
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.nio.charset.StandardCharsets
 
 @Requires(
         { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
@@ -108,5 +114,42 @@ public class Application {
 
         outputContains "- '-H:LayerUse' (origin(s): command line)"
         outputContains "Hello, layered images!"
+    }
+
+    def "can build a layered Micronaut application"() {
+        given:
+        withSample("layered-mn-application")
+
+        when:
+        run 'nativeCompile'
+
+        then:
+        tasks {
+            succeeded ':nativeLibdependenciesCompile', ':nativeCompile'
+        }
+
+        when:
+        def builder = new ProcessBuilder()
+            .directory(testDirectory.toFile())
+            .inheritIO()
+            .command("build/native/nativeCompile/layered-mn-app${IS_WINDOWS?".exe":""}")
+        def env = builder.environment()
+        env["LD_LIBRARY_PATH"] = testDirectory.resolve("build/native/nativeLibdependenciesCompile").toString()
+        def process = builder.start()
+        def client = HttpClient.newHttpClient()
+        def request = HttpRequest.newBuilder()
+            .GET()
+            .uri(new URI("http://localhost:8080/"))
+            .build()
+        def conditions = new PollingConditions()
+
+        then:
+        conditions.within(10) {
+            def response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8)).body()
+            response == "Hello, layered images!"
+        }
+
+        cleanup:
+        process.destroy()
     }
 }
