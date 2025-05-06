@@ -234,8 +234,8 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
 
         List<String> actualCliArgs;
         if (useArgFile.getOrElse(true)) {
-            Path argFileDir = Paths.get(workingDirectory.get());
-            actualCliArgs = new ArrayList<>(NativeImageUtils.convertToArgsFile(cliArgs, argFileDir, argFileDir));
+            Path argFileDir = Paths.get(System.getProperty("java.io.tmpdir"));
+            actualCliArgs = new ArrayList<>(NativeImageUtils.convertToArgsFile(cliArgs, argFileDir, Paths.get(workingDirectory.get())));
         } else {
             actualCliArgs = cliArgs;
         }
