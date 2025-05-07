@@ -38,39 +38,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.tasks;
 
-package org.graalvm.buildtools.gradle
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
-import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+/**
+ * Layer creation options.
+ */
+public interface CreateLayerOptions extends LayerOptions {
+    /**
+     * The list of packages to include in the layer.
+     * @return the package list (can be empty)
+     */
+    @Input
+    @Optional
+    ListProperty<String> getPackages();
 
-class JUnitFunctionalTests extends AbstractFunctionalTest {
-    def "test if JUint support works with various annotations, reflection and resources"() {
-        debug=true
-        given:
-        withSample("junit-tests")
+    /**
+     * If set, all classes in the supplied jars will be included
+     * in the generated layer.
+     * @return the classpath to include
+     */
+    @Classpath
+    @Optional
+    ConfigurableFileCollection getJars();
 
-        when:
-        run 'nativeTest'
-
-        then:
-        tasks {
-            succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
-        }
-        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
-        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
-        outputContains """
-[        10 containers found      ]
-[         0 containers skipped    ]
-[        10 containers started    ]
-[         0 containers aborted    ]
-[        10 containers successful ]
-[         0 containers failed     ]
-[        24 tests found           ]
-[         1 tests skipped         ]
-[        23 tests started         ]
-[         0 tests aborted         ]
-[        23 tests successful      ]
-[         0 tests failed          ]
-""".trim()
-    }
+    /**
+     * Module names to include in the package. For a base layer,
+     * this should typically include "java.base".
+     * @return the list of modules to include in the layer
+     */
+    @Input
+    ListProperty<String> getModules();
 }

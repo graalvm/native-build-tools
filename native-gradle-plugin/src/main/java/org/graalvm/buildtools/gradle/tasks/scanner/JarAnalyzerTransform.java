@@ -38,39 +38,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.tasks.scanner;
 
-package org.graalvm.buildtools.gradle
+import org.graalvm.buildtools.utils.JarScanner;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformOutputs;
+import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 
-import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import java.io.File;
+import java.io.IOException;
 
-class JUnitFunctionalTests extends AbstractFunctionalTest {
-    def "test if JUint support works with various annotations, reflection and resources"() {
-        debug=true
-        given:
-        withSample("junit-tests")
+public abstract class JarAnalyzerTransform implements TransformAction<TransformParameters.None> {
 
-        when:
-        run 'nativeTest'
+    @InputArtifact
+    public abstract Provider<FileSystemLocation> getInputArtifact();
 
-        then:
-        tasks {
-            succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
+    @Override
+    public void transform(TransformOutputs outputs) {
+        File inputFile = getInputArtifact().get().getAsFile();
+        File outputFile = outputs.file(inputFile.getName().replace(".jar", ".properties"));
+        try {
+            JarScanner.scanJar(inputFile.toPath(), outputFile.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
-        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
-        outputContains """
-[        10 containers found      ]
-[         0 containers skipped    ]
-[        10 containers started    ]
-[         0 containers aborted    ]
-[        10 containers successful ]
-[         0 containers failed     ]
-[        24 tests found           ]
-[         1 tests skipped         ]
-[        23 tests started         ]
-[         0 tests aborted         ]
-[        23 tests successful      ]
-[         0 tests failed          ]
-""".trim()
     }
 }

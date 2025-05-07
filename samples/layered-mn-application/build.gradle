@@ -1,0 +1,72 @@
+plugins {
+    id("io.micronaut.minimal.application")
+    id("org.graalvm.buildtools.native")
+}
+
+version = "0.1"
+group = "layered.mn.app"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    compileOnly("io.micronaut:micronaut-http-client")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    testImplementation("io.micronaut:micronaut-http-client")
+}
+
+application {
+    mainClass = "layered.mn.app.Application"
+}
+
+graalvmNative.toolchainDetection = false
+
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("layered.mn.app.*")
+    }
+}
+
+graalvmNative {
+    binaries {
+        all {
+            verbose = true
+            buildArgs(
+                "--initialize-at-run-time=io.netty.channel.unix.Errors",
+                "--initialize-at-run-time=io.netty.channel.unix.IovArray",
+                "--initialize-at-run-time=io.netty.channel.unix.Limits",
+                "--initialize-at-run-time=io.netty.buffer",
+                "--initialize-at-run-time=io.netty.channel",
+                "--initialize-at-run-time=io.netty.handler",
+                "--initialize-at-run-time=io.netty.resolver",
+                "--initialize-at-run-time=io.netty.util",
+                "--initialize-at-run-time=io.netty.bootstrap",
+                "-H:+UseSharedLayerGraphs",
+                "--initialize-at-build-time=io.micronaut.http.server.netty.discovery.\$NettyServiceDiscovery\$ApplicationEventListener\$onStop2\$Intercepted\$Definition\$Exec",
+                "--initialize-at-build-time=io.micronaut.http.server.netty.discovery.\$NettyServiceDiscovery\$ApplicationEventListener\$onStart1\$Intercepted\$Definition\$Exec"
+            )
+        }
+        create("libdependencies") {
+            var externalJars = externalDependenciesOf(configurations.runtimeClasspath)
+            createLayer {
+                modules = ["java.base"]
+                jars.from(externalJars)
+            }
+            buildArgs(
+                "-H:ApplicationLayerOnlySingletons=io.micronaut.core.io.service.ServiceScanner\$StaticServiceDefinitions",
+                "-H:ApplicationLayerInitializedClasses=io.micronaut.core.io.service.MicronautMetaServiceLoaderUtils",
+                "-H:ApplicationLayerInitializedClasses=io.micronaut.inject.annotation.AnnotationMetadataSupport"
+            )
+        }
+        named("main") {
+            useLayer("libdependencies")
+        }
+    }
+}

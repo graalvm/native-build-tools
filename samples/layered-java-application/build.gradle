@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,38 +39,47 @@
  * SOFTWARE.
  */
 
-package org.graalvm.buildtools.gradle
+plugins {
+    id 'application'
+    id 'org.graalvm.buildtools.native'
+}
 
-import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+repositories {
+    mavenCentral()
+}
 
-class JUnitFunctionalTests extends AbstractFunctionalTest {
-    def "test if JUint support works with various annotations, reflection and resources"() {
-        debug=true
-        given:
-        withSample("junit-tests")
+application {
+    mainClass.set('org.graalvm.demo.Application')
+}
 
-        when:
-        run 'nativeTest'
+def junitVersion = providers.gradleProperty('junit.jupiter.version')
+        .get()
 
-        then:
-        tasks {
-            succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
+dependencies {
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.18")
+    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.named("nativeRun") {
+    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
+}
+
+graalvmNative {
+    binaries {
+        libdependencies {
+            createLayer {
+                modules = ["java.base"]
+                jars.from(externalDependenciesOf(configurations.runtimeClasspath))
+            }
         }
-        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
-        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
-        outputContains """
-[        10 containers found      ]
-[         0 containers skipped    ]
-[        10 containers started    ]
-[         0 containers aborted    ]
-[        10 containers successful ]
-[         0 containers failed     ]
-[        24 tests found           ]
-[         1 tests skipped         ]
-[        23 tests started         ]
-[         0 tests aborted         ]
-[        23 tests successful      ]
-[         0 tests failed          ]
-""".trim()
+        main {
+            useLayer("libdependencies")
+        }
     }
 }

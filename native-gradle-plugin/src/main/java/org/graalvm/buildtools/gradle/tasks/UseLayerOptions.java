@@ -38,39 +38,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.tasks;
 
-package org.graalvm.buildtools.gradle
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
-import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
-
-class JUnitFunctionalTests extends AbstractFunctionalTest {
-    def "test if JUint support works with various annotations, reflection and resources"() {
-        debug=true
-        given:
-        withSample("junit-tests")
-
-        when:
-        run 'nativeTest'
-
-        then:
-        tasks {
-            succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
-        }
-        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
-        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
-        outputContains """
-[        10 containers found      ]
-[         0 containers skipped    ]
-[        10 containers started    ]
-[         0 containers aborted    ]
-[        10 containers successful ]
-[         0 containers failed     ]
-[        24 tests found           ]
-[         1 tests skipped         ]
-[        23 tests started         ]
-[         0 tests aborted         ]
-[        23 tests successful      ]
-[         0 tests failed          ]
-""".trim()
-    }
+/**
+ * Configures a layer for use.
+ */
+public interface UseLayerOptions extends LayerOptions {
+    /**
+     * The path to the layer to use.
+     * @return the path property.
+     */
+    @InputFile
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    RegularFileProperty getLayerFile();
 }

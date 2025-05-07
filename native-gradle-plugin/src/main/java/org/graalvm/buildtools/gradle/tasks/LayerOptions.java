@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,25 +38,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.gradle.internal;
+package org.graalvm.buildtools.gradle.tasks;
 
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 
-public class NativeConfigurations {
-    private final Configuration imageCompileOnly;
-    private final Configuration imageClasspath;
-
-    public NativeConfigurations(Configuration imageCompileOnly, Configuration imageClasspath) {
-        this.imageCompileOnly = imageCompileOnly;
-        this.imageClasspath = imageClasspath;
-    }
-
-    public Configuration getImageCompileOnlyConfiguration() {
-        return imageCompileOnly;
-    }
-
-    public Configuration getImageClasspathConfiguration() {
-        return imageClasspath;
-    }
-
+/**
+ * Base interface for common options of layer use and layer create.
+ */
+public interface LayerOptions  {
+    /**
+     * The name of the layer.
+     * @return the name property
+     */
+    @Input
+    Property<String> getLayerName();
 }

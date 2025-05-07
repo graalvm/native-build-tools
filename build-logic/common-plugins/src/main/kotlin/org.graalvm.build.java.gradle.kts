@@ -64,12 +64,16 @@ repositories {
 group = "org.graalvm.buildtools"
 
 extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    val versionFromCatalog = catalogs.named("libs")
+    if (catalogs.find("libs").isPresent) {
+        val versionFromCatalog = catalogs.named("libs")
             .findVersion("nativeBuildTools")
-    if (versionFromCatalog.isPresent()) {
-        version = versionFromCatalog.get().requiredVersion
+        if (versionFromCatalog.isPresent()) {
+            version = versionFromCatalog.get().requiredVersion
+        } else {
+            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+        }
     } else {
-        throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+        version = "undefined"
     }
 }
 
