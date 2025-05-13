@@ -54,8 +54,8 @@ import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.FieldSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -86,9 +86,15 @@ public class JupiterConfigProvider extends PluginConfigProvider {
         AnnotationUtils.forEachAnnotatedMethodParameter(testClass, AggregateWith.class, annotation -> registry.registerAllClassMembersForReflection(annotation.value()));
         AnnotationUtils.forEachAnnotatedMethod(testClass, EnumSource.class, (m, annotation) -> handleEnumSource(m, annotation, registry));
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, MethodSource.class, JupiterConfigProvider::handleMethodSource);
-        AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, FieldSource.class, JupiterConfigProvider::handleFieldSource);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, EnabledIf.class, JupiterConfigProvider::handleEnabledIf);
         AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisabledIf.class, JupiterConfigProvider::handleDisabledIf);
+
+        try {
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, FieldSource.class, JupiterConfigProvider::handleFieldSource);
+        } catch (NoClassDefFoundError e) {
+            // if users use JUnit version older than 5.11, FieldSource class won't be available
+        }
+
     }
 
     private static Class<?>[] handleMethodSource(MethodSource annotation) {

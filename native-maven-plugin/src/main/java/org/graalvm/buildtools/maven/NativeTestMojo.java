@@ -60,16 +60,9 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
-import org.graalvm.buildtools.utils.FileUtils;
 import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -82,7 +75,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -141,8 +133,6 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             .filter(it -> it.getGroupId().startsWith(NativeImageConfigurationUtils.MAVEN_GROUP_ID) || it.getGroupId().startsWith("org.junit"))
             .map(it -> it.getFile().toPath())
             .forEach(imageClasspath::add);
-
-        modules.addAll(collectJUnitModulesAlreadyOnClasspath());
         var jars = findJunitPlatformNativeJars(modules);
         imageClasspath.addAll(jars);
     }
@@ -316,51 +306,6 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             .filter(a -> !modulesAlreadyOnClasspath.contains(new Module(a.getGroupId(), a.getArtifactId())))
             .map(a -> a.getFile().toPath())
             .collect(Collectors.toList());
-    }
-
-    private Set<Module> collectJUnitModulesAlreadyOnClasspath() {
-        Set<Module> artifacts = new HashSet<>();
-        for (Path entry : imageClasspath) {
-            if (isJUnitArtifact(entry)) {
-                File pom = getArtifactPOM(entry);
-                if (pom != null) {
-                    artifacts.add(getModuleFromPOM(pom));
-                }
-            }
-        }
-
-        return artifacts;
-    }
-
-    private boolean isJUnitArtifact(Path entry) {
-        return entry.toString().contains("junit");
-    }
-
-    private File getArtifactPOM(Path classpathEntry) {
-        List<File> artifactContent = getArtifactContent(classpathEntry.getParent());
-        List<File> candidates = artifactContent.stream().filter(f -> f.getName().endsWith(".pom")).collect(Collectors.toList());
-        return candidates.size() != 1 ? null : candidates.get(0);
-    }
-
-    private List<File> getArtifactContent(Path path) {
-        File[] content = path.toFile().listFiles();
-        return content == null ? List.of() : List.of(content);
-    }
-
-    private Module getModuleFromPOM(File pom) {
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setIgnoringElementContentWhitespace(true);
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(pom);
-
-            String groupId = doc.getElementsByTagName("groupId").item(0).getFirstChild().getTextContent();
-            String artifactId = doc.getElementsByTagName("artifactId").item(0).getFirstChild().getTextContent();
-
-            return new Module(groupId, artifactId);
-        } catch (ParserConfigurationException | IOException | SAXException e) {
-            throw new RuntimeException("Cannot get maven coordinates from " + pom.getPath() + ". Reason: " + e.getMessage());
-        }
     }
 
     private static final class Module {
