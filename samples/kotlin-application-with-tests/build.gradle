@@ -54,6 +54,7 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.0")
 }
 
 application {
