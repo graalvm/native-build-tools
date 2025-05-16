@@ -154,7 +154,7 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
 }
 
 val launcher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(11))
+    languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks {
