@@ -51,7 +51,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
     withJavadocJar()
     withSourcesJar()
@@ -74,11 +74,6 @@ extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
 }
 
 tasks.javadoc {
-    // Use a different toolchain version from the compilation
-    // so that we can generate HTML5 docs
-    javadocTool.set(javaToolchains.javadocToolFor {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    })
     (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     (options as StandardJavadocDocletOptions).noTimestamp(true)
 }

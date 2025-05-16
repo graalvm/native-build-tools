@@ -512,7 +512,7 @@ final class ArtifactAdapterResolver {
 
     private static FileSystem getOrCreateFileSystem(Path jarPath) throws IOException {
         try {
-            return FileSystems.newFileSystem(jarPath, null);
+            return FileSystems.newFileSystem(jarPath, (ClassLoader) null);
         } catch (FileSystemAlreadyExistsException e) {
             /* If the file system already exists, return the existing file system. */
             return FileSystems.getFileSystem(jarPath.toUri());

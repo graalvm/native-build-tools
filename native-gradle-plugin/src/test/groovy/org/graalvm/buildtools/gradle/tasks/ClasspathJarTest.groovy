@@ -65,7 +65,7 @@ class ClasspathJarTest extends AbstractPluginTest {
         classpathJar.copy()
 
         then:
-        try (def fs = FileSystems.newFileSystem(jarPath, null)) {
+        try (def fs = FileSystems.newFileSystem(jarPath, (ClassLoader) null)) {
             assert Files.exists(fs.getPath("dummy.txt"))
         }
     }
