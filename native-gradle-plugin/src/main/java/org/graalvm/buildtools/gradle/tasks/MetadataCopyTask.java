@@ -48,7 +48,7 @@ import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -56,6 +56,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
@@ -73,19 +76,20 @@ public abstract class MetadataCopyTask extends DefaultTask {
 
     private final ProjectLayout layout;
     private final ProviderFactory providerFactory;
-    private final ObjectFactory objectFactory;
     private final ExecOperations execOperations;
+    private final JavaToolchainService javaToolchainService;
 
     @Inject
     public MetadataCopyTask(ProjectLayout layout,
                             ProviderFactory providerFactory,
-                            ObjectFactory objectFactory,
-                            ExecOperations execOperations) {
+                            ExecOperations execOperations,
+                            JavaToolchainService javaToolchainService) {
         this.logger = GraalVMLogger.of(getLogger());
         this.layout = layout;
         this.providerFactory = providerFactory;
-        this.objectFactory = objectFactory;
         this.execOperations = execOperations;
+        this.javaToolchainService = javaToolchainService;
+        initJavaLauncher();
     }
 
     @Internal
@@ -100,6 +104,9 @@ public abstract class MetadataCopyTask extends DefaultTask {
     @Internal
     public abstract Property<Boolean> getToolchainDetection();
 
+    @Internal
+    public abstract Property<JavaLauncher> getJavaLauncher();
+
     @Option(option = "task", description = "Executed task previously instrumented with the agent whose metadata should be copied.")
     public void overrideInputTaskNames(List<String> inputTaskNames) {
         getInputTaskNames().set(inputTaskNames);
@@ -108,6 +115,12 @@ public abstract class MetadataCopyTask extends DefaultTask {
     @Option(option = "dir", description = "Directory to which the metadata will be copied.")
     public void overrideOutputDirectories(List<String> outputDirectories) {
         getOutputDirectories().set(outputDirectories);
+    }
+
+    private void initJavaLauncher() {
+        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
+        Provider<JavaLauncher> defaultJavaLauncher = javaToolchainService.launcherFor(toolchain);
+        getJavaLauncher().convention(defaultJavaLauncher);
     }
 
     @TaskAction
@@ -154,7 +167,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 isMergeEnabled,
                 agentModeProvider,
                 getMergeWithExisting(),
-                objectFactory,
+                getJavaLauncher(),
                 graalvmHomeProvider(providerFactory),
                 () -> inputDirectories,
                 () -> outputDirectories,
