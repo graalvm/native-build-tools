@@ -99,9 +99,11 @@ org.junit.platform.launcher.listeners.UniqueIdTrackingListener
 org.junit.platform.launcher.TestIdentifier
 org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener
 org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1
+org.junit.platform.suite.engine.DiscoverySelectorResolver
 org.junit.platform.suite.engine.SuiteEngineDescriptor
 org.junit.platform.suite.engine.SuiteLauncher
 org.junit.platform.suite.engine.SuiteTestDescriptor
+org.junit.platform.suite.engine.SuiteTestDescriptor$DiscoveryIssueForwardingListener
 org.junit.platform.suite.engine.SuiteTestDescriptor$LifecycleMethods
 org.junit.platform.suite.engine.SuiteTestEngine
 org.junit.runner.Description
