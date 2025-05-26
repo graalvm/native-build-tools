@@ -89,6 +89,7 @@ org.junit.platform.launcher.core.LauncherConfigurationParameters$ParameterProvid
 org.junit.platform.launcher.core.LauncherDiscoveryResult
 org.junit.platform.launcher.core.LauncherDiscoveryResult$EngineResultInfo
 org.junit.platform.launcher.core.LauncherListenerRegistry
+org.junit.platform.launcher.core.LauncherPhase
 org.junit.platform.launcher.core.ListenerRegistry
 org.junit.platform.launcher.core.SessionPerRequestLauncher
 org.junit.platform.launcher.EngineDiscoveryResult
