@@ -156,3 +156,17 @@ a:hover {
 .admonitionblock td.content>.title, .paragraph>.title {
   color: #8EC9E6;
 }
+
+td.tableblock{
+  background: #171E25;
+}
+
+tr:first-child td:nth-child(1),
+tr:first-child td:nth-child(2) {
+  background: #283441;
+}
+
+p.tableblock>code:only-child {
+  background: #8EC9E6;
+  padding: 0px 4px;
+}
