@@ -5,6 +5,10 @@
 
 This version introduces a breaking change: the plugin now requires Java 17 to run.
 
+=== Maven plugin
+
+- Add `runtimeArgs` support to `native-maven-plugin`
+
 == Release 0.10.6
 
 === Gradle plugin

@@ -43,6 +43,7 @@ package org.graalvm.buildtools.maven
 
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Requires
 
 class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
@@ -182,4 +183,17 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         outputDoesNotContain expectedOutput
     }
 
+    @Requires({ jvm.java23Compatible })
+    def "can use the Maven plugin with the runtimeArgs config to run tests in a native image"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Ptest-runtime-args', '-DquickBuild', 'test'
+
+        def expectedOutput = "Note: this run will print partial stack traces of the locations where a class org.graalvm.nativeimage.MissingReflectionRegistrationError would be thrown when the -H:+ThrowMissingRegistrationErrors option is set."
+
+        then:
+        buildSucceeded
+        outputContains expectedOutput
+    }
 }
