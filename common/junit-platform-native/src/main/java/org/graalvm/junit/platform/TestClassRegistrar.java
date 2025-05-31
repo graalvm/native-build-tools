@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,18 +39,56 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("org.graalvm.build.utils-module")
-}
+package org.graalvm.junit.platform;
 
-maven {
-    name.set("Utilities for GraalVM native image plugins")
-    description.set("Contains code which is shared by both by the Maven and Gradle plugins")
-}
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 
-dependencies {
-    implementation(libs.openjson)
-    testImplementation(platform(libs.test.junit.bom))
-    testImplementation(libs.test.junit.jupiter.core)
-    testRuntimeOnly(libs.test.junit.platform.launcher)
+class TestClassRegistrar {
+
+    private final Set<Class<?>> registeredClasses = new HashSet<>();
+    private final Consumer<Class<?>> registrationCallback;
+
+    TestClassRegistrar(Consumer<Class<?>> registrationCallback) {
+        this.registrationCallback = registrationCallback;
+    }
+
+    void registerTestClassForReflection(Class<?> clazz) {
+        if (!shouldRegisterClass(clazz)) {
+            return;
+        }
+
+        registrationCallback.accept(clazz);
+
+        Class<?>[] declaredClasses = clazz.getDeclaredClasses();
+        for (Class<?> declaredClass : declaredClasses) {
+            registerTestClassForReflection(declaredClass);
+        }
+
+        Class<?>[] interfaces = clazz.getInterfaces();
+        for (Class<?> inter : interfaces) {
+            registerTestClassForReflection(inter);
+        }
+
+        Class<?> superClass = clazz.getSuperclass();
+        if (superClass != null && superClass != Object.class) {
+            registerTestClassForReflection(superClass);
+        }
+    }
+
+    private boolean shouldRegisterClass(Class<?> clazz) {
+        /* avoid registering java internal classes */
+        if (ModuleLayer.boot().modules().contains(clazz.getModule())) {
+            return false;
+        }
+
+        /* avoid loops (possible case: class B is inner class of A, and B extends A) */
+        if (registeredClasses.contains(clazz)) {
+            return false;
+        }
+        registeredClasses.add(clazz);
+
+        return true;
+    }
 }

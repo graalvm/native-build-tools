@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,18 +39,54 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("org.graalvm.build.utils-module")
-}
+package org.graalvm.junit.platform;
 
-maven {
-    name.set("Utilities for GraalVM native image plugins")
-    description.set("Contains code which is shared by both by the Maven and Gradle plugins")
-}
+import org.junit.jupiter.api.Test;
 
-dependencies {
-    implementation(libs.openjson)
-    testImplementation(platform(libs.test.junit.bom))
-    testImplementation(libs.test.junit.jupiter.core)
-    testRuntimeOnly(libs.test.junit.platform.launcher)
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class TestClassRegistrarTests {
+
+    @Test
+    void avoidsInfiniteLoopsWhenClassDefinitionsAreRecursive() {
+        List<Class<?>> registeredClasses = new ArrayList<>();
+        var registrar = new TestClassRegistrar(registeredClasses::add);
+
+        registrar.registerTestClassForReflection(OuterClass.class);
+
+        assertEquals(List.of(OuterClass.class, OuterClass.InfiniteLoop.class), registeredClasses);
+    }
+
+    @Test
+    void avoidsRegistrationOfJavaInternalTypes() {
+        List<Class<?>> registeredClasses = new ArrayList<>();
+        var registrar = new TestClassRegistrar(registeredClasses::add);
+
+        registrar.registerTestClassForReflection(EnumTest.class);
+
+        assertEquals(List.of(EnumTest.class), registeredClasses);
+    }
+
+    public static class OuterClass {
+
+        /* Since TestClassRegistrar registers all declared classes and superclass of the test class, and we do so
+         * recursively, we want to avoid infinite loop.
+         * This inheritance shows that we won't call registration of these classes indefinitely (call registration of
+         * all declared classes of AbstractParentClassTests, then recursively call superclass of InfiniteLoopTest and
+         * repeat the process indefinitely) */
+        @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
+        class InfiniteLoop extends OuterClass {
+        }
+    }
+
+    /* Since enum here is declared class of AbstractParentClassTests, we want to avoid registrations of
+     * enum's internal superclasses and sub-classes */
+    @SuppressWarnings("unused")
+    enum EnumTest {
+        SOME_VALUE,
+        OTHER_VALUE
+    }
 }

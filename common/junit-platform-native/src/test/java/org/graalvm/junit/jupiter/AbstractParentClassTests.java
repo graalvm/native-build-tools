@@ -43,7 +43,6 @@ package org.graalvm.junit.jupiter;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -52,32 +51,6 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 public class AbstractParentClassTests {
-
-    public static class OuterClass {
-        @Test
-        protected void test() {
-            Assertions.assertTrue(true, "Just a dummy test that should be executed in outer class");
-        }
-
-        /* Since at org.graalvm.junit.platform.JUnitPlatformFeature#registerTestClassForReflection we register all
-         * declared classes and superclass of the test class, and we do so recursively, we want to avoid infinite loop.
-         * This inheritance shows that we won't call registration of these classes indefinitely (call registration of
-         * all declared classes of AbstractParentClassTests, then recursively call superclass of InfiniteLoopTest and
-         * repeat the process indefinitely) */
-        private class InfiniteLoopTest extends OuterClass {
-            @Test
-            protected void test() {
-                Assertions.assertTrue(true, "Just a dummy test that should be executed in inner class");
-            }
-        }
-
-        /* Since enum here is declared class of AbstractParentClassTests, we want to avoid registrations of
-         * enum's internal superclasses and sub-classes at org.graalvm.junit.platform.JUnitPlatformFeature#registerTestClassForReflection */
-        private enum EnumTest {
-            SOME_VALUE,
-            OTHER_VALUE
-        }
-    }
 
     public abstract static class MathPowerTests {
         protected static BiFunction<Integer, Integer, Integer> powFunction;

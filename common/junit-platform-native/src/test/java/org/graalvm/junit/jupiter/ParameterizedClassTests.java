@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,18 +39,38 @@
  * SOFTWARE.
  */
 
-plugins {
-    id("org.graalvm.build.utils-module")
+package org.graalvm.junit.jupiter;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.ValueSource;
+
+abstract class BaseTests {
+    @Test
+    void test(TestInfo testInfo) {
+        Assertions.assertEquals(ParameterizedClassTests.InnerTests.class, testInfo.getTestClass().orElseThrow());
+    }
 }
 
-maven {
-    name.set("Utilities for GraalVM native image plugins")
-    description.set("Contains code which is shared by both by the Maven and Gradle plugins")
-}
+@ParameterizedClass
+@ValueSource(ints = { 1, 2 })
+class ParameterizedClassTests {
 
-dependencies {
-    implementation(libs.openjson)
-    testImplementation(platform(libs.test.junit.bom))
-    testImplementation(libs.test.junit.jupiter.core)
-    testRuntimeOnly(libs.test.junit.platform.launcher)
+    private final int value;
+
+    ParameterizedClassTests(int value) {
+        this.value = value;
+    }
+
+    @Test
+    void test() {
+        Assertions.assertTrue(value == 1 || value == 2);
+    }
+
+    @Nested
+    class InnerTests extends BaseTests {
+    }
 }
