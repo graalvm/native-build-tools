@@ -168,6 +168,9 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         }
         systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
             NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
+        if (runtimeArgs == null) {
+            runtimeArgs = new ArrayList<>();
+        }
 
         imageName = NATIVE_TESTS_EXE;
         mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
@@ -238,6 +241,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             command.add("--xml-output-dir");
             command.add(xmlLocation.toString());
             systemProperties.forEach((key, value) -> command.add("-D" + key + "=" + value));
+            command.addAll(runtimeArgs);
 
             processBuilder.command().addAll(command);
             processBuilder.environment().putAll(environment);
