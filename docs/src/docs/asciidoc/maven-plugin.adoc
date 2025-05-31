@@ -119,6 +119,14 @@ The following configuration options are available:
     <propertyName>value</propertyName>
 </systemPropertyVariables>
 ----
+`<runtimeArgs>`::
+To specify runtime arguments used for a native image run, use:
+[source,xml, role="multi-language-sample"]
+----
+<runtimeArgs>
+    <runtimeArg>-XX:MissingRegistrationReportingMode=Warn</runtimeArg>
+</runtimeArgs>
+----
 `<jvmArgs>`::
    To specify JVM arguments used for a native image build, use:
 [source,xml, role="multi-language-sample"]
