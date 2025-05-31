@@ -12,6 +12,7 @@ This version introduces a breaking change: the plugin now requires Java 17 to ru
 === Maven plugin
 
 - Added support for running integration tests via maven-failsafe-plugin
+- Add `runtimeArgs` support to `native-maven-plugin`
 
 == Release 0.10.6
 
