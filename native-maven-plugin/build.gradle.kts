@@ -178,3 +178,7 @@ tasks.withType<Checkstyle>().configureEach {
     // generated code
     exclude("**/RuntimeMetadata*")
 }
+
+tasks {
+    withType<Javadoc>().configureEach { options.encoding = "UTF-8" }
+}
