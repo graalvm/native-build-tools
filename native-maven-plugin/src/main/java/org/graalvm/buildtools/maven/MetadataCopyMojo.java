@@ -172,8 +172,8 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
             File dir = new File(source);
             if (!dir.isDirectory() || !dir.exists()) {
                 logger.warn("Cannot find source directory " + source + " for metadata copy. Please check if you configured agent" +
-                        " properly and it generates all necessary directories. If you want to skipp copy from some source, please " +
-                        "configure metadataCopy with disable stage you want to skipp.");
+                        " properly and it generates all necessary directories. If you want to skip copy from some source, please " +
+                        "configure metadataCopy with disable stage you want to skip.");
                 return false;
             }
         }
