@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,57 +39,54 @@
  * SOFTWARE.
  */
 
-package org.graalvm.junit.jupiter;
+package org.graalvm.junit.platform;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 
-import java.util.function.BiFunction;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
 
-public class AbstractParentClassTests {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public abstract static class MathPowerTests {
-        protected static BiFunction<Integer, Integer, Integer> powFunction;
+class TestClassRegistrarTests {
 
-        @ParameterizedTest
-        @MethodSource
-        protected void testPow(int a, int b) {
-            int expected = (int) Math.pow(a, b);
-            int result = powFunction.apply(a, b);
-            Assertions.assertEquals(expected, result);
-        }
+    @Test
+    void avoidsInfiniteLoopsWhenClassDefinitionsAreRecursive() {
+        List<Class<?>> registeredClasses = new ArrayList<>();
+        var registrar = new TestClassRegistrar(registeredClasses::add);
 
-        protected static Stream<Arguments> testPow() {
-            return Stream.of(
-                    Arguments.of(2, 4),
-                    Arguments.of(5, 2)
-            );
+        registrar.registerTestClassForReflection(OuterClass.class);
+
+        assertEquals(List.of(OuterClass.class, OuterClass.InfiniteLoop.class), registeredClasses);
+    }
+
+    @Test
+    void avoidsRegistrationOfJavaInternalTypes() {
+        List<Class<?>> registeredClasses = new ArrayList<>();
+        var registrar = new TestClassRegistrar(registeredClasses::add);
+
+        registrar.registerTestClassForReflection(EnumTest.class);
+
+        assertEquals(List.of(EnumTest.class), registeredClasses);
+    }
+
+    public static class OuterClass {
+
+        /* Since TestClassRegistrar registers all declared classes and superclass of the test class, and we do so
+         * recursively, we want to avoid infinite loop.
+         * This inheritance shows that we won't call registration of these classes indefinitely (call registration of
+         * all declared classes of AbstractParentClassTests, then recursively call superclass of InfiniteLoopTest and
+         * repeat the process indefinitely) */
+        @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
+        class InfiniteLoop extends OuterClass {
         }
     }
 
-    public static class CustomPowFunctionTests extends MathPowerTests {
-
-        @BeforeAll
-        public static void setupCustomPow() {
-            powFunction = (x, n) -> {
-                int res = 1;
-                for (int i = 0; i < n; ++i) {
-                    res *= x;
-                }
-                return res;
-            };
-        }
-    }
-
-    public static class BuiltInPowFunctionTests extends MathPowerTests {
-
-        @BeforeAll
-        public static void setupCustomPow() {
-            powFunction = (x, n) -> (int) Math.pow(x, n);
-        }
+    /* Since enum here is declared class of AbstractParentClassTests, we want to avoid registrations of
+     * enum's internal superclasses and sub-classes */
+    @SuppressWarnings("unused")
+    enum EnumTest {
+        SOME_VALUE,
+        OTHER_VALUE
     }
 }
