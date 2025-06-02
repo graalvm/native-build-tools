@@ -948,11 +948,11 @@ The plugin allows configuring the final binary, the <a href="#test-binary-config
 </ul>
 </div>
 <div class="sect3">
-<h4 id="_command_line_options"><a class="anchor" href="#_command_line_options"></a>Command line options</h4>
+<h4 id="_command_line_options"><a class="anchor" href="#_command_line_options"></a>Command Line Options</h4>
 <div class="paragraph">
-<p>The preferred way to configure native binaries is by using the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.
-However, in some circumstances, for experimentation, it may be useful to override parameters from command line.
-The following flags are available and (unless stated otherwise) will take precedence over the DSL configuration:</p>
+<p>The preferred way to configure native binaries is through the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.
+However, in some cases—such as experimentation—it may be useful to override parameters via the command line.
+The following flags are available and, unless stated otherwise, take precedence over the DSL configuration:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -982,7 +982,7 @@ The following flags are available and (unless stated otherwise) will take preced
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)fallback</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables the fallback mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables fallback mode</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)quick-build-native</code></p></td>
@@ -1002,27 +1002,27 @@ The following flags are available and (unless stated otherwise) will take preced
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--force-build-args</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides build arguments (DSL will be ignored)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides build arguments (DSL configuration is ignored)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)fat-jar</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables creation of a far jar for compilation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables creation of a fat JAR for compilation</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--sysprop-native</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Adds a system property for compilation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds a system property for <code>native-image</code> compilation</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--env-native</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Adds an environment variable for compilation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds an environment variable for <code>native-image</code> compilation</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jvm-args-native</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Adds JVM arguments for compilation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds JVM arguments for <code>native-image</code> compilation</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>--force-jvm-args-native</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides JVM arguments (DSL will be ignored)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides JVM arguments (DSL configuration is ignored)</p></td>
 </tr>
 </tbody>
 </table>
