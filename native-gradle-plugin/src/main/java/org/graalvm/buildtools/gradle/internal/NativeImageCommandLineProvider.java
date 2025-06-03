@@ -45,6 +45,7 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.LayerOptions;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
+import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -129,7 +130,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         ConfigurableFileCollection jarsClasspath = null;
         if (hasLayers) {
             LOGGER.warn("Experimental support for layered images enabled. DSL may change at any time.");
-            cliArgs.add("-H:+UnlockExperimentalVMOptions");
+            cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
             var layers = options.getLayers();
             var arg = new StringBuilder();
             for (LayerOptions layer : layers) {
@@ -139,14 +140,13 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                 if (layer instanceof CreateLayerOptions) {
                     var create = (CreateLayerOptions) layer;
                     layerCreateName = layer.getLayerName().get();
-                    arg.append("-H:LayerCreate=");
+                    arg.append(NativeImageFlags.LAYER_CREATE + "=");
                     arg.append(layerCreateName).append(".nil");
                     var modules = create.getModules().get();
                     jarsClasspath = create.getJars();
                     boolean hasModules = !modules.isEmpty();
                     boolean hasPackage = create.getPackages().isPresent() && !create.getPackages().get().isEmpty();
-                    var createLayerJars = jarsClasspath.getFiles();
-                    boolean hasJars = !createLayerJars.isEmpty();
+                    boolean hasJars = !jarsClasspath.getFiles().isEmpty();
                     if (hasModules || hasPackage || hasJars) {
                         var packages = create.getPackages().get();
                         arg.append(",");
@@ -168,7 +168,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                     }
                 } else {
                     var layerUse = (UseLayerOptions) layer;
-                    arg.append("-H:LayerUse=");
+                    arg.append(NativeImageFlags.LAYER_USE + "=");
                     arg.append(layerUse.getLayerFile().getAsFile().get().getAbsolutePath());
                 }
             }
@@ -187,14 +187,14 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
             cliArgs.add(jarsClasspath.getAsPath());
         }
         appendBooleanOption(cliArgs, options.getDebug(), "-g");
-        appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), "--no-fallback");
-        appendBooleanOption(cliArgs, options.getVerbose(), "--verbose");
-        appendBooleanOption(cliArgs, options.getSharedLibrary(), "--shared");
-        appendBooleanOption(cliArgs, options.getQuickBuild(), "-Ob");
+        appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), NativeImageFlags.NO_FALLBACK);
+        appendBooleanOption(cliArgs, options.getVerbose(), NativeImageFlags.VERBOSE);
+        appendBooleanOption(cliArgs, options.getSharedLibrary(), NativeImageFlags.SHARED);
+        appendBooleanOption(cliArgs, options.getQuickBuild(), NativeImageFlags.QUICK_BUILD);
         if (useColors.get()) {
-            appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? "--color" : "-H:+BuildOutputColorful");
+            appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR : NativeImageFlags.BUILD_OUTPUT_COLORFUL);
         }
-        appendBooleanOption(cliArgs, options.getPgoInstrument(), "--pgo-instrument");
+        appendBooleanOption(cliArgs, options.getPgoInstrument(), NativeImageFlags.PGO_INSTRUMENT);
 
         String targetOutputPath = getExecutableName().get();
         if (layerCreateName != null) {
@@ -221,7 +221,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
             .map(File::getAbsolutePath)
             .collect(Collectors.joining(","));
         if (!configFiles.isEmpty()) {
-            cliArgs.add("-H:ConfigurationFileDirectories=" + configFiles);
+            cliArgs.add(NativeImageFlags.CONFIGURATION_FILE_DIRECTORIES + "=" + configFiles);
         }
         if (Boolean.FALSE.equals(options.getPgoInstrument().get()) && options.getPgoProfilesDirectory().isPresent()) {
             FileTree files = options.getPgoProfilesDirectory().get().getAsFileTree();
