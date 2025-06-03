@@ -41,7 +41,7 @@ public class JarScanner {
     public static void scanJar(Path inputJar, Path outputFile) throws IOException {
         try (Writer fileWriter = Files.newBufferedWriter(outputFile); PrintWriter writer = new PrintWriter(fileWriter)) {
             Set<String> packageList = new TreeSet<>();
-            try (FileSystem jarFileSystem = FileSystems.newFileSystem(inputJar, null)) {
+            try (FileSystem jarFileSystem = FileSystems.newFileSystem(inputJar, (ClassLoader) null)) {
                 Path root = jarFileSystem.getPath("/");
                 try (Stream<Path> files = Files.walk(root)) {
                     files.forEach(path -> {

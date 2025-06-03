@@ -348,7 +348,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 var useLayers = options.getLayers()
                     .stream()
                     .filter(layer -> layer instanceof UseLayerOptions)
-                    .collect(Collectors.toList());
+                    .toList();
                 if (!useLayers.isEmpty()) {
                     var libsDirs = project.getObjects().fileCollection();
                     libsDirs.from(useLayers
@@ -356,7 +356,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                         .map(l -> l.getLayerName().flatMap(layerName -> tasks.named(compileTaskNameForBinary(layerName), BuildNativeImageTask.class))
                             .map(t -> t.getOutputDirectory().getAsFile())
                         )
-                        .collect(Collectors.toList()));
+                        .toList());
                     if (IS_WINDOWS) {
                         var pathVariable = providers.environmentVariable("PATH");
                         task.getEnvironment().put("PATH", pathVariable.map(path -> path + ";" + libsDirs.getAsPath()).orElse(providers.provider(libsDirs::getAsPath)));
