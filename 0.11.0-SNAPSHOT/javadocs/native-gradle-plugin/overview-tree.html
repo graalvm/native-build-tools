@@ -57,7 +57,8 @@ loadScripts(document, 'script');</script>
 <li><a href="org/graalvm/buildtools/gradle/internal/package-tree.html">org.graalvm.buildtools.gradle.internal</a>, </li>
 <li><a href="org/graalvm/buildtools/gradle/internal/agent/package-tree.html">org.graalvm.buildtools.gradle.internal.agent</a>, </li>
 <li><a href="org/graalvm/buildtools/gradle/tasks/package-tree.html">org.graalvm.buildtools.gradle.tasks</a>, </li>
-<li><a href="org/graalvm/buildtools/gradle/tasks/actions/package-tree.html">org.graalvm.buildtools.gradle.tasks.actions</a></li>
+<li><a href="org/graalvm/buildtools/gradle/tasks/actions/package-tree.html">org.graalvm.buildtools.gradle.tasks.actions</a>, </li>
+<li><a href="org/graalvm/buildtools/gradle/tasks/scanner/package-tree.html">org.graalvm.buildtools.gradle.tasks.scanner</a></li>
 </ul>
 </div>
 <section class="hierarchy">
@@ -89,8 +90,8 @@ loadScripts(document, 'script');</script>
 <li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GraalVMLogger.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">GraalVMLogger</a></li>
 <li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GraalVMReachabilityMetadataService.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">GraalVMReachabilityMetadataService</a> (implements org.gradle.api.services.BuildService&lt;T&gt;, org.graalvm.reachability.GraalVMReachabilityMetadataRepository)</li>
 <li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/GradleUtils.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">GradleUtils</a></li>
+<li class="circle">org.graalvm.buildtools.gradle.tasks.scanner.<a href="org/graalvm/buildtools/gradle/tasks/scanner/JarAnalyzerTransform.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.tasks.scanner">JarAnalyzerTransform</a> (implements org.gradle.api.artifacts.transform.TransformAction&lt;T&gt;)</li>
 <li class="circle">org.graalvm.buildtools.gradle.tasks.actions.<a href="org/graalvm/buildtools/gradle/tasks/actions/MergeAgentFilesAction.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.tasks.actions">MergeAgentFilesAction</a> (implements org.gradle.api.Action&lt;T&gt;)</li>
-<li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeConfigurations.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">NativeConfigurations</a></li>
 <li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">NativeImageCommandLineProvider</a> (implements org.gradle.process.CommandLineArgumentProvider)</li>
 <li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">NativeImageExecutableLocator</a></li>
 <li class="circle">org.graalvm.buildtools.gradle.internal.<a href="org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.Diagnostics.html" class="type-name-link" title="class in org.graalvm.buildtools.gradle.internal">NativeImageExecutableLocator.Diagnostics</a></li>
@@ -134,6 +135,12 @@ loadScripts(document, 'script');</script>
 <li class="circle">org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension</a></li>
 <li class="circle">org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMExtension.TestBinaryConfig.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMExtension.TestBinaryConfig</a></li>
 <li class="circle">org.graalvm.buildtools.gradle.dsl.<a href="org/graalvm/buildtools/gradle/dsl/GraalVMReachabilityMetadataRepositoryExtension.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.dsl">GraalVMReachabilityMetadataRepositoryExtension</a></li>
+<li class="circle">org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/LayerOptions.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.tasks">LayerOptions</a>
+<ul>
+<li class="circle">org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/CreateLayerOptions.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.tasks">CreateLayerOptions</a></li>
+<li class="circle">org.graalvm.buildtools.gradle.tasks.<a href="org/graalvm/buildtools/gradle/tasks/UseLayerOptions.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.tasks">UseLayerOptions</a></li>
+</ul>
+</li>
 <li class="circle">org.graalvm.buildtools.gradle.dsl.agent.<a href="org/graalvm/buildtools/gradle/dsl/agent/MetadataCopyOptions.html" class="type-name-link" title="interface in org.graalvm.buildtools.gradle.dsl.agent">MetadataCopyOptions</a></li>
 <li class="circle">org.gradle.api.Named
 <ul>

@@ -5,3 +5,4 @@ org.graalvm.buildtools.gradle.internal
 org.graalvm.buildtools.gradle.internal.agent
 org.graalvm.buildtools.gradle.tasks
 org.graalvm.buildtools.gradle.tasks.actions
+org.graalvm.buildtools.gradle.tasks.scanner
