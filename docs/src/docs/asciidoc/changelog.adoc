@@ -3,7 +3,13 @@
 
 == Release 0.11.0
 
-This version introduces a breaking change: the plugin now requires Gradle 8.3+ and Java 17 to run.
+- This version introduces a breaking change: the plugin now requires Gradle 8.3+ and Java 17 to run
+- Refactored JUnit support:
+-- new implementation doesn't require list of classes for build-time initialization (starting from GraalVM for JDK 22)
+-- added support for `@FieldSource` for `@ParameterizedTest` methods
+-- added support for (registering for reflection) interfaces implemented by test classes
+-- added support for `org.junit.rules.ExpectedException`
+-- removed fallback mode that used classpath to generate test plan
 
 === Gradle plugin
 
@@ -12,6 +18,7 @@ This version introduces a breaking change: the plugin now requires Gradle 8.3+ a
 === Maven plugin
 
 - Added support for running integration tests via maven-failsafe-plugin
+- Provided scope dependencies are now included
 - Add `runtimeArgs` support to `native-maven-plugin`
 
 == Release 0.10.6
