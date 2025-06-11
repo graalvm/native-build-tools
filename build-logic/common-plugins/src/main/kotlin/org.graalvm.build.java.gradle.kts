@@ -51,7 +51,7 @@ plugins {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
     withJavadocJar()
     withSourcesJar()
@@ -64,21 +64,20 @@ repositories {
 group = "org.graalvm.buildtools"
 
 extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
-    val versionFromCatalog = catalogs.named("libs")
+    if (catalogs.find("libs").isPresent) {
+        val versionFromCatalog = catalogs.named("libs")
             .findVersion("nativeBuildTools")
-    if (versionFromCatalog.isPresent()) {
-        version = versionFromCatalog.get().requiredVersion
+        if (versionFromCatalog.isPresent()) {
+            version = versionFromCatalog.get().requiredVersion
+        } else {
+            throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+        }
     } else {
-        throw GradleException("Version catalog doesn't define project version 'nativeBuildTools'")
+        version = "undefined"
     }
 }
 
 tasks.javadoc {
-    // Use a different toolchain version from the compilation
-    // so that we can generate HTML5 docs
-    javadocTool.set(javaToolchains.javadocToolFor {
-        languageVersion.set(JavaLanguageVersion.of(11))
-    })
     (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     (options as StandardJavadocDocletOptions).noTimestamp(true)
 }

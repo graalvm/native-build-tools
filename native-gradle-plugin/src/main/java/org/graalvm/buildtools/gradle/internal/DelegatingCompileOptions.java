@@ -43,6 +43,10 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
+import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.LayerOptions;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
@@ -170,5 +174,25 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     @Override
     public DirectoryProperty getPgoProfilesDirectory() {
         return options.getPgoProfilesDirectory();
+    }
+
+    @Override
+    public DomainObjectSet<LayerOptions> getLayers() {
+        return options.getLayers();
+    }
+
+    @Override
+    public void layers(Action<? super DomainObjectSet<LayerOptions>> spec) {
+        options.layers(spec);
+    }
+
+    @Override
+    public void useLayer(String name) {
+        options.useLayer(name);
+    }
+
+    @Override
+    public void createLayer(Action<? super CreateLayerOptions> spec) {
+        options.createLayer(spec);
     }
 }

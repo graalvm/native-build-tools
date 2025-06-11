@@ -1,0 +1,13 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    plugins {
+        id("io.micronaut.minimal.application")  version "4.5.3"
+        id("io.micronaut.graalvm")  version "4.5.3"
+        id("org.graalvm.buildtools.native") version(getProperty("native.gradle.plugin.version"))
+    }
+}
+
+rootProject.name = "layered-mn-app"

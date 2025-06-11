@@ -1,6 +1,14 @@
 [[changelog]]
 == Changelog
 
+== Release 0.11.0
+
+This version introduces a breaking change: the plugin now requires Java 17 to run.
+
+=== Gradle plugin
+
+- Added experimental support for layered images
+
 == Release 0.10.6
 
 === Gradle plugin
