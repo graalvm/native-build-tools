@@ -60,6 +60,7 @@ import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
@@ -70,11 +71,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -120,8 +122,8 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     @Override
-    protected void addDependenciesToClasspath() throws MojoExecutionException {
-        super.addDependenciesToClasspath();
+    protected void addInferredDependenciesToClasspath() {
+        super.addInferredDependenciesToClasspath();
         Set<Module> modules = new HashSet<>();
         //noinspection SimplifyStreamApiCallChains
         pluginArtifacts.stream()
@@ -278,34 +280,80 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
                                             && path.getFileName().toString().startsWith(prefix)));
     }
 
-    private List<Path> findJunitPlatformNativeJars(Set<Module> modulesAlreadyOnClasspath) {
+    private DependencyResult resolveDependencies(Consumer<? super CollectRequest> configurer) {
         RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
         DefaultRepositorySystemSession newSession = new DefaultRepositorySystemSession(repositorySession);
         CollectRequest collectRequest = new CollectRequest();
         List<RemoteRepository> repositories = project.getRemoteProjectRepositories();
         collectRequest.setRepositories(repositories);
-        DefaultArtifact artifact = new DefaultArtifact(
-            RuntimeMetadata.GROUP_ID,
-            RuntimeMetadata.JUNIT_PLATFORM_NATIVE_ARTIFACT_ID,
-            null,
-            "jar",
-            RuntimeMetadata.VERSION
-        );
-        Dependency dependency = new Dependency(artifact, "runtime");
-        collectRequest.addDependency(dependency);
+        configurer.accept(collectRequest);
         DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, null);
-        DependencyResult dependencyResult;
         try {
-            dependencyResult = repositorySystem.resolveDependencies(newSession, dependencyRequest);
+            return repositorySystem.resolveDependencies(newSession, dependencyRequest);
         } catch (DependencyResolutionException e) {
-            return Collections.emptyList();
+            return e.getResult();
         }
+    }
+
+    private List<Path> findJunitPlatformNativeJars(Set<Module> modulesAlreadyOnClasspath) {
+        DependencyResult dependencyResult;
+        dependencyResult = resolveDependencies(collectRequest -> {
+            var artifact = new DefaultArtifact(
+                RuntimeMetadata.GROUP_ID,
+                RuntimeMetadata.JUNIT_PLATFORM_NATIVE_ARTIFACT_ID,
+                null,
+                "jar",
+                RuntimeMetadata.VERSION
+            );
+            var dependency = new Dependency(artifact, "runtime");
+            collectRequest.addDependency(dependency);
+            addMissingDependencies(collectRequest);
+        });
         return dependencyResult.getArtifactResults()
             .stream()
             .map(ArtifactResult::getArtifact)
+            .filter(Objects::nonNull)
             .filter(a -> !modulesAlreadyOnClasspath.contains(new Module(a.getGroupId(), a.getArtifactId())))
             .map(a -> a.getFile().toPath())
             .collect(Collectors.toList());
+    }
+
+    private void addMissingDependencies(CollectRequest collectRequest) {
+        // it's a chicken-and-egg problem, we need to resolve the dependencies first, in order
+        // to have the list of dependencies which are present and infer the ones which are missing
+        var current = resolveDependencies(request -> {
+            for (var dependency : project.getDependencies()) {
+                if (!dependency.isOptional()) {
+                    request.addDependency(new Dependency(
+                        new DefaultArtifact(
+                            dependency.getGroupId(),
+                            dependency.getArtifactId(),
+                            dependency.getClassifier(),
+                            "jar",
+                            dependency.getVersion()
+                        ),
+                        "runtime"
+                    ));
+                }
+            }
+        });
+        var currentClasspath = current.getArtifactResults().stream()
+            .map(result -> new JUnitPlatformNativeDependenciesHelper.DependencyNotation(
+                result.getArtifact().getGroupId(),
+                result.getArtifact().getArtifactId(),
+                result.getArtifact().getVersion()
+            )).toList();
+        var deps = JUnitPlatformNativeDependenciesHelper.inferMissingDependenciesForTestRuntime(currentClasspath);
+        for (var missing : deps) {
+            var missingDependency = new Dependency(new DefaultArtifact(
+                missing.groupId(),
+                missing.artifactId(),
+                null,
+                null,
+                missing.version()
+            ), "runtime");
+            collectRequest.addDependency(missingDependency);
+        }
     }
 
     private static final class Module {

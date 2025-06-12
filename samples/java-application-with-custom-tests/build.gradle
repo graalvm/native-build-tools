@@ -69,8 +69,6 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
     testImplementation('org.junit.jupiter:junit-jupiter')
     integTestImplementation project(":")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.11.0")
-    testRuntimeOnly("org.junit.platform:junit-platform-reporting:1.11.0")
 }
 
 def integTest = tasks.register("integTest", Test) {
