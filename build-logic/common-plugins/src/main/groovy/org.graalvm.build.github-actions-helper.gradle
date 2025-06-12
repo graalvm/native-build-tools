@@ -7,7 +7,7 @@ def matrixDefault = [
 
 // # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",
 def gradleVersions = [
-        "gradle-version": ["current", "7.4", "8.14.2"],
+        "gradle-version": ["current", "8.4", "8.14.2"],
 ]
 
 def gradleCachedVersions = [
