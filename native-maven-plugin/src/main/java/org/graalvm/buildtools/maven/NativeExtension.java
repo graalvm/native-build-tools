@@ -135,13 +135,16 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 }
 
                 // Test configuration
-                withPlugin(build, "maven-surefire-plugin", surefirePlugin -> {
-                    configureJunitListener(surefirePlugin, testIdsDir);
-                    if (agent.isEnabled()) {
-                        List<String> agentOptions = agent.getAgentCommandLine();
-                        configureAgentForSurefire(surefirePlugin, buildAgentArgument(target, Context.test, agentOptions));
-                    }
-                });
+                List<String> plugins = List.of("maven-surefire-plugin", "maven-failsafe-plugin");
+                for (String pluginName : plugins) {
+                    withPlugin(build, pluginName, plugin -> {
+                        configureJunitListener(plugin, testIdsDir);
+                        if (agent.isEnabled()) {
+                            List<String> agentOptions = agent.getAgentCommandLine();
+                            configureAgentForPlugin(plugin, buildAgentArgument(target, Context.test, agentOptions));
+                        }
+                    });
+                }
 
                 // Main configuration
                 if (agent.isEnabled()) {
@@ -202,8 +205,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 .ifPresent(consumer);
     }
 
-    private static void configureAgentForSurefire(Plugin surefirePlugin, String agentArgument) {
-        updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
+    private static void configureAgentForPlugin(Plugin plugin, String agentArgument) {
+        updatePluginConfiguration(plugin, (exec, configuration) -> {
             Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
             Xpp3Dom agent = findOrAppend(systemProperties, NATIVEIMAGE_IMAGECODE);
             agent.setValue("agent");

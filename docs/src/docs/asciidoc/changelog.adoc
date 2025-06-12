@@ -9,6 +9,10 @@ This version introduces a breaking change: the plugin now requires Java 17 to ru
 
 - Added experimental support for layered images
 
+=== Maven plugin
+
+- Added support for running integration tests via maven-failsafe-plugin
+
 == Release 0.10.6
 
 === Gradle plugin
