@@ -373,6 +373,10 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
     }
 
+    protected void addInferredDependenciesToClasspath() {
+
+    }
+
     @Override
     protected void maybeAddDependencyMetadata(Artifact dependency, Consumer<File> excludeAction) {
         if (isExcluded(dependency)) {
@@ -422,6 +426,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             populateApplicationClasspath();
             addDependenciesToClasspath();
         }
+        addInferredDependenciesToClasspath();
         imageClasspath.removeIf(entry -> !entry.toFile().exists());
     }
 

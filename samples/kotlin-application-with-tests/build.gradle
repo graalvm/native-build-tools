@@ -49,11 +49,15 @@ repositories {
     mavenCentral()
 }
 
+def junitVersion = providers.gradleProperty('junit.jupiter.version').get()
+
 dependencies {
     implementation platform('org.jetbrains.kotlin:kotlin-bom')
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
+    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter")
 }
 
 application {

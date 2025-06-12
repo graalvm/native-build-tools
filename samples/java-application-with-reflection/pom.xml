@@ -275,7 +275,9 @@
                                 <enabled>true</enabled>
                                 <defaultMode>Direct</defaultMode>
                                 <modes>
-                                    <direct>config-output-dir=/tmp,builtin-caller-filter=true,builtin-heuristic-filter=true,experimental-class-define-support=false,experimental-unsafe-allocation-support=false,track-reflection-metadata=true</direct>
+                                    <direct>
+                                        config-output-dir=/tmp,builtin-caller-filter=true,builtin-heuristic-filter=true,experimental-class-define-support=false,experimental-unsafe-allocation-support=false,track-reflection-metadata=true
+                                    </direct>
                                 </modes>
                                 <options>
                                     <builtinCallerFilter>true</builtinCallerFilter>

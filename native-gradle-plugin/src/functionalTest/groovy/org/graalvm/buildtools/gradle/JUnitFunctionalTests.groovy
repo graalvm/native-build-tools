@@ -44,7 +44,7 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 
 class JUnitFunctionalTests extends AbstractFunctionalTest {
-    def "test if JUint support works with various annotations, reflection and resources"() {
+    def "test if JUnit support works with various annotations, reflection and resources"() {
         debug=true
         given:
         withSample("junit-tests")
