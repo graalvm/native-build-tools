@@ -1,0 +1,130 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "junit-platform-native",
+    "version": "0.11.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "junit-platform-native-0.11.0-SNAPSHOT.jar",
+          "url": "junit-platform-native-0.11.0-SNAPSHOT.jar",
+          "size": 33033,
+          "sha512": "3ba924b5766b445a612e27a58c9e01551b83d2e4215ed3f404f0052ae788261c9deca59b77b4ed77b4aa4074a55ab7b785237f09b58ec797e68d5a8de1080cc4",
+          "sha256": "7e98b7b952ba79954e9f8fac1ac5b9e7b82db60bf21a7b0101029a0371477fcc",
+          "sha1": "eca662487e3c76540fe04cfdd07b2f64b1104047",
+          "md5": "a783d48b22c647112f5926bfc7cf7f28"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.junit",
+          "module": "junit-bom",
+          "version": {
+            "requires": "5.13.0"
+          },
+          "attributes": {
+            "org.gradle.category": "platform"
+          }
+        },
+        {
+          "group": "org.junit.platform",
+          "module": "junit-platform-console",
+          "version": {
+            "requires": "1.13.0"
+          }
+        },
+        {
+          "group": "org.junit.platform",
+          "module": "junit-platform-launcher",
+          "version": {
+            "requires": "1.13.0"
+          }
+        },
+        {
+          "group": "org.junit.jupiter",
+          "module": "junit-jupiter"
+        }
+      ],
+      "files": [
+        {
+          "name": "junit-platform-native-0.11.0-SNAPSHOT.jar",
+          "url": "junit-platform-native-0.11.0-SNAPSHOT.jar",
+          "size": 33033,
+          "sha512": "3ba924b5766b445a612e27a58c9e01551b83d2e4215ed3f404f0052ae788261c9deca59b77b4ed77b4aa4074a55ab7b785237f09b58ec797e68d5a8de1080cc4",
+          "sha256": "7e98b7b952ba79954e9f8fac1ac5b9e7b82db60bf21a7b0101029a0371477fcc",
+          "sha1": "eca662487e3c76540fe04cfdd07b2f64b1104047",
+          "md5": "a783d48b22c647112f5926bfc7cf7f28"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "junit-platform-native-0.11.0-SNAPSHOT-javadoc.jar",
+          "url": "junit-platform-native-0.11.0-SNAPSHOT-javadoc.jar",
+          "size": 124387,
+          "sha512": "05a486ef8bb4f574acb8db75ff58ddf0939a2931ca862efa79696ac7300e20cf2f4baab9e1b6bd344cffe9a757afe788eec109eee37856cd0530b5612ab0d5c1",
+          "sha256": "55b7a4748494fbe144fd5a3612ea4fcbc249e9612547eb132d6745f868fb9ab5",
+          "sha1": "a341005f884ab9d35e6664d9fb58d4e95f693a7d",
+          "md5": "c0e4e75d369e9dae55adbbd0e95bf20b"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "junit-platform-native-0.11.0-SNAPSHOT-sources.jar",
+          "url": "junit-platform-native-0.11.0-SNAPSHOT-sources.jar",
+          "size": 29494,
+          "sha512": "8bdad72fd468d17e4c494b9c2d80afabbe6761903b0c3bb9d2444e30fb97c0b1dc7c226d5dd7990616faa0ac491b0ae92f641dc34f37597de328734463ed9580",
+          "sha256": "12955d3cb9e444c5c52e8b5993a90339e8687b6880b808e1f80ffc89f0452e43",
+          "sha1": "16a4e4e0e078e6c19b8ec3391b1a119a63a3d83a",
+          "md5": "4b69a00bbe0fca1842889a8f340b520e"
+        }
+      ]
+    }
+  ]
+}
