@@ -123,12 +123,12 @@ public class NativeImageJUnitLauncher {
             out.println("JUnit Platform on Native Image - report");
             out.println("----------------------------------------\n");
             out.flush();
-            launcher.registerTestExecutionListeners(new PrintTestExecutionListener(out));
+            configurePrintTestExecutionListener(launcher, out);
         }
 
         SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
         launcher.registerTestExecutionListeners(summaryListener);
-        launcher.registerTestExecutionListeners(new LegacyXmlReportGeneratingListener(Paths.get(xmlOutput), out));
+        configureLegacyXMLReport(launcher, xmlOutput, out);
         launcher.execute(testPlan);
 
         TestExecutionSummary summary = summaryListener.getSummary();
@@ -271,4 +271,21 @@ public class NativeImageJUnitLauncher {
         return directory != null && Files.exists(directory);
     }
 
+
+    private static void configurePrintTestExecutionListener(Launcher launcher, PrintWriter out) {
+        try {
+            Class.forName("org.junit.platform.reporting.legacy.LegacyReportingUtils");
+            launcher.registerTestExecutionListeners(new PrintTestExecutionListener(out));
+        } catch (NoClassDefFoundError | ClassNotFoundException e) {
+            // intentionally ignored
+        }
+    }
+
+    private static void configureLegacyXMLReport(Launcher launcher, String xmlOutput, PrintWriter out) {
+        try {
+            launcher.registerTestExecutionListeners(new LegacyXmlReportGeneratingListener(Paths.get(xmlOutput), out));
+        } catch (NoClassDefFoundError e) {
+            // intentionally ignored
+        }
+    }
 }

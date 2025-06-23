@@ -48,8 +48,7 @@ repositories {
     mavenCentral()
 }
 
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-    .get()
+def junitVersion = providers.gradleProperty('junit.jupiter.version').get()
 
 dependencies {
     testImplementation(platform("org.junit:junit-bom:${junitVersion}"))

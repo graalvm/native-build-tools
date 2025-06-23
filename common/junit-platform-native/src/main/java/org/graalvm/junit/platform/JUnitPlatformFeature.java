@@ -226,7 +226,13 @@ public final class JUnitPlatformFeature implements Feature {
         try (InputStream is = JUnitPlatformFeature.class.getResourceAsStream("/initialize-at-buildtime")) {
             if (is != null) {
                 try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-                    br.lines().forEach(RuntimeClassInitialization::initializeAtBuildTime);
+                    br.lines().forEach(cls -> {
+                        try {
+                            RuntimeClassInitialization.initializeAtBuildTime(cls);
+                        } catch (NoClassDefFoundError e) {
+                            // if users use older JUnit versions some classes might not be available
+                        }
+                    });
                 }
             }
         } catch (IOException e) {

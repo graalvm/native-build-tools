@@ -3,7 +3,7 @@
 
 == Release 0.11.0
 
-This version introduces a breaking change: the plugin now requires Java 17 to run.
+This version introduces a breaking change: the plugin now requires Gradle 8.3+ and Java 17 to run.
 
 === Gradle plugin
 

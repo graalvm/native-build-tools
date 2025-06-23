@@ -64,6 +64,7 @@ import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
+import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
 import org.graalvm.buildtools.utils.SharedConstants;
@@ -124,9 +125,11 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -683,7 +686,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
 
         // Following ensures that required feature jar is on classpath for every project
-        injectTestPluginDependencies(project, graalExtension.getTestSupport());
+        injectTestPluginDependencies(project, name, graalExtension.getTestSupport());
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(deriveTaskName(name, "native", "Compile"), BuildNativeImageTask.class, task -> {
             task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
             task.getTestListDirectory().set(testListDirectory);
@@ -930,11 +933,57 @@ public class NativeImagePlugin implements Plugin<Project> {
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
     }
 
-    private static void injectTestPluginDependencies(Project project, Property<Boolean> testSupportEnabled) {
+    private static void injectTestPluginDependencies(Project project, String binaryName, Property<Boolean> testSupportEnabled) {
         project.afterEvaluate(p -> {
             if (testSupportEnabled.get()) {
-                project.getDependencies().add("testImplementation", "org.graalvm.buildtools:junit-platform-native:"
-                                                                    + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
+                var configurations = project.getConfigurations();
+                var inferConfigName = imageClasspathConfigurationNameFor(binaryName) + "Internal";
+                var missingDependenciesConfig = configurations.create(compileOnlyClasspathConfigurationNameFor(binaryName) + "Auto", cnf -> {
+                    cnf.setCanBeResolved(false);
+                    cnf.setCanBeConsumed(false);
+                });
+                var imageClasspath = configurations.getByName(imageClasspathConfigurationNameFor(binaryName));
+                var inferConfig = configurations.create(inferConfigName, cnf -> {
+                    cnf.setDescription("Infers missing dependencies which are required to run native tests");
+                    cnf.setExtendsFrom(imageClasspath.getExtendsFrom());
+                    cnf.setCanBeConsumed(false);
+                    cnf.setCanBeResolved(true);
+                    var attributes = imageClasspath.getAttributes().keySet();
+                    cnf.attributes(attrs -> {
+                        for (var attribute : attributes) {
+                            var key = (Attribute<Object>) attribute;
+                            Object value = imageClasspath.getAttributes().getAttribute(key);
+                            attrs.attribute(key, value);
+                        }
+                    });
+                });
+                // Do not move this up or resolution will fail because we'll create the infer
+                // configuration with an unwanted parent config!
+                imageClasspath.extendsFrom(missingDependenciesConfig);
+
+                project.getDependencies().add(compileOnlyClasspathConfigurationNameFor(binaryName), "org.graalvm.buildtools:junit-platform-native:" + VersionInfo.JUNIT_PLATFORM_NATIVE_VERSION);
+                missingDependenciesConfig
+                    .getDependencies()
+                    .addAllLater(inferConfig.getIncoming()
+                        .getResolutionResult()
+                        .getRootComponent()
+                        .map(root -> {
+                            var allDependencies = new ArrayList<JUnitPlatformNativeDependenciesHelper.DependencyNotation>();
+                            var visited = new HashSet<DependencyResult>();
+                            var queue = new ArrayDeque<DependencyResult>(root.getDependencies());
+                            while (!queue.isEmpty()) {
+                                var current = queue.pop();
+                                if (visited.add(current) && current instanceof ResolvedDependencyResult resolved) {
+                                    if (resolved.getSelected().getId() instanceof ModuleComponentIdentifier mci) {
+                                        allDependencies.add(new JUnitPlatformNativeDependenciesHelper.DependencyNotation(mci.getGroup(), mci.getModule(), mci.getVersion()));
+                                    }
+                                }
+                            }
+                            return JUnitPlatformNativeDependenciesHelper.inferMissingDependenciesForTestRuntime(allDependencies)
+                                .stream()
+                                .map(notation -> project.getDependencies().create(notation.groupId() + ":" + notation.artifactId() + ":" + notation.version()))
+                                .toList();
+                        }));
             }
         });
     }
