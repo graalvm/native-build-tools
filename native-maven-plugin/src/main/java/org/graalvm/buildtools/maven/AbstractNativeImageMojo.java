@@ -168,6 +168,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "jvmArgs")
     protected List<String> jvmArgs;
 
+    @Parameter(property = "runtimeArgs")
+    protected List<String> runtimeArgs;
+
     @Parameter(property = NATIVE_IMAGE_DRY_RUN, defaultValue = "false")
     protected boolean dryRun;
 

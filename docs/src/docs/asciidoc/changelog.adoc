@@ -9,6 +9,11 @@ This version introduces a breaking change: the plugin now requires Gradle 8.3+ a
 
 - Added experimental support for layered images
 
+=== Maven plugin
+
+- Added support for running integration tests via maven-failsafe-plugin
+- Add `runtimeArgs` support to `native-maven-plugin`
+
 == Release 0.10.6
 
 === Gradle plugin

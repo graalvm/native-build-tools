@@ -75,6 +75,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -169,6 +170,9 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         }
         systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
             NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
+        if (runtimeArgs == null) {
+            runtimeArgs = new ArrayList<>();
+        }
 
         imageName = NATIVE_TESTS_EXE;
         mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
@@ -178,32 +182,36 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     private void configureEnvironment() {
-        // inherit from surefire mojo
-        Plugin plugin = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
-        if (plugin != null) {
+        List<Plugin> plugins = new ArrayList<>();
+
+        Plugin surefire = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
+        if (surefire != null) {
+            plugins.add(surefire);
+        }
+
+        Plugin failsafe = project.getPlugin("org.apache.maven.plugins:maven-failsafe-plugin");
+        if (failsafe != null) {
+            plugins.add(failsafe);
+        }
+
+        for (Plugin plugin : plugins) {
             Object configuration = plugin.getConfiguration();
             if (configuration instanceof Xpp3Dom) {
                 Xpp3Dom dom = (Xpp3Dom) configuration;
-                Xpp3Dom environmentVariables = dom.getChild("environmentVariables");
-                if (environmentVariables != null) {
-                    Xpp3Dom[] children = environmentVariables.getChildren();
-                    if (environment == null) {
-                        environment = new HashMap<>(children.length);
-                    }
-                    for (Xpp3Dom child : children) {
-                        environment.put(child.getName(), child.getValue());
-                    }
-                }
-                Xpp3Dom systemProps = dom.getChild("systemPropertyVariables");
-                if (systemProps != null) {
-                    Xpp3Dom[] children = systemProps.getChildren();
-                    if (systemProperties == null) {
-                        systemProperties = new HashMap<>(children.length);
-                    }
-                    for (Xpp3Dom child : children) {
-                        systemProperties.put(child.getName(), child.getValue());
-                    }
-                }
+                applyPluginProperties(dom.getChild("environmentVariables"), environment);
+                applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+            }
+        }
+    }
+
+    private void applyPluginProperties(Xpp3Dom pluginProperty, Map<String, String> values) {
+        if (pluginProperty != null) {
+            Xpp3Dom[] children = pluginProperty.getChildren();
+            if (values == null) {
+                values = new HashMap<>(children.length);
+            }
+            for (Xpp3Dom child : children) {
+                values.put(child.getName(), child.getValue());
             }
         }
     }
@@ -235,6 +243,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             command.add("--xml-output-dir");
             command.add(xmlLocation.toString());
             systemProperties.forEach((key, value) -> command.add("-D" + key + "=" + value));
+            command.addAll(runtimeArgs);
 
             processBuilder.command().addAll(command);
             processBuilder.environment().putAll(environment);
