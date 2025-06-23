@@ -735,6 +735,24 @@ image name is not supplied, the artifact ID of the project will be used by defau
 </div>
 <div class="dlist">
 <dl>
+<dt class="hdlist1"><code>&lt;runtimeArgs&gt;</code></dt>
+<dd>
+<p>To specify runtime arguments used for a native image run, use:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;runtimeArgs&gt;
+    &lt;runtimeArg&gt;-XX:MissingRegistrationReportingMode=Warn&lt;/runtimeArg&gt;
+&lt;/runtimeArgs&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This parameter is only valid for the Maven Goal of <code>test</code>.</p>
+</div>
+<div class="dlist">
+<dl>
 <dt class="hdlist1"><code>&lt;jvmArgs&gt;</code></dt>
 <dd>
 <p>To specify JVM arguments used for a native image build, use:</p>
