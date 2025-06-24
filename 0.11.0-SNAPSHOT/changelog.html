@@ -531,13 +531,23 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_release_0_11_0"><a class="anchor" href="#_release_0_11_0"></a>Release 0.11.0</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>This version introduces a breaking change: the plugin now requires Gradle 8.3+ and Java 17 to run.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This version introduces a breaking change: the plugins now require Java 17 to run</p>
+</li>
+<li>
+<p>Refactored JUnit support:&#8201;&#8212;&#8201;new implementation doesn&#8217;t require list of classes for build-time initialization (starting from GraalVM for JDK 22)&#8201;&#8212;&#8201;added support for <code>@FieldSource</code> for <code>@ParameterizedTest</code> methods&#8201;&#8212;&#8201;added support for (registering for reflection) interfaces implemented by test classes&#8201;&#8212;&#8201;added support for <code>org.junit.rules.ExpectedException</code>&#8201;&#8212;&#8201;removed fallback mode that used classpath to generate test plan</p>
+</li>
+</ul>
 </div>
 <div class="sect2">
 <h3 id="_gradle_plugin"><a class="anchor" href="#_gradle_plugin"></a>Gradle plugin</h3>
 <div class="ulist">
 <ul>
+<li>
+<p>This version introduces a breaking change: the plugin now requires Gradle 8.3+</p>
+</li>
 <li>
 <p>Added experimental support for layered images</p>
 </li>
@@ -550,6 +560,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul>
 <li>
 <p>Added support for running integration tests via maven-failsafe-plugin</p>
+</li>
+<li>
+<p>Provided scope dependencies are now included</p>
 </li>
 <li>
 <p>Add <code>runtimeArgs</code> support to <code>native-maven-plugin</code></p>
