@@ -99,6 +99,12 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Parameter(property = "skipNativeTests", defaultValue = "false")
     private boolean skipNativeTests;
 
+    @Parameter(property = "skipTestExecution", defaultValue = "false")
+    private boolean skipTestExecution;
+
+    @Parameter(property = "failNoTests", defaultValue = "true")
+    private boolean failNoTests;
+
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
@@ -151,8 +157,13 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             return;
         }
         if (!hasTestIds()) {
-            logger.error("Test configuration file wasn't found. Make sure that test execution wasn't skipped.");
-            throw new IllegalStateException("Test configuration file wasn't found.");
+            if (failNoTests) {
+                logger.error("Test configuration file wasn't found. Make sure that test execution wasn't skipped.");
+                throw new IllegalStateException("Test configuration file wasn't found.");
+            } else {
+                logger.info("No tests found, skipping.");
+                return;
+            }
         }
 
         logger.info("====================");
@@ -178,7 +189,10 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
 
         buildImage();
-        runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
+
+        if (!skipTestExecution) {
+            runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
+        }
     }
 
     private void configureEnvironment() {
