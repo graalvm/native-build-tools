@@ -3,7 +3,7 @@
 
 == Release 0.11.0
 
-- This version introduces a breaking change: the plugin now requires Gradle 8.3+ and Java 17 to run
+- This version introduces a breaking change: the plugins now require Java 17 to run
 - Refactored JUnit support:
 -- new implementation doesn't require list of classes for build-time initialization (starting from GraalVM for JDK 22)
 -- added support for `@FieldSource` for `@ParameterizedTest` methods
@@ -13,6 +13,7 @@
 
 === Gradle plugin
 
+- This version introduces a breaking change: the plugin now requires Gradle 8.3+
 - Added experimental support for layered images
 
 === Maven plugin
