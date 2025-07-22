@@ -62,7 +62,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Mojo(name = "metadata-copy", defaultPhase = LifecyclePhase.PREPARE_PACKAGE)
+@Mojo(name = "metadata-copy", defaultPhase = LifecyclePhase.NONE)
 public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 
     private static final String DEFAULT_OUTPUT_DIRECTORY = "/META-INF/native-image";

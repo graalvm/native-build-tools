@@ -27,4 +27,18 @@ class IntegrationTest extends AbstractGraalVMMavenFunctionalTest {
 [         0 tests failed          ]
 """.trim()
     }
+
+    def "run integration tests with failsafe plugin and agent"() {
+        withSample("integration-test")
+
+        when:
+        mvn '-Pmetadata-copy', 'verify', 'native:metadata-copy'
+
+        then:
+        buildSucceeded
+        file("target/failsafe-reports").exists()
+        file("target/failsafe-reports/org.graalvm.demo.CalculatorTestIT.txt").readLines().any(line -> line.contains("Tests run: 6, Failures: 0, Errors: 0, Skipped: 0"))
+        outputContains "Copying files from: test"
+        outputContains "Metadata copy process finished."
+    }
 }
