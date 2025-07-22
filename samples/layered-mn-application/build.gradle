@@ -17,6 +17,7 @@ dependencies {
     compileOnly("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
     testImplementation("io.micronaut:micronaut-http-client")
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 application {
