@@ -125,4 +125,12 @@ public class AnnotationUtils {
             config.registerAllClassMembersForReflection(reflectivelyAccessedClass);
         });
     }
+
+    public static void printMissingAnnotationsWarning(String packageName, List<String> annotations) {
+        System.out.printf("[junit-platform-native] Cannot register annotations %s from %s. " +
+                "Please verify that you have dependency that includes %s if you want to use these annotations.",
+                annotations,
+                packageName,
+                packageName);
+    }
 }
