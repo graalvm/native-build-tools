@@ -500,4 +500,4 @@ You will find the output of these tools among the generated artifacts after runn
 
 === Learn more
 
-To continue learning, refer to the <<changelog.adoc#,extensive reference documentation for the GraalVM Native Image Maven plugin>>.
+To continue learning, refer to the <<maven-plugin.adoc#,Maven plugin documentation>>.
