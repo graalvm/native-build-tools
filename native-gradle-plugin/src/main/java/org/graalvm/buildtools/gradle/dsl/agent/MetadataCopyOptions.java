@@ -44,6 +44,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.jvm.toolchain.JavaLauncher;
 
 public interface MetadataCopyOptions {
 
@@ -58,4 +59,8 @@ public interface MetadataCopyOptions {
     @Input
     @Optional
     Property<Boolean> getMergeWithExisting();
+
+    @Input
+    @Optional
+    Property<JavaLauncher> getJavaLauncher();
 }
