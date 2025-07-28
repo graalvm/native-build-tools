@@ -1,0 +1,67 @@
+name: "Create scheduled reachability metadata version updates"
+
+on:
+  # Reachability metadata releases happen on 1st and 15th of each month -> we should look for updates the day after
+  schedule:
+    - cron: "0 0 2 * *"
+    - cron: "0 0 16 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  get-latest-release-version:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.get_release.outputs.new_version }}
+    steps:
+      - name: Get latest release tag
+        id: get_release
+        run: |
+          tag=$(curl -s https://api.github.com/repos/oracle/graalvm-reachability-metadata/releases/latest | jq -r .tag_name)
+          echo "new_version=$tag" >> $GITHUB_OUTPUT
+
+  get-currently-used-version:
+    runs-on: ubuntu-latest
+    needs: get-latest-release-version
+    outputs:
+      old_version: ${{ steps.get_current_version.outputs.old_version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get current metadataRepository version
+        id: get_current_version
+        run: |
+          value=$(grep '^metadataRepository\s*=' gradle/libs.versions.toml | sed -E 's/.*=\s*"(.*)"/\1/')
+          echo "old_version=$value" >> $GITHUB_OUTPUT
+
+  update-version-and-create-pull-request:
+    runs-on: ubuntu-latest
+    needs: [get-latest-release-version, get-currently-used-version]
+    if: needs.get-latest-release-version.outputs.new_version != needs.get-currently-used-version.outputs.old_version
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update metadata repository version
+        run: |
+          newVersion="${{ needs.get-latest-release-version.outputs.new_version }}"
+          sed -i -E "s|^(metadataRepository\s*=\s*\").*(\")|\1${newVersion}\2|" gradle/libs.versions.toml
+
+      - name: Commit and push update
+        run: |
+          BRANCH=update-reachability-metadata-repository-${{ needs.get-latest-release-version.outputs.new_version }}
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git switch -C $BRANCH
+          git add gradle/libs.versions.toml
+          git commit -m "Update reachability metadata repository version to ${{ needs.get-latest-release-version.outputs.new_version }}"
+          git push origin $BRANCH
+
+      - name: Create pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "Update reachability metadata repository versions" \
+            --body "This pull request updates reachability metadata repository versions to ${{ needs.get-latest-release-version.outputs.new_version }}"
