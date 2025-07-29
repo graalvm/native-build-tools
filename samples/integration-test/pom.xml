@@ -101,6 +101,54 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>metadata-copy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.5.3</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>${native.maven.plugin.version}</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>merge-agent-files-in-integration-test</id>
+                                <goals>
+                                    <goal>merge-agent-files</goal>
+                                </goals>
+                                <phase>integration-test</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skipNativeTests>true</skipNativeTests>
+                            <agent>
+                                <enabled>true</enabled>
+                                <defaultMode>Standard</defaultMode>
+                                <metadataCopy>
+                                    <disabledStages>
+                                        <stage>main</stage>
+                                    </disabledStages>
+                                    <merge>false</merge>
+                                </metadataCopy>
+                            </agent>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
