@@ -64,6 +64,7 @@ import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -99,10 +100,13 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Parameter(property = "skipNativeTests", defaultValue = "false")
     private boolean skipNativeTests;
 
+    @Parameter(property = "testClassesDirectory", defaultValue = "${project.build.testOutputDirectory}")
+    private File testClassesDirectory;
+
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
-        imageClasspath.add(Paths.get(project.getBuild().getTestOutputDirectory()));
+        imageClasspath.add(testClassesDirectory.toPath());
         project.getBuild()
             .getTestResources()
             .stream()
@@ -217,7 +221,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     private boolean hasTests() {
-        Path testOutputPath = Paths.get(project.getBuild().getTestOutputDirectory());
+        Path testOutputPath = testClassesDirectory.toPath();
         if (Files.exists(testOutputPath) && Files.isDirectory(testOutputPath)) {
             try (Stream<Path> testClasses = Files.walk(testOutputPath)) {
                 return testClasses.anyMatch(p -> p.getFileName().toString().endsWith(".class"));
