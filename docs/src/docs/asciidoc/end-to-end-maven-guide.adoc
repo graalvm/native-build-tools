@@ -205,7 +205,7 @@ First, Maven runs the tests on the JVM, then compiles them ahead of time and exe
 
 ==== Disable tests
 
-If you wish to disable tests on the JVM as well as running native code tests, invoke Maven with the `-DskipTests` flag. 
+If you wish to disable running tests on the JVM as well as tests as native code, you can invoke Maven with the -DskipTests flag.
 This flag is supported by the Maven Surefire plugin and Native Build Tools. 
 
 [source,bash, role="multi-language-sample"]
