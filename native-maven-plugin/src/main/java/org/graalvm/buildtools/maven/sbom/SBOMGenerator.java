@@ -46,7 +46,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.RepositorySystem;
 
 import java.io.IOException;
@@ -104,7 +103,6 @@ public final class SBOMGenerator {
     private final BuildPluginManager pluginManager;
     private final RepositorySystem repositorySystem;
     private final String mainClass;
-    private final Logger logger;
 
     private static final String SBOM_NATIVE_IMAGE_FLAG = "--enable-sbom";
     private static final String SBOM_FILE_FORMAT = "json";
@@ -135,7 +133,7 @@ public final class SBOMGenerator {
     private static final class Plugin {
         static final String artifactId = "cyclonedx-maven-plugin";
         static final String groupId = "org.cyclonedx";
-        static final String version = "2.8.1";
+        static final String version = "2.9.1";
         static final String goal = "makeAggregateBom";
 
         private static final class Configuration {
@@ -151,14 +149,12 @@ public final class SBOMGenerator {
             MavenSession mavenSession,
             BuildPluginManager pluginManager,
             RepositorySystem repositorySystem,
-            String mainClass,
-            Logger logger) {
+            String mainClass) {
         this.mavenProject = mavenProject;
         this.mavenSession = mavenSession;
         this.pluginManager = pluginManager;
         this.repositorySystem = repositorySystem;
         this.mainClass = mainClass;
-        this.logger = logger;
         this.outputDirectory = mavenProject.getBuild().getDirectory();
     }
 
@@ -185,9 +181,6 @@ public final class SBOMGenerator {
 
         Path sbomPath = Paths.get(outputDirectory, SBOM_FILENAME);
         try {
-            /* Suppress the output from the plugin. */
-            int loggingLevel = logger.getThreshold();
-            logger.setThreshold(Logger.LEVEL_DISABLED);
             executeMojo(
                     plugin(
                             groupId(Plugin.groupId),
@@ -204,7 +197,6 @@ public final class SBOMGenerator {
                     ),
                     executionEnvironment(mavenProject, mavenSession, pluginManager)
             );
-            logger.setThreshold(loggingLevel);
 
             if (!Files.exists(sbomPath)) {
                 return;
@@ -307,8 +299,10 @@ public final class SBOMGenerator {
             if (optionalArtifact.isPresent()) {
                 ArtifactAdapter artifact = optionalArtifact.get();
                 JSONArray packageNamesArray = new JSONArray();
-                List<String> sortedPackageNames = artifact.packageNames.stream().sorted().toList();
-                sortedPackageNames.forEach(packageNamesArray::put);
+                if (artifact.prunable) {
+                    List<String> sortedPackageNames = artifact.packageNames.stream().sorted().toList();
+                    sortedPackageNames.forEach(packageNamesArray::put);
+                }
                 componentNode.put(AddedComponentFields.packageNames, packageNamesArray);
 
                 String jarPath = "";

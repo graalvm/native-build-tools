@@ -97,7 +97,7 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputContains "Hello, native!"
     }
 
-    def deleteTargetDir() {
+    private def deleteTargetDir() {
         file("target").deleteDir()
     }
 
