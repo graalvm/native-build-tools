@@ -844,20 +844,18 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static void setupExtensionConfigExcludes(NativeImageOptions options, ConfigurationContainer configurations) {
+        final var imageClasspathConfiguration = configurations.getByName(imageClasspathConfigurationNameFor(options.getName()));
+        final var imageClasspathArtifacts = imageClasspathConfiguration.getIncoming().getArtifacts().getResolvedArtifacts();
         options.getExcludeConfigArgs().set(options.getExcludeConfig().map(serializableTransformerOf(excludedConfig -> {
-            var imageClasspathConfig = configurations.getByName(imageClasspathConfigurationNameFor(options.getName()));
             List<String> args = new ArrayList<>();
             excludedConfig.forEach((entry, listOfResourcePatterns) -> {
-                if (entry instanceof File) {
-                    addExcludeConfigArg(args, ((File) entry).toPath(), listOfResourcePatterns);
-                } else if (entry instanceof String) {
-                    String dependency = (String) entry;
+                if (entry instanceof File file) {
+                    addExcludeConfigArg(args, file.toPath(), listOfResourcePatterns);
+                } else if (entry instanceof String dependency) {
                     // Resolve jar for this dependency.
-                    imageClasspathConfig.getIncoming().artifactView(view -> {
-                            view.setLenient(true);
-                            view.componentFilter(id -> {
-                                if (id instanceof ModuleComponentIdentifier) {
-                                    ModuleComponentIdentifier mid = (ModuleComponentIdentifier) id;
+                    imageClasspathArtifacts.get().stream()
+                            .filter(artifact -> {
+                                if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier mid) {
                                     String gav = String.format("%s:%s:%s",
                                         mid.getGroup(),
                                         mid.getModule(),
@@ -866,10 +864,9 @@ public class NativeImagePlugin implements Plugin<Project> {
                                     return gav.startsWith(dependency);
                                 }
                                 return false;
-                            });
-                        }).getFiles().getFiles().stream()
-                        .map(File::toPath)
-                        .forEach(jarPath -> addExcludeConfigArg(args, jarPath, listOfResourcePatterns));
+                            })
+                            .map(resolvedArtifactResult -> resolvedArtifactResult.getFile().toPath())
+                            .forEach(path -> addExcludeConfigArg(args, path, listOfResourcePatterns));
                 } else {
                     throw new UnsupportedOperationException("Expected File or GAV coordinate for excludeConfig option, got " + entry.getClass());
                 }
