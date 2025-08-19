@@ -87,7 +87,9 @@ public class JupiterConfigProvider extends PluginConfigProvider {
             AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, EnabledIf.class, JupiterConfigProvider::handleEnabledIf);
             AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisabledIf.class, JupiterConfigProvider::handleDisabledIf);
         } catch (NoClassDefFoundError e) {
-            AnnotationUtils.printMissingAnnotationsWarning("org.junit.jupiter.api", List.of("TestMethodOrder", "ExtendWith", "DisplayNameGeneration", "IndicativeSentencesGeneration", "EnabledIf", "DisabledIf"));
+            debug("Cannot register annotations %s from 'org.junit.jupiter.api'. " +
+                        "Please verify that you have dependency that includes 'org.junit.jupiter.api' if you want to use these annotations.",
+                        List.of("TestMethodOrder", "ExtendWith", "DisplayNameGeneration", "IndicativeSentencesGeneration", "EnabledIf", "DisabledIf"));
         }
 
         /* Annotations from org.junit.jupiter.params */
@@ -102,11 +104,13 @@ public class JupiterConfigProvider extends PluginConfigProvider {
             try {
                 AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, FieldSource.class, JupiterConfigProvider::handleFieldSource);
             } catch (NoClassDefFoundError e) {
-                System.out.println("[junit-platform-native] Cannot register @FieldSource annotation from org.junit.jupiter.params." +
-                        " Please verify that you have this dependency (with version greater than JUnit 5.13) if you want to use this annotation.");
+                debug("Cannot register @FieldSource annotation from org.junit.jupiter.params. " +
+                        "Please verify that you have this dependency (with version greater than JUnit 5.13) if you want to use this annotation.");
             }
         } catch (NoClassDefFoundError e) {
-            AnnotationUtils.printMissingAnnotationsWarning("org.junit.jupiter.params", List.of("ArgumentsSource", "ConvertWith", "AggregateWith", "EnumSource", "MethodSource", "FieldSource"));
+            debug("Cannot register annotations %s from 'org.junit.jupiter.params'. " +
+                        "Please verify that you have dependency that includes 'org.junit.jupiter.params' if you want to use these annotations.",
+                        List.of("ArgumentsSource", "ConvertWith", "AggregateWith", "EnumSource", "MethodSource", "FieldSource"));
         }
 
     }
