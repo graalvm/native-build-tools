@@ -46,6 +46,8 @@ import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
+import static org.graalvm.junit.platform.JUnitPlatformFeature.debug;
+
 public class VintageConfigProvider extends PluginConfigProvider {
 
     @Override
@@ -54,7 +56,7 @@ public class VintageConfigProvider extends PluginConfigProvider {
             RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
             RuntimeReflection.register(Class.forName("org.junit.runner.Description").getDeclaredFields());
         } catch (ClassNotFoundException e) {
-            System.out.println("Cannot register declared classes of org.junit.runner.Result for serialization or fields of org.junit.runner.Description for reflection. Vintage JUnit not available.");
+            debug("Cannot register declared classes of org.junit.runner.Result for serialization or fields of org.junit.runner.Description for reflection. Vintage JUnit not available.");
         }
     }
 
