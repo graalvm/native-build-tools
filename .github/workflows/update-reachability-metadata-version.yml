@@ -12,10 +12,9 @@ permissions:
   actions: write
 
 jobs:
-  get-latest-release-version:
+  update-reachability-metadata-version:
     runs-on: ubuntu-latest
-    outputs:
-      new_version: ${{ steps.get_release.outputs.new_version }}
+    permissions: write-all
     steps:
       - name: Get latest release tag
         id: get_release
@@ -23,45 +22,46 @@ jobs:
           tag=$(curl -s https://api.github.com/repos/oracle/graalvm-reachability-metadata/releases/latest | jq -r .tag_name)
           echo "new_version=$tag" >> $GITHUB_OUTPUT
 
-  get-currently-used-version:
-    runs-on: ubuntu-latest
-    needs: get-latest-release-version
-    outputs:
-      old_version: ${{ steps.get_current_version.outputs.old_version }}
-    steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Get current metadataRepository version
         id: get_current_version
         run: |
           value=$(grep '^metadataRepository\s*=' gradle/libs.versions.toml | sed -E 's/.*=\s*"(.*)"/\1/')
           echo "old_version=$value" >> $GITHUB_OUTPUT
 
-  update-version-and-create-pull-request:
-    runs-on: ubuntu-latest
-    needs: [get-latest-release-version, get-currently-used-version]
-    if: needs.get-latest-release-version.outputs.new_version != needs.get-currently-used-version.outputs.old_version
-    permissions: write-all
-    steps:
-      - uses: actions/checkout@v4
-      - name: Update metadata repository version
+      - name: Check if new release is available
+        id: version_check
         run: |
-          newVersion="${{ needs.get-latest-release-version.outputs.new_version }}"
+          if [ "${{ steps.get_release.outputs.new_version }}" != "${{ steps.get_current_version.outputs.old_version }}" ]; then
+            echo "should_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update metadata repository version
+        if: steps.version_check.outputs.should_update == 'true'
+        run: |
+          newVersion="${{ steps.get_release.outputs.new_version }}"
           sed -i -E "s|^(metadataRepository\s*=\s*\").*(\")|\1${newVersion}\2|" gradle/libs.versions.toml
 
       - name: Commit and push update
+        if: steps.version_check.outputs.should_update == 'true'
         run: |
-          BRANCH=update-reachability-metadata-repository-${{ needs.get-latest-release-version.outputs.new_version }}
+          BRANCH=update-reachability-metadata-repository-version-to-${{ steps.get_release.outputs.new_version }}
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git switch -C $BRANCH
           git add gradle/libs.versions.toml
-          git commit -m "Update reachability metadata repository version to ${{ needs.get-latest-release-version.outputs.new_version }}"
+          git commit -m "Update reachability metadata repository version to ${{ steps.get_release.outputs.new_version }}"
           git push origin $BRANCH
 
       - name: Create pull request
+        if: steps.version_check.outputs.should_update == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr create \
             --title "Update reachability metadata repository versions" \
-            --body "This pull request updates reachability metadata repository versions to ${{ needs.get-latest-release-version.outputs.new_version }}"
+            --body "This pull request updates reachability metadata repository versions to ${{ steps.get_release.outputs.new_version }}"
