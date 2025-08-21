@@ -56,6 +56,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         buildSucceeded
+        outputContains "Using configuration from maven-surefire-plugin"
         outputContains "[junit-platform-native] Running in 'test listener' mode"
         outputContains """
 [         3 containers found      ]
@@ -73,6 +74,32 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 """.trim()
     }
 
+    def "can run integration tests in a native image with the Maven plugin"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', '-DquickBuild', 'verify'
+
+        then:
+        buildSucceeded
+        outputContains "Using configuration from maven-failsafe-plugin"
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContains """
+[         2 containers found      ]
+[         0 containers skipped    ]
+[         2 containers started    ]
+[         0 containers aborted    ]
+[         2 containers successful ]
+[         0 containers failed     ]
+[         1 tests found           ]
+[         0 tests skipped         ]
+[         1 tests started         ]
+[         0 tests aborted         ]
+[         1 tests successful      ]
+[         0 tests failed          ]
+""".trim()
+    }
+
     def "can run tests in src/main/java in a native image with the Maven plugin"() {
         withSample("java-application-with-tests-in-src-main")
 
@@ -81,6 +108,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 
         then:
         buildSucceeded
+        outputContains "Using configuration from maven-surefire-plugin"
         outputContains "[junit-platform-native] Running in 'test listener' mode"
         outputContains """
 [         3 containers found      ]
