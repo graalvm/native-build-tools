@@ -216,22 +216,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
 
         if (!testPluginProcessed && failsafe != null) {
             // Surefire was not configured with an execution for the current goal, so try Failsafe
-            testPluginProcessed = processTestPluginConfig(failsafe, currentGoal);
-        }
-
-        if (!testPluginProcessed) {
-            // neither Surefire nor Failsafe has an execution for the current goal,
-            // so use the configuration for whichever plugin's default goal matches
-            // the current goal
-            if (mojoExecution.getGoal().equals(TEST_GOAL) && surefire != null) {
-                // the current goal is "test" which is Surefire's default goal
-                processTestPluginConfig(surefire, null);
-                getLog().info("Using configuration from " + surefire.getArtifactId());
-            } else if (mojoExecution.getGoal().equals(INTEGRATION_TEST_GOAL) && failsafe != null) {
-                // the current goal is "integration-test" which is Failsafe's default goal
-                processTestPluginConfig(failsafe, null);
-                getLog().info("Using configuration from " + failsafe.getArtifactId());
-            }
+            processTestPluginConfig(failsafe, currentGoal);
         }
     }
 
@@ -239,7 +224,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
      * Process the configuration from the Surefire or Failsafe plugins.
      * <p>
      * This method will check to see whether the plugin has an execution
-     * matching the goa for this plugin. If it does the plugin's configuration
+     * matching the goal for this plugin. If it does the plugin's configuration
      * and the configuration for the matching execution will be processed.
      * If the plugin has no executions, then just its global configuration
      * will be processed.
@@ -270,28 +255,18 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
      * @param execution  the plugin execution to use for configuration
      */
     private void processTestPlugin(Plugin plugin, PluginExecution execution) {
-        processTestPluginConfig(plugin.getConfiguration());
-        if (execution != null) {
-            processTestPluginConfig(execution.getConfiguration());
-        }
-        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
-                NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath(), plugin.getArtifactId()));
-        getLog().info("Using configuration from " + plugin.getArtifactId()
-                + (execution != null ? ", execution id " + execution.getId() : ""));
-    }
-
-    /**
-     * Process the configuration from the Surefire or Failsafe plugins.
-     *
-     * @param configuration  the Surefire or Failsafe plugin configuration
-     */
-    private void processTestPluginConfig(Object configuration) {
+        Object configuration = execution.getConfiguration();
         if (configuration instanceof Xpp3Dom) {
             Xpp3Dom dom = (Xpp3Dom) configuration;
+            getLog().debug("Using plugin configuration\n" + dom);
             applyPluginProperties(dom.getChild("environmentVariables"), environment);
             applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
             setTestClassesDirectory(dom.getChild("testClassesDirectory"));
         }
+        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
+                NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath(), plugin.getArtifactId()));
+        getLog().info("Using configuration from " + plugin.getArtifactId()
+                + ", execution id \"" + execution.getId() + '"');
     }
 
     /**
@@ -306,6 +281,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         if (dom != null) {
             String value = dom.getValue();
             if (value != null && !value.isBlank()) {
+                getLog().debug("Setting test classes directory to " + value);
                 testClassesDirectory = value;
             }
         }
