@@ -123,3 +123,5 @@ org.junit.vintage.engine.JUnit4VersionCheck
 org.junit.vintage.engine.support.UniqueIdReader
 org.junit.vintage.engine.support.UniqueIdStringifier
 org.junit.vintage.engine.VintageTestEngine
+kotlin.annotation.AnnotationTarget
+kotlin.annotation.AnnotationRetention
