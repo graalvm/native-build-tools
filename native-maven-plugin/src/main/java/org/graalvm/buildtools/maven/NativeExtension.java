@@ -74,6 +74,7 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNati
 public class NativeExtension extends AbstractMavenLifecycleParticipant implements LogEnabled {
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
+    private static final String JUNIT_PLATFORM_DRY_RUN_ENABLED = "junit.platform.execution.dryRun.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
 
@@ -220,9 +221,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {
         updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
             Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
+
             Xpp3Dom junitTracking = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED);
-            Xpp3Dom testIdsProperty = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
             junitTracking.setValue("true");
+
+            Xpp3Dom junitDryRun = findOrAppend(systemProperties, JUNIT_PLATFORM_DRY_RUN_ENABLED);
+            junitDryRun.setValue("true");
+
+            Xpp3Dom testIdsProperty = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
             testIdsProperty.setValue(testIdsDir);
         });
     }
