@@ -444,4 +444,4 @@ All the monitoring and debugging tools https://www.graalvm.org/reference-manual/
 
 === Learn more
 
-To continue learning, refer to the <<changelog.adoc#,extensive reference documentation for the GraalVM Native Image Gradle plugin>>.
+To continue learning, refer to the <<gradle-plugin.adoc#,Gradle plugin documentation>>.
