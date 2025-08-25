@@ -104,6 +104,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -113,6 +114,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -295,6 +297,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
             task.getToolchainDetection().set(graalExtension.getToolchainDetection());
+            task.getJavaLauncher().set(graalExtension.getAgent().getMetadataCopy().getJavaLauncher());
         });
 
         project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
@@ -916,11 +919,16 @@ public class NativeImagePlugin implements Plugin<Project> {
         cliProvider.getAgentOptions().set(agentConfiguration.map(serializableTransformerOf(AgentConfiguration::getAgentCommandLine)));
         javaForkOptions.getJvmArgumentProviders().add(cliProvider);
 
+        Property<JavaLauncher> javaLauncher = project.getObjects().property(JavaLauncher.class);
+        if (taskToInstrument instanceof JavaExec) {
+            javaLauncher.set(((JavaExec) taskToInstrument).getJavaLauncher());
+        }
+
         taskToInstrument.doLast(new MergeAgentFilesAction(
             isMergingEnabled,
             agentModeProvider,
             project.provider(() -> false),
-            project.getObjects(),
+            javaLauncher,
             graalvmHomeProvider(project.getProviders()),
             mergeInputDirs,
             mergeOutputDirs,
