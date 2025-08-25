@@ -92,7 +92,7 @@
                             <execution>
                                 <id>test-native</id>
                                 <goals>
-                                    <goal>test</goal>
+                                    <goal>integration-test</goal>
                                 </goals>
                                 <phase>verify</phase>
                             </execution>

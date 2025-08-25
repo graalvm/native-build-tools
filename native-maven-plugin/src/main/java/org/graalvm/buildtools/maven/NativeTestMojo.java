@@ -44,6 +44,7 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.FileSet;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -88,10 +89,20 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_
  *
  * @author Sebastien Deleuze
  */
-@Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,
+@Mojo(name = NativeTestMojo.TEST_GOAL, defaultPhase = LifecyclePhase.TEST, threadSafe = true,
     requiresDependencyResolution = ResolutionScope.TEST,
     requiresDependencyCollection = ResolutionScope.TEST)
 public class NativeTestMojo extends AbstractNativeImageMojo {
+
+    /**
+     * The test goal for this plugin.
+     */
+    public static final String TEST_GOAL = "test";
+
+    /**
+     * The integration-test goal for this plugin.
+     */
+    public static final String INTEGRATION_TEST_GOAL = "integration-test";
 
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
@@ -99,10 +110,18 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Parameter(property = "skipNativeTests", defaultValue = "false")
     private boolean skipNativeTests;
 
+    /**
+     * The location of the test classes.
+     * <p>
+     * This field will be set at execution time from either the Surefire or
+     * Failsafe plugin configurations.
+     */
+    private String testClassesDirectory;
+
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
-        imageClasspath.add(Paths.get(project.getBuild().getTestOutputDirectory()));
+        imageClasspath.add(Path.of(testClassesDirectory));
         project.getBuild()
             .getTestResources()
             .stream()
@@ -146,6 +165,9 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             logger.info("Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true).");
             return;
         }
+
+        configureEnvironment();
+
         if (!hasTests()) {
             logger.info("Skipped native-image tests since there are no test classes.");
             return;
@@ -159,7 +181,6 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         logger.info("Initializing project: " + project.getName());
         logger.info("====================");
 
-        configureEnvironment();
         buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
 
         /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
@@ -168,8 +189,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         if (systemProperties == null) {
             systemProperties = new HashMap<>();
         }
-        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
-            NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
+
         if (runtimeArgs == null) {
             runtimeArgs = new ArrayList<>();
         }
@@ -181,25 +201,88 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
     }
 
-    private void configureEnvironment() {
-        List<Plugin> plugins = new ArrayList<>();
+    protected void configureEnvironment() {
+        // set the default test classes location
+        testClassesDirectory = project.getBuild().getTestOutputDirectory();
 
         Plugin surefire = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
-        if (surefire != null) {
-            plugins.add(surefire);
-        }
-
         Plugin failsafe = project.getPlugin("org.apache.maven.plugins:maven-failsafe-plugin");
-        if (failsafe != null) {
-            plugins.add(failsafe);
+        String currentGoal = mojoExecution.getGoal();
+        boolean testPluginProcessed = false;
+
+        if (surefire != null) {
+            testPluginProcessed = processTestPluginConfig(surefire, currentGoal);
         }
 
-        for (Plugin plugin : plugins) {
-            Object configuration = plugin.getConfiguration();
-            if (configuration instanceof Xpp3Dom) {
-                Xpp3Dom dom = (Xpp3Dom) configuration;
-                applyPluginProperties(dom.getChild("environmentVariables"), environment);
-                applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+        if (!testPluginProcessed && failsafe != null) {
+            // Surefire was not configured with an execution for the current goal, so try Failsafe
+            processTestPluginConfig(failsafe, currentGoal);
+        }
+    }
+
+    /**
+     * Process the configuration from the Surefire or Failsafe plugins.
+     * <p>
+     * This method will check to see whether the plugin has an execution
+     * matching the goal for this plugin. If it does the plugin's configuration
+     * and the configuration for the matching execution will be processed.
+     * If the plugin has no executions, then just its global configuration
+     * will be processed.
+     *
+     * @param plugin       the Surefire or Failsafe plugin
+     * @param currentGoal  the current goal being executed
+     */
+    private boolean processTestPluginConfig(Plugin plugin, String currentGoal)
+        {
+        List<PluginExecution> executions = plugin.getExecutions();
+        boolean found = false;
+        if (!executions.isEmpty()) {
+            for (PluginExecution execution : executions) {
+                if (execution.getGoals().contains(currentGoal)) {
+                    processTestPlugin(plugin, execution);
+                    found = true;
+                    break;
+                }
+            }
+        }
+        return found;
+    }
+
+    /**
+     * Process the configuration from the Surefire or Failsafe plugins.
+     *
+     * @param plugin     the Surefire or Failsafe plugin configuration
+     * @param execution  the plugin execution to use for configuration
+     */
+    private void processTestPlugin(Plugin plugin, PluginExecution execution) {
+        Object configuration = execution.getConfiguration();
+        if (configuration instanceof Xpp3Dom) {
+            Xpp3Dom dom = (Xpp3Dom) configuration;
+            getLog().debug("Using plugin configuration\n" + dom);
+            applyPluginProperties(dom.getChild("environmentVariables"), environment);
+            applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+            setTestClassesDirectory(dom.getChild("testClassesDirectory"));
+        }
+        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
+                NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath(), plugin.getArtifactId()));
+        getLog().info("Using configuration from " + plugin.getArtifactId()
+                + ", execution id \"" + execution.getId() + '"');
+    }
+
+    /**
+     * Set the test classes directory from the testClassesDirectory configuration {@link Xpp3Dom}.
+     * <p>
+     * The {@link #testClassesDirectory} field is only set if the dom is not {@code null}
+     * and it contains is non-blank value.
+     *
+     * @param dom  the testClassesDirectory configuration {@link Xpp3Dom}.
+     */
+    protected void setTestClassesDirectory(Xpp3Dom dom) {
+        if (dom != null) {
+            String value = dom.getValue();
+            if (value != null && !value.isBlank()) {
+                getLog().debug("Setting test classes directory to " + value);
+                testClassesDirectory = value;
             }
         }
     }
@@ -217,7 +300,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     private boolean hasTests() {
-        Path testOutputPath = Paths.get(project.getBuild().getTestOutputDirectory());
+        Path testOutputPath = Path.of(testClassesDirectory);
         if (Files.exists(testOutputPath) && Files.isDirectory(testOutputPath)) {
             try (Stream<Path> testClasses = Files.walk(testOutputPath)) {
                 return testClasses.anyMatch(p -> p.getFileName().toString().endsWith(".class"));

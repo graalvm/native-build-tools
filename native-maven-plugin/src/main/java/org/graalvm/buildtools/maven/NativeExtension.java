@@ -92,8 +92,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
      */
     enum Context {main, test}
 
-    static String testIdsDirectory(String baseDir) {
-        return baseDir + File.separator + "test-ids";
+    static String testIdsDirectory(String baseDir, String pluginName) {
+        return baseDir + File.separator + pluginName + "-test-ids";
     }
 
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
@@ -124,7 +124,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             Build build = project.getBuild();
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
                 String target = build.getDirectory();
-                String testIdsDir = testIdsDirectory(target);
 
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
                 AgentConfiguration agent;
@@ -138,6 +137,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 List<String> plugins = List.of("maven-surefire-plugin", "maven-failsafe-plugin");
                 for (String pluginName : plugins) {
                     withPlugin(build, pluginName, plugin -> {
+                        String testIdsDir = testIdsDirectory(target, plugin.getArtifactId());
                         configureJunitListener(plugin, testIdsDir);
                         if (agent.isEnabled()) {
                             List<String> agentOptions = agent.getAgentCommandLine();
@@ -217,8 +217,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         });
     }
 
-    private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {
-        updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
+    private static void configureJunitListener(Plugin plugin, String testIdsDir) {
+        updatePluginConfiguration(plugin, (exec, configuration) -> {
             Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
             Xpp3Dom junitTracking = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED);
             Xpp3Dom testIdsProperty = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
