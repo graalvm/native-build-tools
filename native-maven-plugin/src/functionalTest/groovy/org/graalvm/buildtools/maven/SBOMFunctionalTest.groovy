@@ -50,7 +50,6 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     @Requires({ supportsBaseSBOM() })
     def "sbom is exported and embedded when buildArg '--enable-sbom=export,embed' is used"() {
         withSample 'java-application'
-        deleteTargetDir()
 
         when:
         mvn '-Pnative-sbom', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
@@ -69,7 +68,6 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     @Requires({ supportsBaseSBOM() })
     def "base sbom generation is skipped when skipBaseSBOM is true"() {
         withSample 'java-application'
-        deleteTargetDir()
 
         when:
         mvn '-Pnative-sbom', '-DquickBuild', '-DskipTests', '-DskipBaseSBOM', 'package', 'exec:exec@native'
@@ -85,7 +83,6 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     @Requires({ supportsBaseSBOM() })
     def "base sbom generation is skipped when '--enable-sbom=false'"() {
         withSample 'java-application'
-        deleteTargetDir()
 
         when:
         mvn '-Pnative-sbom-explicitly-disabled', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
@@ -95,10 +92,6 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputDoesNotContain "Could not generate base SBOM"
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
-    }
-
-    private def deleteTargetDir() {
-        file("target").deleteDir()
     }
 
     private static boolean supportsBaseSBOM() {
