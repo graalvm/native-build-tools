@@ -132,7 +132,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         var config = new SBOMGenerator.Config(isOracleGraalVM(logger), getBuildArgs(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger)));
         try {
             sbomGenerator.generateIfSupportedAndEnabled(config);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.warn(String.format("Could not generate base SBOM: %s. Fallback to generating an SBOM without knowledge from 'native-build-tools'.",
                     e.getCause().getMessage()));
         }
