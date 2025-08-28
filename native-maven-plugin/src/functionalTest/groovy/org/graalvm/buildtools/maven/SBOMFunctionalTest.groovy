@@ -44,36 +44,14 @@ package org.graalvm.buildtools.maven
 import com.github.openjson.JSONObject
 import org.graalvm.buildtools.maven.sbom.SBOMGenerator
 import org.graalvm.buildtools.utils.NativeImageUtils
-import spock.lang.Ignore
 import spock.lang.Requires
 
 class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
-    private static boolean EE() {
-        NativeCompileNoForkMojo.isOracleGraalVM(null)
-    }
-
-    private static boolean CE() {
-        !EE()
-    }
-
-    private static boolean jdkVersionSupportsAugmentedSBOM() {
-        NativeImageUtils.getMajorJDKVersion(NativeCompileNoForkMojo.getVersionInformation(null)) >= SBOMGenerator.requiredNativeImageVersion
-    }
-
-    private static boolean unsupportedJDKVersion() {
-        !jdkVersionSupportsAugmentedSBOM()
-    }
-
-    private static boolean supportedAugmentedSBOMVersion() {
-        EE() && jdkVersionSupportsAugmentedSBOM()
-    }
-
-    @Requires({ supportedAugmentedSBOMVersion() })
+    @Requires({ supportsBaseSBOM() })
     def "sbom is exported and embedded when buildArg '--enable-sbom=export,embed' is used"() {
         withSample 'java-application'
 
         when:
-        /* The 'native-sbom' profile sets the '--enable-sbom' argument. */
         mvn '-Pnative-sbom', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         def sbom = file("target/example-app.sbom.json")
@@ -81,51 +59,45 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         then:
         buildSucceeded
         outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\) and exported as JSON \\(see build artifacts\\)\\..*"
-        outputDoesNotContain "Could not generate an augmented SBOM"
+        outputDoesNotContain "Could not generate base SBOM"
         validateExportedSBOM sbom
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
     }
 
-    /**
-     * If user sets {@link NativeCompileNoForkMojo#AUGMENTED_SBOM_PARAM_NAME} to true then Native Image should be
-     * invoked with '--enable-sbom' and an SBOM should be embedded in the image.
-     */
-    @Requires({ supportedAugmentedSBOMVersion() })
-    def "sbom is embedded when only the augmented sbom parameter is used (but not the '--enable-sbom' buildArg)"() {
+    @Requires({ supportsBaseSBOM() })
+    def "base sbom generation is skipped when skipBaseSBOM is true"() {
         withSample 'java-application'
 
         when:
-        mvn '-Pnative-augmentedSBOM-only', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
+        mvn '-Pnative-sbom', '-DquickBuild', '-DskipTests', '-DskipBaseSBOM', 'package', 'exec:exec@native'
 
         then:
         buildSucceeded
-        outputContainsPattern".*CycloneDX SBOM with \\d+ component\\(s\\) is embedded in binary \\(.*?\\)\\..*"
-        outputDoesNotContain "Could not generate an augmented SBOM"
+        outputContains String.format("Skipping base SBOM generation (parameter '%s' is true).", NativeCompileNoForkMojo.SKIP_BASE_SBOM_PARAM_NAME)
+        outputDoesNotContain "Could not generate base SBOM"
         !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
         outputContains "Hello, native!"
     }
 
-    @Requires({ CE() })
-    def "error is thrown when augmented sbom parameter is used with CE"() {
+    @Requires({ supportsBaseSBOM() })
+    def "base sbom generation is skipped when '--enable-sbom=false'"() {
         withSample 'java-application'
 
         when:
-        mvn  '-Pnative-augmentedSBOM-only', '-DquickBuild', '-DskipTests', 'package'
+        mvn '-Pnative-sbom-explicitly-disabled', '-DquickBuild', '-DskipTests', 'package', 'exec:exec@native'
 
         then:
-        buildFailed
+        buildSucceeded
+        outputDoesNotContain "Could not generate base SBOM"
+        !file(String.format("target/%s", SBOMGenerator.SBOM_FILENAME)).exists()
+        outputContains "Hello, native!"
     }
 
-    @Requires({ EE() && unsupportedJDKVersion() })
-    def "error is thrown when augmented sbom parameter is used with EE but with an unsupported JDK version"() {
-        withSample 'java-application'
-
-        when:
-        mvn '-Pnative-augmentedSBOM-only', '-DquickBuild', '-DskipTests', 'package'
-
-        then:
-        buildFailed
+    private static boolean supportsBaseSBOM() {
+        boolean isOracleGraalVM = NativeCompileNoForkMojo.isOracleGraalVM(null)
+        int version = NativeImageUtils.getMajorJDKVersion(NativeCompileNoForkMojo.getVersionInformation(null))
+        return SBOMGenerator.isBaseSBOMSupported(isOracleGraalVM, version)
     }
 
     /**
