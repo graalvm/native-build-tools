@@ -46,7 +46,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.RepositorySystem;
 
 import java.io.IOException;
@@ -56,10 +55,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static org.graalvm.buildtools.maven.NativeCompileNoForkMojo.AUGMENTED_SBOM_PARAM_NAME;
-import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
+import static org.graalvm.buildtools.maven.NativeCompileNoForkMojo.SKIP_BASE_SBOM_PARAM_NAME;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.artifactId;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.configuration;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.element;
@@ -72,38 +69,45 @@ import static org.twdata.maven.mojoexecutor.MojoExecutor.plugin;
 import static org.twdata.maven.mojoexecutor.MojoExecutor.version;
 
 /**
- * Generates a Software Bill of Materials (SBOM) that is augmented and refined by Native Image. This feature is only
+ * Generates a base Software Bill of Materials (SBOM) that is refined by Native Image. This feature is only
  * supported in Oracle GraalVM for JDK {@link SBOMGenerator#requiredNativeImageVersion} or later.
  * <p>
  * Approach:
- * 1. The cyclonedx-maven-plugin creates a baseline SBOM.
- * 2. The components of the baseline SBOM (referred to as the "base" SBOM) are updated with additional metadata,
- * most importantly being the set of package names associated with the component (see {@link AddedComponentFields}
- * for all additional metadata).
- * 3. The SBOM is stored at a known location.
- * 4. Native Image processes the SBOM and removes unreachable components and unnecessary dependencies.
+ * 1. The cyclonedx-maven-plugin creates an initial SBOM.
+ * 2. The components of the initial SBOM are updated with additional metadata, most importantly being the set of
+ * package names associated with the component (see {@link AddedComponentFields} for all additional metadata).
+ * The updated SBOM is referred to as the base SBOM.
+ * 3. The base SBOM is stored at a known location.
+ * 4. Native Image processes the base SBOM and removes unreachable components and unnecessary dependencies.
  * <p>
  * Creating the package-name-to-component mapping in the context of Native Image, without the knowledge known at the
  * plugin build-time is difficult, which was the primary motivation for realizing this approach.
  * <p>
  * Benefits:
- * * Great Baseline: Produces an industry-standard SBOM at minimum.
- * * Enhanced Accuracy: Native Image augments and refines the SBOM, potentially significantly improving its accuracy.
+ * - Great Baseline: Produces an industry-standard SBOM at minimum.
+ * - Enhanced Accuracy: Native Image refines the SBOM, potentially significantly improving its accuracy.
  */
 public final class SBOMGenerator {
+    /**
+     * The support for base SBOMs was added in this version of Native Image.
+     */
     public static final int requiredNativeImageVersion = 24;
+    /**
+     * SBOMs are embedded by default in native images starting from this version (even
+     * if `--enable-sbom` is not used).
+     */
+    private static final int embeddedByDefaultVersion = 25;
 
     private final MavenProject mavenProject;
     private final MavenSession mavenSession;
     private final BuildPluginManager pluginManager;
     private final RepositorySystem repositorySystem;
     private final String mainClass;
-    private final Logger logger;
 
+    private static final String SBOM_NATIVE_IMAGE_FLAG = "--enable-sbom";
     private static final String SBOM_FILE_FORMAT = "json";
     private static final String SBOM_FILENAME_WITHOUT_EXTENSION = "base_sbom";
     private final String outputDirectory;
-
     public static final String SBOM_FILENAME = SBOM_FILENAME_WITHOUT_EXTENSION + "." + SBOM_FILE_FORMAT;
 
     private static final class AddedComponentFields {
@@ -124,12 +128,12 @@ public final class SBOMGenerator {
     }
 
     /**
-     * The external plugin used to generate the baseline SBOM.
+     * The external plugin used to generate the initial SBOM.
      */
     private static final class Plugin {
         static final String artifactId = "cyclonedx-maven-plugin";
         static final String groupId = "org.cyclonedx";
-        static final String version = "2.8.1";
+        static final String version = "2.9.1";
         static final String goal = "makeAggregateBom";
 
         private static final class Configuration {
@@ -145,48 +149,38 @@ public final class SBOMGenerator {
             MavenSession mavenSession,
             BuildPluginManager pluginManager,
             RepositorySystem repositorySystem,
-            String mainClass,
-            Logger logger) {
+            String mainClass) {
         this.mavenProject = mavenProject;
         this.mavenSession = mavenSession;
         this.pluginManager = pluginManager;
         this.repositorySystem = repositorySystem;
         this.mainClass = mainClass;
-        this.logger = logger;
         this.outputDirectory = mavenProject.getBuild().getDirectory();
     }
 
-    /**
-     * Checks if the JDK version supports augmented SBOMs.
-     *
-     * @param detectedJdkVersion the JDK version used.
-     * @param throwErrorIfNotSupported if true, then an error is thrown if the check failed.
-     * @return true if the JDK version supports the flag, otherwise false (if throwErrorIfNotSupported is false).
-     * @throws IllegalArgumentException when throwErrorIfNotSupported is true and the version check failed.
-     */
-    public static boolean checkAugmentedSBOMSupportedByJDKVersion(int detectedJdkVersion, boolean throwErrorIfNotSupported) throws IllegalArgumentException {
-        if (detectedJdkVersion < SBOMGenerator.requiredNativeImageVersion) {
-            if (throwErrorIfNotSupported) {
-                throw new IllegalArgumentException(
-                        String.format("%s version %s is required to use configuration option %s but major JDK version %s has been detected.",
-                                ORACLE_GRAALVM_IDENTIFIER, SBOMGenerator.requiredNativeImageVersion, AUGMENTED_SBOM_PARAM_NAME, detectedJdkVersion));
-            }
-            return false;
-        }
-        return true;
-    }
+    public record Config(
+            /* If Oracle GraalVM is used. */
+            boolean isOracleGraalVM,
+            /* The build arguments that will be passed to 'native-image'. */
+            List<String> buildArgs,
+            /* The version of 'native-image'. */
+            int graalvmVersion
+    ) {}
 
     /**
-     * Generates an SBOM that will be further augmented by Native Image. The SBOM is stored in the build directory.
+     * Generates a base SBOM that will help Native Image when building its SBOM. The base
+     * SBOM is only generated if the SBOM feature is enabled and if the base SBOM is supported by
+     * the used Native Image version.
      *
-     * @throws MojoExecutionException if SBOM creation fails.
+     * @throws MojoExecutionException if base SBOM creation fails.
      */
-    public void generate() throws MojoExecutionException {
+    public void generateIfSupportedAndEnabled(Config config) throws MojoExecutionException {
+        if (!isBaseSBOMSupported(config.isOracleGraalVM(), config.graalvmVersion()) || !isSBOMEnabled(config)) {
+            return;
+        }
+
         Path sbomPath = Paths.get(outputDirectory, SBOM_FILENAME);
         try {
-            /* Suppress the output from the plugin. */
-            int loggingLevel = logger.getThreshold();
-            logger.setThreshold(Logger.LEVEL_DISABLED);
             executeMojo(
                     plugin(
                             groupId(Plugin.groupId),
@@ -203,7 +197,6 @@ public final class SBOMGenerator {
                     ),
                     executionEnvironment(mavenProject, mavenSession, pluginManager)
             );
-            logger.setThreshold(loggingLevel);
 
             if (!Files.exists(sbomPath)) {
                 return;
@@ -211,13 +204,42 @@ public final class SBOMGenerator {
 
             var resolver = new ArtifactToPackageNameResolver(mavenProject, repositorySystem, mavenSession.getRepositorySession(), mainClass);
             Set<ArtifactAdapter> artifacts = resolver.getArtifactAdapters();
-            augmentSBOM(sbomPath, artifacts);
+            augmentInitialSBOM(sbomPath, artifacts);
         } catch (Exception exception) {
             deleteFileIfExists(sbomPath);
             String errorMsg = String.format("Failed to create SBOM. Please try again and report this issue if it persists. " +
-                    "To bypass this failure, disable SBOM generation by setting configuration option %s to false.", AUGMENTED_SBOM_PARAM_NAME);
+                    "To bypass this failure, disable base SBOM generation by setting configuration option '%s' to true.", SKIP_BASE_SBOM_PARAM_NAME);
             throw new MojoExecutionException(errorMsg, exception);
         }
+    }
+
+    public static boolean isBaseSBOMSupported(boolean isOracleGraalVM, int graalvmMajorVersion) {
+        return isOracleGraalVM && graalvmMajorVersion >= requiredNativeImageVersion;
+    }
+
+    /**
+     * Returns true if the SBOM feature is enabled in the upcoming `native-image` build.
+     */
+    private static boolean isSBOMEnabled(Config config) {
+        if (!config.isOracleGraalVM()) {
+            /* SBOM is only supported in Oracle GraalVM */
+            return false;
+        }
+
+        if (config.graalvmVersion() >= embeddedByDefaultVersion) {
+            /*
+             * SBOMs are enabled by default starting from version embeddedByDefaultVersion. Therefore,
+             * it is enabled as long as it is not explicitly disabled via `--enable-sbom=false`.
+             */
+            return config.buildArgs().stream().noneMatch(v -> isSBOMFlag(v) && v.contains("false"));
+        } else {
+            /* NI SBOM is enabled if `--enable-sbom` is passed as a build argument */
+            return config.buildArgs().stream().anyMatch(SBOMGenerator::isSBOMFlag);
+        }
+    }
+
+    private static boolean isSBOMFlag(String v) {
+        return v.contains(SBOM_NATIVE_IMAGE_FLAG);
     }
 
     private static void deleteFileIfExists(Path sbomPath) {
@@ -229,12 +251,12 @@ public final class SBOMGenerator {
     }
 
     /**
-     * Augments the base SBOM with information from the derived {@param artifacts}.
+     * Augments the initial SBOM with information from the derived {@param artifacts}.
      *
-     * @param baseSBOMPath path to the base SBOM generated by the cyclonedx plugin.
+     * @param baseSBOMPath path to the initial SBOM generated by the cyclonedx plugin.
      * @param artifacts artifacts that possibly have been extended with package name data.
      */
-    private void augmentSBOM(Path baseSBOMPath, Set<ArtifactAdapter> artifacts) throws IOException {
+    private void augmentInitialSBOM(Path baseSBOMPath, Set<ArtifactAdapter> artifacts) throws IOException {
         JSONObject sbomJson = new JSONObject(Files.readString(baseSBOMPath));
 
         JSONArray componentsArray = sbomJson.optJSONArray("components");
@@ -248,7 +270,7 @@ public final class SBOMGenerator {
             augmentComponentNode(metadataNode.getJSONObject("component"), artifacts);
         }
 
-        /* Save the augmented SBOM back to the file */
+        /* Save the base SBOM back to the file */
         Files.writeString(baseSBOMPath, sbomJson.toString(2));
     }
 
@@ -277,8 +299,10 @@ public final class SBOMGenerator {
             if (optionalArtifact.isPresent()) {
                 ArtifactAdapter artifact = optionalArtifact.get();
                 JSONArray packageNamesArray = new JSONArray();
-                List<String> sortedPackageNames = artifact.packageNames.stream().sorted().collect(Collectors.toList());
-                sortedPackageNames.forEach(packageNamesArray::put);
+                if (artifact.prunable) {
+                    List<String> sortedPackageNames = artifact.packageNames.stream().sorted().toList();
+                    sortedPackageNames.forEach(packageNamesArray::put);
+                }
                 componentNode.put(AddedComponentFields.packageNames, packageNamesArray);
 
                 String jarPath = "";

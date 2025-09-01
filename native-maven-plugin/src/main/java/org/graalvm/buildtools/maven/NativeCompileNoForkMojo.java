@@ -60,8 +60,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 
-import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
-
 /**
  * This goal runs native builds. It functions the same as the native:compile goal, but it
  * does not fork the build, so it is suitable for attaching to the build lifecycle.
@@ -78,12 +76,12 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     private boolean skipNativeBuildForPom;
 
     /**
-     * Used in {@link NativeCompileNoForkMojo#generateAugmentedSBOMIfNeeded} to determine if an augmented SBOM should
-     * be produced by {@link SBOMGenerator}.
+     * Used in {@link NativeCompileNoForkMojo#generateBaseSBOMIfNeeded} to determine if a base SBOM should
+     * be produced by {@link SBOMGenerator}. No base SBOM is produced if set to true.
      */
-    @Parameter
-    private Boolean augmentedSBOM;
-    public static final String AUGMENTED_SBOM_PARAM_NAME = "augmentedSBOM";
+    @Parameter(property = SKIP_BASE_SBOM_PARAM_NAME, defaultValue = "false")
+    private boolean skipBaseSBOM;
+    public static final String SKIP_BASE_SBOM_PARAM_NAME = "skipBaseSBOM";
 
     private PluginParameterExpressionEvaluator evaluator;
 
@@ -113,78 +111,29 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-jar-plugin", "archive", "manifest", "mainClass");
         maybeAddGeneratedResourcesConfig(buildArgs);
 
-        generateAugmentedSBOMIfNeeded();
+        generateBaseSBOMIfNeeded();
 
         buildImage();
     }
 
     /**
-     * Generates an augmented SBOM using the {@link SBOMGenerator} based on specific conditions:
+     * Invokes {@link SBOMGenerator#generateIfSupportedAndEnabled} if {@link NativeCompileNoForkMojo#skipBaseSBOM}
+     * is false.
      *
-     * 1. If {@link NativeCompileNoForkMojo#augmentedSBOM} is explicitly set to false: No SBOM is generated.
-     * 2. If {@link NativeCompileNoForkMojo#augmentedSBOM} is explicitly set to true: An augmented SBOM is
-     *    generated if the required conditions are met.
-     * 3. If {@link NativeCompileNoForkMojo#augmentedSBOM} is not set: An augmented SBOM is generated only if
-     *    SBOM generation is configured for Native Image via a build argument.
-     *
-     * Note: Augmented SBOMs are only supported in Oracle GraalVM for JDK {@link SBOMGenerator#requiredNativeImageVersion}
-     * or later.
-     *
-     * @throws IllegalArgumentException if {@link NativeCompileNoForkMojo#augmentedSBOM} is explicitly set to true
-     *         but required conditions are not met (e.g., using community edition or JDK version 23 or earlier).
-     * @throws MojoExecutionException if augmented SBOM generation was attempted but failed.
+     * @throws MojoExecutionException if base SBOM generation was attempted but failed.
      */
-    private void generateAugmentedSBOMIfNeeded() throws IllegalArgumentException, MojoExecutionException {
-        boolean optionWasSet = augmentedSBOM != null;
-        augmentedSBOM = optionWasSet ? augmentedSBOM : true;
-
-        int detectedJDKVersion = NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger));
-        String sbomNativeImageFlag = "--enable-sbom";
-        boolean sbomEnabledForNativeImage = getBuildArgs().stream().anyMatch(v -> v.contains(sbomNativeImageFlag));
-        if (optionWasSet) {
-            if (!augmentedSBOM) {
-                /* User explicitly opted out. */
-                return;
-            }
-
-            if (!isOracleGraalVM(logger)) {
-                throw new IllegalArgumentException(
-                        String.format("Configuration option %s is only supported in %s.", AUGMENTED_SBOM_PARAM_NAME, ORACLE_GRAALVM_IDENTIFIER));
-            }
-
-            SBOMGenerator.checkAugmentedSBOMSupportedByJDKVersion(detectedJDKVersion, true);
-
-            if (!sbomEnabledForNativeImage) {
-                buildArgs.add(sbomNativeImageFlag);
-                logger.info(String.format("Automatically added build argument %s to Native Image because configuration option %s was set to true. " +
-                        "An SBOM will be embedded in the image.", sbomNativeImageFlag, AUGMENTED_SBOM_PARAM_NAME));
-            }
-
-            /* Continue to generate augmented SBOM because parameter option explicitly set and all conditions are met. */
-        } else {
-            if (!isOracleGraalVM(logger) || !sbomEnabledForNativeImage) {
-                return;
-            }
-
-            if (!SBOMGenerator.checkAugmentedSBOMSupportedByJDKVersion(detectedJDKVersion, false)) {
-               return;
-            }
-
-            /*
-             * Continue to generate augmented SBOM because although the parameter option was not set, SBOM is used for
-             * Native Image and all conditions are met.
-             */
+    private void generateBaseSBOMIfNeeded() throws MojoExecutionException {
+        if (skipBaseSBOM) {
+            logger.info(String.format("Skipping base SBOM generation (parameter '%s' is true).", SKIP_BASE_SBOM_PARAM_NAME));
+            return;
         }
 
-        var sbomGenerator = new SBOMGenerator(mavenProject, mavenSession, pluginManager, repositorySystem, mainClass, logger);
+        var sbomGenerator = new SBOMGenerator(mavenProject, mavenSession, pluginManager, repositorySystem, mainClass);
+        var config = new SBOMGenerator.Config(isOracleGraalVM(logger), getBuildArgs(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger)));
         try {
-            sbomGenerator.generate();
-        } catch (MojoExecutionException e) {
-            /* Only throw exception for users that explicitly opt-in to using augmented SBOMs. */
-            if (optionWasSet) {
-                throw e;
-            }
-            logger.warn(String.format("Could not generate an augmented SBOM: %s. Fallback to generating a non-augmented SBOM.",
+            sbomGenerator.generateIfSupportedAndEnabled(config);
+        } catch (Throwable e) {
+            logger.warn(String.format("Could not generate base SBOM: %s. Fallback to generating an SBOM without knowledge from 'native-build-tools'.",
                     e.getCause().getMessage()));
         }
     }
