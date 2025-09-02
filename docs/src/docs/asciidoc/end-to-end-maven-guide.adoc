@@ -103,54 +103,6 @@ This command will compile your application and create a native executable in the
 You can have multiple profiles, which is very convenient if you want to produce different versions of your native images for your application (optimized, static, and others).
 Continue to advanced use cases to learn more.
 
-[[advanced-use-cases]]
-== Advanced Use Cases: How to
-
-For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.
-
-[[configure-image-build]]
-=== Configure Native Image Build
-
-The plugin supports passing options directly to Native Image inside the `<configuration>` block.
-Using `<buildArg>`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this page].
-
-The plugin also provides special properties to configure the build:
-
-- `<environment>` - Sets the environment options
-- `<imageName>` - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
-- `<jvmArgs>` - Passes the given argument directly to the JVM running the `native-image` tool
-- `<quickBuild>` - Enables quick build mode
-- `<verbose>` - Enables the verbose output
-- and many more https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#configuration-options[listed here].
-
-Here is an example of additional options usage:
-[source,xml, role="multi-language-sample"]
-----
-<configuration>
-  <mainClass>org.example.Main</mainClass>
-  <imageName>myApp</imageName>
-  <verbose>true</verbose>
-  <buildArgs>
-    <buildArg>-O3</buildArg> <!-- enables additional compiler optimizations -->
-  </buildArgs>
-  <environment>
-    <variable1>value1</variable1>
-    <variable2>value2</variable2>
-  </environment>
-  <jvmArgs>
-    <arg>your-argument</arg>
-  </jvmArgs>
-</configuration>
-----
-
-[TIP]
-====
-As an alternative, you can pass additional build options via the `NATIVE_IMAGE_OPTIONS` environment variable, on the command line.
-This works similarly to `JAVA_TOOL_OPTIONS`, where the value of the environment variable is prefixed to the options supplied to `native-image`.
-====
-
-Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
-
 [[run-junit-tests]]
 === Run Junit Tests
 
@@ -231,6 +183,54 @@ Alternatively, set `<skipNativeTests>` to `true` in the plugin configuration:
 ----
 
 This way you configure your Maven profile to skip generation and execution of tests as native code.
+
+[[advanced-use-cases]]
+== Advanced Use Cases: How to
+
+For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.
+
+[[configure-image-build]]
+=== Configure Native Image Build
+
+The plugin supports passing options directly to Native Image inside the `<configuration>` block.
+Using `<buildArg>`, you can pass any Native Image build option listed on https://www.graalvm.org/reference-manual/native-image/overview/Options/[this page].
+
+The plugin also provides special properties to configure the build:
+
+- `<environment>` - Sets the environment options
+- `<imageName>` - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
+- `<jvmArgs>` - Passes the given argument directly to the JVM running the `native-image` tool
+- `<quickBuild>` - Enables quick build mode
+- `<verbose>` - Enables the verbose output
+- and many more https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#configuration-options[listed here].
+
+Here is an example of additional options usage:
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <mainClass>org.example.Main</mainClass>
+  <imageName>myApp</imageName>
+  <verbose>true</verbose>
+  <buildArgs>
+    <buildArg>-O3</buildArg> <!-- enables additional compiler optimizations -->
+  </buildArgs>
+  <environment>
+    <variable1>value1</variable1>
+    <variable2>value2</variable2>
+  </environment>
+  <jvmArgs>
+    <arg>your-argument</arg>
+  </jvmArgs>
+</configuration>
+----
+
+[TIP]
+====
+As an alternative, you can pass additional build options via the `NATIVE_IMAGE_OPTIONS` environment variable, on the command line.
+This works similarly to `JAVA_TOOL_OPTIONS`, where the value of the environment variable is prefixed to the options supplied to `native-image`.
+====
+
+Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
 
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
@@ -500,4 +500,4 @@ You will find the output of these tools among the generated artifacts after runn
 
 === Learn more
 
-To continue learning, refer to the <<changelog.adoc#,extensive reference documentation for the GraalVM Native Image Maven plugin>>.
+To continue learning, refer to the <<maven-plugin.adoc#,Maven plugin documentation>>.
