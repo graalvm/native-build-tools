@@ -55,7 +55,38 @@ This command will compile your application and create a native executable in the
 ./gradlew nativeRun
 ----
 
-Continue reading below to learn more about the plugin.
+Continue to advanced use cases to learn more about the plugin.
+
+[[run-junit-tests]]
+=== Run Junit Tests
+
+This plugin supports running tests on the JUnit Platform.
+The tests are compiled ahead of time and executed as native code.
+
+- Add the JUnit 5 dependency to _build.gradle_ / _build.gradle.kts_ to include the testing framework:
+
+[source,groovy,role="multi-language-sample"]
+----
+testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+testImplementation 'junit:junit:4.13.2'
+----
+
+[source,kotlin,role="multi-language-sample"]
+----
+testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.1')
+testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.8.1')
+testImplementation('junit:junit:4.13.2')
+----
+
+- Run the tests:
+
+[source,bash,role="multi-language-sample"]
+----
+./gradlew nativeTest
+----
+
+The tests are compiled ahead of time and executed as native code.
 
 [[advanced-use-cases]]
 == Advanced Use Cases: How to
@@ -133,37 +164,6 @@ This works similarly to `JAVA_TOOL_OPTIONS`, where the value of the environment 
 ====
 
 Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
-
-[[run-junit-tests]]
-=== Run Junit Tests
-
-This plugin supports running tests on the JUnit Platform.
-The tests are compiled ahead of time and executed as native code.
-
-- Add the JUnit 5 dependency to _build.gradle_ / _build.gradle.kts_ to include the testing framework:
-
-[source,groovy,role="multi-language-sample"]
-----
-testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-testImplementation 'junit:junit:4.13.2'
-----
-
-[source,kotlin,role="multi-language-sample"]
-----
-testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.1')
-testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.8.1')
-testImplementation('junit:junit:4.13.2')
-----
-
-- Run the tests:
-
-[source,bash,role="multi-language-sample"]
-----
-./gradlew nativeTest
-----
-
-The tests are compiled ahead of time and executed as native code.
 
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
