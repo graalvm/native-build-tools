@@ -161,6 +161,14 @@ loadScripts(document, 'script');</script>
 <dl class="index">
 <dt><a href="org/graalvm/buildtools/maven/NativeExtension.html#enableLogging(org.codehaus.plexus.logging.Logger)" class="member-name-link">enableLogging(Logger)</a> - Method in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/NativeExtension.html" title="class in org.graalvm.buildtools.maven">NativeExtension</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/maven/AbstractNativeImageMojo.html#enforceToolchain" class="member-name-link">enforceToolchain</a> - Variable in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/AbstractNativeImageMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeImageMojo</a></dt>
+<dd>
+<div class="block">Set this to true to ensure that native-image is found in your toolchain and not in an unrelated JDK or in your PATH.</div>
+</dd>
+<dt><a href="org/graalvm/buildtools/maven/config/AbstractMergeAgentFilesMojo.html#enforceToolchain" class="member-name-link">enforceToolchain</a> - Variable in class org.graalvm.buildtools.maven.config.<a href="org/graalvm/buildtools/maven/config/AbstractMergeAgentFilesMojo.html" title="class in org.graalvm.buildtools.maven.config">AbstractMergeAgentFilesMojo</a></dt>
+<dd>
+<div class="block">Set this to true to ensure that native-image is found in your toolchain and not in an unrelated JDK or in your PATH.</div>
+</dd>
 <dt><a href="org/graalvm/buildtools/maven/AbstractNativeImageMojo.html#environment" class="member-name-link">environment</a> - Variable in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/AbstractNativeImageMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeImageMojo</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/sbom/SBOMGenerator.Config.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class org.graalvm.buildtools.maven.sbom.<a href="org/graalvm/buildtools/maven/sbom/SBOMGenerator.Config.html" title="class in org.graalvm.buildtools.maven.sbom">SBOMGenerator.Config</a></dt>
@@ -267,6 +275,8 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html#getNativeImageFromPath()" class="member-name-link">getNativeImageFromPath()</a> - Static method in class org.graalvm.buildtools.utils.<a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html" title="class in org.graalvm.buildtools.utils">NativeImageConfigurationUtils</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html#getNativeImageSupportingToolchain(org.codehaus.plexus.logging.Logger,org.apache.maven.toolchain.ToolchainManager,org.apache.maven.execution.MavenSession,boolean)" class="member-name-link">getNativeImageSupportingToolchain(Logger, ToolchainManager, MavenSession, boolean)</a> - Static method in class org.graalvm.buildtools.utils.<a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html" title="class in org.graalvm.buildtools.utils">NativeImageConfigurationUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/config/agent/AgentConfiguration.html#getOptions()" class="member-name-link">getOptions()</a> - Method in class org.graalvm.buildtools.maven.config.agent.<a href="org/graalvm/buildtools/maven/config/agent/AgentConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">AgentConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/config/agent/MetadataCopyConfiguration.html#getOutputDirectory()" class="member-name-link">getOutputDirectory()</a> - Method in class org.graalvm.buildtools.maven.config.agent.<a href="org/graalvm/buildtools/maven/config/agent/MetadataCopyConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">MetadataCopyConfiguration</a></dt>
@@ -274,6 +284,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/graalvm/buildtools/maven/config/ExcludeConfigConfiguration.html#getResourcePattern()" class="member-name-link">getResourcePattern()</a> - Method in class org.graalvm.buildtools.maven.config.<a href="org/graalvm/buildtools/maven/config/ExcludeConfigConfiguration.html" title="class in org.graalvm.buildtools.maven.config">ExcludeConfigConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/utils/Xpp3DomParser.html#getTagByName(org.codehaus.plexus.util.xml.Xpp3Dom,java.lang.String)" class="member-name-link">getTagByName(Xpp3Dom, String)</a> - Static method in class org.graalvm.buildtools.utils.<a href="org/graalvm/buildtools/utils/Xpp3DomParser.html" title="class in org.graalvm.buildtools.utils">Xpp3DomParser</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html#getToolchainNativeImage(org.codehaus.plexus.logging.Logger,org.apache.maven.toolchain.ToolchainManager,org.apache.maven.execution.MavenSession,boolean)" class="member-name-link">getToolchainNativeImage(Logger, ToolchainManager, MavenSession, boolean)</a> - Static method in class org.graalvm.buildtools.utils.<a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html" title="class in org.graalvm.buildtools.utils">NativeImageConfigurationUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/config/MetadataRepositoryConfiguration.html#getUrl()" class="member-name-link">getUrl()</a> - Method in class org.graalvm.buildtools.maven.config.<a href="org/graalvm/buildtools/maven/config/MetadataRepositoryConfiguration.html" title="class in org.graalvm.buildtools.maven.config">MetadataRepositoryConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -452,6 +464,8 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html#nativeImageExeCache" class="member-name-link">nativeImageExeCache</a> - Static variable in class org.graalvm.buildtools.utils.<a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html" title="class in org.graalvm.buildtools.utils">NativeImageConfigurationUtils</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html#nativeImageExeCacheSupportingToolchain" class="member-name-link">nativeImageExeCacheSupportingToolchain</a> - Static variable in class org.graalvm.buildtools.utils.<a href="org/graalvm/buildtools/utils/NativeImageConfigurationUtils.html" title="class in org.graalvm.buildtools.utils">NativeImageConfigurationUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/NativeTestMojo.html" class="type-name-link" title="class in org.graalvm.buildtools.maven">NativeTestMojo</a> - Class in <a href="org/graalvm/buildtools/maven/package-summary.html">org.graalvm.buildtools.maven</a></dt>
 <dd>
 <div class="block">This goal builds and runs native tests.</div>
@@ -547,6 +561,8 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/AbstractResourceConfigMojo.html#session" class="member-name-link">session</a> - Variable in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/AbstractResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven">AbstractResourceConfigMojo</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/maven/config/AbstractMergeAgentFilesMojo.html#session" class="member-name-link">session</a> - Variable in class org.graalvm.buildtools.maven.config.<a href="org/graalvm/buildtools/maven/config/AbstractMergeAgentFilesMojo.html" title="class in org.graalvm.buildtools.maven.config">AbstractMergeAgentFilesMojo</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/config/agent/AgentOptionsConfiguration.html#setAccessFilterFiles(java.util.List)" class="member-name-link">setAccessFilterFiles(List&lt;String&gt;)</a> - Method in class org.graalvm.buildtools.maven.config.agent.<a href="org/graalvm/buildtools/maven/config/agent/AgentOptionsConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">AgentOptionsConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/config/agent/AgentOptionsConfiguration.html#setBuiltinCallerFilter(boolean)" class="member-name-link">setBuiltinCallerFilter(boolean)</a> - Method in class org.graalvm.buildtools.maven.config.agent.<a href="org/graalvm/buildtools/maven/config/agent/AgentOptionsConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">AgentOptionsConfiguration</a></dt>
@@ -603,6 +619,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/graalvm/buildtools/maven/MergeAgentFilesMojo.html#target" class="member-name-link">target</a> - Variable in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/MergeAgentFilesMojo.html" title="class in org.graalvm.buildtools.maven">MergeAgentFilesMojo</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/AbstractNativeImageMojo.html#toolchainManager" class="member-name-link">toolchainManager</a> - Variable in class org.graalvm.buildtools.maven.<a href="org/graalvm/buildtools/maven/AbstractNativeImageMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeImageMojo</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/graalvm/buildtools/maven/config/AbstractMergeAgentFilesMojo.html#toolchainManager" class="member-name-link">toolchainManager</a> - Variable in class org.graalvm.buildtools.maven.config.<a href="org/graalvm/buildtools/maven/config/AbstractMergeAgentFilesMojo.html" title="class in org.graalvm.buildtools.maven.config">AbstractMergeAgentFilesMojo</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/graalvm/buildtools/maven/sbom/SBOMGenerator.Config.html#toString()" class="member-name-link">toString()</a> - Method in record class org.graalvm.buildtools.maven.sbom.<a href="org/graalvm/buildtools/maven/sbom/SBOMGenerator.Config.html" title="class in org.graalvm.buildtools.maven.sbom">SBOMGenerator.Config</a></dt>
 <dd>

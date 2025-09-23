@@ -105,6 +105,9 @@ implements org.graalvm.buildtools.utils.SharedConstants</span></div>
 <div class="col-first even-row-color"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
 <div class="col-second even-row-color"><code><a href="#nativeImageExeCache" class="member-name-link">nativeImageExeCache</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#nativeImageExeCacheSupportingToolchain" class="member-name-link">nativeImageExeCacheSupportingToolchain</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-org.graalvm.buildtools.utils.SharedConstants">Fields inherited from interface&nbsp;org.graalvm.buildtools.utils.SharedConstants</h3>
@@ -145,6 +148,18 @@ implements org.graalvm.buildtools.utils.SharedConstants</span></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getNativeImageFromPath()" class="member-name-link">getNativeImageFromPath</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getNativeImageSupportingToolchain(org.codehaus.plexus.logging.Logger,org.apache.maven.toolchain.ToolchainManager,org.apache.maven.execution.MavenSession,boolean)" class="member-name-link">getNativeImageSupportingToolchain</a><wbr>(org.codehaus.plexus.logging.Logger&nbsp;logger,
+ org.apache.maven.toolchain.ToolchainManager&nbsp;toolchainManager,
+ org.apache.maven.execution.MavenSession&nbsp;session,
+ boolean&nbsp;enforceToolchain)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getToolchainNativeImage(org.codehaus.plexus.logging.Logger,org.apache.maven.toolchain.ToolchainManager,org.apache.maven.execution.MavenSession,boolean)" class="member-name-link">getToolchainNativeImage</a><wbr>(org.codehaus.plexus.logging.Logger&nbsp;logger,
+ org.apache.maven.toolchain.ToolchainManager&nbsp;toolchainManager,
+ org.apache.maven.execution.MavenSession&nbsp;session,
+ boolean&nbsp;enforceToolchain)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
@@ -189,6 +204,12 @@ implements org.graalvm.buildtools.utils.SharedConstants</span></div>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">nativeImageExeCache</span></div>
 </section>
 </li>
+<li>
+<section class="detail" id="nativeImageExeCacheSupportingToolchain">
+<h3>nativeImageExeCacheSupportingToolchain</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">nativeImageExeCacheSupportingToolchain</span></div>
+</section>
+</li>
 </ul>
 </section>
 </li>
@@ -228,6 +249,34 @@ implements org.graalvm.buildtools.utils.SharedConstants</span></div>
 <section class="detail" id="getNativeImageFromPath()">
 <h3>getNativeImageFromPath</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">getNativeImageFromPath</span>()</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getNativeImageSupportingToolchain(org.codehaus.plexus.logging.Logger,org.apache.maven.toolchain.ToolchainManager,org.apache.maven.execution.MavenSession,boolean)">
+<h3>getNativeImageSupportingToolchain</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">getNativeImageSupportingToolchain</span><wbr><span class="parameters">(org.codehaus.plexus.logging.Logger&nbsp;logger,
+ org.apache.maven.toolchain.ToolchainManager&nbsp;toolchainManager,
+ org.apache.maven.execution.MavenSession&nbsp;session,
+ boolean&nbsp;enforceToolchain)</span>
+                                              throws <span class="exceptions">org.apache.maven.plugin.MojoExecutionException</span></div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getToolchainNativeImage(org.codehaus.plexus.logging.Logger,org.apache.maven.toolchain.ToolchainManager,org.apache.maven.execution.MavenSession,boolean)">
+<h3>getToolchainNativeImage</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></span>&nbsp;<span class="element-name">getToolchainNativeImage</span><wbr><span class="parameters">(org.codehaus.plexus.logging.Logger&nbsp;logger,
+ org.apache.maven.toolchain.ToolchainManager&nbsp;toolchainManager,
+ org.apache.maven.execution.MavenSession&nbsp;session,
+ boolean&nbsp;enforceToolchain)</span>
+                                    throws <span class="exceptions">org.apache.maven.plugin.MojoExecutionException</span></div>
+<dl class="notes">
+<dt>Throws:</dt>
+<dd><code>org.apache.maven.plugin.MojoExecutionException</code></dd>
+</dl>
 </section>
 </li>
 <li>

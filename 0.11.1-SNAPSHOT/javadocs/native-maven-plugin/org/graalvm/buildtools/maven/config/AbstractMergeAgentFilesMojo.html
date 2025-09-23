@@ -100,9 +100,20 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>protected org.codehaus.plexus.logging.Logger</code></div>
-<div class="col-second even-row-color"><code><a href="#logger" class="member-name-link">logger</a></code></div>
+<div class="col-first even-row-color"><code>protected boolean</code></div>
+<div class="col-second even-row-color"><code><a href="#enforceToolchain" class="member-name-link">enforceToolchain</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Set this to true to ensure that native-image is found in your toolchain and not in an unrelated JDK or in your PATH.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected org.codehaus.plexus.logging.Logger</code></div>
+<div class="col-second odd-row-color"><code><a href="#logger" class="member-name-link">logger</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>protected org.apache.maven.execution.MavenSession</code></div>
+<div class="col-second even-row-color"><code><a href="#session" class="member-name-link">session</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>protected org.apache.maven.toolchain.ToolchainManager</code></div>
+<div class="col-second odd-row-color"><code><a href="#toolchainManager" class="member-name-link">toolchainManager</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-org.apache.maven.plugin.Mojo">Fields inherited from interface&nbsp;org.apache.maven.plugin.Mojo</h3>
@@ -164,6 +175,30 @@ loadScripts(document, 'script');</script>
 <h3>logger</h3>
 <div class="member-signature"><span class="annotations">@Component
 </span><span class="modifiers">protected</span>&nbsp;<span class="return-type">org.codehaus.plexus.logging.Logger</span>&nbsp;<span class="element-name">logger</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="session">
+<h3>session</h3>
+<div class="member-signature"><span class="annotations">@Parameter(defaultValue="${session}",
+           readonly=true)
+</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">org.apache.maven.execution.MavenSession</span>&nbsp;<span class="element-name">session</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="toolchainManager">
+<h3>toolchainManager</h3>
+<div class="member-signature"><span class="annotations">@Component
+</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">org.apache.maven.toolchain.ToolchainManager</span>&nbsp;<span class="element-name">toolchainManager</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="enforceToolchain">
+<h3>enforceToolchain</h3>
+<div class="member-signature"><span class="annotations">@Parameter(property="enforceToolchain")
+</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">enforceToolchain</span></div>
+<div class="block">Set this to true to ensure that native-image is found in your toolchain and not in an unrelated JDK or in your PATH.
+        Will fail the build in case no toolchain was found or if it does not contain native-image.</div>
 </section>
 </li>
 </ul>
