@@ -55,7 +55,6 @@ This command will compile your application and create a native executable in the
 ./gradlew nativeRun
 ----
 
-Continue to advanced use cases to learn more about the plugin.
 
 [[run-junit-tests]]
 === Run Junit Tests
