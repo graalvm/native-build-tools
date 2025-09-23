@@ -1,6 +1,10 @@
 [[changelog]]
 == Changelog
 
+== Release 0.11.1
+
+- Fix `NoClassDefFoundError` when JUnit feature is missing some dependency
+
 == Release 0.11.0
 
 - This version introduces a breaking change: the plugins now require Java 17 to run
