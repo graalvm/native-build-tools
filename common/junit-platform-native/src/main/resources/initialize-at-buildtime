@@ -58,6 +58,8 @@ org.junit.platform.commons.logging.LoggerFactory
 org.junit.platform.commons.logging.LoggerFactory$DelegatingLogger
 org.junit.platform.commons.support.scanning.DefaultClasspathScanner
 org.junit.platform.commons.util.ClasspathScanner
+org.junit.platform.commons.util.DefaultClasspathScanner
+org.junit.platform.commons.util.KotlinReflectionUtils
 org.junit.platform.commons.util.LruCache
 org.junit.platform.commons.util.ReflectionUtils
 org.junit.platform.commons.util.StringUtils
@@ -76,10 +78,12 @@ org.junit.platform.launcher.core.DefaultLauncher
 org.junit.platform.launcher.core.DefaultLauncherConfig
 org.junit.platform.launcher.core.DiscoveryIssueCollector
 org.junit.platform.launcher.core.DiscoveryIssueNotifier
+org.junit.platform.launcher.core.DiscoveryIssueNotifier$1
 org.junit.platform.launcher.core.EngineDiscoveryOrchestrator
 org.junit.platform.launcher.core.EngineExecutionOrchestrator
 org.junit.platform.launcher.core.EngineFilterer
 org.junit.platform.launcher.core.EngineIdValidator
+org.junit.platform.launcher.core.HierarchicalOutputDirectoryCreator
 org.junit.platform.launcher.core.HierarchicalOutputDirectoryProvider
 org.junit.platform.launcher.core.InternalTestPlan
 org.junit.platform.launcher.core.LauncherConfig
