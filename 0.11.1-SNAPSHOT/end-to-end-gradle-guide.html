@@ -474,12 +474,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#add-plugin">Add the Plugin</a></li>
 <li><a href="#run-your-project">Build and Run Your Application</a></li>
+<li><a href="#run-junit-tests">Run Junit Tests</a></li>
 </ul>
 </li>
 <li><a href="#advanced-use-cases">Advanced Use Cases: How to</a>
 <ul class="sectlevel2">
 <li><a href="#configure-image-build">Configure Native Image Build</a></li>
-<li><a href="#run-junit-tests">Run Junit Tests</a></li>
 <li><a href="#gather-execution-profiles">Gather Execution Profiles and Build Optimized Images</a></li>
 <li><a href="#troubleshoot-missing-configuration">Troubleshoot Missing Configuration</a></li>
 <li><a href="#use-diagnostics-tools">Use Diagnostics Tools</a></li>
@@ -576,8 +576,48 @@ This command will compile your application and create a native executable in the
 <pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeRun</code></pre>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="run-junit-tests"><a class="anchor" href="#run-junit-tests"></a>Run Junit Tests</h3>
 <div class="paragraph">
-<p>Continue reading below to learn more about the plugin.</p>
+<p>This plugin supports running tests on the JUnit Platform.
+The tests are compiled ahead of time and executed as native code.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Add the JUnit 5 dependency to <em>build.gradle</em> / <em>build.gradle.kts</em> to include the testing framework:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+testImplementation 'junit:junit:4.13.2'</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.1')
+testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.8.1')
+testImplementation('junit:junit:4.13.2')</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Run the tests:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeTest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The tests are compiled ahead of time and executed as native code.</p>
 </div>
 </div>
 </div>
@@ -686,49 +726,6 @@ This works similarly to <code>JAVA_TOOL_OPTIONS</code>, where the value of the e
 </div>
 <div class="paragraph">
 <p>Learn more about Native Image build configuration <a href="https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/">on the website</a>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="run-junit-tests"><a class="anchor" href="#run-junit-tests"></a>Run Junit Tests</h3>
-<div class="paragraph">
-<p>This plugin supports running tests on the JUnit Platform.
-The tests are compiled ahead of time and executed as native code.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Add the JUnit 5 dependency to <em>build.gradle</em> / <em>build.gradle.kts</em> to include the testing framework:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-testImplementation 'junit:junit:4.13.2'</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.1')
-testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.8.1')
-testImplementation('junit:junit:4.13.2')</code></pre>
-</div>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Run the tests:</p>
-</li>
-</ul>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeTest</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The tests are compiled ahead of time and executed as native code.</p>
 </div>
 </div>
 <div class="sect2">

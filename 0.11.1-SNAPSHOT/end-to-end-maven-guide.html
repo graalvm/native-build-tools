@@ -474,12 +474,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#add-plugin">Add the Plugin</a></li>
 <li><a href="#run-your-project">Build and Run Your Application</a></li>
+<li><a href="#run-junit-tests">Run Junit Tests</a></li>
 </ul>
 </li>
 <li><a href="#advanced-use-cases">Advanced Use Cases: How to</a>
 <ul class="sectlevel2">
 <li><a href="#configure-image-build">Configure Native Image Build</a></li>
-<li><a href="#run-junit-tests">Run Junit Tests</a></li>
 <li><a href="#gather-execution-profiles">Gather Execution Profiles and Build Optimized Images</a></li>
 <li><a href="#troubleshoot-missing-configuration">Troubleshoot Missing Configuration</a></li>
 <li><a href="#use-diagnostics-tools">Use Diagnostics Tools</a></li>
@@ -615,86 +615,6 @@ This command will compile your application and create a native executable in the
 Continue to advanced use cases to learn more.</p>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="advanced-use-cases"><a class="anchor" href="#advanced-use-cases"></a>Advanced Use Cases: How to</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.</p>
-</div>
-<div class="sect2">
-<h3 id="configure-image-build"><a class="anchor" href="#configure-image-build"></a>Configure Native Image Build</h3>
-<div class="paragraph">
-<p>The plugin supports passing options directly to Native Image inside the <code>&lt;configuration&gt;</code> block.
-Using <code>&lt;buildArg&gt;</code>, you can pass any Native Image build option listed on <a href="https://www.graalvm.org/reference-manual/native-image/overview/Options/">this page</a>.</p>
-</div>
-<div class="paragraph">
-<p>The plugin also provides special properties to configure the build:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>&lt;environment&gt;</code> - Sets the environment options</p>
-</li>
-<li>
-<p><code>&lt;imageName&gt;</code> - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).</p>
-</li>
-<li>
-<p><code>&lt;jvmArgs&gt;</code> - Passes the given argument directly to the JVM running the <code>native-image</code> tool</p>
-</li>
-<li>
-<p><code>&lt;quickBuild&gt;</code> - Enables quick build mode</p>
-</li>
-<li>
-<p><code>&lt;verbose&gt;</code> - Enables the verbose output</p>
-</li>
-<li>
-<p>and many more <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#configuration-options">listed here</a>.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Here is an example of additional options usage:</p>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
-  &lt;mainClass&gt;org.example.Main&lt;/mainClass&gt;
-  &lt;imageName&gt;myApp&lt;/imageName&gt;
-  &lt;verbose&gt;true&lt;/verbose&gt;
-  &lt;buildArgs&gt;
-    &lt;buildArg&gt;-O3&lt;/buildArg&gt; &lt;!-- enables additional compiler optimizations --&gt;
-  &lt;/buildArgs&gt;
-  &lt;environment&gt;
-    &lt;variable1&gt;value1&lt;/variable1&gt;
-    &lt;variable2&gt;value2&lt;/variable2&gt;
-  &lt;/environment&gt;
-  &lt;jvmArgs&gt;
-    &lt;arg&gt;your-argument&lt;/arg&gt;
-  &lt;/jvmArgs&gt;
-&lt;/configuration&gt;</code></pre>
-</div>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>As an alternative, you can pass additional build options via the <code>NATIVE_IMAGE_OPTIONS</code> environment variable, on the command line.
-This works similarly to <code>JAVA_TOOL_OPTIONS</code>, where the value of the environment variable is prefixed to the options supplied to <code>native-image</code>.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Learn more about Native Image build configuration <a href="https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/">on the website</a>.</p>
-</div>
-</div>
 <div class="sect2">
 <h3 id="run-junit-tests"><a class="anchor" href="#run-junit-tests"></a>Run Junit Tests</h3>
 <div class="paragraph">
@@ -801,6 +721,86 @@ This flag is specific to Native Build Tools.</p>
 <div class="paragraph">
 <p>This way you configure your Maven profile to skip generation and execution of tests as native code.</p>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="advanced-use-cases"><a class="anchor" href="#advanced-use-cases"></a>Advanced Use Cases: How to</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For advanced use cases, this guide provides instructions for configuring the build process, running tests on native code, gathering execution profiles, troubleshooting missing configuration, and enabling diagnostic tools to analyze native images.</p>
+</div>
+<div class="sect2">
+<h3 id="configure-image-build"><a class="anchor" href="#configure-image-build"></a>Configure Native Image Build</h3>
+<div class="paragraph">
+<p>The plugin supports passing options directly to Native Image inside the <code>&lt;configuration&gt;</code> block.
+Using <code>&lt;buildArg&gt;</code>, you can pass any Native Image build option listed on <a href="https://www.graalvm.org/reference-manual/native-image/overview/Options/">this page</a>.</p>
+</div>
+<div class="paragraph">
+<p>The plugin also provides special properties to configure the build:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>&lt;environment&gt;</code> - Sets the environment options</p>
+</li>
+<li>
+<p><code>&lt;imageName&gt;</code> - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).</p>
+</li>
+<li>
+<p><code>&lt;jvmArgs&gt;</code> - Passes the given argument directly to the JVM running the <code>native-image</code> tool</p>
+</li>
+<li>
+<p><code>&lt;quickBuild&gt;</code> - Enables quick build mode</p>
+</li>
+<li>
+<p><code>&lt;verbose&gt;</code> - Enables the verbose output</p>
+</li>
+<li>
+<p>and many more <a href="https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#configuration-options">listed here</a>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here is an example of additional options usage:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+  &lt;mainClass&gt;org.example.Main&lt;/mainClass&gt;
+  &lt;imageName&gt;myApp&lt;/imageName&gt;
+  &lt;verbose&gt;true&lt;/verbose&gt;
+  &lt;buildArgs&gt;
+    &lt;buildArg&gt;-O3&lt;/buildArg&gt; &lt;!-- enables additional compiler optimizations --&gt;
+  &lt;/buildArgs&gt;
+  &lt;environment&gt;
+    &lt;variable1&gt;value1&lt;/variable1&gt;
+    &lt;variable2&gt;value2&lt;/variable2&gt;
+  &lt;/environment&gt;
+  &lt;jvmArgs&gt;
+    &lt;arg&gt;your-argument&lt;/arg&gt;
+  &lt;/jvmArgs&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>As an alternative, you can pass additional build options via the <code>NATIVE_IMAGE_OPTIONS</code> environment variable, on the command line.
+This works similarly to <code>JAVA_TOOL_OPTIONS</code>, where the value of the environment variable is prefixed to the options supplied to <code>native-image</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Learn more about Native Image build configuration <a href="https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/">on the website</a>.</p>
 </div>
 </div>
 <div class="sect2">
