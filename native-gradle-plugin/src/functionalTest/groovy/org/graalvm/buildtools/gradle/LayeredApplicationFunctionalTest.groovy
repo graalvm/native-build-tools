@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.Ignore
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -116,6 +117,7 @@ public class Application {
         outputContains "Hello, layered images!"
     }
 
+    @Ignore("Disable test temporarily because of a problem on GraalVM side")
     def "can build a layered Micronaut application"() {
         given:
         withSample("layered-mn-application")
