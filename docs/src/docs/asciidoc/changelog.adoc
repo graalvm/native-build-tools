@@ -4,6 +4,8 @@
 == Release 0.11.1
 
 - Fix `NoClassDefFoundError` when JUnit feature is missing some dependency
+- Add `skipTestExecution` support to `native-maven-plugin`
+- Add `failNoTests` support to `native-maven-plugin`
 
 == Release 0.11.0
 
