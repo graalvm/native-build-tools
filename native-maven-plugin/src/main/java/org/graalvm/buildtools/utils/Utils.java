@@ -40,17 +40,22 @@
  */
 package org.graalvm.buildtools.utils;
 
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+
 public abstract class Utils {
-    public static boolean parseBoolean(String description, String value) {
-        value = assertNotEmptyAndTrim(value, description + " must have a value").toLowerCase();
-        switch (value) {
-            case "true":
-                return true;
-            case "false":
-                return false;
-            default:
-                throw new IllegalStateException(description + " must have a value of 'true' or 'false'");
+
+    public static Boolean parseBooleanNode(Xpp3Dom root, String name) {
+        if (root == null) {
+            return null;
         }
+
+        Xpp3Dom node = Xpp3DomParser.getTagByName(root, name);
+        if (node == null) {
+            // if node is not provided, default value is false
+            return null;
+        }
+
+        return Boolean.parseBoolean(node.getValue());
     }
 
     public static String assertNotEmptyAndTrim(String input, String message) {
