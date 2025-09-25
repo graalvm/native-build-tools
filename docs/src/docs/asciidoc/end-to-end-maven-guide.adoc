@@ -232,6 +232,16 @@ This works similarly to `JAVA_TOOL_OPTIONS`, where the value of the environment 
 
 Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
 
+=== Build, but not execute native tests
+
+During a transition phase, it is often useful to build tests but not execute them. This allows inspection of the generated test image without failing the build when the tests do not execute successfully.
+
+If you wish to build, but not execute, the native tests, invoke Maven with the `-DskipTestExecution` switch or set the value in the plugin configuration.
+
+=== Skip modules without native tests in multi-module builds
+
+Multi-module projects where only some sub-modules contain native tests need to skip test execution for any module that do not contain native tests. Skip test execution for modules by setting the `<failNoTests>` configuration to `false` or providing `-DfailNoTests=false` on the command line.
+
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
 
