@@ -1,0 +1,137 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "native-maven-plugin",
+    "version": "0.11.2-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "native-maven-plugin-0.11.2-SNAPSHOT.jar",
+          "url": "native-maven-plugin-0.11.2-SNAPSHOT.jar",
+          "size": 117215,
+          "sha512": "6dbe819302483cb3299522aa586f931b68c028ffebe9a8a3b1d1cb23a336aadebd7f53b9a5d40d05d26b1807f4102a72643edfbec2d3e69ea84d37d06c13c5e9",
+          "sha256": "5cf673b0acfb474efe82d81efe684d15b313dcc68167b34851db490008a7d605",
+          "sha1": "c2390f083ca1f3c7188c6ec169cbd325c868cde9",
+          "md5": "eaa25fa14978b2ba1bf0f55102c1f090"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "utils",
+          "version": {
+            "requires": "0.11.2-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.github.openjson",
+          "module": "openjson",
+          "version": {
+            "requires": "1.0.13"
+          }
+        },
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "graalvm-reachability-metadata",
+          "version": {
+            "requires": "0.11.2-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.cyclonedx",
+          "module": "cyclonedx-maven-plugin",
+          "version": {
+            "requires": "2.9.1"
+          }
+        },
+        {
+          "group": "org.twdata.maven",
+          "module": "mojo-executor",
+          "version": {
+            "requires": "2.4.1"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "native-maven-plugin-0.11.2-SNAPSHOT.jar",
+          "url": "native-maven-plugin-0.11.2-SNAPSHOT.jar",
+          "size": 117215,
+          "sha512": "6dbe819302483cb3299522aa586f931b68c028ffebe9a8a3b1d1cb23a336aadebd7f53b9a5d40d05d26b1807f4102a72643edfbec2d3e69ea84d37d06c13c5e9",
+          "sha256": "5cf673b0acfb474efe82d81efe684d15b313dcc68167b34851db490008a7d605",
+          "sha1": "c2390f083ca1f3c7188c6ec169cbd325c868cde9",
+          "md5": "eaa25fa14978b2ba1bf0f55102c1f090"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "native-maven-plugin-0.11.2-SNAPSHOT-javadoc.jar",
+          "url": "native-maven-plugin-0.11.2-SNAPSHOT-javadoc.jar",
+          "size": 199657,
+          "sha512": "1eec7057258be5079a90ef0a7b34d207424cfb107837cc5df60c2849284de0787363d7057499e602c5a91e15c9fec49f64315360dd0d023c34e66e1713ae8a24",
+          "sha256": "a8b64b655f59d0708aa3ea9e85bd491d935641e27ecfb1acd6f64493bd28a033",
+          "sha1": "fe6231a49035b0594f0856ba36f445eafcd8c7f6",
+          "md5": "adb78bc31312ecd86d9b4b691f81cfad"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "native-maven-plugin-0.11.2-SNAPSHOT-sources.jar",
+          "url": "native-maven-plugin-0.11.2-SNAPSHOT-sources.jar",
+          "size": 85334,
+          "sha512": "bb7dd418e507fb382fb19158eafa11e9e853cff449792296bf361b428afc499377cf7c732867e7b4065aeeac37889198197afa91e31db71b6fc363812a5278ff",
+          "sha256": "5444c1cb4f517a4c27020038def4ba547e9755bf9058479ad9a73b9b064720e8",
+          "sha1": "fcc56ced003552ac70a47b542337decb60d1153a",
+          "md5": "57724526af539830c695320e2236ade7"
+        }
+      ]
+    }
+  ]
+}
