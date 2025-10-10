@@ -2,6 +2,8 @@ org.junit.internal.runners.rules.RuleMemberValidator
 org.junit.jupiter.api.condition.OS
 org.junit.jupiter.api.DisplayNameGenerator$IndicativeSentences
 org.junit.jupiter.api.DisplayNameGenerator$Standard
+org.junit.jupiter.api.DisplayNameGenerator$Simple
+org.junit.jupiter.api.DisplayNameGenerator$ReplaceUnderscores
 org.junit.jupiter.api.extension.ConditionEvaluationResult
 org.junit.jupiter.api.MethodOrderer$DisplayName
 org.junit.jupiter.api.MethodOrderer$MethodName
@@ -43,8 +45,13 @@ org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$1
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$2
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$3
+org.junit.jupiter.engine.discovery.predicates.IsInnerClass
+org.junit.jupiter.engine.discovery.predicates.IsNestedTestClass
+org.junit.jupiter.engine.discovery.predicates.IsTestMethod
+org.junit.jupiter.engine.discovery.predicates.IsPotentialTestContainer
 org.junit.jupiter.engine.discovery.predicates.IsTestClassWithTests
 org.junit.jupiter.engine.discovery.predicates.IsTestFactoryMethod
+org.junit.jupiter.engine.discovery.predicates.IsTestTemplateMethod
 org.junit.jupiter.engine.execution.ConditionEvaluator
 org.junit.jupiter.engine.execution.ExecutableInvoker
 org.junit.jupiter.engine.execution.InterceptingExecutableInvoker
