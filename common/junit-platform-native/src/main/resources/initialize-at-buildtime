@@ -66,6 +66,7 @@ org.junit.platform.commons.util.StringUtils
 org.junit.platform.engine.SelectorResolutionResult
 org.junit.platform.engine.support.descriptor.ClassSource
 org.junit.platform.engine.support.descriptor.MethodSource
+org.junit.platform.engine.support.discovery.EngineDiscoveryRequestResolver
 org.junit.platform.engine.support.discovery.SelectorResolver$Resolution
 org.junit.platform.engine.support.hierarchical.Node$ExecutionMode
 org.junit.platform.engine.support.store.NamespacedHierarchicalStore
@@ -101,12 +102,14 @@ org.junit.platform.launcher.core.ServiceLoaderRegistry
 org.junit.platform.launcher.core.ServiceLoaderTestEngineRegistry
 org.junit.platform.launcher.core.SessionPerRequestLauncher
 org.junit.platform.launcher.EngineDiscoveryResult
+org.junit.platform.launcher.EngineDiscoveryResult$Status
 org.junit.platform.launcher.LauncherSessionListener$1
 org.junit.platform.launcher.listeners.discovery.LauncherDiscoveryListeners$LauncherDiscoveryListenerType
 org.junit.platform.launcher.listeners.UniqueIdTrackingListener
 org.junit.platform.launcher.TestIdentifier
 org.junit.platform.reporting.open.xml.OpenTestReportGeneratingListener
 org.junit.platform.reporting.shadow.org.opentest4j.reporting.events.api.DocumentWriter$1
+org.junit.platform.suite.engine.ClassSelectorResolver
 org.junit.platform.suite.engine.DiscoverySelectorResolver
 org.junit.platform.suite.engine.SuiteEngineDescriptor
 org.junit.platform.suite.engine.SuiteLauncher
