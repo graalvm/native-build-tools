@@ -64,6 +64,7 @@ org.junit.platform.commons.util.LruCache
 org.junit.platform.commons.util.ReflectionUtils
 org.junit.platform.commons.util.StringUtils
 org.junit.platform.engine.SelectorResolutionResult
+org.junit.platform.engine.SelectorResolutionResult$Status
 org.junit.platform.engine.support.descriptor.ClassSource
 org.junit.platform.engine.support.descriptor.MethodSource
 org.junit.platform.engine.support.discovery.EngineDiscoveryRequestResolver
