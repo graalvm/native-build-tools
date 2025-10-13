@@ -61,6 +61,18 @@ The following configuration options are available:
 ----
 <skipNativeTests>true</skipNativeTests>
 ----
+`<skipTestExecution>`::
+   Skips execution of native tests. If set to true, the plugin will create the native image for the tests but will not execute the tests. This allows the creation of the native image for testing even when tests don't fully execute or tests fail. Otherwise, the build stops at the first test failure. To skip only the execution of the native image compiled tests, add:
+[source,xml, role="multi-language-sample"]
+----
+<skipNativeTests>true</skipNativeTests>
+----
+`<failNoTests>`::
+   Fails the build if no tests were found. In multi-module builds, there are often modules that have no tests (for example, a documentation module ) or where tests are enabled or disabled by profiles (such as slow tests, e2e tests, etc.). This switch allows for a global configuration of the native plugin and then allows you to skip any modules where no tests are present by changing this setting to false in the sub-module. This allows such multi-module projects to build successfully. To avoid failing the build in a module where no tests are present, add:
+[source,xml, role="multi-language-sample"]
+----
+<failNoTests>false</failNoTests>
+----
 `<debug>`::
    If you want to enable generation of debugging information, add:
 [source,xml, role="multi-language-sample"]
@@ -685,6 +697,76 @@ For example, you might wish to disable only native testing support for use cases
 - You do not actually want to run your tests as native code.
 - Your library or application uses a testing framework that is not supported on the JUnit Platform.
 - You need to use the <<agent-support, agent>> when running tests on the JVM but do not wish to run those same tests as native code.
+
+[[control-test-execution]]
+=== Controlling test execution
+
+==== Build, but not execute native tests
+
+During a transition phase, it is often useful to build tests but not execute them. This allows inspection of the generated test image without failing the build when the tests do not execute successfully.
+
+If you wish to build, but not execute, the native tests, invoke Maven with the `-DskipTestExecution` flag. This flag is specific to Native Build Tools.
+
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative -DskipTestExecution package
+----
+
+Alternatively, set `<skipTestExecution>` to `true` in the plugin configuration:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <skipTestExecution>true</skipTestExecution>
+</configuration>
+----
+
+This will still build the native test image but skips execution of tests as native code.
+
+==== Skip modules without native tests in multi-module builds
+
+In multi-module projects where only some sub-modules contain native tests, you need to skip test execution for any module that does not contain native tests. Any module which should contain tests, but does not, should fail the build.
+
+Skip test execution for modules by configuring the `<failNoTests>` configuration option for the full build and then overriding it in modules where the default behavior is not desired.
+
+If the majority of the sub-modules should contain native tests, nothing needs to be configured globally since this is the default behavior for the native plugin.
+
+For sub-modules that do not contain native tests but should not fail the build, add this to the module's _pom.xml_ in the module in the `<plugins>` section:
+
+[source,xml, role="multi-language-sample"]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <configuration>
+    <failNoTests>false</failNoTests>
+  </configuration>
+</plugin>
+----
+
+If only a few sub-modules contain native tests, add this configuration setting to the main plugin configuration:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <failNoTests>false</failNoTests>
+</configuration>
+----
+
+and then override this in any sub-module that should have native tests by adding this to the module in the `<plugins>` section:
+
+[source,xml, role="multi-language-sample"]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <configuration>
+    <failNoTests>true</failNoTests>
+  </configuration>
+</plugin>
+----
+
+For testing from the command line, the `-DfailNoTests=false` flag is also supported directly:
 
 [[metadata-support]]
 == GraalVM Reachability Metadata Support

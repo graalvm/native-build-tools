@@ -99,6 +99,27 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Parameter(property = "skipNativeTests", defaultValue = "false")
     private boolean skipNativeTests;
 
+    /**
+     * Skips execution of native tests. If set to true, the plugin will create the native image for the tests but do not execute the tests.
+     * This allows the creation of the native image for testing even if they don't fully execute / tests fail.
+     * Otherwise, the build stops at the first test failure.
+     *
+     * @since 0.11.1
+     */
+    @Parameter(property = "skipTestExecution", defaultValue = "false")
+    private boolean skipTestExecution;
+
+    /**
+     * Fail the build if no tests were found. In multi-module builds, there are often modules that have no tests (e.g. documentation)
+     * or tests are enabled/disabled by profiles (slow tests, e2e tests etc.). This switch allows for a global configuration of the
+     * native plugin and then skip any modules where no tests are present by changing this setting to false in the sub-module.
+     * This allows such multi-module projects to build successfully.
+     *
+     * @since 0.11.1
+     */
+    @Parameter(property = "failNoTests", defaultValue = "true")
+    private boolean failNoTests;
+
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
@@ -151,8 +172,13 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             return;
         }
         if (!hasTestIds()) {
-            logger.error("Test configuration file wasn't found. Make sure that test execution wasn't skipped.");
-            throw new IllegalStateException("Test configuration file wasn't found.");
+            if (failNoTests) {
+                logger.error("Test configuration file wasn't found. Make sure that test execution wasn't skipped.");
+                throw new IllegalStateException("Test configuration file wasn't found.");
+            } else {
+                logger.info("No tests found, skipping.");
+                return;
+            }
         }
 
         logger.info("====================");
@@ -178,7 +204,10 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
 
         buildImage();
-        runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
+
+        if (!skipTestExecution) {
+            runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
+        }
     }
 
     private void configureEnvironment() {
