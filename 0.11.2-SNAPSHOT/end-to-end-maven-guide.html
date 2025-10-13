@@ -480,6 +480,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#advanced-use-cases">Advanced Use Cases: How to</a>
 <ul class="sectlevel2">
 <li><a href="#configure-image-build">Configure Native Image Build</a></li>
+<li><a href="#_build_but_not_execute_native_tests">Build, but not execute native tests</a></li>
+<li><a href="#_skip_modules_without_native_tests_in_multi_module_builds">Skip modules without native tests in multi-module builds</a></li>
 <li><a href="#gather-execution-profiles">Gather Execution Profiles and Build Optimized Images</a></li>
 <li><a href="#troubleshoot-missing-configuration">Troubleshoot Missing Configuration</a></li>
 <li><a href="#use-diagnostics-tools">Use Diagnostics Tools</a></li>
@@ -801,6 +803,21 @@ This works similarly to <code>JAVA_TOOL_OPTIONS</code>, where the value of the e
 </div>
 <div class="paragraph">
 <p>Learn more about Native Image build configuration <a href="https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/">on the website</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_build_but_not_execute_native_tests"><a class="anchor" href="#_build_but_not_execute_native_tests"></a>Build, but not execute native tests</h3>
+<div class="paragraph">
+<p>During a transition phase, it is often useful to build tests but not execute them. This allows inspection of the generated test image without failing the build when the tests do not execute successfully.</p>
+</div>
+<div class="paragraph">
+<p>If you wish to build, but not execute, the native tests, invoke Maven with the <code>-DskipTestExecution</code> switch or set the value in the plugin configuration.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_skip_modules_without_native_tests_in_multi_module_builds"><a class="anchor" href="#_skip_modules_without_native_tests_in_multi_module_builds"></a>Skip modules without native tests in multi-module builds</h3>
+<div class="paragraph">
+<p>Multi-module projects where only some sub-modules contain native tests need to skip test execution for any module that do not contain native tests. Skip test execution for modules by setting the <code>&lt;failNoTests&gt;</code> configuration to <code>false</code> or providing <code>-DfailNoTests=false</code> on the command line.</p>
 </div>
 </div>
 <div class="sect2">

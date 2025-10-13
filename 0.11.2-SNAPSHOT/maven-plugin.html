@@ -491,6 +491,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#testing-support-version-compatibility">Version Compatibility</a></li>
 <li><a href="#testing-support-disabling">Disabling Testing Support</a></li>
+<li><a href="#control-test-execution">Controlling test execution</a></li>
 </ul>
 </li>
 <li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
@@ -618,6 +619,32 @@ image name is not supplied, the artifact ID of the project will be used by defau
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeTests&gt;true&lt;/skipNativeTests&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;skipTestExecution&gt;</code></dt>
+<dd>
+<p>Skips execution of native tests. If set to true, the plugin will create the native image for the tests but will not execute the tests. This allows the creation of the native image for testing even when tests don&#8217;t fully execute or tests fail. Otherwise, the build stops at the first test failure. To skip only the execution of the native image compiled tests, add:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeTests&gt;true&lt;/skipNativeTests&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>&lt;failNoTests&gt;</code></dt>
+<dd>
+<p>Fails the build if no tests were found. In multi-module builds, there are often modules that have no tests (for example, a documentation module ) or where tests are enabled or disabled by profiles (such as slow tests, e2e tests, etc.). This switch allows for a global configuration of the native plugin and then allows you to skip any modules where no tests are present by changing this setting to false in the sub-module. This allows such multi-module projects to build successfully. To avoid failing the build in a module where no tests are present, add:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;failNoTests&gt;false&lt;/failNoTests&gt;</code></pre>
 </div>
 </div>
 <div class="dlist">
@@ -1583,6 +1610,89 @@ For example, you might wish to disable only native testing support for use cases
 <p>You need to use the <a href="#agent-support">agent</a> when running tests on the JVM but do not wish to run those same tests as native code.</p>
 </li>
 </ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="control-test-execution"><a class="anchor" href="#control-test-execution"></a>Controlling test execution</h3>
+<div class="sect3">
+<h4 id="_build_but_not_execute_native_tests"><a class="anchor" href="#_build_but_not_execute_native_tests"></a>Build, but not execute native tests</h4>
+<div class="paragraph">
+<p>During a transition phase, it is often useful to build tests but not execute them. This allows inspection of the generated test image without failing the build when the tests do not execute successfully.</p>
+</div>
+<div class="paragraph">
+<p>If you wish to build, but not execute, the native tests, invoke Maven with the <code>-DskipTestExecution</code> flag. This flag is specific to Native Build Tools.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -Pnative -DskipTestExecution package</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, set <code>&lt;skipTestExecution&gt;</code> to <code>true</code> in the plugin configuration:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+  &lt;skipTestExecution&gt;true&lt;/skipTestExecution&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will still build the native test image but skips execution of tests as native code.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_skip_modules_without_native_tests_in_multi_module_builds"><a class="anchor" href="#_skip_modules_without_native_tests_in_multi_module_builds"></a>Skip modules without native tests in multi-module builds</h4>
+<div class="paragraph">
+<p>In multi-module projects where only some sub-modules contain native tests, you need to skip test execution for any module that does not contain native tests. Any module which should contain tests, but does not, should fail the build.</p>
+</div>
+<div class="paragraph">
+<p>Skip test execution for modules by configuring the <code>&lt;failNoTests&gt;</code> configuration option for the full build and then overriding it in modules where the default behavior is not desired.</p>
+</div>
+<div class="paragraph">
+<p>If the majority of the sub-modules should contain native tests, nothing needs to be configured globally since this is the default behavior for the native plugin.</p>
+</div>
+<div class="paragraph">
+<p>For sub-modules that do not contain native tests but should not fail the build, add this to the module&#8217;s <em>pom.xml</em> in the module in the <code>&lt;plugins&gt;</code> section:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;configuration&gt;
+    &lt;failNoTests&gt;false&lt;/failNoTests&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If only a few sub-modules contain native tests, add this configuration setting to the main plugin configuration:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;configuration&gt;
+  &lt;failNoTests&gt;false&lt;/failNoTests&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then override this in any sub-module that should have native tests by adding this to the module in the <code>&lt;plugins&gt;</code> section:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;configuration&gt;
+    &lt;failNoTests&gt;true&lt;/failNoTests&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For testing from the command line, the <code>-DfailNoTests=false</code> flag is also supported directly:</p>
+</div>
 </div>
 </div>
 </div>
