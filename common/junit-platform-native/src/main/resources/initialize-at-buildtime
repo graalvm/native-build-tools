@@ -35,6 +35,7 @@ org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor
 org.junit.jupiter.engine.descriptor.TestTemplateTestDescriptor
 org.junit.jupiter.engine.discovery.AbstractOrderingVisitor
 org.junit.jupiter.engine.discovery.AbstractOrderingVisitor$DescriptorWrapperOrderer
+org.junit.jupiter.engine.discovery.AbstractOrderingVisitor$MessageGenerator
 org.junit.jupiter.engine.discovery.ClassOrderingVisitor
 org.junit.jupiter.engine.discovery.ClassSelectorResolver
 org.junit.jupiter.engine.discovery.ClassSelectorResolver$DummyClassTemplateInvocationContext
@@ -83,6 +84,7 @@ org.junit.platform.engine.TestDescriptor$Type
 org.junit.platform.engine.UniqueId
 org.junit.platform.engine.UniqueId$Segment
 org.junit.platform.engine.UniqueIdFormat
+org.junit.platform.launcher.LauncherDiscoveryListener$1
 org.junit.platform.launcher.core.DefaultLauncher
 org.junit.platform.launcher.core.DefaultLauncherConfig
 org.junit.platform.launcher.core.DiscoveryIssueCollector
