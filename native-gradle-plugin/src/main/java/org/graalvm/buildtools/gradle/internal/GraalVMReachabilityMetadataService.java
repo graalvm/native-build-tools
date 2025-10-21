@@ -235,4 +235,11 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
             query.useLatestConfigWhenVersionIsUntested();
         });
     }
+
+    public Path getRepositoryDirectory() {
+        if (repository instanceof FileSystemRepository fsRepo) {
+            return fsRepo.getRootDirectory();
+        }
+        return null;
+    }
 }
