@@ -87,9 +87,6 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     @Component
     private RepositorySystem repoSystem;
 
-    @Component
-    private DependencyGraphBuilder dependencyGraphBuilder;
-
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
     private RepositorySystemSession repoSession;
 
@@ -133,19 +130,19 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
                     continue;
                 }
 
-                Set<String> transitiveDeps = getTransitiveDependenciesForArtifact(
+                Set<String> transitiveDependencies = getTransitiveDependenciesForArtifact(
                         artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
                         coordinateToPath
                 );
 
-                exportMap.put(artifact.getFile().getAbsolutePath(), transitiveDeps);
+                exportMap.put(artifact.getFile().getAbsolutePath(), transitiveDependencies);
             }
 
             writeMapToJson(outputJson, exportMap);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to generate dynamic access metadata", e);
+            throw new RuntimeException("Failed generating dynamic access metadata", e);
         } catch (DependencyCollectionException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed collecting dependencies", e);
         }
     }
 
@@ -174,18 +171,18 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
         node.accept(nlg);
 
-        Set<String> deps = new HashSet<>();
+        Set<String> dependencies = new HashSet<>();
         nlg.getNodes().forEach(n -> {
             if (n.getDependency() != null) {
                 org.eclipse.aether.artifact.Artifact a = n.getDependency().getArtifact();
                 String dependencyPath = coordinateToPath.get(a.getGroupId() + ":" + a.getArtifactId());
                 if (dependencyPath != null) {
-                    deps.add(dependencyPath);
+                    dependencies.add(dependencyPath);
                 }
             }
         });
 
-        return deps;
+        return dependencies;
     }
 
     public static void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
