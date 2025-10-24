@@ -122,21 +122,19 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         return artifacts;
     }
 
-    private Map<String, Set<String>> buildExportMap(Set<ResolvedDependency> dependencies,
-                                                    Set<String> artifactsToInclude,
-                                                    Set<File> classpathJars) {
+    private Map<String, Set<String>> buildExportMap(Set<ResolvedDependency> dependencies, Set<String> artifactsToInclude, Set<File> classpathJars) {
         Map<String, Set<String>> exportMap = new HashMap<>();
-        for (ResolvedDependency dep : dependencies) {
-            String depKey = dep.getModuleGroup() + ":" + dep.getModuleName();
-            if (!artifactsToInclude.contains(depKey)) {
+        for (ResolvedDependency dependency : dependencies) {
+            String dependencyCoordinates = dependency.getModuleGroup() + ":" + dependency.getModuleName();
+            if (!artifactsToInclude.contains(dependencyCoordinates)) {
                 continue;
             }
 
-            for (ResolvedArtifact artifact : dep.getModuleArtifacts()) {
+            for (ResolvedArtifact artifact : dependency.getModuleArtifacts()) {
                 File file = artifact.getFile();
                 if (classpathJars.contains(file)) {
                     Set<String> files = new HashSet<>();
-                    collectArtifacts(dep, files, classpathJars);
+                    collectDependencies(dependency, files, classpathJars);
                     exportMap.put(file.getAbsolutePath(), files);
                 }
             }
@@ -144,7 +142,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         return exportMap;
     }
 
-    private void collectArtifacts(ResolvedDependency dep, Set<String> collector, Set<File> classpathJars) {
+    private void collectDependencies(ResolvedDependency dep, Set<String> collector, Set<File> classpathJars) {
         for (ResolvedArtifact artifact : dep.getModuleArtifacts()) {
             File file = artifact.getFile();
             if (classpathJars.contains(file)) {
@@ -153,7 +151,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         }
 
         for (ResolvedDependency child : dep.getChildren()) {
-            collectArtifacts(child, collector, classpathJars);
+            collectDependencies(child, collector, classpathJars);
         }
     }
 

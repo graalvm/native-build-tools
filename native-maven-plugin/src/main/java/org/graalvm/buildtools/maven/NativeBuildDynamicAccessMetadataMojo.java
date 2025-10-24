@@ -108,34 +108,15 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         try {
             Set<String> artifactsToInclude = readArtifacts(jsonFile);
 
-            Map<String, String> coordinateToPath = new HashMap<>();
+            Map<String, String> coordinatesToPath = new HashMap<>();
             for (Artifact a : project.getArtifacts()) {
                 if (a.getFile() != null) {
-                    String coords = a.getGroupId() + ":" + a.getArtifactId();
-                    coordinateToPath.put(coords, a.getFile().getAbsolutePath());
+                    String coordinates = a.getGroupId() + ":" + a.getArtifactId();
+                    coordinatesToPath.put(coordinates, a.getFile().getAbsolutePath());
                 }
             }
 
-            Map<String, Set<String>> exportMap = new HashMap<>();
-
-            for (Artifact artifact : project.getArtifacts()) {
-                String key = artifact.getGroupId() + ":" + artifact.getArtifactId();
-                if (!artifactsToInclude.contains(key)) {
-                    continue;
-                }
-
-                if (artifact.getFile() == null) {
-                    getLog().warn("Skipping artifact with null file: " + key);
-                    continue;
-                }
-
-                Set<String> transitiveDependencies = getTransitiveDependenciesForArtifact(
-                        artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
-                        coordinateToPath
-                );
-
-                exportMap.put(artifact.getFile().getAbsolutePath(), transitiveDependencies);
-            }
+            Map<String, Set<String>> exportMap = buildExportMap(artifactsToInclude, coordinatesToPath);
 
             writeMapToJson(outputJson, exportMap);
         } catch (IOException e) {
@@ -158,8 +139,26 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         return artifacts;
     }
 
-    private Set<String> getTransitiveDependenciesForArtifact(String coordinates, Map<String, String> coordinateToPath) throws DependencyCollectionException {
-        org.eclipse.aether.artifact.Artifact artifact = new DefaultArtifact(coordinates);
+    private Map<String, Set<String>> buildExportMap(Set<String> artifactsToInclude, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
+        Map<String, Set<String>> exportMap = new HashMap<>();
+
+        for (Artifact artifact : project.getArtifacts()) {
+            String coordinates = artifact.getGroupId() + ":" + artifact.getArtifactId();
+            if (!artifactsToInclude.contains(coordinates) || artifact.getFile() == null) {
+                continue;
+            }
+
+            Set<String> transitiveDependencies = collectDependencies(
+                    artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
+                    coordinatesToPath);
+
+            exportMap.put(artifact.getFile().getAbsolutePath(), transitiveDependencies);
+        }
+        return exportMap;
+    }
+
+    private Set<String> collectDependencies(String coordinates, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
+        DefaultArtifact artifact = new DefaultArtifact(coordinates);
 
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRoot(new Dependency(artifact, ""));
@@ -171,10 +170,10 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         node.accept(nlg);
 
         Set<String> dependencies = new HashSet<>();
-        nlg.getNodes().forEach(n -> {
-            if (n.getDependency() != null) {
-                org.eclipse.aether.artifact.Artifact a = n.getDependency().getArtifact();
-                String dependencyPath = coordinateToPath.get(a.getGroupId() + ":" + a.getArtifactId());
+        nlg.getNodes().forEach(dependencyNode -> {
+            if (dependencyNode.getDependency() != null) {
+                DefaultArtifact dependencyArtifact = (DefaultArtifact) dependencyNode.getDependency().getArtifact();
+                String dependencyPath = coordinatesToPath.get(dependencyArtifact.getGroupId() + ":" + dependencyArtifact.getArtifactId());
                 if (dependencyPath != null) {
                     dependencies.add(dependencyPath);
                 }
