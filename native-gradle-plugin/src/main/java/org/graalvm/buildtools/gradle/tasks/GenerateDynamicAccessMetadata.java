@@ -105,7 +105,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
 
             writeMapToJson(getOutputJson().getAsFile().get(), exportMap);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to generate dynamic access metadata", e);
+            GraalVMLogger.of(getLogger()).log("Failed to generate dynamic access metadata: {}", e);
         }
     }
 
@@ -157,7 +157,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         }
     }
 
-    public static void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
+    public void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
             JSONObject root = new JSONObject();
             for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
@@ -170,7 +170,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
                 writer.write(root.toString(2));
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to write export map to JSON", e);
+            GraalVMLogger.of(getLogger()).log("Failed to write export map to JSON: {}", e);
         }
     }
 }

@@ -50,7 +50,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.shared.dependency.graph.DependencyGraphBuilder;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -140,9 +139,9 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
 
             writeMapToJson(outputJson, exportMap);
         } catch (IOException e) {
-            throw new RuntimeException("Failed generating dynamic access metadata", e);
+            getLog().warn("Failed generating dynamic access metadata: " + e);
         } catch (DependencyCollectionException e) {
-            throw new RuntimeException("Failed collecting dependencies", e);
+            getLog().warn("Failed collecting dependencies: " + e);
         }
     }
 
@@ -185,7 +184,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         return dependencies;
     }
 
-    public static void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
+    public void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
             JSONObject root = new JSONObject();
             for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
@@ -197,8 +196,8 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
             try (FileWriter writer = new FileWriter(outputFile)) {
                 writer.write(root.toString(2));
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to write export map to JSON", e);
+        } catch (IOException e) {
+            getLog().warn("Failed to write export map to JSON: " + e);
         }
     }
 }
