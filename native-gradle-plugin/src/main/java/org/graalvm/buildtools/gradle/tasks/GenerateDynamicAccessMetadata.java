@@ -155,7 +155,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         }
     }
 
-    public void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
+    private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
             JSONObject root = new JSONObject();
             for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
