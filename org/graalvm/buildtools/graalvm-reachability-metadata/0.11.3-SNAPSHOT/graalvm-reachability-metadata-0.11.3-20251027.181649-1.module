@@ -1,0 +1,109 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "graalvm-reachability-metadata",
+    "version": "0.11.3-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-0.11.3-SNAPSHOT.jar",
+          "url": "graalvm-reachability-metadata-0.11.3-SNAPSHOT.jar",
+          "size": 26609,
+          "sha512": "904926ac27c272411769f181f77c6544373216aedc4725013e5ba689675e59b8edacbc7810ba3c3319dae9bb65388628fa32e7136ccf68e557c7c978aa59f4d9",
+          "sha256": "fcb45048d18b1a4015a8e3e9dca16c9f7c06c3184ff94fc0f4e193096dc7654a",
+          "sha1": "5a85032dcb3029de1b9d63405ae3e073a960af9c",
+          "md5": "16020b930a1418edfe2ce7714a1c42c2"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.github.openjson",
+          "module": "openjson",
+          "version": {
+            "requires": "1.0.13"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-0.11.3-SNAPSHOT.jar",
+          "url": "graalvm-reachability-metadata-0.11.3-SNAPSHOT.jar",
+          "size": 26609,
+          "sha512": "904926ac27c272411769f181f77c6544373216aedc4725013e5ba689675e59b8edacbc7810ba3c3319dae9bb65388628fa32e7136ccf68e557c7c978aa59f4d9",
+          "sha256": "fcb45048d18b1a4015a8e3e9dca16c9f7c06c3184ff94fc0f4e193096dc7654a",
+          "sha1": "5a85032dcb3029de1b9d63405ae3e073a960af9c",
+          "md5": "16020b930a1418edfe2ce7714a1c42c2"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-0.11.3-SNAPSHOT-javadoc.jar",
+          "url": "graalvm-reachability-metadata-0.11.3-SNAPSHOT-javadoc.jar",
+          "size": 138817,
+          "sha512": "5b9daaa4400bf0bd74766c3109e4c26b6dbd043d1f05ea7482210890da5fcd242bdab5374c6d5dd2ad9e7cfdcf4ba5f3e7b49f38264589b09d63182caa9937e1",
+          "sha256": "4220d200e478c5943d74b110b0d33f572684ffc45cbf21223149dd8eeca23b24",
+          "sha1": "b6b8ada177daaf0a56ca856b37141ec8211b1e70",
+          "md5": "b016c05c0a00f836cea8242faa763d3e"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-0.11.3-SNAPSHOT-sources.jar",
+          "url": "graalvm-reachability-metadata-0.11.3-SNAPSHOT-sources.jar",
+          "size": 29079,
+          "sha512": "aae4f4409418ce2acd9531b745f1261dd2fea06f9cd20da4b9bb08fdd23c1490f045130ecfb4b6386b9e8427abf20306e4ceea17a4636d0d82c5e12d93da6439",
+          "sha256": "1fd1929a64fb4451ad3ccf9e8e55b8084c1bfea26361effeaef06a73ae39006f",
+          "sha1": "7a42ea89de3a6ee71b9576a4da47184df88161e1",
+          "md5": "2cc0106a9e6cc5fa0e5f10fdca097496"
+        }
+      ]
+    }
+  ]
+}
