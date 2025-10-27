@@ -544,7 +544,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected void maybeAddDynamicAccessMetadata(List<String> into) {
-        if (into.contains("--emit build-report") && Files.exists(Path.of(outputDirectory.getPath() ,"dynamic-access-metadata.json"))) {
+        if (Files.exists(Path.of(outputDirectory.getPath() ,"dynamic-access-metadata.json"))) {
             into.add("-H:DynamicAccessMetadata=" + outputDirectory + File.separator + "dynamic-access-metadata.json");
         }
     }
