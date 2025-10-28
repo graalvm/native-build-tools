@@ -101,7 +101,11 @@ public class NativeImageUtils {
 
             Path resultingPath = tmpFile.toPath().toAbsolutePath();
             if (projectDir != null) { // We know where the project dir is, so want to use relative paths
-                resultingPath = projectDir.toAbsolutePath().relativize(resultingPath);
+                Path absProjectDir = projectDir.toAbsolutePath();
+                // Only relativize if both paths are on the same file system (same drive on Windows)
+                if (resultingPath.getRoot() != null && resultingPath.getRoot().equals(absProjectDir.getRoot())) {
+                    resultingPath = absProjectDir.relativize(resultingPath);
+                }
             }
             return Collections.singletonList("@" + resultingPath);
         } catch (IOException e) {
