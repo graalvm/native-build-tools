@@ -1,6 +1,14 @@
 [[changelog]]
 == Changelog
 
+== Release 0.11.3
+
+- Fixed use of argument file when the temporary directory is not on the same drive as the project
+
+== Release 0.11.2
+
+- Fixed missing JUnit types in build time initialization
+
 == Release 0.11.1
 
 - Fix `NoClassDefFoundError` when JUnit feature is missing some dependency
