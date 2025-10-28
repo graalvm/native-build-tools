@@ -13,26 +13,58 @@ Some build tasks require a GraalVM JDK (e.g., tests). You should set `GRAALVM_HO
 The Native Build Tools repository is structured as a Gradle multi-project, with the Maven and Gradle plugins declared as subprojects of the root project.
 To configure it in your IDE (e.g., IntelliJ IDEA), import the root project, and the IDE should automatically detect and include the subprojects.
 
+## Projects
+
+This repo contains the following projects:
+
+- `native-gradle-plugin` — Gradle plugin that provides support for building and testing GraalVM native images in Gradle builds (tasks, DSL, and functional tests).
+- `native-maven-plugin` — Maven plugin that provides support for building and testing GraalVM native images in Maven builds (mojos and functional tests).
+- `junit-platform-native` (in `common/`) — JUnit Platform native support used by plugins to run on native image.
+- `utils` (in `common/`) — Shared utility code used across the plugins, tests, and internal build logic.
+- `graalvm-reachability-metadata` (in `common/`) — Common code related to the [GraalVM reachability metadata](https://github.com/oracle/graalvm-reachability-metadata) repository integration.
+- `docs` — Documentation sources and build for the user guide and changelog. Please keep up to date.
+
+Internal build logic (used to build this repository itself):
+
+- `settings-plugins` (in `build-logic`) — Gradle settings plugins and supporting tooling.
+- `aggregator` (in `build-logic`) — Composite build that aggregates internal build plugins and conventions.
+
 ## Building and Testing
 
-You can use the various commands in the [Gradle build lifecycle](https://docs.gradle.org/current/userguide/build_lifecycle.html) to build and test the project.
-Some examples are (all executed from the root of the repository):
+You can use the various commands in the [Gradle build lifecycle](https://docs.gradle.org/current/userguide/build_lifecycle.html) to build and test the project (and all the subprojects).
+Examples used in daily development follow (all executed from the root of the repository):
 
 ```bash
 # Compile all projects
 ./gradlew assemble
 
-# Run unit tests in all projects
-./gradlew test
-
-# Run functional tests in all projects
-./gradlew funTest
-
 # Compile only the native-gradle-plugin (for example)
 ./gradlew :native-gradle-plugin:assemble
 
+# Run unit tests in all projects
+./gradlew test
+
+# Run functional tests in individual projects
+./gradlew :native-maven-plugin:functionalTest
+./gradlew :native-gradle-plugin:functionalTest
+
+# Run a specific test class
+ ./gradlew -DnoTestIsolation=true :native-maven-plugin:functionalTest --tests "org.graalvm.buildtools.maven.IntegrationTest"
+ 
+ # Run a specific test method (with spaces in their name)
+ ./gradlew -DnoTestIsolation=true :native-maven-plugin:functionalTest --tests "org.graalvm.buildtools.maven.IntegrationTest.run integration tests with failsafe plugin and agent"
+
+# Checkstyle
+./gradlew :graalvm-reachability-metadata:checkstyleMain :graalvm-reachability-metadata:checkstyleTest
+./gradlew :junit-platform-native:checkstyleMain :junit-platform-native:checkstyleTest
+./gradlew :native-gradle-plugin:inspections
+./gradlew :native-maven-plugin:inspections
+
 # Build and run all tests, complete (and very long) build
 ./gradlew build
+
+# Clean all projects
+./gradlew clean
 ```
 
 ## Debugging Plugin(s)
@@ -120,3 +152,7 @@ Make the following changes to _pom.xml_:
 ```
 
 Then, run the Maven command with the `-U` flag to force Maven to use an updated snapshot (e.g., `mvn -Pnative package -U`).
+
+## Changelog
+
+Changelog must be updated for all significant changes. The changelog uses asciidoc and it is located in [docs](docs/src/docs/asciidoc/changelog.adoc).
