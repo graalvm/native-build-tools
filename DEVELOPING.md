@@ -63,7 +63,7 @@ Next, update the project build files:
 1. Update the version string. The version can be found manually by searching for the published artifacts in `build/common-repo`, or alternatively by checking the `nativeBuildTools` property [here](gradle/libs.versions.toml).
 2. Update the list of repositories to include and prioritize the common repo.
 
-### Gradle
+### Testing with Gradle
 
 Make the following changes to the build files:
 ```bash
@@ -99,7 +99,7 @@ Make the following changes to the build files:
 ```
 Then, run the Gradle command as usual.
 
-### Maven
+### Testing with Maven
 
 Make the following changes to _pom.xml_:
 ```bash
