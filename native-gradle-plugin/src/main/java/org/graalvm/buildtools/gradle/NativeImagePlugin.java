@@ -398,7 +398,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                 tasks,
                 deriveTaskName(binaryName, "generate", "DynamicAccessMetadata"));
             imageBuilder.configure(buildImageTask -> {
-                if (buildImageTask.getOptions().get().getBuildArgs().get().contains("--emit build-report")) {
+                if (buildImageTask.getOptions().get().getBuildArgs().get().stream()
+                        .anyMatch(arg -> arg.startsWith("--emit build-report"))) {
                     options.getClasspath().from(
                             generateDynamicAccessMetadata.flatMap(task ->
                                     task.getOutputJson().map(RegularFile::getAsFile)
