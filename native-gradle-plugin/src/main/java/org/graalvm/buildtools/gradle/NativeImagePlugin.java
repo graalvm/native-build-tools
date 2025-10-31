@@ -93,6 +93,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
@@ -398,12 +399,10 @@ public class NativeImagePlugin implements Plugin<Project> {
                 deriveTaskName(binaryName, "generate", "DynamicAccessMetadata"));
             imageBuilder.configure(buildImageTask -> {
                 if (buildImageTask.getOptions().get().getBuildArgs().get().contains("--emit build-report")) {
-                    options.getBuildArgs().addAll(
-                        generateDynamicAccessMetadata.flatMap(generateDynamicAccessMetadataTask ->
-                            generateDynamicAccessMetadataTask.getOutputJson().map(file ->
-                                List.of("-H:DynamicAccessMetadata=" + file.getAsFile().getAbsolutePath())
+                    options.getClasspath().from(
+                            generateDynamicAccessMetadata.flatMap(task ->
+                                    task.getOutputJson().map(RegularFile::getAsFile)
                             )
-                        )
                     );
                 }
             });

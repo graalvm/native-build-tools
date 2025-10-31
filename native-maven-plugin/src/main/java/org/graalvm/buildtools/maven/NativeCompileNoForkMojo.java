@@ -113,7 +113,6 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         maybeAddGeneratedResourcesConfig(buildArgs);
 
         generateDynamicAccessMetadataIfNeeded(buildArgs);
-        maybeAddDynamicAccessMetadata(buildArgs);
 
         generateBaseSBOMIfNeeded();
 
