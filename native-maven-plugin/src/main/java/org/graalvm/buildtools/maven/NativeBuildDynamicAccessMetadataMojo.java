@@ -75,9 +75,12 @@ import java.util.Set;
  * Generates a {@code dynamic-access-metadata.json} file used by the dynamic access tab of the native image
  * Build Report. This json file contains the mapping of all classpath entries that exist in the
  * {@code library-and-framework-list.json} to their transitive dependencies.
- * <br>
+ * <p>
  * If {@code library-and-framework-list.json} doesn't exist in the used release of the
  * {@code GraalVM Reachability Metadata} repository, this task does nothing.
+ * <p>
+ * The format of the generated JSON file conforms the following
+ * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
  */
 @Mojo(name = "generateDynamicAccessMetadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
@@ -126,6 +129,10 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         }
     }
 
+    /**
+     * Collects all versionless artifact coordinates ({@code groupId:artifactId}) from each
+     * entry in the {@code library-and-framework.json} file.
+     */
     private Set<String> readArtifacts(File inputFile) throws IOException {
         Set<String> artifacts = new HashSet<>();
         String content = Files.readString(inputFile.toPath());
@@ -139,6 +146,11 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         return artifacts;
     }
 
+    /**
+     * Builds a mapping from each JAR path in the classpath, whose corresponding artifact
+     * exists in the {@code library-and-framework.json} file, to the set of all of its
+     * transitive dependency JAR paths.
+     */
     private Map<String, Set<String>> buildExportMap(Set<String> artifactsToInclude, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
         Map<String, Set<String>> exportMap = new HashMap<>();
 
@@ -157,6 +169,9 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         return exportMap;
     }
 
+    /**
+     * Collects the transitive dependency JAR paths for the artifact identified by the given coordinates.
+     */
     private Set<String> collectDependencies(String coordinates, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
         DefaultArtifact artifact = new DefaultArtifact(coordinates);
 
@@ -183,6 +198,10 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         return dependencies;
     }
 
+    /**
+     * Writes the export map to a JSON file. Each key (a JAR path) maps to
+     * a JSON array of JAR paths of its dependencies.
+     */
     private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
             JSONObject root = new JSONObject();

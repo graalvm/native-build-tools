@@ -67,9 +67,12 @@ import java.util.Set;
  * Generates a {@code dynamic-access-metadata.json} file used by the dynamic access tab of the native image
  * Build Report. This json file contains the mapping of all classpath entries that exist in the
  * {@code library-and-framework-list.json} to their transitive dependencies.
- * <br>
+ * <p>
  * If {@code library-and-framework-list.json} doesn't exist in the used release of the
  * {@code GraalVM Reachability Metadata} repository, this task does nothing.
+ * <p>
+ * The format of the generated JSON file conforms the following
+ * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
  */
 public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     private static final String LIBRARY_AND_FRAMEWORK_LIST = "library-and-framework-list.json";
@@ -109,6 +112,10 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         }
     }
 
+    /**
+     * Collects all versionless artifact coordinates ({@code groupId:artifactId}) from each
+     * entry in the {@code library-and-framework.json} file.
+     */
     private Set<String> readArtifacts(File inputFile) throws IOException {
         Set<String> artifacts = new HashSet<>();
         String content = Files.readString(inputFile.toPath());
@@ -122,6 +129,11 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         return artifacts;
     }
 
+    /**
+     * Builds a mapping from each JAR path in the classpath, whose corresponding artifact
+     * exists in the {@code library-and-framework.json} file, to the set of all of its
+     * transitive dependency JAR paths.
+     */
     private Map<String, Set<String>> buildExportMap(Set<ResolvedDependency> dependencies, Set<String> artifactsToInclude, Set<File> classpathJars) {
         Map<String, Set<String>> exportMap = new HashMap<>();
         for (ResolvedDependency dependency : dependencies) {
@@ -142,6 +154,9 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         return exportMap;
     }
 
+    /**
+     * Recursively collects all classpath JARs for the given dependency and its transitive dependencies.
+     */
     private void collectDependencies(ResolvedDependency dep, Set<String> collector, Set<File> classpathJars) {
         for (ResolvedArtifact artifact : dep.getModuleArtifacts()) {
             File file = artifact.getFile();
@@ -155,6 +170,10 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         }
     }
 
+    /**
+     * Writes the export map to a JSON file. Each key (a JAR path) maps to
+     * a JSON array of JAR paths of its dependencies.
+     */
     private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
             JSONObject root = new JSONObject();
