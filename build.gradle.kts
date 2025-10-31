@@ -40,5 +40,6 @@
  */
 
 plugins {
+    // Aggregates build configurations for all project modules. Required for multi-module builds and reporting.
     id("org.graalvm.build.aggregator")
 }
