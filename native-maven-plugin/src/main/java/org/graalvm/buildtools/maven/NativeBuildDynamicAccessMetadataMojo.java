@@ -147,9 +147,9 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     }
 
     /**
-     * Builds a mapping from each JAR path in the classpath, whose corresponding artifact
+     * Builds a mapping from each entry in the classpath, whose corresponding artifact
      * exists in the {@code library-and-framework.json} file, to the set of all of its
-     * transitive dependency JAR paths.
+     * transitive dependency entry paths.
      */
     private Map<String, Set<String>> buildExportMap(Set<String> artifactsToInclude, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
         Map<String, Set<String>> exportMap = new HashMap<>();
@@ -170,7 +170,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     }
 
     /**
-     * Collects the transitive dependency JAR paths for the artifact identified by the given coordinates.
+     * Recursively collects all classpath entry paths for the given dependency and its transitive dependencies.
      */
     private Set<String> collectDependencies(String coordinates, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
         DefaultArtifact artifact = new DefaultArtifact(coordinates);
@@ -199,8 +199,8 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     }
 
     /**
-     * Writes the export map to a JSON file. Each key (a JAR path) maps to
-     * a JSON array of JAR paths of its dependencies.
+     * Writes the export map to a JSON file. Each key (a classpath entry) maps to
+     * a JSON array of classpath entry paths of its dependencies.
      */
     private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {

@@ -98,12 +98,12 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
             Set<String> artifactsToInclude = readArtifacts(jsonFile);
 
             Configuration runtimeClasspathConfig = getRuntimeClasspath().get();
-            Set<File> classpathJars = runtimeClasspathConfig.getFiles();
+            Set<File> classpathEntries = runtimeClasspathConfig.getFiles();
 
             Map<String, Set<String>> exportMap = buildExportMap(
                     runtimeClasspathConfig.getResolvedConfiguration().getFirstLevelModuleDependencies(),
                     artifactsToInclude,
-                    classpathJars
+                    classpathEntries
             );
 
             writeMapToJson(getOutputJson().getAsFile().get(), exportMap);
@@ -130,11 +130,11 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     }
 
     /**
-     * Builds a mapping from each JAR path in the classpath, whose corresponding artifact
+     * Builds a mapping from each entry in the classpath, whose corresponding artifact
      * exists in the {@code library-and-framework.json} file, to the set of all of its
-     * transitive dependency JAR paths.
+     * transitive dependency entry paths.
      */
-    private Map<String, Set<String>> buildExportMap(Set<ResolvedDependency> dependencies, Set<String> artifactsToInclude, Set<File> classpathJars) {
+    private Map<String, Set<String>> buildExportMap(Set<ResolvedDependency> dependencies, Set<String> artifactsToInclude, Set<File> classpathEntries) {
         Map<String, Set<String>> exportMap = new HashMap<>();
         for (ResolvedDependency dependency : dependencies) {
             String dependencyCoordinates = dependency.getModuleGroup() + ":" + dependency.getModuleName();
@@ -144,9 +144,9 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
 
             for (ResolvedArtifact artifact : dependency.getModuleArtifacts()) {
                 File file = artifact.getFile();
-                if (classpathJars.contains(file)) {
+                if (classpathEntries.contains(file)) {
                     Set<String> files = new HashSet<>();
-                    collectDependencies(dependency, files, classpathJars);
+                    collectDependencies(dependency, files, classpathEntries);
                     exportMap.put(file.getAbsolutePath(), files);
                 }
             }
@@ -155,24 +155,24 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     }
 
     /**
-     * Recursively collects all classpath JARs for the given dependency and its transitive dependencies.
+     * Recursively collects all classpath entry paths for the given dependency and its transitive dependencies.
      */
-    private void collectDependencies(ResolvedDependency dep, Set<String> collector, Set<File> classpathJars) {
+    private void collectDependencies(ResolvedDependency dep, Set<String> collector, Set<File> classpathEntries) {
         for (ResolvedArtifact artifact : dep.getModuleArtifacts()) {
             File file = artifact.getFile();
-            if (classpathJars.contains(file)) {
+            if (classpathEntries.contains(file)) {
                 collector.add(file.getAbsolutePath());
             }
         }
 
         for (ResolvedDependency child : dep.getChildren()) {
-            collectDependencies(child, collector, classpathJars);
+            collectDependencies(child, collector, classpathEntries);
         }
     }
 
     /**
-     * Writes the export map to a JSON file. Each key (a JAR path) maps to
-     * a JSON array of JAR paths of its dependencies.
+     * Writes the export map to a JSON file. Each key (a classpath entry) maps to
+     * a JSON array of classpath entry paths of its dependencies.
      */
     private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
