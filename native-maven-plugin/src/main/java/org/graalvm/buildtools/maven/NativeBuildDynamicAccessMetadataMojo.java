@@ -204,15 +204,21 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
      */
     private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
         try {
-            JSONObject root = new JSONObject();
+            JSONArray jsonArray = new JSONArray();
+
             for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
-                JSONArray array = new JSONArray();
-                entry.getValue().forEach(array::put);
-                root.put(entry.getKey(), array);
+                JSONObject obj = new JSONObject();
+                obj.put("metadataProvider", entry.getKey());
+
+                JSONArray providedArray = new JSONArray();
+                entry.getValue().forEach(providedArray::put);
+                obj.put("providesFor", providedArray);
+
+                jsonArray.put(obj);
             }
 
             try (FileWriter writer = new FileWriter(outputFile)) {
-                writer.write(root.toString(2));
+                writer.write(jsonArray.toString(2));
             }
         } catch (IOException e) {
             getLog().warn("Failed to write export map to JSON: " + e);

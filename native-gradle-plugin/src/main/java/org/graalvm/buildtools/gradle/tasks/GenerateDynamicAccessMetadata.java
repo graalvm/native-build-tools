@@ -192,7 +192,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
             try (FileWriter writer = new FileWriter(outputFile)) {
                 writer.write(jsonArray.toString(2));
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             GraalVMLogger.of(getLogger()).log("Failed to write dynamic access metadata JSON: {}", e);
         }
     }
