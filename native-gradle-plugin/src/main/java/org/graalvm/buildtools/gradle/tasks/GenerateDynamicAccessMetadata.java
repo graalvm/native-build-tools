@@ -61,6 +61,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -129,7 +130,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
      * entry in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file.
      */
     private Set<String> readArtifacts(File inputFile) throws IOException {
-        Set<String> artifacts = new HashSet<>();
+        Set<String> artifacts = new LinkedHashSet<>();
         String content = Files.readString(inputFile.toPath());
         JSONArray jsonArray = new JSONArray(content);
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -157,7 +158,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
             for (ResolvedArtifact artifact : dependency.getModuleArtifacts()) {
                 File file = artifact.getFile();
                 if (classpathEntries.contains(file)) {
-                    Set<String> files = new HashSet<>();
+                    Set<String> files = new LinkedHashSet<>();
                     collectDependencies(dependency, files, classpathEntries);
                     exportMap.put(file.getAbsolutePath(), files);
                 }

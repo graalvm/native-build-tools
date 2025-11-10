@@ -66,7 +66,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,7 +137,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
      * entry in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file.
      */
     private Set<String> readArtifacts(File inputFile) throws IOException {
-        Set<String> artifacts = new HashSet<>();
+        Set<String> artifacts = new LinkedHashSet<>();
         String content = Files.readString(inputFile.toPath());
         JSONArray jsonArray = new JSONArray(content);
         for (int i = 0; i < jsonArray.length(); i++) {
@@ -187,7 +187,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         PreorderNodeListGenerator nlg = new PreorderNodeListGenerator();
         node.accept(nlg);
 
-        Set<String> dependencies = new HashSet<>();
+        Set<String> dependencies = new LinkedHashSet<>();
         nlg.getNodes().forEach(dependencyNode -> {
             if (dependencyNode.getDependency() != null) {
                 DefaultArtifact dependencyArtifact = (DefaultArtifact) dependencyNode.getDependency().getArtifact();
