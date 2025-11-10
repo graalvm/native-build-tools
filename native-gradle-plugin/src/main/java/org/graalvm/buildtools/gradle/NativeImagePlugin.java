@@ -398,15 +398,20 @@ public class NativeImagePlugin implements Plugin<Project> {
                 tasks,
                 deriveTaskName(binaryName, "generate", "DynamicAccessMetadata"));
             imageBuilder.configure(buildImageTask -> {
-                if (buildImageTask.getOptions().get().getBuildArgs().get().stream()
-                        .anyMatch(arg -> arg.startsWith("--emit build-report"))) {
-                    options.getClasspath().from(
-                            generateDynamicAccessMetadata.flatMap(task ->
-                                    task.getOutputJson().map(RegularFile::getAsFile)
-                            )
-                    );
-                }
+                Provider<Boolean> emittingBuildReport =
+                        buildImageTask.getOptions()
+                                .flatMap(o -> o.getBuildArgs()
+                                        .map(args -> args.stream()
+                                                .anyMatch(arg -> arg.startsWith("--emit build-report"))));
+                options.getClasspath().from(
+                        emittingBuildReport.flatMap(enabled ->
+                                enabled
+                                        ? generateDynamicAccessMetadata.flatMap(task ->
+                                        task.getOutputJson().map(RegularFile::getAsFile))
+                                        : buildImageTask.getProject().provider(Collections::emptyList))
+                );
             });
+
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
             configureJvmReachabilityExcludeConfigArgs(project, graalExtension, options, sourceSet);
         });
