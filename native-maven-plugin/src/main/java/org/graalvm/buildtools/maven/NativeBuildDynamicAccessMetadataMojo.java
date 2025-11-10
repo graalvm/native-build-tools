@@ -74,9 +74,9 @@ import java.util.Set;
 /**
  * Generates a {@code dynamic-access-metadata.json} file used by the dynamic access tab of the native image
  * Build Report. This json file contains the mapping of all classpath entries that exist in the
- * {@code library-and-framework-list.json} to their transitive dependencies.
+ * {@value #LIBRARY_AND_FRAMEWORK_LIST} to their transitive dependencies.
  * <p>
- * If {@code library-and-framework-list.json} doesn't exist in the used release of the
+ * If {@value #LIBRARY_AND_FRAMEWORK_LIST} doesn't exist in the used release of the
  * {@code GraalVM Reachability Metadata} repository, this task does nothing.
  * <p>
  * The format of the generated JSON file conforms the following
@@ -85,6 +85,9 @@ import java.util.Set;
 @Mojo(name = "generateDynamicAccessMetadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     private static final String LIBRARY_AND_FRAMEWORK_LIST = "library-and-framework-list.json";
+    private static final String ARTIFACT = "artifact";
+    private static final String METADATA_PROVIDER = "metadataProvider";
+    private static final String PROVIDES_FOR = "providesFor";
 
     @Component
     private RepositorySystem repoSystem;
@@ -131,7 +134,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
 
     /**
      * Collects all versionless artifact coordinates ({@code groupId:artifactId}) from each
-     * entry in the {@code library-and-framework.json} file.
+     * entry in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file.
      */
     private Set<String> readArtifacts(File inputFile) throws IOException {
         Set<String> artifacts = new HashSet<>();
@@ -139,8 +142,8 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         JSONArray jsonArray = new JSONArray(content);
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject entry = jsonArray.getJSONObject(i);
-            if (entry.has("artifact")) {
-                artifacts.add(entry.getString("artifact"));
+            if (entry.has(ARTIFACT)) {
+                artifacts.add(entry.getString(ARTIFACT));
             }
         }
         return artifacts;
@@ -148,7 +151,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
 
     /**
      * Builds a mapping from each entry in the classpath, whose corresponding artifact
-     * exists in the {@code library-and-framework.json} file, to the set of all of its
+     * exists in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file, to the set of all of its
      * transitive dependency entry paths.
      */
     private Map<String, Set<String>> buildExportMap(Set<String> artifactsToInclude, Map<String, String> coordinatesToPath) throws DependencyCollectionException {
@@ -208,11 +211,11 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
 
             for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
                 JSONObject obj = new JSONObject();
-                obj.put("metadataProvider", entry.getKey());
+                obj.put(METADATA_PROVIDER, entry.getKey());
 
                 JSONArray providedArray = new JSONArray();
                 entry.getValue().forEach(providedArray::put);
-                obj.put("providesFor", providedArray);
+                obj.put(PROVIDES_FOR, providedArray);
 
                 jsonArray.put(obj);
             }
