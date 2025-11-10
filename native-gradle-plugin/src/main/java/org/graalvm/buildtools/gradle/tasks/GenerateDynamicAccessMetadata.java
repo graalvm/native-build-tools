@@ -58,9 +58,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -91,9 +93,16 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        File jsonFile = getMetadataService().get().getRepositoryDirectory().resolve(LIBRARY_AND_FRAMEWORK_LIST).toFile();
+        Optional<Path> repositoryDirectory = getMetadataService().get().getRepositoryDirectory();
+        if (repositoryDirectory.isEmpty()) {
+            GraalVMLogger.of(getLogger())
+                    .log("No reachability metadata repository is configured or available.");
+            return;
+        }
+        File jsonFile = repositoryDirectory.get().resolve(LIBRARY_AND_FRAMEWORK_LIST).toFile();
         if (!jsonFile.exists()) {
-            GraalVMLogger.of(getLogger()).log("{} is not packaged with the provided reachability metadata repository.", LIBRARY_AND_FRAMEWORK_LIST);
+            GraalVMLogger.of(getLogger())
+                    .log("{} is not packaged with the provided reachability metadata repository.", LIBRARY_AND_FRAMEWORK_LIST);
             return;
         }
 
