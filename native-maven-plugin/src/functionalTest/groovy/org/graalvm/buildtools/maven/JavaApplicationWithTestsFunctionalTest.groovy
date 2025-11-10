@@ -73,6 +73,34 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 """.trim()
     }
 
+
+    def "can run tests in a native image with the Maven plugin without running JVM tests first"() {
+        withSample("java-application-with-tests")
+
+        when:
+        mvn '-Pnative', '-DskipJVMTests', '-DquickBuild', 'test'
+
+        then:
+        buildSucceeded
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContainsPattern "Tests run: 6, Failures: 0, Errors: 0, Skipped: 6, .* - in org.graalvm.demo.CalculatorTest"
+        outputContains """
+[         3 containers found      ]
+[         0 containers skipped    ]
+[         3 containers started    ]
+[         0 containers aborted    ]
+[         3 containers successful ]
+[         0 containers failed     ]
+[         6 tests found           ]
+[         0 tests skipped         ]
+[         6 tests started         ]
+[         0 tests aborted         ]
+[         6 tests successful      ]
+[         0 tests failed          ]
+""".trim()
+    }
+
+
     def "can run tests in a native image with the Maven plugin using shading"() {
         withSample("java-application-with-tests")
 
