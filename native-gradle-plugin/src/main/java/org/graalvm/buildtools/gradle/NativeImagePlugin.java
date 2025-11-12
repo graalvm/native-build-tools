@@ -685,7 +685,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                                                           TaskContainer tasks,
                                                                                           String name) {
         return tasks.register(name, GenerateDynamicAccessMetadata.class, task -> {
-            task.getRuntimeClasspath().set(classpathConfiguration);
+            task.setClasspath(classpathConfiguration);
             task.getMetadataService().set(metadataService);
             task.getOutputJson().set(buildDir.dir("generated").map(dir -> dir.file("dynamic-access-metadata.json")));
         });

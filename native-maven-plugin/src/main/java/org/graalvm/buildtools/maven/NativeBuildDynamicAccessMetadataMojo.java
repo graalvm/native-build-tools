@@ -115,10 +115,11 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
             Set<String> artifactsToInclude = readArtifacts(jsonFile);
 
             Map<String, String> coordinatesToPath = new HashMap<>();
-            for (Artifact a : project.getArtifacts()) {
-                if (a.getFile() != null) {
-                    String coordinates = a.getGroupId() + ":" + a.getArtifactId();
-                    coordinatesToPath.put(coordinates, a.getFile().getAbsolutePath());
+            for (Artifact artifact : project.getArtifacts()) {
+                File file = artifact.getFile();
+                if (file != null) {
+                    String coordinates = artifact.getGroupId() + ":" + artifact.getArtifactId();
+                    coordinatesToPath.put(coordinates, file.getAbsolutePath());
                 }
             }
 

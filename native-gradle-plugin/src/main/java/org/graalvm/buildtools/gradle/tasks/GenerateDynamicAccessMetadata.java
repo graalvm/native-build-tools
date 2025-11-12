@@ -46,10 +46,14 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -60,7 +64,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -83,8 +86,16 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     private static final String METADATA_PROVIDER = "metadataProvider";
     private static final String PROVIDES_FOR = "providesFor";
 
+    public void setClasspath(Configuration classpath) {
+        getRuntimeClasspathGraph().set(classpath.getIncoming().getResolutionResult().getRootComponent());
+        getRuntimeClasspathArtifacts().set(classpath.getIncoming().getArtifacts().getResolvedArtifacts());
+    }
+
     @Internal
-    public abstract Property<Configuration> getRuntimeClasspath();
+    public abstract Property<ResolvedComponentResult> getRuntimeClasspathGraph();
+
+    @Internal
+    public abstract SetProperty<ResolvedArtifactResult> getRuntimeClasspathArtifacts();
 
     @Internal
     public abstract Property<GraalVMReachabilityMetadataService> getMetadataService();
@@ -110,16 +121,21 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         try {
             Set<String> artifactsToInclude = readArtifacts(jsonFile);
 
-            Configuration runtimeClasspathConfig = getRuntimeClasspath().get();
-            Set<File> classpathEntries = runtimeClasspathConfig.getFiles();
+            Map<String, String> coordinatesToPath = new HashMap<>();
+            for (ResolvedArtifactResult artifact : getRuntimeClasspathArtifacts().get()) {
+                if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier mci) {
+                    String coordinates = mci.getGroup() + ":" + mci.getModule();
+                    coordinatesToPath.put(coordinates, artifact.getFile().getAbsolutePath());
+                }
+            }
 
-            Map<String, Set<String>> exportMap = buildExportMap(
-                    runtimeClasspathConfig.getResolvedConfiguration().getFirstLevelModuleDependencies(),
-                    artifactsToInclude,
-                    classpathEntries
-            );
+            ResolvedComponentResult root = getRuntimeClasspathGraph().get();
+
+            Map<String, Set<String>> exportMap = buildExportMap(root, artifactsToInclude, coordinatesToPath);
 
             writeMapToJson(getOutputJson().getAsFile().get(), exportMap);
+
+            GraalVMLogger.of(getLogger()).log("Dynamic Access Metadata written into " + getOutputJson().get());
         } catch (IOException e) {
             GraalVMLogger.of(getLogger()).log("Failed to generate dynamic access metadata: {}", e);
         }
@@ -147,40 +163,61 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
      * exists in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file, to the set of all of its
      * transitive dependency entry paths.
      */
-    private Map<String, Set<String>> buildExportMap(Set<ResolvedDependency> dependencies, Set<String> artifactsToInclude, Set<File> classpathEntries) {
+    private Map<String, Set<String>> buildExportMap(ResolvedComponentResult root, Set<String> artifactsToInclude, Map<String, String> coordinatesToPath) {
         Map<String, Set<String>> exportMap = new HashMap<>();
-        for (ResolvedDependency dependency : dependencies) {
-            String dependencyCoordinates = dependency.getModuleGroup() + ":" + dependency.getModuleName();
-            if (!artifactsToInclude.contains(dependencyCoordinates)) {
-                continue;
-            }
+        Map<String, Set<String>> dependencyMap = new HashMap<>();
 
-            for (ResolvedArtifact artifact : dependency.getModuleArtifacts()) {
-                File file = artifact.getFile();
-                if (classpathEntries.contains(file)) {
-                    Set<String> files = new LinkedHashSet<>();
-                    collectDependencies(dependency, files, classpathEntries);
-                    exportMap.put(file.getAbsolutePath(), files);
+        collectDependencies(root, dependencyMap, new LinkedHashSet<>(), coordinatesToPath);
+
+        for (Map.Entry<String, Set<String>> entry : dependencyMap.entrySet()) {
+            String coordinates = entry.getKey();
+            if (artifactsToInclude.contains(coordinates)) {
+                String absolutePath = coordinatesToPath.get(coordinates);
+                if (absolutePath != null) {
+                    exportMap.put(absolutePath, entry.getValue());
                 }
             }
         }
+
         return exportMap;
     }
 
     /**
      * Recursively collects all classpath entry paths for the given dependency and its transitive dependencies.
      */
-    private void collectDependencies(ResolvedDependency dep, Set<String> collector, Set<File> classpathEntries) {
-        for (ResolvedArtifact artifact : dep.getModuleArtifacts()) {
-            File file = artifact.getFile();
-            if (classpathEntries.contains(file)) {
-                collector.add(file.getAbsolutePath());
-            }
+    private void collectDependencies(ResolvedComponentResult node, Map<String, Set<String>> dependencyMap, Set<String> visited, Map<String, String> coordinatesToPath) {
+        String coordinates = null;
+        if (node.getId() instanceof ModuleComponentIdentifier mci) {
+            coordinates = mci.getGroup() + ":" + mci.getModule();
         }
 
-        for (ResolvedDependency child : dep.getChildren()) {
-            collectDependencies(child, collector, classpathEntries);
+        if (coordinates != null && !visited.add(coordinates)) {
+            return;
         }
+
+        Set<String> dependencies = new LinkedHashSet<>();
+        for (DependencyResult dep : node.getDependencies()) {
+            if (dep instanceof ResolvedDependencyResult resolved) {
+                ResolvedComponentResult target = resolved.getSelected();
+
+                if (target.getId() instanceof ModuleComponentIdentifier targetMci) {
+                    String dependencyCoordinates = targetMci.getGroup() + ":" + targetMci.getModule();
+                    String dependencyPath = coordinatesToPath.get(dependencyCoordinates);
+
+                    if (dependencyPath != null) {
+                        dependencies.add(dependencyPath);
+                    }
+
+                    collectDependencies(target, dependencyMap, visited, coordinatesToPath);
+
+                    Set<String> transitiveDependencies = dependencyMap.get(dependencyCoordinates);
+                    if (transitiveDependencies != null) {
+                        dependencies.addAll(transitiveDependencies);
+                    }
+                }
+            }
+        }
+        dependencyMap.put(coordinates, dependencies);
     }
 
     /**
