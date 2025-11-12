@@ -29,6 +29,14 @@ public final class DynamicAccessMetadataUtils {
         return artifacts;
     }
 
+    /**
+     * Serializes dynamic access metadata to JSON.
+     * <p>
+     * The output follows the schema defined at:
+     * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">
+     *     dynamic-access-metadata-schema-v1.0.0.json
+     * </a>
+     */
     public static void serialize(File outputFile, Map<String, Set<String>> exportMap) throws IOException {
         JSONArray jsonArray = new JSONArray();
 

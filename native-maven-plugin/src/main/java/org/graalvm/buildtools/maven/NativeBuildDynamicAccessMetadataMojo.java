@@ -179,10 +179,6 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         return dependencies;
     }
 
-    /**
-     * Writes the export map to a JSON file. Each key (a classpath entry) maps to
-     * a JSON array of classpath entry paths of its dependencies.
-     */
     private void serializeExportMap(File outputFile, Map<String, Set<String>> exportMap) throws IOException {
         DynamicAccessMetadataUtils.serialize(outputFile, exportMap);
         getLog().info("Dynamic Access Metadata written into " + outputFile);
