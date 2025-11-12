@@ -40,8 +40,6 @@
  */
 package org.graalvm.buildtools.maven;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -59,12 +57,11 @@ import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.util.graph.visitor.PreorderNodeListGenerator;
+import org.graalvm.buildtools.utils.DynamicAccessMetadataUtils;
 import org.graalvm.reachability.internal.FileSystemRepository;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -85,9 +82,6 @@ import java.util.Set;
 @Mojo(name = "generateDynamicAccessMetadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     private static final String LIBRARY_AND_FRAMEWORK_LIST = "library-and-framework-list.json";
-    private static final String ARTIFACT = "artifact";
-    private static final String METADATA_PROVIDER = "metadataProvider";
-    private static final String PROVIDES_FOR = "providesFor";
 
     @Component
     private RepositorySystem repoSystem;
@@ -112,7 +106,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
         }
 
         try {
-            Set<String> artifactsToInclude = readArtifacts(jsonFile);
+            Set<String> artifactsToInclude = DynamicAccessMetadataUtils.readArtifacts(jsonFile);
 
             Map<String, String> coordinatesToPath = new HashMap<>();
             for (Artifact artifact : project.getArtifacts()) {
@@ -125,29 +119,12 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
 
             Map<String, Set<String>> exportMap = buildExportMap(artifactsToInclude, coordinatesToPath);
 
-            writeMapToJson(outputJson, exportMap);
+            serializeExportMap(outputJson, exportMap);
         } catch (IOException e) {
             getLog().warn("Failed generating dynamic access metadata: " + e);
         } catch (DependencyCollectionException e) {
             getLog().warn("Failed collecting dependencies: " + e);
         }
-    }
-
-    /**
-     * Collects all versionless artifact coordinates ({@code groupId:artifactId}) from each
-     * entry in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file.
-     */
-    private Set<String> readArtifacts(File inputFile) throws IOException {
-        Set<String> artifacts = new LinkedHashSet<>();
-        String content = Files.readString(inputFile.toPath());
-        JSONArray jsonArray = new JSONArray(content);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject entry = jsonArray.getJSONObject(i);
-            if (entry.has(ARTIFACT)) {
-                artifacts.add(entry.getString(ARTIFACT));
-            }
-        }
-        return artifacts;
     }
 
     /**
@@ -206,26 +183,8 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
      * Writes the export map to a JSON file. Each key (a classpath entry) maps to
      * a JSON array of classpath entry paths of its dependencies.
      */
-    private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
-        try {
-            JSONArray jsonArray = new JSONArray();
-
-            for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
-                JSONObject obj = new JSONObject();
-                obj.put(METADATA_PROVIDER, entry.getKey());
-
-                JSONArray providedArray = new JSONArray();
-                entry.getValue().forEach(providedArray::put);
-                obj.put(PROVIDES_FOR, providedArray);
-
-                jsonArray.put(obj);
-            }
-
-            try (FileWriter writer = new FileWriter(outputFile)) {
-                writer.write(jsonArray.toString(2));
-            }
-        } catch (IOException e) {
-            getLog().warn("Failed to write export map to JSON: " + e);
-        }
+    private void serializeExportMap(File outputFile, Map<String, Set<String>> exportMap) throws IOException {
+        DynamicAccessMetadataUtils.serialize(outputFile, exportMap);
+        getLog().info("Dynamic Access Metadata written into " + outputFile);
     }
 }

@@ -40,10 +40,9 @@
  */
 package org.graalvm.buildtools.gradle.tasks;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
+import org.graalvm.buildtools.utils.DynamicAccessMetadataUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -59,9 +58,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -82,9 +79,6 @@ import java.util.Set;
  */
 public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     private static final String LIBRARY_AND_FRAMEWORK_LIST = "library-and-framework-list.json";
-    private static final String ARTIFACT = "artifact";
-    private static final String METADATA_PROVIDER = "metadataProvider";
-    private static final String PROVIDES_FOR = "providesFor";
 
     public void setClasspath(Configuration classpath) {
         getRuntimeClasspathGraph().set(classpath.getIncoming().getResolutionResult().getRootComponent());
@@ -119,7 +113,7 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         }
 
         try {
-            Set<String> artifactsToInclude = readArtifacts(jsonFile);
+            Set<String> artifactsToInclude = DynamicAccessMetadataUtils.readArtifacts(jsonFile);
 
             Map<String, String> coordinatesToPath = new HashMap<>();
             for (ResolvedArtifactResult artifact : getRuntimeClasspathArtifacts().get()) {
@@ -133,29 +127,10 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
 
             Map<String, Set<String>> exportMap = buildExportMap(root, artifactsToInclude, coordinatesToPath);
 
-            writeMapToJson(getOutputJson().getAsFile().get(), exportMap);
-
-            GraalVMLogger.of(getLogger()).log("Dynamic Access Metadata written into " + getOutputJson().get());
+            serializeExportMap(getOutputJson().getAsFile().get(), exportMap);
         } catch (IOException e) {
             GraalVMLogger.of(getLogger()).log("Failed to generate dynamic access metadata: {}", e);
         }
-    }
-
-    /**
-     * Collects all versionless artifact coordinates ({@code groupId:artifactId}) from each
-     * entry in the {@value #LIBRARY_AND_FRAMEWORK_LIST} file.
-     */
-    private Set<String> readArtifacts(File inputFile) throws IOException {
-        Set<String> artifacts = new LinkedHashSet<>();
-        String content = Files.readString(inputFile.toPath());
-        JSONArray jsonArray = new JSONArray(content);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject entry = jsonArray.getJSONObject(i);
-            if (entry.has(ARTIFACT)) {
-                artifacts.add(entry.getString(ARTIFACT));
-            }
-        }
-        return artifacts;
     }
 
     /**
@@ -224,26 +199,8 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
      * Writes the export map to a JSON file. Each key (a classpath entry) maps to
      * a JSON array of classpath entry paths of its dependencies.
      */
-    private void writeMapToJson(File outputFile, Map<String, Set<String>> exportMap) {
-        try {
-            JSONArray jsonArray = new JSONArray();
-
-            for (Map.Entry<String, Set<String>> entry : exportMap.entrySet()) {
-                JSONObject obj = new JSONObject();
-                obj.put(METADATA_PROVIDER, entry.getKey());
-
-                JSONArray providedArray = new JSONArray();
-                entry.getValue().forEach(providedArray::put);
-                obj.put(PROVIDES_FOR, providedArray);
-
-                jsonArray.put(obj);
-            }
-
-            try (FileWriter writer = new FileWriter(outputFile)) {
-                writer.write(jsonArray.toString(2));
-            }
-        } catch (IOException e) {
-            GraalVMLogger.of(getLogger()).log("Failed to write dynamic access metadata JSON: {}", e);
-        }
+    private void serializeExportMap(File outputFile, Map<String, Set<String>> exportMap) throws IOException {
+        DynamicAccessMetadataUtils.serialize(outputFile, exportMap);
+        GraalVMLogger.of(getLogger()).lifecycle("Dynamic Access Metadata written into " + outputFile);
     }
 }

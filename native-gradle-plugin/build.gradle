@@ -56,7 +56,6 @@ maven {
 }
 
 dependencies {
-    implementation libs.openjson
     implementation libs.utils
     implementation libs.jvmReachabilityMetadata
     testImplementation libs.test.spock
