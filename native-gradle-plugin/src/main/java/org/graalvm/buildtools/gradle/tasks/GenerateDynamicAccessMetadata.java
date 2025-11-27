@@ -51,8 +51,9 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -82,14 +83,23 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
 
     public void setClasspath(Configuration classpath) {
         getRuntimeClasspathGraph().set(classpath.getIncoming().getResolutionResult().getRootComponent());
-        getRuntimeClasspathArtifacts().set(classpath.getIncoming().getArtifacts().getResolvedArtifacts());
+
+        // Build coordinates -> path map
+        Map<String, String> map = new HashMap<>();
+        for (ResolvedArtifactResult artifact : classpath.getIncoming().getArtifacts().getResolvedArtifacts().get()) {
+            if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier mci) {
+                String coordinates = mci.getGroup() + ":" + mci.getModule();
+                map.put(coordinates, artifact.getFile().getAbsolutePath());
+            }
+        }
+        getCoordinatesToPath().set(map);
     }
 
-    @Internal
+    @Input
     public abstract Property<ResolvedComponentResult> getRuntimeClasspathGraph();
 
-    @Internal
-    public abstract SetProperty<ResolvedArtifactResult> getRuntimeClasspathArtifacts();
+    @Input
+    public abstract MapProperty<String, String> getCoordinatesToPath();
 
     @Internal
     public abstract Property<GraalVMReachabilityMetadataService> getMetadataService();
@@ -115,17 +125,9 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
         try {
             Set<String> artifactsToInclude = DynamicAccessMetadataUtils.readArtifacts(jsonFile);
 
-            Map<String, String> coordinatesToPath = new HashMap<>();
-            for (ResolvedArtifactResult artifact : getRuntimeClasspathArtifacts().get()) {
-                if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier mci) {
-                    String coordinates = mci.getGroup() + ":" + mci.getModule();
-                    coordinatesToPath.put(coordinates, artifact.getFile().getAbsolutePath());
-                }
-            }
-
             ResolvedComponentResult root = getRuntimeClasspathGraph().get();
 
-            Map<String, Set<String>> exportMap = buildExportMap(root, artifactsToInclude, coordinatesToPath);
+            Map<String, Set<String>> exportMap = buildExportMap(root, artifactsToInclude, getCoordinatesToPath().get());
 
             serializeExportMap(getOutputJson().getAsFile().get(), exportMap);
         } catch (IOException e) {
