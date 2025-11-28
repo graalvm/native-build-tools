@@ -133,6 +133,10 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
                 .collect(Collectors.toSet());
     }
 
+    public Path getRootDirectory() {
+        return rootDirectory;
+    }
+
     /**
      * Allows getting insights about how configuration is picked.
      */

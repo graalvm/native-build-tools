@@ -71,6 +71,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -234,5 +235,12 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
             }
             query.useLatestConfigWhenVersionIsUntested();
         });
+    }
+
+    public Optional<Path> getRepositoryDirectory() {
+        if (repository instanceof FileSystemRepository fsRepo) {
+            return Optional.of(fsRepo.getRootDirectory());
+        }
+        return Optional.empty();
     }
 }

@@ -58,6 +58,7 @@ import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
+import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
@@ -92,6 +93,7 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
@@ -389,6 +391,27 @@ public class NativeImagePlugin implements Plugin<Project> {
             options.getConfigurationFileDirectories().from(generateResourcesConfig.map(serializableTransformerOf(t ->
                 t.getOutputFile().map(serializableTransformerOf(f -> f.getAsFile().getParentFile()))
             )));
+            TaskProvider<GenerateDynamicAccessMetadata> generateDynamicAccessMetadata = registerDynamicAccessMetadataTask(
+                project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
+                graalVMReachabilityMetadataService(project, reachabilityExtensionOn(graalExtension)),
+                project.getLayout().getBuildDirectory(),
+                tasks,
+                deriveTaskName(binaryName, "generate", "DynamicAccessMetadata"));
+            imageBuilder.configure(buildImageTask -> {
+                Provider<Boolean> emittingBuildReport =
+                        buildImageTask.getOptions()
+                                .flatMap(o -> o.getBuildArgs()
+                                        .map(args -> args.stream()
+                                                .anyMatch(arg -> arg.startsWith("--emit build-report"))));
+                options.getClasspath().from(
+                        emittingBuildReport.flatMap(enabled ->
+                                enabled
+                                        ? generateDynamicAccessMetadata.flatMap(task ->
+                                        task.getOutputJson().map(RegularFile::getAsFile))
+                                        : buildImageTask.getProject().provider(Collections::emptyList))
+                );
+            });
+
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
             configureJvmReachabilityExcludeConfigArgs(project, graalExtension, options, sourceSet);
         });
@@ -653,6 +676,18 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getClasspath().from(options.getClasspath());
             task.getTransitiveProjectArtifacts().from(transitiveProjectArtifacts);
             task.getOutputFile().convention(generatedDir.map(d -> d.file(name + "/resource-config.json")));
+        });
+    }
+
+    private TaskProvider<GenerateDynamicAccessMetadata> registerDynamicAccessMetadataTask(Configuration classpathConfiguration,
+                                                                                          Provider<GraalVMReachabilityMetadataService> metadataService,
+                                                                                          DirectoryProperty buildDir,
+                                                                                          TaskContainer tasks,
+                                                                                          String name) {
+        return tasks.register(name, GenerateDynamicAccessMetadata.class, task -> {
+            task.setClasspath(classpathConfiguration);
+            task.getMetadataService().set(metadataService);
+            task.getOutputJson().set(buildDir.dir("generated").map(dir -> dir.file("dynamic-access-metadata.json")));
         });
     }
 

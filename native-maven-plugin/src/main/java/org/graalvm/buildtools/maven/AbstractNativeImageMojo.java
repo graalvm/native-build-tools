@@ -437,6 +437,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             addDependenciesToClasspath();
         }
         addInferredDependenciesToClasspath();
+        maybeAddDynamicAccessMetadataToClasspath();
         imageClasspath.removeIf(entry -> !entry.toFile().exists());
     }
 
@@ -543,7 +544,11 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
     }
 
-
+    protected void maybeAddDynamicAccessMetadataToClasspath() {
+        if (Files.exists(Path.of(outputDirectory.getPath() ,"dynamic-access-metadata.json"))) {
+            imageClasspath.add(Path.of(outputDirectory.getPath() ,"dynamic-access-metadata.json"));
+        }
+    }
 
     protected void maybeAddReachabilityMetadata(List<String> configDirs) {
         if (isMetadataRepositoryEnabled() && !metadataRepositoryConfigurations.isEmpty()) {

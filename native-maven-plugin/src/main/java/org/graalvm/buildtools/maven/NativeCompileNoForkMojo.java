@@ -55,6 +55,7 @@ import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluatio
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.graalvm.buildtools.maven.sbom.SBOMGenerator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.twdata.maven.mojoexecutor.MojoExecutor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -111,9 +112,35 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         maybeSetMainClassFromPlugin(this::consumeConfigurationNodeValue, "org.apache.maven.plugins:maven-jar-plugin", "archive", "manifest", "mainClass");
         maybeAddGeneratedResourcesConfig(buildArgs);
 
+        generateDynamicAccessMetadataIfNeeded(buildArgs);
+
         generateBaseSBOMIfNeeded();
 
         buildImage();
+    }
+
+    /**
+     * Executes the {@code generateDynamicAccessMetadata} goal of the
+     * {@code native-maven-plugin} if the build arguments indicate that
+     * a build report should be emitted.
+     *
+     * @throws MojoExecutionException if executing the {@code generateDynamicAccessMetadata}
+     *                                Mojo fails
+     */
+    private void generateDynamicAccessMetadataIfNeeded(List<String> buildArgs) throws MojoExecutionException {
+        if (buildArgs.stream().anyMatch(arg -> arg.startsWith("--emit build-report"))) {
+            MojoExecutor.executeMojo(
+                    MojoExecutor.plugin(
+                            MojoExecutor.groupId(project.getPlugin("org.graalvm.buildtools:native-maven-plugin").getGroupId()),
+                            MojoExecutor.artifactId(project.getPlugin("org.graalvm.buildtools:native-maven-plugin").getArtifactId()),
+                            MojoExecutor.version(project.getPlugin("org.graalvm.buildtools:native-maven-plugin").getVersion())
+                    ),
+                    MojoExecutor.goal("generateDynamicAccessMetadata"),
+                    MojoExecutor.configuration(
+                            MojoExecutor.element("outputJson", "${project.build.directory}/dynamic-access-metadata.json")
+                    ),
+                    MojoExecutor.executionEnvironment(project, session, pluginManager));
+        }
     }
 
     /**
