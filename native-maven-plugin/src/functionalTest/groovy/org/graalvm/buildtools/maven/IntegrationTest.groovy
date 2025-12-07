@@ -5,7 +5,7 @@ class IntegrationTest extends AbstractGraalVMMavenFunctionalTest {
         withSample("integration-test")
 
         when:
-        mvn '-Pnative', 'verify'
+        mvn '-Pnative', '-PquickBuild', 'verify'
 
         then:
         buildSucceeded
