@@ -27,4 +27,62 @@ class AbstractNativeImageMojoTest extends Specification {
                 "-H:ConfigurationFileDirectories=C:\\Users\\Lahoucine EL ADDALI\\Downloads\\4.5.0.0_kubernetes_kubernetes-demo-java-maven\\api\\target\\native\\generated\\generateResourceConfig"
         ]
     }
+
+    void "platform specific build args - leading"() {
+        given:
+        def buildArgs = [
+                '$linux:--GC=G1',
+                '$linux:-R:MaxGCPauseMillis=50',
+                '--foo',
+                '$macos:--myMacOption'
+        ]
+
+        when:
+        def processedArgs = AbstractNativeImageMojo.processPlatformBuildArgs('linux', buildArgs)
+
+        then:
+        processedArgs == [
+                '--GC=G1',
+                '-R:MaxGCPauseMillis=50',
+                '--foo'
+        ]
+    }
+
+    void "platform specific build args - trailing"() {
+        given:
+        def buildArgs = [
+                '$linux:--GC=G1',
+                '$linux:-R:MaxGCPauseMillis=50',
+                '--foo',
+                '$mac:--myMacOption'
+        ]
+
+        when:
+        def processedArgs = AbstractNativeImageMojo.processPlatformBuildArgs('mac', buildArgs)
+
+        then:
+        processedArgs == [
+                '--foo',
+                '--myMacOption'
+        ]
+    }
+
+    void "normalizeOs"() {
+        when:
+        def resultOs = AbstractNativeImageMojo.normalizeOs(inputOs)
+
+        then:
+        resultOs == expectedOs
+
+        where:
+        inputOs                 || expectedOs
+        'Some@Unknown'          || 'someunknown'
+        'Some@_|Unknown019'     || 'someunknown019'
+        'mac'                   || 'mac'
+        'MacOs'                 || 'mac'
+        'linux'                 || 'linux'
+        'LinuxAnyFoo'           || 'linux'
+        'windows'               || 'windows'
+        'WindowsAnyFoo'         || 'windows'
+    }
 }
