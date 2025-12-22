@@ -41,6 +41,7 @@ org.junit.jupiter.engine.discovery.ClassSelectorResolver
 org.junit.jupiter.engine.discovery.ClassSelectorResolver$DummyClassTemplateInvocationContext
 org.junit.jupiter.engine.discovery.DiscoverySelectorResolver
 org.junit.jupiter.engine.discovery.MethodFinder
+org.junit.jupiter.engine.discovery.MethodSegmentResolver
 org.junit.jupiter.engine.discovery.MethodSelectorResolver
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType
 org.junit.jupiter.engine.discovery.MethodSelectorResolver$MethodType$1
