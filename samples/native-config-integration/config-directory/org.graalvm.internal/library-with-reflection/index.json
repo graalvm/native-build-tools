@@ -1,6 +1,5 @@
 [
   {
-    "module": "org.graalvm.internal:library-with-reflection",
     "tested-versions": [
       "1.0",
       "1.1",
