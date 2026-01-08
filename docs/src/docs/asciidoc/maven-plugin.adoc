@@ -115,13 +115,13 @@ The following configuration options are available:
     </entry>
 </excludeConfig>
 ----
-`<environment>`::
+`<environmentVariables>`::
    To set environment options for a native image build, use:
 [source,xml, role="multi-language-sample"]
 ----
-<environment>
+<environmentVariables>
     <variable>value</variable>
-</environment>
+</environmentVariables>
 ----
 `<systemPropertyVariables>`::
    To specify system properties used for a native image build, use:
