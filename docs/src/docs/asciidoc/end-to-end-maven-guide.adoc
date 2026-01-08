@@ -197,7 +197,7 @@ Using `<buildArg>`, you can pass any Native Image build option listed on https:/
 
 The plugin also provides special properties to configure the build:
 
-- `<environment>` - Sets the environment options
+- `<environmentVariables>` - Sets the environment options
 - `<imageName>` - Specifies of the name for the native executable file. If a custom name is not supplied, the artifact ID of the project will be used by default (defaults to the project name).
 - `<jvmArgs>` - Passes the given argument directly to the JVM running the `native-image` tool
 - `<quickBuild>` - Enables quick build mode
@@ -214,10 +214,10 @@ Here is an example of additional options usage:
   <buildArgs>
     <buildArg>-O3</buildArg> <!-- enables additional compiler optimizations -->
   </buildArgs>
-  <environment>
+  <environmentVariables>
     <variable1>value1</variable1>
     <variable2>value2</variable2>
-  </environment>
+  </environmentVariables>
   <jvmArgs>
     <arg>your-argument</arg>
   </jvmArgs>
