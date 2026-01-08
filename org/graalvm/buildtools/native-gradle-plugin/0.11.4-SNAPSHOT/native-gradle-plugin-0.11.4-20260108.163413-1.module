@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "native-gradle-plugin",
+    "version": "0.11.4-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.11.4-SNAPSHOT.jar",
+          "url": "native-gradle-plugin-0.11.4-SNAPSHOT.jar",
+          "size": 128371,
+          "sha512": "57b75b715c55d4de2ab7fd704f57f53bc4163c21b82d00ddbe1adec9ee39ac351812c51b18e914dd08a2f36e82659d0939262f7bfb5c10ee5c8a29de7f8af919",
+          "sha256": "edae4dcc9c9a7a93ce384439ab3daf92dd9a659d01f81095495cfcc3029b5447",
+          "sha1": "efe271f70f82f08c5860e7fb4eb1b86de4b9df8b",
+          "md5": "cc85e89f7491695b4637181e1238d4a9"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "utils",
+          "version": {
+            "requires": "0.11.4-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "graalvm-reachability-metadata",
+          "version": {
+            "requires": "0.11.4-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.11.4-SNAPSHOT.jar",
+          "url": "native-gradle-plugin-0.11.4-SNAPSHOT.jar",
+          "size": 128371,
+          "sha512": "57b75b715c55d4de2ab7fd704f57f53bc4163c21b82d00ddbe1adec9ee39ac351812c51b18e914dd08a2f36e82659d0939262f7bfb5c10ee5c8a29de7f8af919",
+          "sha256": "edae4dcc9c9a7a93ce384439ab3daf92dd9a659d01f81095495cfcc3029b5447",
+          "sha1": "efe271f70f82f08c5860e7fb4eb1b86de4b9df8b",
+          "md5": "cc85e89f7491695b4637181e1238d4a9"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.11.4-SNAPSHOT-javadoc.jar",
+          "url": "native-gradle-plugin-0.11.4-SNAPSHOT-javadoc.jar",
+          "size": 275527,
+          "sha512": "1bfc9a2697fb2e884fa6748d762ecc8e8866cfcb775ad1b37549847697da9d617e011aa6440e3641af5f06ab326fb2f27a3c5c46b796546dc238a7c46a824eba",
+          "sha256": "7b77cb8ee65b367136d8b335a169e04a93d0103dd70884b74a8d7916b12c5f4a",
+          "sha1": "9955e3e97a725cf5c193a3d8a53bf55b5cd4a7cd",
+          "md5": "d9d721c145064dbb8284bb8afb74b8f8"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "native-gradle-plugin-0.11.4-SNAPSHOT-sources.jar",
+          "url": "native-gradle-plugin-0.11.4-SNAPSHOT-sources.jar",
+          "size": 100642,
+          "sha512": "938621175b52d5281ff4801024d81bd117cab49a5910d2549c12f79db9220cd569b3447334e9e1b6e3389147933d20af2a3b94cc6b02ea2f48441cddf6576b4b",
+          "sha256": "8113d3b3902ef7dc3d2ae206391402729244d83bafb7c706591be73d1270f32b",
+          "sha1": "955b762b47217715e782f5df8dbbd17a7bf26484",
+          "md5": "86f5d412b2c475c41fc2562d698dabed"
+        }
+      ]
+    }
+  ]
+}
