@@ -75,6 +75,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -280,15 +281,61 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     static List<String> processBuildArgs(List<String> buildArgs) {
+        String osName = normalizeOs(System.getProperty("os.name"));
+        return processPlatformBuildArgs(osName, buildArgs);
+    }
+
+    static List<String> processPlatformBuildArgs(String osName, List<String> buildArgs) {
         var result = new ArrayList<String>();
         for (String buildArg : buildArgs) {
             if (buildArg.startsWith("\\Q") || buildArg.startsWith("-H:ConfigurationFileDirectories")) {
                 result.add(buildArg);
             } else {
-                result.addAll(Arrays.asList(buildArg.split("\\s+", 2)));
+                buildArgForPlatform(osName, buildArg)
+                        .ifPresent(arg ->
+                                result.addAll(Arrays.asList(arg.split("\\s+", 2))));
             }
         }
         return result;
+    }
+
+    static Optional<String> buildArgForPlatform(String osName, String buildArg) {
+        if (!buildArg.startsWith("$") || !buildArg.contains(":")) {
+            return Optional.of(buildArg);
+        }
+        String argPlatform = buildArg.substring(1, buildArg.indexOf(':'));
+        if (!matchPlatform(osName, argPlatform)) {
+            // suppress this build argument as it is for another platform
+            return Optional.empty();
+        }
+        // trim off the platform prefix
+        String trimmedArg = buildArg.substring(buildArg.indexOf(':') + 1);
+        return Optional.of(trimmedArg);
+    }
+
+    private static boolean matchPlatform(String osName, String argPlatform) {
+        return osName.equals(normalize(argPlatform));
+    }
+
+    private static String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.toLowerCase(Locale.US).replaceAll("[^a-z0-9]+", "");
+    }
+
+    static String normalizeOs(String value) {
+        value = normalize(value);
+        if (value.startsWith("linux")) {
+            return "linux";
+        }
+        if (value.startsWith("mac") || value.startsWith("osx")) {
+            return "mac";
+        }
+        if (value.startsWith("windows")) {
+            return "windows";
+        }
+        return value;
     }
 
     protected Path processSupportedArtifacts(Artifact artifact) throws MojoExecutionException {
@@ -545,8 +592,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected void maybeAddDynamicAccessMetadataToClasspath() {
-        if (Files.exists(Path.of(outputDirectory.getPath() ,"dynamic-access-metadata.json"))) {
-            imageClasspath.add(Path.of(outputDirectory.getPath() ,"dynamic-access-metadata.json"));
+        if (Files.exists(Path.of(outputDirectory.getPath(), "dynamic-access-metadata.json"))) {
+            imageClasspath.add(Path.of(outputDirectory.getPath(), "dynamic-access-metadata.json"));
         }
     }
 
