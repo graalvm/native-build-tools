@@ -54,7 +54,7 @@
         <native.maven.plugin.version>0.11.4-SNAPSHOT</native.maven.plugin.version>
         <junit.platform.native.version>0.11.4-SNAPSHOT</junit.platform.native.version>
         <h2.version>2.2.220</h2.version>
-        <netty.version>4.1.108.Final</netty.version>
+        <netty.version>4.1.129.Final</netty.version>
         <logback.version>1.4.12</logback.version>
         <log4j.version>2.19.0</log4j.version>
         <slf4j.version>2.0.3</slf4j.version>
