@@ -157,10 +157,16 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         var resultingSystemProperties = [
                 "common.repo.uri": System.getProperty("common.repo.uri"),
                 "seed.repo.uri": System.getProperty("seed.repo.uri"),
-                "maven.repo.local": testDirectory.resolve("local-repo").toFile().absolutePath
         ]
-        println "Using local repo: ${resultingSystemProperties['maven.repo.local']}"
+        if (System.getProperty("noTestIsolation") == null) {
+            resultingSystemProperties.put("maven.repo.local", testDirectory.resolve("local-repo").toFile().absolutePath)
+        }
         resultingSystemProperties.putAll(systemProperties)
+        if (resultingSystemProperties.containsKey("maven.repo.local")) {
+            println "Using local repo: ${resultingSystemProperties['maven.repo.local']}"
+        } else {
+            println "Using default Maven local repo"
+        }
 
         result = executor.execute(
                 testDirectory.toFile(),
@@ -170,7 +176,6 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
                 new File(System.getProperty("maven.settings"))
         )
         println "Exit code is ${result.exitCode}"
-
     }
 
     void mvnDebug(String... args) {

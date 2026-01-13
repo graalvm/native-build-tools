@@ -27,6 +27,7 @@ Documentation for common developer tasks can be found [here](DEVELOPING.md).
 Examples can be found in the [samples subdirectory](samples).
 
 ### Contributing Code
-We welcome your code contributions. To get started, you will need to sign the [Oracle Contributor Agreement](https://oca.opensource.oracle.com) (OCA).
 
-Only pull requests from committers that can be verified as having signed the OCA can be accepted.
+We welcome your code contributions. To get started, you will need to sign the [Oracle Contributor Agreement](https://oca.opensource.oracle.com) (OCA). Only pull requests from committers that can be verified as having signed the OCA can be accepted.
+
+To see how to develop Native Build Tools go to [development guide](DEVELOPING.md).
