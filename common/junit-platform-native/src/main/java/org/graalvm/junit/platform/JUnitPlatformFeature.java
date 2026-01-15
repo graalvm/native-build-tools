@@ -42,11 +42,9 @@
 package org.graalvm.junit.platform;
 
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
-import org.graalvm.nativeimage.ImageSingletons;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeClassInitialization;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
-
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.discovery.UniqueIdSelector;
@@ -77,32 +75,21 @@ import java.util.stream.Stream;
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {
 
-    public final boolean debug = System.getProperty("debug") != null;
-    private static final NativeImageConfigurationImpl nativeImageConfigImpl = new NativeImageConfigurationImpl();
     private final ServiceLoader<PluginConfigProvider> extensionConfigProviders = ServiceLoader.load(PluginConfigProvider.class);
-
-    public static void debug(String format, Object... args) {
-        if (debug()) {
-            System.out.printf("[Debug] " + format + "%n", args);
-        }
-    }
 
     @Override
     public void afterRegistration(AfterRegistrationAccess access) {
-        extensionConfigProviders.forEach(p -> p.initialize(access.getApplicationClassLoader(), nativeImageConfigImpl));
-    }
-
-    private static boolean debug() {
-        return ImageSingletons.lookup(JUnitPlatformFeature.class).debug;
+        extensionConfigProviders.forEach(p -> p.initialize(access.getApplicationClassLoader()));
     }
 
     @Override
     public void duringSetup(DuringSetupAccess access) {
-        forEachProvider(p -> p.onLoad(nativeImageConfigImpl));
+        forEachProvider(PluginConfigProvider::onLoad);
     }
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
+        RuntimeClassInitialization.initializeAtBuildTime("org.graalvm.junit.platform.JUnitPlatformFeatureUtils");
         /* Before GraalVM version 22 we couldn't have classes initialized at run-time
          * that are also used at build-time but not added to the image heap */
         if (Runtime.version().feature() <= 21) {
@@ -141,7 +128,8 @@ public final class JUnitPlatformFeature implements Feature {
                 return selectors;
             }
         } catch (Exception ex) {
-            debug("Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage());
+            String format = "Failed to read UIDs from UniqueIdTrackingListener output files: " + ex.getMessage();
+            JUnitPlatformFeatureUtils.debug(format);
         }
 
         throw new RuntimeException("Cannot compute test selectors from test ids.");
@@ -156,9 +144,9 @@ public final class JUnitPlatformFeature implements Feature {
                 .build();
 
         TestClassRegistrar testClassRegistrar = new TestClassRegistrar(clazz -> {
-            debug("Registering test class for reflection: %s", clazz.getName());
-            nativeImageConfigImpl.registerAllClassMembersForReflection(clazz);
-            forEachProvider(p -> p.onTestClassRegistered(clazz, nativeImageConfigImpl));
+            JUnitPlatformFeatureUtils.debug("Registering test class for reflection: %s", clazz.getName());
+            JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(clazz);
+            forEachProvider(p -> p.onTestClassRegistered(clazz));
         });
 
         Launcher launcher = LauncherFactory.create();
@@ -195,8 +183,8 @@ public final class JUnitPlatformFeature implements Feature {
             return Stream.empty();
         }
         return Files.find(dir, Integer.MAX_VALUE,
-            (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
-                    && path.getFileName().toString().startsWith(prefix)));
+                (path, basicFileAttributes) -> (basicFileAttributes.isRegularFile()
+                        && path.getFileName().toString().startsWith(prefix)));
     }
 
     private static void registerClassesForHamcrestSupport(BeforeAnalysisAccess access) {
@@ -239,4 +227,5 @@ public final class JUnitPlatformFeature implements Feature {
             throw new RuntimeException("Failed to process build time initializations for JDK 21 or earlier");
         }
     }
+
 }

@@ -41,19 +41,21 @@
 
 package org.graalvm.junit.platform.config.platform;
 
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 import org.junit.platform.launcher.TestIdentifier;
 
 public class PlatformConfigProvider extends PluginConfigProvider {
 
     @Override
-    public void onLoad(NativeImageConfiguration config) {
-        RuntimeSerialization.register(TestIdentifier.class.getDeclaredClasses());
+    public void onLoad() {
+        if (ImageInfo.inImageBuildtimeCode()) {
+          RuntimeSerialization.register(TestIdentifier.class.getDeclaredClasses());
+        }
     }
 
     @Override
-    public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+    public void onTestClassRegistered(Class<?> testClass) {
     }
 }

@@ -41,7 +41,7 @@
 
 package org.graalvm.junit.platform.config.util;
 
-import org.graalvm.junit.platform.JUnitPlatformFeature;
+import org.graalvm.junit.platform.JUnitPlatformFeatureUtils;
 
 import java.util.Arrays;
 
@@ -52,7 +52,7 @@ public class Utils {
             try {
                 clazz = Class.forName(className);
             } catch (ClassNotFoundException e) {
-                JUnitPlatformFeature.debug("[Native Image Configuration] Failed to resolve: %s Reason: %s", className, e);
+                JUnitPlatformFeatureUtils.debug("[Native Image Configuration] Failed to resolve: %s Reason: %s", className, e);
             }
             return clazz;
         }).filter(c -> c != null).toArray(Class[]::new);

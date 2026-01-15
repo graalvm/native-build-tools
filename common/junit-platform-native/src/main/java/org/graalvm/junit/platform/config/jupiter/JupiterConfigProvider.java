@@ -41,9 +41,10 @@
 
 package org.graalvm.junit.platform.config.jupiter;
 
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
+import org.graalvm.junit.platform.JUnitPlatformFeatureUtils;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
 import org.graalvm.junit.platform.config.util.AnnotationUtils;
+import org.graalvm.junit.platform.config.util.Utils;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.IndicativeSentencesGeneration;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -61,56 +62,55 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.graalvm.junit.platform.JUnitPlatformFeature.debug;
+import static org.graalvm.junit.platform.JUnitPlatformFeatureUtils.debug;
 
 public class JupiterConfigProvider extends PluginConfigProvider {
 
     @Override
-    public void onLoad(NativeImageConfiguration config) {
+    public void onLoad() {
         /* Provide support for Timeout annotation */
-        config.registerAllClassMembersForReflection(
+        JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(Utils.toClasses(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
-                "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"
-        );
+                "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"));
     }
 
     @Override
-    public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+    public void onTestClassRegistered(Class<?> testClass) {
         /* Provide support for various annotations */
 
         /* Annotations from org.junit.jupiter.api */
         try {
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, TestMethodOrder.class, TestMethodOrder::value);
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ExtendWith.class, ExtendWith::value);
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisplayNameGeneration.class, DisplayNameGeneration::value);
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, IndicativeSentencesGeneration.class, IndicativeSentencesGeneration::generator);
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, EnabledIf.class, JupiterConfigProvider::handleEnabledIf);
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, DisabledIf.class, JupiterConfigProvider::handleDisabledIf);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, TestMethodOrder.class, TestMethodOrder::value);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, ExtendWith.class, ExtendWith::value);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, DisplayNameGeneration.class, DisplayNameGeneration::value);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, IndicativeSentencesGeneration.class, IndicativeSentencesGeneration::generator);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, EnabledIf.class, JupiterConfigProvider::handleEnabledIf);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, DisabledIf.class, JupiterConfigProvider::handleDisabledIf);
         } catch (NoClassDefFoundError e) {
             debug("Cannot register annotations %s from 'org.junit.jupiter.api'. " +
-                        "Please verify that you have dependency that includes 'org.junit.jupiter.api' if you want to use these annotations.",
-                        List.of("TestMethodOrder", "ExtendWith", "DisplayNameGeneration", "IndicativeSentencesGeneration", "EnabledIf", "DisabledIf"));
+                            "Please verify that you have dependency that includes 'org.junit.jupiter.api' if you want to use these annotations.",
+                    List.of("TestMethodOrder", "ExtendWith", "DisplayNameGeneration", "IndicativeSentencesGeneration", "EnabledIf", "DisabledIf"));
         }
 
         /* Annotations from org.junit.jupiter.params */
         try {
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, ArgumentsSource.class, ArgumentsSource::value);
-            AnnotationUtils.forEachAnnotatedMethodParameter(testClass, ConvertWith.class, annotation -> registry.registerAllClassMembersForReflection(annotation.value()));
-            AnnotationUtils.forEachAnnotatedMethodParameter(testClass, AggregateWith.class, annotation -> registry.registerAllClassMembersForReflection(annotation.value()));
-            AnnotationUtils.forEachAnnotatedMethod(testClass, EnumSource.class, (m, annotation) -> handleEnumSource(m, annotation, registry));
-            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, MethodSource.class, JupiterConfigProvider::handleMethodSource);
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, ArgumentsSource.class, ArgumentsSource::value);
+            AnnotationUtils.forEachAnnotatedMethodParameter(testClass, ConvertWith.class, annotation -> JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(annotation.value()));
+            AnnotationUtils.forEachAnnotatedMethodParameter(testClass, AggregateWith.class, annotation -> JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(annotation.value()));
+            AnnotationUtils.forEachAnnotatedMethod(testClass, EnumSource.class, (m, annotation) -> handleEnumSource(m, annotation));
+            AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, MethodSource.class, JupiterConfigProvider::handleMethodSource);
 
             // special case because the class might not be available because the annotation was introduced in JUnit 5.13
             try {
-                AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, registry, FieldSource.class, JupiterConfigProvider::handleFieldSource);
+                AnnotationUtils.registerClassesFromAnnotationForReflection(testClass, FieldSource.class, JupiterConfigProvider::handleFieldSource);
             } catch (NoClassDefFoundError e) {
                 debug("Cannot register @FieldSource annotation from org.junit.jupiter.params. " +
                         "Please verify that you have this dependency (with version greater than JUnit 5.13) if you want to use this annotation.");
             }
         } catch (NoClassDefFoundError e) {
             debug("Cannot register annotations %s from 'org.junit.jupiter.params'. " +
-                        "Please verify that you have dependency that includes 'org.junit.jupiter.params' if you want to use these annotations.",
-                        List.of("ArgumentsSource", "ConvertWith", "AggregateWith", "EnumSource", "MethodSource", "FieldSource"));
+                            "Please verify that you have dependency that includes 'org.junit.jupiter.params' if you want to use these annotations.",
+                    List.of("ArgumentsSource", "ConvertWith", "AggregateWith", "EnumSource", "MethodSource", "FieldSource"));
         }
 
     }
@@ -155,15 +155,15 @@ public class JupiterConfigProvider extends PluginConfigProvider {
         return classList.toArray(new Class<?>[0]);
     }
 
-    public static void handleEnumSource(Method method, EnumSource source, NativeImageConfiguration registry) {
-        registry.registerAllClassMembersForReflection(source.value());
+    public static void handleEnumSource(Method method, EnumSource source) {
+        JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(source.value());
         if (method.getParameterCount() > 0) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             /* EnumSource annotated methods without an enum in the annotation value must have the enum as the first parameter. */
             Class<?> enumParameterType = parameterTypes[0];
             if (enumParameterType.isEnum()) {
                 debug("Registering method enum parameter for reflection. Method: %s Parameter: %s", method, parameterTypes[0]);
-                registry.registerAllClassMembersForReflection(enumParameterType);
+                JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(enumParameterType);
             } else {
                 debug("First parameter of method not an enum - skipping. Method: %s", method);
             }
