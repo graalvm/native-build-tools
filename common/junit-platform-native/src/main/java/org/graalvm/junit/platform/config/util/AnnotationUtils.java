@@ -41,7 +41,7 @@
 
 package org.graalvm.junit.platform.config.util;
 
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
+import org.graalvm.junit.platform.JUnitPlatformFeatureUtils;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 import java.lang.annotation.Annotation;
@@ -112,17 +112,17 @@ public class AnnotationUtils {
     public interface ClassArrayProvider<T extends Annotation> extends Function<T, Class<?>[]> {
     }
 
-    public static <T extends Annotation> void registerClassesFromAnnotationForReflection(Class<?> testClass, NativeImageConfiguration config, Class<T> annotation, ClassArrayProvider<T> classProvider) {
+    public static <T extends Annotation> void registerClassesFromAnnotationForReflection(Class<?> testClass, Class<T> annotation, ClassArrayProvider<T> classProvider) {
         forEachAnnotationOnClassMembers(testClass, annotation, a -> {
             Class<?>[] reflectivelyAccessedClasses = classProvider.apply(a);
-            config.registerAllClassMembersForReflection(reflectivelyAccessedClasses);
+            JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(reflectivelyAccessedClasses);
         });
     }
 
-    public static <T extends Annotation> void registerClassesFromAnnotationForReflection(Class<?> testClass, NativeImageConfiguration config, Class<T> annotation, ClassProvider<T> classProvider) {
+    public static <T extends Annotation> void registerClassesFromAnnotationForReflection(Class<?> testClass, Class<T> annotation, ClassProvider<T> classProvider) {
         forEachAnnotationOnClassMembers(testClass, annotation, a -> {
             Class<?> reflectivelyAccessedClass = classProvider.apply(a);
-            config.registerAllClassMembersForReflection(reflectivelyAccessedClass);
+            JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(reflectivelyAccessedClass);
         });
     }
 }

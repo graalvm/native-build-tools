@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,29 +38,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.junit.platform;
 
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
+import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
+public class JUnitPlatformFeatureUtils {
+    public static final boolean debug = System.getProperty("org.graalvm.junit.platform.debug") != null;
 
-class NativeImageConfigurationImpl implements NativeImageConfiguration {
-
-    @Override
-    public void registerForReflection(Class<?>... classes) {
-        RuntimeReflection.register(classes);
+    public static void debug(String format, Object... args) {
+        if (JUnitPlatformFeatureUtils.debug) {
+            System.out.printf("[Debug] " + format + "%n", args);
+        }
     }
 
-    @Override
-    public void registerForReflection(Executable... methods) {
-        RuntimeReflection.register(methods);
-    }
-
-    @Override
-    public void registerForReflection(Field... fields) {
-        RuntimeReflection.register(fields);
+    public static void registerAllClassMembersForReflection(Class<?>... classes) {
+        if (ImageInfo.inImageBuildtimeCode()) {
+            for (Class<?> clazz : classes) {
+                JUnitPlatformFeatureUtils.debug("[Native Image Configuration] Registering for reflection: %s", clazz.getName());
+                RuntimeReflection.register(clazz);
+                RuntimeReflection.register(clazz.getDeclaredConstructors());
+                RuntimeReflection.register(clazz.getDeclaredMethods());
+                RuntimeReflection.register(clazz.getDeclaredFields());
+            }
+        }
     }
 }

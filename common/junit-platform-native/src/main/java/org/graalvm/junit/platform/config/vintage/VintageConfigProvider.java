@@ -41,27 +41,28 @@
 
 package org.graalvm.junit.platform.config.vintage;
 
-import org.graalvm.junit.platform.config.core.NativeImageConfiguration;
+import org.graalvm.junit.platform.JUnitPlatformFeatureUtils;
 import org.graalvm.junit.platform.config.core.PluginConfigProvider;
+import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
-
-import static org.graalvm.junit.platform.JUnitPlatformFeature.debug;
 
 public class VintageConfigProvider extends PluginConfigProvider {
 
     @Override
-    public void onLoad(NativeImageConfiguration config) {
-        try {
-            RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
-            RuntimeReflection.register(Class.forName("org.junit.runner.Description").getDeclaredFields());
-        } catch (ClassNotFoundException e) {
-            debug("Cannot register declared classes of org.junit.runner.Result for serialization or fields of org.junit.runner.Description for reflection. Vintage JUnit not available.");
+    public void onLoad() {
+        if (ImageInfo.inImageBuildtimeCode()) {
+            try {
+                RuntimeSerialization.register(Class.forName("org.junit.runner.Result").getDeclaredClasses());
+                RuntimeReflection.register(Class.forName("org.junit.runner.Description").getDeclaredFields());
+            } catch (ClassNotFoundException e) {
+                JUnitPlatformFeatureUtils.debug("Cannot register declared classes of org.junit.runner.Result for serialization or fields of org.junit.runner.Description for reflection. Vintage JUnit not available.");
+            }
         }
     }
 
     @Override
-    public void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry) {
+    public void onTestClassRegistered(Class<?> testClass) {
         registerAnnotationClassesForReflection(testClass, "org.junit.runner.RunWith", "value");
         registerAnnotationClassesForReflection(testClass, "org.junit.runners.Parameterized.UseParametersRunnerFactory", "value");
     }
@@ -69,7 +70,7 @@ public class VintageConfigProvider extends PluginConfigProvider {
     private void registerAnnotationClassesForReflection(Class<?> testClass, String annotationName, String annotationElementName) {
         Class<?> annotationArgument = getAnnotationElementValue(testClass, annotationName, annotationElementName);
         if (annotationArgument != null) {
-            nativeImageConfigImpl.registerAllClassMembersForReflection(annotationArgument);
+            JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(annotationArgument);
         }
     }
 }

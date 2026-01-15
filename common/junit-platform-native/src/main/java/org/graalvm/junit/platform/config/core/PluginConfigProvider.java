@@ -47,16 +47,13 @@ import java.lang.reflect.Method;
 public abstract class PluginConfigProvider {
 
     protected ClassLoader applicationClassLoader;
-    protected NativeImageConfiguration nativeImageConfigImpl;
 
+    public abstract void onLoad();
 
-    public abstract void onLoad(NativeImageConfiguration config);
+    public abstract void onTestClassRegistered(Class<?> testClass);
 
-    public abstract void onTestClassRegistered(Class<?> testClass, NativeImageConfiguration registry);
-
-    public final void initialize(ClassLoader classLoader, NativeImageConfiguration nic) {
+    public final void initialize(ClassLoader classLoader) {
         applicationClassLoader = classLoader;
-        nativeImageConfigImpl = nic;
     }
 
     @SuppressWarnings("unchecked")
