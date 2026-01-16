@@ -50,7 +50,7 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <native.maven.plugin.version>0.11.4-SNAPSHOT</native.maven.plugin.version>
+        <native.maven.plugin.version>0.11.4</native.maven.plugin.version>
         <imageName>example-app</imageName>
         <mainClass>org.graalvm.demo.Application</mainClass>
     </properties>
