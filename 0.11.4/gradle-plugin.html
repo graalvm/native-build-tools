@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.10">
+<meta name="author" content="The GraalVM team">
+<title>Gradle plugin for GraalVM Native Image</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment @import statement to use as custom stylesheet */
+/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700";*/
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section{display:block}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+abbr[title]{border-bottom:1px dotted}
+b,strong{font-weight:bold}
+dfn{font-style:italic}
+hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,*::before,*::after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto;tab-size:4;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{font-size:1em;line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0;font-size:1em}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-bottom:1px dotted #ddd;cursor:help}
+abbr{text-transform:none}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
+blockquote cite::before{content:"\2014 \0020"}
+blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed;word-wrap:break-word}
+:not(pre)>code.nobreak{word-wrap:normal}
+:not(pre)>code.nowrap{white-space:nowrap}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:100%;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:rgba(255,255,255,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details>summary:first-of-type{cursor:pointer;display:list-item;outline:none;margin-bottom:.75em}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+table.tableblock #preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:inherit}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6)}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border-style:solid;border-width:1px;border-color:#dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;-webkit-border-radius:4px;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class="highlight"],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos{border-right:1px solid currentColor;opacity:.35;padding-right:.5em}
+pre.pygments .lineno{border-right:1px solid currentColor;opacity:.35;display:inline-block;margin-right:.75em}
+pre.pygments .lineno::before{content:"";margin-right:-.125em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;text-align:left;margin-right:0}
+table.tableblock{max-width:100%;border-collapse:separate}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+td.tableblock>.content>:last-child.sidebarblock{margin-bottom:0}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>thead>tr>.tableblock,table.grid-all>tbody>tr>.tableblock{border-width:0 1px 1px 0}
+table.grid-all>tfoot>tr>.tableblock{border-width:1px 1px 0 0}
+table.grid-cols>*>tr>.tableblock{border-width:0 1px 0 0}
+table.grid-rows>thead>tr>.tableblock,table.grid-rows>tbody>tr>.tableblock{border-width:0 0 1px}
+table.grid-rows>tfoot>tr>.tableblock{border-width:1px 0 0}
+table.grid-all>*>tr>.tableblock:last-child,table.grid-cols>*>tr>.tableblock:last-child{border-right-width:0}
+table.grid-all>tbody>tr:last-child>.tableblock,table.grid-all>thead:last-child>tr>.tableblock,table.grid-rows>tbody>tr:last-child>.tableblock,table.grid-rows>thead:last-child>tr>.tableblock{border-bottom-width:0}
+table.frame-all{border-width:1px}
+table.frame-sides{border-width:0 1px}
+table.frame-topbot,table.frame-ends{border-width:1px 0}
+table.stripes-all tr,table.stripes-odd tr:nth-of-type(odd),table.stripes-even tr:nth-of-type(even),table.stripes-hover tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+ul.checklist{margin-left:.625em}
+ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist li>p:first-child>input[type="checkbox"]:first-child{margin-right:.25em}
+ul.inline{display:-ms-flexbox;display:-webkit-box;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
+.gist .file-data>table td.line-data{width:99%}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,span.alt{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media print,amzn-kf8{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<meta property="og:image" content="https://www.graalvm.org/resources/img/graalvm.png" />
+<meta name="description" content="The Native Build Tools project provides plugins for different build tools to add support for building and testing native applications written in Java (or any other language compiled to JVM bytecode)."/>
+<link rel="apple-touch-icon" sizes="180x180" href="https://www.graalvm.org/resources/img/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://www.graalvm.org/resources/img/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://www.graalvm.org/resources/img/favicon/favicon-16x16.png">
+
+<section class="topscreen">
+  <div class="wrapper">
+      <div class="topscreen__body">
+          <div class="topscreen__row">
+            <div class="topscreen__content">
+              <a class="graalvm-logo" href="https://graalvm.github.io/native-build-tools/">
+                <img src="css/images/graalvm-logo.svg" alt="graalvm-icon">
+              </a>
+            </div>
+            <div class="graalvm-rabbit">
+              <img src="css/images/graalvm-rabbit-icon.svg" alt="graalvm-icon">
+            </div>
+          </div>
+      </div>
+  </div>
+</section>
+</head>
+<body class="article toc2 toc-left">
+<div id="header">
+<h1>Gradle plugin for GraalVM Native Image</h1>
+<div class="details">
+<span id="author" class="author">The GraalVM team</span><br>
+<span id="revnumber">version 0.11.4</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#adding-the-plugin">Adding the Plugin</a></li>
+<li><a href="#configuration-toolchains">Using Gradle Toolchains</a>
+<ul class="sectlevel2">
+<li><a href="#configuration-toolchains-enabling">Enabling Toolchain Detection</a></li>
+<li><a href="#_selecting_the_graalvm_toolchain">Selecting the GraalVM Toolchain</a></li>
+</ul>
+</li>
+<li><a href="#configuration">Plugin Configuration</a>
+<ul class="sectlevel2">
+<li><a href="#available-tasks">Available Tasks</a></li>
+<li><a href="#configure-native-image">Native Image Configuration</a></li>
+<li><a href="#native-image-options">Native Image options</a></li>
+</ul>
+</li>
+<li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a>
+<ul class="sectlevel2">
+<li><a href="#resources-autodetecting">Resources Autodetecting</a></li>
+<li><a href="#metadatacopy-task">MetadataCopy Task</a></li>
+<li><a href="#common-agent-options">Common Agent Options</a></li>
+<li><a href="#agent-filter-file">Reduce the Amount of Generated Metadata</a></li>
+<li><a href="#max_parallel_builds">Max Parallel Builds</a></li>
+<li><a href="#long_classpath_and_fat_jar_support">Long classpath, @argument File, and a Fat JAR Support</a></li>
+</ul>
+</li>
+<li><a href="#testing-support">Testing Support</a>
+<ul class="sectlevel2">
+<li><a href="#test-binary-config">Configuring Test Image Options</a></li>
+<li><a href="#testing-support-disabling">Disabling Testing Support</a></li>
+<li><a href="#extra-test-suites">Configuring Additional Test Suites</a></li>
+</ul>
+</li>
+<li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
+<ul class="sectlevel2">
+<li><a href="#_configuring_the_metadata_repository">Configuring the Metadata Repository</a></li>
+<li><a href="#_including_metadata_repository_files">Including Metadata Repository Files</a></li>
+</ul>
+</li>
+<li><a href="#pgo-support">Profile-Guided Optimization</a></li>
+<li><a href="#plugin-configurations">Configurations Defined by the Plugin</a></li>
+<li><a href="#_javadocs">Javadocs</a></li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><span class="image"><img src="https://github.com/graalvm/native-build-tools/actions/workflows/test-native-gradle-plugin.yml/badge.svg" alt="badge"></span></p>
+</div>
+<div class="paragraph">
+<p>The Gradle plugin for GraalVM Native Image adds support for building and testing native images using the <a href="https://gradle.org">Gradle build tool</a>.</p>
+</div>
+<div class="paragraph">
+<p>Find the differences between the versions in the <a href="changelog.html">project changelog</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can find sample applications in the <a href="https://github.com/graalvm/native-build-tools/tree/master/samples">source repository</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="adding-the-plugin"><a class="anchor" href="#adding-the-plugin"></a>Adding the Plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Refer to the <a href="end-to-end-gradle-guide.html">Getting Started Gradle Guide</a> which provides step-by-step directions on adding the Gradle plugin to your project, building your first native image, and running it.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The plugin requires that you install a <a href="https://www.graalvm.org/downloads/">GraalVM JDK</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The plugin is enabled by adding its declaration to the  <em>build.gradle</em> / <em>build.gradle.kts</em> file within the <code>plugins</code> block:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">  id 'org.graalvm.buildtools.native' version '0.11.4'</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">  id("org.graalvm.buildtools.native") version "0.11.4"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This plugin supplements and heavily relies on regular Java plugins such as <code>application</code>, <code>java-library</code>, <code>java</code>, and others. Not having them included in your project will most probably cause errors.</p>
+</div>
+<div class="paragraph">
+<p>You can use development versions of the plugin by adding the snapshot repository instead. Pre-releases are provided for convenience, without any guarantee.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">pluginManagement {
+    repositories {
+        maven {
+            url "https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots"
+        }
+        gradlePluginPortal()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">pluginManagement {
+    repositories {
+        maven {
+            url = uri("https://raw.githubusercontent.com/graalvm/native-build-tools/snapshots")
+        }
+        gradlePluginPortal()
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuration-toolchains"><a class="anchor" href="#configuration-toolchains"></a>Using Gradle Toolchains</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Check out <a href="https://docs.gradle.org/current/userguide/compatibility.html">which Java versions are compatible with the Gradle version</a> you are using.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>If the Gradle version you are using is not compatible with the GraalVM version,
+you can set up the <code>GRAALVM_HOME</code> environment variable pointing to your GraalVM installation, and the <code>JAVA_HOME</code> environment variable pointing to some JDK that is compatible with the Gradle on your system.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="configuration-toolchains-enabling"><a class="anchor" href="#configuration-toolchains-enabling"></a>Enabling Toolchain Detection</h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Toolchain support has many pitfalls. Unless you have a single JDK installed on your machine, which is the GraalVM version that you want to use, we do not recommend enabling them yet. We are working with the Gradle team on improvements in the future.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Instead of relying on the JDK which is used to run Gradle, you can use the <a href="https://docs.gradle.org/current/userguide/toolchains.html">Gradle toolchain support</a> to select a specific GraalVM installation.</p>
+</div>
+<div class="paragraph">
+<p>However, because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
+In particular, this will only work properly if you <em>only</em> have GraalVM JDKs installed on the machine.
+<strong>Otherwise, Gradle will not be able to reliably detect GraalVM JDKs</strong>, nor detect GraalVM distributions from different vendors.</p>
+</div>
+<div class="paragraph">
+<p>Should you still want to enable toolchain support, you do it via the <code>graalvmNative</code> extension:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    toolchainDetection = true
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    toolchainDetection.set(true)
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_selecting_the_graalvm_toolchain"><a class="anchor" href="#_selecting_the_graalvm_toolchain"></a>Selecting the GraalVM Toolchain</h3>
+<div class="paragraph">
+<p>By default, the plugin will select a Java 11 GraalVM toolchain using the vendor string <code>GraalVM</code>, which works properly for GraalVM up to version 22.3 included.
+More recent versions of GraalVM do not have a specific version and are aligned with the language version they support.</p>
+</div>
+<div class="paragraph">
+<p>If you want to use a different toolchain, for example, a distribution compatible with Java 20 from Oracle, you can configure the toolchain like this:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        main {
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(20)
+                vendor = JvmVendorSpec.matching("Oracle Corporation")
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(20))
+                vendor.set(JvmVendorSpec.matching("Oracle Corporation"))
+            })
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, be aware that the toolchain detection <em>cannot</em> distinguish between GraalVM JDKs and standard JDKs without Native Image support.
+If you have both installed on the machine, Gradle may randomly pick one or the other.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configuration"><a class="anchor" href="#configuration"></a>Plugin Configuration</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin works with the <code>application</code> plugin and registers a number of tasks and extensions for you to configure.</p>
+</div>
+<div class="sect2">
+<h3 id="available-tasks"><a class="anchor" href="#available-tasks"></a>Available Tasks</h3>
+<div class="paragraph">
+<p>The main tasks that you may want to execute are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>nativeCompile</code> triggers the generation of a native executable of your application</p>
+</li>
+<li>
+<p><code>nativeRun</code> executes the generated native executable</p>
+</li>
+<li>
+<p><code>nativeTestCompile</code> builds a native image with tests found in the <code>test</code> source set</p>
+</li>
+<li>
+<p><code>nativeTest</code> <a href="#testing-support">executes tests</a> found in the <code>test</code> source set in native mode</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Those tasks are configured with reasonable defaults using the <code>graalvmNative</code> extension <code>binaries</code> container of type <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a>.</p>
+</div>
+<div class="paragraph">
+<p>The main executable is configured by the image named <code>main</code>, while the test executable is configured via the image named <code>test</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configure-native-image"><a class="anchor" href="#configure-native-image"></a>Native Image Configuration</h3>
+<div class="paragraph">
+<p>The <a href="javadocs/native-gradle-plugin/org/graalvm/buildtools/gradle/dsl/NativeImageOptions.html">NativeImageOptions</a> allows you to tweak how the native image is going to be built.
+The plugin allows configuring the final binary, the <a href="#test-binary-config">tests</a> one, as well as apply options to both.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.main {
+        // options for the main binary
+    }
+    binaries.test {
+        // options for the test binary
+    }
+    binaries.all {
+        // common options for both main and test binaries
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The following configuration options are available for building native images:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        main {
+            imageName = 'application'
+            mainClass = 'org.test.Main'
+            debug = true
+            verbose = true
+            fallback = true
+            sharedLibrary = false
+            quickBuild = false
+            richOutput = false
+
+            systemProperties = [name1: 'value1', name2: 'value2']
+            configurationFileDirectories.from(file('src/my-config'))
+            excludeConfig.put("org.example.test:artifact:version", ["^/META-INF/native-image/.*", "^/config/.*"])
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
+
+            // Advanced options
+            buildArgs.add('--link-at-build-time')
+            jvmArgs.add('flag')
+
+            // Runtime options
+            runtimeArgs.add('--help')
+
+            useFatJar = true
+        }
+    }
+
+    agent {
+        defaultMode = "standard"
+        enabled = true
+
+        modes {
+            standard {
+            }
+            conditional {
+                userCodeFilterPath = "path-to-filter.json"
+                extraFilterPath = "path-to-another-filter.json" // Optional
+            }
+            direct {
+                options.add("config-output-dir={output_dir}")
+                options.add("experimental-configuration-with-origins")
+            }
+        }
+
+        callerFilterFiles.from("filter.json")
+        accessFilterFiles.from("filter.json")
+        builtinCallerFilter = true
+        builtinHeuristicFilter = true
+        enableExperimentalPredefinedClasses = false
+        enableExperimentalUnsafeAllocationTracing = false
+        trackReflectionMetadata = true
+
+        metadataCopy {
+            inputTaskNames.add("test")
+            outputDirectories.add("META-INF/native-image/&lt;groupId&gt;/&lt;artifactId&gt;/")
+            mergeWithExisting = true
+        }
+
+        tasksToInstrumentPredicate = t -&gt; true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("application")
+            mainClass.set("org.test.Main")
+            debug.set(true)
+            verbose.set(true)
+            fallback.set(true)
+            sharedLibrary.set(false)
+            richOutput.set(false)
+            quickBuild.set(false)
+
+            systemProperties.putAll(mapOf("name1" to "value1", "name2" to "value2"))
+            configurationFileDirectories.from(file("src/my-config"))
+            excludeConfig.put("org.example.test:artifact:version", listOf("^/META-INF/native-image/.*", "^/config/.*"))
+            excludeConfig.put(file("path/to/artifact.jar"), listOf("^/META-INF/native-image/.*", "^/config/.*"))
+
+            // Advanced options
+            buildArgs.add("--link-at-build-time")
+            jvmArgs.add("flag")
+
+            // Runtime options
+            runtimeArgs.add("--help")
+
+            useFatJar.set(true)
+        }
+    }
+
+    agent {
+        defaultMode.set("standard")
+        enabled.set(true)
+
+        modes {
+            standard {
+            }
+            conditional {
+                userCodeFilterPath.set("path-to-filter.json")
+                extraFilterPath.set("path-to-another-filter.json") // Optional
+            }
+            direct {
+                options.add("config-output-dir={output_dir}")
+                options.add("experimental-configuration-with-origins")
+            }
+        }
+
+        callerFilterFiles.from("filter.json")
+        accessFilterFiles.from("filter.json")
+        builtinCallerFilter.set(true)
+        builtinHeuristicFilter.set(true)
+        enableExperimentalPredefinedClasses.set(false)
+        enableExperimentalUnsafeAllocationTracing.set(false)
+        trackReflectionMetadata.set(true)
+
+        metadataCopy {
+            inputTaskNames.add("test")
+            outputDirectories.add("/META-INF/native-image/&lt;groupId&gt;/&lt;artifactId&gt;/")
+            mergeWithExisting.set(true)
+        }
+
+        tasksToInstrumentPredicate.set(t -&gt; true)
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="native-image-options"><a class="anchor" href="#native-image-options"></a>Native Image options</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><code>imageName</code> - The name of the native executable, defaults to the project name</p>
+</li>
+<li>
+<p><code>mainClass</code> - The main class to use, defaults to the <em>application.mainClass</em></p>
+</li>
+<li>
+<p><code>debug</code> - Determines if debug info should be generated; defaults to <code>false</code> (alternatively, add <code>--debug-native</code> to the CLI)</p>
+</li>
+<li>
+<p><code>verbose</code> - Adds verbose output (<code>false</code> by default)</p>
+</li>
+<li>
+<p><code>fallback</code> - Sets the fallback mode of <code>native-image</code> (<code>false</code> by default)</p>
+</li>
+<li>
+<p><code>sharedLibrary</code> - Determines if the image is a shared library</p>
+</li>
+<li>
+<p><code>quickBuild</code> - Determines if the image is being built in quick build mode</p>
+</li>
+<li>
+<p><code>richOutput</code> - Determines whether <code>native-image</code> building should produce a rich output</p>
+</li>
+<li>
+<p><code>systemProperties</code>: Defines the system properties to use for the <code>native-image</code> tool</p>
+</li>
+<li>
+<p><code>configurationFileDirectories</code>: Adds a directory containing configuration files for <code>native-image</code>, such as reflection configuration
+-<code>excludeConfig</code>: Excludes configuration that matches any of the specified regex patterns from the JAR of a dependency with the given coordinates</p>
+</li>
+<li>
+<p><code>jvmArgs</code>: Passes the specified arguments directly to the JVM running the <code>native-image</code> builder</p>
+</li>
+<li>
+<p><code>useFatJar</code>: Builds a fat JAR instead of passing each JAR individually</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also pass <strong>build-time</strong> and <strong>run-time</strong> arguments:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>buildArgs.add('&lt;buildArg&gt;')</code>: Configures the build by passing options directly to <code>native-image</code>. You can pass any Native Image build option listed <a href="https://www.graalvm.org/reference-manual/native-image/overview/Options/">here</a>.</p>
+</li>
+<li>
+<p><code>runtimeArgs.add('&lt;runtimeArg&gt;')</code>: Specifies runtime arguments consumed by your application.</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_command_line_options"><a class="anchor" href="#_command_line_options"></a>Command Line Options</h4>
+<div class="paragraph">
+<p>The preferred way to configure native binaries is through the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.
+However, in some cases—such as experimentation—it may be useful to override parameters via the command line.
+The following flags are available and, unless stated otherwise, take precedence over the DSL configuration:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Command line option</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Description</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--image-name=&lt;name&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides the <code>imageName</code> property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--main-class=&lt;class&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides the <code>mainClass</code> property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)debug-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables debug info generation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)verbose</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables verbose output</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)fallback</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables fallback mode</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)quick-build-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables quick build mode</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)rich-output</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables rich output</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)pgo-instrument</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables PGO instrumentation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--build-args</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds build arguments</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--force-build-args</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides build arguments (DSL configuration is ignored)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--(no-)fat-jar</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enables or disables creation of a fat JAR for compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--sysprop-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds a system property for <code>native-image</code> compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--env-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds an environment variable for <code>native-image</code> compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--jvm-args-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adds JVM arguments for <code>native-image</code> compilation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--force-jvm-args-native</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Overrides JVM arguments (DSL configuration is ignored)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="native-image-tracing-agent"><a class="anchor" href="#native-image-tracing-agent"></a>Native Image Tracing Agent</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your project requires reflection, classpath resources, dynamic proxies, or other features that need explicit configuration, it may be helpful to first run your application or tests using the <a href="https://www.graalvm.org/reference-manual/native-image/metadata/AutomaticMetadataCollection/">Native Image Tracing Agent</a>.</p>
+</div>
+<div class="paragraph">
+<p>The Native Image Gradle plugin simplifies generation of the required metadata files by injecting the agent automatically for you (this includes, but is not limited to the reflection file).</p>
+</div>
+<div class="paragraph">
+<p>Any task that extends <code>JavaForkOptions</code> (such as <code>test</code>, <code>run</code>, and so on) can be instrumented by passing <code>-Pagent</code> to Gradle when running those tasks.</p>
+</div>
+<div class="paragraph">
+<p>Enable the agent by adding the following block inside <code>graalvmNative</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">agent {
+    enabled = true
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">agent {
+    enabled.set(true)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can then run it:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent run # Runs on HotSpot with the agent</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The generated configuration files can be found in the <code>${buildDir}/native/agent-output/${taskName}</code> directory, for example, <em>build/native/agent-output/run</em>.
+The plugin also substitutes <code>{output_dir}</code> in the agent options to point to this directory during the agent run.</p>
+</div>
+<div class="paragraph">
+<p>The agent can run in multiple modes that dictate how the metadata is collected and merged.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>defaultMode</code> - Specifies the default agent mode if one isn&#8217;t specified using <code>-Pagent=mode_name</code></p>
+</li>
+<li>
+<p><code>enabled</code> - Enables the agent</p>
+</li>
+<li>
+<p><code>modes</code>- Configures the following agent modes:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>standard</code> - Generates metadata without conditions</p>
+</li>
+<li>
+<p><code>conditional</code> - Generates metadata with conditions</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>userCodeFilterPath</code> - Path to a filter file that specifies which classes to include in metadata conditions</p>
+</li>
+<li>
+<p><code>extraFilterPath</code> - (Optional) An additional filter file to further refine the collected metadata</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>direct</code> - Allows users to directly pass options to the agent</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>{output_dir}</code> -  The output directory to store agent files</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>tasksToInstrumentPredicate</code> - By default, when <code>-Pagent</code> is specified, all tasks extending <code>JavaForkOptions</code> are instrumented.
+This can be limited to only specific tasks that match this predicate.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">agent {
+    enabled = true
+    defaultMode = "conditional"
+    modes {
+        conditional {
+            userCodeFilterPath = "src/test/native-image/filters/user-code-filter.json"
+        }
+        direct {
+            options.add("config-output-dir=src/test/resources/direct-mode-metadata")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">agent {
+    enabled.set(true)
+    defaultMode.set("conditional")
+    modes {
+        conditional {
+            userCodeFilterPath.set("src/test/native-image/filters/user-code-filter.json")
+        }
+        direct {
+            options.add("config-output-dir=src/test/resources/direct-mode-metadata")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to <strong>enable the agent on the command line</strong>, you can specify in which mode you want to run it. For example:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew -Pagent=standard nativeTest
+./gradlew -Pagent=conditional nativeTest
+./gradlew -Pagent=direct nativeTest</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="resources-autodetecting"><a class="anchor" href="#resources-autodetecting"></a>Resources Autodetecting</h3>
+<div class="paragraph">
+<p>You can instruct the plugin to automatically detect resources to be included in a native executable at build time:
+Add this to your <em>build.gradle</em> file:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries.all {
+        resources.autodetect()
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="metadatacopy-task"><a class="anchor" href="#metadatacopy-task"></a>MetadataCopy Task</h3>
+<div class="paragraph">
+<p>Once the metadata is collected, it can be copied into the project using the <code>metadataCopy</code> task.
+To do so, add the following block inside your <code>agent</code> block:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">agent {
+    enabled = true
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/test/resources/META-INF/native-image/org.example")
+        mergeWithExisting = false
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">agent {
+    enabled.set(true)
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("resources/META-INF/native-image/org.example")
+        mergeWithExisting.set(false)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Inside this block, you configure:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>inputTaskNames</code> - specifies tasks previously executed with the agent attached (tasks that generated metadata in the last step).</p>
+</li>
+<li>
+<p><code>outputDirectories</code> -  specifies the location where you want to copy the generated metadata</p>
+</li>
+<li>
+<p><code>mergeWithExisting</code> - specifies whether the metadata you want to copy, should be merged with the metadata that already exists on the give location, or not. This only makes sense when there is already some existing metadata, created before.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Then you can copy metadata to the location you specified with:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew metadataCopy</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can configure the <code>metadataCopy</code> task on the command line as well:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew metadataCopy --task run  # if you used nativeRun (or just run) to collect metadata
+./gradlew metadataCopy --task test  # if you used nativeTest (or just test) to collect metadata
+./gradlew metadataCopy --dir &lt;pathToSomeDirectory&gt; # to specify the output directory</code></pre>
+</div>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="common-agent-options"><a class="anchor" href="#common-agent-options"></a>Common Agent Options</h3>
+<div class="paragraph">
+<p>All the mentioned modes share certain common configuration options like:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>callerFilterFiles</code></p>
+</li>
+<li>
+<p><code>accessFilterFiles</code></p>
+</li>
+<li>
+<p><code>builtinCallerFilter</code></p>
+</li>
+<li>
+<p><code>builtinHeuristicFilter</code></p>
+</li>
+<li>
+<p><code>enableExperimentalPredefinedClasses</code></p>
+</li>
+<li>
+<p><code>enableExperimentalUnsafeAllocationTracing</code></p>
+</li>
+<li>
+<p><code>trackReflectionMetadata</code></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>These options are for advanced usages. You can read more about them <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#agent-advanced-usage">here</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A complete example of the agent block should look like this:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">agent {
+    defaultMode = "standard"
+    enabled = true
+
+    modes {
+        conditional {
+            userCodeFilterPath = "path-to-filter.json"
+            extraFilterPath = "path-to-another-filter.json"
+        }
+        direct {
+            options.add("config-output-dir={output_dir}")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+
+    callerFilterFiles.from("filter.json")
+    accessFilterFiles.from("filter.json")
+    builtinCallerFilter = true
+    builtinHeuristicFilter = true
+    enableExperimentalPredefinedClasses = false
+    enableExperimentalUnsafeAllocationTracing = false
+    trackReflectionMetadata = true
+
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image/&lt;groupId&gt;/&lt;artifactId&gt;/")
+        mergeWithExisting = true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">agent {
+    defaultMode.set("standard")
+    enabled.set(true)
+
+    modes {
+        conditional {
+            userCodeFilterPath.set("path-to-filter.json")
+            extraFilterPath.set("path-to-another-filter.json")
+        }
+        direct {
+            options.add("config-output-dir={output_dir}")
+            options.add("experimental-configuration-with-origins")
+        }
+    }
+
+    callerFilterFiles.from("filter.json")
+    accessFilterFiles.from("filter.json")
+    builtinCallerFilter.set(true)
+    builtinHeuristicFilter.set(true)
+    enableExperimentalPredefinedClasses.set(false)
+    enableExperimentalUnsafeAllocationTracing.set(false)
+    trackReflectionMetadata.set(true)
+
+    metadataCopy {
+        inputTaskNames.add("test")
+        outputDirectories.add("src/main/resources/META-INF/native-image/&lt;groupId&gt;/&lt;artifactId&gt;/")
+        mergeWithExisting.set(true)
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="agent-filter-file"><a class="anchor" href="#agent-filter-file"></a>Reduce the Amount of Generated Metadata</h3>
+<div class="paragraph">
+<p>In some cases the agent may include more metadata than it is actually needed.
+You can filter metadata using the agent filter files.
+These filter files that agent consumes have the following structure:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+ "rules": [
+    {"includeClasses": "some.class.to.include.**"},
+    {"excludeClasses": "some.class.to.exclude.**"},
+  ],
+  "regexRules": [
+    {"includeClasses": "regex\.example\.class.*"},
+    {"excludeClasses": "regex\.example\.exclude[0-9]+"},
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The process how you can pass the config files to the agent is described in the <a href="#additional-agent-options">previous section</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can see on some simple Java application how different filter files affect generated metadata.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s start with this filter:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "rules": [
+    {"includeClasses": "**"}
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This filter instructs the agent to include everything, which will result in a massive configuration file.
+For example, this is how <em>reachability-metadata.json</em> looks like:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  {
+    "reflection": [
+      {
+        "condition": {
+          "typeReached": "java.io.ObjectInputStream"
+        },
+        "type": "[Ljava.lang.Object;"
+      },
+      {
+        "condition": {
+          "typeReached": "java.io.ObjectInputStream"
+        },
+        "type": "java.util.LinkedHashSet"
+      },
+      {
+        "condition": {
+          "typeReached": "org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor"
+        },
+        "type": "org.example.NativeTests"
+      },
+      {
+        "condition": {
+          "typeReached": "org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor"
+        },
+        "type": "org.example.NativeTests",
+        "allDeclaredFields": true
+      },
+      {
+        "condition": {
+          "typeReached": "org.junit.jupiter.engine.descriptor.ExtensionUtils"
+        },
+        "type": "org.example.NativeTests"
+      },
+      ...
+    ],
+    "resources": [
+      {
+        "condition": {
+          "typeReached": "org.junit.platform.launcher.core.LauncherFactory"
+        },
+        "glob": "META-INF/services/org.junit.platform.engine.TestEngine"
+      },
+      {
+        "condition": {
+          "typeReached": "java.lang.ClassLoader"
+        },
+        "glob": "TestResource.txt"
+      },
+      ...
+    ],
+    "bundles": [],
+    "jni": [
+      {
+        "condition": {
+          "typeReached": "java.net.InetAddress"
+        },
+        "type": "java.lang.Boolean",
+        "methods": [
+          {
+            "name": "getBoolean",
+            "parameterTypes": [
+              "java.lang.String"
+            ]
+          }
+        ]
+      }
+    ]
+  }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see, there are lots of entries that you likely do not want.
+They are present because the metadata was generated using tests, and that the testing library was present at run time during the agent execution pass, but in practice, your application will not use the testing library in production.
+To reduce the amount of generated metadata, use the following <em>user-code-filter.json</em>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "rules": [
+    {"includeClasses": "**"},
+    {"excludeClasses": "org.junit.**"},
+    {"excludeClasses": "org.gradle.**"},
+    {"excludeClasses": "worker.org.gradle.**"},
+    {"excludeClasses": "org.slf4j.**"},
+    {"excludeClasses": "java.**"}
+  ]
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Always be careful when removing entries in metadata, as this may result in a broken native image.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After updating the filter, you can regenerate the metadata, which will result in the following <em>reachability-metadata.json</em> file:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+  "reflection": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "type": "org.example.NativeTests$Person",
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {
+        "typeReached": "sun.security.jca.GetInstance"
+      },
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "&lt;init&gt;",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "org.example.NativeTests"
+      },
+      "glob": "TestResource.txt"
+    }
+  ],
+  "bundles": []
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As you can see there are no more entries that contain classes from <code>org.junit</code> (as their condition).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="max_parallel_builds"><a class="anchor" href="#max_parallel_builds"></a>Max Parallel Builds</h3>
+<div class="paragraph">
+<p>When using Gradle parallel builds, the plugin automatically limits the number of native images which can be built concurrently, in order to limit CPU and memory usage.
+By default, it is limited to the number of CPU cores / 16, but you can change this limit either by setting the <code>org.graalvm.buildtools.max.parallel.builds</code> gradle property (in your <em>gradle.properties</em> file), or by setting the <code>GRAALVM_BUILDTOOLS_MAX_PARALLEL_BUILDS</code> environment variable.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="long_classpath_and_fat_jar_support"><a class="anchor" href="#long_classpath_and_fat_jar_support"></a>Long classpath, @argument File, and a Fat JAR Support</h3>
+<div class="paragraph">
+<p>The plugin automatically passes arguments to the <code>native-image</code> tool from the argument file, which should prevent all <a href="https://github.com/graalvm/native-build-tools/issues/85">long classpath issues</a> under Windows.
+However, if you are using an older GraalVM release (older than 21.3) which doesn&#8217;t support argument files, you will need to rely on creating a "fat JAR", which includes all entries from the classpath automatically, to workaround the problem:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    useArgFile = false // required for older GraalVM releases
+    binaries {
+        main {
+            useFatJar = true
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    useFatJar.set(false) // required for older GraalVM releases
+    binaries {
+        named("main") {
+            useFatJar.set(true)
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, it is possible to use your own JAR file (for example, created using the <a href="https://imperceptiblethoughts.com/shadow/">Shadow plugin</a>) by setting the <code>classpathJar</code> property directly on the <em>task</em>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.named("nativeCompile") {
+    classpathJar = myFatJar
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">tasks.named&lt;BuildNativeImageTask&gt;("nativeCompile") {
+    classpathJar.set(myFatJar.flatMap { it.archiveFile })
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the <code>classpathJar</code> property is set, the <code>classpath</code> property is <em>ignored</em>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="testing-support"><a class="anchor" href="#testing-support"></a>Testing Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin supports running tests on the
+<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> as native images.
+This means that tests are compiled and executed as native code.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The minimum supported version is JUnit 5.8.1 (JUnit Platform 1.8.1, JUnit Jupiter 5.8.1, JUnit Vintage 5.8.1).</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In theory, any <code>TestEngine</code> supported on the JUnit Platform should be supported by the plugin as long as the programming language used by the <code>TestEngine</code> and the programming language used to write the tests is supported by GraalVM Native Image.
+The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage test engines, and support for additional test engines should be possible with custom native configuration.</p>
+</div>
+<div class="paragraph">
+<p>Currently, this feature requires the execution of the tests on the JVM <em>prior to</em> the execution of tests as native code.
+To execute the tests, run:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeTest</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="test-binary-config"><a class="anchor" href="#test-binary-config"></a>Configuring Test Image Options</h3>
+<div class="paragraph">
+<p>You can fine-tune the test binary using the <code>test</code> binary configuration.
+The following example prints additional data for troubleshooting and sets the minimal optimizations.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    binaries {
+        test {
+            buildArgs.addAll('--verbose', '-O0')
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    binaries {
+        named("main") {
+            mainClass.set("org.test.Main")
+        }
+        named("test") {
+            buildArgs.addAll("--verbose", "-O0")
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="testing-support-disabling"><a class="anchor" href="#testing-support-disabling"></a>Disabling Testing Support</h3>
+<div class="paragraph">
+<p>There are cases where you might want to disable running native tests:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You don&#8217;t actually want to run your tests as native code.</p>
+</li>
+<li>
+<p>Your library or application uses a testing framework that is not supported on the JUnit Platform.</p>
+</li>
+<li>
+<p>You need to use the <a href="#native-image-tracing-agent">agent</a> when running tests on the JVM, but do not wish to run the same tests as native code.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this case, you can disable native testing support by configuring the <code>graalvmNative</code> option as follows:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    testSupport = false
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    testSupport.set(false)
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="extra-test-suites"><a class="anchor" href="#extra-test-suites"></a>Configuring Additional Test Suites</h3>
+<div class="paragraph">
+<p>It is common to have multiple test source sets in a Gradle build.
+Typically, you may have an integration test suite, or a functional test suite, in addition to the unit test suite.
+The plugin supports running those tests as native binaries too.</p>
+</div>
+<div class="paragraph">
+<p>For example, imagine that you have a source set named <code>integTest</code> and that its corresponding test task is named <code>integTest</code>.
+In this case you can register a new native test binary with <code>graalvmNative</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    registerTestBinary("integTest") {
+        usingSourceSet(sourceSets.integTest)
+        forTestTask(integTest)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    registerTestBinary("integTest") {
+        usingSourceSet(sourceSets.getByName("integTest"))
+        forTestTask(tasks.named&lt;Test&gt;("integTest"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The plugin then automatically creates the following tasks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>nativeIntegTestCompile</code> to compile a native image using the <code>integTest</code> source set</p>
+</li>
+<li>
+<p><code>nativeIntegTest</code> to execute the tests as native code</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The same mechanism can be used if you have multiple test tasks for a single test source set, which is often the case with manual test sharding.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="metadata-support"><a class="anchor" href="#metadata-support"></a>GraalVM Reachability Metadata Support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin adds support for the <a href="https://github.com/oracle/graalvm-reachability-metadata/">GraalVM Reachability Metadata Repository</a>.
+This repository provides the <a href="https://www.graalvm.org/latest/reference-manual/native-image/metadata/">configuration</a> for libraries that do not support GraalVM Native Image.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The GraalVM Reachability Metadata Repository is also published on Maven Central at the following coordinates: <code>org.graalvm.buildtools:graalvm-reachability-metadata:graalvm-reachability-metadata</code> with the <code>repository</code> classifier and <code>zip</code> extension, for example, <code>graalvm-reachability-metadata-0.11.4-repository.zip</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_metadata_repository"><a class="anchor" href="#_configuring_the_metadata_repository"></a>Configuring the Metadata Repository</h3>
+<div class="paragraph">
+<p>The plugin automatically downloads the configuration metadata from the official repository if you supply the version of the repository you want to use.</p>
+</div>
+<div class="paragraph">
+<p>The support is enabled by default, but can be disabled explicitly:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        enabled = false
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        enabled.set(false)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To override the repository version, use:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        version = "0.1.0"
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        version.set("0.1.0")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Alternatively, it is possible to use a <em>local repository</em>, in which case you can specify the path to the repository:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        uri(file("metadata-repository"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        uri(file("metadata-repository"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For each library dependency, the plugin automatically searches for the configuration metadata in the repository.
+In some cases, you may need to exclude a particular module from the search.
+This can be done by adding it to the exclude list:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        // Exclude this library from automatic metadata
+        // repository search
+        excludes.add("com.company:some-library")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        // Exclude this library from automatic metadata
+        // repository search
+        excludes.add("com.company:some-library")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Lastly, it is possible for you to override the <em>metadata version</em> of a particular module.
+This may be interesting if there is no specific metadata available for the particular version of the library that you use, but that you know that a version works:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">graalvmNative {
+    metadataRepository {
+        // Force the version of the metadata for a particular library
+        moduleToConfigVersion.put("com.company:some-library", "3")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">graalvmNative {
+    metadataRepository {
+        // Force the version of the metadata for a particular library
+        moduleToConfigVersion.put("com.company:some-library", "3")
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_including_metadata_repository_files"><a class="anchor" href="#_including_metadata_repository_files"></a>Including Metadata Repository Files</h3>
+<div class="paragraph">
+<p>By default, reachability metadata is used only when your native image is being generated.
+In some situations, you may want a copy of the reachability metadata to use it directly.</p>
+</div>
+<div class="paragraph">
+<p>Copying the reachability metadata into the application JAR can be useful when some other process is responsible for converting your JAR into a native image.
+For example, you might be generating a shaded JAR file and using a <a href="https://paketo.io/">Paketo buildpack</a> to convert it to a native image.</p>
+</div>
+<div class="paragraph">
+<p>To download a copy of the metadata into the <em>build/native-reachability-metadata</em> directory, you can the <code>collectReachabilityMetadata</code> task.
+Files will be downloaded into <code>META-INF/native-image/&lt;groupId&gt;/&lt;versionId&gt;</code> subdirectories.</p>
+</div>
+<div class="paragraph">
+<p>To include metadata repository inside the JAR file, you can link to the task using the <code>jar</code> DSL <code>from</code> directive:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">tasks.named("jar") {
+    from collectReachabilityMetadata
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">tasks.named("jar", Jar) {
+	from(collectReachabilityMetadata)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more advanced configurations you can declare the <code>org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata</code> task and set the appropriate properties.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="pgo-support"><a class="anchor" href="#pgo-support"></a>Profile-Guided Optimization</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin supports building optimized images with <a href="https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/PGO/">Profile-Guided Optimization (PGO)</a> to improve performance and throughput.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>PGO is available in Oracle GraalVM.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The PGO workflow includes three steps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>First, generate a native image with instrumentation enabled.</p>
+</li>
+<li>
+<p>Next, run the image to gather profiling information.</p>
+</li>
+<li>
+<p>Then, create an optimized native image based on the profiles.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To generate a binary with instrumentation enabled, you should run the <code>nativeCompile</code> command with the <code>--pgo-instrument</code> command line option:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile --pgo-instrument</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This generates a native image under <em>build/native/nativeCompile</em> with the <code>-instrumented</code> suffix.
+You can run this image to gather profiling data:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./myApp-instrumented</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A <em>default.iprof</em> file will be generated once the application is stopped.
+Alternatively, you can have Gradle both generate and run the instrumented binary in a single command by running:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile --pgo-instrument nativeRun</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case, the profile will automatically be stored under <em>build/native/nativeCompile</em>.</p>
+</div>
+<div class="paragraph">
+<p>The last phase consists in copying the generated profile, so that it is automatically used when building an optimized native image.
+The conventional location for profiles is <em>src/pgo-profiles/&lt;name of the binary&gt;</em>.
+By default, the location will be <em>src/pgo-profiles/main</em>.
+Copy <em>default.iprof</em> into that directory, and then run:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew nativeCompile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The profile will automatically be used.
+If everything was done properly, you will see <em>"PGO: user-provided"</em> in the native image build output.</p>
+</div>
+<div class="paragraph">
+<p>It is possible to include more than one profile, in which case you should rename the <em>.iprof</em> files in the <em>src/pgo-profiles/main</em> directory.
+Learn more about PGO <a href="https://www.graalvm.org/reference-manual/native-image/optimizations-and-performance/PGO/basic-usage">on the website</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="plugin-configurations"><a class="anchor" href="#plugin-configurations"></a>Configurations Defined by the Plugin</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For each binary (<code>main</code> and <code>test</code>), the plugin declares 2 configurations that users or plugin authors can use to tweak the native image compilation classpath:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>nativeImageCompileOnly</code> (for the <code>main</code> binary) and <code>nativeImageTestCompileOnly</code> (for the <code>test</code> binary) can be used to declare dependencies which are only needed during the ahead-of-time compilation.</p>
+</li>
+<li>
+<p><code>nativeImageClasspath</code> (for the <code>main</code> binary) and <code>nativeImageTestClasspath</code> (for the <code>test</code> binary) are the configurations which are resolved to determine the image classpath.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The native image "compile only" configurations can typically be used to declare dependencies which are only required when building a native binary, and therefore should not leak when running on the JVM.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can declare a source set which uses the GraalVM SDK to implement native features.
+This source set would contain code which is only relevant to native images building:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">sourceSets {
+    graal
+}
+
+dependencies {
+    graalCompileOnly 'org.graalvm.nativeimage:svm:21.2.0'
+    graalCompileOnly 'org.graalvm.sdk:graal-sdk:21.2.0'
+    nativeImageCompileOnly sourceSets.graal.output.classesDirs
+}
+
+configurations {
+    nativeImageClasspath.extendsFrom(graalImplementation)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">val graal by sourceSets.creating
+
+dependencies {
+    "graalCompileOnly"("org.graalvm.nativeimage:svm:21.2.0")
+    "graalCompileOnly"("org.graalvm.sdk:graal-sdk:21.2.0")
+    nativeImageCompileOnly(graal.output.classesDirs)
+}
+
+configurations {
+    nativeImageClasspath.extendsFrom(getByName("graalImplementation"))
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_javadocs"><a class="anchor" href="#_javadocs"></a>Javadocs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For further reference, you can review the <a href="javadocs/native-gradle-plugin/index.html">Javadocs of the plugin</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<link rel="stylesheet" href="highlight/styles/equilibrium-light.min.css">
+<script src="highlight/highlight.min.js"></script>
+<script>hljs.initHighlighting()</script>
+<link rel="stylesheet" href="css/multi-lang-sample.css">
+<link rel="stylesheet" href="css/page.css">
+<link rel="stylesheet" href="css/typography.css">
+<link rel="stylesheet" href="css/footer.css">
+<script src="js/multi-lang-sample.js"></script>
+<div id="footer">
+    <div class="foot-container">
+      <div class="foot-content">
+        <div id="footer-text">
+          <h5>Copyright © 2026. Licensed under the Universal Permissive License (UPL), Version 1.0 </h5>
+        </div>
+      </div>
+    </div>
+</div>
+</body>
+</html>
