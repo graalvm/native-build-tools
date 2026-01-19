@@ -156,10 +156,10 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "excludeConfig")
     protected List<ExcludeConfigConfiguration> excludeConfig;
 
-    @Parameter(property = "environmentVariables")
+    @Parameter(alias = "environmentVariables", property = "environmentVariables")
     protected Map<String, String> environment;
 
-    @Parameter(property = "systemPropertyVariables")
+    @Parameter(alias = "systemPropertyVariables", property = "systemPropertyVariables")
     protected Map<String, String> systemProperties;
 
     @Parameter(property = "configurationFileDirectories")
@@ -240,6 +240,12 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (systemProperties != null) {
             for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
                 cliArgs.add("-D" + entry.getKey() + "=" + entry.getValue());
+            }
+        }
+
+        if (environment != null) {
+            for (Map.Entry<String, String> entry : environment.entrySet()) {
+                cliArgs.add("-E" + entry.getKey() + "=" + entry.getValue());
             }
         }
 
