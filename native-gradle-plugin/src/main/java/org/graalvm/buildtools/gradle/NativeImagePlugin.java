@@ -176,7 +176,14 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
     private static final String DEFAULT_URI = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
 
+    // Compatibility Mode detection constants
+    private static final String COMPATIBILITY_MODE_TOKEN = "-H:+CompatibilityMode";
+    private static final String NATIVE_IMAGE_OPTIONS_ENV = "NATIVE_IMAGE_OPTIONS";
+
     private GraalVMLogger logger;
+
+    // Exposed detection provider for test binaries (to be used by follow-up tasks)
+    private Provider<Boolean> testCompatibilityModeEnabled;
 
     @Inject
     public ArchiveOperations getArchiveOperations() {
@@ -549,7 +556,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             defaultUri = new URI(DEFAULT_URI);
             githubReleaseUri = new URI(String.format(METADATA_REPO_URL_TEMPLATE, repositoryExtension.getVersion().get()));
         } catch (URISyntaxException e) {
-            throw new RuntimeException("Unable to convert repository path to URI", e);
+                       throw new RuntimeException("Unable to convert repository path to URI", e);
         }
         if (defaultUri.equals(configuredUri)) {
             // The user didn't configure any custom URI or repo version, so we're going to
@@ -666,10 +673,10 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(Provider<Directory> generatedDir,
-                                                                                  NativeImageOptions options,
-                                                                                  TaskContainer tasks,
-                                                                                  FileCollection transitiveProjectArtifacts,
-                                                                                  String name) {
+                                                                                   NativeImageOptions options,
+                                                                                   TaskContainer tasks,
+                                                                                   FileCollection transitiveProjectArtifacts,
+                                                                                   String name) {
         return tasks.register(name, GenerateResourcesConfigFile.class, task -> {
             task.setDescription("Generates a GraalVM resource-config.json file");
             task.getOptions().convention(options.getResources());
@@ -680,10 +687,10 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private TaskProvider<GenerateDynamicAccessMetadata> registerDynamicAccessMetadataTask(Configuration classpathConfiguration,
-                                                                                          Provider<GraalVMReachabilityMetadataService> metadataService,
-                                                                                          DirectoryProperty buildDir,
-                                                                                          TaskContainer tasks,
-                                                                                          String name) {
+                                                                                           Provider<GraalVMReachabilityMetadataService> metadataService,
+                                                                                           DirectoryProperty buildDir,
+                                                                                           TaskContainer tasks,
+                                                                                           String name) {
         return tasks.register(name, GenerateDynamicAccessMetadata.class, task -> {
             task.setClasspath(classpathConfiguration);
             task.getMetadataService().set(metadataService);
@@ -706,6 +713,9 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         // Add DSL extension for testing
         NativeImageOptions testOptions = createTestOptions(graalExtension, name, project, mainOptions, config.getSourceSet());
+
+        // Compute and expose the Compatibility Mode detection provider for test binary
+        this.testCompatibilityModeEnabled = computeCompatibilityModeEnabledProvider(project, testOptions);
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testTask.configure(test -> {
@@ -1069,4 +1079,68 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
     }
 
+    // -----------------------------
+    // Compatibility Mode Detection
+    // -----------------------------
+
+    /**
+     * Exposes the Compatibility Mode detection for the test binary.
+     * Follow-up tasks will use this provider to gate configuration/skip tasks.
+     */
+    public Provider<Boolean> getTestCompatibilityModeEnabled() {
+        return testCompatibilityModeEnabled;
+    }
+
+    private static Provider<Boolean> computeCompatibilityModeEnabledProvider(Project project, NativeImageOptions options) {
+        // 1) Build args (list-based; check exact token or contained as whitespace-delimited token)
+        Provider<Boolean> fromArgs = options.getBuildArgs()
+            .map(serializableTransformerOf(NativeImagePlugin::containsCompatibilityTokenInArgs))
+            .orElse(project.provider(() -> false));
+
+        // 2) Project environment variable provider for NATIVE_IMAGE_OPTIONS
+        Provider<Boolean> fromEnvironment = project.getProviders()
+            .environmentVariable(NATIVE_IMAGE_OPTIONS_ENV)
+            .map(serializableTransformerOf(NativeImagePlugin::containsCompatibilityTokenInString))
+            .orElse(project.provider(() -> false));
+
+        // 3) Options environment map NATIVE_IMAGE_OPTIONS entry if present
+        Provider<Boolean> fromOptionsEnvMap = options.getEnvironmentVariables()
+            .map(serializableTransformerOf(env -> {
+                Object v = env.get(NATIVE_IMAGE_OPTIONS_ENV);
+                return v != null && containsCompatibilityTokenInString(String.valueOf(v));
+            }))
+            .orElse(project.provider(() -> false));
+
+        // Combine via OR without realizing values at configuration time
+        return fromArgs
+            .zip(fromEnvironment, serializableBiFunctionOf((a, b) -> a || b))
+            .zip(fromOptionsEnvMap, serializableBiFunctionOf((ab, c) -> ab || c));
+    }
+
+    private static boolean containsCompatibilityTokenInString(String value) {
+        return value != null && value.contains(COMPATIBILITY_MODE_TOKEN);
+    }
+
+    private static boolean containsCompatibilityTokenInArgs(List<String> args) {
+        if (args == null) {
+            return false;
+        }
+        for (String s : args) {
+            if (s == null) {
+                continue;
+            }
+            String trimmed = s.trim();
+            if (COMPATIBILITY_MODE_TOKEN.equals(trimmed)) {
+                return true;
+            }
+            // Be robust to combined strings: split on whitespace and look for exact token
+            String[] tokens = trimmed.split("\\s+");
+            for (String tok : tokens) {
+                if (COMPATIBILITY_MODE_TOKEN.equals(tok)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
