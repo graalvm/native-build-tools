@@ -136,7 +136,7 @@
                             <!-- tag::metadata-versioned[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
-                                <version>0.3.20</version>
+                                <version>0.3.33</version>
                             </metadataRepository>
                             <!-- end::metadata-versioned[] -->
                         </configuration>
@@ -193,7 +193,7 @@
                         </executions>
                         <configuration>
                             <metadataRepository>
-                                <version>0.3.20</version>
+                                <version>0.3.33</version>
                             </metadataRepository>
                         </configuration>
                     </plugin>
