@@ -65,9 +65,9 @@ import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
+import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
 import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
-import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.Action;
@@ -473,7 +473,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private Provider<Map<String, List<String>>> graalVMReachabilityQueryForExcludeList(Project project, GraalVMExtension graalExtension,
-                                                                                       SourceSet sourceSet, Predicate<DirectoryConfiguration> filter) {
+                                                                                        SourceSet sourceSet, Predicate<DirectoryConfiguration> filter) {
         GraalVMReachabilityMetadataRepositoryExtension extension = reachabilityExtensionOn(graalExtension);
         Provider<GraalVMReachabilityMetadataService> metadataServiceProvider = graalVMReachabilityMetadataService(project, extension);
         Provider<ResolvedComponentResult> rootComponent = project.getConfigurations()
@@ -522,7 +522,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private Provider<GraalVMReachabilityMetadataService> graalVMReachabilityMetadataService(Project project,
-                                                                                            GraalVMReachabilityMetadataRepositoryExtension repositoryExtension) {
+                                                                                             GraalVMReachabilityMetadataRepositoryExtension repositoryExtension) {
         return project.getGradle()
             .getSharedServices()
             .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
@@ -730,7 +730,18 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Following ensures that required feature jar is on classpath for every project
         injectTestPluginDependencies(project, name, graalExtension.getTestSupport());
         TaskProvider<BuildNativeImageTask> testImageBuilder = tasks.named(deriveTaskName(name, "native", "Compile"), BuildNativeImageTask.class, task -> {
-            task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
+            // previous predicate: graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists()
+            // Extend to skip when Compatibility Mode is enabled, and log once to inform user JVM tests will run.
+            task.setOnlyIf(t -> {
+                boolean support = graalExtension.getTestSupport().get();
+                boolean hasList = testListDirectory.getAsFile().get().exists();
+                boolean compat = isCompat.getOrElse(false);
+                boolean enabled = support && hasList && !compat;
+                if (!enabled && compat) {
+                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run, JVM tests will run instead. [binary=" + name + "]");
+                }
+                return enabled;
+            });
             task.getTestListDirectory().set(testListDirectory);
             testTask.get();
             if (!agentProperty(project, graalExtension.getAgent()).get().equals("disabled")) {
@@ -751,7 +762,18 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         tasks.named(isPrimaryTest ? NATIVE_TEST_TASK_NAME : "native" + capitalize(name), NativeRunTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
+            // previous predicate: graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists()
+            // Extend to skip when Compatibility Mode is enabled, and log once to inform user JVM tests will run.
+            task.setOnlyIf(t -> {
+                boolean support = graalExtension.getTestSupport().get();
+                boolean hasList = testListDirectory.getAsFile().get().exists();
+                boolean compat = isCompat.getOrElse(false);
+                boolean enabled = support && hasList && !compat;
+                if (!enabled && compat) {
+                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run, JVM tests will run instead. [binary=" + name + "]");
+                }
+                return enabled;
+            });
         });
     }
 
@@ -1144,10 +1166,10 @@ public class NativeImagePlugin implements Plugin<Project> {
     // -----------------------------
 
     private static TaskProvider<GenerateResourcesConfigFile> registerResourcesConfigTask(DirectoryProperty generatedResourcesDirectory,
-                                                                                          NativeImageOptions options,
-                                                                                          TaskContainer tasks,
-                                                                                          FileCollection transitiveProjectArtifacts,
-                                                                                          String taskName) {
+                                                                                           NativeImageOptions options,
+                                                                                           TaskContainer tasks,
+                                                                                           FileCollection transitiveProjectArtifacts,
+                                                                                           String taskName) {
         return tasks.register(taskName, GenerateResourcesConfigFile.class, task -> {
             task.getOptions().set(options.getResources());
             task.getClasspath().from(options.getClasspath());
