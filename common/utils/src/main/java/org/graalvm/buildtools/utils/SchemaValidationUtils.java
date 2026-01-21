@@ -75,14 +75,18 @@ public final class SchemaValidationUtils {
 
     /**
      * Validates that the repository at the given root provides required schemas
-     * at or above specific minimal versions.
+     * at or above specific minimal versions and enforces a strict schema count.
      *
      * For each required schema base name, this method ensures there is a file
      * named {@code baseName-vMAJOR.MINOR.PATCH.json} with a semantic version greater than
      * or equal to the minimal baseline (for example, {@code baseName-v1.0.0.json}, {@code v1.0.1.json}, {@code v1.1.0.json}).
      *
-     * If the schemas directory is missing, or if any minimal-version requirement is not satisfied,
-     * this method throws an {@link IllegalStateException} with a detailed message.
+     * This method also validates that the total number of files in the schemas directory
+     * does not exceed the number of supported schemas to ensure compatibility.
+     *
+     * If the schemas directory is missing, if any minimal-version requirement is not satisfied,
+     * or if the directory contains more files than are supported by this version of
+     * Native Build Tools, this method throws an {@link IllegalStateException} with a detailed message.
      *
      * @param repoRoot the root path of the exploded repository
      */
@@ -97,9 +101,25 @@ public final class SchemaValidationUtils {
             throw new IllegalStateException(message);
         }
 
-        // Validate required files in the schemas directory (accepting minimal versions or newer)
+        int totalFilesFound = 0;
         List<String> missing = new ArrayList<>();
         String prefix = repoRoot.relativize(schemasDir).toString();
+
+        try (DirectoryStream<Path> allFiles = Files.newDirectoryStream(schemasDir)) {
+            for (Path ignored : allFiles) {
+                totalFilesFound++;
+            }
+        } catch (IOException ignored) {}
+
+        if (totalFilesFound > REQUIRED_SCHEMAS.length) {
+            String message = "The configured GraalVM reachability metadata repository at "
+                    + repoRoot.toAbsolutePath()
+                    + " contains more schema files than supported by this version of Native Build Tools. "
+                    + "Found " + totalFilesFound + " files under 'schemas' but exactly " + REQUIRED_SCHEMAS.length + " are supported. "
+                    + "Please update your Native Build Tools to a newer version which supports the newer schemas.";
+            throw new IllegalStateException(message);
+        }
+
         for (RequiredSchema required : REQUIRED_SCHEMAS) {
             boolean satisfied = false;
             Pattern pattern = Pattern.compile(Pattern.quote(required.baseName) + "-v(\\d+)\\.(\\d+)\\.(\\d+)\\.json");
