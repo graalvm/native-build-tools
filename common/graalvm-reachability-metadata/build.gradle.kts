@@ -52,6 +52,7 @@ maven {
 
 dependencies {
     implementation(libs.openjson)
+    implementation(libs.utils)
     testImplementation(platform(libs.test.junit.bom))
     testImplementation(libs.test.junit.jupiter.core)
     testRuntimeOnly(libs.test.junit.platform.launcher)

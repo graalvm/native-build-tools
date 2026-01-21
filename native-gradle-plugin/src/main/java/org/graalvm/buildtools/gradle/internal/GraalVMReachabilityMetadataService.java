@@ -42,7 +42,6 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.utils.ExponentialBackoff;
 import org.graalvm.buildtools.utils.FileUtils;
-import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
@@ -170,7 +169,6 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
 
     private FileSystemRepository newRepositoryFromDirectory(Path path, LogLevel logLevel) {
         if (Files.isDirectory(path)) {
-            SchemaValidationUtils.validateSchemas(path);
             return new FileSystemRepository(path, new FileSystemRepository.Logger() {
                 @Override
                 public void log(String groupId, String artifactId, String version, Supplier<String> message) {

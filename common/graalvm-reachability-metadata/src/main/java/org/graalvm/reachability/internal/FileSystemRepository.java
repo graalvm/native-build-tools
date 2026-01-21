@@ -40,6 +40,7 @@
  */
 package org.graalvm.reachability.internal;
 
+import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.Query;
@@ -68,11 +69,12 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
     }
 
     public FileSystemRepository(Path rootDirectory, Logger logger) {
-        this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
-        this.logger = logger;
-        this.artifactIndexes = new ConcurrentHashMap<>();
-        this.rootDirectory = rootDirectory;
-    }
+            SchemaValidationUtils.validateSchemas(rootDirectory);
+            this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
+            this.logger = logger;
+            this.artifactIndexes = new ConcurrentHashMap<>();
+            this.rootDirectory = rootDirectory;
+        }
 
     private static final String[] SUPPORTED_FORMATS = {".zip", ".tar.gz", ".tar.bz2"};
 

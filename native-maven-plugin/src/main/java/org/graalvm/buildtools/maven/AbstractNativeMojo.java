@@ -62,7 +62,6 @@ import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.ExponentialBackoff;
 import org.graalvm.buildtools.utils.FileUtils;
-import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -164,7 +163,6 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                     "Note: Since the repository is enabled by default, you can disable it manually in your pom.xml file (see this: " +
                     "https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#_configuring_the_metadata_repository)");
         } else {
-            SchemaValidationUtils.validateSchemas(repoPath);
             metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
                 @Override
                 public void log(String groupId, String artifactId, String version, Supplier<String> message) {
