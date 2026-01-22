@@ -41,8 +41,11 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.gradle.api.JavaVersion
+import spock.lang.Requires
 import spock.lang.Unroll
 
+@Requires({ JavaVersion.current().isCompatibleWith(JavaVersion.toVersion(25)) })
 class CompatibilityModeNativeTestsFunctionalTest extends AbstractFunctionalTest {
 
     def "OFF: native test image build/run execute when Compatibility Mode is not enabled"() {

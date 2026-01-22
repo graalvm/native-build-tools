@@ -45,8 +45,11 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.api.JavaVersion
+import spock.lang.Requires
 import spock.lang.Specification
 
+@Requires({ JavaVersion.current().isCompatibleWith(JavaVersion.toVersion(25)) })
 class CompatibilityModeGatingTest extends Specification {
 
     private static final String LAUNCHER_CLASS = "org.graalvm.junit.platform.NativeImageJUnitLauncher"
