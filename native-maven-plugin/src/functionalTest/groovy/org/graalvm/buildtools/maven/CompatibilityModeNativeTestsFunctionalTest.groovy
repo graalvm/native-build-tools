@@ -41,6 +41,10 @@
 
 package org.graalvm.buildtools.maven
 
+import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.Requires
+
+@Requires({ getCurrentJDKVersion() >= 25 })
 class CompatibilityModeNativeTestsFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
     def "OFF: native tests execute when Compatibility Mode is not enabled"() {
@@ -105,5 +109,9 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractGraalVMMavenFun
         outputDoesNotContain "GraalVM Native Image: Generating 'native-tests"
         outputDoesNotContain "containers found"
         outputDoesNotContain "tests found"
+    }
+
+    private static int getCurrentJDKVersion() {
+        return NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString())
     }
 }
