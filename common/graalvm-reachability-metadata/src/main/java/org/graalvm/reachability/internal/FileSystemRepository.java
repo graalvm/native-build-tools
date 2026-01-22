@@ -69,12 +69,12 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
     }
 
     public FileSystemRepository(Path rootDirectory, Logger logger) {
-            SchemaValidationUtils.validateSchemas(rootDirectory);
-            this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
-            this.logger = logger;
-            this.artifactIndexes = new ConcurrentHashMap<>();
-            this.rootDirectory = rootDirectory;
-        }
+        SchemaValidationUtils.validateSchemas(rootDirectory);
+        this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
+        this.logger = logger;
+        this.artifactIndexes = new ConcurrentHashMap<>();
+        this.rootDirectory = rootDirectory;
+    }
 
     private static final String[] SUPPORTED_FORMATS = {".zip", ".tar.gz", ".tar.bz2"};
 
