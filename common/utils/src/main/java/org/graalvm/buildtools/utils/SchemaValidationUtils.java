@@ -33,7 +33,7 @@ public final class SchemaValidationUtils {
     /**
      * Represents a required schema by base name with an exact required major version.
      */
-    private record RequiredSchema(String baseName, int requiredMajor) {
+    private record RequiredSchema(String baseName, int requiredMajorVersion) {
     }
 
     private static int safeParseInt(String s) {
@@ -113,11 +113,11 @@ public final class SchemaValidationUtils {
             }
 
             if (foundMajor == null) {
-                missing.add(prefix + "/" + required.baseName + "-v" + required.requiredMajor + ".*.*.json");
-            } else if (required.requiredMajor > foundMajor) {
-                metadataTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajor + ", found v" + foundMajor);
-            } else if (required.requiredMajor < foundMajor) {
-                toolsTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajor + ", found v" + foundMajor);
+                missing.add(prefix + "/" + required.baseName + "-v" + required.requiredMajorVersion + ".*.*.json");
+            } else if (required.requiredMajorVersion > foundMajor) {
+                metadataTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajorVersion + ", found v" + foundMajor);
+            } else if (required.requiredMajorVersion < foundMajor) {
+                toolsTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajorVersion + ", found v" + foundMajor);
             }
         }
 
