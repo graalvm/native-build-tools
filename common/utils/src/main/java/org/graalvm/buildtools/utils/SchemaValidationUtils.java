@@ -10,45 +10,30 @@ import java.util.regex.Matcher;
 import java.io.IOException;
 
 /**
- * Utility methods for validating that required schema files at or above specific minimal versions
+ * Utility methods for validating that required schema files with an exact major version
  * are present in a GraalVM reachability metadata repository.
+ * Schema compatibility is determined by the major version only:
+ * - If Build Tools requires a higher major than what the repository provides, validation fails
+ * and the user must update the reachability metadata repository.
+ * - If the repository provides a higher major than supported by Build Tools, validation fails
+ * and the user must update Native Build Tools.
+ * The check also ensures the schema directory is present and contains a valid set of files.
  */
 public final class SchemaValidationUtils {
-
-    private SchemaValidationUtils() {
-        // no-op
-    }
-
     /**
-     * Minimal required schema baselines. Any schema file with a version equal to or newer than
-     * the minimal version for the given base name satisfies the requirement.
-     * For example, if minimal is 1.0.0 then 1.0.1 or 1.1.0 will pass.
+     * Required schema descriptors. The major version must match exactly between
+     * Native Build Tools and the reachability metadata repository.
      */
     private static final RequiredSchema[] REQUIRED_SCHEMAS = new RequiredSchema[] {
-        new RequiredSchema("library-and-framework-list-schema", "1.0.0"),
-        new RequiredSchema("metadata-library-index-schema", "1.0.0"),
-        new RequiredSchema("metadata-root-index-schema", "1.0.0")
+        new RequiredSchema("library-and-framework-list-schema", 1),
+        new RequiredSchema("metadata-library-index-schema", 1),
+        new RequiredSchema("metadata-root-index-schema", 1)
     };
 
     /**
-     * Represents a required schema by base name with a minimal semantic version (major.minor.patch).
+     * Represents a required schema by base name with an exact required major version.
      */
-    private static final class RequiredSchema {
-        final String baseName;
-        final int[] minVersion;
-
-        private RequiredSchema(String baseName, String minVersion) {
-            this.baseName = baseName;
-            this.minVersion = parseVersion(minVersion);
-        }
-    }
-
-    private static int[] parseVersion(String version) {
-        String[] parts = version.split("\\.");
-        int major = parts.length > 0 ? safeParseInt(parts[0]) : 0;
-        int minor = parts.length > 1 ? safeParseInt(parts[1]) : 0;
-        int patch = parts.length > 2 ? safeParseInt(parts[2]) : 0;
-        return new int[] { major, minor, patch };
+    private record RequiredSchema(String baseName, int requiredMajor) {
     }
 
     private static int safeParseInt(String s) {
@@ -59,32 +44,21 @@ public final class SchemaValidationUtils {
         }
     }
 
-    private static int compareVersions(int[] a, int[] b) {
-        for (int i = 0; i < 3; i++) {
-            int c = Integer.compare(a[i], b[i]);
-            if (c != 0) {
-                return c;
-            }
-        }
-        return 0;
-    }
-
-    private static String versionToString(int[] v) {
-        return v[0] + "." + v[1] + "." + v[2];
-    }
-
     /**
      * Validates that the repository at the given root provides required schemas
-     * at or above specific minimal versions and enforces a strict schema count.
+     * whose major versions match exactly the ones supported by this Build Tools version,
+     * and enforces a strict schema count.
      *
-     * For each required schema base name, this method ensures there is a file
-     * named {@code baseName-vMAJOR.MINOR.PATCH.json} with a semantic version greater than
-     * or equal to the minimal baseline (for example, {@code baseName-v1.0.0.json}, {@code v1.0.1.json}, {@code v1.1.0.json}).
+     * For each required schema base name, this method ensures there is exactly one file
+     * named {@code baseName-vMAJOR.MINOR.PATCH.json} whose MAJOR equals the Build Tools
+     * required MAJOR. If the repository uses an older MAJOR, users must update the
+     * reachability metadata repository. If it uses a newer MAJOR, users must update
+     * Native Build Tools.
      *
      * This method also validates that the total number of files in the schemas directory
      * does not exceed the number of supported schemas to ensure compatibility.
      *
-     * If the schemas directory is missing, if any minimal-version requirement is not satisfied,
+     * If the schemas directory is missing, if any major-version requirement is not satisfied,
      * or if the directory contains more files than are supported by this version of
      * Native Build Tools, this method throws an {@link IllegalStateException} with a detailed message.
      *
@@ -103,6 +77,8 @@ public final class SchemaValidationUtils {
 
         int totalFilesFound = 0;
         List<String> missing = new ArrayList<>();
+        List<String> metadataTooOld = new ArrayList<>();
+        List<String> toolsTooOld = new ArrayList<>();
         String prefix = repoRoot.relativize(schemasDir).toString();
 
         try (DirectoryStream<Path> allFiles = Files.newDirectoryStream(schemasDir)) {
@@ -121,38 +97,54 @@ public final class SchemaValidationUtils {
         }
 
         for (RequiredSchema required : REQUIRED_SCHEMAS) {
-            boolean satisfied = false;
+            Integer foundMajor = null;
             Pattern pattern = Pattern.compile(Pattern.quote(required.baseName) + "-v(\\d+)\\.(\\d+)\\.(\\d+)\\.json");
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(schemasDir, required.baseName + "-v*.json")) {
                 for (Path entry : stream) {
                     String name = entry.getFileName().toString();
                     Matcher m = pattern.matcher(name);
                     if (m.matches()) {
-                        int[] found = new int[] {
-                            Integer.parseInt(m.group(1)),
-                            Integer.parseInt(m.group(2)),
-                            Integer.parseInt(m.group(3))
-                        };
-                        if (compareVersions(found, required.minVersion) >= 0) {
-                            satisfied = true;
-                            break;
-                        }
+                        foundMajor = safeParseInt(m.group(1));
+                        break; // there should be at most one per schema; stop at first match
                     }
                 }
             } catch (IOException ignored) {
                 // ignore and treat as unsatisfied; validation will fail below
             }
-            if (!satisfied) {
-                missing.add(prefix + "/" + required.baseName + "-v" + versionToString(required.minVersion) + "+.json");
+
+            if (foundMajor == null) {
+                missing.add(prefix + "/" + required.baseName + "-v" + required.requiredMajor + ".*.*.json");
+            } else if (required.requiredMajor > foundMajor) {
+                metadataTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajor + ", found v" + foundMajor);
+            } else if (required.requiredMajor < foundMajor) {
+                toolsTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajor + ", found v" + foundMajor);
             }
         }
 
         if (!missing.isEmpty()) {
             String message = "The configured GraalVM reachability metadata repository at "
                 + repoRoot.toAbsolutePath()
-                + " is missing required schema files (requires GraalVM Reachability Metadata 0.3.33 or newer): "
+                + " is missing required schema files (exact major version required): "
                 + String.join(", ", missing)
-                + ". If you customized metadataRepository (uri/url/version/localPath), please point it to a 0.3.33+ release.";
+                + ". If you customized metadataRepository (uri/url/version/localPath), please point it to the latest official release.";
+            throw new IllegalStateException(message);
+        }
+
+        if (!metadataTooOld.isEmpty()) {
+            String message = "The configured GraalVM reachability metadata repository at "
+                + repoRoot.toAbsolutePath()
+                + " provides schema files with an older major version than required by this version of Native Build Tools: "
+                + String.join("; ", metadataTooOld)
+                + ". Please update your reachability metadata repository.";
+            throw new IllegalStateException(message);
+        }
+
+        if (!toolsTooOld.isEmpty()) {
+            String message = "The configured GraalVM reachability metadata repository at "
+                + repoRoot.toAbsolutePath()
+                + " provides schema files with a newer major version than supported by this version of Native Build Tools: "
+                + String.join("; ", toolsTooOld)
+                + ". Please update your Native Build Tools to a newer version.";
             throw new IllegalStateException(message);
         }
     }
