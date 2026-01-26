@@ -376,10 +376,12 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             }
         });
         var currentClasspath = current.getArtifactResults().stream()
-            .map(result -> new JUnitPlatformNativeDependenciesHelper.DependencyNotation(
-                result.getArtifact().getGroupId(),
-                result.getArtifact().getArtifactId(),
-                result.getArtifact().getVersion()
+            .map(ArtifactResult::getArtifact)
+            .filter(Objects::nonNull)
+            .map(artifact -> new JUnitPlatformNativeDependenciesHelper.DependencyNotation(
+                artifact.getGroupId(),
+                artifact.getArtifactId(),
+                artifact.getVersion()
             )).toList();
         var deps = JUnitPlatformNativeDependenciesHelper.inferMissingDependenciesForTestRuntime(currentClasspath);
         for (var missing : deps) {
