@@ -186,6 +186,13 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         logger.info("====================");
 
         configureEnvironment();
+
+        // Short-circuit native tests if Compatibility Mode is enabled
+        if (isCompatibilityModeEnabled()) {
+            logger.info("Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test goal, JVM tests will run instead.");
+            return;
+        }
+
         buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
 
         /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
@@ -227,22 +234,58 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             Object configuration = plugin.getConfiguration();
             if (configuration instanceof Xpp3Dom) {
                 Xpp3Dom dom = (Xpp3Dom) configuration;
-                applyPluginProperties(dom.getChild("environmentVariables"), environment);
-                applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+                environment = applyPluginProperties(dom.getChild("environmentVariables"), environment);
+                systemProperties = applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
             }
         }
     }
 
-    private void applyPluginProperties(Xpp3Dom pluginProperty, Map<String, String> values) {
+    private Map<String, String> applyPluginProperties(Xpp3Dom pluginProperty, Map<String, String> values) {
         if (pluginProperty != null) {
             Xpp3Dom[] children = pluginProperty.getChildren();
-            if (values == null) {
-                values = new HashMap<>(children.length);
+            Map<String, String> target = values;
+            if (target == null) {
+                target = new HashMap<>(children.length);
             }
             for (Xpp3Dom child : children) {
-                values.put(child.getName(), child.getValue());
+                target.put(child.getName(), child.getValue());
+            }
+            return target;
+        }
+        return values;
+    }
+
+    /**
+     * Detects whether native-image Compatibility Mode is enabled.
+     * Checks:
+     * 1) configured buildArgs
+     * 2) environment map populated by configureEnvironment() (key: NATIVE_IMAGE_OPTIONS)
+     * 3) fallback to System env (NATIVE_IMAGE_OPTIONS)
+     */
+    private boolean isCompatibilityModeEnabled() {
+        // 1) Check the configured buildArgs list (Mojo parameter)
+        if (buildArgs != null) {
+            for (String arg : buildArgs) {
+                if (arg != null) {
+                    String trimmed = arg.trim();
+                    if (trimmed.contains("-H:+CompatibilityMode")) {
+                        return true;
+                    }
+                }
             }
         }
+
+        // 2) Check environment map populated by configureEnvironment()
+        if (environment != null) {
+            String options = environment.get("NATIVE_IMAGE_OPTIONS");
+            if (options != null && options.contains("-H:+CompatibilityMode")) {
+                return true;
+            }
+        }
+
+        // 3) Fallback: System environment
+        String sysOptions = System.getenv("NATIVE_IMAGE_OPTIONS");
+        return sysOptions != null && sysOptions.contains("-H:+CompatibilityMode");
     }
 
     private boolean hasTests() {
