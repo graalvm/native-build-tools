@@ -691,16 +691,15 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Compute and expose the Compatibility Mode detection provider for test binary
         this.testCompatibilityModeEnabled = computeCompatibilityModeEnabledProvider(project, testOptions);
 
-        // Gate JUnit-specific wiring of the main class for the test binary based on Compatibility Mode.
-        // If Compatibility Mode is enabled, do not wire the native JUnit launcher main class.
+        // Gate JUnit-specific wiring reference for later task skipping decisions.
         Provider<Boolean> isCompat = this.testCompatibilityModeEnabled;
 
-        // Conditionally set the JUnit native launcher as main class when NOT in compatibility mode.
-        testOptions.getMainClass().convention(isCompat.map(enabled ->
-            Boolean.TRUE.equals(enabled) ? null : "org.graalvm.junit.platform.NativeImageJUnitLauncher"
-        ));
+        // Wire main class based on Compatibility Mode, mirroring Maven plugin behavior.
+        testOptions.getMainClass().convention(isCompat.map(c -> c
+            ? "org.junit.platform.console.ConsoleLauncher"
+            : "org.graalvm.junit.platform.NativeImageJUnitLauncher"));
 
-        // Add the JUnit Platform Feature flag only when Compatibility Mode is NOT enabled.
+        // Add the JUnit Platform Feature flag and exclude JUnit class init files only when NOT in Compatibility Mode.
         final String junitPlatformFeatureFlag = "--features=org.graalvm.junit.platform.JUnitPlatformFeature";
         project.afterEvaluate(p -> {
             boolean compat = isCompat.getOrElse(false);
@@ -709,10 +708,27 @@ public class NativeImagePlugin implements Plugin<Project> {
                 if (!current.contains(junitPlatformFeatureFlag)) {
                     testOptions.getBuildArgs().add(junitPlatformFeatureFlag);
                 }
+                /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
+                testOptions.getBuildArgs().addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
             }
-            // Note: we intentionally do NOT remove the feature flag when compatibility mode is enabled,
-            // in order to not override explicit user configuration. We only avoid wiring it by default.
         });
+        // Add XML output dir only in regular mode (not in Compatibility Mode)
+        Provider<String> xmlOutputDir = project.getLayout().getBuildDirectory()
+            .dir("test-results/" + name + "-native")
+            .map(d -> d.getAsFile().getAbsolutePath());
+        testOptions.getRuntimeArgs().addAll(
+            isCompat.zip(xmlOutputDir, serializableBiFunctionOf((compat, dir) ->
+                compat ? Collections.<String>emptyList() : Arrays.asList("--xml-output-dir", dir)
+            ))
+        );
+        // In Compatibility Mode, pass classpath and scan directive to the JUnit ConsoleLauncher to avoid
+        // "Please specify an explicit selector option or use --scan-class-path or --scan-modules"
+        Provider<String> cpString = project.getProviders().provider(() -> testOptions.getClasspath().getAsPath());
+        testOptions.getRuntimeArgs().addAll(
+            isCompat.zip(cpString, serializableBiFunctionOf((compat, cp) ->
+                compat ? Arrays.asList("-cp", cp, "--scan-classpath") : Collections.<String>emptyList()
+            ))
+        );
 
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testTask.configure(test -> {
@@ -735,12 +751,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.setOnlyIf(t -> {
                 boolean support = graalExtension.getTestSupport().get();
                 boolean hasList = testListDirectory.getAsFile().get().exists();
-                boolean compat = isCompat.getOrElse(false);
-                boolean enabled = support && hasList && !compat;
-                if (!enabled && compat) {
-                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run, JVM tests will run instead. [binary=" + name + "]");
-                }
-                return enabled;
+                return support && hasList;
             });
             task.getTestListDirectory().set(testListDirectory);
             testTask.get();
@@ -767,10 +778,9 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.setOnlyIf(t -> {
                 boolean support = graalExtension.getTestSupport().get();
                 boolean hasList = testListDirectory.getAsFile().get().exists();
-                boolean compat = isCompat.getOrElse(false);
-                boolean enabled = support && hasList && !compat;
-                if (!enabled && compat) {
-                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run, JVM tests will run instead. [binary=" + name + "]");
+                boolean enabled = support && hasList;
+                if (isCompat.getOrElse(false)) {
+                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher.");
                 }
                 return enabled;
             });
@@ -882,18 +892,12 @@ public class NativeImagePlugin implements Plugin<Project> {
         // mainClass is conditionally wired in registerTestBinary based on Compatibility Mode
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
 
-        ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
-        runtimeArgs.add("--xml-output-dir");
-        runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "-native").map(d -> d.getAsFile().getAbsolutePath()));
 
         // Classpath setup remains unchanged
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(configurations.getByName(imageClasspathConfigurationNameFor(binaryName)));
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
-
-        /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
-        testExtension.getBuildArgs().addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
 
         return testExtension;
     }

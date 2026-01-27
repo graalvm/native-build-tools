@@ -59,7 +59,7 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractFunctionalTest 
         tasks {
             succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
         }
-        outputDoesNotContain "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run"
+        outputDoesNotContain "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test run"
     }
 
     @Unroll
@@ -81,10 +81,10 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractFunctionalTest 
 
         then:
         tasks {
-            succeeded ':testClasses', ':test'
-            skipped ':nativeTestCompile', ':nativeTest'
+            succeeded ':testClasses', ':test', ':nativeTestCompile'
+            skipped ':nativeTest'
         }
-        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run, JVM tests will run instead."
+        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test run, JVM tests will run instead."
     }
 
     def "ON via NATIVE_IMAGE_OPTIONS env map: native test image build/run are skipped and message logged"() {
@@ -105,9 +105,9 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractFunctionalTest 
 
         then:
         tasks {
-            succeeded ':testClasses', ':test'
-            skipped ':nativeTestCompile', ':nativeTest'
+            succeeded ':testClasses', ':test', ':nativeTestCompile'
+            skipped ':nativeTest'
         }
-        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test build/run, JVM tests will run instead."
+        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test run, JVM tests will run instead."
     }
 }

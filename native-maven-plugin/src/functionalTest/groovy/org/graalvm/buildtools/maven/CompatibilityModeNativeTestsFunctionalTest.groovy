@@ -58,7 +58,7 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractGraalVMMavenFun
 
         then:
         buildSucceeded
-        outputDoesNotContain "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test goal, JVM tests will run instead."
+        outputDoesNotContain "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test execution, JVM tests will run instead. The native test image will still be built using the original JUnit ConsoleLauncher."
         // Native test runner executed
         outputContains "[junit-platform-native] Running in 'test listener' mode"
         outputContains "[         0 containers skipped    ]"
@@ -75,9 +75,9 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractGraalVMMavenFun
 
         then:
         buildSucceeded
-        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test goal, JVM tests will run instead."
-        // Ensure native-image build/run was not invoked
-        outputDoesNotContain "GraalVM Native Image: Generating 'native-tests"
+        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test execution, JVM tests will run instead. The native test image will still be built using the original JUnit ConsoleLauncher."
+        // Ensure native-image image is built but tests weren't executed
+        outputContainsPattern ".*GraalVM Native Image: Generating 'native-tests.*"
         outputDoesNotContain "containers found"
         outputDoesNotContain "tests found"
     }
@@ -104,9 +104,9 @@ class CompatibilityModeNativeTestsFunctionalTest extends AbstractGraalVMMavenFun
 
         then:
         buildSucceeded
-        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test goal, JVM tests will run instead."
-        // Ensure native-image build/run was not invoked
-        outputDoesNotContain "GraalVM Native Image: Generating 'native-tests"
+        outputContains "Compatibility Mode detected (-H:+CompatibilityMode); skipping native-image test execution, JVM tests will run instead. The native test image will still be built using the original JUnit ConsoleLauncher."
+        // Ensure native-image image is built but tests weren't executed
+        outputContainsPattern ".*GraalVM Native Image: Generating 'native-tests.*"
         outputDoesNotContain "containers found"
         outputDoesNotContain "tests found"
     }

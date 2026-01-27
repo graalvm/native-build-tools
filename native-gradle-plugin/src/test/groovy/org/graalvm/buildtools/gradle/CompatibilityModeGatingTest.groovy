@@ -52,7 +52,8 @@ import spock.lang.Specification
 @Requires({ JavaVersion.current().isCompatibleWith(JavaVersion.toVersion(25)) })
 class CompatibilityModeGatingTest extends Specification {
 
-    private static final String LAUNCHER_CLASS = "org.graalvm.junit.platform.NativeImageJUnitLauncher"
+    private static final String NATIVE_LAUNCHER = "org.graalvm.junit.platform.NativeImageJUnitLauncher"
+    private static final String JVM_LAUNCHER = "org.junit.platform.console.ConsoleLauncher"
 
     private Project project
     private GraalVMExtension graal
@@ -66,15 +67,15 @@ class CompatibilityModeGatingTest extends Specification {
         assert graal != null
     }
 
-    def "default (Compatibility Mode OFF) wires JUnit launcher main class"() {
+    def "default (Compatibility Mode OFF) wires JUnit native launcher main class"() {
         when:
         NativeImageOptions testOptions = graal.binaries.getByName("test")
 
         then:
-        testOptions.getMainClass().getOrNull() == LAUNCHER_CLASS
+        testOptions.getMainClass().getOrNull() == NATIVE_LAUNCHER
     }
 
-    def "Compatibility Mode via buildArgs disables JUnit launcher wiring"() {
+    def "Compatibility Mode via buildArgs wires JVM ConsoleLauncher main class"() {
         given:
         NativeImageOptions testOptions = graal.binaries.getByName("test")
         // Toggle compatibility mode via explicit build arg
@@ -84,10 +85,10 @@ class CompatibilityModeGatingTest extends Specification {
         String main = testOptions.getMainClass().getOrNull()
 
         then:
-        main == null
+        main == JVM_LAUNCHER
     }
 
-    def "Compatibility Mode via NATIVE_IMAGE_OPTIONS in task options env disables JUnit launcher wiring"() {
+    def "Compatibility Mode via NATIVE_IMAGE_OPTIONS in task options env wires JVM ConsoleLauncher main class"() {
         given:
         NativeImageOptions testOptions = graal.binaries.getByName("test")
         // Toggle compatibility mode via environment map on the options
@@ -97,6 +98,6 @@ class CompatibilityModeGatingTest extends Specification {
         String main = testOptions.getMainClass().getOrNull()
 
         then:
-        main == null
+        main == JVM_LAUNCHER
     }
 }
