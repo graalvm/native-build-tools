@@ -49,6 +49,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
@@ -76,6 +77,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -306,16 +308,26 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
         if (artifactFile == null) {
             logger.debug("Missing artifact file for artifact " + artifact + " (type: " + artifact.getType() + ")");
-            return null;
+            return resolveClassesDirectoryFromReactor(artifact).filter(Files::exists).orElse(null);
         }
 
         if (Arrays.stream(artifactTypes).noneMatch(a -> a.equals(artifact.getType()))) {
             logger.warn("Ignoring ImageClasspath Entry '" + artifact + "' with unsupported type '" + artifact.getType() + "'");
             return null;
         }
+
         if (!artifactFile.exists()) {
-            throw new MojoExecutionException("Missing jar-file for " + artifact + ". " +
-                    "Ensure that " + plugin.getArtifactId() + " runs in package phase.");
+            Optional<Path> reactorOutput = resolveClassesDirectoryFromReactor(artifact);
+            if (reactorOutput.isPresent()) {
+                Path reactorPath = reactorOutput.get();
+                if (Files.exists(reactorPath)) {
+                    logger.debug("ImageClasspath Entry: " + artifact + " (" + reactorPath.toUri() + ")");
+                    return reactorPath;
+                } else {
+                    logger.debug("Skipping artifact " + artifact + " because no packaged file or classes directory was found.");
+                    return null;
+                }
+            }
         }
 
         Path jarFilePath = artifactFile.toPath();
@@ -323,6 +335,30 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
         warnIfWrongMetaInfLayout(jarFilePath, artifact);
         return jarFilePath;
+    }
+
+    /**
+     * Resolves the physical output directory (classes or test-classes) for a given artifact
+     * by searching the current Maven reactor.
+     * <p>
+     * This is used as a fallback when an artifact's JAR file has not yet been created,
+     * allowing the plugin to use compiled class folders instead.
+     *
+     * @param artifact The dependency artifact to resolve within the reactor.
+     * @return An Optional containing the {@link Path} to the output directory if found,
+     * otherwise an empty Optional.
+     */
+    private Optional<Path> resolveClassesDirectoryFromReactor(Artifact artifact) {
+        return Optional.ofNullable(session)
+            .flatMap(s -> s.getAllProjects().stream()
+                .filter(project -> Objects.equals(project.getGroupId(), artifact.getGroupId())
+                        && Objects.equals(project.getArtifactId(), artifact.getArtifactId())
+                        && Objects.equals(project.getVersion(), artifact.getVersion()))
+                .map(MavenProject::getBuild)
+                .map(build -> "test-jar".equals(artifact.getType()) ? build.getTestOutputDirectory() : build.getOutputDirectory())
+                .filter(dir -> dir != null && !dir.isEmpty())
+                .map(Paths::get)
+                .findFirst());
     }
 
     protected void addArtifactToClasspath(Artifact artifact) throws MojoExecutionException {
@@ -378,13 +414,18 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         Set<Artifact> collected = new HashSet<>();
         // Must keep classpath order is the same with surefire test
         for (Artifact dependency : project.getArtifacts()) {
-            if (getDependencyScopes().contains(dependency.getScope()) && collected.add(dependency)) {
-                addArtifactToClasspath(dependency);
-                maybeAddDependencyMetadata(dependency, file -> {
-                    buildArgs.add("--exclude-config");
-                    buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
-                    buildArgs.add("^/META-INF/native-image/");
-                });
+            if (getDependencyScopes().contains(dependency.getScope()) && collected.add(dependency) && !isExcluded(dependency)) {
+                Path dependencyPath = processSupportedArtifacts(dependency);
+                if (dependencyPath != null) {
+                    imageClasspath.add(dependencyPath);
+                    if (dependency.getFile() != null) {
+                        maybeAddDependencyMetadata(dependency, file -> {
+                            buildArgs.add("--exclude-config");
+                            buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
+                            buildArgs.add("^/META-INF/native-image/");
+                        });
+                    }
+                }
             }
         }
     }
