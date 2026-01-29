@@ -90,3 +90,6 @@ nb-configuration.xml
 # Vibe Coding
 ##############################
 scratchpad/
+
+# Local orchestration plans
+plans/
