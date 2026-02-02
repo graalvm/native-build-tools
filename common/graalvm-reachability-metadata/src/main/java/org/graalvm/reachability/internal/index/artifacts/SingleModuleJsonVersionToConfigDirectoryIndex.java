@@ -134,7 +134,6 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
         boolean latest = json.optBoolean("latest");
         boolean override = json.optBoolean("override");
         String defaultFor = json.optString("default-for", null);
-        // "module" field is deprecated/removed; resolution is based on path (groupId/artifactId)
         return new Artifact(testVersions, directory, latest, override, defaultFor);
     }
 
