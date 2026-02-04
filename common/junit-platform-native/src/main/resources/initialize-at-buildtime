@@ -13,6 +13,7 @@ org.junit.jupiter.api.TestInstance$Lifecycle
 org.junit.jupiter.engine.config.CachingJupiterConfiguration
 org.junit.jupiter.engine.config.DefaultJupiterConfiguration
 org.junit.jupiter.engine.config.EnumConfigurationParameterConverter
+org.junit.jupiter.engine.config.FilteringConfigurationParameterConverter
 org.junit.jupiter.engine.config.InstantiatingConfigurationParameterConverter
 org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor
 org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor$ClassInfo
