@@ -90,7 +90,11 @@ public final class JUnitPlatformFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
         RuntimeClassInitialization.initializeAtBuildTime("org.graalvm.junit.platform.JUnitPlatformFeatureUtils");
-        initializeClasses();
+        /* Before GraalVM version 22 we couldn't have classes initialized at run-time
+         * that are also used at build-time but not added to the image heap */
+        if (Runtime.version().feature() <= 21) {
+            initializeClassesForJDK21OrEarlier();
+        }
 
         List<? extends DiscoverySelector> selectors = getSelectors();
         registerTestClassesForReflection(selectors);
@@ -206,7 +210,7 @@ public final class JUnitPlatformFeature implements Feature {
         }
     }
 
-    private static void initializeClasses() {
+    private static void initializeClassesForJDK21OrEarlier() {
         try (InputStream is = JUnitPlatformFeature.class.getResourceAsStream("/initialize-at-buildtime")) {
             if (is != null) {
                 try (BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
