@@ -220,7 +220,7 @@ public final class JUnitPlatformFeature implements Feature {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to process build time initializations for JDK 21 or earlier");
+            throw new RuntimeException("Failed to process build time initializations");
         }
     }
 
