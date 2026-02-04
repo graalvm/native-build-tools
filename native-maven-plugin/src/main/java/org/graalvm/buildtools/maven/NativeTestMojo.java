@@ -93,6 +93,7 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_
     requiresDependencyCollection = ResolutionScope.TEST)
 public class NativeTestMojo extends AbstractNativeImageMojo {
 
+    public static final String COMPATIBILITY_MODE_ARG = "-H:+CompatibilityMode";
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
 
@@ -270,28 +271,23 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
      */
     private boolean isCompatibilityModeEnabled() {
         // 1) Check the configured buildArgs list (Mojo parameter)
-        if (buildArgs != null) {
-            for (String arg : buildArgs) {
-                if (arg != null) {
-                    String trimmed = arg.trim();
-                    if (trimmed.contains("-H:+CompatibilityMode")) {
-                        return true;
-                    }
-                }
-            }
+        if (buildArgs != null && buildArgs.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(s -> s.equals(COMPATIBILITY_MODE_ARG))) {
+            return true;
         }
 
         // 2) Check environment map populated by configureEnvironment()
         if (environment != null) {
             String options = environment.get("NATIVE_IMAGE_OPTIONS");
-            if (options != null && options.contains("-H:+CompatibilityMode")) {
+            if (options != null && options.contains(COMPATIBILITY_MODE_ARG)) {
                 return true;
             }
         }
 
         // 3) Fallback: System environment
         String sysOptions = System.getenv("NATIVE_IMAGE_OPTIONS");
-        return sysOptions != null && sysOptions.contains("-H:+CompatibilityMode");
+        return sysOptions != null && sysOptions.contains(COMPATIBILITY_MODE_ARG);
     }
 
     private boolean hasTests() {

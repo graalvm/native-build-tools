@@ -691,13 +691,20 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Compute and expose the Compatibility Mode detection provider for test binary
         this.testCompatibilityModeEnabled = computeCompatibilityModeEnabledProvider(project, testOptions);
 
-        // Gate JUnit-specific wiring reference for later task skipping decisions.
-        Provider<Boolean> isCompat = this.testCompatibilityModeEnabled;
+            // Gate JUnit-specific wiring reference for later task skipping decisions.
+            Provider<Boolean> isCompat = this.testCompatibilityModeEnabled;
 
-        // Wire main class based on Compatibility Mode, mirroring Maven plugin behavior.
-        testOptions.getMainClass().convention(isCompat.map(c -> c
-            ? "org.junit.platform.console.ConsoleLauncher"
-            : "org.graalvm.junit.platform.NativeImageJUnitLauncher"));
+            // Unified once-per-build log at configuration time if Compatibility Mode is enabled
+            project.afterEvaluate(p -> {
+                if (isCompat.getOrElse(false)) {
+                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher.");
+                }
+            });
+
+            // Wire main class based on Compatibility Mode, mirroring Maven plugin behavior.
+            testOptions.getMainClass().convention(isCompat.map(c -> c
+                ? "org.junit.platform.console.ConsoleLauncher"
+                : "org.graalvm.junit.platform.NativeImageJUnitLauncher"));
 
         // Add the JUnit Platform Feature flag and exclude JUnit class init files only when NOT in Compatibility Mode.
         final String junitPlatformFeatureFlag = "--features=org.graalvm.junit.platform.JUnitPlatformFeature";
@@ -779,9 +786,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                 boolean support = graalExtension.getTestSupport().get();
                 boolean hasList = testListDirectory.getAsFile().get().exists();
                 boolean enabled = support && hasList;
-                if (isCompat.getOrElse(false)) {
-                    logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher.");
-                }
                 return enabled;
             });
         });
@@ -1143,26 +1147,10 @@ public class NativeImagePlugin implements Plugin<Project> {
         return value != null && value.contains(COMPATIBILITY_MODE_TOKEN);
     }
 
-    private static boolean containsCompatibilityTokenInArgs(List<String> args) {
-        if (args == null) {
-            return false;
-        }
-        for (String s : args) {
-            if (s == null) {
-                continue;
-            }
-            String trimmed = s.trim();
-            if (COMPATIBILITY_MODE_TOKEN.equals(trimmed)) {
-                return true;
-            }
-            String[] tokens = trimmed.split("\\s+");
-            for (String tok : tokens) {
-                if (COMPATIBILITY_MODE_TOKEN.equals(tok)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public static boolean containsCompatibilityTokenInArgs(List<String> args) {
+        return args != null && args.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(s -> s.equals(COMPATIBILITY_MODE_TOKEN));
     }
 
     // -----------------------------
