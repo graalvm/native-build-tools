@@ -44,6 +44,8 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
@@ -195,6 +197,38 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
         then:
         outputContains "Application message: Hello, native!"
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/581")
+    @Requires({
+        System.getenv("GRAALVM_HOME") != null
+    })
+    @Unroll("agent uses GraalVM's Java executable for run task with JUnit Platform #junitVersion")
+    def "agent uses GraalVM java executable"() {
+        given:
+        withSample("java-application-with-reflection")
+        buildFile << """
+            tasks.named('run') {
+                doLast {
+                    def javaExecutableName = System.getProperty('os.name').contains('Windows') ? 'java.exe' : 'java'
+                    def expectedExecutable = new File(new File(System.getenv('GRAALVM_HOME'), 'bin'), javaExecutableName).absolutePath
+                    def actualExecutable = executable ?: javaLauncher.get().executablePath.asFile.absolutePath
+                    assert actualExecutable == expectedExecutable
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'run', '-Pagent=standard'
+
+        then:
+        tasks {
+            succeeded ':run'
+            doesNotContain ':jar'
+        }
 
         where:
         junitVersion = System.getProperty('versions.junit')

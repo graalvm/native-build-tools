@@ -91,6 +91,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
@@ -111,10 +112,14 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -124,6 +129,7 @@ import org.gradle.process.JavaForkOptions;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -137,6 +143,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -927,12 +934,32 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
         Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
+        Provider<JavaLauncher> javaLauncherForAgent = graalvmHomeProvider(project.getProviders())
+                .map(serializableTransformerOf(graalHomePath -> {
+                    String javaExecutable = graalHomePath + (IS_WINDOWS ? "\\bin\\java.exe" : "/bin/java");
+                    File javaExecutableFile = new File(javaExecutable);
+                    return javaExecutableFile.exists() ? new FixedJavaLauncher(new File(graalHomePath), javaExecutableFile) : null;
+                }));
+        if (agentConfiguration.get().isEnabled()) {
+            JavaLauncher javaLauncher = javaLauncherForAgent.getOrNull();
+            if (javaLauncher != null) {
+                if (taskToInstrument instanceof Test test) {
+                    test.getJavaLauncher().set(javaLauncher);
+                } else if (taskToInstrument instanceof JavaExec javaExec) {
+                    javaExec.getJavaLauncher().set(javaLauncher);
+                }
+            }
+        }
         //noinspection Convert2Lambda
         taskToInstrument.doFirst(new Action<Task>() {
             @Override
             public void execute(@Nonnull Task task) {
                 if (agentConfiguration.get().isEnabled()) {
                     logger.logOnce("Instrumenting task with the native-image-agent: " + task.getName());
+                    JavaLauncher javaLauncher = javaLauncherForAgent.getOrNull();
+                    if (javaLauncher != null && !(task instanceof Test) && !(task instanceof JavaExec)) {
+                        javaForkOptions.setExecutable(javaLauncher.getExecutablePath().getAsFile().getAbsolutePath());
+                    }
                 }
             }
         });
@@ -1048,6 +1075,149 @@ public class NativeImagePlugin implements Plugin<Project> {
         @Override
         public Iterable<String> asArguments() {
             return Collections.singleton("-D" + JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR + "=" + getDirectory().getAsFile().get().getAbsolutePath());
+        }
+    }
+
+    private static final class FixedJavaLauncher implements JavaLauncher, Serializable {
+        private final File javaExecutable;
+        private final FixedJavaInstallationMetadata metadata;
+
+        private FixedJavaLauncher(File javaHome, File javaExecutable) {
+            this.javaExecutable = javaExecutable;
+            this.metadata = new FixedJavaInstallationMetadata(javaHome);
+        }
+
+        @Override
+        public JavaInstallationMetadata getMetadata() {
+            return metadata;
+        }
+
+        @Override
+        public RegularFile getExecutablePath() {
+            return new FixedRegularFile(javaExecutable);
+        }
+    }
+
+    private static final class FixedJavaInstallationMetadata implements JavaInstallationMetadata, Serializable {
+        private final File javaHome;
+        private final String javaVersion;
+
+        private FixedJavaInstallationMetadata(File javaHome) {
+            this.javaHome = javaHome;
+            this.javaVersion = javaVersion(javaHome);
+        }
+
+        @Override
+        public JavaLanguageVersion getLanguageVersion() {
+            return JavaLanguageVersion.of(javaVersion.replaceFirst("^1\\.", "").replaceFirst("[^0-9].*", ""));
+        }
+
+        @Override
+        public String getJavaRuntimeVersion() {
+            return javaVersion;
+        }
+
+        @Override
+        public String getJvmVersion() {
+            return javaVersion;
+        }
+
+        @Override
+        public String getVendor() {
+            return "GraalVM";
+        }
+
+        @Override
+        public Directory getInstallationPath() {
+            return new FixedDirectory(javaHome);
+        }
+
+        @Override
+        public boolean isCurrentJvm() {
+            return false;
+        }
+
+        private static String javaVersion(File javaHome) {
+            File release = new File(javaHome, "release");
+            if (release.isFile()) {
+                Properties properties = new Properties();
+                try (var inputStream = java.nio.file.Files.newInputStream(release.toPath())) {
+                    properties.load(inputStream);
+                    String version = properties.getProperty("JAVA_VERSION");
+                    if (version != null) {
+                        return version.replace("\"", "");
+                    }
+                } catch (Exception ignored) {
+                    // Fall through to the JVM running Gradle.
+                }
+            }
+            return System.getProperty("java.version");
+        }
+    }
+
+    private static final class FixedRegularFile implements RegularFile, Serializable {
+        private final File file;
+
+        private FixedRegularFile(File file) {
+            this.file = file;
+        }
+
+        @Override
+        public File getAsFile() {
+            return file;
+        }
+
+        @Override
+        public String toString() {
+            return file.getAbsolutePath();
+        }
+    }
+
+    private static final class FixedDirectory implements Directory, Serializable {
+        private final File directory;
+
+        private FixedDirectory(File directory) {
+            this.directory = directory;
+        }
+
+        @Override
+        public File getAsFile() {
+            return directory;
+        }
+
+        @Override
+        public FileTree getAsFileTree() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Directory dir(String path) {
+            return new FixedDirectory(new File(directory, path));
+        }
+
+        @Override
+        public Provider<Directory> dir(Provider<? extends CharSequence> path) {
+            return path.map(serializableTransformerOf(value -> dir(value.toString())));
+        }
+
+        @Override
+        public RegularFile file(String path) {
+            return new FixedRegularFile(new File(directory, path));
+        }
+
+        @Override
+        public Provider<RegularFile> file(Provider<? extends CharSequence> path) {
+            return path.map(serializableTransformerOf(value -> file(value.toString())));
+        }
+
+        @Override
+        public FileCollection files(Object... paths) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public String toString() {
+            return directory.getAbsolutePath();
         }
     }
 
