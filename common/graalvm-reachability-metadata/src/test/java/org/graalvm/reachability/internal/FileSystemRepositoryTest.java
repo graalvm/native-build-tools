@@ -88,7 +88,7 @@ class FileSystemRepositoryTest {
     void testRepo2() {
         // when:
         withRepo("repo2");
-        lookup("org:bar:2.1");
+        lookup("org:foo:1.1");
 
         // then:
         result.hasSinglePath("org/foo/1.1");

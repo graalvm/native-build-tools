@@ -44,25 +44,19 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Artifact {
-    private final String module;
     private final Set<String> versions;
     private final String directory;
     private final boolean latest;
     private final boolean override;
     private final Pattern defaultForPattern;
 
-    public Artifact(String module, Set<String> versions, String directory,
+    public Artifact(Set<String> versions, String directory,
                     boolean latest, boolean override, String defaultFor) {
-        this.module = module;
         this.versions = versions;
         this.directory = directory;
         this.latest = latest;
         this.override = override;
         this.defaultForPattern = (defaultFor == null ? null : Pattern.compile(defaultFor));
-    }
-
-    public String getModule() {
-        return module;
     }
 
     public Set<String> getVersions() {
