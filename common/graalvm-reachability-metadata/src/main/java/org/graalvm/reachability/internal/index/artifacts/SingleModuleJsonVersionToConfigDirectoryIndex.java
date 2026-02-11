@@ -51,22 +51,20 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToConfigDirectoryIndex {
     private final Path moduleRoot;
-    private final Map<String, List<Artifact>> index;
+    private final List<Artifact> artifacts;
 
     public SingleModuleJsonVersionToConfigDirectoryIndex(Path moduleRoot) {
         this.moduleRoot = moduleRoot;
-        this.index = parseIndexFile(moduleRoot);
+        this.artifacts = parseIndexFile(moduleRoot);
     }
 
-    private Map<String, List<Artifact>> parseIndexFile(Path rootPath) {
+    private List<Artifact> parseIndexFile(Path rootPath) {
         Path indexFile = rootPath.resolve("index.json");
         try {
             String fileContent = Files.readString(indexFile);
@@ -75,8 +73,7 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
             for (int i = 0; i < json.length(); i++) {
                 entries.add(fromJson(json.getJSONObject(i)));
             }
-            return entries.stream()
-                    .collect(Collectors.groupingBy(Artifact::getModule));
+            return entries;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -121,13 +118,10 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
 
     private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, String version,
             Predicate<? super Artifact> predicate) {
-        String module = groupId + ":" + artifactId;
-        List<Artifact> artifacts = index.get(module);
-        if (artifacts == null) {
+        if (artifacts.isEmpty()) {
             return Optional.empty();
         }
         return artifacts.stream()
-                .filter(artifact -> artifact.getModule().equals(module))
                 .filter(predicate)
                 .findFirst()
                 .map(artifact -> new DirectoryConfiguration(groupId, artifactId, version,
@@ -135,13 +129,12 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
     }
 
     private Artifact fromJson(JSONObject json) {
-        String module = json.optString("module", null);
         Set<String> testVersions = readTestedVersions(json.optJSONArray("tested-versions"));
         String directory = json.optString("metadata-version", null);
         boolean latest = json.optBoolean("latest");
         boolean override = json.optBoolean("override");
         String defaultFor = json.optString("default-for", null);
-        return new Artifact(module, testVersions, directory, latest, override, defaultFor);
+        return new Artifact(testVersions, directory, latest, override, defaultFor);
     }
 
     private Set<String> readTestedVersions(JSONArray array) {
