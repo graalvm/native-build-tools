@@ -933,6 +933,15 @@ public class NativeImagePlugin implements Plugin<Project> {
             public void execute(@Nonnull Task task) {
                 if (agentConfiguration.get().isEnabled()) {
                     logger.logOnce("Instrumenting task with the native-image-agent: " + task.getName());
+                    // Prefer GraalVM's Java when running with the native-image-agent, fall back otherwise
+                    String graalHomePath = graalvmHomeProvider(project.getProviders()).getOrNull();
+                    if (graalHomePath != null) {
+                        String javaExecutable = graalHomePath + (IS_WINDOWS ? "\\bin\\java.exe" : "/bin/java");
+                        File javaExecFile = new File(javaExecutable);
+                        if (javaExecFile.exists()) {
+                            javaForkOptions.setExecutable(javaExecutable);
+                        }
+                    }
                 }
             }
         });
