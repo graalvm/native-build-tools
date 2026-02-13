@@ -93,6 +93,7 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_
     requiresDependencyCollection = ResolutionScope.TEST)
 public class NativeTestMojo extends AbstractNativeImageMojo {
 
+    public static final String COMPATIBILITY_MODE_ARG = "-H:+CompatibilityMode";
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
 
@@ -186,10 +187,18 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         logger.info("====================");
 
         configureEnvironment();
-        buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
 
-        /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
-        buildArgs.addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
+        // Detect Compatibility Mode; do not short-circuit the build anymore.
+        boolean compatibilityMode = isCompatibilityModeEnabled();
+        if (compatibilityMode) {
+            logger.info("Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher.");
+        }
+
+        if (!compatibilityMode) {
+            buildArgs.add("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
+            /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
+            buildArgs.addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
+        }
 
         if (systemProperties == null) {
             systemProperties = new HashMap<>();
@@ -201,12 +210,17 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         }
 
         imageName = NATIVE_TESTS_EXE;
-        mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
+        if (compatibilityMode) {
+            // Use the original JUnit ConsoleLauncher as the main class in Compatibility Mode
+            mainClass = "org.junit.platform.console.ConsoleLauncher";
+        } else {
+            mainClass = "org.graalvm.junit.platform.NativeImageJUnitLauncher";
+        }
 
         buildImage();
 
         if (!skipTestExecution) {
-            runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE));
+            runNativeTests(outputDirectory.toPath().resolve(NATIVE_TESTS_EXE), compatibilityMode);
         }
     }
 
@@ -227,22 +241,53 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             Object configuration = plugin.getConfiguration();
             if (configuration instanceof Xpp3Dom) {
                 Xpp3Dom dom = (Xpp3Dom) configuration;
-                applyPluginProperties(dom.getChild("environmentVariables"), environment);
-                applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+                environment = applyPluginProperties(dom.getChild("environmentVariables"), environment);
+                systemProperties = applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
             }
         }
     }
 
-    private void applyPluginProperties(Xpp3Dom pluginProperty, Map<String, String> values) {
+    private Map<String, String> applyPluginProperties(Xpp3Dom pluginProperty, Map<String, String> values) {
         if (pluginProperty != null) {
             Xpp3Dom[] children = pluginProperty.getChildren();
-            if (values == null) {
-                values = new HashMap<>(children.length);
+            Map<String, String> target = values;
+            if (target == null) {
+                target = new HashMap<>(children.length);
             }
             for (Xpp3Dom child : children) {
-                values.put(child.getName(), child.getValue());
+                target.put(child.getName(), child.getValue());
+            }
+            return target;
+        }
+        return values;
+    }
+
+    /**
+     * Detects whether native-image Compatibility Mode is enabled.
+     * Checks:
+     * 1) configured buildArgs
+     * 2) environment map populated by configureEnvironment() (key: NATIVE_IMAGE_OPTIONS)
+     * 3) fallback to System env (NATIVE_IMAGE_OPTIONS)
+     */
+    private boolean isCompatibilityModeEnabled() {
+        // 1) Check the configured buildArgs list (Mojo parameter)
+        if (buildArgs != null && buildArgs.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(s -> s.equals(COMPATIBILITY_MODE_ARG))) {
+            return true;
+        }
+
+        // 2) Check environment map populated by configureEnvironment()
+        if (environment != null) {
+            String options = environment.get("NATIVE_IMAGE_OPTIONS");
+            if (options != null && options.contains(COMPATIBILITY_MODE_ARG)) {
+                return true;
             }
         }
+
+        // 3) Fallback: System environment
+        String sysOptions = System.getenv("NATIVE_IMAGE_OPTIONS");
+        return sysOptions != null && sysOptions.contains(COMPATIBILITY_MODE_ARG);
     }
 
     private boolean hasTests() {
@@ -257,20 +302,24 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         return false;
     }
 
-    private void runNativeTests(Path executable) throws MojoExecutionException {
-        Path xmlLocation = outputDirectory.toPath().resolve("native-test-reports");
-        if (!xmlLocation.toFile().exists() && !xmlLocation.toFile().mkdirs()) {
-            throw new MojoExecutionException("Failed creating xml output directory");
-        }
-
+    private void runNativeTests(Path executable, boolean compatibilityMode) throws MojoExecutionException {
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(executable.toAbsolutePath().toString());
             processBuilder.inheritIO();
             processBuilder.directory(session.getCurrentProject().getBasedir());
 
             List<String> command = new ArrayList<>();
-            command.add("--xml-output-dir");
-            command.add(xmlLocation.toString());
+            if (compatibilityMode) {
+                command.add("-cp=" + getClasspath());
+                command.add("--scan-classpath");
+            } else {
+                Path xmlLocation = outputDirectory.toPath().resolve("native-test-reports");
+                if (!xmlLocation.toFile().exists() && !xmlLocation.toFile().mkdirs()) {
+                    throw new MojoExecutionException("Failed creating xml output directory");
+                }
+                command.add("--xml-output-dir");
+                command.add(xmlLocation.toString());
+            }
             systemProperties.forEach((key, value) -> command.add("-D" + key + "=" + value));
             command.addAll(runtimeArgs);
 

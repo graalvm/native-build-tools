@@ -85,3 +85,11 @@ nb-configuration.xml
 ## OS X
 ##############################
 .DS_Store
+
+##############################
+# Vibe Coding
+##############################
+scratchpad/
+
+# Local orchestration plans
+plans/
