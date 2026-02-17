@@ -28,6 +28,7 @@ public final class SchemaValidationUtils {
         new RequiredSchema("library-and-framework-list-schema", 1),
         new RequiredSchema("metadata-library-index-schema", 2),
     };
+    public static final String REACHABILITY_METADATA_SCHEMA_JSON_NAME = "reachability-metadata-schema.json";
 
     /**
      * Represents a required schema by base name with an exact required major version.
@@ -75,13 +76,31 @@ public final class SchemaValidationUtils {
         }
 
         int totalFilesFound = 0;
+        // Will try to extract the version from the descriptor file if present
+        String repositorySchemaVersion = null;
         List<String> missing = new ArrayList<>();
         List<String> metadataTooOld = new ArrayList<>();
         List<String> toolsTooOld = new ArrayList<>();
         String prefix = repoRoot.relativize(schemasDir).toString();
-
         try (DirectoryStream<Path> allFiles = Files.newDirectoryStream(schemasDir)) {
-            for (Path ignored : allFiles) {
+            for (Path entry : allFiles) {
+                String fileName = entry.getFileName().toString();
+                if (REACHABILITY_METADATA_SCHEMA_JSON_NAME.equals(fileName)) {
+                    // Do not count this descriptor file in the schema files total,
+                    // but try to extract the repository schema version from it.
+                    try {
+                        String content = Files.readString(entry);
+                        // Try common keys that may hold the version string
+                        Pattern vpat = Pattern.compile("\"(?:schemaVersion|version)\"\\s*:\\s*\"(\\d+\\.\\d+\\.\\d+)\"");
+                        Matcher vm = vpat.matcher(content);
+                        if (vm.find()) {
+                            repositorySchemaVersion = vm.group(1);
+                        }
+                    } catch (IOException ignored) {
+                        // Best effort: ignore failures reading or parsing this optional descriptor
+                    }
+                    continue;
+                }
                 totalFilesFound++;
             }
         } catch (IOException ignored) {}
