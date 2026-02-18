@@ -64,7 +64,7 @@ public final class SchemaValidationUtils {
      *
      * @param repoRoot the root path of the exploded repository
      */
-    public static void validateSchemas(Path repoRoot) {
+    public static String validateSchemas(Path repoRoot) {
         Path schemasDir = repoRoot.resolve("schemas");
 
         if (!Files.isDirectory(schemasDir)) {
@@ -165,5 +165,6 @@ public final class SchemaValidationUtils {
                 + ". Please update your Native Build Tools to a newer version.";
             throw new IllegalStateException(message);
         }
+        return repositorySchemaVersion;
     }
 }

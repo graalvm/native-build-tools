@@ -55,6 +55,9 @@ import java.util.function.Consumer;
  * are missing.
  */
 public interface GraalVMReachabilityMetadataRepository {
+
+    String getMetadataSchemaVersion();
+
     /**
      * Performs a generic query on the repository, returning a list of
      * configuration directories. The query may be parameterized with
