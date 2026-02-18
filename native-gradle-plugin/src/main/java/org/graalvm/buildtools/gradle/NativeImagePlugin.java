@@ -55,6 +55,7 @@ import org.graalvm.buildtools.gradle.internal.DefaultTestBinaryConfig;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
+import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
@@ -65,9 +66,9 @@ import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
+import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
 import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
-import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.Action;
@@ -100,7 +101,6 @@ import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -176,7 +176,14 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
     private static final String DEFAULT_URI = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
 
+    // Compatibility Mode detection constants
+    private static final String COMPATIBILITY_MODE_TOKEN = "-H:+CompatibilityMode";
+    private static final String NATIVE_IMAGE_OPTIONS_ENV = "NATIVE_IMAGE_OPTIONS";
+
     private GraalVMLogger logger;
+
+    // Exposed detection provider for test binaries (to be used by follow-up tasks)
+    private Provider<Boolean> compatModeEnabled;
 
     @Inject
     public ArchiveOperations getArchiveOperations() {
@@ -707,6 +714,71 @@ public class NativeImagePlugin implements Plugin<Project> {
         // Add DSL extension for testing
         NativeImageOptions testOptions = createTestOptions(graalExtension, name, project, mainOptions, config.getSourceSet());
 
+        // Compute and expose the Compatibility Mode detection provider for test binary
+        this.compatModeEnabled = computeCompatibilityModeEnabledProvider(project, testOptions);
+
+        // Unified once-per-build log at configuration time if Compatibility Mode is enabled
+        project.afterEvaluate(p -> {
+            if (compatModeEnabled().getOrElse(false)) {
+                logger.logOnce("Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher.");
+            }
+        });
+
+        // Wire main class based on Compatibility Mode, mirroring Maven plugin behavior.
+        testOptions.getMainClass().convention(compatModeEnabled().map(c -> c
+                ? "org.junit.platform.console.ConsoleLauncher"
+                : "org.graalvm.junit.platform.NativeImageJUnitLauncher"));
+
+        // Add the JUnit Platform Feature flag and exclude JUnit class init files only when NOT in Compatibility Mode.
+        final String junitPlatformFeatureFlag = "--features=org.graalvm.junit.platform.JUnitPlatformFeature";
+        project.afterEvaluate(p -> {
+            boolean compat = compatModeEnabled().getOrElse(false);
+            if (!compat) {
+                List<String> current = testOptions.getBuildArgs().getOrElse(Collections.emptyList());
+                if (!current.contains(junitPlatformFeatureFlag)) {
+                    testOptions.getBuildArgs().add(junitPlatformFeatureFlag);
+                }
+                /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
+                testOptions.getBuildArgs().addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
+            }
+        });
+        // Add XML output dir only in regular mode (not in Compatibility Mode)
+        Provider<String> xmlOutputDir = project.getLayout().getBuildDirectory()
+                .dir("test-results/" + name + "-native")
+                .map(d -> d.getAsFile().getAbsolutePath());
+        testOptions.getRuntimeArgs().addAll(
+                compatModeEnabled().zip(xmlOutputDir, serializableBiFunctionOf((compat, dir) ->
+                        compat ? Collections.emptyList() : Arrays.asList("--xml-output-dir", dir)
+                ))
+        );
+        // In Compatibility Mode, pass classpath and scan directive to the JUnit ConsoleLauncher to avoid
+        // "Please specify an explicit selector option or use --scan-class-path or --scan-modules"
+        Provider<String> cpString = project.getProviders().provider(() -> testOptions.getClasspath().getAsPath());
+        testOptions.getRuntimeArgs().addAll(
+                compatModeEnabled().zip(cpString, serializableBiFunctionOf((compat, cp) ->
+                        compat ? Arrays.asList("-Djava.class.path=" + cp, "--scan-classpath") : Collections.<String>emptyList()
+                ))
+        );
+        // In Compatibility Mode, also pass -Djava.home from the GraalVM used for the build
+        Provider<String> graalVmHome = project.getProviders().provider(() -> {
+            NativeImageExecutableLocator.Diagnostics d = new NativeImageExecutableLocator.Diagnostics();
+            File nativeImage = NativeImageExecutableLocator.findNativeImageExecutable(
+                    testOptions.getJavaLauncher(),
+                    graalExtension.getToolchainDetection().map(enabled -> !enabled),
+                    graalvmHomeProvider(project.getProviders(), d),
+                    getExecOperations(),
+                    logger,
+                    d
+            );
+            File parent = nativeImage.getParentFile();
+            return parent != null ? parent.getParent() : null;
+        });
+        testOptions.getRuntimeArgs().addAll(
+                compatModeEnabled().zip(graalVmHome, serializableBiFunctionOf((compat, home) ->
+                        compat && home != null ? Collections.singletonList("-Djava.home=" + home) : Collections.<String>emptyList()
+                ))
+        );
+
         TaskProvider<Test> testTask = config.validate().getTestTask();
         testTask.configure(test -> {
             var testList = testResultsDir.dir(test.getName() + "/testlist");
@@ -850,22 +922,12 @@ public class NativeImagePlugin implements Plugin<Project> {
         var configurations = project.getConfigurations();
         setupExtensionConfigExcludes(testExtension, configurations);
 
-        testExtension.getMainClass().set("org.graalvm.junit.platform.NativeImageJUnitLauncher");
-        testExtension.getMainClass().finalizeValue();
         testExtension.getImageName().convention(mainExtension.getImageName().map(name -> name + SharedConstants.NATIVE_TESTS_SUFFIX));
 
-        ListProperty<String> runtimeArgs = testExtension.getRuntimeArgs();
-        runtimeArgs.add("--xml-output-dir");
-        runtimeArgs.add(project.getLayout().getBuildDirectory().dir("test-results/" + binaryName + "-native").map(d -> d.getAsFile().getAbsolutePath()));
-
-        testExtension.buildArgs("--features=org.graalvm.junit.platform.JUnitPlatformFeature");
         ConfigurableFileCollection classpath = testExtension.getClasspath();
         classpath.from(configurations.getByName(imageClasspathConfigurationNameFor(binaryName)));
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
-
-        /* in version 5.12.0 JUnit added initialize-at-build-time properties files which we need to exclude */
-        testExtension.getBuildArgs().addAll(JUnitUtils.excludeJUnitClassInitializationFiles());
 
         return testExtension;
     }
@@ -1069,4 +1131,51 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
     }
 
+    // -----------------------------
+    // Compatibility Mode Detection
+    // -----------------------------
+
+    /**
+     * Exposes the Compatibility Mode detection for the test binary.
+     * Follow-up tasks will use this provider to gate configuration/skip tasks.
+     */
+    public Provider<Boolean> compatModeEnabled() {
+        return compatModeEnabled;
+    }
+
+    private static Provider<Boolean> computeCompatibilityModeEnabledProvider(Project project, NativeImageOptions options) {
+        ProviderFactory providers = project.getProviders();
+
+        // System environment: NATIVE_IMAGE_OPTIONS
+        Provider<Boolean> fromSystemEnv = providers.environmentVariable(NATIVE_IMAGE_OPTIONS_ENV)
+                .map(NativeImagePlugin::containsCompatibilityTokenInString)
+                .orElse(false);
+
+        // Options-level environment variables
+        Provider<Boolean> fromOptionsEnv = options.getEnvironmentVariables()
+                .map(env -> {
+                    Object v = env.get(NATIVE_IMAGE_OPTIONS_ENV);
+                    return v != null && containsCompatibilityTokenInString(String.valueOf(v));
+                })
+                .orElse(false);
+
+        // Build args on the test options
+        Provider<Boolean> fromBuildArgs = options.getBuildArgs()
+                .map(NativeImagePlugin::containsCompatibilityTokenInArgs)
+                .orElse(false);
+
+        // Combine: true if any source enables compatibility mode
+        Provider<Boolean> anyEnv = fromSystemEnv.zip(fromOptionsEnv, (a, b) -> a || b);
+        return anyEnv.zip(fromBuildArgs, (ab, c) -> ab || c);
+    }
+
+    private static boolean containsCompatibilityTokenInString(String value) {
+        return value != null && value.contains(COMPATIBILITY_MODE_TOKEN);
+    }
+
+    public static boolean containsCompatibilityTokenInArgs(List<String> args) {
+        return args != null && args.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(s -> s.equals(COMPATIBILITY_MODE_TOKEN));
+    }
 }
