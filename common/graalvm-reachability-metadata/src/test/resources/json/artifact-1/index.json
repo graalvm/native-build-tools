@@ -1,0 +1,5 @@
+[
+  { "module": "com.foo:bar", "tested-versions": ["1.0", "1.1", "1.2", "1.3"], "metadata-version": "1.0" },
+  { "module": "com.foo:bar", "tested-versions": ["2.0", "2.1"], "metadata-version": "2.0", "latest": true, "override": true },
+  { "module": "com.foo:bar-all", "tested-versions": ["2.0", "2.1"], "metadata-version": "2.0" }
+]

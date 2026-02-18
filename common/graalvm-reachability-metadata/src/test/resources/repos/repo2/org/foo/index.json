@@ -1,5 +1,5 @@
 [
-  { "tested-versions": ["1.0"], "metadata-version": "1.0" },
-  { "tested-versions": ["1.1"], "metadata-version": "1.1" },
-  { "tested-versions": ["2.1"], "metadata-version": "1.1" }
+  { "module": "org:foo", "tested-versions": ["1.0"], "metadata-version": "1.0" },
+  { "module": "org:foo", "tested-versions": ["1.1"], "metadata-version": "1.1" },
+  { "module": "org:bar", "tested-versions": ["2.1"], "metadata-version": "1.1" }
 ]

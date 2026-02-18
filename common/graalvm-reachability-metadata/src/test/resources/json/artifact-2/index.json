@@ -1,0 +1,5 @@
+[
+  { "module": "com.foo:bar", "tested-versions": ["1.0"], "metadata-version": "1.0", "default-for": "1\\..*" },
+  { "module": "com.foo:bar", "tested-versions": ["2.0", "2.1"], "metadata-version": "2.0", "latest": true },
+  { "module": "com.foo:baz", "tested-versions": ["1.0"], "metadata-version": "1.0", "default-for": "1.*" }
+]

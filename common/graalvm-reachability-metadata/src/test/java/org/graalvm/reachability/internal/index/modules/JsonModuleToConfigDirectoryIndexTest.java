@@ -38,50 +38,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.reachability.internal.index.artifacts;
 
+package org.graalvm.reachability.internal.index.modules;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.regex.Pattern;
 
-public class Artifact {
-    private final String module;
-    private final Set<String> versions;
-    private final String directory;
-    private final boolean latest;
-    private final boolean override;
-    private final Pattern defaultForPattern;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public Artifact(String module, Set<String> versions, String directory,
-                    boolean latest, boolean override, String defaultFor) {
-        this.module = module;
-        this.versions = versions;
-        this.directory = directory;
-        this.latest = latest;
-        this.override = override;
-        this.defaultForPattern = (defaultFor == null ? null : Pattern.compile(defaultFor));
+class JsonModuleToConfigDirectoryIndexTest {
+    private Path repoPath;
+
+    private JsonModuleToConfigDirectoryIndex index;
+
+    @Test
+    void returnsSingleDirectory() throws URISyntaxException {
+        writeIndex("single-dir");
+        Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
+
+        configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
+
+        configurationDirectories = index.findConfigurationDirectories("org", "bar");
+        assertEquals(emptySet(), configurationDirectories);
     }
 
-    public String getModule() {
-        return module;
+    @Test
+    void returnsMultipleDirectories() throws URISyntaxException {
+        writeIndex("multi-dirs");
+        Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
+        assertEquals(new HashSet<>(asList(
+                repoPath.resolve("io.netty/netty-core"),
+                repoPath.resolve("jline")
+                )), configurationDirectories);
+
     }
 
-    public Set<String> getVersions() {
-        return versions;
-    }
-
-    public String getDirectory() {
-        return directory;
-    }
-
-    public boolean isLatest() {
-        return latest;
-    }
-
-    public boolean isOverride() {
-        return override;
-    }
-
-    public boolean isDefaultFor(String version) {
-        return defaultForPattern != null && defaultForPattern.matcher(version).matches();
+    private void writeIndex(String json) throws URISyntaxException {
+        repoPath = new File(FileSystemModuleToConfigDirectoryIndexTest.class.getResource("/json/modules/" + json).toURI()).toPath();
+        index = new JsonModuleToConfigDirectoryIndex(repoPath);
     }
 }

@@ -26,7 +26,8 @@ public final class SchemaValidationUtils {
      */
     private static final RequiredSchema[] REQUIRED_SCHEMAS = new RequiredSchema[] {
         new RequiredSchema("library-and-framework-list-schema", 1),
-        new RequiredSchema("metadata-library-index-schema", 2),
+        new RequiredSchema("metadata-library-index-schema", 1),
+        new RequiredSchema("metadata-root-index-schema", 1)
     };
 
     /**

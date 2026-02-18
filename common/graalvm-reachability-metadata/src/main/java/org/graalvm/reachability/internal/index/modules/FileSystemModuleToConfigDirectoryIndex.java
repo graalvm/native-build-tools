@@ -40,77 +40,36 @@
  */
 package org.graalvm.reachability.internal.index.modules;
 
-import com.github.openjson.JSONArray;
-import com.github.openjson.JSONObject;
-import org.graalvm.reachability.internal.UncheckedIOException;
-
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Module-to-config index which:
- * - Resolves the primary module directory by conventional layout (groupId/artifactId),
- * - Reads requires from the inner metadata/group/artifact/index.json and adds their conventional directories.
+ * This is the default index from module to configuration directory, which first
+ * looks into the JSON index file, and if a module isn't found there, would try
+ * to find it in the standard FS location.
  */
 public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDirectoryIndex {
-    private final Path rootPath;
+    private final JsonModuleToConfigDirectoryIndex jsonIndex;
+    private final StandardLocationModuleToConfigDirectoryIndex fsIndex;
 
     public FileSystemModuleToConfigDirectoryIndex(Path rootPath) {
-        this.rootPath = rootPath;
+        this.jsonIndex = new JsonModuleToConfigDirectoryIndex(rootPath);
+        this.fsIndex = new StandardLocationModuleToConfigDirectoryIndex(rootPath);
     }
 
     /**
-     * Returns the directories containing the candidate configurations for the given module.
-     * <p>
-     * - Always includes the conventional module directory if present: rootPath/groupId/artifactId
-     * - Additionally includes conventional directories of any modules listed in "requires" of the inner index.json
-     * - Only a single-level requires expansion is performed
+     * Returns the directory containing the candidate configurations for the given module.
+     *
+     * @param groupId the group of the module
+     * @param artifactId the artifact of the module
+     * @return the configuration directory
      */
     @Override
     public Set<Path> findConfigurationDirectories(String groupId, String artifactId) {
-        Path base = rootPath.resolve(groupId + "/" + artifactId);
-        if (!Files.isDirectory(base)) {
-            return Collections.emptySet();
+        Set<Path> fromIndex = jsonIndex.findConfigurationDirectories(groupId, artifactId);
+        if (!fromIndex.isEmpty()) {
+            return fromIndex;
         }
-
-        Path indexFile = base.resolve("index.json");
-        if (Files.isRegularFile(indexFile)) {
-            Set<Path> result = new LinkedHashSet<>();
-            // Always include the base directory so its index.json is parsed,
-            // even if it doesn't contain configuration files itself.
-            result.add(base);
-            try {
-                String content = Files.readString(indexFile);
-                JSONArray entries = new JSONArray(content);
-                for (int i = 0; i < entries.length(); i++) {
-                    JSONObject entry = entries.getJSONObject(i);
-                    JSONArray requires = entry.optJSONArray("requires");
-                    if (requires == null) {
-                        continue;
-                    }
-                    for (int j = 0; j < requires.length(); j++) {
-                        String req = requires.getString(j);
-                        int sep = req.indexOf(':');
-                        if (sep > 0) {
-                            String reqGroup = req.substring(0, sep);
-                            String reqArtifact = req.substring(sep + 1);
-                            Path reqDir = rootPath.resolve(reqGroup + "/" + reqArtifact);
-                            if (Files.isDirectory(reqDir)) {
-                                result.add(reqDir);
-                            }
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-            return result;
-        }
-
-        return Collections.singleton(base);
+        return fsIndex.findConfigurationDirectories(groupId, artifactId);
     }
 }

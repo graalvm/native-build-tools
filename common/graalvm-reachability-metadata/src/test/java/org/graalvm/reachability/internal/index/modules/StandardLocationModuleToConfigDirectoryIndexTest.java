@@ -38,50 +38,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.reachability.internal.index.artifacts;
 
+package org.graalvm.reachability.internal.index.modules;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
-import java.util.regex.Pattern;
 
-public class Artifact {
-    private final String module;
-    private final Set<String> versions;
-    private final String directory;
-    private final boolean latest;
-    private final boolean override;
-    private final Pattern defaultForPattern;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    public Artifact(String module, Set<String> versions, String directory,
-                    boolean latest, boolean override, String defaultFor) {
-        this.module = module;
-        this.versions = versions;
-        this.directory = directory;
-        this.latest = latest;
-        this.override = override;
-        this.defaultForPattern = (defaultFor == null ? null : Pattern.compile(defaultFor));
+class StandardLocationModuleToConfigDirectoryIndexTest {
+    @TempDir
+    private Path tempDir;
+
+    private StandardLocationModuleToConfigDirectoryIndex index;
+
+    @BeforeEach
+    void setUp() {
+        index = new StandardLocationModuleToConfigDirectoryIndex(tempDir);
     }
 
-    public String getModule() {
-        return module;
-    }
+    @Test
+    void returnsConventionalConfigLocation() throws IOException {
+        Path localDir = tempDir.resolve("org.module/foo");
+        Files.createDirectories(localDir);
+        Set<Path> configurationDirectories = index.findConfigurationDirectories("org.module", "foo");
+        assertEquals(singleton(localDir), configurationDirectories);
 
-    public Set<String> getVersions() {
-        return versions;
-    }
-
-    public String getDirectory() {
-        return directory;
-    }
-
-    public boolean isLatest() {
-        return latest;
-    }
-
-    public boolean isOverride() {
-        return override;
-    }
-
-    public boolean isDefaultFor(String version) {
-        return defaultForPattern != null && defaultForPattern.matcher(version).matches();
+        configurationDirectories = index.findConfigurationDirectories("org", "bar");
+        assertEquals(emptySet(), configurationDirectories);
     }
 }
