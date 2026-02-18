@@ -1,11 +1,13 @@
 [
   {
+    "module": "org:foo",
     "tested-versions": [
       "1.0"
     ],
     "metadata-version": "1.0"
   },
   {
+    "module": "org:foo",
     "tested-versions": [
       "1.1"
     ],

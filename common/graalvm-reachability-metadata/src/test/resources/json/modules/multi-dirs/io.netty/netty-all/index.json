@@ -1,8 +1,0 @@
-[
-  {
-    "metadata-version": "1",
-    "tested-versions": ["1.0"],
-    "allowed-packages": [],
-    "requires": ["io.netty:netty-core", "org.jline:jline"]
-  }
-]

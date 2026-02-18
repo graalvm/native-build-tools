@@ -44,6 +44,7 @@ package org.graalvm.reachability.internal.index.modules;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -59,30 +60,26 @@ class FileSystemModuleToConfigDirectoryIndexTest {
     private FileSystemModuleToConfigDirectoryIndex index;
 
     @Test
-    void returnsSingleDirectory() throws URISyntaxException {
+    void returnsSingleDirectory() throws IOException, URISyntaxException {
         writeIndex("single-dir");
         Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
         assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
-        assertEquals(new HashSet<>(asList(
-                repoPath.resolve("io.netty/netty-all"),
-                repoPath.resolve("io.netty/netty-core")
-        )), configurationDirectories);
+        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("org", "bar");
         assertEquals(singleton(repoPath.resolve("org/bar")), configurationDirectories);
     }
 
     @Test
-    void returnsMultipleDirectories() throws URISyntaxException {
+    void returnsMultipleDirectories() throws IOException, URISyntaxException {
         writeIndex("multi-dirs");
         Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
         assertEquals(new HashSet<>(asList(
-                repoPath.resolve("io.netty/netty-all"),
                 repoPath.resolve("io.netty/netty-core"),
-                repoPath.resolve("org.jline/jline")
-        )), configurationDirectories);
+                repoPath.resolve("jline")
+                )), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("org", "bar");
         assertEquals(singleton(repoPath.resolve("org/bar")), configurationDirectories);

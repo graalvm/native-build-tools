@@ -1,0 +1,7 @@
+[
+  { "module": "io.netty:netty-core", "directory": "io.netty/netty-core"},
+  { "module": "org.jline:jline", "directory": "jline"},
+  {
+    "module": "io.netty:netty-all", "requires": ["io.netty:netty-core", "org.jline:jline"]
+  }
+]
