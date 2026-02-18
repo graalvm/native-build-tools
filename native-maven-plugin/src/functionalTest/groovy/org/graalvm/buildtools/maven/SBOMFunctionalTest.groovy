@@ -95,8 +95,8 @@ class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     }
 
     private static boolean supportsBaseSBOM() {
-        boolean isOracleGraalVM = NativeCompileNoForkMojo.isOracleGraalVM(null)
-        int version = NativeImageUtils.getMajorJDKVersion(NativeCompileNoForkMojo.getVersionInformation(null))
+        boolean isOracleGraalVM = NativeCompileNoForkMojo.isOracleGraalVM(null, metadataRepository)
+        int version = NativeImageUtils.getMajorJDKVersion(NativeCompileNoForkMojo.getVersionInformation(null, metadataRepository))
         return SBOMGenerator.isBaseSBOMSupported(isOracleGraalVM, version)
     }
 

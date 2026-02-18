@@ -56,6 +56,7 @@ import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.reachability.GraalVMReachabilityMetadataRepository;
 
 import javax.inject.Inject;
 import java.io.BufferedReader;
@@ -502,7 +503,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     protected void buildImage() throws MojoExecutionException {
-        checkRequiredVersionIfNeeded();
+        checkRequiredVersionIfNeeded(metadataRepository);
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
 
         try {
@@ -535,24 +536,26 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
     }
 
-    protected void checkRequiredVersionIfNeeded() throws MojoExecutionException {
+    protected void checkRequiredVersionIfNeeded(GraalVMReachabilityMetadataRepository metadataRepository) throws MojoExecutionException {
         if (requiredVersion == null) {
             return;
         }
-        NativeImageUtils.checkVersion(requiredVersion, getVersionInformation(logger));
+        NativeImageUtils.checkVersion(requiredVersion, getVersionInformation(logger, metadataRepository));
     }
 
-    protected static boolean isOracleGraalVM(Logger logger) throws MojoExecutionException {
-        return getVersionInformation(logger).contains(ORACLE_GRAALVM_IDENTIFIER);
+    protected static boolean isOracleGraalVM(Logger logger, GraalVMReachabilityMetadataRepository metadataRepository) throws MojoExecutionException {
+        return getVersionInformation(logger, metadataRepository).contains(ORACLE_GRAALVM_IDENTIFIER);
     }
 
     /**
      * Returns the output of calling "native-image --version".
-     * @param logger a logger, that may be null, to print warnings or useful information.
+     *
+     * @param logger             a logger, that may be null, to print warnings or useful information.
+     * @param metadataRepository path to the metadata repo for reachability-metadata schema crosschecking.
      * @return the output as a string joined by "\n".
      * @throws MojoExecutionException when any errors occurred.
      */
-    protected static String getVersionInformation(Logger logger) throws MojoExecutionException {
+    protected static String getVersionInformation(Logger logger, GraalVMReachabilityMetadataRepository metadataRepository) throws MojoExecutionException {
         if (nativeImageVersionInformation != null) {
             return nativeImageVersionInformation;
         }
@@ -571,6 +574,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     new InputStreamReader(inputStream, StandardCharsets.UTF_8))
                     .lines()
                     .collect(Collectors.joining("\n"));
+
+            if (metadataRepository.getMetadataSchemaVersion() == null )
+
             return nativeImageVersionInformation;
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Checking GraalVM version with " + nativeImageExecutable + " failed", e);
