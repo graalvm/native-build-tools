@@ -10,14 +10,11 @@ import java.util.regex.Matcher;
 import java.io.IOException;
 
 /**
- * Utility methods for validating that required schema files with an exact major version
- * are present in a GraalVM reachability metadata repository.
- * Schema compatibility is determined by the major version only:
- * - If Build Tools requires a higher major than what the repository provides, validation fails
- * and the user must update the reachability metadata repository.
- * - If the repository provides a higher major than supported by Build Tools, validation fails
- * and the user must update Native Build Tools.
- * The check also ensures the schema directory is present and contains a valid set of files.
+ * Utilities for validating GraalVM reachability metadata repository schemas.
+ * - Validates that required repository schemas exist with the exact supported major version
+ *   and enforces a strict, known set of files in the schemas directory.
+ * - Optionally cross-validates the Reachability Metadata Schema between the repository and
+ *   a graal installation when both provide it.
  */
 public final class SchemaValidationUtils {
     /**
@@ -156,9 +153,18 @@ public final class SchemaValidationUtils {
     }
 
     /**
-     * Performs optional reachability-metadata-schema cross-validation between the used reachability metadata repository
-     * and the provided GraalVM installation. This does not affect the mandatory schema checks and is skipped entirely
-     * if both sides don't provide the schema.
+     * Optionally cross-validates the reachability-metadata schema between the repository
+     * and the active graal installation.
+     *
+     * Behavior:
+     * - Neither side provides the schema: no-op.
+     * - Repository provides it; graal does not: throws and asks to update graal (majorJDKVersion used for guidance).
+     * - Graal provides it; repository does not: throws and asks to update the repository.
+     * - Both provide it: extract full versions (repo from filename, graal from JSON), compare; throw on mismatch.
+     *
+     * This check does not affect mandatory repository schema validation performed by
+     * {@link #validateSchemas(Path)}. The majorJDKVersion parameter is only used to tailor
+     * guidance in error messages.
      */
     public static void validateReachabilityMetadataSchema(Path repoRoot, int majorJDKVersion) {
         Path schemasDir = repoRoot.resolve("schemas");

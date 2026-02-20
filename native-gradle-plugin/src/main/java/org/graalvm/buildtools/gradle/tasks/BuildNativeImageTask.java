@@ -48,7 +48,6 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
-import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
