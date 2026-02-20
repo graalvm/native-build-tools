@@ -136,7 +136,7 @@
                             <!-- tag::metadata-versioned[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
-                                <version>0.3.33</version>
+                                <version>1.0-M1-prerelease</version> <!-- TODO: Update to 1.0-M1 -->
                             </metadataRepository>
                             <!-- end::metadata-versioned[] -->
                         </configuration>
@@ -193,7 +193,7 @@
                         </executions>
                         <configuration>
                             <metadataRepository>
-                                <version>0.3.33</version>
+                                <version>1.0-M1-prerelease</version> <!-- TODO: Update to 1.0-M1 -->
                             </metadataRepository>
                         </configuration>
                     </plugin>
