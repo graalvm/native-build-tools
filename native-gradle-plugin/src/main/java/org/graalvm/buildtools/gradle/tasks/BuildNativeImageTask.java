@@ -48,6 +48,8 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
+import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -76,6 +78,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
@@ -247,6 +250,14 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @Optional
     public abstract Property<Boolean> getUseArgFile();
 
+    @Input
+    @Optional
+    public abstract Property<Boolean> getMetadataRepositoryEnabled();
+
+    @Input
+    @Optional
+    public abstract Property<String> getMetadataRepositoryRootPath();
+
     public BuildNativeImageTask() {
         DirectoryProperty buildDir = getProject().getLayout().getBuildDirectory();
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
@@ -298,6 +309,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getExecOperations(),
             logger,
             diagnostics);
+        Boolean metadataEnabled = getMetadataRepositoryEnabled().getOrNull();
+        String metadataRoot = getMetadataRepositoryRootPath().getOrNull();
+        if (Boolean.TRUE.equals(metadataEnabled) && metadataRoot != null) {
+            SchemaValidationUtils.validateReachabilityMetadataSchema(Path.of(metadataRoot));
+        }
         String versionString = getVersionString(getExecOperations(), executablePath);
         if (options.getRequiredVersion().isPresent()) {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);

@@ -55,7 +55,9 @@ import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.reachability.internal.FileSystemRepository;
 
 import javax.inject.Inject;
 import java.io.BufferedReader;
@@ -504,7 +506,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
-
+        if (isMetadataRepositoryEnabled() && metadataRepository != null) {
+            SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory());
+        }
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
             processBuilder.command().addAll(getBuildArgs());
