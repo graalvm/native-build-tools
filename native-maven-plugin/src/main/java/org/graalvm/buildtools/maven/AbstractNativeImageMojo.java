@@ -507,7 +507,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
         if (isMetadataRepositoryEnabled() && metadataRepository != null) {
-            SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory());
+            SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(null)));
         }
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());

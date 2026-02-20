@@ -309,12 +309,12 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getExecOperations(),
             logger,
             diagnostics);
+        String versionString = getVersionString(getExecOperations(), executablePath);
         Boolean metadataEnabled = getMetadataRepositoryEnabled().getOrNull();
         String metadataRoot = getMetadataRepositoryRootPath().getOrNull();
         if (Boolean.TRUE.equals(metadataEnabled) && metadataRoot != null) {
-            SchemaValidationUtils.validateReachabilityMetadataSchema(Path.of(metadataRoot));
+            SchemaValidationUtils.validateReachabilityMetadataSchema(Path.of(metadataRoot), NativeImageUtils.getMajorJDKVersion(versionString));
         }
-        String versionString = getVersionString(getExecOperations(), executablePath);
         if (options.getRequiredVersion().isPresent()) {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
         }
