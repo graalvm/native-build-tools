@@ -116,7 +116,7 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
         File baseDir = new File(agentOutputDirectory);
         if (baseDir.exists()) {
             List<File> sessionDirectories = sessionDirectoriesFrom(baseDir.listFiles()).collect(Collectors.toList());
-            if (sessionDirectories.size() == 0) {
+            if (sessionDirectories.isEmpty()) {
                 sessionDirectories = Collections.singletonList(baseDir);
             }
 

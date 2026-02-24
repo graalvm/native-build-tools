@@ -172,6 +172,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final Attribute<Boolean> JAR_ANALYSIS_ATTRIBUTE = Attribute.of("jar-analysis", Boolean.class);
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
+    private static final String JUNIT_PLATFORM_DRY_RUN_ENABLED = "junit.platform.execution.dryRun.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
     private static final String DEFAULT_URI = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
@@ -714,6 +715,16 @@ public class NativeImagePlugin implements Plugin<Project> {
             test.getOutputs().dir(testList);
             // Set system property read by the UniqueIdTrackingListener.
             test.systemProperty(JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED, true);
+
+            // Set system property to skip execution of JVM tests before native tests
+            if (shouldSkipJVMTests()) {
+                if (graalExtension.getAgent().getEnabled().get()) {
+                    throw new IllegalStateException("Native Image Agent and skipJVMTests cannot be used at the same time.");
+                }
+
+                test.systemProperty(JUNIT_PLATFORM_DRY_RUN_ENABLED, true);
+            }
+
             TrackingDirectorySystemPropertyProvider directoryProvider = project.getObjects().newInstance(TrackingDirectorySystemPropertyProvider.class);
             directoryProvider.getDirectory().set(testListDirectory);
             test.getJvmArgumentProviders().add(directoryProvider);
@@ -746,6 +757,11 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
             task.setOnlyIf(t -> graalExtension.getTestSupport().get() && testListDirectory.getAsFile().get().exists());
         });
+    }
+
+    private boolean shouldSkipJVMTests() {
+        String option = System.getProperty(SharedConstants.SKIP_JVM_TESTS);
+        return (option != null && option.isEmpty()) || Boolean.parseBoolean(option);
     }
 
     /**
