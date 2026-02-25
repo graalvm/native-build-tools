@@ -58,6 +58,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
+          graal-java-version: '21'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion="${{ matrix.gradle-version }}" --tests ${{ matrix.test }}
@@ -103,6 +104,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
+          graal-java-version: '21'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin with configuration cache"
         run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion="${{ matrix.gradle-config-cache-version }}" --tests ${{ matrix.test }}
@@ -120,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ 17 ]
+        java-version: [ 17.0.12 ]
         os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
@@ -129,6 +131,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
+          graal-java-version: '21'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Unit tests and inspections"
         run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
@@ -146,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java-version: [ 17 ]
+        java-version: [ 17.0.12 ]
         os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
@@ -155,6 +158,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
+          graal-java-version: ''
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "🔧 Install GraalVM (dev)"
         uses: graalvm/setup-graalvm@main
