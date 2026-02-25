@@ -166,7 +166,7 @@ public final class SchemaValidationUtils {
      * {@link #validateSchemas(Path)}. The majorJDKVersion parameter is only used to tailor
      * guidance in error messages.
      */
-    public static void validateReachabilityMetadataSchema(Path repoRoot, int majorJDKVersion) {
+    public static void validateReachabilityMetadataSchema(Path repoRoot, int majorJDKVersion, Path nativeImageExecutable) {
         Path schemasDir = repoRoot.resolve("schemas");
         boolean schemaExistsInMetadataRepo = false;
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(schemasDir, REACHABILITY_METADATA_SCHEMA + "-v*.json")) {
@@ -176,13 +176,9 @@ public final class SchemaValidationUtils {
             }
         } catch (IOException ignored) {}
 
-        String env = System.getenv("GRAALVM_HOME");
-        Path graalvmHomeLocation;
-        if (env != null) {
-            graalvmHomeLocation = Path.of(env);
-        } else {
-            graalvmHomeLocation = Path.of(System.getenv("JAVA_HOME"));
-        }
+        // The native image executable is located in $GRAALVM_HOME/bin/native-image
+        Path graalvmHomeLocation = nativeImageExecutable.getParent().getParent();
+
         boolean schemaExistsInGraal = false;
         try {
             Path graalSchema = graalvmHomeLocation.resolve(REACHABILITY_METADATA_SCHEMA_PATH);
