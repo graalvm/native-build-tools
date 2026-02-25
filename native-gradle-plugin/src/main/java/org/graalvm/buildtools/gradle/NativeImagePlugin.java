@@ -337,6 +337,22 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     builder.getOptions().convention(options);
                     builder.getUseArgFile().convention(graalExtension.getUseArgFile());
+
+                    GraalVMReachabilityMetadataRepositoryExtension repoExt = reachabilityExtensionOn(graalExtension);
+                    Provider<Boolean> repoEnabled =
+                        repoExt.getEnabled().flatMap(serializableTransformerOf(enabled ->
+                            enabled
+                                ? repoExt.getUri()
+                                    .map(serializableTransformerOf(obj -> true))
+                                    .orElse(project.getProviders().provider(() -> false))
+                                : project.getProviders().provider(() -> false)
+                        ));
+                    Provider<GraalVMReachabilityMetadataService> svc = graalVMReachabilityMetadataService(project, repoExt);
+                    Provider<String> repoRootPath = svc.map(serializableTransformerOf(service ->
+                        service.getRepositoryDirectory().map(p -> p.toAbsolutePath().toString()).orElse(null)
+                    ));
+                    builder.getMetadataRepositoryEnabled().set(repoEnabled);
+                    builder.getMetadataRepositoryRootPath().set(repoRootPath);
                 });
             String runTaskName = deriveTaskName(binaryName, "native", "Run");
             var providers = project.getProviders();
