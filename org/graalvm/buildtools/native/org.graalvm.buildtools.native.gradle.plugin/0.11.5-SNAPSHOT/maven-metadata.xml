@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata modelVersion="1.1.0">
+  <groupId>org.graalvm.buildtools.native</groupId>
+  <artifactId>org.graalvm.buildtools.native.gradle.plugin</artifactId>
+  <version>0.11.5-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20260226.131816</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20260226131816</lastUpdated>
+    <snapshotVersions>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>0.11.5-20260226.131816-1</value>
+        <updated>20260226131816</updated>
+      </snapshotVersion>
+    </snapshotVersions>
+  </versioning>
+</metadata>
