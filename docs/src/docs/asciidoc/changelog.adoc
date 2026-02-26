@@ -1,6 +1,21 @@
 [[changelog]]
 == Changelog
 
+== Release 0.11.5
+
+- Feature – Auto-fallback to JVM JUnit when -H:+CompatibilityMode is enabled
++
+* When -H:+CompatibilityMode is present in native-image options, native-image JUnit tests are disabled and JVM tests run automatically.
+* Detection sources: native-image build arguments and NATIVE_IMAGE_OPTIONS environment variable.
+* Gradle: test image wiring for the native JUnit launcher and JUnit Platform feature is gated; native test image build/run tasks are skipped via onlyIf; once-per-build log:
++
+"Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher."
+
+* Maven: native test goal short-circuits after environment setup; once-per-build log:
++
+"Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher."
+* Default behavior unchanged when the flag is absent (native-image JUnit path continues as before).
+
 == Release 0.11.3
 
 - Fixed use of argument file when the temporary directory is not on the same drive as the project
@@ -449,7 +464,6 @@ graalvmNative {
   }
 }
 ----
-
 - The `nativeBuild` task has been renamed to `nativeCompile`.
 - The `nativeTestBuild` task has been renamed to `nativeTestCompile`.
 
