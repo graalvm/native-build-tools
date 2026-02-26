@@ -465,6 +465,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#changelog">Changelog</a></li>
+<li><a href="#_release_0_11_5">Release 0.11.5</a></li>
 <li><a href="#_release_0_11_3">Release 0.11.3</a></li>
 <li><a href="#_release_0_11_2">Release 0.11.2</a></li>
 <li><a href="#_release_0_11_1">Release 0.11.1</a></li>
@@ -529,6 +530,43 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
 <div class="sectionbody">
 
+</div>
+</div>
+<div class="sect1">
+<h2 id="_release_0_11_5"><a class="anchor" href="#_release_0_11_5"></a>Release 0.11.5</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Feature – Auto-fallback to JVM JUnit when -H:+CompatibilityMode is enabled</p>
+<div class="ulist">
+<ul>
+<li>
+<p>When -H:+CompatibilityMode is present in native-image options, native-image JUnit tests are disabled and JVM tests run automatically.</p>
+</li>
+<li>
+<p>Detection sources: native-image build arguments and NATIVE_IMAGE_OPTIONS environment variable.</p>
+</li>
+<li>
+<p>Gradle: test image wiring for the native JUnit launcher and JUnit Platform feature is gated; native test image build/run tasks are skipped via onlyIf; once-per-build log:</p>
+<div class="paragraph">
+<p>"Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher."</p>
+</div>
+</li>
+<li>
+<p>Maven: native test goal short-circuits after environment setup; once-per-build log:</p>
+<div class="paragraph">
+<p>"Compatibility Mode detected (-H:+CompatibilityMode); The native test image will be built using the original JUnit ConsoleLauncher."</p>
+</div>
+</li>
+<li>
+<p>Default behavior unchanged when the flag is absent (native-image JUnit path continues as before).</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect1">
