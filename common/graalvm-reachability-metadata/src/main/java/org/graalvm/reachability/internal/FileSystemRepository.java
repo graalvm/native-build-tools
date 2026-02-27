@@ -63,13 +63,14 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
     private final Logger logger;
     private final Map<Path, VersionToConfigDirectoryIndex> artifactIndexes;
     private final Path rootDirectory;
+    private final String metadataSchemaVersion;
 
     public FileSystemRepository(Path rootDirectory) {
         this(rootDirectory, new Logger() {});
     }
 
     public FileSystemRepository(Path rootDirectory, Logger logger) {
-        SchemaValidationUtils.validateSchemas(rootDirectory);
+        this.metadataSchemaVersion = SchemaValidationUtils.validateSchemas(rootDirectory);
         this.moduleIndex = new FileSystemModuleToConfigDirectoryIndex(rootDirectory);
         this.logger = logger;
         this.artifactIndexes = new ConcurrentHashMap<>();
@@ -137,6 +138,10 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
 
     public Path getRootDirectory() {
         return rootDirectory;
+    }
+
+    public String getMetadataSchemaVersion() {
+        return metadataSchemaVersion;
     }
 
     /**

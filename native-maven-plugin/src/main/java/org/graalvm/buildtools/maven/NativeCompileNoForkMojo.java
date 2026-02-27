@@ -156,7 +156,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
         }
 
         var sbomGenerator = new SBOMGenerator(mavenProject, mavenSession, pluginManager, repositorySystem, mainClass);
-        var config = new SBOMGenerator.Config(isOracleGraalVM(logger), getBuildArgs(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger)));
+        var config = new SBOMGenerator.Config(isOracleGraalVM(logger, metadataRepository), getBuildArgs(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger, metadataRepository)));
         try {
             sbomGenerator.generateIfSupportedAndEnabled(config);
         } catch (Throwable e) {
