@@ -29,11 +29,28 @@ public final class SchemaValidationUtils {
     /**
      * Represents a required schema by base name with an exact required major version.
      */
-    private record RequiredSchema(String baseName, int requiredMajorVersion) {
+    private static final class RequiredSchema {
+        private final int requiredMajorVersion;
+        private final Pattern filenamePattern;
+        private final String dirGlob;
+        private final String missingExampleGlob;
+
+        private RequiredSchema(String baseName, int requiredMajorVersion) {
+            this.requiredMajorVersion = requiredMajorVersion;
+            this.filenamePattern = Pattern.compile(Pattern.quote(baseName) + "-v(\\d+)\\.(\\d+)\\.(\\d+)\\.json");
+            this.dirGlob = baseName + "-v*.json";
+            this.missingExampleGlob = baseName + "-v" + requiredMajorVersion + ".*.*.json";
+        }
     }
 
     private static final String REACHABILITY_METADATA_SCHEMA = "reachability-metadata-schema";
     private static final String REACHABILITY_METADATA_SCHEMA_PATH = "lib/svm/schemas/reachability-metadata-schema.json";
+
+    // Precompiled regex patterns
+    private static final Pattern VERSION_JSON_PATTERN =
+            Pattern.compile("\"version\"\\s*:\\s*\"(\\d+)\\.(\\d+)\\.(\\d+)\"");
+    private static final Pattern FILENAME_VERSION_PATTERN =
+            Pattern.compile(".*-v(\\d+)\\.(\\d+)\\.(\\d+)\\.json");
 
     private static int safeParseInt(String s) {
         try {
@@ -101,8 +118,8 @@ public final class SchemaValidationUtils {
 
         for (RequiredSchema required : REQUIRED_SCHEMAS) {
             Integer foundMajor = null;
-            Pattern pattern = Pattern.compile(Pattern.quote(required.baseName) + "-v(\\d+)\\.(\\d+)\\.(\\d+)\\.json");
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(schemasDir, required.baseName + "-v*.json")) {
+            Pattern pattern = required.filenamePattern;
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(schemasDir, required.dirGlob)) {
                 for (Path entry : stream) {
                     String name = entry.getFileName().toString();
                     Matcher m = pattern.matcher(name);
@@ -116,11 +133,11 @@ public final class SchemaValidationUtils {
             }
 
             if (foundMajor == null) {
-                missing.add(prefix + "/" + required.baseName + "-v" + required.requiredMajorVersion + ".*.*.json");
+                missing.add(prefix + "/" + required.missingExampleGlob);
             } else if (required.requiredMajorVersion > foundMajor) {
-                metadataTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajorVersion + ", found v" + foundMajor);
+                metadataTooOld.add(prefix + "/" + required.dirGlob + ": required major v" + required.requiredMajorVersion + ", found v" + foundMajor);
             } else if (required.requiredMajorVersion < foundMajor) {
-                toolsTooOld.add(prefix + "/" + required.baseName + ": required major v" + required.requiredMajorVersion + ", found v" + foundMajor);
+                toolsTooOld.add(prefix + "/" + required.dirGlob + ": required major v" + required.requiredMajorVersion + ", found v" + foundMajor);
             }
         }
 
@@ -159,7 +176,7 @@ public final class SchemaValidationUtils {
      * Behavior:
      * - Neither side provides the schema: no-op.
      * - Repository provides it; graal does not: throws and asks to update GraalVM (majorJDKVersion used for guidance).
-     * - GraalVM provides it; repository does not: throws and asks to update the repository.
+     * - GraalVM provides it; repository does not: warns to update the repository.
      * - Both provide it: extract full versions, compare; throw on mismatch.
      *
      * This check does not affect mandatory repository schema validation performed by
@@ -246,7 +263,7 @@ public final class SchemaValidationUtils {
             }
             throw new IllegalStateException(message);
         } else if (!schemaExistsInMetadataRepo && schemaExistsInGraal) {
-            String message = "Your GraalVM installation at "
+            String message = "Warning: Your GraalVM installation at "
                 + graalvmHomeLocation
                 + " provides a reachability-metadata schema, but the configured reachability metadata repository at "
                 + repoRoot.toAbsolutePath()
@@ -264,9 +281,9 @@ public final class SchemaValidationUtils {
                             + graalVersion
                             + ". ";
                     if (cmp < 0) {
-                        message += "Please update the reachability metadata repository.";
+                        message += "Please update your reachability metadata repository to a newer version.";
                     } else {
-                        message += "Please update your graal installation.";
+                        message += "Please update your GraalVM installation to a newer version.";
                     }
                     throw new IllegalStateException(message);
                 }
@@ -287,12 +304,12 @@ public final class SchemaValidationUtils {
         }
         try {
             String content = Files.readString(schemaFile);
-            Matcher vm = Pattern.compile("\"version\"\\s*:\\s*\"(\\d+)\\.(\\d+)\\.(\\d+)\"").matcher(content);
+            Matcher vm = VERSION_JSON_PATTERN.matcher(content);
             if (vm.find()) {
                 String version = vm.group(1) + "." + vm.group(2) + "." + vm.group(3);
                 // If filename contains a -vMAJOR.MINOR.PATCH.json suffix, verify it matches the JSON "version"
                 String fileName = schemaFile.getFileName().toString();
-                Matcher fn = Pattern.compile(".*-v(\\d+)\\.(\\d+)\\.(\\d+)\\.json").matcher(fileName);
+                Matcher fn = FILENAME_VERSION_PATTERN.matcher(fileName);
                 if (fn.matches()) {
                     String fileNameVersion = fn.group(1) + "." + fn.group(2) + "." + fn.group(3);
                     if (!fileNameVersion.equals(version)) {
