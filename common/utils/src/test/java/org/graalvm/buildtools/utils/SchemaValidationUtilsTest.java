@@ -151,7 +151,7 @@ class SchemaValidationUtilsTest {
     }
 
     @Test
-    @DisplayName("validateReachabilityMetadataSchema fails when graal provides schema but repository does not")
+    @DisplayName("validateReachabilityMetadataSchema warns when graal provides schema but repository does not")
     void validateReachabilitySchema_graalOnly(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-no-schema");
         Files.createDirectories(repoRoot.resolve("schemas"));
@@ -160,7 +160,7 @@ class SchemaValidationUtilsTest {
         // Graal provides schema
         Path nativeImage = createFakeGraalHome(tempDir.resolve("graal-only"), "1.2.0");
 
-        assertThrows(IllegalStateException.class, () -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
+        assertDoesNotThrow(() -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
     }
 
     @Test
