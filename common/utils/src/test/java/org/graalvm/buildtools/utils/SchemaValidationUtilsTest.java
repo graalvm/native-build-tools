@@ -130,13 +130,13 @@ class SchemaValidationUtilsTest {
         Files.createDirectories(repoRoot.resolve("schemas"));
 
         // Create fake graal home without schema
-        Path nativeImage = createFakeGraalHome(tempDir.resolve("graal-none"), null);
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-none"), null);
 
         assertDoesNotThrow(() -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
     }
 
     @Test
-    @DisplayName("validateReachabilityMetadataSchema fails when repository provides schema but graal does not")
+    @DisplayName("validateReachabilityMetadataSchema fails when repository provides schema but GraalVM does not")
     void validateReachabilitySchema_repoOnly(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-only");
         Path schemas = repoRoot.resolve("schemas");
@@ -144,21 +144,21 @@ class SchemaValidationUtilsTest {
         // Repo provides reachability schema (version content is used)
         writeJson(schemas.resolve("reachability-metadata-schema-v1.2.0.json"), schemaJson("1.2.0"));
 
-        // Graal without schema
-        Path nativeImage = createFakeGraalHome(tempDir.resolve("graal-no-schema"), null);
+        // GraalVM without schema
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-no-schema"), null);
 
         assertThrows(IllegalStateException.class, () -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
     }
 
     @Test
-    @DisplayName("validateReachabilityMetadataSchema warns when graal provides schema but repository does not")
+    @DisplayName("validateReachabilityMetadataSchema warns when GraalVM provides schema but repository does not")
     void validateReachabilitySchema_graalOnly(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-no-schema");
         Files.createDirectories(repoRoot.resolve("schemas"));
         // No reachability schema file in repo
 
-        // Graal provides schema
-        Path nativeImage = createFakeGraalHome(tempDir.resolve("graal-only"), "1.2.0");
+        // GraalVM provides schema
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-only"), "1.2.0");
 
         assertDoesNotThrow(() -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
     }
@@ -171,7 +171,7 @@ class SchemaValidationUtilsTest {
         Files.createDirectories(schemas);
         writeJson(schemas.resolve("reachability-metadata-schema-v1.2.0.json"), schemaJson("1.2.0"));
 
-        Path nativeImage = createFakeGraalHome(tempDir.resolve("graal-match"), "1.2.0");
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-match"), "1.2.0");
 
         assertDoesNotThrow(() -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
     }
@@ -182,9 +182,9 @@ class SchemaValidationUtilsTest {
         Path repoRoot = tempDir.resolve("repo-mismatch");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
-        writeJson(schemas.resolve("reachability-metadata-schema-v1.2.0.json"), schemaJson("1.2.0"));
+        writeJson(schemas.resolve("reachability-metadata-schema-v1.3.0.json"), schemaJson("1.3.0"));
 
-        Path nativeImage = createFakeGraalHome(tempDir.resolve("graal-mismatch"), "1.3.0");
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-mismatch"), "1.2.0");
 
         assertThrows(IllegalStateException.class, () -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage));
     }
@@ -208,7 +208,7 @@ class SchemaValidationUtilsTest {
      *
      * Returns the path to bin/native-image, which the validator expects.
      */
-    private static Path createFakeGraalHome(Path graalHomeRoot, String version) throws IOException {
+    private static Path createFakeGraalVMHome(Path graalHomeRoot, String version) throws IOException {
         Path bin = graalHomeRoot.resolve("bin");
         Path schemas = graalHomeRoot.resolve("lib/svm/schemas");
         Files.createDirectories(bin);

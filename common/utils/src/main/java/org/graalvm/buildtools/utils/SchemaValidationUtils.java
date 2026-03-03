@@ -175,9 +175,9 @@ public final class SchemaValidationUtils {
      *
      * Behavior:
      * - Neither side provides the schema: no-op.
-     * - Repository provides it; graal does not: throws and asks to update GraalVM (majorJDKVersion used for guidance).
+     * - Repository provides it; GraalVM does not: throws and asks to update GraalVM (majorJDKVersion used for guidance).
      * - GraalVM provides it; repository does not: warns to update the repository.
-     * - Both provide it: extract full versions, compare; throw on mismatch.
+     * - Both provide it: extract full versions, compare; throw on repository version greater than GraalVM.
      *
      * This check does not affect mandatory repository schema validation performed by
      * {@link #validateSchemas(Path)}. The majorJDKVersion parameter is only used to tailor
@@ -247,7 +247,7 @@ public final class SchemaValidationUtils {
 
         // Apply the four-case logic based solely on schema existence
         if (!schemaExistsInMetadataRepo && !schemaExistsInGraal) {
-            // Since both the metadata repository and the graal installation don't provide a schema,
+            // Since both the metadata repository and the GraalVM installation don't provide a schema,
             // we skip validation.
         } else if (schemaExistsInMetadataRepo && !schemaExistsInGraal) {
             String message = "The configured GraalVM reachability metadata repository at "
@@ -259,32 +259,27 @@ public final class SchemaValidationUtils {
                 message += " Update to the latest GraalVM 21.x or 25.x.";
             } else {
                 message += " Update to the latest available release in your line. For example: " +
-                        "Update your GraalVM version from 25.0.0 to 25.0.2.";
+                        "Update your GraalVM version from 25.0.0 to the latest 25 release.";
             }
             throw new IllegalStateException(message);
         } else if (!schemaExistsInMetadataRepo && schemaExistsInGraal) {
             String message = "Warning: Your GraalVM installation at "
                 + graalvmHomeLocation
-                + " provides a reachability-metadata schema, but the configured reachability metadata repository at "
+                + " provides a reachability-metadata schema,\nbut the configured reachability metadata repository at "
                 + repoRoot.toAbsolutePath()
-                + " does not. Please update your reachability metadata repository to a newer version.";
+                + " does not.\nPlease update your reachability metadata repository to a newer version.";
             System.err.println(message);
         } else if (schemaExistsInMetadataRepo && schemaExistsInGraal){
             String repoVersion = readReachabilityMetadataSchemaVersion(metadataRepoSchemaFile);
             String graalVersion = readReachabilityMetadataSchemaVersion(graalSchemaFile);
             if (repoVersion != null && graalVersion != null) {
                 int cmp = compareVersions(repoVersion, graalVersion);
-                if (cmp != 0) {
+                if (cmp > 0) {
                     String message = "Detected reachability-metadata schema version mismatch. Repository v"
                             + repoVersion
-                            + " vs graal v"
+                            + " vs GraalVM v"
                             + graalVersion
-                            + ". ";
-                    if (cmp < 0) {
-                        message += "Please update your reachability metadata repository to a newer version.";
-                    } else {
-                        message += "Please update your GraalVM installation to a newer version.";
-                    }
+                            + ". Please update your GraalVM installation to a newer version.";
                     throw new IllegalStateException(message);
                 }
             }
