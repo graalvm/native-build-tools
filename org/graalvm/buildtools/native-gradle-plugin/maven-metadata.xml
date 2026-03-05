@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-gradle-plugin</artifactId>
+  <versioning>
+    <latest>0.11.6-SNAPSHOT</latest>
+    <versions>
+      <version>0.11.6-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20260305103718</lastUpdated>
+  </versioning>
+</metadata>
