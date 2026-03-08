@@ -43,4 +43,42 @@ class NativeImageOptionsTest extends Specification {
         then:
         noExceptionThrown()
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
+    def "toolchain sets to the Java toolchain"() {
+        when:
+        def runner = GradleRunner.create()
+                .forwardStdOutput(new PrintWriter(System.out))
+                .forwardStdError(new PrintWriter(System.err))
+                .withPluginClasspath()
+                .withProjectDir(testDirectory.toFile())
+
+
+        def buildFile = testDirectory.resolve("build.gradle")
+        buildFile.text = """
+            plugins {
+                id 'java'
+                id 'org.graalvm.buildtools.native'
+            }
+            
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(25)
+                }
+            }
+            
+            graalvmNative.toolchainDetection = true
+            
+            assert graalvmNative.binaries.main.javaLauncher
+                .get()
+                .metadata
+                .languageVersion
+                .asInt() == 25
+        """
+
+        runner.build()
+
+        then:
+        noExceptionThrown()
+    }
 }

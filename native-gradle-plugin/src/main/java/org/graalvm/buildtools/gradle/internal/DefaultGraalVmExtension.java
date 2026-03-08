@@ -49,7 +49,9 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -92,9 +94,11 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
                     if (enabled) {
                         JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
                         if (toolchainService != null) {
-                            return toolchainService.launcherFor(spec -> {
-                                spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                            });
+                            JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
+                            Provider<JavaLauncher> javaToolchainLauncher = toolchainService.launcherFor(javaConvention.getToolchain());
+                            Provider<JavaLauncher> currentLauncher = toolchainService.launcherFor(spec ->
+                                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion())));
+                            return javaToolchainLauncher.orElse(currentLauncher);
                         }
                     }
                     return null;
