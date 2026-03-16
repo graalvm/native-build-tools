@@ -183,6 +183,14 @@ abstract class AbstractFunctionalTest extends Specification {
         normalizeString(actual) == normalizeString(expected)
     }
 
+    /**
+     * Returns true if the normalized 'actual' contains the normalized 'expectedPart'.
+     * Uses the same normalization as 'matches' (CRLF to LF and backslash to forward slash).
+     */
+    static boolean contains(String actual, String expectedPart) {
+        normalizeString(actual).contains(normalizeString(expectedPart))
+    }
+
     void tasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
         def graph = new TaskExecutionGraph()
         spec.delegate = graph
