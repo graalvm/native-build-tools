@@ -67,3 +67,9 @@ configurations {
     nativeImageClasspath.extendsFrom(graalImplementation)
 }
 // end::extra-sourceset[]
+
+graalvmNative {
+    binaries.all {
+        buildArgs.add("--features=org.graalvm.demo.ApplicationFeature")
+    }
+}
