@@ -1,6 +1,5 @@
 package org.graalvm.demo;
 
-import com.oracle.svm.core.annotate.AutomaticFeature;
 import org.graalvm.nativeimage.hosted.Feature;
 
 import java.io.File;
@@ -8,7 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-@AutomaticFeature
 public class ApplicationFeature implements Feature {
     @Override
     public void afterImageWrite(AfterImageWriteAccess access) {
