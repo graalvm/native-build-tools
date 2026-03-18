@@ -45,6 +45,7 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -57,6 +58,8 @@ import java.nio.charset.StandardCharsets
         { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
 )
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
+    @Issue("https://github.com/graalvm/native-build-tools/issues/851")
+    @Ignore("Disable test temporarily because of a problem on GraalVM side")
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 

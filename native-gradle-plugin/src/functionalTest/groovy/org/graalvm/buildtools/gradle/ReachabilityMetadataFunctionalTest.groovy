@@ -59,19 +59,16 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
         }
 
         and: "has copied metadata file"
-        matches(file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.2.220/resource-config.json").text.trim(), '''{
-  "bundles": [],
-  "resources": {
-    "includes": [
-      {
-        "condition": {
-          "typeReachable": "org.h2.util.Utils"
-        },
-        "pattern": "\\\\Qorg/h2/util/data.zip\\\\E"
-      }
-    ]
-  }
-}''')
+        contains(file("build/native-reachability-metadata/META-INF/native-image/com.h2database/h2/2.2.220/reachability-metadata.json").text.trim(), '''
+  "resources": [
+    {
+      "condition": {
+        "typeReached": "org.h2.util.Utils"
+      },
+      "glob": "org/h2/util/data.zip"
+    }
+  ]
+''')
         and: "has copied reachability-metadata.properties file"
         file("build/native-reachability-metadata/META-INF/native-image/io.netty/netty-codec-http/4.1.80.Final/reachability-metadata.properties").text.trim() == 'override=true'
     }

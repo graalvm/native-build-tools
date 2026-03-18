@@ -60,7 +60,7 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
 
     @Test
     void checkIndex() throws URISyntaxException {
-        withIndex("artifact-1");
+        withIndex("artifact-1/com.foo/bar");
 
         Optional<DirectoryConfiguration> config = index.findConfiguration("com.foo", "bar", "1.0");
         assertTrue(config.isPresent());
@@ -80,6 +80,7 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
         config = index.findConfiguration("com.foo", "bar", "2.5");
         assertFalse(config.isPresent());
 
+        withIndex("artifact-1/com.foo/bar-all");
         config = index.findConfiguration("com.foo", "bar-all", "2.0");
         assertTrue(config.isPresent());
         assertEquals(repoPath.resolve("2.0"), config.get().getDirectory());
@@ -88,6 +89,7 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
         config = index.findConfiguration("com.foo", "nope", "1.0");
         assertFalse(config.isPresent());
 
+        withIndex("artifact-1/com.foo/bar");
         Optional<DirectoryConfiguration> latest = index.findLatestConfigurationFor("com.foo", "bar", "123");
         assertTrue(latest.isPresent());
         assertEquals(repoPath.resolve("2.0"), latest.get().getDirectory());
@@ -97,7 +99,7 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
 
     @Test
     void checkIndexWithDefaultFor() throws URISyntaxException {
-        withIndex("artifact-2");
+        withIndex("artifact-2/com.foo/bar");
 
         Optional<DirectoryConfiguration> config = index.findConfiguration("com.foo", "bar", "1.0");
         assertTrue(config.isPresent());
@@ -115,10 +117,12 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
         assertTrue(config.isPresent());
         assertEquals(repoPath.resolve("2.0"), config.get().getDirectory());
 
+        withIndex("artifact-2/com.foo/baz");
         config = index.findConfiguration("com.foo", "baz", "1.1");
         assertTrue(config.isPresent());
         assertEquals(repoPath.resolve("1.0"), config.get().getDirectory());
 
+        withIndex("artifact-2/com.foo/bar");
         Optional<DirectoryConfiguration> latest = index.findLatestConfigurationFor("com.foo", "bar", "123");
         assertTrue(latest.isPresent());
         assertEquals(repoPath.resolve("2.0"), latest.get().getDirectory());

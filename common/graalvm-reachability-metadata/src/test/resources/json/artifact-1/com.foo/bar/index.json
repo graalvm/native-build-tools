@@ -1,0 +1,4 @@
+[
+  { "tested-versions": ["1.0", "1.1", "1.2", "1.3"], "metadata-version": "1.0", "allowed-packages": [] },
+  { "tested-versions": ["2.0", "2.1"], "metadata-version": "2.0", "allowed-packages": [], "latest": true, "override": true }
+]
