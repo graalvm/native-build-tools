@@ -166,10 +166,8 @@ public class AgentConfiguration implements Serializable {
                 logger.info("Skip creation of directory " + agentDir + " (already created).");
             }
 
-            long pid = ProcessHandle.current().pid();
-            long time = System.nanoTime();
-            Path tmpAccessFilter = agentDir.resolve(ACCESS_FILTER_PREFIX + '_' + pid  + '_' + time  + '_' + ACCESS_FILTER_SUFFIX);
-            Files.copy(accessFilterData, tmpAccessFilter);
+            Path tmpAccessFilter = Files.createTempFile(agentDir, ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
+            Files.copy(accessFilterData, tmpAccessFilter, StandardCopyOption.REPLACE_EXISTING);
 
             try {
                 Files.move(tmpAccessFilter, accessFilterFile, StandardCopyOption.ATOMIC_MOVE);
