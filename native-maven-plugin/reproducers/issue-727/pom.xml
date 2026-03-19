@@ -58,7 +58,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
         <junit.jupiter.version>5.13.0</junit.jupiter.version>
-        <native.maven.plugin.version>1.0-M1-SNAPSHOT</native.maven.plugin.version>
-        <junit.platform.native.version>1.0-M1-SNAPSHOT</junit.platform.native.version>
+        <native.maven.plugin.version>1.0-M1</native.maven.plugin.version>
+        <junit.platform.native.version>1.0-M1</junit.platform.native.version>
     </properties>
 </project>
