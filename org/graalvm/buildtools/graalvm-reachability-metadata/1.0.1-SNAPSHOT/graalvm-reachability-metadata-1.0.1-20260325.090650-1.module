@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "graalvm-reachability-metadata",
+    "version": "1.0.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.3"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.0.1-SNAPSHOT.jar",
+          "url": "graalvm-reachability-metadata-1.0.1-SNAPSHOT.jar",
+          "size": 22809,
+          "sha512": "6c6e6efa7cf945fe2e1e884aab850f3f8bdcb6a6d2c92a5db4d8483d3d54853dfc48115b459d0b60eff0e5bc802cf815a5784725f5ad3e19eb65aeea364dd078",
+          "sha256": "d2e71b276d4a26a0908cb61f907e5b1628c2fb0abf40b9f9d1a65645365815d7",
+          "sha1": "1c6534dd61e785413b981b286eabe43c0bbbd316",
+          "md5": "d101668aacc9041545f58f2c3b585214"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.github.openjson",
+          "module": "openjson",
+          "version": {
+            "requires": "1.0.13"
+          }
+        },
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "utils",
+          "version": {
+            "requires": "1.0.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.0.1-SNAPSHOT.jar",
+          "url": "graalvm-reachability-metadata-1.0.1-SNAPSHOT.jar",
+          "size": 22809,
+          "sha512": "6c6e6efa7cf945fe2e1e884aab850f3f8bdcb6a6d2c92a5db4d8483d3d54853dfc48115b459d0b60eff0e5bc802cf815a5784725f5ad3e19eb65aeea364dd078",
+          "sha256": "d2e71b276d4a26a0908cb61f907e5b1628c2fb0abf40b9f9d1a65645365815d7",
+          "sha1": "1c6534dd61e785413b981b286eabe43c0bbbd316",
+          "md5": "d101668aacc9041545f58f2c3b585214"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.0.1-SNAPSHOT-javadoc.jar",
+          "url": "graalvm-reachability-metadata-1.0.1-SNAPSHOT-javadoc.jar",
+          "size": 132854,
+          "sha512": "246d2947ec9656d0494fb608cede863ad87ab0f9f61212a356957c005d0099a7604014c13b0f5bc7f87f9c83c3a55a70e815f5a77fbecd9ecac6052571bf5469",
+          "sha256": "802ca695e75399f80884ed6a35ba05bf90b61c973519d4e1f4d5f54232039349",
+          "sha1": "525bf6f03c6fb894f90b26c3035540e1c86ee8d9",
+          "md5": "c762d452163e84fa6311d649c5f7b77f"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.0.1-SNAPSHOT-sources.jar",
+          "url": "graalvm-reachability-metadata-1.0.1-SNAPSHOT-sources.jar",
+          "size": 25425,
+          "sha512": "cdfd8a162c3f758255140c1ea80fbc19ddcdf5e15a5b63173939eb4ad33dcd3f10f7d88a6e8cca7ab0780a00ea275071119d5d551cabe652b3a59fc52d1adaa3",
+          "sha256": "e714a62adad0d4b66eb000db6a24d78a70a4a895a0195fa0c5bdfdc5d603d8da",
+          "sha1": "e22b0c16369bd371f51d1b6b18927e358a0acfbd",
+          "md5": "ee7bb328643bd5d781b8eb03c803035f"
+        }
+      ]
+    }
+  ]
+}
