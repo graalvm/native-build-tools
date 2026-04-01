@@ -1,12 +1,6 @@
 name: "Test GraalVM Reachability Metadata Repository"
 
 on:
-  push:
-    paths:
-      - 'common/graalvm-reachability-metadata/**'
-      - '.github/actions/**'
-      - '.github/workflows/test-graalvm-metadata.yml'
-      - 'gradle/libs.versions.toml'
   pull_request:
     paths:
       - 'common/graalvm-reachability-metadata/**'

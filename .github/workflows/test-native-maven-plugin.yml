@@ -1,14 +1,6 @@
 name: "Test native-maven-plugin"
 
 on:
-  push:
-    paths:
-      - 'native-maven-plugin/**'
-      - 'samples/**'
-      - 'common/**'
-      - '.github/actions/**'
-      - '.github/workflows/test-native-maven-plugin.yml'
-      - 'gradle/libs.versions.toml'
   pull_request:
     paths:
       - 'native-maven-plugin/**'

@@ -14,6 +14,22 @@ def gradleCachedVersions = [
         "gradle-config-cache-version": ["current", "9.0.0"]
 ]
 
+def nativeBuildToolsVersion = extensions.findByType(VersionCatalogsExtension)
+        .named("libs")
+        .findVersion("nativeBuildTools")
+        .get()
+        ?.requiredVersion
+
+def runFullGradleMatrix = !nativeBuildToolsVersion.endsWith("-SNAPSHOT")
+
+def latestGradleVersions = [
+        "gradle-version": [gradleVersions["gradle-version"].last()]
+]
+
+def latestGradleCachedVersions = [
+        "gradle-config-cache-version": [gradleCachedVersions["gradle-config-cache-version"].last()]
+]
+
 sourceSets.configureEach { sourceSet ->
     if (sourceSet.name == 'functionalTest') {
         tasks.register("dumpFunctionalTestList") {
@@ -27,11 +43,11 @@ sourceSets.configureEach { sourceSet ->
 
                 // add gradle specific stuff
                 if (matrixType == "gradle") {
-                    matrix.putAll(gradleVersions)
+                    matrix.putAll(runFullGradleMatrix ? gradleVersions : latestGradleVersions)
                 }
 
                 if (matrixType == "gradleCached") {
-                    matrix.putAll(gradleCachedVersions)
+                    matrix.putAll(runFullGradleMatrix ? gradleCachedVersions : latestGradleCachedVersions)
                 }
 
                 // add functional tests
