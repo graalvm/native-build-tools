@@ -5,6 +5,11 @@ def matrixDefault = [
         "os": [ "ubuntu-22.04", "windows-latest", "macos-latest" ]
 ]
 
+def latestMatrixDefault = [
+        "java-version": [ "17.0.12" ],
+        "os": [ "ubuntu-22.04" ]
+]
+
 // # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",
 def gradleVersions = [
         "gradle-version": ["current", "8.4", "8.14.2", "9.0.0"],
@@ -39,7 +44,7 @@ sourceSets.configureEach { sourceSet ->
                 ]
 
                 // add all defaults
-                matrix.putAll(matrixDefault)
+                matrix.putAll(runFullGradleMatrix ? matrixDefault : latestMatrixDefault)
 
                 // add gradle specific stuff
                 if (matrixType == "gradle") {
