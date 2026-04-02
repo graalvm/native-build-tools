@@ -8,6 +8,9 @@ on:
       - completed
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}

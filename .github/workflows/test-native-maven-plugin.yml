@@ -11,6 +11,9 @@ on:
       - 'gradle/libs.versions.toml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
@@ -26,7 +29,7 @@ jobs:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v3
       - name: "🔧 Prepare environment"
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
         with:
           java-version: '17'
           distribution: 'graalvm'
@@ -82,7 +85,7 @@ jobs:
           graal-java-version: ''
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "🔧 Install GraalVM (dev)"
-        uses: graalvm/setup-graalvm@main
+        uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
         with:
           java-version: 'latest-ea'
           distribution: 'graalvm'
