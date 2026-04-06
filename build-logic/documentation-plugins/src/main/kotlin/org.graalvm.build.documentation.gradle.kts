@@ -50,6 +50,8 @@ import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.*
 import java.io.File
 import java.lang.RuntimeException
+import java.nio.file.Files
+import java.nio.file.Path
 import javax.inject.Inject
 
 plugins {
@@ -66,6 +68,7 @@ val javadocs by configurations.creating {
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JAVADOC))
     }
 }
+
 // Prepares javadocs for publication by exploding the jars into a directory
 // which will be included in docs
 val resolveJavadocs = tasks.register<ResolveJavadocs>("resolveJavadocs") {
@@ -93,25 +96,48 @@ tasks {
     }
 }
 
-gitPublish {
+afterEvaluate {
+    val publishLatest = !version.toString().endsWith("-SNAPSHOT")
 
-    branch.set("gh-pages")
-    sign.set(false)
-
-    contents {
-        from(tasks.asciidoctor) {
-            into(providers.provider { "$version" })
+    tasks.named("gitPublishCopy") {
+        doFirst {
+            if (publishLatest) {
+                delete(layout.buildDirectory.dir("gitPublish/latest"))
+            }
+        }
+        doLast {
+            if (publishLatest) {
+                val latestLink = layout.buildDirectory.dir("gitPublish").get().asFile.toPath().resolve("latest")
+                Files.deleteIfExists(latestLink)
+                Files.createSymbolicLink(latestLink, Path.of(version.toString()))
+            }
         }
     }
 
-    preserve {
-        include("**")
-        exclude(KotlinClosure1<FileVisitDetails, Boolean>({ name.equals("$version") }, this, this))
-    }
+    gitPublish {
 
-    commitMessage.set(providers.provider {
-        "Publishing documentation for version $version"
-    })
+        branch.set("gh-pages")
+        sign.set(false)
+
+        contents {
+            from(tasks.asciidoctor) {
+                into(providers.provider { "$version" })
+            }
+        }
+
+        preserve {
+            include("**")
+            exclude(
+                    KotlinClosure1<FileVisitDetails, Boolean>({
+                        name.equals("$version") || (publishLatest && name == "latest")
+                    }, this, this)
+            )
+        }
+
+        commitMessage.set(providers.provider {
+            "Publishing documentation for version $version"
+        })
+    }
 }
 
 @CacheableTask
