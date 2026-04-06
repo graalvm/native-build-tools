@@ -1,6 +1,17 @@
 [[changelog]]
 == Changelog
 
+== Release 1.0.1
+
+- Regenerate the documentation `latest` symlink automatically for releases so GitHub Pages no longer serves stale docs
+
+== Release 1.0.0
+
+- Breaking change: move to the reachability-metadata.json metadata format
+* The plugins no longer use the global `metadata/index.json` and instead rely on the newer reachability metadata repository layout
+* Added reachability metadata schema cross-validation
+* Users may need to update dependencies or wait for dependent projects and metadata to adapt to the new metadata format
+
 == Release 0.11.5
 
 - Feature – Auto-fallback to JVM JUnit when -H:+CompatibilityMode is enabled
