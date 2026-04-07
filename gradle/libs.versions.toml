@@ -7,8 +7,10 @@ metadataRepository = "1.0-M1"
 spock = "2.1-groovy-3.0"
 maven = "3.9.9"
 mavenAnnotations = "3.6.4"
+mavenReporting = "4.0.0"
 mavenEmbedder = "3.9.9"
 mavenResolver = "1.9.22"
+doxia = "2.1.0"
 graalvm = "23.0.2"
 openjson = "1.0.13"
 junitPlatform = "1.13.0"
@@ -47,6 +49,8 @@ maven-pluginApi = { module = "org.apache.maven:maven-plugin-api", version.ref = 
 maven-pluginAnnotations = { module = "org.apache.maven.plugin-tools:maven-plugin-annotations", version.ref = "mavenAnnotations" }
 maven-core = { module = "org.apache.maven:maven-core", version.ref = "maven" }
 maven-artifact = { module = "org.apache.maven:maven-artifact", version.ref = "maven" }
+maven-reporting-api = { module = "org.apache.maven.reporting:maven-reporting-api", version.ref = "mavenReporting" }
+maven-doxia-sink-api = { module = "org.apache.maven.doxia:doxia-sink-api", version.ref = "doxia" }
 maven-compat = { module = "org.apache.maven:maven-compat", version.ref = "maven" }
 maven-embedder = { module = "org.apache.maven:maven-embedder", version.ref = "mavenEmbedder" }
 maven-resolver-basic = { module = "org.apache.maven.resolver:maven-resolver-connector-basic", version.ref = "mavenResolver"}

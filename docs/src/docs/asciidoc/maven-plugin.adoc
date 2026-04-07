@@ -201,6 +201,43 @@ For example, to build a native image named `myapp` that uses `org.example.ClassN
 Most of the aforementioned properties can also be set on the command line as a part of Maven invocation. For example, if you want to temporarily enable verbose mode, you can append `-Dverbose` to your Maven command.
 ====
 
+[[maven-site-build-report]]
+== Maven Site Build Report
+
+If your native build already emits a GraalVM Native Image build report, you can publish it as a page in the Maven-generated site.
+Add the plugin to the `<reporting>` section:
+
+[source,xml, role="multi-language-sample"]
+----
+<reporting>
+  <plugins>
+    <plugin>
+      <groupId>org.graalvm.buildtools</groupId>
+      <artifactId>native-maven-plugin</artifactId>
+      <version>${native.maven.plugin.version}</version>
+      <reportSets>
+        <reportSet>
+          <reports>
+            <report>build-report</report>
+          </reports>
+        </reportSet>
+      </reportSets>
+    </plugin>
+  </plugins>
+</reporting>
+----
+
+The report goal copies the generated Native Image build report HTML into the Maven site output and also copies `dynamic-access-metadata.json` when it is present.
+
+To make sure the source build report exists before `site` runs, enable one of the GraalVM build report switches in the native build configuration and run the native build before site generation:
+
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative package site
+----
+
+Supported Native Image build report switches are `--emit build-report` and `-H:+BuildReport`.
+
 [[native-image-tracing-agent]]
 == Native Image Tracing Agent
 

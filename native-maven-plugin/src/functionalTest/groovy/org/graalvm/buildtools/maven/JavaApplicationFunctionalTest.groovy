@@ -143,4 +143,73 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputContains "Args file written to: target" + File.separator + "native-image"
     }
 
+    def "can publish the native build report into the Maven site"() {
+        withSample("java-application")
+        configureNativeBuildSiteReport()
+        file("target/assets").mkdirs()
+        file("target/example-app-build-report.html").text = '''
+<html>
+  <head>
+    <title>Build report</title>
+    <link rel="stylesheet" href="assets/report.css">
+    <script src="assets/report.js"></script>
+  </head>
+  <body>
+    <h1>Native Image Build Report</h1>
+    <p>Reachability summary</p>
+  </body>
+</html>
+'''
+        file("target/assets/report.css").text = "body { background: #fff; }"
+        file("target/assets/report.js").text = "console.log('build-report');"
+        file("target/dynamic-access-metadata.json").text = '{"libraries":[]}'
+
+        when:
+        mvn 'site'
+
+        then:
+        buildSucceeded
+        file("target/site/native-build-report/index.html").text.contains("Native Image Build Report")
+        file("target/site/native-build-report/assets/report.css").exists()
+        file("target/site/native-build-report/assets/report.js").exists()
+        file("target/site/native-build-report/dynamic-access-metadata.json").exists()
+    }
+
+    def "can render a helpful fallback page when the native build report is missing"() {
+        withSample("java-application")
+        configureNativeBuildSiteReport()
+
+        when:
+        mvn 'site'
+
+        then:
+        buildSucceeded
+        file("target/site/native-build-report/index.html").text.contains("No GraalVM Native Image build report was found")
+        file("target/site/native-build-report/index.html").text.contains("--emit build-report")
+        file("target/site/native-build-report/index.html").text.contains("-H:+BuildReport")
+    }
+
+    private void configureNativeBuildSiteReport() {
+        def pom = file("pom.xml")
+        pom.text = pom.text.replace("</project>", '''
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>${native.maven.plugin.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>build-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>
+''')
+    }
+
 }
