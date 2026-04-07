@@ -71,6 +71,8 @@ dependencies {
     compileOnly(libs.maven.pluginApi)
     compileOnly(libs.maven.core)
     compileOnly(libs.maven.artifact)
+    compileOnly(libs.maven.reporting.api)
+    compileOnly(libs.maven.doxia.sink.api)
     compileOnly(libs.maven.pluginAnnotations)
 
     mavenEmbedder(libs.maven.embedder)
@@ -83,6 +85,8 @@ dependencies {
     testImplementation(libs.test.spock)
     testImplementation(libs.maven.core)
     testImplementation(libs.maven.artifact)
+    testImplementation(libs.maven.reporting.api)
+    testImplementation(libs.maven.doxia.sink.api)
     testImplementation(libs.jetty.server)
 
     testFixturesImplementation(libs.test.spock)
@@ -94,6 +98,8 @@ dependencies {
     functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 
     functionalTestImplementation(libs.test.spock)
+    functionalTestImplementation(libs.maven.reporting.api)
+    functionalTestImplementation(libs.maven.doxia.sink.api)
     functionalTestRuntimeOnly(libs.slf4j.simple)
 }
 
