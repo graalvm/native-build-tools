@@ -82,17 +82,18 @@ public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     private static final String LIBRARY_AND_FRAMEWORK_LIST = "library-and-framework-list.json";
 
     public void setClasspath(Configuration classpath) {
-        getRuntimeClasspathGraph().set(classpath.getIncoming().getResolutionResult().getRootComponent());
-
-        // Build coordinates -> path map
-        Map<String, String> map = new HashMap<>();
-        for (ResolvedArtifactResult artifact : classpath.getIncoming().getArtifacts().getResolvedArtifacts().get()) {
-            if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier mci) {
-                String coordinates = mci.getGroup() + ":" + mci.getModule();
-                map.put(coordinates, artifact.getFile().getAbsolutePath());
+        getRuntimeClasspathGraph().set(getProject().provider(() ->
+                classpath.getIncoming().getResolutionResult().getRootComponent().get()));
+        getCoordinatesToPath().set(getProject().provider(() -> {
+            Map<String, String> map = new HashMap<>();
+            for (ResolvedArtifactResult artifact : classpath.getIncoming().getArtifacts().getResolvedArtifacts().get()) {
+                if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier mci) {
+                    String coordinates = mci.getGroup() + ":" + mci.getModule();
+                    map.put(coordinates, artifact.getFile().getAbsolutePath());
+                }
             }
-        }
-        getCoordinatesToPath().set(map);
+            return map;
+        }));
     }
 
     @Input
