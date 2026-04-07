@@ -27,7 +27,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
         with:
@@ -49,7 +49,7 @@ jobs:
       matrix: ${{fromJson(needs.populate-matrix.outputs.matrix)}}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -60,7 +60,7 @@ jobs:
         run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast --tests ${{ matrix.test }}
       - name: "📜 Upload unit test results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: maven-functional-tests-results-${{ strategy.job-index }}-${{ matrix.os }}-${{ matrix.test }}
           path: native-maven-plugin/build/reports/tests/
@@ -77,7 +77,7 @@ jobs:
         os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -95,7 +95,7 @@ jobs:
         run: ./gradlew :native-maven-plugin:functionalTest
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: functional-tests-results-graalvm-dev-${{ strategy.job-index }}-${{ matrix.os }}-${{ matrix.test }}
           path: native-maven-plugin/build/reports/tests/functionalTest/
