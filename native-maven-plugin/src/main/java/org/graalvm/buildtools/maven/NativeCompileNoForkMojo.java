@@ -128,7 +128,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
      *                                Mojo fails
      */
     private void generateDynamicAccessMetadataIfNeeded(List<String> buildArgs) throws MojoExecutionException {
-        if (buildArgs.stream().anyMatch(arg -> arg.startsWith("--emit build-report"))) {
+        if (buildArgs.stream().anyMatch(this::emitsBuildReport)) {
             MojoExecutor.executeMojo(
                     MojoExecutor.plugin(
                             MojoExecutor.groupId(project.getPlugin("org.graalvm.buildtools:native-maven-plugin").getGroupId()),
@@ -141,6 +141,10 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
                     ),
                     MojoExecutor.executionEnvironment(project, session, pluginManager));
         }
+    }
+
+    private boolean emitsBuildReport(String buildArg) {
+        return buildArg.startsWith("--emit build-report") || buildArg.startsWith("-H:+BuildReport");
     }
 
     /**
