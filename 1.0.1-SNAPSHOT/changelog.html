@@ -465,6 +465,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#changelog">Changelog</a></li>
+<li><a href="#_release_1_0_1">Release 1.0.1</a></li>
+<li><a href="#_release_1_0_0">Release 1.0.0</a></li>
 <li><a href="#_release_0_11_5">Release 0.11.5</a></li>
 <li><a href="#_release_0_11_3">Release 0.11.3</a></li>
 <li><a href="#_release_0_11_2">Release 0.11.2</a></li>
@@ -530,6 +532,43 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
 <div class="sectionbody">
 
+</div>
+</div>
+<div class="sect1">
+<h2 id="_release_1_0_1"><a class="anchor" href="#_release_1_0_1"></a>Release 1.0.1</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Regenerate the documentation <code>latest</code> symlink automatically for releases so GitHub Pages no longer serves stale docs</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_release_1_0_0"><a class="anchor" href="#_release_1_0_0"></a>Release 1.0.0</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Breaking change: move to the reachability-metadata.json metadata format</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The plugins no longer use the global <code>metadata/index.json</code> and instead rely on the newer reachability metadata repository layout</p>
+</li>
+<li>
+<p>Added reachability metadata schema cross-validation</p>
+</li>
+<li>
+<p>Users may need to update dependencies or wait for dependent projects and metadata to adapt to the new metadata format</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect1">
