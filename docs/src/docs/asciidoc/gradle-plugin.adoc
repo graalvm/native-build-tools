@@ -825,6 +825,33 @@ include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-version-fo
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-version-for-library]
 ----
 
+[[gradle-list-missing-metadata-libs]]
+=== Checking Missing Metadata Support
+
+Run this first to see which direct dependencies are not supported by the reachability metadata repository.
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew listMissingMetadataLibs
+----
+
+By default, the task:
+
+- Scans direct external runtime dependencies from the main runtime classpath
+- Uses the configured metadata repository as the source of truth
+- Prints existing reachability-metadata issues when they already exist
+- Prints prefilled issue links when a dependency is missing metadata support
+- Writes a JSON report to _build/reports/native/list-missing-metadata-libs.json_
+
+To create issues automatically instead of printing links, opt in explicitly:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew listMissingMetadataLibs -PcreateIssues=true
+----
+
+You can also override the GitHub integration inputs with Gradle properties such as `targetRepository`, `githubApiUrl`, `githubToken`, and `reportFile`.
+
 === Including Metadata Repository Files
 
 By default, reachability metadata is used only when your native image is being generated.
