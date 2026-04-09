@@ -50,6 +50,30 @@ import spock.lang.Requires
 import java.nio.file.Files
 
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
+    @Issue("https://github.com/graalvm/native-build-tools/issues/855")
+    def "does not resolve runtime classpath during configuration when dependencies change after evaluate"() {
+        given:
+        withSample("java-application")
+
+        buildFile << """
+            tasks.named("generateDynamicAccessMetadata").get()
+
+            afterEvaluate {
+                dependencies {
+                    implementation 'com.google.guava:guava:33.5.0-jre'
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'help'
+
+        then:
+        tasks {
+            succeeded ':help'
+        }
+    }
+
     def "can build a native image for a simple application"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true

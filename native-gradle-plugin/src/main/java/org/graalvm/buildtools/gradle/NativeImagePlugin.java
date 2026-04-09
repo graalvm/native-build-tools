@@ -425,7 +425,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                         buildImageTask.getOptions()
                                 .flatMap(o -> o.getBuildArgs()
                                         .map(args -> args.stream()
-                                                .anyMatch(arg -> arg.startsWith("--emit build-report"))));
+                                                .anyMatch(NativeImagePlugin::emitsBuildReport)));
                 options.getClasspath().from(
                         emittingBuildReport.flatMap(enabled ->
                                 enabled
@@ -438,6 +438,10 @@ public class NativeImagePlugin implements Plugin<Project> {
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
             configureJvmReachabilityExcludeConfigArgs(project, graalExtension, options, sourceSet);
         });
+    }
+
+    private static boolean emitsBuildReport(String buildArg) {
+        return buildArg.startsWith("--emit build-report") || buildArg.startsWith("-H:+BuildReport");
     }
 
     private void configureJvmReachabilityConfigurationDirectories(Project project,
