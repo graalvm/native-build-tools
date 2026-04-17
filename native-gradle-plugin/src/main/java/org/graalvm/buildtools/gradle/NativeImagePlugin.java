@@ -279,6 +279,8 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
         tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
+            t.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+            t.setDescription("Deprecated alias for nativeCompile.");
             t.dependsOn(imageBuilder);
             t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_BUILD_TASK + " is deprecated. Use " + NATIVE_COMPILE_TASK_NAME + " instead."));
         });
@@ -290,7 +292,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         project.getTasks().register("metadataCopy", MetadataCopyTask.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-            task.setDescription("Copies metadata collected from tasks instrumented with the agent into target directories");
+            task.setDescription("Copies and optionally merges metadata collected by agent-instrumented tasks into target directories.");
             task.getInputTaskNames().set(graalExtension.getAgent().getMetadataCopy().getInputTaskNames());
             task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
@@ -299,7 +301,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
         project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-            task.setDescription("Obtains native reachability metadata for the runtime classpath configuration");
+            task.setDescription("Collects reachability metadata for the runtime classpath.");
             task.setClasspath(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         });
 
@@ -331,7 +333,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
             TaskProvider<BuildNativeImageTask> imageBuilder = tasks.register(compileTaskName,
                 BuildNativeImageTask.class, builder -> {
-                    builder.setDescription("Compiles a native image for the " + options.getName() + " binary");
+                    builder.setDescription("Builds a native executable for the " + options.getName() + " binary.");
                     builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     builder.getOptions().convention(options);
                     builder.getUseArgFile().convention(graalExtension.getUseArgFile());
@@ -345,7 +347,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             }
             tasks.register(runTaskName, NativeRunTask.class, task -> {
                 task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-                task.setDescription("Executes the " + options.getName() + " native binary");
+                task.setDescription("Runs the " + options.getName() + " native binary.");
                 task.getImage().convention(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile));
                 task.getRuntimeArgs().convention(options.getRuntimeArgs());
                 var useLayers = options.getLayers()
@@ -579,7 +581,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     private void configureClasspathJarFor(TaskContainer tasks, NativeImageOptions options, TaskProvider<BuildNativeImageTask> imageBuilder) {
         String baseName = imageBuilder.getName();
         TaskProvider<Jar> classpathJar = tasks.register(baseName + "ClasspathJar", Jar.class, jar -> {
-            jar.setDescription("Builds a pathing jar for the " + options.getName() + " native binary");
+            jar.setDescription("Builds a pathing JAR for the " + options.getName() + " native binary classpath.");
             jar.from(
                 options.getClasspath()
                     .getElements()
@@ -648,7 +650,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                                                   FileCollection transitiveProjectArtifacts,
                                                                                   String name) {
         return tasks.register(name, GenerateResourcesConfigFile.class, task -> {
-            task.setDescription("Generates a GraalVM resource-config.json file");
+            task.setDescription("Scans resources and generates a resource-config.json file for the " + options.getName() + " binary.");
             task.getOptions().convention(options.getResources());
             task.getClasspath().from(options.getClasspath());
             task.getTransitiveProjectArtifacts().from(transitiveProjectArtifacts);
@@ -702,6 +704,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
         if (isPrimaryTest) {
             tasks.register(DEPRECATED_NATIVE_TEST_BUILD_TASK, t -> {
+                t.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
+                t.setDescription("Deprecated alias for nativeTestCompile.");
                 t.dependsOn(testImageBuilder);
                 t.doFirst("Warn about deprecation", task -> task.getLogger().warn("Task " + DEPRECATED_NATIVE_TEST_BUILD_TASK + " is deprecated. Use " + NATIVE_TEST_COMPILE_TASK_NAME + " instead."));
             });

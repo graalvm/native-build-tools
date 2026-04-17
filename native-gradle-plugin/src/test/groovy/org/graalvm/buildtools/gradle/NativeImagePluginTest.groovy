@@ -3,6 +3,7 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 import spock.lang.Specification
@@ -47,6 +48,30 @@ class NativeImagePluginTest extends Specification {
         null                                 | '155'                 | 'https://github.com/oracle/graalvm-reachability-metadata/releases/download/155/graalvm-reachability-metadata-155.zip' | null
         null                                 | METADATA_REPO_VERSION | 'https://lookup.on.maven.central'                                                                                     | DEFAULT_GITHUB_RELEASES_METADATA_URI
         "https://custom.uri"                 | 'ignored'             | 'https://custom.uri'                                                                                                  | null
+    }
+
+    def "registers descriptions for user-facing tasks"() {
+        when:
+        project.plugins.apply("java")
+
+        then:
+        taskDescription("nativeCompile") == "Builds a native executable for the main binary."
+        taskDescription("nativeRun") == "Runs the main native binary."
+        taskDescription("nativeBuild") == "Deprecated alias for nativeCompile."
+        taskDescription("metadataCopy") == "Copies and optionally merges metadata collected by agent-instrumented tasks into target directories."
+        taskDescription("collectReachabilityMetadata") == "Collects reachability metadata for the runtime classpath."
+        taskDescription("nativeCompileClasspathJar") == "Builds a pathing JAR for the main native binary classpath."
+        taskDescription("generateResourcesConfigFile") == "Scans resources and generates a resource-config.json file for the main binary."
+        taskDescription("nativeTestCompile") == "Builds a native executable for the test binary."
+        taskDescription("nativeTest") == "Runs the test native binary."
+        taskDescription("nativeTestBuild") == "Deprecated alias for nativeTestCompile."
+        taskDescription("generateTestResourcesConfigFile") == "Scans resources and generates a resource-config.json file for the test binary."
+    }
+
+    private String taskDescription(String name) {
+        Task task = project.tasks.getByName(name)
+        assert task.description != null
+        task.description
     }
 
     private void repositoryUriFor(String configuredUri, String version) {

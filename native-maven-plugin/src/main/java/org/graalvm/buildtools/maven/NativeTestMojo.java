@@ -84,7 +84,7 @@ import java.util.stream.Stream;
 import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_TESTS_EXE;
 
 /**
- * This goal builds and runs native tests.
+ * Builds and runs the project's tests as native executables.
  *
  * @author Sebastien Deleuze
  */

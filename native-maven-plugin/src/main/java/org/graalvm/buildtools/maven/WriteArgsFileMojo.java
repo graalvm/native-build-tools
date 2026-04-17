@@ -54,8 +54,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Persists the arguments file to be used by the native-image command. This can be useful in situations where
- * Native Build Tools plugin is not available, for example, when running native-image in a Docker container.
+ * Writes the {@code native-image} arguments for this project to an args file that can be reused outside Maven.
  *
  * The path to the args file is stored in the project properties under the key {@code graalvm.native-image.args-file}.
  *

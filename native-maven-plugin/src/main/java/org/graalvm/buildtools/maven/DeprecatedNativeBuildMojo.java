@@ -47,8 +47,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * Mojo used to invoke native image building by attaching it to a phase.
- * Deprecated in favor of compile-no-fork goal.
+ * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
  */
 @Deprecated
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
