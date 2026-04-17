@@ -57,6 +57,9 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.graalvm.reachability.DirectoryConfiguration;
 
+/**
+ * Adds dependency reachability metadata from the configured metadata repository to the project's output directory.
+ */
 @Mojo(name = "add-reachability-metadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class AddReachabilityMetadataMojo extends AbstractNativeMojo {
 

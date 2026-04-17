@@ -58,6 +58,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Lists direct runtime dependencies that do not have reachability metadata in the configured metadata repository.
+ * Optionally creates reachability metadata repository issues requesting support for libraries with missing metadata.
+ */
 @Mojo(name = "list-libraries-missing-metadata", defaultPhase = LifecyclePhase.NONE,
     requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class ListLibrariesMissingMetadataMojo extends AbstractNativeMojo {

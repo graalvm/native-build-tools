@@ -143,4 +143,38 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputContains "Args file written to: target" + File.separator + "native-image"
     }
 
+    def "help describe includes goal descriptions"() {
+        withSample("java-application")
+
+        when:
+        mvn 'help:describe', "-Dplugin=org.graalvm.buildtools:native-maven-plugin:${System.getProperty('native.maven.plugin.version')}"
+
+        then:
+        buildSucceeded
+        outputContains "org.graalvm.buildtools:native-maven-plugin:${System.getProperty('native.maven.plugin.version')}"
+        outputContains "native:add-reachability-metadata"
+        outputContains "metadata repository"
+        outputContains "project's output directory"
+        outputContains "native:compile"
+        outputContains "Builds a native executable by forking Maven"
+        outputContains "native:compile-no-fork"
+        outputContains "separate Maven build"
+        outputContains "native:generateDynamicAccessMetadata"
+        outputContains "dynamic access metadata"
+        outputContains "Build Report"
+        outputContains "native:generateResourceConfig"
+        outputContains "resource metadata"
+        outputContains "native:generateTestResourceConfig"
+        outputContains "native:list-libraries-missing-metadata"
+        outputContains "reachability metadata"
+        outputContains "native:merge-agent-files"
+        outputContains "Merges tracing agent output"
+        outputContains "native:metadata-copy"
+        outputContains "META-INF/native-image"
+        outputContains "native:test"
+        outputContains "native executables"
+        outputContains "native:write-args-file"
+        outputContains "args file"
+    }
+
 }

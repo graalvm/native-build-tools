@@ -95,6 +95,9 @@
                             <fallback>false</fallback>
                             <quickBuild>true</quickBuild>
                             <useArgFile>false</useArgFile>
+                            <buildArgs>
+                                <buildArg>--initialize-at-build-time=ch.qos.logback.classic.LoggerContext</buildArg>
+                            </buildArgs>
                         </configuration>
                     </plugin>
                 </plugins>

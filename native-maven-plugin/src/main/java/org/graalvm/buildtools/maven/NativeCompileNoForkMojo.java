@@ -62,8 +62,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 /**
- * This goal runs native builds. It functions the same as the native:compile goal, but it
- * does not fork the build, so it is suitable for attaching to the build lifecycle.
+ * Builds a native executable in the current Maven lifecycle without forking a separate Maven build.
  */
 @Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,

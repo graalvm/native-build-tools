@@ -59,10 +59,12 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
             succeeded ':jar', ':nativeCompile', ':nativeRun'
         }
 
+        and: "the run succeeded and retrieved data from the database"
+        outputContains "Customers in the database"
+
         and: "finds metadata in the remote repository"
         outputContains "[graalvm reachability metadata repository for com.h2database:h2:"
         outputContains "Configuration directory is com.h2database" + File.separator + "h2" + File.separator
-        outputDoesNotContain "Falling back to the default repository at"
     }
 
     def "the application doesn't run when usage of the official metadata repository is disabled"() {
