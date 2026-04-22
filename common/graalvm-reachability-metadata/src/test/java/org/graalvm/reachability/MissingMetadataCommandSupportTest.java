@@ -111,6 +111,7 @@ class MissingMetadataCommandSupportTest {
         assertEquals(1, summary.getInt("missing"));
         assertEquals(1, summary.getInt("newIssueLinks"));
         assertEquals(0, summary.getInt("errors"));
+        assertEquals(MissingMetadataCommandSupport.REPORT_SCHEMA_URI, json.getString("$schema"));
         assertEquals("2026-04-09T10:00:00Z", json.getString("scannedAt"));
         JSONObject missing = findByCoordinates(results, "org.example:missing-lib:2.0.0");
         JSONObject supported = findByCoordinates(results, "org.example:supported-lib:1.0.0");

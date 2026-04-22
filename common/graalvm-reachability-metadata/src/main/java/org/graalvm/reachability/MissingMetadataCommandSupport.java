@@ -82,6 +82,9 @@ public final class MissingMetadataCommandSupport {
     public static final String DEFAULT_SCOPE = "direct-runtime";
     public static final String DEFAULT_GITHUB_API_URL = "https://api.github.com";
     public static final String DEFAULT_TARGET_REPOSITORY = "oracle/graalvm-reachability-metadata";
+    static final String REPORT_SCHEMA_FILENAME = "list-libraries-missing-metadata-schema-v1.0.0.json";
+    static final String REPORT_SCHEMA_URI = "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/"
+        + REPORT_SCHEMA_FILENAME;
 
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
@@ -596,6 +599,7 @@ public final class MissingMetadataCommandSupport {
 
         private JSONObject toJson() {
             JSONObject json = new JSONObject();
+            json.put("$schema", REPORT_SCHEMA_URI);
             json.put("command", COMMAND_NAME);
             json.put("mode", options.createIssues() ? "create" : "list");
             json.put("targetRepository", options.targetRepository());
