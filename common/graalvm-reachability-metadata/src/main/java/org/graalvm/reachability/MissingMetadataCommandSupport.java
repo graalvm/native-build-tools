@@ -136,10 +136,21 @@ public final class MissingMetadataCommandSupport {
                 );
                 results.add(Result.missing(dependency, issue));
             } catch (Exception ex) {
+                if (options.createIssues()) {
+                    throw createIssuesFailure(dependency, ex);
+                }
                 results.add(Result.error(dependency, ex));
             }
         }
         return new Report(options, candidates.size(), results);
+    }
+
+    private static RuntimeException createIssuesFailure(DependencyCoordinate dependency, Exception ex) {
+        String message = "createIssues=true failed for " + dependency.coordinates();
+        if (ex.getMessage() != null && !ex.getMessage().isBlank()) {
+            message += ": " + ex.getMessage();
+        }
+        return new RuntimeException(message, ex);
     }
 
     private static IssueReference resolveIssue(GitHubIssueClient issueClient, DependencyCoordinate dependency) {

@@ -257,6 +257,54 @@ class MissingMetadataCommandSupportTest {
     }
 
     @Test
+    void createIssuesModeFailsFastWhenIssueCreationFails() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        AtomicInteger searches = new AtomicInteger();
+        AtomicInteger creations = new AtomicInteger();
+        server.createContext("/api/v3/search/issues", exchange -> {
+            searches.incrementAndGet();
+            writeJson(exchange, "{\"items\":[]}");
+        });
+        server.createContext("/api/v3/repos/test/repo/issues", exchange -> {
+            creations.incrementAndGet();
+            byte[] content = "{\"message\":\"boom\"}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(500, content.length);
+            try (OutputStream outputStream = exchange.getResponseBody()) {
+                outputStream.write(content);
+            }
+        });
+        server.start();
+        try {
+            RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                MissingMetadataCommandSupport.run(
+                    List.of(new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "missing-lib", "1.0.0")),
+                    new TestRepository(Set.of()),
+                    Set.of(),
+                    java.util.Map.of(),
+                    new MissingMetadataCommandSupport.Options(
+                        "gradle",
+                        "demo-app",
+                        "file:///tmp/repo",
+                        true,
+                        "gho_test_token",
+                        "test/repo",
+                        "http://localhost:" + server.getAddress().getPort() + "/api/v3",
+                        Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+                    )
+                )
+            );
+
+            assertEquals(1, searches.get());
+            assertEquals(1, creations.get());
+            assertTrue(exception.getMessage().contains("createIssues=true failed for org.example:missing-lib:1.0.0"));
+            assertTrue(exception.getMessage().contains("GitHub API request failed with status 500"));
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
     void forcedConfigVersionIsNotClobberedByLatestFallback() {
         RecordingRepository repository = new RecordingRepository();
         MissingMetadataCommandSupport.run(
