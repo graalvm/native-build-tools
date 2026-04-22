@@ -10,7 +10,7 @@ to provide better experience during the development of your native project.
 [TIP]
 ====
 Check library support first.
-Run `listMissingMetadataLibs` before troubleshooting metadata manually so you can see which direct dependencies are unsupported by the reachability metadata repository.
+Run `listLibrariesMissingMetadata` before troubleshooting metadata manually so you can see which direct dependencies are unsupported by the reachability metadata repository.
 ====
 
 If you are using alternative build systems, see <<alternative-build-systems.adoc#,Useful Hints for Alternative Build Systems>>.

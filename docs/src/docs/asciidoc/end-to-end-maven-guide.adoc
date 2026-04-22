@@ -337,11 +337,11 @@ Run this first to see which direct dependencies are not supported by the reachab
 
 [source,bash, role="multi-language-sample"]
 ----
-./mvnw native:list-missing-metadata-libs
+./mvnw native:list-libraries-missing-metadata
 ----
 
-The goal prints missing direct runtime dependencies, reuses existing reachability-metadata issues when it can, and writes a JSON report to _target/native/list-missing-metadata-libs.json_.
-If you want the goal to create GitHub issues automatically instead of printing links, run `./mvnw -DcreateIssues=true native:list-missing-metadata-libs`.
+The goal prints missing direct runtime dependencies, reuses existing reachability-metadata issues when it can, and writes a JSON report to _target/native/list-libraries-missing-metadata.json_.
+If you want the goal to create GitHub issues automatically instead of printing links, run `./mvnw -DcreateIssues=true native:list-libraries-missing-metadata`.
 
 If the command reports missing libraries, fix those first.
 Alternatively, you can **identify missing configuration manually** using the following method.

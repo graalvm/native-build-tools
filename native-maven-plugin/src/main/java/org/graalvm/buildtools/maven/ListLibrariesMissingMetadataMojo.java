@@ -58,9 +58,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mojo(name = "list-missing-metadata-libs", defaultPhase = LifecyclePhase.NONE,
+@Mojo(name = "list-libraries-missing-metadata", defaultPhase = LifecyclePhase.NONE,
     requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class ListMissingMetadataLibsMojo extends AbstractNativeMojo {
+public class ListLibrariesMissingMetadataMojo extends AbstractNativeMojo {
     @Parameter(property = "createIssues", defaultValue = "false")
     private boolean createIssues;
 
@@ -73,7 +73,7 @@ public class ListMissingMetadataLibsMojo extends AbstractNativeMojo {
     @Parameter(property = "githubApiUrl", defaultValue = MissingMetadataCommandSupport.DEFAULT_GITHUB_API_URL)
     private String githubApiUrl;
 
-    @Parameter(property = "reportFile", defaultValue = "${project.build.directory}/native/list-missing-metadata-libs.json")
+    @Parameter(property = "reportFile", defaultValue = "${project.build.directory}/native/list-libraries-missing-metadata.json")
     private File reportFile;
 
     @Override
@@ -96,10 +96,11 @@ public class ListMissingMetadataLibsMojo extends AbstractNativeMojo {
                     project.getArtifactId(),
                     describeMetadataRepositoryLocation(),
                     createIssues,
-                    resolveGithubToken(),
+                    githubToken,
                     targetRepository,
                     githubApiUrl,
-                    null
+                    null,
+                    message -> getLog().warn(message)
                 )
             );
             getLog().info(report.renderConsoleOutput());
@@ -123,7 +124,7 @@ public class ListMissingMetadataLibsMojo extends AbstractNativeMojo {
         return dependencies;
     }
 
-    private boolean isDirectRuntimeDependency(Artifact artifact) {
+    static boolean isDirectRuntimeDependency(Artifact artifact) {
         List<String> dependencyTrail = artifact.getDependencyTrail();
         if (dependencyTrail == null || dependencyTrail.size() != 2) {
             return false;
@@ -141,10 +142,6 @@ public class ListMissingMetadataLibsMojo extends AbstractNativeMojo {
                 .map(version -> Map.entry(artifact.getGroupId() + ":" + artifact.getArtifactId(), version))
                 .stream())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> right));
-    }
-
-    private String resolveGithubToken() {
-        return githubToken;
     }
 
     private void writeReport(String json) {

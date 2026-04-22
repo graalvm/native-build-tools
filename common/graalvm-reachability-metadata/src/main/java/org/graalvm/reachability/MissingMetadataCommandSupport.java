@@ -68,6 +68,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,7 +78,7 @@ import java.util.regex.Pattern;
  * that have no reachability metadata in the configured repository.
  */
 public final class MissingMetadataCommandSupport {
-    public static final String COMMAND_NAME = "listMissingMetadataLibs";
+    public static final String COMMAND_NAME = "listLibrariesMissingMetadata";
     public static final String DEFAULT_SCOPE = "direct-runtime";
     public static final String DEFAULT_GITHUB_API_URL = "https://api.github.com";
     public static final String DEFAULT_TARGET_REPOSITORY = "oracle/graalvm-reachability-metadata";
@@ -156,6 +158,7 @@ public final class MissingMetadataCommandSupport {
         private final String githubApiUrl;
         private final Clock clock;
         private final GitHubCliTokenSupplier gitHubCliTokenSupplier;
+        private final Consumer<String> warningSink;
 
         public Options(String buildTool,
                        String projectName,
@@ -166,7 +169,20 @@ public final class MissingMetadataCommandSupport {
                        String githubApiUrl,
                        Clock clock) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                GitHubCliTokenSupplier.DEFAULT);
+                GitHubCliTokenSupplier.DEFAULT, message -> { });
+        }
+
+        public Options(String buildTool,
+                       String projectName,
+                       String metadataRepositoryUri,
+                       boolean createIssues,
+                       String githubToken,
+                       String targetRepository,
+                       String githubApiUrl,
+                       Clock clock,
+                       Consumer<String> warningSink) {
+            this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
+                GitHubCliTokenSupplier.DEFAULT, warningSink);
         }
 
         Options(String buildTool,
@@ -178,6 +194,20 @@ public final class MissingMetadataCommandSupport {
                 String githubApiUrl,
                 Clock clock,
                 GitHubCliTokenSupplier gitHubCliTokenSupplier) {
+            this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
+                gitHubCliTokenSupplier, message -> { });
+        }
+
+        Options(String buildTool,
+                String projectName,
+                String metadataRepositoryUri,
+                boolean createIssues,
+                String githubToken,
+                String targetRepository,
+                String githubApiUrl,
+                Clock clock,
+                GitHubCliTokenSupplier gitHubCliTokenSupplier,
+                Consumer<String> warningSink) {
             this.buildTool = Objects.requireNonNull(buildTool, "buildTool");
             this.projectName = Objects.requireNonNull(projectName, "projectName");
             this.metadataRepositoryUri = metadataRepositoryUri;
@@ -187,6 +217,7 @@ public final class MissingMetadataCommandSupport {
             this.githubApiUrl = blankToNull(githubApiUrl) == null ? DEFAULT_GITHUB_API_URL : stripTrailingSlash(githubApiUrl);
             this.clock = clock == null ? Clock.systemUTC() : clock;
             this.gitHubCliTokenSupplier = Objects.requireNonNull(gitHubCliTokenSupplier, "gitHubCliTokenSupplier");
+            this.warningSink = warningSink == null ? message -> { } : warningSink;
         }
 
         public String buildTool() {
@@ -223,6 +254,10 @@ public final class MissingMetadataCommandSupport {
 
         GitHubCliTokenSupplier gitHubCliTokenSupplier() {
             return gitHubCliTokenSupplier;
+        }
+
+        Consumer<String> warningSink() {
+            return warningSink;
         }
     }
 
@@ -504,6 +539,7 @@ public final class MissingMetadataCommandSupport {
         private final URI apiBaseUri;
         private final URI htmlBaseUri;
         private final String githubToken;
+        private final AtomicBoolean lookupFailureWarned = new AtomicBoolean();
 
         private GitHubIssueClient(Options options) {
             this.options = options;
@@ -552,6 +588,13 @@ public final class MissingMetadataCommandSupport {
             } catch (RuntimeException ex) {
                 if (options.createIssues()) {
                     throw ex;
+                }
+                if (lookupFailureWarned.compareAndSet(false, true)) {
+                    options.warningSink().accept(
+                        "GitHub issue lookup failed (" + ex.getMessage() + "). "
+                            + "Existing issues will not be detected; prefilled new-issue links will be generated for all missing libraries. "
+                            + "Provide a token via githubToken, GITHUB_TOKEN/GH_TOKEN, or `gh auth login` to enable issue reuse."
+                    );
                 }
                 return Optional.empty();
             }

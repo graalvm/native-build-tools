@@ -67,8 +67,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class ListMissingMetadataLibs extends DefaultTask {
-    public ListMissingMetadataLibs() {
+public abstract class ListLibrariesMissingMetadata extends DefaultTask {
+    public ListLibrariesMissingMetadata() {
         getOutputs().upToDateWhen(task -> false);
     }
 
@@ -76,8 +76,7 @@ public abstract class ListMissingMetadataLibs extends DefaultTask {
         getRootComponent().set(classpath.getIncoming().getResolutionResult().getRootComponent());
     }
 
-    @Input
-    @Optional
+    @Internal
     protected abstract Property<ResolvedComponentResult> getRootComponent();
 
     @Internal
@@ -117,7 +116,7 @@ public abstract class ListMissingMetadataLibs extends DefaultTask {
     public abstract RegularFileProperty getReportFile();
 
     @TaskAction
-    void listMissingMetadataLibs() throws IOException {
+    void listLibrariesMissingMetadata() throws IOException {
         if (!Boolean.TRUE.equals(getMetadataRepositoryEnabled().get())) {
             throw new GradleException("GraalVM reachability metadata repository is disabled.");
         }
@@ -136,17 +135,18 @@ public abstract class ListMissingMetadataLibs extends DefaultTask {
                 getProjectName().get(),
                 getMetadataRepositoryUri().getOrNull(),
                 Boolean.TRUE.equals(getCreateIssues().getOrElse(false)),
-                resolveGithubToken(),
+                getGithubToken().getOrNull(),
                 getTargetRepository().get(),
                 getGithubApiUrl().get(),
-                null
+                null,
+                message -> getLogger().warn(message)
             )
         );
         getLogger().lifecycle(report.renderConsoleOutput());
         writeReport(report.toJsonString());
     }
 
-    private List<MissingMetadataCommandSupport.DependencyCoordinate> directExternalRuntimeDependencies(ResolvedComponentResult rootComponent) {
+    static List<MissingMetadataCommandSupport.DependencyCoordinate> directExternalRuntimeDependencies(ResolvedComponentResult rootComponent) {
         List<MissingMetadataCommandSupport.DependencyCoordinate> dependencies = new ArrayList<>();
         for (DependencyResult dependency : rootComponent.getDependencies()) {
             if (dependency instanceof ResolvedDependencyResult) {
@@ -162,10 +162,6 @@ public abstract class ListMissingMetadataLibs extends DefaultTask {
             }
         }
         return dependencies;
-    }
-
-    private String resolveGithubToken() {
-        return getGithubToken().getOrNull();
     }
 
     private void writeReport(String reportJson) throws IOException {

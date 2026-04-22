@@ -61,7 +61,7 @@ import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
-import org.graalvm.buildtools.gradle.tasks.ListMissingMetadataLibs;
+import org.graalvm.buildtools.gradle.tasks.ListLibrariesMissingMetadata;
 import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
@@ -328,7 +328,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getModuleToConfigVersion().convention(metadataRepositoryExtension.getModuleToConfigVersion());
             task.getInto().convention(project.getLayout().getBuildDirectory().dir("native-reachability-metadata"));
         });
-        project.getTasks().register("listMissingMetadataLibs", ListMissingMetadataLibs.class, task -> {
+        project.getTasks().register("listLibrariesMissingMetadata", ListLibrariesMissingMetadata.class, task -> {
             task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             task.setDescription("Lists direct runtime dependencies that do not have reachability metadata support");
             task.setClasspath(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
@@ -351,7 +351,11 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getProjectName().convention(project.getName());
             task.getExcludedModules().convention(metadataRepositoryExtension.getExcludedModules());
             task.getModuleToConfigVersion().convention(metadataRepositoryExtension.getModuleToConfigVersion());
-            task.getReportFile().convention(project.getLayout().getBuildDirectory().file("reports/native/list-missing-metadata-libs.json"));
+            task.getReportFile().convention(
+                project.getProviders().gradleProperty("reportFile")
+                    .map(path -> project.getLayout().getProjectDirectory().file(path))
+                    .orElse(project.getLayout().getBuildDirectory().file("reports/native/list-libraries-missing-metadata.json"))
+            );
         });
     }
 
