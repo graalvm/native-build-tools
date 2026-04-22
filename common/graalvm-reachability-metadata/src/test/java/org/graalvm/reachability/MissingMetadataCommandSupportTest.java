@@ -280,7 +280,7 @@ class MissingMetadataCommandSupportTest {
 
         RecordingArtifactQuery pinned = repository.queriesByGroupAndArtifact.get("org.example:pinned-lib");
         assertEquals("3.2.1", pinned.forcedConfigVersion,
-            "forced version must survive — useLatestConfigWhenVersionIsUntested must not clobber it");
+            "forced version must survive - useLatestConfigWhenVersionIsUntested must not clobber it");
         assertTrue(!pinned.useLatest,
             "when a forced version is supplied, the latest-fallback flag must not be enabled");
 
