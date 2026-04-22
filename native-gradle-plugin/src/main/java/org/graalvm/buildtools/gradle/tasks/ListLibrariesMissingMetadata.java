@@ -142,8 +142,9 @@ public abstract class ListLibrariesMissingMetadata extends DefaultTask {
                 message -> getLogger().warn(message)
             )
         );
-        getLogger().lifecycle(report.renderConsoleOutput());
+        String reportFilePath = getReportFile().get().getAsFile().getAbsolutePath();
         writeReport(report.toJsonString());
+        getLogger().lifecycle(report.renderConsoleOutput(reportFilePath));
     }
 
     static List<MissingMetadataCommandSupport.DependencyCoordinate> directExternalRuntimeDependencies(ResolvedComponentResult rootComponent) {

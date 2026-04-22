@@ -117,8 +117,25 @@ class MissingMetadataCommandSupportTest {
         assertEquals("supported", supported.getString("status"));
         assertEquals("missing", missing.getString("status"));
         assertEquals("new_issue_link_generated", missing.getString("issueStatus"));
-        assertTrue(missing.getString("issueUrl").contains("/" + MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY + "/issues/new?template="));
-        assertTrue(report.renderConsoleOutput().contains("Open ticket:"));
+        String missingUrl = missing.getString("issueUrl");
+        assertTrue(missingUrl.contains("/" + MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY + "/issues/new?template="));
+        assertTrue(missingUrl.contains("title=Support+for+org.example:missing-lib:2.0.0"),
+            "title should keep colons readable, was: " + missingUrl);
+        assertTrue(!missingUrl.contains("maven_coordinates="),
+            "maven_coordinates= should no longer be added; URL was: " + missingUrl);
+        String console = report.renderConsoleOutput();
+        assertTrue(console.contains("Missing metadata libraries: 1 of 2 scanned"),
+            "console should headline missing/scanned counts, was:\n" + console);
+        assertTrue(console.contains("To request support for this library automatically, re-run with createIssues=true:"),
+            "console should include the createIssues=true call to action, was:\n" + console);
+        assertTrue(console.contains("./gradlew listLibrariesMissingMetadata -PcreateIssues=true -PgithubToken=<token>"),
+            "console should print the Gradle CTA command, was:\n" + console);
+        assertTrue(console.contains("-PgithubToken=...  ->  $GITHUB_TOKEN  ->  $GH_TOKEN  ->  `gh auth token`"),
+            "console should print the Gradle token-resolution order, was:\n" + console);
+        assertTrue(console.contains("-> request support [1]"),
+            "console should label manual entries with footnote indices, was:\n" + console);
+        assertTrue(console.contains("[1] " + missingUrl),
+            "console should list the prefilled issue URL as a numbered footnote, was:\n" + console);
     }
 
     @Test
@@ -168,11 +185,15 @@ class MissingMetadataCommandSupportTest {
             assertEquals("existing_open_issue", results.getJSONObject(1).getString("issueStatus"));
             assertEquals("http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/42",
                 results.getJSONObject(0).getString("issueUrl"));
-            assertTrue(report.renderConsoleOutput().contains(
-                "- org.example:duplicate-lib:1.0.0\n" +
-                    "  Existing ticket: http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/42\n\n" +
-                    "- org.example:duplicate-lib:2.0.0\n"
-            ));
+            String console = report.renderConsoleOutput();
+            String issueUrl = "http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/42";
+            assertTrue(console.contains("Missing metadata libraries: 2 of 2 scanned (2 already requested)"),
+                "headline should mention the existing-request count, was:\n" + console);
+            assertTrue(console.contains("Already requested (no action needed):"), console);
+            assertTrue(console.contains("- org.example:duplicate-lib:1.0.0  -> existing request [E1]"), console);
+            assertTrue(console.contains("- org.example:duplicate-lib:2.0.0  -> existing request [E2]"), console);
+            assertTrue(console.contains("[E1] " + issueUrl), console);
+            assertTrue(console.contains("[E2] " + issueUrl), console);
         } finally {
             server.stop(0);
         }

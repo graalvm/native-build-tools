@@ -103,8 +103,8 @@ public class ListLibrariesMissingMetadataMojo extends AbstractNativeMojo {
                     message -> getLog().warn(message)
                 )
             );
-            getLog().info(report.renderConsoleOutput());
             writeReport(report.toJsonString());
+            getLog().info(report.renderConsoleOutput(reportFile.getAbsolutePath()));
         } catch (RuntimeException ex) {
             throw new MojoExecutionException(ex.getMessage(), ex);
         }

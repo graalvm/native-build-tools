@@ -435,40 +435,161 @@ public final class MissingMetadataCommandSupport {
         }
 
         public String renderConsoleOutput() {
-            List<Result> missingResults = results.stream()
-                .filter(result -> result.status == Status.MISSING || result.status == Status.ERROR)
-                .toList();
-            if (missingResults.isEmpty()) {
-                return "No missing metadata libraries found.\nScanned: " + scanned + ", supported: " + supportedCount()
-                    + ", missing: 0, existing issues: 0, new issue links: 0, created issues: 0, errors: 0";
+            return renderConsoleOutput(null);
+        }
+
+        public String renderConsoleOutput(String reportFilePath) {
+            List<Result> existing = filterByIssueStatus(IssueStatus.EXISTING_OPEN_ISSUE);
+            List<Result> created = filterByIssueStatus(IssueStatus.CREATED_ISSUE);
+            List<Result> needRequest = filterByIssueStatus(IssueStatus.NEW_ISSUE_LINK_GENERATED);
+            List<Result> errors = results.stream().filter(r -> r.status == Status.ERROR).toList();
+            int missingTotal = existing.size() + created.size() + needRequest.size() + errors.size();
+            if (missingTotal == 0) {
+                StringBuilder out = new StringBuilder();
+                out.append("All ").append(scanned).append(" direct dependencies are supported by the reachability metadata repository.");
+                if (reportFilePath != null) {
+                    out.append('\n').append('\n').append("Full report: ").append(reportFilePath);
+                }
+                return out.toString();
             }
+
+            Map<Result, String> labels = new LinkedHashMap<>();
+            LinkedHashMap<String, String> footnotes = new LinkedHashMap<>();
+            int existingIdx = 1;
+            for (Result r : existing) {
+                String label = "[E" + existingIdx++ + "]";
+                labels.put(r, label);
+                footnotes.put(label, r.issueUrl);
+            }
+            int createdIdx = 1;
+            for (Result r : created) {
+                String label = "[C" + createdIdx++ + "]";
+                labels.put(r, label);
+                footnotes.put(label, r.issueUrl);
+            }
+            int newIdx = 1;
+            for (Result r : needRequest) {
+                String label = "[" + newIdx++ + "]";
+                labels.put(r, label);
+                footnotes.put(label, r.issueUrl);
+            }
+
             StringBuilder out = new StringBuilder();
-            out.append("Missing metadata libraries:\n");
-            for (int i = 0; i < missingResults.size(); i++) {
-                Result result = missingResults.get(i);
-                out.append("- ").append(result.dependency.coordinates()).append('\n');
-                if (result.status == Status.ERROR) {
-                    out.append("  Error: ").append(result.errorMessage().orElse("Unknown error")).append('\n');
-                } else if (result.issueStatus == IssueStatus.EXISTING_OPEN_ISSUE) {
-                    out.append("  Existing ticket: ").append(result.issueUrl).append('\n');
-                } else if (result.issueStatus == IssueStatus.CREATED_ISSUE) {
-                    out.append("  Created ticket: ").append(result.issueUrl).append('\n');
-                } else if (result.issueStatus == IssueStatus.NEW_ISSUE_LINK_GENERATED) {
-                    out.append("  Open ticket: ").append(result.issueUrl).append('\n');
-                }
-                if (i < missingResults.size() - 1) {
-                    out.append('\n');
-                }
+            out.append("Missing metadata libraries: ").append(missingTotal)
+                .append(" of ").append(scanned).append(" scanned");
+            if (!existing.isEmpty()) {
+                out.append(" (").append(existing.size()).append(" already requested)");
             }
-            out.append('\n');
-            out.append("Scanned: ").append(scanned)
-                .append(", supported: ").append(supportedCount())
-                .append(", missing: ").append(missingCount())
-                .append(", existing issues: ").append(existingIssueCount())
-                .append(", new issue links: ").append(newIssueLinkCount())
-                .append(", created issues: ").append(createdIssueCount())
-                .append(", errors: ").append(errorCount());
-            return out.toString();
+            out.append(".\n\n");
+
+            if (!existing.isEmpty()) {
+                out.append("Already requested (no action needed):\n");
+                renderBulletList(out, existing, labels, "existing request");
+                out.append('\n');
+            }
+
+            if (!created.isEmpty()) {
+                out.append("Requested support for ").append(created.size())
+                    .append(created.size() == 1 ? " library:\n" : " libraries:\n");
+                renderBulletList(out, created, labels, "request created");
+                out.append('\n');
+            }
+
+            if (!needRequest.isEmpty()) {
+                String quantifier;
+                if (needRequest.size() == 1) {
+                    quantifier = !existing.isEmpty() || !created.isEmpty()
+                        ? "the remaining library"
+                        : "this library";
+                } else {
+                    quantifier = !existing.isEmpty() || !created.isEmpty()
+                        ? "the remaining " + needRequest.size() + " libraries"
+                        : "all " + needRequest.size() + " libraries";
+                }
+                out.append("To request support for ").append(quantifier)
+                    .append(" automatically, re-run with createIssues=true:\n\n");
+                out.append("    ").append(ctaCommand(options.buildTool())).append("\n\n");
+                out.append("  Token sources tried in order:\n");
+                out.append("    ").append(tokenSourcesLine(options.buildTool())).append("\n\n");
+
+                out.append("Or request support manually, one library at a time:\n");
+                renderBulletList(out, needRequest, labels, "request support");
+                out.append('\n');
+            }
+
+            if (!errors.isEmpty()) {
+                out.append("Errors (").append(errors.size()).append("):\n");
+                int maxWidth = maxCoordinateWidth(errors);
+                for (Result r : errors) {
+                    out.append("  - ").append(padRight(r.dependency.coordinates(), maxWidth))
+                        .append("  ").append(r.errorMessage().orElse("Unknown error")).append('\n');
+                }
+                out.append('\n');
+            }
+
+            if (!footnotes.isEmpty()) {
+                for (Map.Entry<String, String> entry : footnotes.entrySet()) {
+                    out.append("  ").append(entry.getKey()).append(' ').append(entry.getValue()).append('\n');
+                }
+                out.append('\n');
+            }
+
+            if (reportFilePath != null) {
+                out.append("Full report: ").append(reportFilePath).append('\n');
+            }
+
+            return out.toString().stripTrailing();
+        }
+
+        private List<Result> filterByIssueStatus(IssueStatus issueStatus) {
+            return results.stream()
+                .filter(r -> r.status == Status.MISSING && r.issueStatus == issueStatus)
+                .toList();
+        }
+
+        private void renderBulletList(StringBuilder out, List<Result> entries,
+                                      Map<Result, String> labels, String actionWord) {
+            int maxWidth = maxCoordinateWidth(entries);
+            for (Result r : entries) {
+                out.append("  - ").append(padRight(r.dependency.coordinates(), maxWidth))
+                    .append("  -> ").append(actionWord).append(' ').append(labels.get(r)).append('\n');
+            }
+        }
+
+        private static int maxCoordinateWidth(List<Result> entries) {
+            return entries.stream().mapToInt(r -> r.dependency.coordinates().length()).max().orElse(0);
+        }
+
+        private static String padRight(String value, int width) {
+            if (value.length() >= width) {
+                return value;
+            }
+            StringBuilder sb = new StringBuilder(width);
+            sb.append(value);
+            for (int i = value.length(); i < width; i++) {
+                sb.append(' ');
+            }
+            return sb.toString();
+        }
+
+        private static String ctaCommand(String buildTool) {
+            if ("gradle".equals(buildTool)) {
+                return "./gradlew listLibrariesMissingMetadata -PcreateIssues=true -PgithubToken=<token>";
+            }
+            if ("maven".equals(buildTool)) {
+                return "./mvnw native:list-libraries-missing-metadata -DcreateIssues=true -DgithubToken=<token>";
+            }
+            return "<re-run command> createIssues=true githubToken=<token>";
+        }
+
+        private static String tokenSourcesLine(String buildTool) {
+            if ("gradle".equals(buildTool)) {
+                return "-PgithubToken=...  ->  $GITHUB_TOKEN  ->  $GH_TOKEN  ->  `gh auth token`";
+            }
+            if ("maven".equals(buildTool)) {
+                return "-DgithubToken=...  ->  $GITHUB_TOKEN  ->  $GH_TOKEN  ->  `gh auth token`";
+            }
+            return "explicit token  ->  $GITHUB_TOKEN  ->  $GH_TOKEN  ->  `gh auth token`";
         }
 
         private JSONObject toJson() {
@@ -602,8 +723,7 @@ public final class MissingMetadataCommandSupport {
 
         private IssueReference newIssueLink(DependencyCoordinate dependency) {
             String issueUrl = htmlBaseUri + "/" + options.targetRepository() + "/issues/new?template=" + encode(ISSUE_TEMPLATE)
-                + "&title=" + encode(issueTitle(dependency))
-                + "&maven_coordinates=" + encode(dependency.coordinates());
+                + "&title=" + encodeReadableQueryValue(issueTitle(dependency));
             return new IssueReference(IssueStatus.NEW_ISSUE_LINK_GENERATED, issueUrl, null);
         }
 
@@ -710,6 +830,10 @@ public final class MissingMetadataCommandSupport {
 
     private static String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private static String encodeReadableQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("%3A", ":");
     }
 
     private static String stripTrailingSlash(String value) {
