@@ -168,19 +168,7 @@ public abstract class ListMissingMetadataLibs extends DefaultTask {
     }
 
     private String resolveGithubToken() {
-        String explicitToken = getGithubToken().getOrNull();
-        if (explicitToken != null && !explicitToken.isBlank()) {
-            return explicitToken;
-        }
-        String envToken = System.getenv("GITHUB_TOKEN");
-        if (envToken != null && !envToken.isBlank()) {
-            return envToken;
-        }
-        String ghToken = System.getenv("GH_TOKEN");
-        if (ghToken != null && !ghToken.isBlank()) {
-            return ghToken;
-        }
-        return null;
+        return getGithubToken().getOrNull();
     }
 
     private void writeReport(String reportJson) throws IOException {

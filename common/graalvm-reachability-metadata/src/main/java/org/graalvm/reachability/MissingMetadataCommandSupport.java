@@ -67,6 +67,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,6 +84,7 @@ public final class MissingMetadataCommandSupport {
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
     private static final Pattern COORDINATES_PATTERN = Pattern.compile("([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)(?::([A-Za-z0-9_.-]+))?");
+    private static final long GITHUB_CLI_TIMEOUT_SECONDS = 5;
 
     private MissingMetadataCommandSupport() {
     }
@@ -153,6 +155,7 @@ public final class MissingMetadataCommandSupport {
         private final String targetRepository;
         private final String githubApiUrl;
         private final Clock clock;
+        private final GitHubCliTokenSupplier gitHubCliTokenSupplier;
 
         public Options(String buildTool,
                        String projectName,
@@ -162,6 +165,19 @@ public final class MissingMetadataCommandSupport {
                        String targetRepository,
                        String githubApiUrl,
                        Clock clock) {
+            this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
+                GitHubCliTokenSupplier.DEFAULT);
+        }
+
+        Options(String buildTool,
+                String projectName,
+                String metadataRepositoryUri,
+                boolean createIssues,
+                String githubToken,
+                String targetRepository,
+                String githubApiUrl,
+                Clock clock,
+                GitHubCliTokenSupplier gitHubCliTokenSupplier) {
             this.buildTool = Objects.requireNonNull(buildTool, "buildTool");
             this.projectName = Objects.requireNonNull(projectName, "projectName");
             this.metadataRepositoryUri = metadataRepositoryUri;
@@ -170,6 +186,7 @@ public final class MissingMetadataCommandSupport {
             this.targetRepository = blankToNull(targetRepository) == null ? DEFAULT_TARGET_REPOSITORY : targetRepository;
             this.githubApiUrl = blankToNull(githubApiUrl) == null ? DEFAULT_GITHUB_API_URL : stripTrailingSlash(githubApiUrl);
             this.clock = clock == null ? Clock.systemUTC() : clock;
+            this.gitHubCliTokenSupplier = Objects.requireNonNull(gitHubCliTokenSupplier, "gitHubCliTokenSupplier");
         }
 
         public String buildTool() {
@@ -202,6 +219,10 @@ public final class MissingMetadataCommandSupport {
 
         public Clock clock() {
             return clock;
+        }
+
+        GitHubCliTokenSupplier gitHubCliTokenSupplier() {
+            return gitHubCliTokenSupplier;
         }
     }
 
@@ -388,18 +409,20 @@ public final class MissingMetadataCommandSupport {
             }
             StringBuilder out = new StringBuilder();
             out.append("Missing metadata libraries:\n");
-            for (Result result : missingResults) {
+            for (int i = 0; i < missingResults.size(); i++) {
+                Result result = missingResults.get(i);
                 out.append("- ").append(result.dependency.coordinates()).append('\n');
                 if (result.status == Status.ERROR) {
                     out.append("  Error: ").append(result.errorMessage().orElse("Unknown error")).append('\n');
-                    continue;
-                }
-                if (result.issueStatus == IssueStatus.EXISTING_OPEN_ISSUE) {
+                } else if (result.issueStatus == IssueStatus.EXISTING_OPEN_ISSUE) {
                     out.append("  Existing ticket: ").append(result.issueUrl).append('\n');
                 } else if (result.issueStatus == IssueStatus.CREATED_ISSUE) {
                     out.append("  Created ticket: ").append(result.issueUrl).append('\n');
                 } else if (result.issueStatus == IssueStatus.NEW_ISSUE_LINK_GENERATED) {
                     out.append("  Open ticket: ").append(result.issueUrl).append('\n');
+                }
+                if (i < missingResults.size() - 1) {
+                    out.append('\n');
                 }
             }
             out.append('\n');
@@ -480,6 +503,7 @@ public final class MissingMetadataCommandSupport {
         private final HttpClient client;
         private final URI apiBaseUri;
         private final URI htmlBaseUri;
+        private final String githubToken;
 
         private GitHubIssueClient(Options options) {
             this.options = options;
@@ -488,9 +512,20 @@ public final class MissingMetadataCommandSupport {
                 .build();
             this.apiBaseUri = URI.create(options.githubApiUrl());
             this.htmlBaseUri = htmlBaseUri(options.githubApiUrl());
-            if (options.createIssues() && options.githubToken() == null) {
-                throw new IllegalArgumentException("createIssues=true requires a GitHub token.");
+            this.githubToken = resolveGithubToken(options.githubToken(), options.gitHubCliTokenSupplier());
+            if (options.createIssues() && githubToken == null) {
+                throw new IllegalArgumentException(missingGithubTokenMessage(options.buildTool()));
             }
+        }
+
+        private static String missingGithubTokenMessage(String buildTool) {
+            if ("gradle".equals(buildTool)) {
+                return "createIssues=true requires a GitHub token. Provide it with -PgithubToken=..., the GITHUB_TOKEN/GH_TOKEN environment variable, or authenticate with GitHub CLI via `gh auth login`.";
+            }
+            if ("maven".equals(buildTool)) {
+                return "createIssues=true requires a GitHub token. Provide it with -DgithubToken=..., the GITHUB_TOKEN/GH_TOKEN environment variable, or authenticate with GitHub CLI via `gh auth login`.";
+            }
+            return "createIssues=true requires a GitHub token. Provide it with githubToken, the GITHUB_TOKEN/GH_TOKEN environment variable, or authenticate with GitHub CLI via `gh auth login`.";
         }
 
         private Optional<IssueReference> findOpenIssue(DependencyCoordinate dependency) {
@@ -556,8 +591,8 @@ public final class MissingMetadataCommandSupport {
                 .header("Accept", "application/vnd.github+json")
                 .header("Content-Type", "application/json")
                 .header("User-Agent", "native-build-tools-missing-metadata");
-            if (options.githubToken() != null) {
-                builder.header("Authorization", "Bearer " + options.githubToken());
+            if (githubToken != null) {
+                builder.header("Authorization", "Bearer " + githubToken);
             }
             return builder;
         }
@@ -646,6 +681,56 @@ public final class MissingMetadataCommandSupport {
             return null;
         }
         return value;
+    }
+
+    static String resolveGithubToken(String explicitToken) {
+        return resolveGithubToken(explicitToken, GitHubCliTokenSupplier.DEFAULT);
+    }
+
+    static String resolveGithubToken(String explicitToken, GitHubCliTokenSupplier gitHubCliTokenSupplier) {
+        String token = blankToNull(explicitToken);
+        if (token != null) {
+            return token;
+        }
+        String envToken = blankToNull(System.getenv("GITHUB_TOKEN"));
+        if (envToken != null) {
+            return envToken;
+        }
+        String ghToken = blankToNull(System.getenv("GH_TOKEN"));
+        if (ghToken != null) {
+            return ghToken;
+        }
+        return blankToNull(gitHubCliTokenSupplier.get());
+    }
+
+    @FunctionalInterface
+    interface GitHubCliTokenSupplier {
+        GitHubCliTokenSupplier DEFAULT = () -> {
+            try {
+                Process process = new ProcessBuilder("gh", "auth", "token")
+                    .redirectErrorStream(true)
+                    .start();
+                try {
+                    if (!process.waitFor(GITHUB_CLI_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                        process.destroyForcibly();
+                        return null;
+                    }
+                    if (process.exitValue() != 0) {
+                        return null;
+                    }
+                    return new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                } finally {
+                    process.getInputStream().close();
+                }
+            } catch (IOException ex) {
+                return null;
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        };
+
+        String get();
     }
 
     private static final class GitHubApiException extends RuntimeException {

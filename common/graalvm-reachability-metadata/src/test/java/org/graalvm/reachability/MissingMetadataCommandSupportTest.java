@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MissingMetadataCommandSupportTest {
@@ -167,9 +168,86 @@ class MissingMetadataCommandSupportTest {
             assertEquals("existing_open_issue", results.getJSONObject(1).getString("issueStatus"));
             assertEquals("http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/42",
                 results.getJSONObject(0).getString("issueUrl"));
+            assertTrue(report.renderConsoleOutput().contains(
+                "- org.example:duplicate-lib:1.0.0\n" +
+                    "  Existing ticket: http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/42\n\n" +
+                    "- org.example:duplicate-lib:2.0.0\n"
+            ));
         } finally {
             server.stop(0);
         }
+    }
+
+    @Test
+    void explainsHowToProvideGithubTokenForGradle() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            MissingMetadataCommandSupport.run(
+                List.of(new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "missing-lib", "1.0.0")),
+                new TestRepository(Set.of()),
+                Set.of(),
+                java.util.Map.of(),
+                new MissingMetadataCommandSupport.Options(
+                    "gradle",
+                    "demo-app",
+                    "file:///tmp/repo",
+                    true,
+                    null,
+                    "test/repo",
+                    "http://127.0.0.1:9/api/v3",
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    () -> null
+                )
+            )
+        );
+
+        assertEquals(
+            "createIssues=true requires a GitHub token. Provide it with -PgithubToken=..., the GITHUB_TOKEN/GH_TOKEN environment variable, or authenticate with GitHub CLI via `gh auth login`.",
+            exception.getMessage()
+        );
+    }
+
+    @Test
+    void explainsHowToProvideGithubTokenForMaven() {
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            MissingMetadataCommandSupport.run(
+                List.of(new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "missing-lib", "1.0.0")),
+                new TestRepository(Set.of()),
+                Set.of(),
+                java.util.Map.of(),
+                new MissingMetadataCommandSupport.Options(
+                    "maven",
+                    "demo-app",
+                    "file:///tmp/repo",
+                    true,
+                    null,
+                    "test/repo",
+                    "http://127.0.0.1:9/api/v3",
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    () -> null
+                )
+            )
+        );
+
+        assertEquals(
+            "createIssues=true requires a GitHub token. Provide it with -DgithubToken=..., the GITHUB_TOKEN/GH_TOKEN environment variable, or authenticate with GitHub CLI via `gh auth login`.",
+            exception.getMessage()
+        );
+    }
+
+    @Test
+    void resolvesGithubTokenFromGithubCliWhenNoExplicitTokenIsProvided() {
+        assertEquals(
+            "gho_test_token",
+            MissingMetadataCommandSupport.resolveGithubToken(null, () -> "gho_test_token")
+        );
+    }
+
+    @Test
+    void explicitGithubTokenWinsOverGithubCliAuthentication() {
+        assertEquals(
+            "explicit-token",
+            MissingMetadataCommandSupport.resolveGithubToken("explicit-token", () -> "gho_test_token")
+        );
     }
 
     private static void writeJson(HttpExchange exchange, String json) throws IOException {

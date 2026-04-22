@@ -144,18 +144,7 @@ public class ListMissingMetadataLibsMojo extends AbstractNativeMojo {
     }
 
     private String resolveGithubToken() {
-        if (githubToken != null && !githubToken.isBlank()) {
-            return githubToken;
-        }
-        String envToken = System.getenv("GITHUB_TOKEN");
-        if (envToken != null && !envToken.isBlank()) {
-            return envToken;
-        }
-        String ghToken = System.getenv("GH_TOKEN");
-        if (ghToken != null && !ghToken.isBlank()) {
-            return ghToken;
-        }
-        return null;
+        return githubToken;
     }
 
     private void writeReport(String json) {
