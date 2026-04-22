@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.gradle.testkit.runner.TaskOutcome
 
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
@@ -93,6 +94,36 @@ dependencies {
         contains(report, '"coordinates": "org.apache.commons:commons-text:1.11.0"')
         !contains(report, 'commons-lang3')
         searchRequests.get() == 1
+    }
+
+    def "runs on every invocation instead of becoming up-to-date"() {
+        given:
+        withSample("native-config-integration", false)
+        buildFile << """
+dependencies {
+    implementation("org.apache.commons:commons-text:1.11.0")
+}
+"""
+        startGithubServer()
+
+        when:
+        run 'listMissingMetadataLibs',
+            "-PgithubApiUrl=http://localhost:${server.address.port}/api/v3",
+            '-PtargetRepository=test/repo'
+
+        then:
+        result.task(':listMissingMetadataLibs').outcome == TaskOutcome.SUCCESS
+        searchRequests.get() == 1
+
+        when:
+        run 'listMissingMetadataLibs',
+            "-PgithubApiUrl=http://localhost:${server.address.port}/api/v3",
+            '-PtargetRepository=test/repo'
+
+        then:
+        result.task(':listMissingMetadataLibs').outcome == TaskOutcome.SUCCESS
+        outputContains 'org.apache.commons:commons-text:1.11.0'
+        searchRequests.get() == 2
     }
 
     private void startGithubServer() {

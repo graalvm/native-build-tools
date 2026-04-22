@@ -71,6 +71,10 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class ListMissingMetadataLibs extends DefaultTask {
+    public ListMissingMetadataLibs() {
+        getOutputs().upToDateWhen(task -> false);
+    }
+
     public void setClasspath(Configuration classpath) {
         getRootComponent().set(classpath.getIncoming().getResolutionResult().getRootComponent());
     }
