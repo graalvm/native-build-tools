@@ -216,7 +216,7 @@ class MissingMetadataCommandSupportTest {
                     "test/repo",
                     "http://127.0.0.1:9/api/v3",
                     Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
-                    () -> null
+                    hostname -> null
                 )
             )
         );
@@ -244,7 +244,7 @@ class MissingMetadataCommandSupportTest {
                     "test/repo",
                     "http://127.0.0.1:9/api/v3",
                     Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
-                    () -> null
+                    hostname -> null
                 )
             )
         );
@@ -256,10 +256,45 @@ class MissingMetadataCommandSupportTest {
     }
 
     @Test
+    void forcedConfigVersionIsNotClobberedByLatestFallback() {
+        RecordingRepository repository = new RecordingRepository();
+        MissingMetadataCommandSupport.run(
+            List.of(
+                new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "pinned-lib", "9.9.9"),
+                new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "other-lib", "1.0.0")
+            ),
+            repository,
+            Set.of(),
+            java.util.Map.of("org.example:pinned-lib", "3.2.1"),
+            new MissingMetadataCommandSupport.Options(
+                "gradle",
+                "demo-app",
+                "file:///tmp/repo",
+                false,
+                null,
+                "test/repo",
+                "http://127.0.0.1:9/api/v3",
+                Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+            )
+        );
+
+        RecordingArtifactQuery pinned = repository.queriesByGroupAndArtifact.get("org.example:pinned-lib");
+        assertEquals("3.2.1", pinned.forcedConfigVersion,
+            "forced version must survive — useLatestConfigWhenVersionIsUntested must not clobber it");
+        assertTrue(!pinned.useLatest,
+            "when a forced version is supplied, the latest-fallback flag must not be enabled");
+
+        RecordingArtifactQuery unpinned = repository.queriesByGroupAndArtifact.get("org.example:other-lib");
+        assertEquals(null, unpinned.forcedConfigVersion);
+        assertTrue(unpinned.useLatest,
+            "without a forced version, latest-fallback should still be enabled");
+    }
+
+    @Test
     void resolvesGithubTokenFromGithubCliWhenNoExplicitTokenIsProvided() {
         assertEquals(
             "gho_test_token",
-            MissingMetadataCommandSupport.resolveGithubToken(null, () -> "gho_test_token")
+            MissingMetadataCommandSupport.resolveGithubToken(null, "https://api.github.com", hostname -> "gho_test_token")
         );
     }
 
@@ -267,8 +302,36 @@ class MissingMetadataCommandSupportTest {
     void explicitGithubTokenWinsOverGithubCliAuthentication() {
         assertEquals(
             "explicit-token",
-            MissingMetadataCommandSupport.resolveGithubToken("explicit-token", () -> "gho_test_token")
+            MissingMetadataCommandSupport.resolveGithubToken("explicit-token", "https://api.github.com", hostname -> "gho_test_token")
         );
+    }
+
+    @Test
+    void passesEnterpriseHostToGithubCli() {
+        java.util.concurrent.atomic.AtomicReference<String> seenHostname = new java.util.concurrent.atomic.AtomicReference<>();
+        MissingMetadataCommandSupport.resolveGithubToken(
+            null,
+            "https://ghe.example.com/api/v3",
+            hostname -> {
+                seenHostname.set(hostname);
+                return "gho_ghe_token";
+            }
+        );
+        assertEquals("ghe.example.com", seenHostname.get());
+    }
+
+    @Test
+    void mapsPublicGithubApiUrlToGithubDotComHostForGithubCli() {
+        java.util.concurrent.atomic.AtomicReference<String> seenHostname = new java.util.concurrent.atomic.AtomicReference<>();
+        MissingMetadataCommandSupport.resolveGithubToken(
+            null,
+            "https://api.github.com",
+            hostname -> {
+                seenHostname.set(hostname);
+                return "gho_public_token";
+            }
+        );
+        assertEquals("github.com", seenHostname.get());
     }
 
     private static void writeJson(HttpExchange exchange, String json) throws IOException {
@@ -333,6 +396,71 @@ class MissingMetadataCommandSupportTest {
 
         private List<String> coordinates() {
             return coordinates;
+        }
+    }
+
+    private static final class RecordingRepository implements GraalVMReachabilityMetadataRepository {
+        private final java.util.Map<String, RecordingArtifactQuery> queriesByGroupAndArtifact = new java.util.LinkedHashMap<>();
+
+        @Override
+        public Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder) {
+            RecordingQuery query = new RecordingQuery();
+            queryBuilder.accept(query);
+            for (RecordingArtifactQuery artifactQuery : query.artifactQueries) {
+                String[] parts = artifactQuery.coordinates.split(":");
+                queriesByGroupAndArtifact.put(parts[0] + ":" + parts[1], artifactQuery);
+            }
+            return Set.of();
+        }
+    }
+
+    private static final class RecordingQuery implements Query {
+        private final List<RecordingArtifactQuery> artifactQueries = new ArrayList<>();
+
+        @Override
+        public void forArtifacts(String... gavCoordinates) {
+            for (String gav : gavCoordinates) {
+                RecordingArtifactQuery q = new RecordingArtifactQuery();
+                q.coordinates = gav;
+                artifactQueries.add(q);
+            }
+        }
+
+        @Override
+        public void forArtifact(Consumer<? super ArtifactQuery> config) {
+            RecordingArtifactQuery q = new RecordingArtifactQuery();
+            config.accept(q);
+            artifactQueries.add(q);
+        }
+
+        @Override
+        public void useLatestConfigWhenVersionIsUntested() {
+        }
+    }
+
+    private static final class RecordingArtifactQuery implements Query.ArtifactQuery {
+        private String coordinates;
+        private String forcedConfigVersion;
+        private boolean useLatest;
+
+        @Override
+        public void gav(String gavCoordinates) {
+            this.coordinates = gavCoordinates;
+        }
+
+        @Override
+        public void useLatestConfigWhenVersionIsUntested() {
+            useLatest = true;
+        }
+
+        @Override
+        public void doNotUseLatestConfigWhenVersionIsUntested() {
+            useLatest = false;
+        }
+
+        @Override
+        public void forceConfigVersion(String version) {
+            forcedConfigVersion = version;
         }
     }
 

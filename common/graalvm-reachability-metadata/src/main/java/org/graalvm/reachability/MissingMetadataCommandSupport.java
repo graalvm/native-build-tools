@@ -118,8 +118,9 @@ public final class MissingMetadataCommandSupport {
                         String forcedVersion = effectiveForcedVersions.get(dependency.groupAndArtifact());
                         if (forcedVersion != null) {
                             artifact.forceConfigVersion(forcedVersion);
+                        } else {
+                            artifact.useLatestConfigWhenVersionIsUntested();
                         }
-                        artifact.useLatestConfigWhenVersionIsUntested();
                     });
                 });
                 if (!configurations.isEmpty()) {
@@ -669,7 +670,7 @@ public final class MissingMetadataCommandSupport {
                 .build();
             this.apiBaseUri = URI.create(options.githubApiUrl());
             this.htmlBaseUri = htmlBaseUri(options.githubApiUrl());
-            this.githubToken = resolveGithubToken(options.githubToken(), options.gitHubCliTokenSupplier());
+            this.githubToken = resolveGithubToken(options.githubToken(), options.githubApiUrl(), options.gitHubCliTokenSupplier());
             if (options.createIssues() && githubToken == null) {
                 throw new IllegalArgumentException(missingGithubTokenMessage(options.buildTool()));
             }
@@ -850,11 +851,7 @@ public final class MissingMetadataCommandSupport {
         return value;
     }
 
-    static String resolveGithubToken(String explicitToken) {
-        return resolveGithubToken(explicitToken, GitHubCliTokenSupplier.DEFAULT);
-    }
-
-    static String resolveGithubToken(String explicitToken, GitHubCliTokenSupplier gitHubCliTokenSupplier) {
+    static String resolveGithubToken(String explicitToken, String githubApiUrl, GitHubCliTokenSupplier gitHubCliTokenSupplier) {
         String token = blankToNull(explicitToken);
         if (token != null) {
             return token;
@@ -867,14 +864,37 @@ public final class MissingMetadataCommandSupport {
         if (ghToken != null) {
             return ghToken;
         }
-        return blankToNull(gitHubCliTokenSupplier.get());
+        return blankToNull(gitHubCliTokenSupplier.get(ghHost(githubApiUrl)));
+    }
+
+    static String ghHost(String githubApiUrl) {
+        if (githubApiUrl == null || githubApiUrl.isBlank()) {
+            return null;
+        }
+        URI apiUri = URI.create(githubApiUrl);
+        String host = apiUri.getHost();
+        if (host == null) {
+            return null;
+        }
+        if ("api.github.com".equalsIgnoreCase(host)) {
+            return "github.com";
+        }
+        return host;
     }
 
     @FunctionalInterface
     interface GitHubCliTokenSupplier {
-        GitHubCliTokenSupplier DEFAULT = () -> {
+        GitHubCliTokenSupplier DEFAULT = hostname -> {
             try {
-                Process process = new ProcessBuilder("gh", "auth", "token")
+                List<String> command = new ArrayList<>();
+                command.add("gh");
+                command.add("auth");
+                command.add("token");
+                if (hostname != null && !hostname.isBlank()) {
+                    command.add("--hostname");
+                    command.add(hostname);
+                }
+                Process process = new ProcessBuilder(command)
                     .redirectErrorStream(true)
                     .start();
                 try {
@@ -897,7 +917,7 @@ public final class MissingMetadataCommandSupport {
             }
         };
 
-        String get();
+        String get(String hostname);
     }
 
     private static final class GitHubApiException extends RuntimeException {
