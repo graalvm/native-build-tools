@@ -121,8 +121,8 @@ class MissingMetadataCommandSupportTest {
         assertTrue(missingUrl.contains("/" + MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY + "/issues/new?template="));
         assertTrue(missingUrl.contains("title=Support+for+org.example:missing-lib:2.0.0"),
             "title should keep colons readable, was: " + missingUrl);
-        assertTrue(!missingUrl.contains("maven_coordinates="),
-            "maven_coordinates= should no longer be added; URL was: " + missingUrl);
+        assertTrue(missingUrl.contains("maven_coordinates=org.example%3Amissing-lib%3A2.0.0"),
+            "maven_coordinates= should prefill the issue form field, was: " + missingUrl);
         String console = report.renderConsoleOutput();
         assertTrue(console.contains("Missing metadata libraries: 1 of 2 scanned"),
             "console should headline missing/scanned counts, was:\n" + console);

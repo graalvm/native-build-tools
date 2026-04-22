@@ -85,6 +85,7 @@ public final class MissingMetadataCommandSupport {
 
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
+    private static final String ISSUE_TEMPLATE_MAVEN_COORDINATES_FIELD = "maven_coordinates";
     private static final Pattern COORDINATES_PATTERN = Pattern.compile("([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)(?::([A-Za-z0-9_.-]+))?");
     private static final long GITHUB_CLI_TIMEOUT_SECONDS = 5;
 
@@ -724,7 +725,8 @@ public final class MissingMetadataCommandSupport {
 
         private IssueReference newIssueLink(DependencyCoordinate dependency) {
             String issueUrl = htmlBaseUri + "/" + options.targetRepository() + "/issues/new?template=" + encode(ISSUE_TEMPLATE)
-                + "&title=" + encodeReadableQueryValue(issueTitle(dependency));
+                + "&title=" + encodeReadableQueryValue(issueTitle(dependency))
+                + "&" + ISSUE_TEMPLATE_MAVEN_COORDINATES_FIELD + "=" + encode(dependency.coordinates());
             return new IssueReference(IssueStatus.NEW_ISSUE_LINK_GENERATED, issueUrl, null);
         }
 
