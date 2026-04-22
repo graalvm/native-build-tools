@@ -96,7 +96,7 @@ class MissingMetadataCommandSupportTest {
                 "file:///tmp/repo",
                 false,
                 null,
-                "jormundur00/graalvm-reachability-metadata",
+                MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY,
                 "http://127.0.0.1:9/api/v3",
                 Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
             )
@@ -117,7 +117,7 @@ class MissingMetadataCommandSupportTest {
         assertEquals("supported", supported.getString("status"));
         assertEquals("missing", missing.getString("status"));
         assertEquals("new_issue_link_generated", missing.getString("issueStatus"));
-        assertTrue(missing.getString("issueUrl").contains("/jormundur00/graalvm-reachability-metadata/issues/new?template="));
+        assertTrue(missing.getString("issueUrl").contains("/" + MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY + "/issues/new?template="));
         assertTrue(report.renderConsoleOutput().contains("Open ticket:"));
     }
 

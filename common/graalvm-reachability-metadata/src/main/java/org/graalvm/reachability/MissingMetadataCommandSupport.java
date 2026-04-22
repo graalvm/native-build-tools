@@ -79,7 +79,7 @@ public final class MissingMetadataCommandSupport {
     public static final String COMMAND_NAME = "listMissingMetadataLibs";
     public static final String DEFAULT_SCOPE = "direct-runtime";
     public static final String DEFAULT_GITHUB_API_URL = "https://api.github.com";
-    public static final String DEFAULT_TARGET_REPOSITORY = "jormundur00/graalvm-reachability-metadata";
+    public static final String DEFAULT_TARGET_REPOSITORY = "oracle/graalvm-reachability-metadata";
 
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
