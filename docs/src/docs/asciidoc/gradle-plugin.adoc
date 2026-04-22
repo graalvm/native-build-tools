@@ -825,6 +825,44 @@ include::../snippets/gradle/groovy/build.gradle[tags=specify-metadata-version-fo
 include::../snippets/gradle/kotlin/build.gradle.kts[tags=specify-metadata-version-for-library]
 ----
 
+[[gradle-list-libraries-missing-metadata]]
+=== Checking Missing Metadata Support
+
+Run this first to see which direct dependencies are not supported by the reachability metadata repository.
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew listLibrariesMissingMetadata
+----
+
+By default, the task:
+
+- Scans direct external runtime dependencies from the main runtime classpath
+- Uses the configured metadata repository as the source of truth
+- Prints existing reachability-metadata issues when they already exist
+- Prints prefilled issue links when a dependency is missing metadata support
+- Writes a JSON report to _build/reports/native/list-libraries-missing-metadata.json_
+
+The JSON report includes a `$schema` field pointing to _schemas/list-libraries-missing-metadata-schema-v1.0.0.json_ in this repository.
+
+To create issues automatically instead of printing links, opt in explicitly:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew listLibrariesMissingMetadata -PcreateIssues=true
+----
+
+You can also override the GitHub integration inputs with Gradle properties such as `targetRepository`, `githubApiUrl`, `githubToken`, and `reportFile`.
+
+The GitHub token used for issue lookup and creation is resolved in this order:
+
+1. The `-PgithubToken=...` Gradle property
+2. The `GITHUB_TOKEN` environment variable
+3. The `GH_TOKEN` environment variable
+4. `gh auth token`, when the GitHub CLI is installed and authenticated (subprocess capped at 5 seconds; non-zero exit is treated as no token)
+
+In default list mode the task tolerates a missing token: it can still query public issues, and emits a single warning if the GitHub API rejects the lookup. With `-PcreateIssues=true`, a token is required.
+
 === Including Metadata Repository Files
 
 By default, reachability metadata is used only when your native image is being generated.

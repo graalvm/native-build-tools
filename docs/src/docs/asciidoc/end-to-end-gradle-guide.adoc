@@ -235,7 +235,17 @@ You can find an extensive list of libraries and frameworks from the Java ecosyst
 However, it may happen, that your native image crashes at run time with a missing class or resource.
 To address this, start by checking if any required configuration is missing.
 
-The best way to detect missing metadata is by running your native tests.
+Run this first to see which direct dependencies are not supported by the reachability metadata repository:
+
+[source,bash, role="multi-language-sample"]
+----
+./gradlew listLibrariesMissingMetadata
+----
+
+The task prints missing direct runtime dependencies, reuses existing reachability-metadata issues when it can, and writes a JSON report to _build/reports/native/list-libraries-missing-metadata.json_.
+If you want the task to create GitHub issues automatically instead of printing links, run `./gradlew listLibrariesMissingMetadata -PcreateIssues=true`.
+
+If the command reports missing libraries, fix those first.
 Alternatively, you can **identify missing configuration manually** using the following method.
 
 - Pass the `--exact-reachability-metadata` option to the `native-image` tool inside `graalvmNative` block of your _build.gradle_, as shown below:

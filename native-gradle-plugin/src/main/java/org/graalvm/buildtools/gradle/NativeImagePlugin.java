@@ -61,6 +61,7 @@ import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
+import org.graalvm.buildtools.gradle.tasks.ListLibrariesMissingMetadata;
 import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
@@ -71,6 +72,7 @@ import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.DirectoryConfiguration;
+import org.graalvm.reachability.MissingMetadataCommandSupport;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
@@ -325,6 +327,35 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getExcludedModules().convention(metadataRepositoryExtension.getExcludedModules());
             task.getModuleToConfigVersion().convention(metadataRepositoryExtension.getModuleToConfigVersion());
             task.getInto().convention(project.getLayout().getBuildDirectory().dir("native-reachability-metadata"));
+        });
+        project.getTasks().register("listLibrariesMissingMetadata", ListLibrariesMissingMetadata.class, task -> {
+            task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+            task.setDescription("Lists direct runtime dependencies that do not have reachability metadata support");
+            task.setClasspath(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+            Provider<GraalVMReachabilityMetadataService> reachabilityMetadataService = graalVMReachabilityMetadataService(
+                project, metadataRepositoryExtension);
+            task.getMetadataService().set(reachabilityMetadataService);
+            task.usesService(reachabilityMetadataService);
+            task.getMetadataRepositoryEnabled().convention(metadataRepositoryExtension.getEnabled());
+            task.getMetadataRepositoryUri().convention(metadataRepositoryExtension.getUri().map(URI::toString));
+            task.getCreateIssues().convention(project.getProviders().gradleProperty("createIssues").map(Boolean::parseBoolean).orElse(false));
+            task.getGithubToken().convention(project.getProviders().gradleProperty("githubToken"));
+            task.getTargetRepository().convention(
+                project.getProviders().gradleProperty("targetRepository")
+                    .orElse(MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY)
+            );
+            task.getGithubApiUrl().convention(
+                project.getProviders().gradleProperty("githubApiUrl")
+                    .orElse(MissingMetadataCommandSupport.DEFAULT_GITHUB_API_URL)
+            );
+            task.getProjectName().convention(project.getName());
+            task.getExcludedModules().convention(metadataRepositoryExtension.getExcludedModules());
+            task.getModuleToConfigVersion().convention(metadataRepositoryExtension.getModuleToConfigVersion());
+            task.getReportFile().convention(
+                project.getProviders().gradleProperty("reportFile")
+                    .map(path -> project.getLayout().getProjectDirectory().file(path))
+                    .orElse(project.getLayout().getBuildDirectory().file("reports/native/list-libraries-missing-metadata.json"))
+            );
         });
     }
 

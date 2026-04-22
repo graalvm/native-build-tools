@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/list-libraries-missing-metadata-schema-v1.0.0.json",
+  "title": "list-libraries-missing-metadata report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "command",
+    "mode",
+    "targetRepository",
+    "scannedAt",
+    "project",
+    "summary",
+    "results"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/list-libraries-missing-metadata-schema-v1.0.0.json"
+    },
+    "command": {
+      "const": "listLibrariesMissingMetadata"
+    },
+    "mode": {
+      "enum": [
+        "list",
+        "create"
+      ]
+    },
+    "targetRepository": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "metadataRepositoryUri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "scannedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "buildTool",
+        "name"
+      ],
+      "properties": {
+        "buildTool": {
+          "enum": [
+            "gradle",
+            "maven"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scanned",
+        "supported",
+        "missing",
+        "existingOpenIssue",
+        "newIssueLinks",
+        "createdIssues",
+        "errors"
+      ],
+      "properties": {
+        "scanned": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supported": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "existingOpenIssue": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "newIssueLinks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "createdIssues": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errors": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/supportedResult"
+          },
+          {
+            "$ref": "#/$defs/missingResult"
+          },
+          {
+            "$ref": "#/$defs/errorResult"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "coordinates": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+$"
+    },
+    "scope": {
+      "const": "direct-runtime"
+    },
+    "issueUrl": {
+      "type": "string",
+      "format": "uri"
+    },
+    "supportedResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinates",
+        "scope",
+        "status"
+      ],
+      "properties": {
+        "coordinates": {
+          "$ref": "#/$defs/coordinates"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "status": {
+          "const": "supported"
+        }
+      }
+    },
+    "missingResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinates",
+        "scope",
+        "status",
+        "issueStatus",
+        "issueUrl"
+      ],
+      "properties": {
+        "coordinates": {
+          "$ref": "#/$defs/coordinates"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "status": {
+          "const": "missing"
+        },
+        "issueStatus": {
+          "enum": [
+            "existing_open_issue",
+            "new_issue_link_generated",
+            "created_issue"
+          ]
+        },
+        "issueUrl": {
+          "$ref": "#/$defs/issueUrl"
+        },
+        "issueNumber": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "issueStatus": {
+                "enum": [
+                  "existing_open_issue",
+                  "created_issue"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "issueNumber"
+            ]
+          }
+        }
+      ]
+    },
+    "errorResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinates",
+        "scope",
+        "status",
+        "error"
+      ],
+      "properties": {
+        "coordinates": {
+          "$ref": "#/$defs/coordinates"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "status": {
+          "const": "error"
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

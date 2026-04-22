@@ -254,7 +254,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
      * Downloads the metadata repository from Maven Central and returns the path to the downloaded file.
      * @return the path to the downloaded repository file, or null if not found
      */
-    private URL resolveDefaultMetadataRepositoryUrl() {
+    protected URL resolveDefaultMetadataRepositoryUrl() {
         RepositorySystemSession repositorySession = mavenSession.getRepositorySession();
         CollectRequest collectRequest = new CollectRequest();
         collectRequest.setRepositories(project.getRemoteProjectRepositories());
@@ -289,6 +289,25 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                     }
                 })
                 .orElse(null);
+    }
+
+    protected String describeMetadataRepositoryLocation() {
+        if (metadataRepositoryConfiguration != null) {
+            if (metadataRepositoryConfiguration.getLocalPath() != null) {
+                return metadataRepositoryConfiguration.getLocalPath().toURI().toASCIIString();
+            }
+            if (metadataRepositoryConfiguration.getUrl() != null) {
+                return metadataRepositoryConfiguration.getUrl().toString();
+            }
+            if (metadataRepositoryConfiguration.getVersion() != null) {
+                return String.format(METADATA_REPO_URL_TEMPLATE, metadataRepositoryConfiguration.getVersion());
+            }
+        }
+        URL resolved = resolveDefaultMetadataRepositoryUrl();
+        if (resolved != null) {
+            return resolved.toString();
+        }
+        return String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
     }
 
     public boolean isArtifactExcludedFromMetadataRepository(Artifact dependency) {
