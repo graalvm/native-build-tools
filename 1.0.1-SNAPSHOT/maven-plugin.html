@@ -497,6 +497,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#metadata-support">GraalVM Reachability Metadata Support</a>
 <ul class="sectlevel2">
 <li><a href="#_configuring_the_metadata_repository">Configuring the Metadata Repository</a></li>
+<li><a href="#maven-list-libraries-missing-metadata">Checking Missing Metadata Support</a></li>
 <li><a href="#_adding_metadata_repository_files">Adding Metadata Repository Files</a></li>
 </ul>
 </li>
@@ -1821,6 +1822,75 @@ This may be interesting if there is no specific metadata available for the parti
     &lt;/dependencies&gt;
 &lt;/metadataRepository&gt;</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="maven-list-libraries-missing-metadata"><a class="anchor" href="#maven-list-libraries-missing-metadata"></a>Checking Missing Metadata Support</h3>
+<div class="paragraph">
+<p>Run this first to see which direct dependencies are not supported by the reachability metadata repository.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw native:list-libraries-missing-metadata</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>By default, the goal:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Scans direct external runtime dependencies</p>
+</li>
+<li>
+<p>Uses the configured metadata repository as the source of truth</p>
+</li>
+<li>
+<p>Prints existing reachability-metadata issues when they already exist</p>
+</li>
+<li>
+<p>Prints prefilled issue links when a dependency is missing metadata support</p>
+</li>
+<li>
+<p>Writes a JSON report to <em>target/native/list-libraries-missing-metadata.json</em></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The JSON report includes a <code>$schema</code> field pointing to <em>schemas/list-libraries-missing-metadata-schema-v1.0.0.json</em> in this repository.</p>
+</div>
+<div class="paragraph">
+<p>To create issues automatically instead of printing links, opt in explicitly:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./mvnw -DcreateIssues=true -DgithubToken=... native:list-libraries-missing-metadata</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also override the GitHub integration inputs with <code>targetRepository</code>, <code>githubApiUrl</code>, <code>githubToken</code>, and <code>reportFile</code>.</p>
+</div>
+<div class="paragraph">
+<p>The GitHub token used for issue lookup and creation is resolved in this order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The <code>-DgithubToken=&#8230;&#8203;</code> system property</p>
+</li>
+<li>
+<p>The <code>GITHUB_TOKEN</code> environment variable</p>
+</li>
+<li>
+<p>The <code>GH_TOKEN</code> environment variable</p>
+</li>
+<li>
+<p><code>gh auth token</code>, when the GitHub CLI is installed and authenticated (subprocess capped at 5 seconds; non-zero exit is treated as no token)</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>In default list mode the goal tolerates a missing token: it can still query public issues, and emits a single warning if the GitHub API rejects the lookup. With <code>-DcreateIssues=true</code>, a token is required.</p>
 </div>
 </div>
 <div class="sect2">

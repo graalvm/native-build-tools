@@ -83,7 +83,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <dl class="notes">
 <dt>Direct Known Subclasses:</dt>
-<dd><code><a href="AbstractNativeImageMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeImageMojo</a></code>, <code><a href="AddReachabilityMetadataMojo.html" title="class in org.graalvm.buildtools.maven">AddReachabilityMetadataMojo</a></code>, <code><a href="NativeBuildDynamicAccessMetadataMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildDynamicAccessMetadataMojo</a></code></dd>
+<dd><code><a href="AbstractNativeImageMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeImageMojo</a></code>, <code><a href="AddReachabilityMetadataMojo.html" title="class in org.graalvm.buildtools.maven">AddReachabilityMetadataMojo</a></code>, <code><a href="ListLibrariesMissingMetadataMojo.html" title="class in org.graalvm.buildtools.maven">ListLibrariesMissingMetadataMojo</a></code>, <code><a href="NativeBuildDynamicAccessMetadataMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildDynamicAccessMetadataMojo</a></code></dd>
 </dl>
 <hr>
 <div class="type-signature"><span class="modifiers">public abstract class </span><span class="element-name type-name-label">AbstractNativeMojo</span>
@@ -177,23 +177,31 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#configureMetadataRepository()" class="member-name-link">configureMetadataRepository</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#downloadMetadata(java.net.URL,java.nio.file.Path)" class="member-name-link">downloadMetadata</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html" title="class or interface in java.net" class="external-link">URL</a>&nbsp;url,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#describeMetadataRepositoryLocation()" class="member-name-link">describeMetadataRepositoryLocation</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#downloadMetadata(java.net.URL,java.nio.file.Path)" class="member-name-link">downloadMetadata</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html" title="class or interface in java.net" class="external-link">URL</a>&nbsp;url,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;destination)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getMetadataVersion(org.apache.maven.artifact.Artifact)" class="member-name-link">getMetadataVersion</a><wbr>(org.apache.maven.artifact.Artifact&nbsp;dependency)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isArtifactExcludedFromMetadataRepository(org.apache.maven.artifact.Artifact)" class="member-name-link">isArtifactExcludedFromMetadataRepository</a><wbr>(org.apache.maven.artifact.Artifact&nbsp;dependency)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getMetadataVersion(org.apache.maven.artifact.Artifact)" class="member-name-link">getMetadataVersion</a><wbr>(org.apache.maven.artifact.Artifact&nbsp;dependency)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isMetadataRepositoryEnabled()" class="member-name-link">isMetadataRepositoryEnabled</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isArtifactExcludedFromMetadataRepository(org.apache.maven.artifact.Artifact)" class="member-name-link">isArtifactExcludedFromMetadataRepository</a><wbr>(org.apache.maven.artifact.Artifact&nbsp;dependency)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#maybeAddDependencyMetadata(org.apache.maven.artifact.Artifact,java.util.function.Consumer)" class="member-name-link">maybeAddDependencyMetadata</a><wbr>(org.apache.maven.artifact.Artifact&nbsp;dependency,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isMetadataRepositoryEnabled()" class="member-name-link">isMetadataRepositoryEnabled</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#maybeAddDependencyMetadata(org.apache.maven.artifact.Artifact,java.util.function.Consumer)" class="member-name-link">maybeAddDependencyMetadata</a><wbr>(org.apache.maven.artifact.Artifact&nbsp;dependency,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/File.html" title="class or interface in java.io" class="external-link">File</a>&gt;&nbsp;excludeAction)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html" title="class or interface in java.net" class="external-link">URL</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveDefaultMetadataRepositoryUrl()" class="member-name-link">resolveDefaultMetadataRepositoryUrl</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Downloads the metadata repository from Maven Central and returns the path to the downloaded file.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#unzipLocalMetadata(java.nio.file.Path,java.nio.file.Path)" class="member-name-link">unzipLocalMetadata</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;localPath,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html" title="class or interface in java.nio.file" class="external-link">Path</a>&nbsp;destination)</code></div>
@@ -355,6 +363,23 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="configureMetadataRepository()">
 <h3>configureMetadataRepository</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">configureMetadataRepository</span>()</div>
+</section>
+</li>
+<li>
+<section class="detail" id="resolveDefaultMetadataRepositoryUrl()">
+<h3>resolveDefaultMetadataRepositoryUrl</h3>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html" title="class or interface in java.net" class="external-link">URL</a></span>&nbsp;<span class="element-name">resolveDefaultMetadataRepositoryUrl</span>()</div>
+<div class="block">Downloads the metadata repository from Maven Central and returns the path to the downloaded file.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the path to the downloaded repository file, or null if not found</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="describeMetadataRepositoryLocation()">
+<h3>describeMetadataRepositoryLocation</h3>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">describeMetadataRepositoryLocation</span>()</div>
 </section>
 </li>
 <li>

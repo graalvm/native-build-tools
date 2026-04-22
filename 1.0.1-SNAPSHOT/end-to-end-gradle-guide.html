@@ -826,7 +826,19 @@ When you build a native image, Native Build Tools reference this repository to a
 To address this, start by checking if any required configuration is missing.</p>
 </div>
 <div class="paragraph">
-<p>The best way to detect missing metadata is by running your native tests.
+<p>Run this first to see which direct dependencies are not supported by the reachability metadata repository:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="bash" class="language-bash hljs">./gradlew listLibrariesMissingMetadata</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The task prints missing direct runtime dependencies, reuses existing reachability-metadata issues when it can, and writes a JSON report to <em>build/reports/native/list-libraries-missing-metadata.json</em>.
+If you want the task to create GitHub issues automatically instead of printing links, run <code>./gradlew listLibrariesMissingMetadata -PcreateIssues=true</code>.</p>
+</div>
+<div class="paragraph">
+<p>If the command reports missing libraries, fix those first.
 Alternatively, you can <strong>identify missing configuration manually</strong> using the following method.</p>
 </div>
 <div class="ulist">

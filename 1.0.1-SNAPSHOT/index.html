@@ -477,6 +477,23 @@ Currently, you can build your native applications using our Gradle or Maven plug
 <p>Each plugin takes metadata for available libraries from the <a href="https://github.com/oracle/graalvm-reachability-metadata">GraalVM reachability metadata repository</a>
 to provide better experience during the development of your native project.</p>
 </div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Check library support first.
+Run <code>./gradlew listLibrariesMissingMetadata</code> or <code>./mvnw native:list-libraries-missing-metadata</code>
+before troubleshooting metadata manually so you can see which direct dependencies are unsupported
+by the reachability metadata repository.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>If you are using alternative build systems, see <a href="alternative-build-systems.html">Useful Hints for Alternative Build Systems</a>.</p>
 </div>
