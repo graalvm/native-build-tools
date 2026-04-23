@@ -101,9 +101,9 @@ public class AgentConfiguration implements Serializable {
     }
 
     public List<String> getAgentCommandLine() {
-        addDefaultAccessFilter();
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
+        appendOptionToValues("access-filter-file=", List.of(getDefaultAccessFilter()), cmdLine);
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
         addToCmd("builtin-caller-filter=", builtinCallerFilter, cmdLine);
         addToCmd("builtin-heuristic-filter=", builtinHeuristicFilter, cmdLine);
@@ -141,18 +141,12 @@ public class AgentConfiguration implements Serializable {
         }
     }
 
-    private void addDefaultAccessFilter() {
-        if (accessFilterFiles == null) {
-            // this could only happen if we instantiated disabled agent configuration
-            return;
-        }
-
+    private String getDefaultAccessFilter() {
         String tempDir = System.getProperty("java.io.tmpdir");
         Path agentDir = Path.of(tempDir).resolve("agent-config");
         Path accessFilterFile = agentDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
         if (Files.exists(accessFilterFile)) {
-            accessFilterFiles.add(accessFilterFile.toString());
-            return;
+            return accessFilterFile.toString();
         }
 
         try (InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
@@ -176,7 +170,7 @@ public class AgentConfiguration implements Serializable {
                 logger.info(accessFilterFile + " already exists. Delete " + tmpAccessFilter);
             }
 
-            accessFilterFiles.add(accessFilterFile.toString());
+            return accessFilterFile.toString();
         } catch (IOException e) {
             throw new RuntimeException("Cannot add default access-filter.json", e);
         }
