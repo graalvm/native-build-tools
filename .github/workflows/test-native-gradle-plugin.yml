@@ -11,6 +11,9 @@ on:
       - 'gradle/libs.versions.toml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
@@ -24,9 +27,9 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
         with:
           java-version: '17'
           distribution: 'graalvm'
@@ -45,7 +48,7 @@ jobs:
       matrix: ${{fromJson(needs.populate-matrix.outputs.matrix)}}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -56,7 +59,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion="${{ matrix.gradle-version }}" --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: functional-tests-results-${{ strategy.job-index }}-${{ matrix.gradle-version }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
@@ -69,9 +72,9 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v3
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
         with:
           java-version: '17'
           distribution: 'graalvm'
@@ -91,7 +94,7 @@ jobs:
       matrix: ${{fromJson(needs.populate-cache-matrix.outputs.matrix)}}
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -102,7 +105,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion="${{ matrix.gradle-config-cache-version }}" --tests ${{ matrix.test }}
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: functional-tests-results-${{ strategy.job-index }}-${{ matrix.gradle-config-cache-version }}-${{ matrix.os }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/
@@ -118,7 +121,7 @@ jobs:
         os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -128,7 +131,7 @@ jobs:
       - name: "❓ Unit tests and inspections"
         run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections
       - name: "📜 Upload unit test results"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: unit-tests-results-${{ strategy.job-index }}-${{ matrix.java-version }}-${{ matrix.os }}
           path: native-gradle-plugin/build/reports/tests/test/
@@ -145,7 +148,7 @@ jobs:
         os: [ ubuntu-22.04 ]
     steps:
       - name: "☁️ Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - name: "🔧 Prepare environment"
         uses: ./.github/actions/prepare-environment
         with:
@@ -153,7 +156,7 @@ jobs:
           graal-java-version: ''
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "🔧 Install GraalVM (dev)"
-        uses: graalvm/setup-graalvm@main
+        uses: graalvm/setup-graalvm@60c26726de13f8b90771df4bc1641a52a3159994 # v1
         with:
           java-version: 'latest-ea'
           distribution: 'graalvm'
@@ -163,7 +166,7 @@ jobs:
         run: ./gradlew :native-gradle-plugin:functionalTest
       - name: "📜 Upload functional tests results"
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: functional-tests-results-graalvm-dev-${{ strategy.job-index }}-${{ matrix.java-version }}-${{ matrix.os }}
           path: native-gradle-plugin/build/reports/tests/functionalTest/

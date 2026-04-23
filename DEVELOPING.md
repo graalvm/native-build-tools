@@ -67,6 +67,12 @@ Examples used in daily development follow (all executed from the root of the rep
 ./gradlew clean
 ```
 
+## CI Checks
+
+GitHub workflow and composite action files (`.github/workflows/**` and `.github/actions/**`) are checked by the `Check GitHub Actions with Macaron` workflow.
+The check uses the Macaron `check-github-actions` policy with `policy_purl` set to `pkg:github.com/graalvm/native-build-tools@.*` (see [Macaron GitHub Action documentation](https://oracle.github.io/macaron/pages/macaron_action.html)).
+This check should remain a required pull request status check for the default branch.
+
 ## Debugging Plugin(s)
 
 It is often useful to attach a debugger to the Gradle and Maven plugins during a project build.
