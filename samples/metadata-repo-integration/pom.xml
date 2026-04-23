@@ -110,6 +110,11 @@
                                 <phase>package</phase>
                             </execution>
                         </executions>
+                        <configuration>
+                            <buildArgs>
+                                <buildArg>--initialize-at-build-time=ch.qos.logback.classic.Logger</buildArg>
+                            </buildArgs>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
@@ -133,6 +138,9 @@
                             </execution>
                         </executions>
                         <configuration>
+                            <buildArgs>
+                                <buildArg>--initialize-at-build-time=ch.qos.logback.classic.Logger</buildArg>
+                            </buildArgs>
                             <!-- tag::metadata-versioned[] -->
                             <metadataRepository>
                                 <enabled>true</enabled>
@@ -163,6 +171,9 @@
                             </execution>
                         </executions>
                         <configuration>
+                            <buildArgs>
+                                <buildArg>--initialize-at-build-time=ch.qos.logback.classic.Logger</buildArg>
+                            </buildArgs>
                             <!-- tag::metadata-disable[] -->
                             <metadataRepository>
                                 <enabled>false</enabled>
@@ -192,6 +203,9 @@
                             </execution>
                         </executions>
                         <configuration>
+                            <buildArgs>
+                                <buildArg>--initialize-at-build-time=ch.qos.logback.classic.Logger</buildArg>
+                            </buildArgs>
                             <metadataRepository>
                                 <version>1.0-M1</version>
                             </metadataRepository>

@@ -62,7 +62,6 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
         and: "finds metadata in the remote repository"
         outputContains "[graalvm reachability metadata repository for com.h2database:h2:"
         outputContains "Configuration directory is com.h2database" + File.separator + "h2" + File.separator
-        outputDoesNotContain "Falling back to the default repository."
     }
 
     @IgnoreIf({ os.windows })

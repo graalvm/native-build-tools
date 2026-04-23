@@ -45,6 +45,9 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+/**
+ * Scans main resources and generates resource metadata for them.
+ */
 @Mojo(
         name = "generateResourceConfig",
         defaultPhase = LifecyclePhase.PACKAGE,

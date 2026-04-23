@@ -143,4 +143,32 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputContains "Args file written to: target" + File.separator + "native-image"
     }
 
+    def "help describe includes goal descriptions"() {
+        withSample("java-application")
+
+        when:
+        mvn 'help:describe', "-Dplugin=org.graalvm.buildtools:native-maven-plugin:${System.getProperty('native.maven.plugin.version')}"
+
+        then:
+        buildSucceeded
+        outputContains "org.graalvm.buildtools:native-maven-plugin:${System.getProperty('native.maven.plugin.version')}"
+        outputContains "native:add-reachability-metadata"
+        outputContains "metadata repository to the project's output directory."
+        outputContains "native:compile"
+        outputContains "Builds a native executable by forking Maven"
+        outputContains "native:compile-no-fork"
+        outputContains "without forking a separate Maven build."
+        outputContains "native:generateResourceConfig"
+        outputContains "generates resource metadata for them."
+        outputContains "native:generateTestResourceConfig"
+        outputContains "native:merge-agent-files"
+        outputContains "Merges tracing agent output"
+        outputContains "native:metadata-copy"
+        outputContains "META-INF/native-image"
+        outputContains "native:test"
+        outputContains "Builds and runs the project's tests as native executables."
+        outputContains "native:write-args-file"
+        outputContains "an args file that can be reused outside Maven."
+    }
+
 }

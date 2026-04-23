@@ -40,7 +40,6 @@
  */
 
 import org.graalvm.build.maven.MavenTask
-import org.gradle.util.GFileUtils
 
 plugins {
     `java-library`
@@ -154,7 +153,13 @@ val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
 }
 
 val launcher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(17))
+    languageVersion.set(
+        providers.gradleProperty("mavenFunctionalTestJavaVersion")
+            .orElse(providers.gradleProperty("javaToolchainVersion"))
+            .orElse("17")
+            .map(String::toInt)
+            .map(JavaLanguageVersion::of)
+    )
 }
 
 tasks {

@@ -50,6 +50,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+/**
+ * Scans test resources and generates resource metadata for them.
+ */
 @Mojo(
         name = "generateTestResourceConfig",
         defaultPhase = LifecyclePhase.PACKAGE,

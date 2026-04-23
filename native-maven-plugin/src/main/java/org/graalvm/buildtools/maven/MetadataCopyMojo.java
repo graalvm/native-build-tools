@@ -62,6 +62,9 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Copies and optionally merges tracing agent metadata into {@code META-INF/native-image} for packaging.
+ */
 @Mojo(name = "metadata-copy", defaultPhase = LifecyclePhase.NONE)
 public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
 

@@ -59,6 +59,9 @@ val preparePluginDescriptor = tasks.register<Copy>("preparePluginDescriptor") {
     }) {
         rename { "pom.xml" }
     }
+    from(sourceSets.getByName("main").allJava) {
+        into("src/main/java")
+    }
     from(sourceSets.getByName("main").output.classesDirs) {
         into("target/classes")
     }

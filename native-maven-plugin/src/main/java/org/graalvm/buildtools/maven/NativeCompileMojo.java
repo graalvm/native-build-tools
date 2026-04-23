@@ -48,8 +48,9 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 
 /**
- * This goal builds native images.
- * It should be invoked from the command line as a single goal (`mvn native:compile`).
+ * Builds a native executable by forking Maven to the {@code package} phase before invoking {@code native-image}.
+ *
+ * It should be invoked from the command line as a single goal ({@code mvn native:compile}).
  */
 @Mojo(name = "compile", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
