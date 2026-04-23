@@ -92,6 +92,7 @@ org.junit.platform.launcher.core.DefaultLauncherConfig
 org.junit.platform.launcher.core.DiscoveryIssueCollector
 org.junit.platform.launcher.core.DiscoveryIssueNotifier
 org.junit.platform.launcher.core.DiscoveryIssueNotifier$1
+org.junit.platform.launcher.core.DiscoveryIssueReportingDiscoveryListener
 org.junit.platform.launcher.core.EngineDiscoveryOrchestrator
 org.junit.platform.launcher.core.EngineExecutionOrchestrator
 org.junit.platform.launcher.core.EngineFilterer
