@@ -212,8 +212,9 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         withSample("java-application-with-reflection")
         buildFile << """
             tasks.named('run') {
+                def javaExecutableName = System.getProperty('os.name').contains('Windows') ? 'java.exe' : 'java'
+                executable = new File(new File(System.getProperty('java.home'), 'bin'), javaExecutableName).absolutePath
                 doLast {
-                    def javaExecutableName = System.getProperty('os.name').contains('Windows') ? 'java.exe' : 'java'
                     def expectedExecutable = new File(new File(System.getenv('GRAALVM_HOME'), 'bin'), javaExecutableName).absolutePath
                     def actualExecutable = executable ?: javaLauncher.get().executablePath.asFile.absolutePath
                     assert actualExecutable == expectedExecutable
@@ -228,6 +229,38 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         tasks {
             succeeded ':run'
             doesNotContain ':jar'
+        }
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/581")
+    @Requires({
+        System.getenv("GRAALVM_HOME") != null
+    })
+    @Unroll("agent keeps explicit test executable in sync with GraalVM java executable for JUnit Platform #junitVersion")
+    def "agent keeps explicit test executable in sync with GraalVM java executable"() {
+        given:
+        withSample("java-application-with-reflection")
+        buildFile << """
+            tasks.named('test') {
+                def javaExecutableName = System.getProperty('os.name').contains('Windows') ? 'java.exe' : 'java'
+                executable = new File(new File(System.getProperty('java.home'), 'bin'), javaExecutableName).absolutePath
+                doLast {
+                    def expectedExecutable = new File(new File(System.getenv('GRAALVM_HOME'), 'bin'), javaExecutableName).absolutePath
+                    assert executable == expectedExecutable
+                    assert javaLauncher.get().executablePath.asFile.absolutePath == expectedExecutable
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'test', '-Pagent=standard'
+
+        then:
+        tasks {
+            succeeded ':test'
         }
 
         where:
