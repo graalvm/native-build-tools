@@ -934,12 +934,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
         Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
-        Provider<JavaLauncher> javaLauncherForAgent = graalvmHomeProvider(project.getProviders())
-                .map(serializableTransformerOf(graalHomePath -> {
-                    String javaExecutable = graalHomePath + (IS_WINDOWS ? "\\bin\\java.exe" : "/bin/java");
-                    File javaExecutableFile = new File(javaExecutable);
-                    return javaExecutableFile.exists() ? new FixedJavaLauncher(new File(graalHomePath), javaExecutableFile) : null;
-                }));
+        Provider<JavaLauncher> javaLauncherForAgent = javaLauncherForAgent(project.getProviders());
         if (agentConfiguration.get().isEnabled()) {
             JavaLauncher javaLauncher = javaLauncherForAgent.getOrNull();
             if (javaLauncher != null) {
@@ -990,6 +985,38 @@ public class NativeImagePlugin implements Plugin<Project> {
             execOperations));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
+    }
+
+    private static Provider<JavaLauncher> javaLauncherForAgent(ProviderFactory providers) {
+        return providers.environmentVariable("GRAALVM_HOME")
+                .map(serializableTransformerOf(graalHomePath -> javaLauncherForAgentHome(graalHomePath, false)))
+                .orElse(providers.environmentVariable("JAVA_HOME")
+                        .map(serializableTransformerOf(javaHomePath -> javaLauncherForAgentHome(javaHomePath, true))));
+    }
+
+    private static JavaLauncher javaLauncherForAgentHome(String javaHomePath, boolean requireGraalVM) {
+        File javaHome = new File(javaHomePath);
+        if (requireGraalVM && !isGraalVMHome(javaHome)) {
+            return null;
+        }
+        File javaExecutableFile = new File(javaHome, IS_WINDOWS ? "bin\\java.exe" : "bin/java");
+        return javaExecutableFile.exists() ? new FixedJavaLauncher(javaHome, javaExecutableFile) : null;
+    }
+
+    private static boolean isGraalVMHome(File javaHome) {
+        File release = new File(javaHome, "release");
+        if (!release.isFile()) {
+            return false;
+        }
+        Properties properties = new Properties();
+        try (var inputStream = java.nio.file.Files.newInputStream(release.toPath())) {
+            properties.load(inputStream);
+        } catch (Exception ignored) {
+            return false;
+        }
+        return properties.stringPropertyNames().stream()
+                .anyMatch(propertyName -> propertyName.toUpperCase(Locale.ROOT).contains("GRAALVM")
+                        || String.valueOf(properties.getProperty(propertyName)).toLowerCase(Locale.ROOT).contains("graalvm"));
     }
 
     private static void injectTestPluginDependencies(Project project, String binaryName, Property<Boolean> testSupportEnabled) {

@@ -68,6 +68,7 @@ abstract class AbstractFunctionalTest extends Specification {
     private String output
     private String errorOutput
     private File initScript
+    private Map<String, String> environment
 
     BuildResult result
 
@@ -135,6 +136,18 @@ abstract class AbstractFunctionalTest extends Specification {
     protected void withSpacesInProjectDir() {
         testDirectory = testDirectory.resolve("with spaces")
         Files.createDirectory(testDirectory)
+    }
+
+    protected void withEnvironmentOverrides(Map<String, String> overrides) {
+        def updatedEnvironment = new LinkedHashMap<>(System.getenv())
+        overrides.each { key, value ->
+            if (value == null) {
+                updatedEnvironment.remove(key)
+            } else {
+                updatedEnvironment.put(key, value)
+            }
+        }
+        environment = updatedEnvironment
     }
 
     protected void withSample(String name, boolean quickBuildMode = true) {
@@ -211,6 +224,9 @@ abstract class AbstractFunctionalTest extends Specification {
         }
         if (debug) {
             runner.withDebug(true)
+        }
+        if (environment != null) {
+            runner.withEnvironment(environment)
         }
         runner
     }
