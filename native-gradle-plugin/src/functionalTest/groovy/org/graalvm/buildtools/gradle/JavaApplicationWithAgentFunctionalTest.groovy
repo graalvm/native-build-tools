@@ -44,6 +44,8 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.Issue
+import spock.lang.Requires
 import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
@@ -195,6 +197,131 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
         then:
         outputContains "Application message: Hello, native!"
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/581")
+    @Requires({
+        System.getenv("GRAALVM_HOME") != null
+    })
+    @Unroll("agent uses GraalVM's Java executable for run task with JUnit Platform #junitVersion")
+    def "agent uses GraalVM java executable"() {
+        given:
+        withSample("java-application-with-reflection")
+        buildFile << """
+            tasks.named('run') {
+                def javaExecutableName = System.getProperty('os.name').contains('Windows') ? 'java.exe' : 'java'
+                executable = new File(new File(System.getProperty('java.home'), 'bin'), javaExecutableName).absolutePath
+                doLast {
+                    def expectedExecutable = new File(new File(System.getenv('GRAALVM_HOME'), 'bin'), javaExecutableName).absolutePath
+                    def actualExecutable = executable ?: javaLauncher.get().executablePath.asFile.absolutePath
+                    assert actualExecutable == expectedExecutable
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'run', '-Pagent=standard'
+
+        then:
+        tasks {
+            succeeded ':run'
+            doesNotContain ':jar'
+        }
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/581")
+    @Requires({
+        System.getenv("GRAALVM_HOME") != null
+    })
+    @Unroll("agent keeps explicit test executable in sync with GraalVM java executable for JUnit Platform #junitVersion")
+    def "agent keeps explicit test executable in sync with GraalVM java executable"() {
+        given:
+        withSample("java-application-with-reflection")
+        buildFile << """
+            tasks.named('test') {
+                def javaExecutableName = System.getProperty('os.name').contains('Windows') ? 'java.exe' : 'java'
+                executable = new File(new File(System.getProperty('java.home'), 'bin'), javaExecutableName).absolutePath
+                doLast {
+                    def expectedExecutable = new File(new File(System.getenv('GRAALVM_HOME'), 'bin'), javaExecutableName).absolutePath
+                    assert executable == expectedExecutable
+                    assert javaLauncher.get().executablePath.asFile.absolutePath == expectedExecutable
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'test', '-Pagent=standard'
+
+        then:
+        tasks {
+            succeeded ':test'
+        }
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/581")
+    @Requires({
+        System.getenv("GRAALVM_HOME") != null && !System.getProperty("os.name", "unknown").contains("Windows")
+    })
+    @Unroll("agent does not replace configured launcher with regular JAVA_HOME for JUnit Platform #junitVersion")
+    def "agent does not replace configured launcher with regular JAVA_HOME"() {
+        given:
+        withSample("java-application-with-reflection")
+        def graalvmHome = System.getenv("GRAALVM_HOME")
+        def fakeJavaHome = file("fake-java-home")
+        def fakeJava = new File(fakeJavaHome, "bin/java")
+        fakeJava.parentFile.mkdirs()
+        fakeJava.text = """#!/bin/sh
+exec "${System.getProperty('java.home')}/bin/java" "\$@"
+"""
+        fakeJava.setExecutable(true)
+        new File(fakeJavaHome, "release").text = """JAVA_VERSION="${System.getProperty('java.version')}"
+IMPLEMENTOR="Regular JDK"
+"""
+        withEnvironmentOverrides([
+                "GRAALVM_HOME": null,
+                "JAVA_HOME": fakeJavaHome.absolutePath,
+                "GRADLE_OPTS": null
+        ])
+        file("gradle.properties") << """
+org.gradle.java.installations.paths=${graalvmHome}
+org.gradle.java.installations.auto-detect=false
+org.gradle.java.installations.auto-download=false
+""".stripIndent()
+        buildFile << """
+            tasks.named('run') {
+                javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(${getCurrentJDKVersion()}))
+                })
+            }
+
+            tasks.register('verifyRunLauncher') {
+                doLast {
+                    def actualExecutable = tasks.named('run').get().javaLauncher.get().executablePath.asFile.canonicalFile
+                    def expectedExecutable = new File('${graalvmHome}', 'bin/java').canonicalFile
+                    def javaHomeExecutable = new File(new File(System.getenv('JAVA_HOME')), 'bin/java').canonicalFile
+                    assert actualExecutable == expectedExecutable
+                    assert actualExecutable != javaHomeExecutable
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'verifyRunLauncher', '-Pagent=standard'
+
+        then:
+        tasks {
+            succeeded ':verifyRunLauncher'
+            doesNotContain ':run'
+        }
 
         where:
         junitVersion = System.getProperty('versions.junit')
