@@ -1053,8 +1053,10 @@ public class NativeImagePlugin implements Plugin<Project> {
             if (javaLauncher != null) {
                 if (taskToInstrument instanceof Test test) {
                     test.getJavaLauncher().set(javaLauncher);
+                    javaForkOptions.setExecutable(javaLauncher.getExecutablePath().getAsFile().getAbsolutePath());
                 } else if (taskToInstrument instanceof JavaExec javaExec) {
                     javaExec.getJavaLauncher().set(javaLauncher);
+                    javaForkOptions.setExecutable(javaLauncher.getExecutablePath().getAsFile().getAbsolutePath());
                 }
             }
         }
