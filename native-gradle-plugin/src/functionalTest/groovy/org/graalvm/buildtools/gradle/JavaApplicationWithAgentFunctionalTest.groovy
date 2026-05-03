@@ -234,6 +234,66 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         junitVersion = System.getProperty('versions.junit')
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/581")
+    @Requires({
+        System.getenv("GRAALVM_HOME") != null && !System.getProperty("os.name", "unknown").contains("Windows")
+    })
+    @Unroll("agent does not replace configured launcher with regular JAVA_HOME for JUnit Platform #junitVersion")
+    def "agent does not replace configured launcher with regular JAVA_HOME"() {
+        given:
+        withSample("java-application-with-reflection")
+        def graalvmHome = System.getenv("GRAALVM_HOME")
+        def fakeJavaHome = file("fake-java-home")
+        def fakeJava = new File(fakeJavaHome, "bin/java")
+        fakeJava.parentFile.mkdirs()
+        fakeJava.text = """#!/bin/sh
+exec "${System.getProperty('java.home')}/bin/java" "\$@"
+"""
+        fakeJava.setExecutable(true)
+        new File(fakeJavaHome, "release").text = """JAVA_VERSION="${System.getProperty('java.version')}"
+IMPLEMENTOR="Regular JDK"
+"""
+        withEnvironmentOverrides([
+                "GRAALVM_HOME": null,
+                "JAVA_HOME": fakeJavaHome.absolutePath,
+                "GRADLE_OPTS": null
+        ])
+        file("gradle.properties") << """
+org.gradle.java.installations.paths=${graalvmHome}
+org.gradle.java.installations.auto-detect=false
+org.gradle.java.installations.auto-download=false
+""".stripIndent()
+        buildFile << """
+            tasks.named('run') {
+                javaLauncher.set(javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(${getCurrentJDKVersion()}))
+                })
+            }
+
+            tasks.register('verifyRunLauncher') {
+                doLast {
+                    def actualExecutable = tasks.named('run').get().javaLauncher.get().executablePath.asFile.canonicalFile
+                    def expectedExecutable = new File('${graalvmHome}', 'bin/java').canonicalFile
+                    def javaHomeExecutable = new File(new File(System.getenv('JAVA_HOME')), 'bin/java').canonicalFile
+                    assert actualExecutable == expectedExecutable
+                    assert actualExecutable != javaHomeExecutable
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'verifyRunLauncher', '-Pagent=standard'
+
+        then:
+        tasks {
+            succeeded ':verifyRunLauncher'
+            doesNotContain ':run'
+        }
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
     @Unroll("plugin supports configuration cache (JUnit Platform #junitVersion)")
     def "supports configuration cache"() {
         given:
