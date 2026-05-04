@@ -73,4 +73,16 @@ public interface VersionToConfigDirectoryIndex {
      * @return a configuration, or empty if no configuration directory is available
      */
     Optional<DirectoryConfiguration> findLatestConfigurationFor(String groupId, String artifactId, String version);
+
+    /**
+     * Returns whether the artifact is marked as not applicable to native-image.
+     *
+     * @param groupId the group ID of the artifact
+     * @param artifactId the artifact ID of the artifact
+     * @param version the version of the artifact
+     * @return true if the artifact is intentionally not covered by configuration files
+     */
+    default boolean isNotForNativeImage(String groupId, String artifactId, String version) {
+        return false;
+    }
 }

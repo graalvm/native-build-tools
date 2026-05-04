@@ -140,6 +140,15 @@ class SingleModuleJsonVersionToConfigDirectoryIndexTest {
         assertEquals(repoPath.resolve("2.0"), latest.get().getDirectory());
     }
 
+    @Test
+    void checkNotForNativeImageIndex() throws URISyntaxException {
+        withIndex("artifact-not-for-native-image/com.foo/native-only");
+
+        Optional<DirectoryConfiguration> config = index.findConfiguration("com.foo", "native-only", "1.0");
+        assertFalse(config.isPresent());
+        assertTrue(index.isNotForNativeImage("com.foo", "native-only", "1.0"));
+    }
+
     private void withIndex(String json) throws URISyntaxException {
         repoPath = new File(SingleModuleJsonVersionToConfigDirectoryIndexTest.class.getResource("/json/" + json).toURI()).toPath();
         index = new SingleModuleJsonVersionToConfigDirectoryIndex(repoPath);

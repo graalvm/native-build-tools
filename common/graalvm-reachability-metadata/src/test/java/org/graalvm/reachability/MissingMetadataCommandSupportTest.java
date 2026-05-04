@@ -44,6 +44,7 @@ import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
+import org.graalvm.reachability.internal.FileSystemRepository;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -137,6 +138,36 @@ class MissingMetadataCommandSupportTest {
             "console should label manual entries with footnote indices, was:\n" + console);
         assertTrue(console.contains("[1] " + missingUrl),
             "console should list the prefilled issue URL as a numbered footnote, was:\n" + console);
+    }
+
+    @Test
+    void treatsNotForNativeImageIndexEntriesAsSupported() throws Exception {
+        Path repoPath = Path.of(MissingMetadataCommandSupportTest.class
+            .getResource("/repos/repo-not-for-native-image")
+            .toURI());
+        MissingMetadataCommandSupport.Report report = MissingMetadataCommandSupport.run(
+            List.of(new MissingMetadataCommandSupport.DependencyCoordinate("com.foo", "native-only", "1.0")),
+            new FileSystemRepository(repoPath),
+            Set.of(),
+            java.util.Map.of(),
+            new MissingMetadataCommandSupport.Options(
+                "maven",
+                "demo-app",
+                repoPath.toUri().toString(),
+                false,
+                null,
+                MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY,
+                "http://127.0.0.1:9/api/v3",
+                Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+            )
+        );
+
+        JSONObject json = new JSONObject(report.toJsonString());
+        JSONObject summary = json.getJSONObject("summary");
+        JSONObject result = json.getJSONArray("results").getJSONObject(0);
+        assertEquals(1, summary.getInt("supported"));
+        assertEquals(0, summary.getInt("missing"));
+        assertEquals("supported", result.getString("status"));
     }
 
     @Test

@@ -195,6 +195,11 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
         return repository.findConfigurationsFor(queryBuilder);
     }
 
+    @Override
+    public boolean isCoveredByRepository(Consumer<? super Query> queryBuilder) {
+        return repository.isCoveredByRepository(queryBuilder);
+    }
+
     /**
      * Returns a list of configuration directories for the specified artifact.
      * There may be more than one configuration directory for a given artifact,

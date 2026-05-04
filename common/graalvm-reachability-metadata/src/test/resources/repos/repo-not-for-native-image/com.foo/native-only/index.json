@@ -1,0 +1,7 @@
+[
+  {
+    "not-for-native-image": true,
+    "reason": "This artifact is not applicable to native-image.",
+    "replacement": "com.foo:native-classes:1.0"
+  }
+]

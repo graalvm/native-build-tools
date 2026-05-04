@@ -116,7 +116,7 @@ public final class MissingMetadataCommandSupport {
         List<Result> results = new ArrayList<>(candidates.size());
         for (DependencyCoordinate dependency : candidates) {
             try {
-                Set<DirectoryConfiguration> configurations = repository.findConfigurationsFor(query -> {
+                boolean covered = repository.isCoveredByRepository(query -> {
                     query.forArtifact(artifact -> {
                         artifact.gav(dependency.coordinates());
                         String forcedVersion = effectiveForcedVersions.get(dependency.groupAndArtifact());
@@ -127,7 +127,7 @@ public final class MissingMetadataCommandSupport {
                         }
                     });
                 });
-                if (!configurations.isEmpty()) {
+                if (covered) {
                     results.add(Result.supported(dependency));
                     continue;
                 }
