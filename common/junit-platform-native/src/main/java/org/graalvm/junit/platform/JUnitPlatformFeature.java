@@ -79,6 +79,11 @@ public final class JUnitPlatformFeature implements Feature {
     private final ServiceLoader<PluginConfigProvider> extensionConfigProviders = ServiceLoader.load(PluginConfigProvider.class);
 
     @Override
+    public void onRegistration(OnRegistrationAccess access) {
+        ImageSingletons.add(JUnitPlatformFeature.class, this);
+    }
+
+    @Override
     public void duringSetup(DuringSetupAccess access) {
         forEachProvider(p -> p.onLoad(nativeImageConfigImpl));
     }
