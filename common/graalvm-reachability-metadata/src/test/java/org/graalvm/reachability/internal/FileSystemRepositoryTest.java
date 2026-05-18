@@ -171,6 +171,17 @@ class FileSystemRepositoryTest {
         result.isEmpty();
     }
 
+    @Test
+    void notForNativeImageIndexCoversArtifactWithoutConfigurationFiles() {
+        // when:
+        withRepo("repo-not-for-native-image");
+
+        // then:
+        assertTrue(repository.isCoveredByRepository("com.foo:native-only:1.0"));
+        lookup("com.foo:native-only:1.0");
+        result.isEmpty();
+    }
+
     private void lookup(Consumer<? super Query> builder) {
         result = new Result(repository.findConfigurationsFor(builder), repoPath);
     }

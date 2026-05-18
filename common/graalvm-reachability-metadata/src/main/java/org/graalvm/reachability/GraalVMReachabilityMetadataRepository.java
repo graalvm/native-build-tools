@@ -67,6 +67,18 @@ public interface GraalVMReachabilityMetadataRepository {
     Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder);
 
     /**
+     * Returns whether the repository covers the requested artifacts. Some repository
+     * entries intentionally do not provide configuration files, for example artifacts
+     * marked as not applicable to native-image.
+     *
+     * @param queryBuilder the query builder
+     * @return true if the repository has configuration files or another coverage marker
+     */
+    default boolean isCoveredByRepository(Consumer<? super Query> queryBuilder) {
+        return !findConfigurationsFor(queryBuilder).isEmpty();
+    }
+
+    /**
      * Returns a list of configuration directories for the specified artifact.
      * There may be more than one configuration directory for a given artifact,
      * but the list may also be empty if the repository doesn't contain any.
@@ -76,6 +88,16 @@ public interface GraalVMReachabilityMetadataRepository {
      */
     default Set<DirectoryConfiguration> findConfigurationsFor(String gavCoordinates) {
         return findConfigurationsFor(q -> q.forArtifacts(gavCoordinates));
+    }
+
+    /**
+     * Returns whether the repository covers the specified artifact.
+     *
+     * @param gavCoordinates the artifact GAV coordinates (group:artifact:version)
+     * @return true if the repository has configuration files or another coverage marker
+     */
+    default boolean isCoveredByRepository(String gavCoordinates) {
+        return isCoveredByRepository(q -> q.forArtifacts(gavCoordinates));
     }
 
     /**

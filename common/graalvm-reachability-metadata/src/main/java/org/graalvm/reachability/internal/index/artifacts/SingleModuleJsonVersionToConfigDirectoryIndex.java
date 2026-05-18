@@ -116,6 +116,11 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
                 findConfigurationFor(groupId, artifactId, version, Artifact::isLatest);
     }
 
+    @Override
+    public boolean isNotForNativeImage(String groupId, String artifactId, String version) {
+        return artifacts.stream().anyMatch(artifact -> artifact.isNotForNativeImage(version));
+    }
+
     private Optional<DirectoryConfiguration> findConfigurationFor(String groupId, String artifactId, String version,
             Predicate<? super Artifact> predicate) {
         if (artifacts.isEmpty()) {
@@ -134,7 +139,8 @@ public class SingleModuleJsonVersionToConfigDirectoryIndex implements VersionToC
         boolean latest = json.optBoolean("latest");
         boolean override = json.optBoolean("override");
         String defaultFor = json.optString("default-for", null);
-        return new Artifact(testVersions, directory, latest, override, defaultFor);
+        boolean notForNativeImage = json.optBoolean("not-for-native-image");
+        return new Artifact(testVersions, directory, latest, override, defaultFor, notForNativeImage);
     }
 
     private Set<String> readTestedVersions(JSONArray array) {

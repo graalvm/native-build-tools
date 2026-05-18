@@ -105,7 +105,8 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
                     return moduleIndex.findConfigurationDirectories(groupId, artifactId)
                             .stream()
                             .map(dir -> {
-                                VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
+                                VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir,
+                                        SingleModuleJsonVersionToConfigDirectoryIndex::new);
                                 if (artifactQuery.getForcedConfig().isPresent()) {
                                     String configVersion = artifactQuery.getForcedConfig().get();
                                     logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
@@ -133,6 +134,52 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
                             .map(Optional::get);
                 })
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean isCoveredByRepository(Consumer<? super Query> queryBuilder) {
+        DefaultQuery query = new DefaultQuery();
+        queryBuilder.accept(query);
+        return query.getArtifacts()
+                .stream()
+                .anyMatch(artifactQuery -> {
+                    String groupId = artifactQuery.getGroupId();
+                    String artifactId = artifactQuery.getArtifactId();
+                    String version = artifactQuery.getVersion();
+                    return moduleIndex.findConfigurationDirectories(groupId, artifactId)
+                            .stream()
+                            .anyMatch(dir -> {
+                                VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
+                                Optional<DirectoryConfiguration> configuration;
+                                if (artifactQuery.getForcedConfig().isPresent()) {
+                                    String configVersion = artifactQuery.getForcedConfig().get();
+                                    logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
+                                    configuration = index.findConfiguration(groupId, artifactId, configVersion);
+                                } else {
+                                    configuration = index.findConfiguration(groupId, artifactId, version);
+                                    if (!configuration.isPresent() && artifactQuery.isUseLatestVersion()) {
+                                        logger.log(groupId, artifactId, version,
+                                                "Configuration directory not found. Trying latest version.");
+                                        configuration = index.findLatestConfigurationFor(groupId, artifactId, version);
+                                        if (!configuration.isPresent()) {
+                                            logger.log(groupId, artifactId, version, "Latest version not found!");
+                                        }
+                                    }
+                                }
+                                if (configuration.isPresent()) {
+                                    Path path = configuration.get().getDirectory();
+                                    logger.log(groupId, artifactId, version,
+                                            "Configuration directory is " + rootDirectory.relativize(path));
+                                    return true;
+                                }
+                                if (index.isNotForNativeImage(groupId, artifactId, version)) {
+                                    logger.log(groupId, artifactId, version, "Artifact is marked as not for native-image.");
+                                    return true;
+                                }
+                                logger.log(groupId, artifactId, version, "missing.");
+                                return false;
+                            });
+                });
     }
 
     public Path getRootDirectory() {

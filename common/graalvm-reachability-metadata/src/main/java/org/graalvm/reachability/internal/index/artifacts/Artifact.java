@@ -48,14 +48,16 @@ public class Artifact {
     private final String directory;
     private final boolean latest;
     private final boolean override;
+    private final boolean notForNativeImage;
     private final Pattern defaultForPattern;
 
     public Artifact(Set<String> versions, String directory,
-                    boolean latest, boolean override, String defaultFor) {
+                    boolean latest, boolean override, String defaultFor, boolean notForNativeImage) {
         this.versions = versions;
         this.directory = directory;
         this.latest = latest;
         this.override = override;
+        this.notForNativeImage = notForNativeImage;
         this.defaultForPattern = (defaultFor == null ? null : Pattern.compile(defaultFor));
     }
 
@@ -77,5 +79,15 @@ public class Artifact {
 
     public boolean isDefaultFor(String version) {
         return defaultForPattern != null && defaultForPattern.matcher(version).matches();
+    }
+
+    public boolean isNotForNativeImage(String version) {
+        if (!notForNativeImage) {
+            return false;
+        }
+        return versions.isEmpty() && defaultForPattern == null
+                || versions.contains(version)
+                || isDefaultFor(version)
+                || latest;
     }
 }
