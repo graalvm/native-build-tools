@@ -88,7 +88,6 @@ public final class MissingMetadataCommandSupport {
 
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
-    private static final String ISSUE_TEMPLATE_MAVEN_COORDINATES_FIELD = "maven_coordinates";
     private static final URI MAVEN_CENTRAL_BASE_URI = URI.create("https://repo.maven.apache.org/maven2/");
     private static final Pattern COORDINATES_PATTERN = Pattern.compile("([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)(?::([A-Za-z0-9_.-]+))?");
     private static final long GITHUB_CLI_TIMEOUT_SECONDS = 5;
@@ -776,7 +775,7 @@ public final class MissingMetadataCommandSupport {
                 }
                 for (int i = 0; i < items.length(); i++) {
                     JSONObject item = items.getJSONObject(i);
-                    if (referencesGroupAndArtifact(item.optString("title"), item.optString("body"), dependency.groupAndArtifact())) {
+                    if (referencesGroupAndArtifact(item.optString("title"), dependency.groupAndArtifact())) {
                         return Optional.of(new IssueReference(
                             IssueStatus.EXISTING_OPEN_ISSUE,
                             item.getString("html_url"),
@@ -802,8 +801,7 @@ public final class MissingMetadataCommandSupport {
 
         private IssueReference newIssueLink(DependencyCoordinate dependency) {
             String issueUrl = htmlBaseUri + "/" + options.targetRepository() + "/issues/new?template=" + encode(ISSUE_TEMPLATE)
-                + "&title=" + encodeReadableQueryValue(issueTitle(dependency))
-                + "&" + ISSUE_TEMPLATE_MAVEN_COORDINATES_FIELD + "=" + encode(dependency.coordinates());
+                + "&title=" + encodeReadableQueryValue(issueTitle(dependency));
             return new IssueReference(IssueStatus.NEW_ISSUE_LINK_GENERATED, issueUrl, null);
         }
 
@@ -811,7 +809,7 @@ public final class MissingMetadataCommandSupport {
             URI uri = URI.create(apiBaseUri + "/repos/" + options.targetRepository() + "/issues");
             JSONObject body = new JSONObject();
             body.put("title", issueTitle(dependency));
-            body.put("body", issueBody(dependency));
+            body.put("body", issueBody());
             JSONArray labels = new JSONArray();
             labels.put("library-new-request");
             body.put("labels", labels);
@@ -868,17 +866,13 @@ public final class MissingMetadataCommandSupport {
         return "Support for " + dependency.coordinates();
     }
 
-    private static String issueBody(DependencyCoordinate dependency) {
-        return "### Full Maven coordinates\n\n"
-            + dependency.coordinates()
-            + "\n\n"
-            + AUTOMATION_NOTE + '\n';
+    private static String issueBody() {
+        return AUTOMATION_NOTE + '\n';
     }
 
-    static boolean referencesGroupAndArtifact(String title, String body, String groupAndArtifact) {
+    static boolean referencesGroupAndArtifact(String title, String groupAndArtifact) {
         Set<String> referencedModules = new LinkedHashSet<>();
         collectGroupAndArtifact(title, referencedModules);
-        collectGroupAndArtifact(body, referencedModules);
         return referencedModules.contains(groupAndArtifact);
     }
 

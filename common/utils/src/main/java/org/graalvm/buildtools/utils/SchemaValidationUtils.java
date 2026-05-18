@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.DirectoryStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.IOException;
@@ -184,6 +185,15 @@ public final class SchemaValidationUtils {
      * guidance in error messages.
      */
     public static void validateReachabilityMetadataSchema(Path repoRoot, int majorJDKVersion, Path nativeImageExecutable) {
+        validateReachabilityMetadataSchema(repoRoot, majorJDKVersion, nativeImageExecutable, System.getProperty("os.name"), System.getProperty("os.arch"));
+    }
+
+    static void validateReachabilityMetadataSchema(Path repoRoot, int majorJDKVersion, Path nativeImageExecutable, String osName, String osArch) {
+        // GraalVM JDK 25 never shipped a macOS x64 release containing this schema.
+        if (shouldSkipReachabilityMetadataSchemaValidation(majorJDKVersion, osName, osArch)) {
+            return;
+        }
+
         Path schemasDir = repoRoot.resolve("schemas");
         if (!Files.isDirectory(schemasDir)) {
             String message = "The configured GraalVM reachability metadata repository at "
@@ -284,6 +294,20 @@ public final class SchemaValidationUtils {
                 }
             }
         }
+    }
+
+    private static boolean shouldSkipReachabilityMetadataSchemaValidation(int majorJDKVersion, String osName, String osArch) {
+        return majorJDKVersion == 25 && isMacOsX64(osName, osArch);
+    }
+
+    private static boolean isMacOsX64(String osName, String osArch) {
+        if (osName == null || osArch == null) {
+            return false;
+        }
+        String normalizedOsName = osName.toLowerCase(Locale.ROOT);
+        String normalizedOsArch = osArch.toLowerCase(Locale.ROOT);
+        return normalizedOsName.contains("mac")
+                && ("x86_64".equals(normalizedOsArch) || "amd64".equals(normalizedOsArch));
     }
 
     /**

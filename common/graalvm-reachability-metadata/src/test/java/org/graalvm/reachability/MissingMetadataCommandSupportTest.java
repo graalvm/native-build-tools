@@ -63,20 +63,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MissingMetadataCommandSupportTest {
     @Test
-    void detectsCoordinatesInIssueTitleAndBody() {
+    void detectsCoordinatesInIssueTitleOnly() {
         assertTrue(MissingMetadataCommandSupport.referencesGroupAndArtifact(
             "Support for org.example:demo-lib:1.2.3",
-            "",
             "org.example:demo-lib"
         ));
-        assertTrue(MissingMetadataCommandSupport.referencesGroupAndArtifact(
+        assertFalse(MissingMetadataCommandSupport.referencesGroupAndArtifact(
             "Different title",
-            "### Full Maven coordinates\n\norg.example:demo-lib:1.2.3\n",
             "org.example:demo-lib"
         ));
     }
@@ -136,8 +135,8 @@ class MissingMetadataCommandSupportTest {
         assertTrue(missingUrl.contains("/" + MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY + "/issues/new?template="));
         assertTrue(missingUrl.contains("title=Support+for+org.example:missing-lib:2.0.0"),
             "title should keep colons readable, was: " + missingUrl);
-        assertTrue(missingUrl.contains("maven_coordinates=org.example%3Amissing-lib%3A2.0.0"),
-            "maven_coordinates= should prefill the issue form field, was: " + missingUrl);
+        assertFalse(missingUrl.contains("maven_coordinates="),
+            "maven_coordinates= should not be used because coordinates now live in the issue title only, was: " + missingUrl);
         String console = report.renderConsoleOutput();
         assertTrue(console.contains("Missing metadata libraries: 1 of 2 scanned"),
             "console should headline missing/scanned counts, was:\n" + console);
@@ -166,7 +165,7 @@ class MissingMetadataCommandSupportTest {
                       "number": 42,
                       "html_url": "http://localhost:%d/test/repo/issues/42",
                       "title": "Support for org.example:duplicate-lib:1.0.0",
-                      "body": "### Full Maven coordinates\\n\\norg.example:duplicate-lib:1.0.0\\n"
+                      "body": "Coordinates are no longer stored here."
                     }
                   ]
                 }
@@ -258,6 +257,55 @@ class MissingMetadataCommandSupportTest {
             String console = report.renderConsoleOutput();
             assertTrue(console.contains("Skipped support requests for 1 library not found in Maven Central:"), console);
             assertTrue(!console.contains("issues/new?template="), console);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void createsIssuesWithCoordinatesInTitleOnly() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        java.util.concurrent.atomic.AtomicReference<JSONObject> createdIssue = new java.util.concurrent.atomic.AtomicReference<>();
+        server.createContext("/api/v3/search/issues", exchange -> writeJson(exchange, "{\"items\":[]}"));
+        server.createContext("/api/v3/repos/test/repo/issues", exchange -> {
+            String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            createdIssue.set(new JSONObject(requestBody));
+            writeJson(exchange, """
+                {
+                  "number": 7,
+                  "html_url": "http://localhost:%d/test/repo/issues/7"
+                }
+                """.formatted(server.getAddress().getPort()));
+        });
+        server.start();
+        try {
+            MissingMetadataCommandSupport.Report report = MissingMetadataCommandSupport.run(
+                List.of(new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "missing-lib", "1.0.0")),
+                new TestRepository(Set.of()),
+                Set.of(),
+                java.util.Map.of(),
+                new MissingMetadataCommandSupport.Options(
+                    "gradle",
+                    "demo-app",
+                    "file:///tmp/repo",
+                    true,
+                    "gho_test_token",
+                    "test/repo",
+                    "http://localhost:" + server.getAddress().getPort() + "/api/v3",
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    hostname -> null,
+                    dependency -> true
+                )
+            );
+
+            JSONObject requestBody = createdIssue.get();
+            assertEquals("Support for org.example:missing-lib:1.0.0", requestBody.getString("title"));
+            assertEquals("_This issue was created by automation._\n", requestBody.getString("body"));
+            assertFalse(requestBody.getString("body").contains("Full Maven coordinates"));
+            assertEquals("library-new-request", requestBody.getJSONArray("labels").getString(0));
+            JSONObject result = new JSONObject(report.toJsonString()).getJSONArray("results").getJSONObject(0);
+            assertEquals("created_issue", result.getString("issueStatus"));
+            assertEquals("http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/7", result.getString("issueUrl"));
         } finally {
             server.stop(0);
         }

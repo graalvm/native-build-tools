@@ -151,6 +151,33 @@ class SchemaValidationUtilsTest {
     }
 
     @Test
+    @DisplayName("validateReachabilityMetadataSchema skips when JDK 25 runs on macOS x64")
+    void validateReachabilitySchemaRepoOnlyOnMacOsX64Jdk25(@TempDir Path tempDir) throws IOException {
+        Path repoRoot = tempDir.resolve("repo-only-macos-x64");
+        Path schemas = repoRoot.resolve("schemas");
+        Files.createDirectories(schemas);
+        writeJson(schemas.resolve("reachability-metadata-schema-v1.2.0.json"), schemaJson("1.2.0"));
+
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-no-schema-macos-x64"), null);
+
+        assertDoesNotThrow(() -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 25, nativeImage, "Mac OS X", "x86_64"));
+        assertDoesNotThrow(() -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 25, nativeImage, "Mac OS X", "amd64"));
+    }
+
+    @Test
+    @DisplayName("validateReachabilityMetadataSchema still fails for JDK 21 on macOS x64")
+    void validateReachabilitySchemaRepoOnlyOnMacOsX64Jdk21(@TempDir Path tempDir) throws IOException {
+        Path repoRoot = tempDir.resolve("repo-only-macos-x64-jdk21");
+        Path schemas = repoRoot.resolve("schemas");
+        Files.createDirectories(schemas);
+        writeJson(schemas.resolve("reachability-metadata-schema-v1.2.0.json"), schemaJson("1.2.0"));
+
+        Path nativeImage = createFakeGraalVMHome(tempDir.resolve("graal-no-schema-macos-x64-jdk21"), null);
+
+        assertThrows(IllegalStateException.class, () -> SchemaValidationUtils.validateReachabilityMetadataSchema(repoRoot, 21, nativeImage, "Mac OS X", "x86_64"));
+    }
+
+    @Test
     @DisplayName("validateReachabilityMetadataSchema warns when GraalVM provides schema but repository does not")
     void validateReachabilitySchema_graalOnly(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-no-schema");
