@@ -1890,7 +1890,8 @@ This may be interesting if there is no specific metadata available for the parti
 </ol>
 </div>
 <div class="paragraph">
-<p>In default list mode the goal tolerates a missing token: it can still query public issues, and emits a single warning if the GitHub API rejects the lookup. With <code>-DcreateIssues=true</code>, a token is required.</p>
+<p>In default list mode the goal tolerates a missing token: it can still query public issues, and emits a single warning if the GitHub API rejects the lookup. With <code>-DcreateIssues=true</code>, a token is required.
+The goal first checks Maven Central and skips GitHub support requests for missing libraries whose POM cannot be found there.</p>
 </div>
 </div>
 <div class="sect2">
