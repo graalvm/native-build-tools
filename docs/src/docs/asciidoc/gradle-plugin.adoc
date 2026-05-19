@@ -862,6 +862,7 @@ The GitHub token used for issue lookup and creation is resolved in this order:
 4. `gh auth token`, when the GitHub CLI is installed and authenticated (subprocess capped at 5 seconds; non-zero exit is treated as no token)
 
 In default list mode the task tolerates a missing token: it can still query public issues, and emits a single warning if the GitHub API rejects the lookup. With `-PcreateIssues=true`, a token is required.
+The task first checks Maven Central and skips GitHub support requests for missing libraries whose POM cannot be found there.
 
 === Including Metadata Repository Files
 

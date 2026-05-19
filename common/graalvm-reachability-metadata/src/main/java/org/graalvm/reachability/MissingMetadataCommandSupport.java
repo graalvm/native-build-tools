@@ -88,6 +88,7 @@ public final class MissingMetadataCommandSupport {
 
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
+    private static final URI MAVEN_CENTRAL_BASE_URI = URI.create("https://repo.maven.apache.org/maven2/");
     private static final Pattern COORDINATES_PATTERN = Pattern.compile("([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)(?::([A-Za-z0-9_.-]+))?");
     private static final long GITHUB_CLI_TIMEOUT_SECONDS = 5;
 
@@ -130,9 +131,13 @@ public final class MissingMetadataCommandSupport {
                     results.add(Result.supported(dependency));
                     continue;
                 }
-                IssueReference issue = issueCache.computeIfAbsent(dependency.groupAndArtifact(), ga ->
-                    resolveIssue(issueClient, dependency)
-                );
+                IssueReference issue = issueCache.get(dependency.groupAndArtifact());
+                if (issue == null) {
+                    issue = resolveIssue(issueClient, dependency);
+                    if (!issue.isSkippedIssueCreation()) {
+                        issueCache.put(dependency.groupAndArtifact(), issue);
+                    }
+                }
                 results.add(Result.missing(dependency, issue));
             } catch (Exception ex) {
                 if (options.createIssues()) {
@@ -153,6 +158,9 @@ public final class MissingMetadataCommandSupport {
     }
 
     private static IssueReference resolveIssue(GitHubIssueClient issueClient, DependencyCoordinate dependency) {
+        if (!issueClient.isAvailableInMavenCentral(dependency)) {
+            return IssueReference.skippedIssueCreation();
+        }
         Optional<IssueReference> existing = issueClient.findOpenIssue(dependency);
         if (existing.isPresent()) {
             return existing.get();
@@ -173,6 +181,7 @@ public final class MissingMetadataCommandSupport {
         private final String githubApiUrl;
         private final Clock clock;
         private final GitHubCliTokenSupplier gitHubCliTokenSupplier;
+        private final ArtifactAvailabilityChecker artifactAvailabilityChecker;
         private final Consumer<String> warningSink;
 
         public Options(String buildTool,
@@ -184,7 +193,7 @@ public final class MissingMetadataCommandSupport {
                        String githubApiUrl,
                        Clock clock) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                GitHubCliTokenSupplier.DEFAULT, message -> { });
+                GitHubCliTokenSupplier.DEFAULT, ArtifactAvailabilityChecker.DEFAULT, message -> { });
         }
 
         public Options(String buildTool,
@@ -197,7 +206,7 @@ public final class MissingMetadataCommandSupport {
                        Clock clock,
                        Consumer<String> warningSink) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                GitHubCliTokenSupplier.DEFAULT, warningSink);
+                GitHubCliTokenSupplier.DEFAULT, ArtifactAvailabilityChecker.DEFAULT, warningSink);
         }
 
         Options(String buildTool,
@@ -210,7 +219,7 @@ public final class MissingMetadataCommandSupport {
                 Clock clock,
                 GitHubCliTokenSupplier gitHubCliTokenSupplier) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                gitHubCliTokenSupplier, message -> { });
+                gitHubCliTokenSupplier, ArtifactAvailabilityChecker.DEFAULT, message -> { });
         }
 
         Options(String buildTool,
@@ -222,6 +231,21 @@ public final class MissingMetadataCommandSupport {
                 String githubApiUrl,
                 Clock clock,
                 GitHubCliTokenSupplier gitHubCliTokenSupplier,
+                ArtifactAvailabilityChecker artifactAvailabilityChecker) {
+            this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
+                gitHubCliTokenSupplier, artifactAvailabilityChecker, message -> { });
+        }
+
+        Options(String buildTool,
+                String projectName,
+                String metadataRepositoryUri,
+                boolean createIssues,
+                String githubToken,
+                String targetRepository,
+                String githubApiUrl,
+                Clock clock,
+                GitHubCliTokenSupplier gitHubCliTokenSupplier,
+                ArtifactAvailabilityChecker artifactAvailabilityChecker,
                 Consumer<String> warningSink) {
             this.buildTool = Objects.requireNonNull(buildTool, "buildTool");
             this.projectName = Objects.requireNonNull(projectName, "projectName");
@@ -232,6 +256,7 @@ public final class MissingMetadataCommandSupport {
             this.githubApiUrl = blankToNull(githubApiUrl) == null ? DEFAULT_GITHUB_API_URL : stripTrailingSlash(githubApiUrl);
             this.clock = clock == null ? Clock.systemUTC() : clock;
             this.gitHubCliTokenSupplier = Objects.requireNonNull(gitHubCliTokenSupplier, "gitHubCliTokenSupplier");
+            this.artifactAvailabilityChecker = Objects.requireNonNull(artifactAvailabilityChecker, "artifactAvailabilityChecker");
             this.warningSink = warningSink == null ? message -> { } : warningSink;
         }
 
@@ -269,6 +294,10 @@ public final class MissingMetadataCommandSupport {
 
         GitHubCliTokenSupplier gitHubCliTokenSupplier() {
             return gitHubCliTokenSupplier;
+        }
+
+        ArtifactAvailabilityChecker artifactAvailabilityChecker() {
+            return artifactAvailabilityChecker;
         }
 
         Consumer<String> warningSink() {
@@ -322,7 +351,8 @@ public final class MissingMetadataCommandSupport {
     public enum IssueStatus {
         EXISTING_OPEN_ISSUE("existing_open_issue"),
         NEW_ISSUE_LINK_GENERATED("new_issue_link_generated"),
-        CREATED_ISSUE("created_issue");
+        CREATED_ISSUE("created_issue"),
+        SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL("skipped_not_available_in_maven_central");
 
         private final String jsonValue;
 
@@ -457,8 +487,9 @@ public final class MissingMetadataCommandSupport {
             List<Result> existing = filterByIssueStatus(IssueStatus.EXISTING_OPEN_ISSUE);
             List<Result> created = filterByIssueStatus(IssueStatus.CREATED_ISSUE);
             List<Result> needRequest = filterByIssueStatus(IssueStatus.NEW_ISSUE_LINK_GENERATED);
+            List<Result> skipped = filterByIssueStatus(IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL);
             List<Result> errors = results.stream().filter(r -> r.status == Status.ERROR).toList();
-            int missingTotal = existing.size() + created.size() + needRequest.size() + errors.size();
+            int missingTotal = existing.size() + created.size() + needRequest.size() + skipped.size() + errors.size();
             if (missingTotal == 0) {
                 StringBuilder out = new StringBuilder();
                 out.append("All ").append(scanned).append(" direct dependencies are supported by the reachability metadata repository.");
@@ -513,11 +544,11 @@ public final class MissingMetadataCommandSupport {
             if (!needRequest.isEmpty()) {
                 String quantifier;
                 if (needRequest.size() == 1) {
-                    quantifier = !existing.isEmpty() || !created.isEmpty()
+                    quantifier = !existing.isEmpty() || !created.isEmpty() || !skipped.isEmpty()
                         ? "the remaining library"
                         : "this library";
                 } else {
-                    quantifier = !existing.isEmpty() || !created.isEmpty()
+                    quantifier = !existing.isEmpty() || !created.isEmpty() || !skipped.isEmpty()
                         ? "the remaining " + needRequest.size() + " libraries"
                         : "all " + needRequest.size() + " libraries";
                 }
@@ -529,6 +560,14 @@ public final class MissingMetadataCommandSupport {
 
                 out.append("Or request support manually, one library at a time:\n");
                 renderBulletList(out, needRequest, labels, "request support");
+                out.append('\n');
+            }
+
+            if (!skipped.isEmpty()) {
+                out.append("Skipped support requests for ").append(skipped.size())
+                    .append(skipped.size() == 1 ? " library" : " libraries")
+                    .append(" not found in Maven Central:\n");
+                renderSkippedList(out, skipped);
                 out.append('\n');
             }
 
@@ -560,6 +599,14 @@ public final class MissingMetadataCommandSupport {
             return results.stream()
                 .filter(r -> r.status == Status.MISSING && r.issueStatus == issueStatus)
                 .toList();
+        }
+
+        private void renderSkippedList(StringBuilder out, List<Result> entries) {
+            int maxWidth = maxCoordinateWidth(entries);
+            for (Result r : entries) {
+                out.append("  - ").append(padRight(r.dependency.coordinates(), maxWidth))
+                    .append("  support request skipped\n");
+            }
         }
 
         private void renderBulletList(StringBuilder out, List<Result> entries,
@@ -628,6 +675,7 @@ public final class MissingMetadataCommandSupport {
             summary.put("existingOpenIssue", existingIssueCount());
             summary.put("newIssueLinks", newIssueLinkCount());
             summary.put("createdIssues", createdIssueCount());
+            summary.put("skippedIssueCreation", skippedIssueCreationCount());
             summary.put("errors", errorCount());
             json.put("summary", summary);
             JSONArray resultsJson = new JSONArray();
@@ -658,6 +706,10 @@ public final class MissingMetadataCommandSupport {
             return results.stream().filter(result -> result.issueStatus == IssueStatus.CREATED_ISSUE).count();
         }
 
+        private long skippedIssueCreationCount() {
+            return results.stream().filter(result -> result.issueStatus == IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL).count();
+        }
+
         private long errorCount() {
             return results.stream().filter(result -> result.status == Status.ERROR).count();
         }
@@ -666,7 +718,17 @@ public final class MissingMetadataCommandSupport {
     private record IssueReference(IssueStatus issueStatus, String issueUrl, Integer issueNumber) {
         private IssueReference {
             Objects.requireNonNull(issueStatus, "issueStatus");
-            Objects.requireNonNull(issueUrl, "issueUrl");
+            if (issueStatus != IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL) {
+                Objects.requireNonNull(issueUrl, "issueUrl");
+            }
+        }
+
+        private static IssueReference skippedIssueCreation() {
+            return new IssueReference(IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL, null, null);
+        }
+
+        private boolean isSkippedIssueCreation() {
+            return issueStatus == IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL;
         }
     }
 
@@ -762,6 +824,10 @@ public final class MissingMetadataCommandSupport {
                 response.getString("html_url"),
                 response.optInt("number")
             );
+        }
+
+        private boolean isAvailableInMavenCentral(DependencyCoordinate dependency) {
+            return options.artifactAvailabilityChecker().isAvailable(dependency);
         }
 
         private HttpRequest.Builder request(URI uri) {
@@ -893,6 +959,59 @@ public final class MissingMetadataCommandSupport {
         return host;
     }
 
+    static URI mavenCentralPomUri(URI baseUri, DependencyCoordinate dependency) {
+        String pomPath = dependency.groupId().replace('.', '/')
+            + "/" + dependency.artifactId()
+            + "/" + dependency.version()
+            + "/" + dependency.artifactId() + "-" + dependency.version() + ".pom";
+        return baseUri.resolve(encodePath(pomPath));
+    }
+
+    private static String encodePath(String path) {
+        String[] segments = path.split("/", -1);
+        StringBuilder encoded = new StringBuilder(path.length());
+        for (int i = 0; i < segments.length; i++) {
+            if (i > 0) {
+                encoded.append('/');
+            }
+            encoded.append(URLEncoder.encode(segments[i], StandardCharsets.UTF_8).replace("+", "%20"));
+        }
+        return encoded.toString();
+    }
+
+    @FunctionalInterface
+    interface ArtifactAvailabilityChecker {
+        ArtifactAvailabilityChecker DEFAULT = dependency -> {
+            HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+            HttpRequest request = HttpRequest.newBuilder(mavenCentralPomUri(MAVEN_CENTRAL_BASE_URI, dependency))
+                .timeout(Duration.ofSeconds(20))
+                .header("User-Agent", "native-build-tools-missing-metadata")
+                .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                .build();
+            try {
+                HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+                int statusCode = response.statusCode();
+                if (statusCode >= 200 && statusCode < 300) {
+                    return true;
+                }
+                if (statusCode == 404) {
+                    return false;
+                }
+                throw new MavenCentralLookupException("Maven Central lookup failed for " + dependency.coordinates() + " with status " + statusCode);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(ex);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(ex);
+            }
+        };
+
+        boolean isAvailable(DependencyCoordinate dependency);
+    }
+
     @FunctionalInterface
     interface GitHubCliTokenSupplier {
         GitHubCliTokenSupplier DEFAULT = hostname -> {
@@ -933,6 +1052,12 @@ public final class MissingMetadataCommandSupport {
 
     private static final class GitHubApiException extends RuntimeException {
         private GitHubApiException(String message) {
+            super(message);
+        }
+    }
+
+    private static final class MavenCentralLookupException extends RuntimeException {
+        private MavenCentralLookupException(String message) {
             super(message);
         }
     }

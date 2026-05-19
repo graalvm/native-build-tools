@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -81,6 +82,17 @@ class MissingMetadataCommandSupportTest {
     }
 
     @Test
+    void buildsMavenCentralPomUriFromCoordinates() {
+        assertEquals(
+            "https://repo.maven.apache.org/maven2/com/siplec/IncidentApiClient/2.0.0-RELEASE/IncidentApiClient-2.0.0-RELEASE.pom",
+            MissingMetadataCommandSupport.mavenCentralPomUri(
+                URI.create("https://repo.maven.apache.org/maven2/"),
+                new MissingMetadataCommandSupport.DependencyCoordinate("com.siplec", "IncidentApiClient", "2.0.0-RELEASE")
+            ).toString()
+        );
+    }
+
+    @Test
     void reportsSupportedAndMissingDependenciesAndGeneratesPrefilledLinks() {
         MissingMetadataCommandSupport.Report report = MissingMetadataCommandSupport.run(
             List.of(
@@ -98,7 +110,9 @@ class MissingMetadataCommandSupportTest {
                 null,
                 MissingMetadataCommandSupport.DEFAULT_TARGET_REPOSITORY,
                 "http://127.0.0.1:9/api/v3",
-                Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+                Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                hostname -> null,
+                dependency -> true
             )
         );
 
@@ -206,7 +220,9 @@ class MissingMetadataCommandSupportTest {
                     null,
                     "test/repo",
                     "http://localhost:" + server.getAddress().getPort() + "/api/v3",
-                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    hostname -> null,
+                    dependency -> true
                 )
             );
 
@@ -225,6 +241,53 @@ class MissingMetadataCommandSupportTest {
             assertTrue(console.contains("- org.example:duplicate-lib:2.0.0  -> existing request [E2]"), console);
             assertTrue(console.contains("[E1] " + issueUrl), console);
             assertTrue(console.contains("[E2] " + issueUrl), console);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void listModeSkipsNewIssueLinkWhenArtifactIsNotAvailableInMavenCentral() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        AtomicInteger searches = new AtomicInteger();
+        server.createContext("/api/v3/search/issues", exchange -> {
+            searches.incrementAndGet();
+            writeJson(exchange, "{\"items\":[]}");
+        });
+        server.start();
+        try {
+            MissingMetadataCommandSupport.Report report = MissingMetadataCommandSupport.run(
+                List.of(new MissingMetadataCommandSupport.DependencyCoordinate("com.siplec", "IncidentApiClient", "2.0.0-RELEASE")),
+                new TestRepository(Set.of()),
+                Set.of(),
+                java.util.Map.of(),
+                new MissingMetadataCommandSupport.Options(
+                    "maven",
+                    "demo-app",
+                    "file:///tmp/repo",
+                    false,
+                    null,
+                    "test/repo",
+                    "http://localhost:" + server.getAddress().getPort() + "/api/v3",
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    hostname -> null,
+                    dependency -> false
+                )
+            );
+
+            JSONObject json = new JSONObject(report.toJsonString());
+            JSONObject summary = json.getJSONObject("summary");
+            JSONObject skipped = findByCoordinates(json.getJSONArray("results"), "com.siplec:IncidentApiClient:2.0.0-RELEASE");
+            assertEquals(0, searches.get());
+            assertEquals(1, summary.getInt("missing"));
+            assertEquals(0, summary.getInt("newIssueLinks"));
+            assertEquals(1, summary.getInt("skippedIssueCreation"));
+            assertEquals("missing", skipped.getString("status"));
+            assertEquals("skipped_not_available_in_maven_central", skipped.getString("issueStatus"));
+            assertTrue(!skipped.has("issueUrl"), "skipped support-request results should not include an issue URL");
+            String console = report.renderConsoleOutput();
+            assertTrue(console.contains("Skipped support requests for 1 library not found in Maven Central:"), console);
+            assertTrue(!console.contains("issues/new?template="), console);
         } finally {
             server.stop(0);
         }
@@ -260,7 +323,9 @@ class MissingMetadataCommandSupportTest {
                     "gho_test_token",
                     "test/repo",
                     "http://localhost:" + server.getAddress().getPort() + "/api/v3",
-                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    hostname -> null,
+                    dependency -> true
                 )
             );
 
@@ -334,6 +399,59 @@ class MissingMetadataCommandSupportTest {
     }
 
     @Test
+    void createIssuesModeSkipsIssueCreationWhenArtifactIsNotAvailableInMavenCentral() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        AtomicInteger searches = new AtomicInteger();
+        AtomicInteger creations = new AtomicInteger();
+        server.createContext("/api/v3/search/issues", exchange -> {
+            searches.incrementAndGet();
+            writeJson(exchange, "{\"items\":[]}");
+        });
+        server.createContext("/api/v3/repos/test/repo/issues", exchange -> {
+            creations.incrementAndGet();
+            writeJson(exchange, "{\"html_url\":\"http://localhost/unused\",\"number\":99}");
+        });
+        server.start();
+        try {
+            MissingMetadataCommandSupport.Report report = MissingMetadataCommandSupport.run(
+                List.of(new MissingMetadataCommandSupport.DependencyCoordinate("com.siplec", "IncidentApiClient", "2.0.0-RELEASE")),
+                new TestRepository(Set.of()),
+                Set.of(),
+                java.util.Map.of(),
+                new MissingMetadataCommandSupport.Options(
+                    "gradle",
+                    "demo-app",
+                    "file:///tmp/repo",
+                    true,
+                    "gho_test_token",
+                    "test/repo",
+                    "http://localhost:" + server.getAddress().getPort() + "/api/v3",
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    hostname -> null,
+                    dependency -> false
+                )
+            );
+
+            JSONObject json = new JSONObject(report.toJsonString());
+            JSONObject summary = json.getJSONObject("summary");
+            JSONObject skipped = findByCoordinates(json.getJSONArray("results"), "com.siplec:IncidentApiClient:2.0.0-RELEASE");
+            assertEquals(0, searches.get());
+            assertEquals(0, creations.get());
+            assertEquals(1, summary.getInt("missing"));
+            assertEquals(0, summary.getInt("createdIssues"));
+            assertEquals(1, summary.getInt("skippedIssueCreation"));
+            assertEquals("missing", skipped.getString("status"));
+            assertEquals("skipped_not_available_in_maven_central", skipped.getString("issueStatus"));
+            assertTrue(!skipped.has("issueUrl"), "skipped support-request results should not include an issue URL");
+            String console = report.renderConsoleOutput();
+            assertTrue(console.contains("Skipped support requests for 1 library not found in Maven Central:"), console);
+            assertTrue(console.contains("com.siplec:IncidentApiClient:2.0.0-RELEASE"), console);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
     void createIssuesModeFailsFastWhenIssueCreationFails() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
         AtomicInteger searches = new AtomicInteger();
@@ -367,7 +485,9 @@ class MissingMetadataCommandSupportTest {
                         "gho_test_token",
                         "test/repo",
                         "http://localhost:" + server.getAddress().getPort() + "/api/v3",
-                        Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+                        Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                        hostname -> null,
+                        dependency -> true
                     )
                 )
             );
@@ -400,7 +520,9 @@ class MissingMetadataCommandSupportTest {
                 null,
                 "test/repo",
                 "http://127.0.0.1:9/api/v3",
-                Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC)
+                Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                hostname -> null,
+                dependency -> true
             )
         );
 

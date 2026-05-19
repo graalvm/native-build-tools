@@ -96,6 +96,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "skippedIssueCreation": {
+          "type": "integer",
+          "minimum": 0
+        },
         "errors": {
           "type": "integer",
           "minimum": 0
@@ -158,8 +162,7 @@
         "coordinates",
         "scope",
         "status",
-        "issueStatus",
-        "issueUrl"
+        "issueStatus"
       ],
       "properties": {
         "coordinates": {
@@ -175,7 +178,8 @@
           "enum": [
             "existing_open_issue",
             "new_issue_link_generated",
-            "created_issue"
+            "created_issue",
+            "skipped_not_available_in_maven_central"
           ]
         },
         "issueUrl": {
@@ -187,6 +191,24 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "issueStatus": {
+                "enum": [
+                  "existing_open_issue",
+                  "new_issue_link_generated",
+                  "created_issue"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "issueUrl"
+            ]
+          }
+        },
         {
           "if": {
             "properties": {
