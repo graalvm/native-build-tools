@@ -1,8 +1,14 @@
 package org.graalvm.buildtools.maven
 
+import org.apache.maven.plugin.MojoExecutionException
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.nio.file.Path
 
 class AbstractNativeImageMojoTest extends Specification {
+    @TempDir
+    Path testDirectory
 
     void "it can process build args"() {
         given:
@@ -26,5 +32,61 @@ class AbstractNativeImageMojoTest extends Specification {
                 "C:\\Users\\Lahoucine EL ADDALI\\Desktop\\outdir\\target/java-application-with-custom-packaging-0.1.jar",
                 "-H:ConfigurationFileDirectories=C:\\Users\\Lahoucine EL ADDALI\\Downloads\\4.5.0.0_kubernetes_kubernetes-demo-java-maven\\api\\target\\native\\generated\\generateResourceConfig"
         ]
+    }
+
+    void "it allows empty classpath for layer-create builds"() {
+        given:
+        def mojo = newMojo([layerCreateArg])
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        !args.contains("-cp")
+        args.contains(layerCreateArg)
+
+        where:
+        layerCreateArg << [
+                "-H:LayerCreate=libbase.nil,module=java.base",
+                "-H:LayerCreate@user=libbase.nil,module=java.base"
+        ]
+    }
+
+    void "it still rejects empty classpath for regular builds"() {
+        given:
+        def mojo = newMojo([])
+
+        when:
+        mojo.getBuildArgs()
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message.contains("Image classpath is empty")
+    }
+
+    private TestNativeImageMojo newMojo(List<String> buildArgs) {
+        def mojo = new TestNativeImageMojo()
+        mojo.outputDirectory = testDirectory.resolve("target").toFile()
+        mojo.resourcesConfigDirectory = testDirectory.resolve("target/native/generated").toFile()
+        mojo.imageName = "libbase"
+        mojo.buildArgs = buildArgs
+        mojo.configFiles = []
+        mojo.useArgFile = false
+        mojo
+    }
+
+    private static class TestNativeImageMojo extends AbstractNativeImageMojo {
+        @Override
+        void execute() {
+        }
+
+        @Override
+        protected List<String> getDependencyScopes() {
+            Collections.emptyList()
+        }
+
+        @Override
+        protected void populateClasspath() {
+        }
     }
 }
