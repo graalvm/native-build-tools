@@ -1,0 +1,72 @@
+grund_config_version = 1
+project_name = "Native Build Tools"
+
+[reference]
+marker = "§"
+trigger = "$$"
+strict = false
+require_grounding = false
+inline_style = "citation-with-note" # citation-with-note | citation-only
+inline_note_suggested_lines = 1
+inline_note_max_lines = 3
+inline_note_max_columns = 100
+warn_on_suggested = false
+
+[id]
+format = "{kind}-{number}-{slug}" # placeholders: {kind} required; use {number}, {slug}, or both
+section_separator = "."
+section_heading_levels = "strict" # strict | warn | loose
+number_pattern = "\\d+"
+slug_pattern = "[a-z0-9][a-z0-9-]*"
+
+[[kinds]]
+prefix = "GRUND"
+file = "docs/spec/grund.md"
+title = "Project motivation"
+
+[[kinds]]
+prefix = "GOAL"
+file = "docs/spec/goals.md"
+title = "Project direction and outcomes"
+
+[[kinds]]
+prefix = "REPO"
+folder = "docs/spec/repository"
+title = "Repository structure and ownership boundaries"
+
+[[kinds]]
+prefix = "FS"
+folder = "docs/spec"
+title = "Functional specifications"
+
+[[kinds]]
+prefix = "AR"
+folder = "docs/spec"
+title = "Architecture specifications"
+
+[[kinds]]
+prefix = "DEC"
+file = "docs/spec/decisions.md"
+title = "Project decisions and tradeoffs"
+
+[[kinds]]
+prefix = "RM"
+file = "docs/spec/roadmap.md"
+title = "Planned milestones and sequencing"
+
+[scan]
+include = ["docs/spec"]
+exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
+extensions = ["md", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
+comment_prefixes = ["//", "#", ";", "--", "*", "/*"]
+docstring_python = true
+respect_gitignore = true
+
+[output]
+format = "text" # text | json
+color = "auto" # auto | always | never
+relative_paths = true
+
+[fmt.cross_refs]
+enabled = true
+anchor_format = "github" # github | gitlab | mkdocs | pandoc | none
