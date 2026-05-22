@@ -53,6 +53,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
+import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
@@ -96,6 +97,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected static final String NATIVE_IMAGE_META_INF = "META-INF/native-image";
     protected static final String NATIVE_IMAGE_PROPERTIES_FILENAME = "native-image.properties";
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
+    private static final Pattern LAYER_CREATE_ARG = Pattern.compile(
+            Pattern.quote(NativeImageFlags.LAYER_CREATE) + "(@[^=]*)?=.+");
     private static String nativeImageVersionInformation = null;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
@@ -211,8 +214,11 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             });
         }
 
-        cliArgs.add("-cp");
-        cliArgs.add(getClasspath());
+        String imageClasspath = getClasspath();
+        if (!imageClasspath.isEmpty()) {
+            cliArgs.add("-cp");
+            cliArgs.add(imageClasspath);
+        }
 
         if (debug) {
             cliArgs.add("-g");
@@ -495,12 +501,21 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             populateClasspath();
         }
         if (imageClasspath.isEmpty()) {
+            if (isLayerCreateBuild()) {
+                return "";
+            }
             throw new MojoExecutionException("Image classpath is empty. " +
                     "Check if your classpath configuration is correct.");
         }
         return imageClasspath.stream()
                 .map(Path::toString)
                 .collect(Collectors.joining(File.pathSeparator));
+    }
+
+    private boolean isLayerCreateBuild() {
+        return buildArgs != null && buildArgs.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(arg -> LAYER_CREATE_ARG.matcher(arg.trim()).matches());
     }
 
     protected void buildImage() throws MojoExecutionException {
