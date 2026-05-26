@@ -2,7 +2,9 @@
 
 This specification follows the component-doc pattern used by the referenced grund adoption: each
 substantial component owns a `functional-spec.md` and/or `architecture.md` file. The folder gives
-the component, while the ID kind gives the artifact type.
+the component, while the ID kind gives the artifact type. Declarations use numbered subsections
+for feature-level citation targets, so implementation and test comments can cite narrow behavior
+such as `§FS-001-gradle-plugin-native-image-workflow.5.3`.
 
 | File | Scope |
 | --- | --- |
@@ -20,3 +22,9 @@ the component, while the ID kind gives the artifact type.
 | [build-infra/architecture.md](build-infra/architecture.md) | Build, docs, release, and CI architecture |
 | §DEC-001-adopt-component-functional-architecture-docs | Decisions |
 | §RM-001-expand-spec-coverage-from-module-boundaries-to-feature-details | Roadmap |
+
+## Citation Shape
+
+Functional specs describe user-visible or build-visible behavior. Architecture specs describe
+ownership, dependency direction, and implementation structure. Prefer the deepest applicable
+section citation when writing code comments, tests, or future docs.
