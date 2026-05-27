@@ -55,7 +55,7 @@ file = "docs/spec/roadmap.md"
 title = "Planned milestones and sequencing"
 
 [scan]
-include = ["docs/spec"]
+include = ["docs/spec", "build-logic", "common", "native-gradle-plugin", "native-maven-plugin", "samples", "test-support"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 extensions = ["md", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]

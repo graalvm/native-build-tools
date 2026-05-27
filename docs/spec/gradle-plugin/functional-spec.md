@@ -157,9 +157,10 @@ issues when the user supplies issue-creation settings.
 
 ### 4.5 Dynamic access metadata
 
-When a binary emits a Native Image build report, the plugin must generate dynamic-access metadata
-from that report and make it available as part of the binary's generated Native Image
-configuration.
+When a binary is configured to emit a Native Image build report, the plugin must generate
+dynamic-access metadata before invoking Native Image, using the configured reachability metadata
+repository and runtime classpath graph, and make it available as part of the binary's generated
+Native Image configuration.
 
 ## 5. Native Image tracing agent
 
