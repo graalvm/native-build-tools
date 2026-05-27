@@ -69,7 +69,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// §FS-001-gradle-plugin-native-image-workflow.3.3, §AR-001-gradle-plugin-boundary.4.1
+/**
+ * Converts options to native-image arguments. GRADLE-plugin.3.3
+ */
 public class NativeImageCommandLineProvider implements CommandLineArgumentProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeImageCommandLineProvider.class);
 

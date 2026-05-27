@@ -1,10 +1,10 @@
-# FS-004-native-test-execution: The plugins support compiling and running tests as native images
+# TESTING-native-tests-and-fixtures: The plugins support compiling and running tests as native images
 
 Native Build Tools must let supported Gradle and Maven projects compile test code into a native
 image and execute that native test binary. This behavior depends on the shared
 `junit-platform-native` module and is exposed through both product plugins. It realizes the test
-portion of §GOAL-001-build-tool-native-image-workflows and is verified by
-§GOAL-003-repository-fixtures-protect-real-build-scenarios.
+portion of §GOAL-build-tool-native-image-workflows and is verified by
+§GOAL-repository-fixtures-protect-real-build-scenarios.
 
 ## 1. Native test lifecycle
 
@@ -97,14 +97,14 @@ Gradle and Maven adapters expose the same native test concept through different 
 
 Gradle must connect the `test` binary to the `test` source set and `test` task, build it with
 `nativeTestCompile`, and execute it with `nativeTest`. Gradle-specific behavior is specified by
-§FS-001-gradle-plugin-native-image-workflow.6.
+§GRADLE-plugin.6.
 
 ### 4.2 Maven adapter
 
 Maven must expose native tests through `native:test`, use Maven test classes/resources and test
 dependency scopes, and honor `skipTests`, `skipNativeTests`, `skipTestExecution`, and
 `failNoTests`. Maven-specific behavior is specified by
-§FS-002-maven-plugin-native-image-workflow.4.
+§MAVEN-plugin.4.
 
 ### 4.3 Runtime arguments
 
@@ -114,7 +114,7 @@ arguments are distinct from Native Image build arguments and must not affect ima
 ## 5. Compatibility mode
 
 Native Image compatibility mode changes native test execution because the build may require the
-standard JUnit ConsoleLauncher path. The mode is defined in §GLOSS-001-compatibility-mode.
+standard JUnit ConsoleLauncher path. The mode is defined in §GLOSS-compatibility-mode.
 
 ### 5.1 Detection
 
@@ -139,4 +139,78 @@ The `common/junit-platform-native` module must contain JUnit-focused tests for l
 registration, and provider behavior. Gradle and Maven functional test suites must include
 application-with-tests, standalone JUnit tests, multi-project tests, Kotlin tests where supported,
 custom source sets where supported, no-test behavior, and compatibility-mode coverage. Scenario
-ownership is described by §AR-004-samples-and-functional-fixtures.
+ownership is described by §TESTING-native-tests-and-fixtures.7.
+
+## 7. Samples and fixtures
+
+The repository's samples and fixtures are part of the specification surface because the product
+plugins are only useful when they work in real Gradle and Maven project shapes. This architecture
+supports §GOAL-repository-fixtures-protect-real-build-scenarios and provides evidence for
+§GRADLE-plugin, §MAVEN-plugin,
+§COMMON-libraries, and §TESTING-native-tests-and-fixtures.
+
+### 7.1 Fixture groups
+
+Fixture ownership is split by the kind of scenario a test needs to run. `samples/` contains
+example projects for Java applications, Java libraries, resources, reflection, tests, custom
+source sets, Kotlin tests, multi-project builds, metadata repository integration, native config
+integration, layered application behavior, integration tests, and non-native control cases.
+
+`test-support/` contains reusable artifacts that product plugin functional tests can publish into
+the common test repository. Gradle TestKit support, process helpers, result assertions, and
+filesystem helpers live under `native-gradle-plugin/src/testFixtures/`.
+`native-maven-plugin/reproducers/` contains Maven issue reproducers when a regression needs a
+dedicated project shape that would add noise to shared samples.
+
+### 7.2 Sample design
+
+Samples should model realistic project shapes rather than minimal unit-test-only arrangements.
+When a behavior exists in both Gradle and Maven, prefer a shared sample with both `build.gradle`
+or `build.gradle.kts` and `pom.xml` where that keeps the scenario understandable.
+
+Use build-tool-specific samples when the behavior is inherently tied to one build tool, such as
+Gradle custom source sets or Maven assembly configuration. Samples should avoid unnecessary
+network sensitivity. Functional test infrastructure may publish local support artifacts or use
+repository-controlled test repositories when possible.
+
+Samples used in end-to-end guides should stay close to documented user workflows. A sample change
+that alters user-visible behavior should update both the specification and the corresponding
+AsciiDoc guide when applicable.
+
+### 7.3 Functional test roles
+
+Functional tests prove that product plugin behavior works through real build-tool invocations.
+Gradle functional tests use TestKit and should cover plugin application, native compile/run,
+native tests, agent behavior, metadata repository integration, resource generation, custom source
+sets, Kotlin scenarios, layered images, and option handling.
+
+Maven functional tests should cover native compile/run behavior, native tests, agent behavior,
+metadata repository integration, resource generation, SBOM behavior, issue reproducers, and
+multi-module or packaging edge cases. Common module tests cover library behavior without invoking
+full product plugin builds, including command-line utility, repository lookup, schema validation,
+JUnit provider, and resource analyzer cases.
+
+### 7.4 Scenario coverage
+
+Each high-risk product behavior should have at least one executable scenario. The repository should
+keep scenarios for simple application compilation, native executable execution, Java
+library/shared-library output, main class configuration, Native Image option translation,
+reflection metadata, resource metadata, tracing-agent metadata collection, metadata copy,
+reachability metadata repository use, and missing metadata reporting where practical.
+
+Native test scenarios should cover JUnit Platform native tests, application tests, multi-project
+tests, custom test classes/resources, no-test handling, and compatibility-mode paths where
+practical. Build-tool integration scenarios should cover Gradle configuration-cache-sensitive
+wiring where practical, Maven lifecycle-bound goals, local repository seeding, and
+build-tool-specific packaging behavior.
+
+### 7.5 Fixture lifecycle
+
+Add a new fixture when existing samples cannot express a behavior without becoming unclear or when
+a regression needs a stable reproduction shape. Cite the most specific functional spec in the test
+or fixture comment when code citations are added.
+
+When product behavior changes, update fixtures in the same change as the spec and implementation
+so the scenario continues to describe current behavior. Remove or consolidate fixtures only when
+their behavior is covered elsewhere or the product no longer supports that scenario. Use
+`grund refs` before renaming or deleting cited fixture docs or declarations.

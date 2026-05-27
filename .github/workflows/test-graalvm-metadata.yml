@@ -1,3 +1,5 @@
+# Pull request metadata library gate: checkstyle and unit tests.
+# §CI-test-graalvm-metadata; §COMMON-libraries.5
 name: "Test GraalVM Reachability Metadata Repository"
 
 on:

@@ -1,11 +1,12 @@
 # Native Build Tools Specification
 
-This is the maintainer-facing specification. It follows the component-doc pattern: each substantial
-component owns a `functional-spec.md` (user- or build-visible behavior) and/or `architecture.md`
-(ownership, dependency direction, implementation structure). The folder gives the component, the ID
-kind gives the artifact type. Declarations use numbered subsections as feature-level citation
-targets, so implementation and test comments can cite narrow behavior such as
-`§FS-001-gradle-plugin-native-image-workflow.5.3`.
+This is the maintainer-facing specification. Top-level `FS` and `AR` files describe the whole
+repository, while each substantial component owns one Markdown file with its own kind because
+those files combine functional behavior, architecture, and verification notes. The ID kind gives
+the component or artifact type.
+Declarations use numbered subsections as feature-level citation targets, so implementation and
+test comments can cite narrow behavior such as
+`§GRADLE-plugin.5.3`.
 
 The canonical registry of ID kinds and where each kind lives is the project map in
 [AGENTS.md](../../AGENTS.md); [`.agents/grund.toml`](../../.agents/grund.toml) is the
@@ -16,21 +17,20 @@ citation rather than maintaining a second copy of the registry here.
 
 | File | Scope |
 | --- | --- |
-| [repository/architecture.md](repository/architecture.md) | Repository structure and ownership |
-| [gradle-plugin/functional-spec.md](gradle-plugin/functional-spec.md) | Gradle plugin behavior |
-| [gradle-plugin/architecture.md](gradle-plugin/architecture.md) | Gradle plugin architecture |
-| [maven-plugin/functional-spec.md](maven-plugin/functional-spec.md) | Maven plugin behavior |
-| [maven-plugin/architecture.md](maven-plugin/architecture.md) | Maven plugin architecture |
-| [common/functional-spec.md](common/functional-spec.md) | Shared metadata and resource behavior |
-| [common/architecture.md](common/architecture.md) | Shared common library architecture |
-| [testing/functional-spec.md](testing/functional-spec.md) | Native test behavior |
-| [testing/architecture.md](testing/architecture.md) | Samples and fixtures architecture |
-| [build-infra/architecture.md](build-infra/architecture.md) | Build, docs, release, and CI architecture |
+| [functional-spec.md](functional-spec.md) | Top-level functional surface |
+| [architecture.md](architecture.md) | Top-level architecture outlook |
+| [gradle-plugin.md](gradle-plugin.md) | Gradle plugin behavior and architecture |
+| [maven-plugin.md](maven-plugin.md) | Maven plugin behavior and architecture |
+| [common.md](common.md) | Shared metadata, resource, and common-library behavior |
+| [testing.md](testing.md) | Native test behavior, samples, and fixtures |
+| [build-infra.md](build-infra.md) | Build, docs, release, and CI behavior and architecture |
+| [ci.md](ci.md) | Pull request CI workflows and shared actions |
+| [e2e.md](e2e.md) | End-to-end and functional test execution |
 
 Single-file kinds — motivation (`grund.md`), goals (`goals.md`), non-goals (`non-goals.md`),
 requirements (`requirements.md`), decisions (`decisions.md`), roadmap (`roadmap.md`), and glossary
-(`glossary.md`) — live beside these folders; see the project map above for the authoritative kind
-list.
+(`glossary.md`) — live beside the component files; see the project map above for the authoritative
+kind list.
 
 ## Citation shape
 

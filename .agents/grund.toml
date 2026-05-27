@@ -8,15 +8,14 @@ strict = false
 require_grounding = false
 inline_style = "citation-with-note" # citation-with-note | citation-only
 inline_note_suggested_lines = 1
-inline_note_max_lines = 3
+inline_note_max_lines = 4
 inline_note_max_columns = 100
 warn_on_suggested = false
 
 [id]
-format = "{kind}-{number}-{slug}" # placeholders: {kind} required; use {number}, {slug}, or both
+format = "{kind}-{slug}" # placeholders: {kind} required; use {number}, {slug}, or both
 section_separator = "."
 section_heading_levels = "strict" # strict | warn | loose
-number_pattern = "\\d+"
 slug_pattern = "[a-z0-9][a-z0-9-]*"
 
 [[kinds]]
@@ -40,19 +39,49 @@ file = "docs/spec/requirements.md"
 title = "Cross-cutting requirements and constraints"
 
 [[kinds]]
-prefix = "REPO"
-folder = "docs/spec/repository"
-title = "Repository structure and ownership boundaries"
-
-[[kinds]]
 prefix = "FS"
-folder = "docs/spec"
-title = "Functional specifications"
+file = "docs/spec/functional-spec.md"
+title = "Repository functional specification"
 
 [[kinds]]
 prefix = "AR"
-folder = "docs/spec"
-title = "Architecture specifications"
+file = "docs/spec/architecture.md"
+title = "Repository architecture"
+
+[[kinds]]
+prefix = "GRADLE"
+file = "docs/spec/gradle-plugin.md"
+title = "Gradle plugin behavior and architecture"
+
+[[kinds]]
+prefix = "MAVEN"
+file = "docs/spec/maven-plugin.md"
+title = "Maven plugin behavior and architecture"
+
+[[kinds]]
+prefix = "COMMON"
+file = "docs/spec/common.md"
+title = "Shared common library behavior and architecture"
+
+[[kinds]]
+prefix = "TESTING"
+file = "docs/spec/testing.md"
+title = "Native test, sample, and fixture behavior"
+
+[[kinds]]
+prefix = "BUILD"
+file = "docs/spec/build-infra.md"
+title = "Build, documentation, and release infrastructure"
+
+[[kinds]]
+prefix = "CI"
+file = "docs/spec/ci.md"
+title = "Pull request and repository CI workflows"
+
+[[kinds]]
+prefix = "E2E"
+file = "docs/spec/e2e.md"
+title = "End-to-end and functional test execution"
 
 [[kinds]]
 prefix = "DEC"
@@ -70,9 +99,9 @@ file = "docs/spec/glossary.md"
 title = "Glossary of domain terms"
 
 [scan]
-include = ["docs/spec", "build-logic", "common", "native-gradle-plugin", "native-maven-plugin", "samples", "test-support"]
+include = ["docs/spec", "build-logic", "common", "native-gradle-plugin", "native-maven-plugin", "samples", "test-support", ".github/workflows", ".github/actions"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
-extensions = ["md", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
+extensions = ["md", "yml", "yaml", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]
 docstring_python = true
 respect_gitignore = true

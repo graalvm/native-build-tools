@@ -72,7 +72,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// §FS-004-native-test-execution.3.2, §AR-003-shared-common-libraries.4.2
+/**
+ * Registers JUnit Platform metadata during image build. TESTING-native-tests-and-fixtures.3.2
+ */
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {
 

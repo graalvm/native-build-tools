@@ -1,3 +1,5 @@
+# Pull request spec gate: validates grounded docs, source comments, and workflow citations.
+# §CI-check-grund-spec
 name: "Check grund spec"
 
 on:
@@ -12,7 +14,8 @@ on:
       - 'build-logic/**'
       - 'test-support/**'
       - 'samples/**'
-      - '.github/workflows/check-grund-spec.yml'
+      - '.github/workflows/**'
+      - '.github/actions/**'
   workflow_dispatch:
 
 concurrency:
@@ -47,6 +50,6 @@ jobs:
         # the binary is otherwise pinned per-run by the GRUND_VERSION cache key above.
         run: cargo install --git https://github.com/vjovanov/grund
       - name: "✅ grund check"
-        # Validates that every §<ID> citation in docs and source doc-comments resolves,
+        # Validates that every §<ID> citation in docs, workflows, and source doc-comments resolves,
         # and that section headings and inline-note limits hold. See AGENTS.md and .agents/grund.toml.
         run: grund check

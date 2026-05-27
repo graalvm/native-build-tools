@@ -2,7 +2,7 @@
 
 ## Grounding with grund (v2)
 
-This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, roadmap item, and glossary term has a stable ID `<KIND>-<NNN>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, REPO, FS, AR, DEC, RM, GLOSS}`), cited with the marker `§` — e.g. `§FS-042-user-login.3.1` (the `FS-042-user-login` here is a shape illustration, not a real ID in this repo). Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are also recognized as citations for backward compatibility; set `[reference] strict = true` in `.agents/grund.toml` to require the `§` marker (run `grund fmt --marker` first to upgrade existing bare citations).
+This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, roadmap item, component spec, workflow spec, and glossary term has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, FS, AR, GRADLE, MAVEN, COMMON, TESTING, BUILD, CI, E2E, DEC, RM, GLOSS}`), cited with the marker `§` — e.g. `§GRADLE-plugin.3.1` (the `GRADLE-plugin` here is a shape illustration, not necessarily the point you need). Type `$$` in a grund-aware editor and it becomes `§`. Java source comments use bare ID citations because Java checkstyle is ASCII-only; `grund` recognizes those while `[reference] strict = false`. Bare ID-shaped tokens are also recognized as citations for backward compatibility; set `[reference] strict = true` in `.agents/grund.toml` to require the `§` marker (run `grund fmt --marker` first to upgrade existing bare citations).
 
 ### Grounding from a citation
 
@@ -21,16 +21,22 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 - [GOAL](docs/spec/goals.md): Project direction and outcomes
 - [NGOAL](docs/spec/non-goals.md): Project non-goals and out-of-scope proposals
 - [REQ](docs/spec/requirements.md): Cross-cutting requirements and constraints
-- [REPO](docs/spec/repository): Repository structure and ownership boundaries
-- [FS](docs/spec): Functional specifications in component `functional-spec.md` files
-- [AR](docs/spec): Architecture specifications in component `architecture.md` files
+- [FS](docs/spec/functional-spec.md): Repository functional specification
+- [AR](docs/spec/architecture.md): Repository architecture
+- [GRADLE](docs/spec/gradle-plugin.md): Gradle plugin behavior and architecture
+- [MAVEN](docs/spec/maven-plugin.md): Maven plugin behavior and architecture
+- [COMMON](docs/spec/common.md): Shared common library behavior and architecture
+- [TESTING](docs/spec/testing.md): Native test, sample, and fixture behavior
+- [BUILD](docs/spec/build-infra.md): Build, documentation, and release infrastructure
+- [CI](docs/spec/ci.md): Pull request and repository CI workflows
+- [E2E](docs/spec/e2e.md): End-to-end and functional test execution
 - [DEC](docs/spec/decisions.md): Project decisions and tradeoffs
 - [RM](docs/spec/roadmap.md): Planned milestones and sequencing
 - [GLOSS](docs/spec/glossary.md): Glossary of domain terms
 
 ### Declarations and citations
 
-Declarations are heading lines `# FS-042-user-login: …` in markdown. In a code doc-comment (Rustdoc, Javadoc, JSDoc, Python docstring, Go `//`, …) drop the `#` — write `/// FS-042-user-login: …` directly. Numbered headings inside a declaration are citable sections: use depth-matching headings (`## 1. …`, `### 1.1 …`, etc.) so `§<ID>.1` / `§<ID>.1.1` resolve; mismatched heading depth is a `grund check` error. Plain headings or bold labels are fine for non-citable local structure. One doc-comment may declare multiple IDs, such as an `AR-` and an `FS-` declaration on the same class; each gets its own body. An inline source declaration is reachable from the configured kind home via a one-line stub: `# <ID>: [<path>](<path>)`.
+Declarations are heading lines `# GRADLE-plugin: …` in markdown. In a code doc-comment (Rustdoc, Javadoc, JSDoc, Python docstring, Go `//`, …) drop the `#` — write `/// GRADLE-plugin: …` directly. Numbered headings inside a declaration are citable sections: use depth-matching headings (`## 1. …`, `### 1.1 …`, etc.) so `§<ID>.1` / `§<ID>.1.1` resolve; mismatched heading depth is a `grund check` error. Plain headings or bold labels are fine for non-citable local structure. One doc-comment may declare multiple IDs, such as a `CI-` and an `E2E-` declaration in the same file; each gets its own body. An inline source declaration is reachable from the configured kind home via a one-line stub: `# <ID>: [<path>](<path>)`.
 
 ### Rules
 

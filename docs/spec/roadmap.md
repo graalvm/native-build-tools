@@ -1,7 +1,7 @@
-# RM-001-expand-spec-coverage-from-module-boundaries-to-feature-details: Expand the grund spec from repository boundaries to feature-level contracts
+# RM-expand-spec-coverage-from-module-boundaries-to-feature-details: Expand the grund spec from repository boundaries to feature-level contracts
 
 This item follows the initial adoption decision in
-§DEC-001-adopt-component-functional-architecture-docs.
+§DEC-adopt-component-functional-architecture-docs.
 The initial grund specification captured repository module boundaries and the main product
 behaviors. The expanded specification now adds feature-level sections for Gradle tasks, Maven
 goals, agent modes, reachability metadata resolution, SBOM generation, resource generation,
@@ -15,7 +15,7 @@ contracts than the current component sections. Likely follow-up areas include ex
 contracts, native-image option precedence tables, Maven descriptor parameter tables, and fixture
 coverage matrices.
 
-# RM-002-connect-code-and-tests-to-grund-citations: Add citations from high-risk implementation and tests to the spec
+# RM-connect-code-and-tests-to-grund-citations: Add citations from high-risk implementation and tests to the spec
 
 Once the team agrees on the spec shape, source comments, test fixtures, and documentation sections
 can cite the relevant grund IDs. Keep `require_grounding = false` until citation coverage is

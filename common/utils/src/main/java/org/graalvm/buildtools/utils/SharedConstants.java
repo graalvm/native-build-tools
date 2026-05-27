@@ -47,10 +47,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-// §FS-003-metadata-and-resource-workflows.1.4
 /**
  * Utility class containing various native-image and JVM related methods.
- * Keep this file in sync across all build tool plugins.
+ * Keep this file in sync across all build tool plugins. COMMON-libraries.1.4.
  */
 public interface SharedConstants {
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");

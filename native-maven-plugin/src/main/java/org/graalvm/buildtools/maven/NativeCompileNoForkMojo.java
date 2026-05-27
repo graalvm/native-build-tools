@@ -61,9 +61,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 
-// §FS-002-maven-plugin-native-image-workflow.2.1, §AR-002-maven-plugin-boundary.2.2
 /**
- * Builds a native executable in the current Maven lifecycle without forking a separate Maven build.
+ * This goal runs native builds. It functions the same as the native:compile goal, but it does not
+ * fork the build, so it is suitable for attaching to the build lifecycle. §FS-maven-plugin.1.1.
  */
 @Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,
