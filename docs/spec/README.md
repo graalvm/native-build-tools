@@ -10,6 +10,8 @@ such as `§FS-001-gradle-plugin-native-image-workflow.5.3`.
 | --- | --- |
 | §GRUND-001-native-build-tools-reason-for-existence | Project motivation |
 | §GOAL-001-build-tool-native-image-workflows | Project goals |
+| §NGOAL-001-no-build-tool-flags-for-native-image-flags | Project non-goals |
+| §REQ-001-backwards-compatibility-across-plugin-versions | Cross-cutting requirements |
 | [repository/architecture.md](repository/architecture.md) | Repository structure and ownership |
 | [gradle-plugin/functional-spec.md](gradle-plugin/functional-spec.md) | Gradle plugin behavior |
 | [gradle-plugin/architecture.md](gradle-plugin/architecture.md) | Gradle plugin architecture |

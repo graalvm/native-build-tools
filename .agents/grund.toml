@@ -30,6 +30,16 @@ file = "docs/spec/goals.md"
 title = "Project direction and outcomes"
 
 [[kinds]]
+prefix = "NGOAL"
+file = "docs/spec/non-goals.md"
+title = "Project non-goals and out-of-scope proposals"
+
+[[kinds]]
+prefix = "REQ"
+file = "docs/spec/requirements.md"
+title = "Cross-cutting requirements and constraints"
+
+[[kinds]]
 prefix = "REPO"
 folder = "docs/spec/repository"
 title = "Repository structure and ownership boundaries"

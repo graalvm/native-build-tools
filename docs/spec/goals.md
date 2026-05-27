@@ -4,7 +4,10 @@ This goal follows the project grounding in §GRUND-001-native-build-tools-reason
 The Gradle and Maven plugins are the product surface of this repository. They must expose native
 image compile, run, test, resource configuration, agent metadata, and reachability metadata
 workflows through idioms that fit each build tool. This goal is realized by
-§FS-001-gradle-plugin-native-image-workflow and §FS-002-maven-plugin-native-image-workflow.
+§FS-001-gradle-plugin-native-image-workflow and §FS-002-maven-plugin-native-image-workflow. It is
+bounded by §NGOAL-001-no-build-tool-flags-for-native-image-flags and
+§NGOAL-002-no-duplication-of-existing-build-tool-capabilities, and constrained by
+§REQ-001-backwards-compatibility-across-plugin-versions.
 
 # GOAL-002-shared-native-image-behavior-stays-consistent: Shared native-image behavior remains consistent across Gradle and Maven
 
