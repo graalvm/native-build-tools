@@ -90,6 +90,7 @@ import java.util.stream.Stream;
 
 import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
 
+// §FS-002-maven-plugin-native-image-workflow.2, §AR-002-maven-plugin-boundary.2.1
 /**
  * @author Sebastien Deleuze
  */

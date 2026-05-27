@@ -78,6 +78,18 @@ forced build args, fat JAR mode, system properties, environment variables, JVM a
 JVM args. Overrides must update the same option objects used by the DSL so command-line and DSL
 behavior flow through one command-line assembly path.
 
+### 2.5 Override precedence
+
+Command-line task options and `-P` controls override DSL configuration for a single invocation
+rather than merging with it. A `@Option` setter such as `--image-name` calls `set(...)` on the same
+option property the DSL populates, so the command-line value replaces the DSL value for that build.
+Build arguments are the documented exception: `--build-args` appends to the configured arguments
+while `--force-build-args` replaces them. The `-Pagent` property overrides the configured agent
+default mode as in §FS-001-gradle-plugin-native-image-workflow.5.1. Because every source funnels
+into one option object, behavior depends only on which source last wrote a value, not on where it
+was written. This mirrors the Maven precedence rule in
+§FS-002-maven-plugin-native-image-workflow.3.5.
+
 ## 3. Native Image invocation
 
 Native Image invocation is responsible for locating the executable, validating requested
@@ -101,7 +113,7 @@ version before passing that metadata to `native-image`.
 The command line must combine classpath, module path where applicable, output name, main class,
 boolean image flags, build arguments, JVM arguments, system properties, environment variables,
 configuration file directories, resource configuration output, reachability metadata output, layer
-options, and PGO options. Shared command-line escaping and argument-file conversion must come from
+options (§GLOSS-002-layered-image), and PGO options (§GLOSS-006-pgo). Shared command-line escaping and argument-file conversion must come from
 common utilities rather than Gradle-only string handling. This keeps Gradle aligned with the Maven
 contract in §FS-002-maven-plugin-native-image-workflow.6.2.
 
@@ -116,7 +128,7 @@ relative to the selected working directory where that is required by Native Imag
 When configured to use a classpath JAR, the compile task must receive the generated JAR rather than
 an exploded classpath. The plugin may analyze runtime classpath JARs through Gradle artifact
 transforms to discover packages and resource behavior, but the transform output must remain an
-internal implementation detail.
+internal implementation detail. The fat-jar form is defined in §GLOSS-007-fat-jar.
 
 ### 3.6 Parallel native builds
 
@@ -160,7 +172,7 @@ issues when the user supplies issue-creation settings.
 When a binary is configured to emit a Native Image build report, the plugin must generate
 dynamic-access metadata before invoking Native Image, using the configured reachability metadata
 repository and runtime classpath graph, and make it available as part of the binary's generated
-Native Image configuration.
+Native Image configuration. The metadata is defined in §GLOSS-003-dynamic-access-metadata.
 
 ## 5. Native Image tracing agent
 

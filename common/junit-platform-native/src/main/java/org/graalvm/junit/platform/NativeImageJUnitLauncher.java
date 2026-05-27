@@ -68,6 +68,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+// §FS-004-native-test-execution.3.1, §AR-003-shared-common-libraries.4.1
 public class NativeImageJUnitLauncher {
     static final String DEFAULT_OUTPUT_FOLDER = Paths.get("test-results-native").resolve("test").toString();
 

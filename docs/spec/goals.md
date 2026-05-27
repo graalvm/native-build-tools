@@ -7,7 +7,8 @@ workflows through idioms that fit each build tool. This goal is realized by
 §FS-001-gradle-plugin-native-image-workflow and §FS-002-maven-plugin-native-image-workflow. It is
 bounded by §NGOAL-001-no-build-tool-flags-for-native-image-flags and
 §NGOAL-002-no-duplication-of-existing-build-tool-capabilities, and constrained by
-§REQ-001-backwards-compatibility-across-plugin-versions.
+§REQ-001-backwards-compatibility-across-plugin-versions and
+§REQ-002-supported-build-tool-and-runtime-version-matrix.
 
 # GOAL-002-shared-native-image-behavior-stays-consistent: Shared native-image behavior remains consistent across Gradle and Maven
 

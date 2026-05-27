@@ -48,6 +48,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
+// §FS-001-gradle-plugin-native-image-workflow.3.6, §AR-001-gradle-plugin-boundary.4.3
 @SuppressWarnings({"UnstableApiUsage", "unused"})
 public abstract class NativeImageService implements BuildService<BuildServiceParameters.None> {
 

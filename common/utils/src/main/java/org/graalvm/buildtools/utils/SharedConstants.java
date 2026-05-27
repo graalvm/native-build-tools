@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+// §FS-003-metadata-and-resource-workflows.1.4
 /**
  * Utility class containing various native-image and JVM related methods.
  * Keep this file in sync across all build tool plugins.

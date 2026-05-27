@@ -56,6 +56,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+// §FS-002-maven-plugin-native-image-workflow.3.4, §AR-002-maven-plugin-boundary.4.3
 /**
  * Utility class containing various native-image and JVM related methods.
  */

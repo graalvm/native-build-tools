@@ -2,7 +2,7 @@
 
 ## Grounding with grund (v2)
 
-This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, decision, and roadmap item has a stable ID `<KIND>-<NNN>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, REPO, FS, AR, DEC, RM}`), cited with the marker `§` — e.g. `§FS-042-user-login.3.1` (the `FS-042-user-login` here is a shape illustration, not a real ID in this repo). Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are also recognized as citations for backward compatibility; set `[reference] strict = true` in `.agents/grund.toml` to require the `§` marker (run `grund fmt --marker` first to upgrade existing bare citations).
+This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, roadmap item, and glossary term has a stable ID `<KIND>-<NNN>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, REPO, FS, AR, DEC, RM, GLOSS}`), cited with the marker `§` — e.g. `§FS-042-user-login.3.1` (the `FS-042-user-login` here is a shape illustration, not a real ID in this repo). Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are also recognized as citations for backward compatibility; set `[reference] strict = true` in `.agents/grund.toml` to require the `§` marker (run `grund fmt --marker` first to upgrade existing bare citations).
 
 ### Grounding from a citation
 
@@ -19,11 +19,14 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 
 - [GRUND](docs/spec/grund.md): Project motivation
 - [GOAL](docs/spec/goals.md): Project direction and outcomes
+- [NGOAL](docs/spec/non-goals.md): Project non-goals and out-of-scope proposals
+- [REQ](docs/spec/requirements.md): Cross-cutting requirements and constraints
 - [REPO](docs/spec/repository): Repository structure and ownership boundaries
 - [FS](docs/spec): Functional specifications in component `functional-spec.md` files
 - [AR](docs/spec): Architecture specifications in component `architecture.md` files
 - [DEC](docs/spec/decisions.md): Project decisions and tradeoffs
 - [RM](docs/spec/roadmap.md): Planned milestones and sequencing
+- [GLOSS](docs/spec/glossary.md): Glossary of domain terms
 
 ### Declarations and citations
 

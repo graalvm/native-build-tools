@@ -61,6 +61,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
 
+// §FS-002-maven-plugin-native-image-workflow.2.1, §AR-002-maven-plugin-boundary.2.2
 /**
  * Builds a native executable in the current Maven lifecycle without forking a separate Maven build.
  */

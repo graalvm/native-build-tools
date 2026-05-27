@@ -114,6 +114,17 @@ The plugin must locate a Native Image executable using Maven toolchains when app
 environment/path fallbacks otherwise. When toolchain enforcement is enabled, failing to find a
 toolchain-provided Native Image executable must fail clearly.
 
+### 3.5 Override precedence
+
+Maven's standard parameter binding decides precedence between configuration sources. When a
+parameter is set in `<configuration>` XML, that explicit value takes precedence; the matching
+command-line property from §FS-002-maven-plugin-native-image-workflow.3.2 (for example
+`-DskipNativeBuild=...`) applies only when no explicit configuration is present. The exception is a
+parameter intentionally modeled to let the property win for a single run, such as the agent toggle
+in §FS-002-maven-plugin-native-image-workflow.5.1 where `-Dagent=false` disables an agent enabled in
+the POM. This mirrors the Gradle precedence rule in
+§FS-001-gradle-plugin-native-image-workflow.2.5.
+
 ## 4. Native tests
 
 Maven native tests use the shared JUnit native support in §FS-004-native-test-execution and expose

@@ -1,17 +1,21 @@
 # Native Build Tools Specification
 
-This specification follows the component-doc pattern used by the referenced grund adoption: each
-substantial component owns a `functional-spec.md` and/or `architecture.md` file. The folder gives
-the component, while the ID kind gives the artifact type. Declarations use numbered subsections
-for feature-level citation targets, so implementation and test comments can cite narrow behavior
-such as `§FS-001-gradle-plugin-native-image-workflow.5.3`.
+This is the maintainer-facing specification. It follows the component-doc pattern: each substantial
+component owns a `functional-spec.md` (user- or build-visible behavior) and/or `architecture.md`
+(ownership, dependency direction, implementation structure). The folder gives the component, the ID
+kind gives the artifact type. Declarations use numbered subsections as feature-level citation
+targets, so implementation and test comments can cite narrow behavior such as
+`§FS-001-gradle-plugin-native-image-workflow.5.3`.
+
+The canonical registry of ID kinds and where each kind lives is the project map in
+[AGENTS.md](../../AGENTS.md); [`.agents/grund.toml`](../../.agents/grund.toml) is the
+machine-readable source. Run `grund list` to enumerate every ID and `grund <ID>` to resolve a
+citation rather than maintaining a second copy of the registry here.
+
+## Component documents
 
 | File | Scope |
 | --- | --- |
-| §GRUND-001-native-build-tools-reason-for-existence | Project motivation |
-| §GOAL-001-build-tool-native-image-workflows | Project goals |
-| §NGOAL-001-no-build-tool-flags-for-native-image-flags | Project non-goals |
-| §REQ-001-backwards-compatibility-across-plugin-versions | Cross-cutting requirements |
 | [repository/architecture.md](repository/architecture.md) | Repository structure and ownership |
 | [gradle-plugin/functional-spec.md](gradle-plugin/functional-spec.md) | Gradle plugin behavior |
 | [gradle-plugin/architecture.md](gradle-plugin/architecture.md) | Gradle plugin architecture |
@@ -22,10 +26,13 @@ such as `§FS-001-gradle-plugin-native-image-workflow.5.3`.
 | [testing/functional-spec.md](testing/functional-spec.md) | Native test behavior |
 | [testing/architecture.md](testing/architecture.md) | Samples and fixtures architecture |
 | [build-infra/architecture.md](build-infra/architecture.md) | Build, docs, release, and CI architecture |
-| §DEC-001-adopt-component-functional-architecture-docs | Decisions |
-| §RM-001-expand-spec-coverage-from-module-boundaries-to-feature-details | Roadmap |
 
-## Citation Shape
+Single-file kinds — motivation (`grund.md`), goals (`goals.md`), non-goals (`non-goals.md`),
+requirements (`requirements.md`), decisions (`decisions.md`), roadmap (`roadmap.md`), and glossary
+(`glossary.md`) — live beside these folders; see the project map above for the authoritative kind
+list.
+
+## Citation shape
 
 Functional specs describe user-visible or build-visible behavior. Architecture specs describe
 ownership, dependency direction, and implementation structure. Prefer the deepest applicable

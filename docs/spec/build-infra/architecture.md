@@ -55,6 +55,8 @@ CI workflows are the repository's executable quality gates.
 
 CI must have distinct workflows for the Gradle plugin, Maven plugin, JUnit Platform native module,
 and GraalVM metadata-oriented tests where those areas have separate runtime costs or prerequisites.
+These workflows exercise the supported version matrix in
+§REQ-002-supported-build-tool-and-runtime-version-matrix.
 
 ### 3.2 Environment preparation
 

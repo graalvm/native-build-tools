@@ -19,7 +19,7 @@ backslashes, and platform path semantics.
 
 Shared conversion utilities must be able to write a Native Image argument file and return the
 corresponding `@...` argument. Build-tool plugins must use those utilities instead of implementing
-separate argument-file writers.
+separate argument-file writers. The file format is defined in §GLOSS-008-argument-file.
 
 ### 1.3 Version parsing
 
@@ -61,7 +61,7 @@ directory.
 ## 3. Native Image tracing agent
 
 Agent behavior is shared because Gradle and Maven need the same mode semantics even though they
-attach the agent to different execution APIs.
+attach the agent to different execution APIs. The agent is defined in §GLOSS-005-tracing-agent.
 
 ### 3.1 Standard mode
 
@@ -115,7 +115,8 @@ destination metadata, depending on user configuration.
 ## 5. Reachability metadata repository
 
 Reachability metadata repository support must let both product plugins consume the GraalVM
-Reachability Metadata Repository without embedding build-tool-specific lookup logic.
+Reachability Metadata Repository without embedding build-tool-specific lookup logic. The repository
+is defined in §GLOSS-004-reachability-metadata-repository.
 
 ### 5.1 Repository sources
 

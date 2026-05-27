@@ -114,7 +114,7 @@ arguments are distinct from Native Image build arguments and must not affect ima
 ## 5. Compatibility mode
 
 Native Image compatibility mode changes native test execution because the build may require the
-standard JUnit ConsoleLauncher path.
+standard JUnit ConsoleLauncher path. The mode is defined in §GLOSS-001-compatibility-mode.
 
 ### 5.1 Detection
 
