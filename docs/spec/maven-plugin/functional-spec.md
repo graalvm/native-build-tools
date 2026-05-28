@@ -16,12 +16,13 @@ parameter expressions, dependency resolution scopes, and descriptor metadata tha
 The `native:compile` goal must support command-line native image builds. It is intended for users
 who explicitly invoke native compilation after Maven has prepared the project, and it may fork the
 Maven lifecycle so packaged outputs and generated resources are available before the native image
-is built.
+is built. This goal is the Maven command-line entry point for §FS-plugin-common-behavior.2.
 
 The `native:compile-no-fork` goal must support lifecycle-bound native image builds. It runs
 without forking the Maven build, binds to the package phase, and is suitable for plugin executions
 inside profiles or normal lifecycle use. It must perform the same native-image command
-construction as `native:compile` once Maven project state is ready.
+construction as `native:compile` once Maven project state is ready. This goal is the lifecycle
+entry point for §FS-plugin-common-behavior.2.
 
 The deprecated `native:build` goal may remain as a compatibility alias for existing users. It
 must warn that the goal is deprecated and direct users toward `native:compile-no-fork`.
@@ -31,27 +32,31 @@ must warn that the goal is deprecated and direct users toward `native:compile-no
 The `native:test` goal must compile the Maven test classpath into a native test image and execute
 that image unless test execution is skipped. It binds to the test phase, honors Maven test skip
 settings and Native Build Tools test settings, and uses the shared native test contract in
-§FS-native-tests-and-fixtures.
+§FS-plugin-common-behavior.3 and §FS-native-tests-and-fixtures.
 
 ### 1.3 Metadata and support goals
 
 The `native:generateResourceConfig` goal must scan the main runtime classpath and generate Native
 Image resource configuration for application builds. The `native:generateTestResourceConfig` goal
-must do the same for the Maven test classpath so native test images see test resources.
+must do the same for the Maven test classpath so native test images see test resources. These
+goals expose the resource generation part of §FS-plugin-common-behavior.4.
 
 The `native:generateDynamicAccessMetadata` goal must derive dynamic access metadata from Native
 Image build reports and make that metadata available to subsequent native image builds.
 The `native:add-reachability-metadata` goal must resolve metadata from the configured reachability
-metadata repository and add it to the native image configuration directories.
+metadata repository and add it to the native image configuration directories. These goals expose
+the metadata parts of §FS-plugin-common-behavior.4.
 
 The `native:merge-agent-files` goal must merge tracing-agent output with `native-image-configure`.
 The `native:metadata-copy` goal must copy or merge selected tracing-agent output stages into a
 configured metadata directory. These goals expose the shared agent post-processing behavior from
-§FS-common-libraries.4 through Maven.
+§FS-plugin-common-behavior.5 and §FS-common-libraries.4 through Maven.
 
 The `native:list-libraries-missing-metadata` goal must report project dependencies that are not
 covered by the configured reachability metadata repository. The `native:write-args-file` goal must
 write the native-image arguments that Maven would pass, allowing users to inspect or reuse them.
+These goals expose the missing-metadata and command-line compatibility workflows from
+§FS-plugin-common-behavior.4 and §FS-plugin-common-behavior.6.
 
 ### 1.4 Lifecycle bindings
 

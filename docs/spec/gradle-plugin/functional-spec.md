@@ -21,35 +21,45 @@ registration starts when the Java plugin is present.
 
 ### 1.2 Extension surface
 
-The plugin must expose a `graalvmNative` extension. The extension owns:
+The plugin must expose a `graalvmNative` extension. The extension is the durable Gradle DSL
+surface for the shared plugin capabilities in §FS-plugin-common-behavior: build and test binaries,
+Native Image invocation options, metadata workflows, and tracing-agent workflows.
 
-- a named `binaries` container for native image binaries;
-- shared Native Image options applied to binaries;
-- toolchain detection controls;
-- generated-resource and argument-file behavior;
-- reachability metadata repository configuration;
-- native test support enablement;
-- Native Image tracing-agent configuration and metadata-copy settings.
+The named `binaries` container defines which application, library, test, or custom native images
+the project wants to build. Each binary owns shared Native Image options so compile, run,
+resource-generation, metadata, and native-test tasks consume one configuration model rather than
+parallel task-local state. This is the Gradle realization of the shared native image build
+contract in §FS-plugin-common-behavior.2 and native test contract in
+§FS-plugin-common-behavior.3.
 
-The extension is the durable Gradle DSL surface. Command-line overrides are allowed for
-experimentation, but reproducible build configuration belongs in the DSL.
+The extension also owns toolchain detection controls, generated-resource and argument-file
+behavior, reachability metadata repository configuration, native test enablement, Native Image
+tracing-agent configuration, and metadata-copy settings. These settings expose the shared resource,
+metadata, agent, and command-line compatibility contracts from §FS-plugin-common-behavior.4,
+§FS-plugin-common-behavior.5, and §FS-plugin-common-behavior.6. Command-line overrides are allowed
+for experimentation, but reproducible build configuration belongs in the DSL.
 
 ### 1.3 Default binaries
 
 For Java application projects, the plugin must create a `main` binary whose `mainClass` convention
 comes from the Gradle `application` extension when available. For Java library projects, the main
 binary defaults to shared-library output. The plugin must also create a `test` binary connected to
-the default `test` task and the `test` source set.
+the default `test` task and the `test` source set. These defaults give Java projects the shared
+build and test capabilities from §FS-plugin-common-behavior.2 and §FS-plugin-common-behavior.3
+without requiring users to declare a binary for the conventional source sets.
 
 ### 1.4 Custom binaries
 
 Additional entries in the `binaries` container must create matching native compile and run tasks.
 Custom binaries use the same option model as `main` and `test`; task names are derived from the
-binary name so that the Gradle task graph remains predictable.
+binary name so that the Gradle task graph remains predictable. Custom binaries exist so Gradle
+projects can apply the shared native image build contract from §FS-plugin-common-behavior.2 to
+additional source sets or entry points without leaving the plugin's option model.
 
 ## 2. Native image task behavior
 
-Native image build and run tasks are the Gradle execution surface for the plugin.
+Native image build and run tasks are the Gradle execution surface for the shared native image
+build contract in §FS-plugin-common-behavior.2.
 
 ### 2.1 Compile tasks
 
@@ -57,12 +67,15 @@ The `nativeCompile` task must compile the `main` binary into the configured nati
 shared library. It consumes the main binary's classpath, main class or shared-library setting,
 Native Image build arguments, configuration file directories, reachability metadata output,
 generated resource configuration, optional classpath JAR, argument-file behavior, layer options,
-PGO options, environment variables, system properties, and JVM arguments.
+PGO options, environment variables, system properties, and JVM arguments. The task turns the
+durable binary DSL state into the actual Native Image process invocation.
 
 The `nativeTestCompile` task must compile the `test` binary into the native test image described
 by §FS-native-tests-and-fixtures. It consumes compiled test classes, test resources, test
 runtime classpath, JUnit native support, selected test identifiers, and the test binary's Native
-Image options. It builds the image even when later test execution is skipped.
+Image options. It builds the image even when later test execution is skipped, which lets users
+separate native test image compilation from native test execution while preserving
+§FS-plugin-common-behavior.3.
 
 Every custom binary must receive a derived `native<Binary>Compile` task. Derived compile tasks
 follow the same input and output contract as `nativeCompile`, but use the custom binary's option
@@ -74,7 +87,8 @@ state, and test-list directory when applicable.
 
 The `nativeRun` task must execute the output of `nativeCompile` for the `main` binary. It consumes
 the compile task output file, passes runtime arguments from the main binary configuration, and
-sets up layer library paths when the binary uses Native Image layers.
+sets up layer library paths when the binary uses Native Image layers. This provides the Gradle run
+side of the shared native image build contract in §FS-plugin-common-behavior.2.
 
 The `nativeTest` task must execute the output of `nativeTestCompile` unless native test execution
 is skipped by configuration or task selection. Its process result is the native test result and
@@ -95,7 +109,8 @@ Compile tasks must expose Gradle task options for common experimentation switche
 main class, debug, verbose, fallback, quick build, rich output, PGO instrumentation, build args,
 forced build args, fat JAR mode, system properties, environment variables, JVM args, and forced
 JVM args. Overrides must update the same option objects used by the DSL so command-line and DSL
-behavior flow through one command-line assembly path.
+behavior flow through one command-line assembly path. This is the Gradle-specific command-line
+compatibility behavior required by §FS-plugin-common-behavior.6.
 
 ### 2.5 Override precedence
 
@@ -132,9 +147,9 @@ version before passing that metadata to `native-image`.
 The command line must combine classpath, module path where applicable, output name, main class,
 boolean image flags, build arguments, JVM arguments, system properties, environment variables,
 configuration file directories, resource configuration output, reachability metadata output, layer
-options (§GLOSS-layered-image), and PGO options (§GLOSS-pgo). Shared command-line escaping and argument-file conversion must come from
-common utilities rather than Gradle-only string handling. This keeps Gradle aligned with the Maven
-contract in §FS-maven-plugin.6.2.
+options (§GLOSS-layered-image), and PGO options (§GLOSS-pgo). Shared command-line escaping and
+argument-file conversion must come from common utilities rather than Gradle-only string handling.
+This keeps Gradle aligned with the Maven contract in §FS-maven-plugin.6.2.
 
 ### 3.4 Argument files
 
@@ -159,7 +174,7 @@ based on available processors.
 ## 4. Resources and reachability metadata
 
 Gradle projects use the shared metadata and resource contracts in
-§FS-common-libraries through Gradle tasks and extension settings.
+§FS-plugin-common-behavior.4 and §FS-common-libraries through Gradle tasks and extension settings.
 
 ### 4.1 Resource autodetection
 
@@ -170,7 +185,9 @@ plugin must avoid duplicating resources from that entry.
 
 The main binary resource task is `generateResourcesConfigFile`. Custom binaries receive derived
 `generate<Binary>ResourcesConfigFile` tasks. The test binary receives the corresponding generated
-resource task for the `test` binary and contributes its output to `nativeTestCompile`.
+resource task for the `test` binary and contributes its output to `nativeTestCompile`. Those tasks
+are the Gradle-facing entry points for the shared resource configuration behavior in
+§FS-plugin-common-behavior.4.
 
 ### 4.2 Generated resource configuration
 
@@ -183,14 +200,16 @@ automatically.
 The `collectReachabilityMetadata` task must resolve metadata for the runtime classpath from the
 configured metadata repository URI, version, exclusions, and module-to-config-version overrides.
 Its output directory must be consumable by native compile tasks and must represent only metadata
-selected for the binary's dependency graph.
+selected for the binary's dependency graph. This task turns the shared reachability metadata
+repository contract from §FS-plugin-common-behavior.4 into Gradle task outputs.
 
 ### 4.4 Missing metadata reports
 
 The `listLibrariesMissingMetadata` task must inspect direct runtime dependencies, compare them to
 the configured reachability metadata repository, write a JSON report, and optionally create GitHub
 issues when the user supplies issue-creation settings. The task reports missing metadata without
-modifying the native compile task inputs.
+modifying the native compile task inputs. It exists to expose the shared missing-metadata workflow
+from §FS-plugin-common-behavior.4 without changing build behavior.
 
 ### 4.5 Dynamic access metadata
 
@@ -201,12 +220,14 @@ Native Image configuration. The metadata is defined in §GLOSS-dynamic-access-me
 
 The main binary dynamic access task is `generateDynamicAccessMetadata`. Custom binaries receive
 derived `generate<Binary>DynamicAccessMetadata` tasks. The task output is added to the binary's
-classpath only when the binary requests a Native Image build report.
+classpath only when the binary requests a Native Image build report. This is the Gradle task
+surface for the dynamic access metadata capability in §FS-plugin-common-behavior.4.
 
 ## 5. Native Image tracing agent
 
 The Gradle plugin must make the Native Image tracing agent available without requiring users to
-manually edit JVM task command lines.
+manually edit JVM task command lines. This realizes the shared tracing-agent workflow in
+§FS-plugin-common-behavior.5.
 
 ### 5.1 Agent enablement
 
@@ -236,12 +257,13 @@ direct mode output location. Generated output must be suitable for later merge a
 
 The `metadataCopy` task must copy or merge agent output from configured input tasks into configured
 output directories. Command-line options on `metadataCopy` may select task names and destination
-directories for ad hoc use.
+directories for ad hoc use. It exposes the shared agent post-processing workflow from
+§FS-plugin-common-behavior.5 through a Gradle task.
 
 ## 6. Native tests
 
 Gradle native tests are part of the same plugin workflow, but their runtime semantics are defined
-by §FS-native-tests-and-fixtures.
+by §FS-plugin-common-behavior.3 and §FS-native-tests-and-fixtures.
 
 ### 6.1 Test task integration
 
