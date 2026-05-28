@@ -21,7 +21,7 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 - [GOAL](docs/spec/goals.md): Project direction and outcomes
 - [NGOAL](docs/spec/non-goals.md): Project non-goals and out-of-scope proposals
 - [REQ](docs/spec/requirements.md): Cross-cutting requirements and constraints
-- [FS](docs/spec): Functional specifications in component `functional-spec.md` files
+- [FS](docs/spec): Functional specifications in component `functional-spec.md` files and top-level shared contracts
 - [AR](docs/spec): Architecture specifications in top-level and component `architecture.md` files
 - [CI](docs/spec/ci.md): Pull request and repository CI workflows
 - [E2E](docs/spec/e2e.md): End-to-end and functional test execution

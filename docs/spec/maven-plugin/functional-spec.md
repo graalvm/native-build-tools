@@ -4,7 +4,7 @@ The `native-maven-plugin` module provides a Maven plugin packaged as `maven-plug
 adapt Native Image build, test, resource, metadata, and support workflows into Maven's lifecycle,
 configuration, plugin descriptor, and repository model. This functional contract realizes
 §GOAL-build-tool-native-image-workflows for Maven and depends on the shared behavior in
-§FS-common-libraries and §FS-native-tests-and-fixtures.
+§FS-plugin-common-behavior, §FS-common-libraries, and §FS-native-tests-and-fixtures.
 
 ## 1. Plugin goal surface
 

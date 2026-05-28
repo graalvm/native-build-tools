@@ -1,9 +1,11 @@
-# FS-common-libraries: The plugins support resource config, agent metadata, and reachability metadata workflows
+# FS-common-libraries: Common libraries provide shared Native Image utilities and metadata workflows
 
 Native Build Tools must help users supply the configuration that Native Image needs for resources,
-reflection, dynamic access, and third-party library reachability metadata. The behavior is shared
-where possible and adapted into Gradle tasks and Maven mojos where build-tool integration differs.
-This functional contract realizes §GOAL-shared-native-image-behavior-stays-consistent.
+reflection, dynamic access, and third-party library reachability metadata. The `common/` modules
+own build-tool-neutral utilities and metadata workflows that the Gradle and Maven plugins adapt
+into their task, goal, and configuration models. This functional contract supports the
+cross-plugin product contract in §FS-plugin-common-behavior and realizes
+§GOAL-shared-native-image-behavior-stays-consistent.
 
 ## 1. Shared Native Image utilities
 
@@ -180,25 +182,10 @@ discovered version so common validation can select the expected schema.
 Invalid metadata that would be passed to Native Image must fail early with a validation error
 rather than producing a later, less actionable native-image failure.
 
-## 8. Cross-plugin parity
-
-Gradle and Maven must support the same Native Image capability families unless a build-tool model
-makes a capability impossible or intentionally different. The shared parity contract covers:
-native image builds; native test compilation and execution; Native Image executable discovery;
-argument escaping and argument-file writing; resource configuration generation; reachability
-metadata repository lookup; missing metadata reporting; dynamic access metadata generation; Native
-Image tracing-agent modes; agent metadata merge and copy behavior; schema validation; and Native
-Image version-dependent behavior.
-
-The product plugin specs must describe how each build tool exposes these shared capabilities:
-§FS-gradle-plugin for Gradle task, DSL, and provider mapping, and §FS-maven-plugin for Maven goal,
-parameter, and lifecycle mapping. A behavior that should remain consistent across both plugins
-belongs in this common spec first, with product specs citing it and explaining only the
-build-tool-specific adaptation.
-
-## 9. Verification surface
+## 8. Verification surface
 
 Common utility and reachability metadata modules must have unit tests for argument conversion,
 resource scanning, agent mode command lines, repository index parsing, metadata lookup, missing
 metadata support, schema validation, and Native Image version behavior. Product plugin functional
-tests cover these shared behaviors through Gradle and Maven sample projects.
+tests cover these shared behaviors through Gradle and Maven sample projects as part of
+§FS-plugin-common-behavior.7.

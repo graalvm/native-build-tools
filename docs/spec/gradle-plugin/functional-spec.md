@@ -5,7 +5,8 @@ The `native-gradle-plugin` module provides the Gradle plugin identified as
 native-image related tasks, command-line providers, metadata tasks, and test integration that are
 expressed using Gradle's plugin, task, provider, and configuration-cache conventions. This
 functional contract realizes §GOAL-build-tool-native-image-workflows for Gradle and depends on
-the shared behavior in §FS-common-libraries and §FS-native-tests-and-fixtures.
+the shared product behavior in §FS-plugin-common-behavior, the shared library behavior in
+§FS-common-libraries, and the native test behavior in §FS-native-tests-and-fixtures.
 
 ## 1. Plugin activation and Gradle model
 

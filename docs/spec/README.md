@@ -18,11 +18,12 @@ citation rather than maintaining a second copy of the registry here.
 | File | Scope |
 | --- | --- |
 | [architecture.md](architecture.md) | Top-level repository architecture, deployment, and ownership boundaries |
+| [plugin-common.md](plugin-common.md) | Shared product behavior expected from both Gradle and Maven plugins |
 | [gradle-plugin/functional-spec.md](gradle-plugin/functional-spec.md) | Gradle plugin behavior |
 | [gradle-plugin/architecture.md](gradle-plugin/architecture.md) | Gradle plugin implementation architecture |
 | [maven-plugin/functional-spec.md](maven-plugin/functional-spec.md) | Maven plugin behavior |
 | [maven-plugin/architecture.md](maven-plugin/architecture.md) | Maven plugin implementation architecture |
-| [common/functional-spec.md](common/functional-spec.md) | Shared metadata, resource, parity, and common-library behavior |
+| [common/functional-spec.md](common/functional-spec.md) | Shared metadata, resource, and common-library behavior |
 | [common/architecture.md](common/architecture.md) | Shared common-library architecture |
 | [testing/functional-spec.md](testing/functional-spec.md) | Native test behavior |
 | [testing/architecture.md](testing/architecture.md) | Samples, fixtures, and native test support architecture |
@@ -32,9 +33,9 @@ citation rather than maintaining a second copy of the registry here.
 | [e2e.md](e2e.md) | End-to-end and functional test execution |
 
 Single-file kinds — motivation (`grund.md`), goals (`goals.md`), non-goals (`non-goals.md`),
-requirements (`requirements.md`), decisions (`decisions.md`), roadmap (`roadmap.md`), and glossary
-(`glossary.md`) — live beside the component files; see the project map above for the authoritative
-kind list.
+requirements (`requirements.md`), decisions (`decisions.md`), roadmap (`roadmap.md`), plugin
+common behavior (`plugin-common.md`), and glossary (`glossary.md`) — live beside the component
+files; see the project map above for the authoritative kind list.
 
 ## Citation shape
 

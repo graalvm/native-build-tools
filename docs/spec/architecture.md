@@ -21,6 +21,7 @@ and verification without becoming product API.
 
 | Component | Paths | Role | Spec |
 | --- | --- | --- | --- |
+| Cross-plugin product contract | `docs/spec/plugin-common.md` | Shared behavior expected from both product plugins when Gradle and Maven capabilities overlap. | §FS-plugin-common-behavior |
 | Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §FS-gradle-plugin, §AR-gradle-plugin |
 | Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §FS-maven-plugin, §AR-maven-plugin |
 | Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §FS-common-libraries, §AR-common-libraries |
@@ -45,8 +46,9 @@ not be used as shared runtime libraries for product code.
 
 ## 4. How work flows through the system
 
-1. A behavior change starts in the most specific component spec: §FS-gradle-plugin for Gradle,
-   §FS-maven-plugin for Maven, §FS-common-libraries for shared behavior,
+1. A behavior change starts in the most specific component spec: §FS-plugin-common-behavior for
+   behavior shared by both product plugins, §FS-gradle-plugin for Gradle,
+   §FS-maven-plugin for Maven, §FS-common-libraries for shared library behavior,
    §FS-native-tests-and-fixtures for native-test or fixture behavior, or
    §FS-build-infrastructure for build and release infrastructure.
 2. Product or common code implements the behavior with citations to the component section that
@@ -61,7 +63,8 @@ not be used as shared runtime libraries for product code.
 ## 5. Specification layout
 
 Top-level `architecture.md` describes repository-wide structure, ownership, deployment, and
-workflow boundaries. Component directories under `docs/spec/` split behavior from implementation:
+workflow boundaries. Top-level `plugin-common.md` states behavior expected from both product
+plugins. Component directories under `docs/spec/` split behavior from implementation:
 `functional-spec.md` states externally observable behavior, user workflows, build-tool contracts,
 metadata behavior, and verification expectations; `architecture.md` states module ownership,
 dependency direction, internal structure, and implementation responsibilities. Code, tests, YAML,
