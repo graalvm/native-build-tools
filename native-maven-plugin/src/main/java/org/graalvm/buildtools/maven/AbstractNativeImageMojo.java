@@ -91,7 +91,8 @@ import java.util.stream.Stream;
 import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
 
 /**
- * Base mojo for Maven native-image workflows. FS-maven-plugin.2.
+ * Base mojo for Maven native-image workflows, including executable lookup and schema validation.
+ * It implements FS-maven-plugin.2, FS-maven-plugin.3.4, and FS-maven-plugin.6.4.
  * @author Sebastien Deleuze
  */
 public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {

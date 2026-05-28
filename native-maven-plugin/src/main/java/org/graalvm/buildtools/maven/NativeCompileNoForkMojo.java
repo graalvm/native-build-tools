@@ -63,7 +63,10 @@ import java.util.function.BiFunction;
 
 /**
  * This goal runs native builds. It functions the same as the native:compile goal, but it does not
- * fork the build, so it is suitable for attaching to the build lifecycle. §FS-maven-plugin.1.1.
+ * fork the build, so it is suitable for attaching to the build lifecycle.
+ * §FS-maven-plugin.1.1, §FS-maven-plugin.1.4.
+ * It also owns main-class discovery, skipping, generated resources, dynamic access metadata, and base SBOM behavior.
+ * §FS-maven-plugin.2.1, §FS-maven-plugin.2.2, §FS-maven-plugin.2.4, §FS-maven-plugin.2.5, §FS-maven-plugin.2.6.
  */
 @Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,

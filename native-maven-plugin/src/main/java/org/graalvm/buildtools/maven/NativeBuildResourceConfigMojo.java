@@ -47,7 +47,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * Scans main resources and generates resource metadata for them.
- * §FS-maven-plugin.1.3.
+ * §FS-maven-plugin.1.3, §FS-maven-plugin.6.1.
  */
 @Mojo(
         name = "generateResourceConfig",

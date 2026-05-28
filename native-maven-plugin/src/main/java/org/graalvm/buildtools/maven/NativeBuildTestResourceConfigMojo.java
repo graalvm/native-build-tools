@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 
 /**
  * Scans test resources and generates resource metadata for them.
- * §FS-maven-plugin.1.3.
+ * §FS-maven-plugin.1.3, §FS-maven-plugin.6.1.
  */
 @Mojo(
         name = "generateTestResourceConfig",

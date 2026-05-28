@@ -58,7 +58,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Executes compiled native-image binaries for Gradle tasks. FS-gradle-plugin.2.2.
+ * Executes compiled native-image binaries for Gradle tasks and passes runtime arguments.
+ * This implements FS-gradle-plugin.2.2.
  */
 @SuppressWarnings("unused")
 public abstract class NativeRunTask extends DefaultTask {
