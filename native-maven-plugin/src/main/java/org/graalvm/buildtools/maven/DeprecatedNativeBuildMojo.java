@@ -48,6 +48,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
  * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
+ * §FS-maven-plugin.1.1.
  */
 @Deprecated
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,

@@ -73,6 +73,7 @@ import java.util.Set;
  *
  * The generated {@code dynamic-access-metadata.json} file contains the mapping of all classpath entries that exist in the
  * {@value #LIBRARY_AND_FRAMEWORK_LIST} to their transitive dependencies.
+ * §FS-maven-plugin.1.3, §FS-maven-plugin.2.5.
  * <p>
  * If {@value #LIBRARY_AND_FRAMEWORK_LIST} doesn't exist in the used release of the
  * {@code GraalVM Reachability Metadata} repository, this task does nothing.

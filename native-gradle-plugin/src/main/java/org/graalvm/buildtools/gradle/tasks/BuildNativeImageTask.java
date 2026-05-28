@@ -86,7 +86,8 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
 /**
  * This task is responsible for generating a native image by
- * calling the corresponding tool in the GraalVM toolchain. GRADLE-plugin.2.1.
+ * calling the corresponding tool in the GraalVM toolchain. FS-gradle-plugin.2.1.
+ * Command-line options replace DSL values. FS-gradle-plugin.2.5.
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
@@ -102,7 +103,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         return getOptions().get().asCompileOptions();
     }
 
-    // Command-line options replace DSL values; GRADLE-plugin.2.5.
     @Option(option = "quick-build-native", description = "Enables quick build mode")
     public void overrideQuickBuild(boolean quickBuild) {
         getOptions().get().getQuickBuild().set(quickBuild);

@@ -87,6 +87,8 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_
 /**
  * Builds and runs the project's tests as native executables.
  *
+ * §FS-maven-plugin.1.2.
+ *
  * @author Sebastien Deleuze
  */
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,

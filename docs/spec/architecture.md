@@ -1,9 +1,10 @@
 # AR-repository-architecture: Native Build Tools repository architecture
 
 This is the structural map of Native Build Tools: what the major components are, how they fit
-together, and how a change flows from implementation to verified Gradle and Maven plugin
-artifacts. The behavioral contract for the product surface is §FS-repository-functional-spec, and
-the component documents cited below own the detailed behavior and implementation boundaries.
+together, how deployment and repository-wide infrastructure fit into the product, and how a
+change flows from implementation to verified Gradle and Maven plugin artifacts. Component
+functional specifications own product behavior; component architecture specifications own
+implementation boundaries.
 
 ## 1. What the repository is
 
@@ -20,13 +21,13 @@ and verification without becoming product API.
 
 | Component | Paths | Role | Spec |
 | --- | --- | --- | --- |
-| Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §GRADLE-plugin |
-| Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §MAVEN-plugin |
-| Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §COMMON-libraries |
-| Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §TESTING-native-tests-and-fixtures |
-| Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §BUILD-infrastructure |
+| Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §FS-gradle-plugin, §AR-gradle-plugin |
+| Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §FS-maven-plugin, §AR-maven-plugin |
+| Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §FS-common-libraries, §AR-common-libraries |
+| Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-native-tests-and-fixtures, §AR-native-tests-and-fixtures |
+| Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
 | CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §CI-pull-request-ci |
-| User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, developer guide, and grounded maintainer specification. | §BUILD-infrastructure.3 |
+| User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, developer guide, and grounded maintainer specification. | §FS-build-infrastructure.3 |
 
 ## 3. Dependency direction
 
@@ -44,10 +45,10 @@ not be used as shared runtime libraries for product code.
 
 ## 4. How work flows through the system
 
-1. A behavior change starts in the most specific component spec: §GRADLE-plugin for Gradle,
-   §MAVEN-plugin for Maven, §COMMON-libraries for shared behavior,
-   §TESTING-native-tests-and-fixtures for native-test or fixture behavior, or
-   §BUILD-infrastructure for build and release infrastructure.
+1. A behavior change starts in the most specific component spec: §FS-gradle-plugin for Gradle,
+   §FS-maven-plugin for Maven, §FS-common-libraries for shared behavior,
+   §FS-native-tests-and-fixtures for native-test or fixture behavior, or
+   §FS-build-infrastructure for build and release infrastructure.
 2. Product or common code implements the behavior with citations to the component section that
    owns it. Java source comments use bare ID citations because Java checkstyle is ASCII-only.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
@@ -55,17 +56,14 @@ not be used as shared runtime libraries for product code.
 4. Pull request CI runs the matching workflow gates from §CI-pull-request-ci and validates grund
    citations through §CI-check-grund-spec.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only
-   through the repository's build and CI boundaries (§BUILD-infrastructure.5).
+   through the repository's build and CI boundaries (§FS-build-infrastructure.5).
 
 ## 5. Specification layout
 
-Top-level `functional-spec.md` and `architecture.md` describe the repository-level behavior and
-structure. Component documents live as single Markdown files under `docs/spec/`, with their own
-kind prefixes because they combine functional behavior, architecture, and verification concerns:
-`GRADLE`, `MAVEN`, `COMMON`, `TESTING`, `BUILD`, `CI`, and `E2E`.
-
-Functional specs state externally observable behavior, user workflows, build-tool contracts,
-metadata behavior, and verification expectations. Architecture sections state module ownership,
+Top-level `architecture.md` describes repository-wide structure, ownership, deployment, and
+workflow boundaries. Component directories under `docs/spec/` split behavior from implementation:
+`functional-spec.md` states externally observable behavior, user workflows, build-tool contracts,
+metadata behavior, and verification expectations; `architecture.md` states module ownership,
 dependency direction, internal structure, and implementation responsibilities. Code, tests, YAML,
 and scripts should cite the most specific component or workflow section that justifies the
 behavior.

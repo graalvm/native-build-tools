@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * Utility class containing various native-image and JVM related methods. MAVEN-plugin.3.4.
+ * Utility class containing various native-image and JVM related methods. FS-maven-plugin.3.4.
  */
 public abstract class NativeImageConfigurationUtils implements SharedConstants {
     public static final String NATIVE_TESTS_EXE = "native-tests" + EXECUTABLE_EXTENSION;

@@ -1,9 +1,9 @@
 # DEC-adopt-component-functional-architecture-docs: Adopt component spec docs beside existing user documentation
 
-The repository uses component-specific Markdown files with component-specific ID kinds. The
-top-level `FS` and `AR` declarations describe the repository as a whole; substantial components
-use `GRADLE`, `MAVEN`, `COMMON`, `TESTING`, `BUILD`, `CI`, and `E2E` IDs because those files
-combine behavior contracts, implementation structure, and verification boundaries.
+The repository uses component-specific Markdown files under the canonical `FS` and `AR` kinds.
+The top-level `AR` declaration describes the repository as a whole. Component directories split
+functional behavior from architecture so behavior contracts and implementation structure remain
+separate while citations still reveal the artifact type.
 
 The existing AsciiDoc user documentation remains in `docs/src/docs/asciidoc/`; the Markdown files
 under `docs/spec/` are maintainer-facing specification anchors. Follow-up coverage work is tracked
@@ -21,7 +21,8 @@ PR's feature-level section style.
 
 Native Build Tools has two product plugins with overlapping Native Image behavior and different
 build-tool integration models. Component docs let maintainers describe shared behavior once in
-`common.md` and then describe Gradle or Maven adaptation in the product component docs.
+`common/functional-spec.md` and then describe Gradle or Maven adaptation in the product component
+docs.
 
 ## 3. Consequences
 

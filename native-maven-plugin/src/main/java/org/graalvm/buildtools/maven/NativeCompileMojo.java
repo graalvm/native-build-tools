@@ -51,6 +51,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Builds a native executable by forking Maven to the {@code package} phase before invoking {@code native-image}.
  *
  * It should be invoked from the command line as a single goal ({@code mvn native:compile}).
+ * §FS-maven-plugin.1.1.
  */
 @Mojo(name = "compile", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,

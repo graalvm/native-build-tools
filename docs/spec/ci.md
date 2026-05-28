@@ -45,26 +45,26 @@ caches the configured `grund` binary and runs `grund check`.
 
 `test-native-gradle-plugin.yml` validates the Gradle plugin through functional-test matrices,
 configuration-cache functional-test matrices, unit tests, inspections, and a GraalVM dev-build
-functional-test job. It is the PR gate for §GRADLE-plugin and Gradle-facing end-to-end scenarios
+functional-test job. It is the PR gate for §FS-gradle-plugin and Gradle-facing end-to-end scenarios
 in §E2E-functional-test-suite.
 
 # CI-test-native-maven-plugin: Maven plugin PR workflow
 
 `test-native-maven-plugin.yml` validates the Maven plugin through a generated functional-test
-matrix and a GraalVM dev-build functional-test job. It is the PR gate for §MAVEN-plugin and
+matrix and a GraalVM dev-build functional-test job. It is the PR gate for §FS-maven-plugin and
 Maven-facing end-to-end scenarios in §E2E-functional-test-suite.
 
 # CI-test-graalvm-metadata: Reachability metadata library PR workflow
 
 `test-graalvm-metadata.yml` validates `common/graalvm-reachability-metadata` with checkstyle and
 unit tests. It protects the repository query and missing-metadata behavior specified by
-§COMMON-libraries.5 and §COMMON-libraries.6.
+§FS-common-libraries.5 and §FS-common-libraries.6.
 
 # CI-test-junit-platform-native: JUnit native support PR workflow
 
 `test-junit-platform-native.yml` validates `common/junit-platform-native` with checkstyle, JVM
 tests, and native tests. It protects the shared native-test runtime behavior specified by
-§TESTING-native-tests-and-fixtures.3.
+§FS-native-tests-and-fixtures.3.
 
 # CI-prepare-environment: Shared GitHub Action for CI Java and GraalVM setup
 

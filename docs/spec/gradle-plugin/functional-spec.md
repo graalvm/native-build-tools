@@ -1,11 +1,11 @@
-# GRADLE-plugin: The Gradle plugin wires Native Image behavior into Gradle builds
+# FS-gradle-plugin: The Gradle plugin wires Native Image behavior into Gradle builds
 
 The `native-gradle-plugin` module provides the Gradle plugin identified as
 `org.graalvm.buildtools.native`. Applying that plugin gives a Gradle project a GraalVM extension,
 native-image related tasks, command-line providers, metadata tasks, and test integration that are
 expressed using Gradle's plugin, task, provider, and configuration-cache conventions. This
 functional contract realizes §GOAL-build-tool-native-image-workflows for Gradle and depends on
-the shared behavior in §COMMON-libraries and §TESTING-native-tests-and-fixtures.
+the shared behavior in §FS-common-libraries and §FS-native-tests-and-fixtures.
 
 ## 1. Plugin activation and Gradle model
 
@@ -52,18 +52,36 @@ Native image build and run tasks are the Gradle execution surface for the plugin
 
 ### 2.1 Compile tasks
 
-The `main` binary must be compiled by `nativeCompile`; the `test` binary must be compiled by
-`nativeTestCompile`; custom binaries must receive derived `native<Binary>Compile` tasks. Compile
-tasks must declare Gradle inputs and outputs for the selected options, output directory, optional
-classpath JAR, argument-file behavior, metadata repository state, and test-list directory when
-applicable.
+The `nativeCompile` task must compile the `main` binary into the configured native executable or
+shared library. It consumes the main binary's classpath, main class or shared-library setting,
+Native Image build arguments, configuration file directories, reachability metadata output,
+generated resource configuration, optional classpath JAR, argument-file behavior, layer options,
+PGO options, environment variables, system properties, and JVM arguments.
+
+The `nativeTestCompile` task must compile the `test` binary into the native test image described
+by §FS-native-tests-and-fixtures. It consumes compiled test classes, test resources, test
+runtime classpath, JUnit native support, selected test identifiers, and the test binary's Native
+Image options. It builds the image even when later test execution is skipped.
+
+Every custom binary must receive a derived `native<Binary>Compile` task. Derived compile tasks
+follow the same input and output contract as `nativeCompile`, but use the custom binary's option
+state and task name. All compile tasks must declare Gradle inputs and outputs for the selected
+options, output directory, optional classpath JAR, argument-file behavior, metadata repository
+state, and test-list directory when applicable.
 
 ### 2.2 Run tasks
 
-The `main` binary must be executable through `nativeRun`. Custom binaries must receive a derived
-native run task, and test binaries must be executable through `nativeTest` as specified by
-§TESTING-native-tests-and-fixtures. Run tasks must consume the compile task output file and pass runtime
-arguments from the corresponding binary configuration.
+The `nativeRun` task must execute the output of `nativeCompile` for the `main` binary. It consumes
+the compile task output file, passes runtime arguments from the main binary configuration, and
+sets up layer library paths when the binary uses Native Image layers.
+
+The `nativeTest` task must execute the output of `nativeTestCompile` unless native test execution
+is skipped by configuration or task selection. Its process result is the native test result and
+must fail the build when the native test executable reports failure.
+
+Every custom binary that is runnable must receive a derived run task named from the binary, such
+as `native<Binary>`. Derived run tasks consume the corresponding derived compile task output and
+use that binary's runtime arguments.
 
 ### 2.3 Deprecated task aliases
 
@@ -85,10 +103,10 @@ rather than merging with it. A `@Option` setter such as `--image-name` calls `se
 option property the DSL populates, so the command-line value replaces the DSL value for that build.
 Build arguments are the documented exception: `--build-args` appends to the configured arguments
 while `--force-build-args` replaces them. The `-Pagent` property overrides the configured agent
-default mode as in §GRADLE-plugin.5.1. Because every source funnels
+default mode as in §FS-gradle-plugin.5.1. Because every source funnels
 into one option object, behavior depends only on which source last wrote a value, not on where it
 was written. This mirrors the Maven precedence rule in
-§MAVEN-plugin.3.5.
+§FS-maven-plugin.3.5.
 
 ## 3. Native Image invocation
 
@@ -115,7 +133,7 @@ boolean image flags, build arguments, JVM arguments, system properties, environm
 configuration file directories, resource configuration output, reachability metadata output, layer
 options (§GLOSS-layered-image), and PGO options (§GLOSS-pgo). Shared command-line escaping and argument-file conversion must come from
 common utilities rather than Gradle-only string handling. This keeps Gradle aligned with the Maven
-contract in §MAVEN-plugin.6.2.
+contract in §FS-maven-plugin.6.2.
 
 ### 3.4 Argument files
 
@@ -140,7 +158,7 @@ based on available processors.
 ## 4. Resources and reachability metadata
 
 Gradle projects use the shared metadata and resource contracts in
-§COMMON-libraries through Gradle tasks and extension settings.
+§FS-common-libraries through Gradle tasks and extension settings.
 
 ### 4.1 Resource autodetection
 
@@ -148,6 +166,10 @@ When a binary enables resource autodetection, the plugin must scan that binary's
 and generate a Native Image `resource-config.json` file. If an analyzed classpath entry already
 contains Native Image resource configuration and existing configuration should not be ignored, the
 plugin must avoid duplicating resources from that entry.
+
+The main binary resource task is `generateResourcesConfigFile`. Custom binaries receive derived
+`generate<Binary>ResourcesConfigFile` tasks. The test binary receives the corresponding generated
+resource task for the `test` binary and contributes its output to `nativeTestCompile`.
 
 ### 4.2 Generated resource configuration
 
@@ -159,13 +181,15 @@ automatically.
 
 The `collectReachabilityMetadata` task must resolve metadata for the runtime classpath from the
 configured metadata repository URI, version, exclusions, and module-to-config-version overrides.
-Its output directory must be consumable by native compile tasks.
+Its output directory must be consumable by native compile tasks and must represent only metadata
+selected for the binary's dependency graph.
 
 ### 4.4 Missing metadata reports
 
 The `listLibrariesMissingMetadata` task must inspect direct runtime dependencies, compare them to
 the configured reachability metadata repository, write a JSON report, and optionally create GitHub
-issues when the user supplies issue-creation settings.
+issues when the user supplies issue-creation settings. The task reports missing metadata without
+modifying the native compile task inputs.
 
 ### 4.5 Dynamic access metadata
 
@@ -173,6 +197,10 @@ When a binary is configured to emit a Native Image build report, the plugin must
 dynamic-access metadata before invoking Native Image, using the configured reachability metadata
 repository and runtime classpath graph, and make it available as part of the binary's generated
 Native Image configuration. The metadata is defined in §GLOSS-dynamic-access-metadata.
+
+The main binary dynamic access task is `generateDynamicAccessMetadata`. Custom binaries receive
+derived `generate<Binary>DynamicAccessMetadata` tasks. The task output is added to the binary's
+classpath only when the binary requests a Native Image build report.
 
 ## 5. Native Image tracing agent
 
@@ -194,7 +222,7 @@ without failing the build.
 ### 5.3 Agent modes
 
 The Gradle DSL must expose standard, conditional, direct, and disabled agent modes using the
-shared agent mode behavior from §COMMON-libraries.3. Conditional mode must
+shared agent mode behavior from §FS-common-libraries.3. Conditional mode must
 support user-code and extra filters; direct mode must allow users to pass native agent options,
 including `{output_dir}` substitution.
 
@@ -212,7 +240,7 @@ directories for ad hoc use.
 ## 6. Native tests
 
 Gradle native tests are part of the same plugin workflow, but their runtime semantics are defined
-by §TESTING-native-tests-and-fixtures.
+by §FS-native-tests-and-fixtures.
 
 ### 6.1 Test task integration
 
@@ -230,7 +258,7 @@ build.
 
 When Native Image compatibility mode is detected, Gradle native test behavior may use the original
 JUnit ConsoleLauncher path rather than the Native Build Tools launcher path, as described by
-§TESTING-native-tests-and-fixtures.5.
+§FS-native-tests-and-fixtures.5.
 
 ## 7. Verification surface
 
@@ -239,94 +267,4 @@ full sample builds. Functional tests must exercise sample projects through Gradl
 repository's common test repository. Required scenario families include Java applications, Java
 libraries, Kotlin tests, custom source sets, multi-project tests, resources, reflection, metadata
 repository integration, agent collection, reachability metadata, Native Image options, and layered
-applications. These fixtures are owned by §TESTING-native-tests-and-fixtures.7.
-
-## 8. Architecture
-
-`native-gradle-plugin` owns Gradle plugin registration, extension objects, task types, task
-actions, command-line providers, Gradle services, artifact transforms, and Gradle functional test
-infrastructure. The module implements §GRADLE-plugin by adapting the
-shared libraries from §COMMON-libraries.9 into Gradle's APIs.
-
-### 8.1 Module responsibility
-
-The Gradle plugin module is the only place that should depend on Gradle plugin implementation APIs
-for product behavior. It owns the `org.graalvm.buildtools.native` plugin class, public Gradle DSL
-interfaces, task types, task option methods, command-line providers, and Gradle-specific logging
-and diagnostics.
-
-Public Gradle-facing classes are part of the plugin's compatibility surface. Shared common
-libraries may expose Java APIs to the plugin, but they must not expose or depend on Gradle types.
-Internal classes may use Gradle providers, services, artifact transforms, and configuration-cache
-support. Behavior that can be expressed without Gradle APIs should be pushed down into common
-modules only when Maven or shared tests also need it.
-
-### 8.2 Extension and option model
-
-The Gradle DSL is organized around a repository-level extension and per-binary option objects.
-`DefaultGraalVmExtension` backs the public `GraalVMExtension` interface. It owns the binary
-container, agent extension, generated-resource settings, reachability metadata settings, and
-toolchain detection flags.
-
-`NativeImageOptions` and its implementation hold compile and runtime options for a named binary.
-The option object is shared by compile, run, resource-generation, dynamic-access, and native-test
-tasks so one binary has one authoritative configuration model. Delegating option wrappers may be
-used when a task needs a compile-only or runtime-only view of a binary, but the wrapper must not
-fork behavior from the underlying `NativeImageOptions` object.
-
-### 8.3 Task graph architecture
-
-For each binary, the plugin registers a compile task, run task, resource config task, and dynamic
-access metadata task where applicable. The `main` and `test` binaries receive stable conventional
-task names; custom binaries receive derived names.
-
-`BuildNativeImageTask` owns Native Image process execution, declared inputs and outputs, output
-file naming, version checks, schema validation hooks, and argument-file usage. `NativeRunTask`
-owns execution of the compiled image and runtime arguments, including layer library paths when a
-binary uses Native Image layers. `GenerateResourcesConfigFile`, `GenerateDynamicAccessMetadata`,
-`CollectReachabilityMetadata`, `ListLibrariesMissingMetadata`, and `MetadataCopyTask` adapt shared
-metadata behavior to Gradle tasks and Gradle file properties.
-
-Native test task wiring is owned here, but launcher and JUnit registration behavior belongs to
-`common/junit-platform-native` as specified by §COMMON-libraries.9.4.
-
-### 8.4 Command line and executable services
-
-Gradle-specific process setup is separated from shared Native Image option semantics.
-`NativeImageCommandLineProvider` converts `NativeImageOptions` into Native Image arguments. It may
-use Gradle providers and file collections, but shared escaping and argument-file behavior must come
-from common utilities.
-
-`NativeImageExecutableLocator` encapsulates Gradle-specific discovery of `native-image`, including
-Java launcher/toolchain integration and environment fallbacks. It also provides diagnostics for
-failed lookup. `NativeImageService` and reachability metadata build services keep expensive or
-shared state out of individual task instances and align with Gradle's configuration-cache and
-service-use model.
-
-### 8.5 Artifact transforms and classpath analysis
-
-Gradle artifact transforms are used only for Gradle-specific performance and dependency graph
-integration. The plugin registers a JAR analysis attribute and transform so classpath entries can
-be inspected without making every task implement its own scan lifecycle.
-
-Transform output must be treated as internal task input data. The functional behavior remains the
-resource and classpath analysis contract in §COMMON-libraries.2.
-
-### 8.6 Tests and fixtures
-
-The module owns Gradle TestKit infrastructure, Gradle-specific fixtures, and Gradle sample
-execution. Unit tests should cover task option mutation, command-line generation, classpath
-analysis adapters, metadata tasks, and plugin registration behavior that can run without a full
-Gradle sample build.
-
-Functional tests should run real sample builds through TestKit. They must prefer scenario
-fixtures over synthetic one-off projects when an existing sample already represents the behavior.
-Shared samples and cross-plugin scenario ownership are described by
-§TESTING-native-tests-and-fixtures.7.
-
-### 8.7 Dependency direction
-
-`native-gradle-plugin` may depend on `common/utils`, `common/graalvm-reachability-metadata`, and
-`common/junit-platform-native`. Those common modules must not depend on Gradle implementation
-classes. Gradle-specific behavior should remain in this module unless it is actually
-build-tool-neutral and can be expressed without Gradle APIs.
+applications. These fixtures are owned by §AR-native-tests-and-fixtures.1.

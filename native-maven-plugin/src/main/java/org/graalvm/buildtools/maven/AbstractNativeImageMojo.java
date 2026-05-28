@@ -91,7 +91,7 @@ import java.util.stream.Stream;
 import static org.graalvm.buildtools.utils.NativeImageUtils.ORACLE_GRAALVM_IDENTIFIER;
 
 /**
- * Base mojo for Maven native-image workflows. MAVEN-plugin.2.
+ * Base mojo for Maven native-image workflows. FS-maven-plugin.2.
  * @author Sebastien Deleuze
  */
 public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {

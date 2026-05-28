@@ -70,6 +70,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Generates Native Image resource configuration for Gradle binaries. FS-gradle-plugin.4.1.
+ */
 @CacheableTask
 public abstract class GenerateResourcesConfigFile extends DefaultTask {
 

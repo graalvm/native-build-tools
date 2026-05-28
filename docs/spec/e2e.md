@@ -4,7 +4,8 @@ Native Build Tools end-to-end coverage is implemented as Gradle `functionalTest`
 the product plugin modules. These tests run real sample or generated projects through Gradle
 TestKit or an isolated Maven executor, publish support artifacts into a local test repository, and
 verify the behavior users see from the build-tool plugins. They provide executable evidence for
-§FS-repository-functional-spec.6 and are run by PR CI in §CI-test-native-gradle-plugin and
+§FS-gradle-plugin, §FS-maven-plugin, §FS-common-libraries, and
+§FS-native-tests-and-fixtures, and are run by PR CI in §CI-test-native-gradle-plugin and
 §CI-test-native-maven-plugin.
 
 ## 1. Gradle functional tests
@@ -79,4 +80,4 @@ workflows run the shared-module tests that underpin the product E2E suites.
 E2E tests should prefer shared samples and reusable fixtures over one-off projects when an
 existing scenario already captures the behavior. New fixtures should be added only when they make
 a behavior clearer or preserve a regression shape that would be hard to express in an existing
-sample. Fixture ownership is specified by §TESTING-native-tests-and-fixtures.7.
+sample. Fixture ownership is specified by §AR-native-tests-and-fixtures.1.

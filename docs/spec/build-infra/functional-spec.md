@@ -1,4 +1,4 @@
-# BUILD-infrastructure: Build, documentation, and release infrastructure
+# FS-build-infrastructure: Build, documentation, and release infrastructure
 
 Repository infrastructure exists to build, test, document, publish, and validate Native Build
 Tools without becoming part of the product runtime API. It supports the repository architecture in
@@ -63,6 +63,6 @@ modules should not depend on infrastructure implementation classes except throug
 scripts or generated artifacts intended for runtime use.
 
 `samples/`, `test-support/`, plugin test fixtures, and Maven reproducers are evidence for product
-behavior and are specified by §TESTING-native-tests-and-fixtures. Spec files are not generated
+behavior and are specified by §FS-native-tests-and-fixtures. Spec files are not generated
 user documentation; they are stable citation targets for maintainers, code comments, tests, CI
 workflows, and future implementation work.
