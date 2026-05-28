@@ -64,5 +64,5 @@ precedence is specified by §FS-maven-plugin.3.5.
 Parity must be verified by shared samples, product functional tests, and common module tests.
 Product functional tests should cover the same scenario families in both build tools where
 possible, while product-specific tests cover behavior that only one build tool can express. The
-end-to-end execution contract is §E2E-functional-test-suite, and fixture ownership is
-§AR-native-tests-and-fixtures.
+plugin end-to-end execution contracts are §E2E-gradle-plugin-functional-tests and
+§E2E-maven-plugin-functional-tests, and fixture ownership is §AR-native-tests-and-fixtures.

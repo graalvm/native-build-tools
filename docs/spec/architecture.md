@@ -54,7 +54,8 @@ not be used as shared runtime libraries for product code.
 2. Product or common code implements the behavior with citations to the component section that
    owns it. Java source comments use bare ID citations because Java checkstyle is ASCII-only.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
-   commands specified by §E2E-functional-test-suite.
+   commands specified by §E2E-gradle-plugin-functional-tests,
+   §E2E-maven-plugin-functional-tests, and §FS-native-tests-and-fixtures.6.
 4. Pull request CI runs the matching workflow gates from §CI-pull-request-ci and validates grund
    citations through §CI-check-grund-spec.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only
@@ -64,9 +65,11 @@ not be used as shared runtime libraries for product code.
 
 Top-level `architecture.md` describes repository-wide structure, ownership, deployment, and
 workflow boundaries. Top-level `plugin-common.md` states behavior expected from both product
-plugins. Component directories under `docs/spec/` split behavior from implementation:
-`functional-spec.md` states externally observable behavior, user workflows, build-tool contracts,
-metadata behavior, and verification expectations; `architecture.md` states module ownership,
-dependency direction, internal structure, and implementation responsibilities. Code, tests, YAML,
-and scripts should cite the most specific component or workflow section that justifies the
-behavior.
+plugins. Shared repository components under `docs/spec/` split behavior from implementation where
+they need both `functional-spec.md` and `architecture.md`; the Gradle and Maven product plugins
+own standalone grund projects under `native-gradle-plugin/docs/` and `native-maven-plugin/docs/`.
+In every location, `functional-spec.md` states externally observable behavior, user workflows,
+build-tool contracts, metadata behavior, and verification expectations; `architecture.md` states
+module ownership, dependency direction, internal structure, and implementation responsibilities.
+Code, tests, YAML, and scripts should cite the most specific component or workflow section that
+justifies the behavior.

@@ -1,5 +1,5 @@
 grund_config_version = 1
-project_name = "Native Build Tools"
+project_name = "Native Gradle Plugin"
 
 [reference]
 marker = "§"
@@ -20,61 +20,61 @@ slug_pattern = "[a-z0-9][a-z0-9-]*"
 
 [[kinds]]
 prefix = "GRUND"
-folder = "."
-title = "Project motivation"
+folder = ".."
+title = "Gradle plugin purpose"
 
 [[kinds]]
 prefix = "GOAL"
-folder = "."
-title = "Project direction and outcomes"
+folder = ".."
+title = "Gradle plugin goals"
 
 [[kinds]]
 prefix = "NGOAL"
-file = "docs/spec/non-goals.md"
-title = "Project non-goals and out-of-scope proposals"
+folder = ".."
+title = "Repository non-goals"
 
 [[kinds]]
 prefix = "REQ"
-folder = "."
-title = "Cross-cutting requirements and constraints"
-
-[[kinds]]
-prefix = "AR"
-folder = "."
-title = "Architecture specifications"
+folder = ".."
+title = "Gradle plugin requirements"
 
 [[kinds]]
 prefix = "FS"
-folder = "."
-title = "Functional specifications"
+folder = ".."
+title = "Gradle plugin functional specification"
+
+[[kinds]]
+prefix = "AR"
+folder = ".."
+title = "Gradle plugin architecture"
 
 [[kinds]]
 prefix = "CI"
-file = "docs/spec/ci.md"
-title = "Pull request and repository CI workflows"
+folder = ".."
+title = "Repository CI workflows"
 
 [[kinds]]
 prefix = "E2E"
-folder = "."
-title = "Plugin end-to-end and functional test execution"
+folder = ".."
+title = "Gradle plugin end-to-end tests"
 
 [[kinds]]
 prefix = "DEC"
-file = "docs/spec/decisions.md"
-title = "Project decisions and tradeoffs"
+folder = ".."
+title = "Repository decisions"
 
 [[kinds]]
 prefix = "RM"
-file = "docs/spec/roadmap.md"
-title = "Planned milestones and sequencing"
+folder = ".."
+title = "Repository roadmap"
 
 [[kinds]]
 prefix = "GLOSS"
-file = "docs/spec/glossary.md"
-title = "Glossary of domain terms"
+folder = ".."
+title = "Repository glossary"
 
 [scan]
-include = ["docs/spec", "build-logic", "common", "native-gradle-plugin", "native-maven-plugin", "samples", "test-support", ".github/workflows", ".github/actions"]
+include = ["docs", "../docs/spec", "../native-maven-plugin/docs", "src/main", "src/test", "src/functionalTest", "src/testFixtures"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 extensions = ["md", "yml", "yaml", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]

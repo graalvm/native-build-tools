@@ -6,8 +6,9 @@ functional behavior from architecture so behavior contracts and implementation s
 separate while citations still reveal the artifact type.
 
 The existing AsciiDoc user documentation remains in `docs/src/docs/asciidoc/`; the Markdown files
-under `docs/spec/` are maintainer-facing specification anchors. Follow-up coverage work is tracked
-by §RM-expand-spec-coverage-from-module-boundaries-to-feature-details and
+under `docs/spec/` and plugin-local `docs/` directories are maintainer-facing specification
+anchors. Follow-up coverage work is tracked by
+§RM-expand-spec-coverage-from-module-boundaries-to-feature-details and
 §RM-connect-code-and-tests-to-grund-citations.
 
 ## 1. Reference format
@@ -20,9 +21,9 @@ PR's feature-level section style.
 ## 2. Why component docs
 
 Native Build Tools has two product plugins with overlapping Native Image behavior and different
-build-tool integration models. Component docs let maintainers describe shared behavior once in
-`common/functional-spec.md` and then describe Gradle or Maven adaptation in the product component
-docs.
+build-tool integration models. Component docs let maintainers describe shared product behavior
+once in `plugin-common.md`, shared implementation behavior in `common/functional-spec.md`, and
+then describe Gradle or Maven adaptation in each product plugin's local docs.
 
 ## 3. Consequences
 

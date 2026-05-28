@@ -1,5 +1,5 @@
 # Pull request Gradle plugin gate: E2E matrices, cache tests, unit tests, and inspections.
-# §CI-test-native-gradle-plugin; §E2E-functional-test-suite
+# §CI-test-native-gradle-plugin; §E2E-gradle-plugin-functional-tests
 name: "Test native-gradle-plugin"
 
 on:

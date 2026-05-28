@@ -21,10 +21,10 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 - [GOAL](docs/spec/goals.md): Project direction and outcomes
 - [NGOAL](docs/spec/non-goals.md): Project non-goals and out-of-scope proposals
 - [REQ](docs/spec/requirements.md): Cross-cutting requirements and constraints
-- [FS](docs/spec): Functional specifications in component `functional-spec.md` files and top-level shared contracts
-- [AR](docs/spec): Architecture specifications in top-level and component `architecture.md` files
+- [FS](docs/spec): Functional specifications in root specs plus plugin-local `docs/functional-spec.md` files
+- [AR](docs/spec): Architecture specifications in root specs plus plugin-local `docs/architecture.md` files
 - [CI](docs/spec/ci.md): Pull request and repository CI workflows
-- [E2E](docs/spec/e2e.md): End-to-end and functional test execution
+- [E2E](native-gradle-plugin/docs/e2e.md, native-maven-plugin/docs/e2e.md): Plugin end-to-end and functional test execution
 - [DEC](docs/spec/decisions.md): Project decisions and tradeoffs
 - [RM](docs/spec/roadmap.md): Planned milestones and sequencing
 - [GLOSS](docs/spec/glossary.md): Glossary of domain terms

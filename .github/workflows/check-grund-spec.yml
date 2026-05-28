@@ -52,4 +52,8 @@ jobs:
       - name: "✅ grund check"
         # Validates that every §<ID> citation in docs, workflows, and source doc-comments resolves,
         # and that section headings and inline-note limits hold. See AGENTS.md and .agents/grund.toml.
-        run: grund check
+        # The plugin modules are standalone grund projects, so validate their local configs too.
+        run: |
+          grund check
+          (cd native-gradle-plugin && grund check)
+          (cd native-maven-plugin && grund check)

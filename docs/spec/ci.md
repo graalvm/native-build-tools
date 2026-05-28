@@ -10,7 +10,7 @@ or functional tests prepare both a build JDK and a GraalVM test JDK through
 
 | Workflow | Scope | Required evidence |
 | --- | --- | --- |
-| `check-grund-spec.yml` | Spec, code citation, sample, workflow, and build-logic changes that may affect grounded documentation. | `grund check` must resolve every declaration and citation. §CI-check-grund-spec |
+| `check-grund-spec.yml` | Spec, code citation, sample, workflow, and build-logic changes that may affect grounded documentation. | Root and plugin-local `grund check` runs must resolve every declaration and citation. §CI-check-grund-spec |
 | `test-native-gradle-plugin.yml` | Gradle plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Gradle functional tests, configuration-cache functional tests, unit tests, and inspections. §CI-test-native-gradle-plugin |
 | `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. §CI-test-native-maven-plugin |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. §CI-test-graalvm-metadata |
@@ -21,7 +21,7 @@ or functional tests prepare both a build JDK and a GraalVM test JDK through
 Gradle and Maven product workflows generate their functional-test matrices from the repository's
 functional test list tasks before executing individual test classes. This lets CI shard expensive
 functional tests while keeping local and CI test selection aligned with
-§E2E-functional-test-suite.
+§E2E-gradle-plugin-functional-tests and §E2E-maven-plugin-functional-tests.
 
 ## 3. Dev-build coverage
 
@@ -39,20 +39,22 @@ the module-specific build report directories.
 
 `check-grund-spec.yml` validates maintainer-facing specifications, component citations, Java
 source citations, YAML workflow citations, and sample or build-logic references. It installs or
-caches the configured `grund` binary and runs `grund check`.
+caches the configured `grund` binary, runs `grund check` at the repository root, and runs
+plugin-local checks in `native-gradle-plugin/` and `native-maven-plugin/` because those modules are
+standalone grund projects.
 
 # CI-test-native-gradle-plugin: Gradle plugin PR workflow
 
 `test-native-gradle-plugin.yml` validates the Gradle plugin through functional-test matrices,
 configuration-cache functional-test matrices, unit tests, inspections, and a GraalVM dev-build
 functional-test job. It is the PR gate for §FS-gradle-plugin and Gradle-facing end-to-end scenarios
-in §E2E-functional-test-suite.
+in §E2E-gradle-plugin-functional-tests.
 
 # CI-test-native-maven-plugin: Maven plugin PR workflow
 
 `test-native-maven-plugin.yml` validates the Maven plugin through a generated functional-test
 matrix and a GraalVM dev-build functional-test job. It is the PR gate for §FS-maven-plugin and
-Maven-facing end-to-end scenarios in §E2E-functional-test-suite.
+Maven-facing end-to-end scenarios in §E2E-maven-plugin-functional-tests.
 
 # CI-test-graalvm-metadata: Reachability metadata library PR workflow
 

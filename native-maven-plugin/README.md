@@ -4,6 +4,17 @@ Maven plugin for GraalVM Native Image building
 
 End-user documentation about the plugins can be found [here](https://graalvm.github.io/native-build-tools/).
 
+## Maintainer specification
+
+This subproject has its own grund specification:
+
+* [Purpose](docs/grund.md)
+* [Goals](docs/goals.md)
+* [Requirements](docs/requirements.md)
+* [Functional specification](docs/functional-spec.md)
+* [Architecture](docs/architecture.md)
+* [End-to-end tests](docs/e2e.md)
+
 ## Building
 
 This plugin can be built with this command (from the root directory):

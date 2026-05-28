@@ -19,10 +19,12 @@ citation rather than maintaining a second copy of the registry here.
 | --- | --- |
 | [architecture.md](architecture.md) | Top-level repository architecture, deployment, and ownership boundaries |
 | [plugin-common.md](plugin-common.md) | Shared product behavior expected from both Gradle and Maven plugins |
-| [gradle-plugin/functional-spec.md](gradle-plugin/functional-spec.md) | Gradle plugin behavior |
-| [gradle-plugin/architecture.md](gradle-plugin/architecture.md) | Gradle plugin implementation architecture |
-| [maven-plugin/functional-spec.md](maven-plugin/functional-spec.md) | Maven plugin behavior |
-| [maven-plugin/architecture.md](maven-plugin/architecture.md) | Maven plugin implementation architecture |
+| [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | Gradle plugin behavior |
+| [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md) | Gradle plugin implementation architecture |
+| [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) | Gradle plugin end-to-end tests |
+| [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | Maven plugin behavior |
+| [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md) | Maven plugin implementation architecture |
+| [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) | Maven plugin end-to-end tests |
 | [common/functional-spec.md](common/functional-spec.md) | Shared metadata, resource, and common-library behavior |
 | [common/architecture.md](common/architecture.md) | Shared common-library architecture |
 | [testing/functional-spec.md](testing/functional-spec.md) | Native test behavior |
@@ -30,7 +32,6 @@ citation rather than maintaining a second copy of the registry here.
 | [build-infra/functional-spec.md](build-infra/functional-spec.md) | Build, docs, release, and CI behavior |
 | [build-infra/architecture.md](build-infra/architecture.md) | Build infrastructure architecture |
 | [ci.md](ci.md) | Pull request CI workflows and shared actions |
-| [e2e.md](e2e.md) | End-to-end and functional test execution |
 
 Single-file kinds — motivation (`grund.md`), goals (`goals.md`), non-goals (`non-goals.md`),
 requirements (`requirements.md`), decisions (`decisions.md`), roadmap (`roadmap.md`), plugin
