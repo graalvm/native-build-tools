@@ -27,8 +27,9 @@ assets, but it must not make generated documentation a source of product runtime
 
 GitHub workflows under `.github/workflows/` and reusable actions under `.github/actions/` own
 remote validation, dev-build checks, snapshot deployment, and release-sensitive publication
-steps. Workflow behavior is specified by §CI-pull-request-ci, and local execution equivalents are
-specified by §gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests.
+steps. Workflow behavior is specified by §CI-pull-request-ci, §CI-deploy-documentation, and
+§CI-deploy-snapshots, and local execution equivalents are specified by
+§gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests.
 
 Secrets, release credentials, and publication destinations belong to CI or release
 configuration. Product modules expose publishable artifacts; infrastructure decides when and how

@@ -16,20 +16,27 @@ or functional tests prepare both a build JDK and a GraalVM test JDK through
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. §CI-test-graalvm-metadata |
 | `test-junit-platform-native.yml` | JUnit native support and relevant workflow/action changes. | Checkstyle, JVM tests, and native tests for `common/junit-platform-native`. §CI-test-junit-platform-native |
 
-## 2. Matrix generation
+## 2. Publication workflows
+
+| Workflow | Scope | Required evidence |
+| --- | --- | --- |
+| `deploy-documentation.yml` | Documentation website publication from `master` and manual dispatches. | Generated user documentation is built and pushed only from the canonical repository with publish credentials. §CI-deploy-documentation |
+| `deploy-snapshots.yml` | Snapshot artifact publication after successful product and documentation workflows, or manual dispatch. | Snapshot publication runs only in the canonical repository after the configured upstream workflow completion events or an explicit manual run. §CI-deploy-snapshots |
+
+## 3. Matrix generation
 
 Gradle and Maven product workflows generate their functional-test matrices from the repository's
 functional test list tasks before executing individual test classes. This lets CI shard expensive
 functional tests while keeping local and CI test selection aligned with
 §gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests.
 
-## 3. Dev-build coverage
+## 4. Dev-build coverage
 
 Gradle and Maven product workflows include GraalVM dev-build jobs. These jobs run broad
 functional-test coverage against a recent GraalVM build so Native Build Tools catches Native Image
 integration changes before release users encounter them.
 
-## 4. Artifact upload
+## 5. Artifact upload
 
 Functional and module test workflows upload test reports on failure and success through
 `actions/upload-artifact`. The reports are review evidence for failed PR gates and should come from
@@ -66,6 +73,24 @@ unit tests. It protects the repository query and missing-metadata behavior speci
 `test-junit-platform-native.yml` validates `common/junit-platform-native` with checkstyle, JVM
 tests, and native tests. It protects the shared native-test runtime behavior specified by
 §FS-native-tests-and-fixtures.3.
+
+# CI-deploy-documentation: Documentation deployment workflow
+
+`deploy-documentation.yml` regenerates and publishes the rendered documentation website from the
+canonical `graalvm/native-build-tools` repository. It runs on pushes to `master` and manual
+dispatches, prepares the build environment with push access through §CI-prepare-environment, and
+publishes documentation by running `./gradlew :docs:gitPublishPush`. Documentation build behavior
+is specified by §FS-build-infrastructure.3.
+
+# CI-deploy-snapshots: Snapshot deployment workflow
+
+`deploy-snapshots.yml` publishes development snapshots from the canonical
+`graalvm/native-build-tools` repository. It runs after the documentation, Gradle plugin, Maven
+plugin, or JUnit native workflows complete on `master`, and it also supports manual dispatches. It
+prepares the build environment with push access through §CI-prepare-environment, then runs
+`publishToMavenLocal publishAllPublicationsToSnapshotsRepository --no-parallel`. Snapshot
+publication behavior is specified by §FS-build-infrastructure.5 and
+§FS-build-infrastructure.5.1.
 
 # CI-prepare-environment: Shared GitHub Action for CI Java and GraalVM setup
 

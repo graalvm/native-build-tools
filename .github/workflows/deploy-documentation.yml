@@ -1,3 +1,4 @@
+# Documentation website publication workflow. §CI-deploy-documentation
 name: "Deploy documentation to website"
 
 on:

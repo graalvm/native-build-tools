@@ -1,3 +1,4 @@
+# Snapshot artifact publication workflow. §CI-deploy-snapshots
 name: "Deploy snapshots"
 
 on:
