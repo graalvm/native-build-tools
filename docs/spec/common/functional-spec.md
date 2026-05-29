@@ -7,6 +7,21 @@ into their task, goal, and configuration models. This functional contract suppor
 cross-plugin product contract in §FS-plugin-common-behavior and realizes
 §GOAL-shared-native-image-behavior-stays-consistent.
 
+## At a Glance
+
+| Shared capability | What common code owns | Plugin adaptation |
+| --- | --- | --- |
+| Argument handling | escaping, argument-file conversion, version parsing, constants | Gradle tasks and Maven goals decide which options are present |
+| Resource configuration | classpath/JAR scanning and `resource-config.json` shape | plugins wire generated output into binary/goal config directories |
+| Tracing agent | standard, conditional, direct, disabled modes and merge/copy primitives | plugins attach the agent to Gradle or Maven execution APIs |
+| Reachability metadata | repository parsing, version selection, query result classification | plugins download/unpack/copy selected metadata for native-image |
+| Missing metadata reports | dependency classification and report shape | plugins expose task/goal entry points and optional issue creation |
+| Schema validation | schema lookup and Native Image major-version compatibility | plugins decide when validation runs before native-image invocation |
+
+Common code should answer build-tool-neutral Native Image questions. Gradle and Maven code should
+answer build-tool-model questions such as task inputs, Maven scopes, provider wiring, lifecycle
+bindings, and diagnostics.
+
 ## 1. Shared Native Image utilities
 
 Common utility behavior must keep Gradle and Maven command-line handling consistent.

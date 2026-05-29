@@ -1,45 +1,92 @@
 # Native Build Tools Specification
 
-This is the maintainer-facing specification. The top-level `AR` file describes repository
-architecture. Substantial components own separate functional and architecture files under their
-component directory. Functional files declare `FS-*` IDs, and architecture files declare `AR-*`
-IDs, so the ID kind gives the artifact type.
-Declarations use numbered subsections as feature-level citation targets, so implementation and
-test comments can cite narrow behavior such as
-`§FS-gradle-plugin.5.3`.
+This directory is the grounded maintainer specification for Native Build Tools. It is not a user
+guide replacement; it is the map that tells contributors and agents which behavior is owned where,
+which commands or outputs prove it, and which ID to cite from code, tests, workflows, and future
+docs.
 
-The canonical registry of ID kinds and where each kind lives is the project map in
-[AGENTS.md](../../AGENTS.md); [`.agents/grund.toml`](../../.agents/grund.toml) is the
-machine-readable source. Run `grund list` to enumerate every ID and `grund <ID>` to resolve a
-citation rather than maintaining a second copy of the registry here.
+The root namespace describes repository-wide contracts. The Gradle and Maven product plugins are
+standalone grund subprojects under `native-gradle-plugin/docs/` and
+`native-maven-plugin/docs/`. The root spec cites those plugin specs for product behavior and keeps
+shared behavior, CI, build infrastructure, common libraries, testing, decisions, and glossary terms
+in `docs/spec/`.
 
-## Component documents
+## Who should read what
 
-| File | Scope |
+| If you need to... | Start here | Then read |
+| --- | --- | --- |
+| understand what both product plugins promise | [plugin-common.md](plugin-common.md) | The Gradle and Maven functional specs |
+| change Gradle DSL, task, or TestKit behavior | [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md), [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) |
+| change Maven goal, parameter, lifecycle, or reproducer behavior | [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md), [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) |
+| change shared resource, metadata, agent, or utility behavior | [common/functional-spec.md](common/functional-spec.md) | [common/architecture.md](common/architecture.md), [plugin-common.md](plugin-common.md) |
+| change native test launcher, test image, sample, or fixture behavior | [testing/functional-spec.md](testing/functional-spec.md) | [testing/architecture.md](testing/architecture.md), plugin E2E docs |
+| change build, publication, generated source, docs, or release tasks | [build-infra/functional-spec.md](build-infra/functional-spec.md) | [build-infra/architecture.md](build-infra/architecture.md), [ci.md](ci.md) |
+| change pull request validation or GitHub Actions setup | [ci.md](ci.md) | [build-infra/functional-spec.md](build-infra/functional-spec.md) |
+| decide whether something is in scope | [goals.md](goals.md), [non-goals.md](non-goals.md) | [requirements.md](requirements.md), [decisions.md](decisions.md) |
+
+## Files at a glance
+
+| File | Holds |
 | --- | --- |
-| [architecture.md](architecture.md) | Top-level repository architecture, deployment, and ownership boundaries |
-| [plugin-common.md](plugin-common.md) | Shared product behavior expected from both Gradle and Maven plugins |
-| [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | Gradle plugin behavior |
-| [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md) | Gradle plugin implementation architecture |
-| [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) | Gradle plugin end-to-end tests |
-| [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | Maven plugin behavior |
-| [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md) | Maven plugin implementation architecture |
-| [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) | Maven plugin end-to-end tests |
-| [common/functional-spec.md](common/functional-spec.md) | Shared metadata, resource, and common-library behavior |
-| [common/architecture.md](common/architecture.md) | Shared common-library architecture |
-| [testing/functional-spec.md](testing/functional-spec.md) | Native test behavior |
-| [testing/architecture.md](testing/architecture.md) | Samples, fixtures, and native test support architecture |
-| [build-infra/functional-spec.md](build-infra/functional-spec.md) | Build, docs, release, and CI behavior |
-| [build-infra/architecture.md](build-infra/architecture.md) | Build infrastructure architecture |
-| [ci.md](ci.md) | Pull request CI workflows and shared actions |
+| [grund.md](grund.md) | Why Native Build Tools exists. |
+| [goals.md](goals.md) | Product and repository outcomes. |
+| [non-goals.md](non-goals.md) | Explicitly out-of-scope behavior. |
+| [requirements.md](requirements.md) | Cross-cutting compatibility and support constraints. |
+| [architecture.md](architecture.md) | Repository component map, dependency direction, and change flow. |
+| [plugin-common.md](plugin-common.md) | Shared product behavior expected from both Gradle and Maven plugins. |
+| [common/functional-spec.md](common/functional-spec.md) | Build-tool-neutral Native Image utilities, resources, metadata, and agent behavior. |
+| [common/architecture.md](common/architecture.md) | Shared common-library module boundaries. |
+| [testing/functional-spec.md](testing/functional-spec.md) | Native test lifecycle, JUnit support, adapters, and verification. |
+| [testing/architecture.md](testing/architecture.md) | Samples, fixtures, and native test support architecture. |
+| [build-infra/functional-spec.md](build-infra/functional-spec.md) | Maintainer task surface, generated artifacts, docs, publication, and CI data. |
+| [build-infra/architecture.md](build-infra/architecture.md) | Build infrastructure ownership and product/runtime boundary. |
+| [ci.md](ci.md) | Pull request workflows, shared actions, and workflow-specific gates. |
+| [decisions.md](decisions.md) | Decisions and tradeoffs. |
+| [roadmap.md](roadmap.md) | Planned work. |
+| [glossary.md](glossary.md) | Domain terms used across specs. |
 
-Single-file kinds — motivation (`grund.md`), goals (`goals.md`), non-goals (`non-goals.md`),
-requirements (`requirements.md`), decisions (`decisions.md`), roadmap (`roadmap.md`), plugin
-common behavior (`plugin-common.md`), and glossary (`glossary.md`) — live beside the component
-files; see the project map above for the authoritative kind list.
+## Plugin subprojects
+
+The product plugins are valid grund projects on their own:
+
+| Subproject | Purpose |
+| --- | --- |
+| [../../native-gradle-plugin/docs/grund.md](../../native-gradle-plugin/docs/grund.md) | Gradle plugin motivation. |
+| [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | Gradle DSL, tasks, commands, outputs, metadata, agent, and native-test behavior. |
+| [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md) | Gradle plugin implementation boundaries and task graph architecture. |
+| [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) | Gradle functional-test commands and CI evidence. |
+| [../../native-maven-plugin/docs/grund.md](../../native-maven-plugin/docs/grund.md) | Maven plugin motivation. |
+| [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | Maven goals, profile usage, commands, outputs, metadata, agent, and native-test behavior. |
+| [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md) | Maven plugin implementation boundaries and mojo architecture. |
+| [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) | Maven functional-test commands and CI evidence. |
+
+## Common workflows
+
+| Workflow | Gradle entry point | Maven entry point | Shared spec |
+| --- | --- | --- | --- |
+| Build an application native image | `./gradlew nativeCompile` | `mvn -Pnative package` or `mvn -Pnative native:compile` | §FS-plugin-common-behavior.2 |
+| Run the compiled application | `./gradlew nativeRun` | project-specific `exec:exec` or direct executable run | §FS-plugin-common-behavior.2 |
+| Build and run native tests | `./gradlew nativeTest` | `mvn -Pnative native:test` or bound `test` phase | §FS-plugin-common-behavior.3 |
+| Generate resource configuration | `./gradlew generateResourcesConfigFile` | `native:generateResourceConfig` | §FS-plugin-common-behavior.4 |
+| Consume reachability metadata | `collectReachabilityMetadata`, then native compile | `native:add-reachability-metadata`, then native compile | §FS-plugin-common-behavior.4 |
+| Collect/copy tracing-agent metadata | JVM task with `-Pagent`, then `metadataCopy` | `-Dagent=true`, then `native:metadata-copy` | §FS-plugin-common-behavior.5 |
+| Inspect missing metadata | `./gradlew listLibrariesMissingMetadata` | `mvn -Pnative native:list-libraries-missing-metadata` | §FS-plugin-common-behavior.4 |
 
 ## Citation shape
 
-Functional specs describe user-visible or build-visible behavior. Architecture specs describe
-ownership, dependency direction, and implementation structure. Prefer the deepest applicable
-section citation when writing code comments, tests, or future docs.
+Functional specs describe observable behavior: commands, DSL/XML, goals, task outputs, metadata
+selection, generated files, native-image invocation, and verification expectations. Architecture
+specs describe ownership, dependency direction, module boundaries, and implementation structure.
+
+Use the most specific citation that supports the behavior. For example:
+
+- Gradle task behavior: `§FS-gradle-plugin.2.1`
+- Maven goal behavior: `§FS-maven-plugin.1.1`
+- cross-plugin parity: `§FS-plugin-common-behavior.4`
+- shared resource analysis: `§FS-common-libraries.2`
+- native test lifecycle: `§FS-native-tests-and-fixtures.1`
+- build infrastructure task surface: `§FS-build-infrastructure.1.2`
+- CI workflow behavior: `§CI-test-native-gradle-plugin`
+
+Resolve citations with `grund <ID>`, inspect a section map with `grund <ID> --toc`, and run
+`grund check` from the repository root before committing spec or citation changes.

@@ -11,6 +11,37 @@ behavior aligned through §GOAL-maven-plugin-behavior-stays-aligned-with-shared-
 constrained by §REQ-maven-plugin-maven-model-compatibility and
 §REQ-maven-plugin-goal-surface-stability.
 
+## At a Glance
+
+| User wants to... | They configure | They run | Main output |
+| --- | --- | --- | --- |
+| Build during the Maven lifecycle | a `native` profile with `compile-no-fork` bound to `package` | `mvn -Pnative package` | native executable under `target/` |
+| Build directly | plugin configuration and project packaging | `mvn -Pnative native:compile` | native executable under `target/` |
+| Build and run native tests | `native:test` execution plus normal Maven test setup | `mvn -Pnative native:test` or `mvn -Pnative test` | Maven test success/failure |
+| Inspect Native Image args | plugin build configuration | `mvn -Pnative native:write-args-file` | `target/native-image*.args` |
+| Generate resource config | resource-generation goals | `native:generateResourceConfig` | `target/native/generated/generateResourceConfig/` |
+| Use reachability metadata | `<metadataRepository>` | native build goal or `native:add-reachability-metadata` | selected metadata passed to Native Image |
+| Collect agent metadata | `<agent>` or `-Dagent=true` | JVM/test run, then `native:metadata-copy` | copied or merged metadata files |
+
+```mermaid
+flowchart LR
+    POM["pom.xml<br/>profile + plugin configuration"]
+    Goals["Maven goals<br/>compile-no-fork/native:test/support goals"]
+    Common["common libraries<br/>args/resources/metadata/agent"]
+    NativeImage["native-image"]
+    Output["target/**<br/>executables + generated config"]
+
+    POM --> Goals
+    Goals --> Common
+    Common --> Goals
+    Goals --> NativeImage
+    NativeImage --> Output
+```
+
+The rest of this file is the normative contract behind those Maven workflows. It keeps Maven goal
+sections stable for code citations such as §FS-maven-plugin.1.1 for build goals,
+§FS-maven-plugin.4 for native tests, and §FS-maven-plugin.5.4 for metadata copy.
+
 ## 1. Plugin goal surface
 
 The Maven plugin exposes Native Image workflows as Maven goals. The goal names should make sense

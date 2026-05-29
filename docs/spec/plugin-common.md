@@ -1,10 +1,43 @@
 # FS-plugin-common-behavior: Gradle and Maven expose aligned Native Image plugin behavior
 
-The Gradle and Maven plugins should support the same Native Image capability families wherever
-their build-tool models overlap. This is a product-level functional contract, not the architecture
-of the `common/` implementation modules. It realizes
-§GOAL-shared-native-image-behavior-stays-consistent and is implemented by
+Native Build Tools gives Java build users a build-tool-native path to GraalVM Native Image. The
+Gradle and Maven plugins use different build models, but they should answer the same practical
+questions: how do I build a native executable, run it, test it, supply metadata, inspect missing
+metadata, and collect tracing-agent output? This product-level functional contract is about that
+shared behavior, not the architecture of the `common/` implementation modules.
+
+It realizes §GOAL-shared-native-image-behavior-stays-consistent and is implemented by
 §FS-gradle-plugin and §FS-maven-plugin with shared primitives from §FS-common-libraries.
+
+## Reader View
+
+| User goal | Gradle shape | Maven shape |
+| --- | --- | --- |
+| Build the main application image | `./gradlew nativeCompile` from `graalvmNative.binaries.main` | `mvn -Pnative package` with `compile-no-fork`, or `mvn -Pnative native:compile` |
+| Run the application image | `./gradlew nativeRun` | execute the generated binary directly or through project `exec` configuration |
+| Build and run tests as a native image | `./gradlew nativeTest` | `mvn -Pnative native:test` or a lifecycle-bound `test` execution |
+| Generate resource configuration | `generateResourcesConfigFile` and derived binary tasks | `native:generateResourceConfig` / `native:generateTestResourceConfig` |
+| Use reachability metadata | metadata repository DSL plus native compile tasks | `<metadataRepository>` plus metadata goals/native compile goals |
+| Collect agent output | `-Pagent` or DSL agent configuration, then `metadataCopy` | `-Dagent=true` or XML agent configuration, then `native:metadata-copy` |
+| Inspect missing metadata | `listLibrariesMissingMetadata` | `native:list-libraries-missing-metadata` |
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as Build user
+    participant Tool as Gradle or Maven build
+    participant Plugin as Native Build Tools plugin
+    participant Common as Shared common libraries
+    participant Metadata as Reachability metadata repository
+    participant NI as native-image
+
+    User->>Tool: run native build/test/metadata command
+    Tool->>Plugin: provide project model + plugin configuration
+    Plugin->>Common: normalize options, resources, metadata, agent behavior
+    Plugin->>Metadata: resolve selected metadata for dependencies
+    Plugin->>NI: invoke native-image with classpath, args, resources, metadata
+    NI-->>Tool: executable, test image, reports, or diagnostics
+```
 
 ## 1. Capability parity
 
@@ -16,7 +49,9 @@ schema validation, and Native Image version-dependent behavior unless a build-to
 capability impossible or intentionally different.
 
 When a capability is intentionally different between Gradle and Maven, the product-specific specs
-must explain the difference at the point where each plugin adapts this common contract.
+must explain the difference at the point where each plugin adapts this common contract. Differences
+should follow the build tool's normal user experience rather than inventing a cross-tool abstraction
+that feels natural in neither tool.
 
 ## 2. Native Image builds
 
@@ -28,12 +63,21 @@ use. Gradle exposes this through tasks and DSL options in §FS-gradle-plugin.2 a
 §FS-gradle-plugin.3. Maven exposes this through goals, parameters, and lifecycle behavior in
 §FS-maven-plugin.1 and §FS-maven-plugin.2.
 
+The user's durable build configuration should live in the build file: the Gradle DSL for Gradle
+projects and XML/plugin properties for Maven projects. One-off command-line overrides should be
+available for local experiments and CI jobs, but they must flow into the same command-line assembly
+path as durable configuration.
+
 ## 3. Native tests
 
 Both plugins must compile native test images and execute them through the shared JUnit native
 support where the build-tool test model allows it. The shared native test behavior is specified by
 §FS-native-tests-and-fixtures. Gradle adapts it through test binaries and native test tasks in
 §FS-gradle-plugin.6. Maven adapts it through the `native:test` goal in §FS-maven-plugin.4.
+
+The practical invariant is that users keep normal JVM tests and ask Native Build Tools to compile
+those tests into a native image. Plugin-specific skip flags, task selection, and lifecycle bindings
+may differ, but a failing native test executable must fail the build in both tools.
 
 ## 4. Resources and reachability metadata
 
@@ -44,12 +88,20 @@ in §FS-common-libraries.2, §FS-common-libraries.5, §FS-common-libraries.6, an
 §FS-common-libraries.7. Gradle exposes these behaviors through §FS-gradle-plugin.4; Maven exposes
 them through §FS-maven-plugin.6 and the support goals in §FS-maven-plugin.1.3.
 
+Resource and metadata workflows must keep generated files in build output directories unless a user
+explicitly asks to copy metadata elsewhere. Generated resource config should be automatically added
+to the native-image configuration directories for the relevant binary or goal.
+
 ## 5. Tracing agent workflows
 
 Both plugins must expose standard, conditional, direct, and disabled Native Image tracing-agent
 modes, along with agent output merge and copy workflows. Shared agent mode and post-processing
 behavior lives in §FS-common-libraries.3 and §FS-common-libraries.4. Gradle exposes it through
 §FS-gradle-plugin.5; Maven exposes it through §FS-maven-plugin.5.
+
+The agent workflow should let users collect metadata from normal JVM runs or tests, inspect the
+generated files, then merge or copy them into a stable metadata directory. Users should not have to
+manually assemble `-agentlib:native-image-agent=...` strings for common cases.
 
 ## 6. Option precedence and command-line compatibility
 
@@ -59,6 +111,9 @@ parameter binding differ, but each plugin must document how temporary command-li
 to durable build configuration. Gradle precedence is specified by §FS-gradle-plugin.2.5. Maven
 precedence is specified by §FS-maven-plugin.3.5.
 
+Cross-plugin parity means equivalent user intent should produce equivalent Native Image behavior,
+not that Gradle and Maven must expose identical flag names or configuration syntax.
+
 ## 7. Verification surface
 
 Parity must be verified by shared samples, product functional tests, and common module tests.
@@ -66,3 +121,7 @@ Product functional tests should cover the same scenario families in both build t
 possible, while product-specific tests cover behavior that only one build tool can express. The
 plugin end-to-end execution contracts are §E2E-gradle-plugin-functional-tests and
 §E2E-maven-plugin-functional-tests, and fixture ownership is §AR-native-tests-and-fixtures.
+
+When a new capability is added to one plugin, the implementation should either add the equivalent
+capability to the other plugin, cite the existing matching behavior, or explicitly document why the
+other build tool cannot or should not expose it.

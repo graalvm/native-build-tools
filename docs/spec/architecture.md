@@ -30,6 +30,19 @@ and verification without becoming product API.
 | CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §CI-pull-request-ci |
 | User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, developer guide, and grounded maintainer specification. | §FS-build-infrastructure.3 |
 
+### Change map
+
+```mermaid
+flowchart TD
+    SharedBehavior["Behavior shared by Gradle and Maven"] --> PluginCommon["docs/spec/plugin-common.md"]
+    GradleBehavior["Gradle DSL/task behavior"] --> GradleSpec["native-gradle-plugin/docs/functional-spec.md"]
+    MavenBehavior["Maven goal/XML behavior"] --> MavenSpec["native-maven-plugin/docs/functional-spec.md"]
+    CommonBehavior["Resources, metadata, agent, utilities"] --> CommonSpec["docs/spec/common/functional-spec.md"]
+    NativeTests["Native test lifecycle and fixtures"] --> TestingSpec["docs/spec/testing/functional-spec.md"]
+    BuildInfra["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/build-infra/functional-spec.md"]
+    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/ci.md"]
+```
+
 ## 3. Dependency direction
 
 Repository boundaries are enforced by dependency direction rather than by identical module shapes

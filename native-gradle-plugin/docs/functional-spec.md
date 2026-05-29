@@ -12,6 +12,37 @@ functional contract realizes §GOAL-gradle-plugin-native-image-workflows under
 §FS-common-libraries and §FS-native-tests-and-fixtures, and is constrained by
 §REQ-gradle-plugin-gradle-model-compatibility and §REQ-gradle-plugin-task-surface-stability.
 
+## At a Glance
+
+| User wants to... | They configure | They run | Main output |
+| --- | --- | --- | --- |
+| Build the application image | `application { mainClass = ... }` and `graalvmNative.binaries.main` | `./gradlew nativeCompile` | `build/native/nativeCompile/<imageName>` |
+| Run the application image | runtime args on the `main` binary or `nativeRun` task | `./gradlew nativeRun` | native process result |
+| Build native tests | normal Gradle `test` source set plus optional `graalvmNative.binaries.test` | `./gradlew nativeTestCompile` | `build/native/nativeTestCompile/<imageName>` |
+| Run native tests | JUnit test setup and native test options | `./gradlew nativeTest` | Gradle test task success/failure |
+| Generate resource config | binary resource settings | `./gradlew generateResourcesConfigFile` | generated `resource-config.json` under `build/native/` |
+| Use reachability metadata | `graalvmNative.metadataRepository` | `./gradlew nativeCompile` | selected metadata passed to Native Image |
+| Collect agent metadata | `graalvmNative.agent` or `-Pagent` | JVM task/test, then `./gradlew metadataCopy` | copied or merged metadata files |
+
+```mermaid
+flowchart LR
+    DSL["build.gradle<br/>application + graalvmNative"]
+    Tasks["Gradle tasks<br/>nativeCompile/nativeRun/nativeTest"]
+    Common["common libraries<br/>args/resources/metadata/agent"]
+    NativeImage["native-image"]
+    Output["build/native/**<br/>executables + generated config"]
+
+    DSL --> Tasks
+    Tasks --> Common
+    Common --> Tasks
+    Tasks --> NativeImage
+    NativeImage --> Output
+```
+
+The rest of this file is the normative contract behind those user workflows. It keeps the
+high-level task names stable while giving code and tests narrow citation targets such as
+§FS-gradle-plugin.2.1 for compile tasks or §FS-gradle-plugin.5.5 for metadata copy.
+
 ## 1. Plugin activation and Gradle model
 
 The plugin should feel like a normal Gradle Java plugin extension. Users opt in with one plugin ID,

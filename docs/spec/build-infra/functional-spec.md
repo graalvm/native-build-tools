@@ -6,6 +6,20 @@ Tools without becoming part of the product runtime API. It supports the reposito
 §E2E-gradle-plugin-functional-tests and §E2E-maven-plugin-functional-tests, and the pull request
 gates in §CI-pull-request-ci.
 
+## At a Glance
+
+| Maintainer need | Task or component | Output or effect |
+| --- | --- | --- |
+| Validate included builds | `test`, `check`, `inspections` | delegated verification across product/common/docs builds |
+| Inspect publishable artifacts | `showPublications` | Maven coordinates printed from publishable modules |
+| Publish locally for tests | `publishAllPublicationsToCommonRepository` | repository under `build/common-repo` |
+| Prepare release archive | `releaseZip` | ZIP of common repository publication output |
+| Update sample versions | `updateSamples`, `updateSamplesDir`, `updateMavenReprosDir` | rewritten sample/reproducer version placeholders |
+| Generate runtime versions | `generateVersionInfo` | generated `org.graalvm.buildtools.VersionInfo` source |
+| Package reachability metadata | `fetchMetadataRepository` | repository classifier artifact |
+| Build documentation | `resolveJavadocs`, `asciidoctor`, `gitPublish*` | rendered docs and published documentation branch content |
+| Generate CI matrix data | `dumpFunctionalTestList` | GitHub Actions matrix JSON |
+
 ## 1. Build orchestration
 
 The root Gradle build coordinates product modules, shared modules, samples, documentation, and

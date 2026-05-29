@@ -6,6 +6,32 @@ image and execute that native test binary. This behavior depends on the shared
 portion of §GOAL-build-tool-native-image-workflows and is verified by
 §GOAL-repository-fixtures-protect-real-build-scenarios.
 
+## At a Glance
+
+Native test support turns an ordinary JVM test run into enough information to build and execute a
+native test image:
+
+```mermaid
+flowchart LR
+    JVMTests["JVM test task/goal"]
+    IDs["JUnit unique ID files"]
+    Compile["nativeTestCompile / native:test image build"]
+    Launcher["NativeImageJUnitLauncher or compatibility launcher"]
+    Result["build-tool test result"]
+
+    JVMTests --> IDs
+    IDs --> Compile
+    Compile --> Launcher
+    Launcher --> Result
+```
+
+| Concern | Shared owner | Build-tool owner |
+| --- | --- | --- |
+| Test class/resource registration | `common/junit-platform-native` | Gradle and Maven provide classpaths and selected tests |
+| Launcher behavior | native test launcher and JUnit Platform feature | tasks/goals execute the image and map process status to build status |
+| Skip/no-test behavior | shared lifecycle concepts | build-tool-specific flags and task selection |
+| Compatibility mode | shared mode semantics | plugin-specific detection and argument wiring |
+
 ## 1. Native test lifecycle
 
 Native test support has two phases: collect enough JUnit Platform metadata while JVM tests run,
