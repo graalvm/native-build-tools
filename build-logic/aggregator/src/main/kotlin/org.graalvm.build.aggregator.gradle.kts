@@ -50,7 +50,7 @@ plugins {
     base
 }
 
-// Root verification aggregators delegate to included builds. FS-build-infrastructure.1.1.
+// Root verification aggregators delegate to included builds. §FS-build-infrastructure.1.1.
 tasks.named("clean") {
     gradle.includedBuilds.forEach {
         dependsOn(it.task(":clean"))
@@ -75,7 +75,7 @@ tasks.named("check") {
     }
 }
 
-// Publication coordinate reporting is maintainer task surface. FS-build-infrastructure.1.2.
+// Publication coordinate reporting is maintainer task surface. §FS-build-infrastructure.1.2.
 tasks.register("showPublications") {
     gradle.includedBuilds.forEach {
         if (it.name != "docs" && !it.projectDir.path.contains("build-logic")) {
@@ -90,7 +90,7 @@ listOf(
     "publishAllPublicationsTo" to "SnapshotsRepository",
     "publishAllPublicationsTo" to "NexusRepository",
 ).forEach { entry ->
-    // Root publication aggregators coordinate included builds. FS-build-infrastructure.1.2.
+    // Root publication aggregators coordinate included builds. §FS-build-infrastructure.1.2.
     val (taskPrefix, repo) = entry
     tasks.register("$taskPrefix$repo") {
         description = "Publishes all artifacts to the ${repo.decapitalize()} repository"
@@ -122,7 +122,7 @@ val nativeBuildToolsVersion = libs.findVersion("nativeBuildTools").get().require
 val junitJupiterVersion = libs.findVersion("junitJupiter").get().requiredVersion
 val junitPlatformVersion = libs.findVersion("junitPlatform").get().requiredVersion
 
-// Release archives package the common repository publication output. FS-build-infrastructure.1.2.
+// Release archives package the common repository publication output. §FS-build-infrastructure.1.2.
 tasks.register<Zip>("releaseZip") {
     archiveVersion.set(nativeBuildToolsVersion)
     dependsOn(pruneCommonRepo, "publishAllPublicationsToCommonRepository")
@@ -138,7 +138,7 @@ mapOf(
     "updateSamplesDir" to "samples",
     "updateMavenReprosDir" to "native-maven-plugin/reproducers"
 ).forEach { (taskName, dir) ->
-    // Sample and reproducer version update tasks are specified by FS-build-infrastructure.1.3.
+    // Sample and reproducer version update tasks are specified by §FS-build-infrastructure.1.3.
     val t = tasks.register<org.graalvm.build.samples.SamplesUpdateTask>(taskName) {
         inputDirectory.set(layout.projectDirectory.dir(dir))
         versions.put("native.gradle.plugin.version", nativeBuildToolsVersion)
@@ -156,7 +156,7 @@ val snapshotDir: File = createTempDirectory("snapshot-repo").toFile()
 // val snapshotDir: File = snapshotsRepo.get().asFile.toPath().resolve("native-build-tools").toFile()
 // Having nested git directories tend to break for me, so for now we'll use temp directory every time.
 
-// Snapshot helper tasks implement snapshot publication. FS-build-infrastructure.5.1.
+// Snapshot helper tasks implement snapshot publication. §FS-build-infrastructure.5.1.
 val cloneSnapshots = tasks.register<org.graalvm.build.tasks.GitClone>("cloneSnapshotRepository") {
     repositoryUri.set("git@github.com:graalvm/native-build-tools.git")
     repositoryDirectory.set(snapshotDir)

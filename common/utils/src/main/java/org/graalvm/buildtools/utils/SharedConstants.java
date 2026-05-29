@@ -49,7 +49,7 @@ import java.util.List;
 
 /**
  * Utility class containing various native-image and JVM related methods.
- * Keep this file in sync across all build tool plugins. FS-common-libraries.1.4.
+ * Keep this file in sync across all build tool plugins. §FS-common-libraries.1.4.
  */
 public interface SharedConstants {
     boolean IS_WINDOWS = System.getProperty("os.name", "unknown").contains("Windows");

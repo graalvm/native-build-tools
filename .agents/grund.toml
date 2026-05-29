@@ -8,7 +8,7 @@ include_root = true
 [reference]
 marker = "§"
 trigger = "$$"
-strict = false
+strict = true
 require_grounding = false
 inline_style = "citation-with-note" # citation-with-note | citation-only
 inline_note_suggested_lines = 1

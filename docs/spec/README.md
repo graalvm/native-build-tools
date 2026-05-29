@@ -86,3 +86,8 @@ Use the most specific citation that supports the behavior. For example:
 Resolve cross-namespace citations with `grund <alias>/<ID>`, inspect a section map with
 `grund <alias>/<ID> --toc`, and run `grund check` from the repository root before committing spec
 or citation changes.
+
+Use explicit `§<ID>` or `§alias/<ID>` citations everywhere. Java Checkstyle allows the `§` marker as
+the only non-ASCII citation exception, so source comments should use the same marked citation shape
+as Markdown, YAML, and workflow files. Bare ID-shaped tokens are ignored because `[reference] strict =
+true`.

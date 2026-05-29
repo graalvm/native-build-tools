@@ -51,7 +51,7 @@ import org.gradle.process.ExecSpec
 import javax.inject.Inject
 
 /**
- * Base task for snapshot publication git helpers. FS-build-infrastructure.5.1.
+ * Base task for snapshot publication git helpers. §FS-build-infrastructure.5.1.
  */
 abstract class AbstractGitTask : DefaultTask() {
 

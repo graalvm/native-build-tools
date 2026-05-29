@@ -68,7 +68,7 @@ import java.util.List;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 
 /**
- * Copies or merges tracing-agent metadata collected by Gradle tasks. FS-gradle-plugin.5.5.
+ * Copies or merges tracing-agent metadata collected by Gradle tasks. §FS-gradle-plugin.5.5.
  */
 public abstract class MetadataCopyTask extends DefaultTask {
 

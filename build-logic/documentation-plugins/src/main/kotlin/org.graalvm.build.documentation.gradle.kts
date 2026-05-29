@@ -70,7 +70,7 @@ val javadocs by configurations.creating {
 }
 
 // Prepares javadocs for publication by exploding the jars into a directory
-// which will be included in docs. FS-build-infrastructure.3.1.
+// which will be included in docs. §FS-build-infrastructure.3.1.
 val resolveJavadocs = tasks.register<ResolveJavadocs>("resolveJavadocs") {
     elements.from(javadocs)
     outputDirectory.set(layout.buildDirectory.dir("exploded-javadocs"))
@@ -141,7 +141,7 @@ afterEvaluate {
 }
 
 /**
- * Explodes Javadoc jars into the generated documentation tree. FS-build-infrastructure.3.1.
+ * Explodes Javadoc jars into the generated documentation tree. §FS-build-infrastructure.3.1.
  */
 @CacheableTask
 abstract class ResolveJavadocs : DefaultTask() {

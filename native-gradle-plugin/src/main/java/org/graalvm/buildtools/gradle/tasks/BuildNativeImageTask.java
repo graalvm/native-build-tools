@@ -86,11 +86,11 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
 /**
  * This task is responsible for generating a native image by
- * calling the corresponding tool in the GraalVM toolchain. FS-gradle-plugin.2.1,
- * and FS-gradle-plugin.3. It owns version checks, command-line construction, and argument files.
- * Those behaviors are specified by FS-gradle-plugin.3.2, FS-gradle-plugin.3.3,
- * and FS-gradle-plugin.3.4.
- * Command-line options replace DSL values. FS-gradle-plugin.2.5.
+ * calling the corresponding tool in the GraalVM toolchain. §FS-gradle-plugin.2.1,
+ * and §FS-gradle-plugin.3. It owns version checks, command-line construction, and argument files.
+ * Those behaviors are specified by §FS-gradle-plugin.3.2, §FS-gradle-plugin.3.3,
+ * and §FS-gradle-plugin.3.4.
+ * Command-line options replace DSL values. §FS-gradle-plugin.2.5.
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;

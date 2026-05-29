@@ -16,8 +16,8 @@ Repository-wide grounding, non-goals, shared plugin behavior, common library beh
 remain in the `root` namespace under `../docs/spec`. Prefer local IDs such as
 `§FS-gradle-plugin.2.1` for Gradle behavior, and cite root IDs such as
 `§root/FS-plugin-common-behavior` or `§root/NGOAL-no-build-tool-flags-for-native-image-flags` only for
-cross-project contracts. In Java comments, cite local Gradle IDs; keep cross-namespace root
-citations in Markdown or YAML where `§root/<ID>` can be checked.
+cross-project contracts. Java comments use the same marked citation shape because Checkstyle allows
+`§` as the only non-ASCII citation exception.
 
 Use `grund gradle/<ID>`, `grund gradle/<ID> --toc`, and `grund gradle/<ID> --full` from the
 repository root to resolve Gradle citations. Run `grund check` from the repository root before

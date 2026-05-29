@@ -16,8 +16,8 @@ Repository-wide grounding, non-goals, shared plugin behavior, common library beh
 remain in the `root` namespace under `../docs/spec`. Prefer local IDs such as
 `§FS-maven-plugin.1.1` for Maven behavior, and cite root IDs such as
 `§root/FS-plugin-common-behavior` or `§root/NGOAL-no-build-tool-flags-for-native-image-flags` only for
-cross-project contracts. In Java comments, cite local Maven IDs; keep cross-namespace root
-citations in Markdown or YAML where `§root/<ID>` can be checked.
+cross-project contracts. Java comments use the same marked citation shape because Checkstyle allows
+`§` as the only non-ASCII citation exception.
 
 Use `grund maven/<ID>`, `grund maven/<ID> --toc`, and `grund maven/<ID> --full` from the
 repository root to resolve Maven citations. Run `grund check` from the repository root before

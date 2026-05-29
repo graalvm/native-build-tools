@@ -2,7 +2,7 @@
 
 ## Grounding with grund (v2)
 
-This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, roadmap item, component spec, workflow spec, and glossary term has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, FS, AR, CI, E2E, DEC, RM, GLOSS}`), cited with the marker `§` — e.g. `§gradle/FS-gradle-plugin.3.1` (the `FS-gradle-plugin` here is a shape illustration, not necessarily the point you need). Type `$$` in a grund-aware editor and it becomes `§`. Java source comments use local bare ID citations because Java checkstyle is ASCII-only; `grund` recognizes those while `[reference] strict = false`. Cross-namespace citations should stay in Markdown, YAML, or other files that can use `§alias/<ID>`. Bare ID-shaped tokens are also recognized as citations for backward compatibility; set `[reference] strict = true` in `.agents/grund.toml` to require the `§` marker (run `grund fmt --marker` first to upgrade existing bare citations).
+This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, roadmap item, component spec, workflow spec, and glossary term has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, FS, AR, CI, E2E, DEC, RM, GLOSS}`), cited with the marker `§` — e.g. `§gradle/FS-gradle-plugin.3.1` (the `FS-gradle-plugin` here is a shape illustration, not necessarily the point you need). Type `$$` in a grund-aware editor and it becomes `§`. Java Checkstyle allows the `§` marker as the only non-ASCII citation exception. Bare ID-shaped tokens are ignored because `[reference] strict = true`.
 
 ### Grounding from a citation
 

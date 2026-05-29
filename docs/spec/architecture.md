@@ -65,7 +65,8 @@ not be used as shared runtime libraries for product code.
    §FS-native-tests-and-fixtures for native-test or fixture behavior, or
    §FS-build-infrastructure for build and release infrastructure.
 2. Product or common code implements the behavior with citations to the component section that
-   owns it. Java source comments use bare ID citations because Java checkstyle is ASCII-only.
+   owns it. Java source comments use marked `§<ID>` citations; Checkstyle allows `§` as the only
+   non-ASCII citation exception.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
    commands specified by §gradle/E2E-gradle-plugin-functional-tests,
    §maven/E2E-maven-plugin-functional-tests, and §FS-native-tests-and-fixtures.6.

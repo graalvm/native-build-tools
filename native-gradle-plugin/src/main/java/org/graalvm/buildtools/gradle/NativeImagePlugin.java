@@ -158,7 +158,7 @@ import static org.graalvm.buildtools.utils.SharedConstants.IS_WINDOWS;
 import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEMPLATE;
 
 /**
- * Gradle plugin for GraalVM Native Image. FS-gradle-plugin.1.
+ * Gradle plugin for GraalVM Native Image. §FS-gradle-plugin.1.
  */
 public class NativeImagePlugin implements Plugin<Project> {
     public static final String NATIVE_COMPILE_TASK_NAME = "nativeCompile";
