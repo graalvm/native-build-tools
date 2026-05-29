@@ -10,7 +10,7 @@ or functional tests prepare both a build JDK and a GraalVM test JDK through
 
 | Workflow | Scope | Required evidence |
 | --- | --- | --- |
-| `check-grund-spec.yml` | Spec, code citation, sample, workflow, and build-logic changes that may affect grounded documentation. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces. §CI-check-grund-spec |
+| `check-grund-spec.yml` | Spec, code citation, sample, workflow, and build-logic changes that may affect grounded documentation. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces; `grund fmt . --marker --check` must reject bare citation tokens. §CI-check-grund-spec |
 | `test-native-gradle-plugin.yml` | Gradle plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Gradle functional tests, configuration-cache functional tests, unit tests, and inspections. §CI-test-native-gradle-plugin |
 | `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. §CI-test-native-maven-plugin |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. §CI-test-graalvm-metadata |
@@ -46,8 +46,10 @@ the module-specific build report directories.
 
 `check-grund-spec.yml` validates maintainer-facing specifications, component citations, Java
 source citations, YAML workflow citations, and sample or build-logic references. It installs or
-caches the configured `grund` binary and runs `grund check` at the repository root so the workspace
-validates the root, Gradle, and Maven namespaces together.
+caches the configured `grund` binary, runs `grund check` at the repository root so the workspace
+validates the root, Gradle, and Maven namespaces together, and runs
+`grund fmt . --marker --check` so strict-mode bare ID-shaped tokens cannot silently bypass the
+citation marker rule.
 
 # CI-test-native-gradle-plugin: Gradle plugin PR workflow
 

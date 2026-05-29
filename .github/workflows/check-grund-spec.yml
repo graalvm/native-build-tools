@@ -31,7 +31,7 @@ env:
 
 jobs:
   check-grund-spec:
-    name: "Validate spec citations (grund check)"
+    name: "Validate spec citations"
     runs-on: ubuntu-22.04
     steps:
       - name: "☁️ Checkout repository"
@@ -55,3 +55,7 @@ jobs:
         # The root workspace validates root, Gradle, and Maven namespaces together.
         run: |
           grund check
+      - name: "✅ grund fmt --marker check"
+        # Enforces the marked citation style while [reference] strict = true ignores bare ID tokens.
+        run: |
+          grund fmt . --marker --check
