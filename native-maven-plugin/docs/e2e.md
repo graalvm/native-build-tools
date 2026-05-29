@@ -34,15 +34,52 @@ goal configuration, lifecycle phase, or generated command line is the failure su
 
 ## 3. Scenario Coverage
 
-| Scenario family | Evidence |
-| --- | --- |
-| Lifecycle native builds | `compile-no-fork` bound to `package` through native profiles |
-| Direct goal usage | `native:compile`, `native:write-args-file`, and support goals |
-| Native tests | `native:test`, skip flags, no-test behavior, runtime args, and launcher selection |
-| Resources | main and test resource config generation |
-| Reachability metadata | official/local metadata repositories, exclusions, forced versions, archives, and URLs |
-| Tracing agent | `-Dagent=true`, direct/conditional/standard modes, merge, and metadata copy |
-| Maven integration | shaded JARs, custom packaging, SBOM behavior, reproducers, and local repository seeding |
+### 3.1 Lifecycle native builds
+
+`JavaApplicationFunctionalTest`, `JavaLibraryFunctionalTest`, and profile-based sample builds verify
+`compile-no-fork` bound to lifecycle phases such as `package`. This protects
+§FS-maven-plugin.1.1, §FS-maven-plugin.1.4, and §FS-maven-plugin.2.
+
+### 3.2 Direct goal usage
+
+`JavaApplicationFunctionalTest` and related functional tests verify direct goal usage such as
+`native:compile`, `native:write-args-file`, and support goals. This protects
+§FS-maven-plugin.1.1, §FS-maven-plugin.1.3, and §FS-maven-plugin.2.8.
+
+### 3.3 Native tests
+
+`JavaApplicationWithTestsFunctionalTest`, `MavenTestExecutionFunctionalTests`,
+`JUnitFunctionalTests`, and `issues/ModuleWithoutSourcesFunctionalTest` verify `native:test`, skip
+flags, no-test behavior, runtime arguments, launcher selection, and reactor modules without source
+artifacts. This protects §FS-maven-plugin.1.2, §FS-maven-plugin.4, and
+§root/FS-native-tests-and-fixtures.
+
+### 3.4 Resources
+
+`JavaApplicationWithResourcesFunctionalTest` verifies main and test resource configuration
+generation and resource propagation into native builds. This protects §FS-maven-plugin.2.4 and
+§FS-maven-plugin.6.1.
+
+### 3.5 Reachability metadata
+
+`MetadataRepositoryFunctionalTest`, `OfficialMetadataRepositoryFunctionalTest`, and
+`issues/ExcludeDependenciesFunctionalTest` with `reproducers/issue-612` verify official and local
+metadata repositories, exclusions, forced versions, archives, URLs, and missing metadata reports.
+This protects §FS-maven-plugin.6.2, §FS-maven-plugin.6.3, and §root/FS-common-libraries.5.
+
+### 3.6 Tracing agent
+
+`JavaApplicationWithAgentFunctionalTest` verifies `-Dagent=true`, standard/direct/conditional modes,
+disabled stages, merge behavior, and `native:metadata-copy`. This protects §FS-maven-plugin.5 and
+§root/FS-common-libraries.3.
+
+### 3.7 Maven integration
+
+`SBOMFunctionalTest`, `JavaApplicationWithTestsFunctionalTest`, `issues/JavaAppWithTestsAndParentPomFunctionalTest`
+with `reproducers/issue-144`, and `issues/ModuleWithoutSourcesFunctionalTest` with
+`reproducers/issue-727` verify shaded JARs, custom packaging, SBOM behavior, parent POM merging,
+issue reproducers, and local repository seeding. This protects §FS-maven-plugin.2.6,
+§FS-maven-plugin.3.3, and §AR-maven-plugin.6.
 
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the
