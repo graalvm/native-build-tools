@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle.tasks
 
+// Protects Gradle resource autodetection and generated resource-config shape. §FS-gradle-plugin.4.1 §FS-gradle-plugin.4.2.
 class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     def "generates an empty resource-config.json file"() {
         def project = buildProject()

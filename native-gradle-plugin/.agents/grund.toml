@@ -51,7 +51,7 @@ title = "Gradle plugin end-to-end tests"
 [scan]
 include = ["AGENTS.md", "docs", "src/main", "src/test", "src/functionalTest", "src/testFixtures"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
-extensions = ["md", "yml", "yaml", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
+extensions = ["md", "yml", "yaml", "rs", "go", "java", "groovy", "gradle", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]
 docstring_python = true
 respect_gitignore = true

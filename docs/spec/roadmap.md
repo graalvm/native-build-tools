@@ -15,15 +15,15 @@ contracts than the current component sections. Likely follow-up areas include ex
 contracts, native-image option precedence tables, Maven descriptor parameter tables, and fixture
 coverage matrices.
 
-# RM-connect-code-and-tests-to-grund-citations: Add citations from high-risk implementation and tests to the spec
+# RM-connect-code-and-tests-to-grund-citations: Grow citations from high-risk implementation and tests to the spec
 
-Once the team agrees on the spec shape, source comments, test fixtures, and documentation sections
-can cite the relevant grund IDs. Keep `require_grounding = false` until citation coverage is
-intentional enough to enforce in CI.
+The initial source-comment citation pass is in place for high-risk implementation paths and
+`[reference] strict = true` requires marked citations. Keep `require_grounding = false` until test,
+fixture, sample, and lower-risk source coverage is intentional enough to enforce in CI.
 
 ## 1. First citation targets
 
-Start with high-risk behavior: Native Image command-line construction, executable lookup,
-reachability metadata resolution, schema validation, agent mode command lines, native test
-launcher selection, Maven main-class discovery, Gradle binary task registration, and fixture tests
-that preserve regression scenarios.
+Continue with focused test and fixture citations for high-risk behavior: Native Image command-line
+construction, executable lookup, reachability metadata resolution, schema validation, agent mode
+command lines, native test launcher selection, Maven main-class discovery, Gradle binary task
+registration, and regression fixtures that preserve scenario behavior.
