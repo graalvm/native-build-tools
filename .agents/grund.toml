@@ -24,12 +24,12 @@ slug_pattern = "[a-z0-9][a-z0-9-]*"
 
 [[kinds]]
 prefix = "GRUND"
-folder = "."
+file = "docs/spec/grund.md"
 title = "Project motivation"
 
 [[kinds]]
 prefix = "GOAL"
-folder = "."
+file = "docs/spec/goals.md"
 title = "Project direction and outcomes"
 
 [[kinds]]
@@ -39,17 +39,17 @@ title = "Project non-goals and out-of-scope proposals"
 
 [[kinds]]
 prefix = "REQ"
-folder = "."
+file = "docs/spec/requirements.md"
 title = "Cross-cutting requirements and constraints"
 
 [[kinds]]
 prefix = "AR"
-folder = "."
+folder = "docs/spec"
 title = "Architecture specifications"
 
 [[kinds]]
 prefix = "FS"
-folder = "."
+folder = "docs/spec"
 title = "Functional specifications"
 
 [[kinds]]
@@ -59,7 +59,7 @@ title = "Pull request and repository CI workflows"
 
 [[kinds]]
 prefix = "E2E"
-folder = "."
+folder = "docs/spec"
 title = "Plugin end-to-end and functional test execution"
 
 [[kinds]]
@@ -78,7 +78,7 @@ file = "docs/spec/glossary.md"
 title = "Glossary of domain terms"
 
 [scan]
-include = ["docs/spec", "build-logic", "common", "samples", "test-support", ".github/workflows", ".github/actions"]
+include = ["AGENTS.md", "docs/spec", "build-logic", "common", "samples", "test-support", ".github/workflows", ".github/actions"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 extensions = ["md", "yml", "yaml", "rs", "go", "java", "groovy", "gradle", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]
