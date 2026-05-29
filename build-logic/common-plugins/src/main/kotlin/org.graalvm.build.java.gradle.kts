@@ -43,6 +43,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 /**
  * Defines common logic used by all libraries GraalVM projects in this repository
+ * FS-build-infrastructure.2.1.
  */
 
 plugins {
@@ -88,6 +89,7 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// Maintainer inspections aggregate Checkstyle. FS-build-infrastructure.1.1.
 val inspections by tasks.registering {
     dependsOn(tasks.withType<Checkstyle>())
 }

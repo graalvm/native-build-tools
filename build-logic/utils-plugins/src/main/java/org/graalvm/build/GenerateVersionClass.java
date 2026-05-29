@@ -35,6 +35,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Generates runtime version constants from build configuration. FS-build-infrastructure.2.2.
+ */
 @CacheableTask
 public abstract class GenerateVersionClass extends DefaultTask {
     @Input

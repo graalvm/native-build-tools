@@ -51,6 +51,7 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
 
+// Downloads the reachability metadata repository artifact. FS-build-infrastructure.2.3.
 val fetchRepository = tasks.register<FetchRepositoryMetadata>("fetchMetadataRepository") {
     outputDirectory.convention(layout.buildDirectory.dir("repository"))
 }
