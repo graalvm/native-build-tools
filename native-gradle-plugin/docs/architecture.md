@@ -3,7 +3,7 @@
 `native-gradle-plugin` owns Gradle plugin registration, extension objects, task types, task
 actions, command-line providers, Gradle services, artifact transforms, and Gradle functional test
 infrastructure. The module implements §FS-gradle-plugin by adapting the shared libraries from
-§AR-common-libraries into Gradle's APIs.
+§root/AR-common-libraries into Gradle's APIs.
 
 ## 1. Module responsibility
 
@@ -45,7 +45,7 @@ binary uses Native Image layers. `GenerateResourcesConfigFile`, `GenerateDynamic
 metadata behavior to Gradle tasks and Gradle file properties.
 
 Native test task wiring is owned here, but launcher and JUnit registration behavior belongs to
-`common/junit-platform-native` as specified by §AR-common-libraries.4.
+`common/junit-platform-native` as specified by §root/AR-common-libraries.4.
 
 ## 4. Command line and executable services
 
@@ -67,7 +67,7 @@ integration. The plugin registers a JAR analysis attribute and transform so clas
 be inspected without making every task implement its own scan lifecycle.
 
 Transform output must be treated as internal task input data. The functional behavior remains the
-resource and classpath analysis contract in §FS-common-libraries.2.
+resource and classpath analysis contract in §root/FS-common-libraries.2.
 
 ## 6. Tests and fixtures
 
@@ -78,7 +78,7 @@ Gradle sample build.
 
 Functional tests should run real sample builds through TestKit. They must prefer scenario
 fixtures over synthetic one-off projects when an existing sample already represents the behavior.
-Shared samples and cross-plugin scenario ownership are described by §AR-native-tests-and-fixtures.1.
+Shared samples and cross-plugin scenario ownership are described by §root/AR-native-tests-and-fixtures.1.
 
 ## 7. Dependency direction
 

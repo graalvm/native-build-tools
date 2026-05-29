@@ -123,14 +123,14 @@ Gradle and Maven adapters expose the same native test concept through different 
 
 Gradle must connect the `test` binary to the `test` source set and `test` task, build it with
 `nativeTestCompile`, and execute it with `nativeTest`. Gradle-specific behavior is specified by
-§FS-gradle-plugin.6.
+§gradle/FS-gradle-plugin.6.
 
 ### 4.2 Maven adapter
 
 Maven must expose native tests through `native:test`, use Maven test classes/resources and test
 dependency scopes, and honor `skipTests`, `skipNativeTests`, `skipTestExecution`, and
 `failNoTests`. Maven-specific behavior is specified by
-§FS-maven-plugin.4.
+§maven/FS-maven-plugin.4.
 
 ### 4.3 Runtime arguments
 

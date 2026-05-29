@@ -3,16 +3,16 @@
 This requirement constrains the goals under §GRUND-native-build-tools-reason-for-existence, in
 particular §GOAL-build-tool-native-image-workflows. A project that upgrades to a newer plugin
 version must keep building without forced changes to its build script. The durable Gradle DSL
-surface in §FS-gradle-plugin.1.2 and the Maven goal and configuration
-surface in §FS-maven-plugin.1 must stay compatible across minor and patch
+surface in §gradle/FS-gradle-plugin.1.2 and the Maven goal and configuration
+surface in §maven/FS-maven-plugin.1 must stay compatible across minor and patch
 releases.
 
 ## 1. Deprecation over removal
 
 When behavior must change, the plugins keep a compatibility path rather than breaking existing
 builds. Renamed tasks and goals retain deprecated aliases that delegate to the replacement and warn
-users toward the current name, as required by §FS-gradle-plugin.2.3 and
-§FS-maven-plugin.1.1. Removal happens only on a major version boundary
+users toward the current name, as required by §gradle/FS-gradle-plugin.2.3 and
+§maven/FS-maven-plugin.1.1. Removal happens only on a major version boundary
 after a deprecation period.
 
 ## 2. Configuration compatibility

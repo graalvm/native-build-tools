@@ -6,10 +6,11 @@ which commands or outputs prove it, and which ID to cite from code, tests, workf
 docs.
 
 The root namespace describes repository-wide contracts. The Gradle and Maven product plugins are
-standalone grund subprojects under `native-gradle-plugin/docs/` and
-`native-maven-plugin/docs/`. The root spec cites those plugin specs for product behavior and keeps
-shared behavior, CI, build infrastructure, common libraries, testing, decisions, and glossary terms
-in `docs/spec/`.
+workspace members named `gradle` and `maven`, with local docs under
+`native-gradle-plugin/docs/` and `native-maven-plugin/docs/`. Root docs cite product-plugin facts
+with aliases such as `§gradle/FS-gradle-plugin` and `§maven/FS-maven-plugin`; plugin docs cite
+repository-wide facts with `§root/<ID>`. Shared behavior, CI, build infrastructure, common
+libraries, testing, decisions, and glossary terms stay in `docs/spec/`.
 
 ## Who should read what
 
@@ -45,20 +46,14 @@ in `docs/spec/`.
 | [roadmap.md](roadmap.md) | Planned work. |
 | [glossary.md](glossary.md) | Domain terms used across specs. |
 
-## Plugin subprojects
+## Workspace Members
 
-The product plugins are valid grund projects on their own:
+The product plugins are separate grund workspace members:
 
-| Subproject | Purpose |
+| Alias | Subproject | Purpose |
 | --- | --- |
-| [../../native-gradle-plugin/docs/grund.md](../../native-gradle-plugin/docs/grund.md) | Gradle plugin motivation. |
-| [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | Gradle DSL, tasks, commands, outputs, metadata, agent, and native-test behavior. |
-| [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md) | Gradle plugin implementation boundaries and task graph architecture. |
-| [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) | Gradle functional-test commands and CI evidence. |
-| [../../native-maven-plugin/docs/grund.md](../../native-maven-plugin/docs/grund.md) | Maven plugin motivation. |
-| [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | Maven goals, profile usage, commands, outputs, metadata, agent, and native-test behavior. |
-| [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md) | Maven plugin implementation boundaries and mojo architecture. |
-| [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) | Maven functional-test commands and CI evidence. |
+| `gradle` | [../../native-gradle-plugin/docs/grund.md](../../native-gradle-plugin/docs/grund.md) | Gradle plugin motivation, goals, functional spec, architecture, requirements, and E2E evidence. |
+| `maven` | [../../native-maven-plugin/docs/grund.md](../../native-maven-plugin/docs/grund.md) | Maven plugin motivation, goals, functional spec, architecture, requirements, and E2E evidence. |
 
 ## Common workflows
 
@@ -80,13 +75,14 @@ specs describe ownership, dependency direction, module boundaries, and implement
 
 Use the most specific citation that supports the behavior. For example:
 
-- Gradle task behavior: `§FS-gradle-plugin.2.1`
-- Maven goal behavior: `§FS-maven-plugin.1.1`
+- Gradle task behavior from root docs: `§gradle/FS-gradle-plugin.2.1`
+- Maven goal behavior from root docs: `§maven/FS-maven-plugin.1.1`
 - cross-plugin parity: `§FS-plugin-common-behavior.4`
 - shared resource analysis: `§FS-common-libraries.2`
 - native test lifecycle: `§FS-native-tests-and-fixtures.1`
 - build infrastructure task surface: `§FS-build-infrastructure.1.2`
 - CI workflow behavior: `§CI-test-native-gradle-plugin`
 
-Resolve citations with `grund <ID>`, inspect a section map with `grund <ID> --toc`, and run
-`grund check` from the repository root before committing spec or citation changes.
+Resolve cross-namespace citations with `grund <alias>/<ID>`, inspect a section map with
+`grund <alias>/<ID> --toc`, and run `grund check` from the repository root before committing spec
+or citation changes.

@@ -69,7 +69,6 @@ import java.util.Set;
 /**
  * Collects reachability metadata for Gradle runtime dependencies. FS-gradle-plugin.4.3.
  * The output is consumed by native compile tasks through the generated configuration directory.
- * This uses the shared repository contract in FS-common-libraries.5.
  */
 public abstract class CollectReachabilityMetadata extends DefaultTask {
 

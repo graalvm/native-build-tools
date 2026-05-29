@@ -4,8 +4,8 @@ The `native-maven-plugin` module provides a Maven plugin packaged as `maven-plug
 adds it to a profile, binds native goals to lifecycle phases, or invokes goals such as
 `native:compile`, `native:test`, `native:write-args-file`, and `native:metadata-copy` directly.
 The mojos translate Maven project state, XML configuration, system properties, dependency scopes,
-and lifecycle phases into the shared Native Build Tools behavior in §FS-plugin-common-behavior,
-§FS-common-libraries, and §FS-native-tests-and-fixtures. This realizes
+and lifecycle phases into the shared Native Build Tools behavior in §root/FS-plugin-common-behavior,
+§root/FS-common-libraries, and §root/FS-native-tests-and-fixtures. This realizes
 §GOAL-maven-plugin-native-image-workflows under §GRUND-maven-plugin-purpose and keeps Maven
 behavior aligned through §GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract. It is
 constrained by §REQ-maven-plugin-maven-model-compatibility and
@@ -79,8 +79,8 @@ mvn -Pnative -DquickBuild native:test
 ```
 
 When bound to the `test` phase, it must honor Maven skip settings and Native Build Tools test
-settings while using the shared native test contract in §FS-plugin-common-behavior.3 and
-§FS-native-tests-and-fixtures.
+settings while using the shared native test contract in §root/FS-plugin-common-behavior.3 and
+§root/FS-native-tests-and-fixtures.
 
 ### 1.3 Metadata and support goals
 
@@ -90,16 +90,16 @@ The support goals should each answer a practical user question:
 configuration for the main and test classpaths. `native:generateDynamicAccessMetadata` prepares
 dynamic access metadata when a build report is requested. `native:add-reachability-metadata`
 resolves repository metadata and adds it to the configuration directories used by native builds.
-These goals expose the metadata and resource parts of §FS-plugin-common-behavior.4.
+These goals expose the metadata and resource parts of §root/FS-plugin-common-behavior.4.
 
 `native:merge-agent-files` merges tracing-agent output with `native-image-configure`, and
 `native:metadata-copy` copies or merges selected agent output into a configured metadata
-directory. These goals expose §FS-plugin-common-behavior.5 and §FS-common-libraries.4.
+directory. These goals expose §root/FS-plugin-common-behavior.5 and §root/FS-common-libraries.4.
 
 `native:list-libraries-missing-metadata` reports dependencies not covered by the configured
 reachability metadata repository. `native:write-args-file` writes the native-image arguments that
 Maven would pass, so users can inspect or reuse the invocation outside Maven. These goals expose
-§FS-plugin-common-behavior.4 and §FS-plugin-common-behavior.6.
+§root/FS-plugin-common-behavior.4 and §root/FS-plugin-common-behavior.6.
 
 ### 1.4 Lifecycle bindings
 
@@ -152,7 +152,7 @@ from the same project model.
 
 Maven native image builds translate project packaging, dependency scopes, plugin configuration,
 and command-line properties into a Native Image invocation that satisfies
-§FS-plugin-common-behavior.2.
+§root/FS-plugin-common-behavior.2.
 
 ### 2.1 Main class discovery
 
@@ -177,7 +177,7 @@ native-image compilation without changing the Maven project dependency graph.
 
 Before building, the plugin must add generated resource configuration to the native image
 arguments when resource autodetection is configured. Generation uses the shared resource contract
-in §FS-common-libraries.2.
+in §root/FS-common-libraries.2.
 
 ### 2.5 Dynamic access metadata
 
@@ -266,7 +266,7 @@ command-line property from §FS-maven-plugin.3.2, such as `-DskipNativeBuild=...
 when no explicit configuration is present. The exception is a parameter intentionally modeled to
 let the property win for one run, such as the agent toggle in §FS-maven-plugin.5.1 where
 `-Dagent=false` disables an agent enabled in the POM. This is the Maven adaptation of
-§FS-plugin-common-behavior.6.
+§root/FS-plugin-common-behavior.6.
 
 ## 4. Native tests
 
@@ -291,7 +291,7 @@ whether the goal fails or skips.
 By default, `native:test` must build the image with
 `org.graalvm.junit.platform.NativeImageJUnitLauncher` and the `JUnitPlatformFeature`. If Native
 Image compatibility mode is enabled, it must use the original JUnit ConsoleLauncher path described
-by §FS-native-tests-and-fixtures.5.
+by §root/FS-native-tests-and-fixtures.5.
 
 ### 4.4 Test execution
 
@@ -331,7 +331,7 @@ single invocation.
 ### 5.2 Agent modes
 
 The Maven configuration must support standard, direct, conditional, and disabled agent modes using
-the shared agent mode contract in §FS-common-libraries.3. Conditional mode must support user-code
+the shared agent mode contract in §root/FS-common-libraries.3. Conditional mode must support user-code
 and extra filters, and direct mode must let users provide the raw agent command line when they need
 full control.
 
@@ -381,7 +381,7 @@ builds automatically.
 
 The plugin must generate resource configuration for main and test classpaths. Generation must
 respect existing Native Image resource configuration and the shared classpath scanning behavior in
-§FS-common-libraries.2.
+§root/FS-common-libraries.2.
 
 ### 6.2 Reachability metadata
 
@@ -394,7 +394,7 @@ repository contents.
 
 `native:list-libraries-missing-metadata` reports project dependencies that do not appear to have
 reachability metadata support and may create GitHub issues when issue creation is configured. Its
-behavior must remain aligned with §FS-plugin-common-behavior.4.
+behavior must remain aligned with §root/FS-plugin-common-behavior.4.
 
 ### 6.4 Schema validation
 
@@ -438,4 +438,4 @@ The module's unit tests must cover mojos, configuration objects, command-line as
 utility integration that can be tested locally. Functional tests must execute Maven sample
 projects, issue reproducers, SBOM behavior, metadata repository integration, agent workflows,
 resource generation, and native test execution scenarios through a seeded local Maven repository.
-Those fixtures are owned by §AR-native-tests-and-fixtures.1.
+Those fixtures are owned by §root/AR-native-tests-and-fixtures.1.

@@ -3,7 +3,7 @@
 `native-maven-plugin` owns Maven mojos, Maven plugin descriptor generation, Plexus integration,
 Maven configuration objects, Maven repository seeding for functional tests, Maven-specific SBOM
 integration, and issue reproducers. The module implements §FS-maven-plugin by adapting the shared
-libraries from §AR-common-libraries into Maven's APIs.
+libraries from §root/AR-common-libraries into Maven's APIs.
 
 ## 1. Module responsibility
 
@@ -69,7 +69,7 @@ command construction.
 ## 5. Agent and metadata architecture
 
 Maven-specific agent configuration classes map XML elements to common agent mode objects. They
-should keep XML compatibility while preserving shared mode semantics from §FS-common-libraries.3.
+should keep XML compatibility while preserving shared mode semantics from §root/FS-common-libraries.3.
 
 Agent merge and metadata copy behavior should share an abstract merge base where they need the
 same tool discovery, stage selection, and `native-image-configure` invocation logic. Reachability

@@ -4,7 +4,7 @@ Maven end-to-end coverage lives under `native-maven-plugin/src/functionalTest/`.
 sample projects, generated projects, or issue reproducers through an isolated Maven executor,
 seed a local Maven repository with plugin and support artifacts, and verify the behavior users see
 from the Maven plugin. They provide executable evidence for §FS-maven-plugin, §AR-maven-plugin,
-and the shared product contract in §FS-plugin-common-behavior.
+and the shared product contract in §root/FS-plugin-common-behavior.
 
 ## 1. Full local suite
 
@@ -60,7 +60,7 @@ sample project would, rather than reaching into compiled classes directly.
 ## 5. CI coverage
 
 `test-native-maven-plugin.yml` runs generated Maven functional-test matrices and GraalVM dev-build
-functional tests on pull requests. The CI workflow is specified by §CI-test-native-maven-plugin.
+functional tests on pull requests. The CI workflow is specified by §root/CI-test-native-maven-plugin.
 
 The CI matrix is the merge gate. Local runs should reproduce the failing class or reproducer first,
 then broaden to the full suite before pushing behavior changes that affect goals, Maven parameter

@@ -10,5 +10,5 @@ requirement constrains §FS-maven-plugin.1 and §AR-maven-plugin.3.
 
 Maven goal names, parameter names, default phases, and documented command-line properties are
 user-facing compatibility surfaces. Changes to those names must follow the repository
-compatibility requirement in §REQ-backwards-compatibility-across-plugin-versions and the
+compatibility requirement in §root/REQ-backwards-compatibility-across-plugin-versions and the
 deprecated goal behavior in §FS-maven-plugin.1.1.

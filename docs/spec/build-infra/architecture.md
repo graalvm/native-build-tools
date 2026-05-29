@@ -19,7 +19,7 @@ classes that produce them.
 
 The AsciiDoc tree under `docs/src/docs/asciidoc/` is the source for generated user documentation.
 The Markdown tree under `docs/spec/` is the root maintainer-facing specification and citation
-graph. The Gradle and Maven plugin modules also own standalone grund specs under their local
+graph. The Gradle and Maven plugin modules also own workspace member specs under their local
 `docs/` directories. Documentation build logic may copy snippets, render pages, and publish static
 assets, but it must not make generated documentation a source of product runtime behavior.
 
@@ -28,7 +28,7 @@ assets, but it must not make generated documentation a source of product runtime
 GitHub workflows under `.github/workflows/` and reusable actions under `.github/actions/` own
 remote validation, dev-build checks, snapshot deployment, and release-sensitive publication
 steps. Workflow behavior is specified by §CI-pull-request-ci, and local execution equivalents are
-specified by §E2E-gradle-plugin-functional-tests and §E2E-maven-plugin-functional-tests.
+specified by §gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests.
 
 Secrets, release credentials, and publication destinations belong to CI or release
 configuration. Product modules expose publishable artifacts; infrastructure decides when and how

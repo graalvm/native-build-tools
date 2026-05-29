@@ -3,7 +3,7 @@
 Repository infrastructure exists to build, test, document, publish, and validate Native Build
 Tools without becoming part of the product runtime API. It supports the repository architecture in
 §AR-repository-architecture, the plugin end-to-end test contracts in
-§E2E-gradle-plugin-functional-tests and §E2E-maven-plugin-functional-tests, and the pull request
+§gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests, and the pull request
 gates in §CI-pull-request-ci.
 
 ## At a Glance
@@ -108,7 +108,7 @@ The AsciiDoc tree under `docs/src/docs/asciidoc/` remains the source for generat
 documentation. It documents how users apply and configure the Gradle and Maven plugins. The
 Markdown tree under `docs/spec/` contains root grund declarations, goals, decisions, roadmap
 items, shared component specs, CI specs, and architecture specs. Gradle and Maven plugin specs live
-under `native-gradle-plugin/docs/` and `native-maven-plugin/docs/` as standalone grund projects.
+under `native-gradle-plugin/docs/` and `native-maven-plugin/docs/` as workspace member projects.
 These maintainer-facing specs should be updated before behavior or design changes.
 
 Documentation build logic must keep snippets, generated pages, static assets, and published

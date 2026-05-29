@@ -68,8 +68,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Reports direct Gradle dependencies without reachability metadata. FS-gradle-plugin.4.4,
- * and FS-common-libraries.6.
+ * Reports direct Gradle dependencies without reachability metadata. FS-gradle-plugin.4.4.
  */
 public abstract class ListLibrariesMissingMetadata extends DefaultTask {
     public ListLibrariesMissingMetadata() {

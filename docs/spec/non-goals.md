@@ -4,8 +4,8 @@ This non-goal bounds §GOAL-build-tool-native-image-workflows under the groundin
 §GRUND-native-build-tools-reason-for-existence. The Gradle and Maven plugins must not introduce
 a DSL option, extension property, or goal parameter whose only purpose is to forward a value to an
 existing `native-image` flag. Such flags are already reachable through the build-argument
-pass-through: §FS-gradle-plugin.2.4 for Gradle build args and
-§FS-maven-plugin.3.1 for Maven `<buildArgs>`. Mirroring every
+pass-through: §gradle/FS-gradle-plugin.2.4 for Gradle build args and
+§maven/FS-maven-plugin.3.1 for Maven `<buildArgs>`. Mirroring every
 `native-image` flag in the build tools would couple the plugins to the native-image command-line
 surface and grow the maintenance and documentation burden without adding capability. Proposals to
 add such a flag are declined and redirected to the pass-through.
@@ -18,5 +18,5 @@ excessively complex to use. This keeps the plugins focused on Native Image integ
 on general build orchestration that the host build tool already owns. When a proposed feature
 overlaps an existing build-tool capability, accept it only when Native Image's multiple build
 targets — for example the main, test, and custom binaries of
-§FS-gradle-plugin.1.4 — would otherwise force users into excessive
+§gradle/FS-gradle-plugin.1.4 — would otherwise force users into excessive
 boilerplate or error-prone configuration.

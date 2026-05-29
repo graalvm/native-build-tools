@@ -1,5 +1,5 @@
 grund_config_version = 1
-project_name = "Native Maven Plugin"
+project_name = "maven"
 
 [reference]
 marker = "§"
@@ -20,61 +20,36 @@ slug_pattern = "[a-z0-9][a-z0-9-]*"
 
 [[kinds]]
 prefix = "GRUND"
-folder = ".."
+file = "docs/grund.md"
 title = "Maven plugin purpose"
 
 [[kinds]]
 prefix = "GOAL"
-folder = ".."
+file = "docs/goals.md"
 title = "Maven plugin goals"
 
 [[kinds]]
-prefix = "NGOAL"
-folder = ".."
-title = "Repository non-goals"
-
-[[kinds]]
 prefix = "REQ"
-folder = ".."
+file = "docs/requirements.md"
 title = "Maven plugin requirements"
 
 [[kinds]]
 prefix = "FS"
-folder = ".."
+file = "docs/functional-spec.md"
 title = "Maven plugin functional specification"
 
 [[kinds]]
 prefix = "AR"
-folder = ".."
+file = "docs/architecture.md"
 title = "Maven plugin architecture"
 
 [[kinds]]
-prefix = "CI"
-folder = ".."
-title = "Repository CI workflows"
-
-[[kinds]]
 prefix = "E2E"
-folder = ".."
+file = "docs/e2e.md"
 title = "Maven plugin end-to-end tests"
 
-[[kinds]]
-prefix = "DEC"
-folder = ".."
-title = "Repository decisions"
-
-[[kinds]]
-prefix = "RM"
-folder = ".."
-title = "Repository roadmap"
-
-[[kinds]]
-prefix = "GLOSS"
-folder = ".."
-title = "Repository glossary"
-
 [scan]
-include = ["docs", "../docs/spec", "../native-gradle-plugin/docs", "src/main", "src/test", "src/functionalTest", "src/testFixtures", "reproducers"]
+include = ["AGENTS.md", "docs", "src/main", "src/test", "src/functionalTest", "src/testFixtures", "reproducers"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 extensions = ["md", "yml", "yaml", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]

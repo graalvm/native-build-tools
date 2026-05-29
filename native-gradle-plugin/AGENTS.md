@@ -2,8 +2,8 @@
 
 ## Grounding with grund (v2)
 
-This subproject is a standalone grund project for the Gradle plugin. Resolve local behavior from
-the local docs first:
+This subproject is the `gradle` grund workspace member for the Gradle plugin. Resolve local
+behavior from the local docs first:
 
 - [GRUND](docs/grund.md): Gradle plugin purpose
 - [GOAL](docs/goals.md): Gradle plugin goals
@@ -13,11 +13,12 @@ the local docs first:
 - [E2E](docs/e2e.md): Gradle plugin functional test execution
 
 Repository-wide grounding, non-goals, shared plugin behavior, common library behavior, and CI
-remain in the root specification under `../docs/spec`. Prefer local IDs such as
+remain in the `root` namespace under `../docs/spec`. Prefer local IDs such as
 `§FS-gradle-plugin.2.1` for Gradle behavior, and cite root IDs such as
-`§FS-plugin-common-behavior` or `§NGOAL-no-build-tool-flags-for-native-image-flags` only for
-cross-project contracts.
+`§root/FS-plugin-common-behavior` or `§root/NGOAL-no-build-tool-flags-for-native-image-flags` only for
+cross-project contracts. In Java comments, cite local Gradle IDs; keep cross-namespace root
+citations in Markdown or YAML where `§root/<ID>` can be checked.
 
-Use `grund <ID>`, `grund <ID> --toc`, and `grund <ID> --full` from this directory to resolve
-local and linked root citations. Run `grund check` here before changing Gradle plugin specs or
-source citations.
+Use `grund gradle/<ID>`, `grund gradle/<ID> --toc`, and `grund gradle/<ID> --full` from the
+repository root to resolve Gradle citations. Run `grund check` from the repository root before
+changing Gradle plugin specs or source citations.

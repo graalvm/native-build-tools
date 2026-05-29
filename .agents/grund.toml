@@ -1,5 +1,9 @@
 grund_config_version = 1
-project_name = "Native Build Tools"
+project_name = "root"
+
+[workspace]
+members = ["native-gradle-plugin", "native-maven-plugin"]
+include_root = true
 
 [reference]
 marker = "§"
@@ -74,7 +78,7 @@ file = "docs/spec/glossary.md"
 title = "Glossary of domain terms"
 
 [scan]
-include = ["docs/spec", "build-logic", "common", "native-gradle-plugin", "native-maven-plugin", "samples", "test-support", ".github/workflows", ".github/actions"]
+include = ["docs/spec", "build-logic", "common", "samples", "test-support", ".github/workflows", ".github/actions"]
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 extensions = ["md", "yml", "yaml", "rs", "go", "java", "kt", "ts", "tsx", "js", "py", "c", "cpp", "swift", "scala", "rb", "php", "cs"]
 comment_prefixes = ["//", "#", ";", "--", "*", "/*"]

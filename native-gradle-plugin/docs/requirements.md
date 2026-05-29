@@ -10,5 +10,5 @@ lazy configuration rules. This requirement constrains §FS-gradle-plugin.1 and
 
 Gradle task names, extension names, binary names, and command-line options are user-facing
 compatibility surfaces. Changes to those names must follow the repository compatibility
-requirement in §REQ-backwards-compatibility-across-plugin-versions and the alias behavior in
+requirement in §root/REQ-backwards-compatibility-across-plugin-versions and the alias behavior in
 §FS-gradle-plugin.2.3.
