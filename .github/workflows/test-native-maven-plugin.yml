@@ -84,9 +84,9 @@ jobs:
       - name: "🔧 Install GraalVM (dev)"
         uses: graalvm/setup-graalvm@main
         with:
-          java-version: 'latest-ea'
+          java-version: '25e1-ea'
           distribution: 'graalvm'
-          github-token: ${{ inputs.github-token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           set-java-home: 'false'
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-maven-plugin:functionalTest
