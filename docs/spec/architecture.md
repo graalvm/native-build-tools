@@ -21,7 +21,6 @@ and verification without becoming product API.
 
 | Component | Paths | Role | Spec |
 | --- | --- | --- | --- |
-| Cross-plugin product contract | `docs/spec/plugin-common.md` | Shared behavior expected from both product plugins when Gradle and Maven capabilities overlap. | §FS-plugin-common-behavior |
 | Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §gradle/FS-gradle-plugin, §gradle/AR-gradle-plugin |
 | Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §maven/FS-maven-plugin, §maven/AR-maven-plugin |
 | Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §FS-common-libraries, §AR-common-libraries |
