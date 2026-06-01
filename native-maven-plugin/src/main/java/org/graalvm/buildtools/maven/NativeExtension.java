@@ -76,6 +76,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
+    private static final String SYSTEM_PROPERTY_VARIABLES = "systemPropertyVariables";
 
     private static Logger logger;
 
@@ -207,8 +208,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     private static void configureAgentForPlugin(Plugin plugin, String agentArgument) {
         updatePluginConfiguration(plugin, (exec, configuration) -> {
-            Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
-            Xpp3Dom agent = findOrAppend(systemProperties, NATIVEIMAGE_IMAGECODE);
+            Xpp3Dom systemPropertyVariables = findOrAppend(configuration, SYSTEM_PROPERTY_VARIABLES);
+            Xpp3Dom agent = findOrAppend(systemPropertyVariables, NATIVEIMAGE_IMAGECODE);
             agent.setValue("agent");
             Xpp3Dom argLine = new Xpp3Dom("argLine");
             argLine.setValue(agentArgument);
@@ -219,9 +220,9 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {
         updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
-            Xpp3Dom systemProperties = findOrAppend(configuration, "systemProperties");
-            Xpp3Dom junitTracking = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED);
-            Xpp3Dom testIdsProperty = findOrAppend(systemProperties, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
+            Xpp3Dom systemPropertyVariables = findOrAppend(configuration, SYSTEM_PROPERTY_VARIABLES);
+            Xpp3Dom junitTracking = findOrAppend(systemPropertyVariables, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED);
+            Xpp3Dom testIdsProperty = findOrAppend(systemPropertyVariables, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
             junitTracking.setValue("true");
             testIdsProperty.setValue(testIdsDir);
         });
