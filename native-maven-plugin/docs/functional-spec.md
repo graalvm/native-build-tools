@@ -1,15 +1,13 @@
 # FS-maven-plugin: The Maven plugin wires Native Image behavior into Maven builds
 
-The `native-maven-plugin` module provides a Maven plugin packaged as `maven-plugin`. A Maven user
-adds it to a profile, binds native goals to lifecycle phases, or invokes goals such as
-`native:compile`, `native:test`, `native:write-args-file`, and `native:metadata-copy` directly.
-The mojos translate Maven project state, XML configuration, system properties, dependency scopes,
-and lifecycle phases into the shared Native Build Tools behavior in §root/FS-plugin-common-behavior,
-§root/FS-common-libraries, and native test behavior from §root/FS-plugin-common-behavior.3. This
-realizes §GOAL-maven-plugin-native-image-workflows under §GRUND-maven-plugin-purpose and keeps
-Maven behavior aligned through §GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract. It
-is constrained by §REQ-maven-plugin-maven-model-compatibility and
-§REQ-maven-plugin-goal-surface-stability.
+The `native-maven-plugin` module provides a Maven plugin packaged as `maven-plugin`. Its mojos
+translate Maven project state, XML configuration, system properties, dependency scopes, and
+lifecycle phases into the shared Native Build Tools behavior in
+§root/FS-plugin-common-behavior, §root/FS-plugin-common-behavior.3, and
+§root/FS-common-libraries. This realizes §GOAL-maven-plugin-native-image-workflows under
+§GRUND-maven-plugin-purpose, keeps Maven behavior aligned through
+§GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract, and is constrained by
+§REQ-maven-plugin-maven-model-compatibility and §REQ-maven-plugin-goal-surface-stability.
 
 ## At a Glance
 
@@ -23,35 +21,19 @@ is constrained by §REQ-maven-plugin-maven-model-compatibility and
 | Use reachability metadata | `<metadataRepository>` | native build goal or `native:add-reachability-metadata` | selected metadata passed to Native Image |
 | Collect agent metadata | `<agent>` or `-Dagent=true` | JVM/test run, then `native:metadata-copy` | copied or merged metadata files |
 
-```mermaid
-flowchart LR
-    POM["pom.xml<br/>profile + plugin configuration"]
-    Goals["Maven goals<br/>compile-no-fork/native:test/support goals"]
-    Common["common libraries<br/>args/resources/metadata/agent"]
-    NativeImage["native-image"]
-    Output["target/**<br/>executables + generated config"]
-
-    POM --> Goals
-    Goals --> Common
-    Common --> Goals
-    Goals --> NativeImage
-    NativeImage --> Output
-```
-
-The rest of this file is the normative contract behind those Maven workflows. It keeps Maven goal
-sections stable for code citations such as §FS-maven-plugin.1.1 for build goals,
-§FS-maven-plugin.4 for native tests, and §FS-maven-plugin.5.4 for metadata copy.
+The sections below keep Maven goal and mojo behavior available as narrow citation targets such as
+§FS-maven-plugin.1.1 for build goals, §FS-maven-plugin.4 for native tests, and
+§FS-maven-plugin.5.4 for metadata copy.
 
 ## 1. Plugin goal surface
 
-The Maven plugin exposes Native Image workflows as Maven goals. The goal names should make sense
-both for direct command-line use and for profile-bound builds that run through normal Maven
-lifecycle phases.
+The Maven plugin exposes Native Image workflows as Maven goals. Goal names must work for direct
+command-line use and for profile-bound builds that run through normal Maven lifecycle phases.
 
 ### 1.1 Build goals
 
 `native:compile` is the direct command-line build goal. Users run it when Maven has prepared the
-project and they want the plugin to build a native image explicitly:
+project and they want the plugin to build a native image explicitly.
 
 ```bash
 mvn -Pnative native:compile
@@ -59,27 +41,25 @@ mvn -Pnative native:compile
 
 `native:compile-no-fork` is the lifecycle-friendly build goal. It runs inside the current Maven
 build, normally bound to `package`, so a profile can produce the JAR and native executable with one
-command:
+command. Both goals must use the same Native Image command construction once Maven project state is
+ready.
 
 ```bash
 mvn -Pnative -DquickBuild -DskipTests package
 ```
 
-Both goals must use the same Native Image command construction once Maven project state is ready.
 The deprecated `native:build` goal may remain as a compatibility alias, but it must warn users and
 point to `native:compile-no-fork`, protecting §REQ-maven-plugin-goal-surface-stability.
 
 ### 1.2 Test goal
 
 `native:test` compiles the Maven test classpath into a native test image and executes that image
-unless test execution is skipped. Users can invoke it directly:
+unless test execution is skipped. When bound to the `test` phase, it must honor Maven skip settings
+and Native Build Tools test settings while using §root/FS-plugin-common-behavior.3.
 
 ```bash
 mvn -Pnative -DquickBuild native:test
 ```
-
-When bound to the `test` phase, it must honor Maven skip settings and Native Build Tools test
-settings while using the shared native test contract in §root/FS-plugin-common-behavior.3.
 
 ### 1.3 Metadata and support goals
 
@@ -89,7 +69,7 @@ The support goals should each answer a practical user question:
 configuration for the main and test classpaths. `native:generateDynamicAccessMetadata` prepares
 dynamic access metadata when a build report is requested. `native:add-reachability-metadata`
 resolves repository metadata and adds it to the configuration directories used by native builds.
-These goals expose the metadata and resource parts of §root/FS-plugin-common-behavior.4.
+These goals expose §root/FS-plugin-common-behavior.4.
 
 `native:merge-agent-files` merges tracing-agent output with `native-image-configure`, and
 `native:metadata-copy` copies or merges selected agent output into a configured metadata
@@ -107,9 +87,11 @@ phases only when that behavior is safe for normal profile usage. Utility goals s
 `metadata-copy`, `list-libraries-missing-metadata`, and `write-args-file` may remain manual so
 users invoke them intentionally.
 
-### 1.5 Typical profile setup
+### 1.5 Lifecycle profile example
 
-A practical Maven setup keeps native builds in a profile and binds `compile-no-fork` to `package`:
+A normal native profile binds `compile-no-fork` to `package`. With that setup,
+`mvn -Pnative package` produces the regular Maven outputs and the native image from the same
+project model.
 
 ```xml
 <profile>
@@ -143,9 +125,6 @@ A practical Maven setup keeps native builds in a profile and binds `compile-no-f
     </build>
 </profile>
 ```
-
-With that profile, `mvn -Pnative package` produces the normal Maven outputs and the native image
-from the same project model.
 
 ## 2. Native image build behavior
 
@@ -194,19 +173,19 @@ failing an otherwise valid native image build.
 ### 2.7 Argument files
 
 `native:write-args-file` must write an argument file using the same argument conversion semantics
-as native image compilation. It must be useful for inspecting or reusing the exact native-image
-arguments that Maven would pass:
+as native image compilation. It must log the generated file path and store it in the Maven project
+property `graalvm.native-image.args-file`.
 
 ```bash
 mvn -Pnative -DquickBuild native:write-args-file
 ```
 
-The goal logs the generated file path and stores it in the Maven project property
-`graalvm.native-image.args-file`.
+### 2.8 Command surface examples
 
-### 2.8 Commands users run
-
-The main command forms are:
+The main command forms are `mvn -Pnative package` for lifecycle builds, `mvn -Pnative
+native:compile` for direct application images, `mvn -Pnative native:test` for native tests,
+`mvn -Pnative native:write-args-file` for invocation inspection, and `mvn -Pnative
+native:list-libraries-missing-metadata` for metadata coverage reports.
 
 ```bash
 mvn -Pnative -DquickBuild -DskipTests package
@@ -215,10 +194,6 @@ mvn -Pnative -DquickBuild native:test
 mvn -Pnative native:write-args-file
 mvn -Pnative native:list-libraries-missing-metadata
 ```
-
-Lifecycle builds usually use `package` with `compile-no-fork` bound in the profile. Direct goals
-are useful for local inspection, CI jobs that split Java and native phases, or scripts that only
-need one support workflow.
 
 ## 3. Configuration model
 
@@ -236,14 +211,12 @@ metadata repository settings, required Native Image version, and agent configura
 ### 3.2 Command-line properties
 
 Configuration values documented as Maven command-line properties must be overridable through
-`-D...` properties for temporary runs. For example, users commonly run:
+`-D...` properties for temporary runs. The property path must feed the same option state as XML
+configuration so behavior does not diverge by configuration source.
 
 ```bash
 mvn -Pnative -DquickBuild -Dverbose -DskipTests package
 ```
-
-The property path must feed the same option state as XML configuration so behavior does not diverge
-by configuration source.
 
 ### 3.3 Parent POM merging
 
@@ -299,7 +272,9 @@ Runtime arguments configured for the test goal must be passed to the native test
 
 ### 4.5 Native test example
 
-A profile can bind native tests to Maven's `test` phase:
+Native tests are invoked with `native:test` directly or by binding that goal to the Maven `test`
+phase. `skipNativeTests` skips the native test image while preserving the normal Maven test
+controls.
 
 ```xml
 <execution>
@@ -311,9 +286,9 @@ A profile can bind native tests to Maven's `test` phase:
 </execution>
 ```
 
-Then `mvn -Pnative -DquickBuild test` compiles and runs the native test image. During local
-debugging, `-DskipNativeTests` skips the native test image while keeping the regular Maven test
-controls recognizable.
+```bash
+mvn -Pnative -DquickBuild test
+```
 
 ## 5. Agent and metadata copy workflows
 
@@ -330,9 +305,9 @@ single invocation.
 ### 5.2 Agent modes
 
 The Maven configuration must support standard, direct, conditional, and disabled agent modes using
-the shared agent mode contract in §root/FS-common-libraries.3. Conditional mode must support user-code
-and extra filters, and direct mode must let users provide the raw agent command line when they need
-full control.
+the shared agent mode contract in §root/FS-common-libraries.3. Conditional mode must support
+user-code and extra filters, and direct mode must let users provide the raw agent command line when
+they need full control.
 
 ### 5.3 Agent output
 
@@ -348,7 +323,9 @@ directory and honor disabled main/test stages.
 
 ### 5.5 Agent example
 
-A common profile enables the agent and asks metadata copy to merge generated files:
+Agent collection is enabled through `<agent>` configuration or `-Dagent=true`; post-processing is
+invoked with `native:metadata-copy`. The default output location for test-stage output is
+`target/native/agent-output/test` unless direct mode changes it.
 
 ```xml
 <configuration>
@@ -367,14 +344,11 @@ mvn -Pnative -Dagent=true test
 mvn -Pnative native:metadata-copy
 ```
 
-The first command collects agent output while Maven runs tests. The second command post-processes
-the files from `target/native/agent-output/test` or the configured application stage.
-
 ## 6. Resource and reachability metadata workflows
 
-Maven projects use shared metadata and resource behavior through Maven goals. The practical goal is
-to keep generated Native Image configuration in Maven's `target` tree and feed it into later native
-builds automatically.
+Maven projects use shared metadata and resource behavior through Maven goals. Generated Native
+Image configuration should stay in Maven's `target` tree and feed later native builds
+automatically.
 
 ### 6.1 Resource configuration goals
 
@@ -400,9 +374,12 @@ behavior must remain aligned with §root/FS-plugin-common-behavior.4.
 Before using repository metadata, native image goals must validate metadata against the schema
 expected by the discovered Native Image major version when schema validation is applicable.
 
-### 6.5 Resource and metadata examples
+### 6.5 Resource and metadata entry points
 
-Resource generation can be bound before native compilation:
+Resource generation is exposed through `native:generateResourceConfig` and
+`native:generateTestResourceConfig`. Reachability metadata is configured with
+`<metadataRepository>` and consumed by native build goals through the selected metadata
+directories.
 
 ```xml
 <execution>
@@ -415,12 +392,6 @@ Resource generation can be bound before native compilation:
 </execution>
 ```
 
-That writes main resources under `target/native/generated/generateResourceConfig/` and contributes
-them to the native build. Tests use the matching `generateTestResourceConfig` goal and write under
-`target/native/generated/generateTestResourceConfig/`.
-
-Reachability metadata is configured in the plugin configuration:
-
 ```xml
 <metadataRepository>
     <enabled>true</enabled>
@@ -428,13 +399,10 @@ Reachability metadata is configured in the plugin configuration:
 </metadataRepository>
 ```
 
-The native build should resolve metadata for project dependencies and pass only the selected
-metadata directories to Native Image.
-
 ## 7. Verification surface
 
-The module's unit tests must cover mojos, configuration objects, command-line assembly, and shared
-utility integration that can be tested locally. Functional tests must execute Maven sample
-projects, issue reproducers, SBOM behavior, metadata repository integration, agent workflows,
-resource generation, and native test execution scenarios through a seeded local Maven repository.
-Those fixtures are owned by §root/AR-build-infrastructure.4.1.
+Unit tests cover mojos, configuration objects, command-line assembly, and shared utility
+integration that can be tested locally. Functional tests exercise Maven sample projects through a
+seeded local Maven repository, with scenario ownership defined by
+§maven/E2E-maven-plugin-functional-tests and fixture ownership defined by
+§root/AR-build-infrastructure.4.1.
