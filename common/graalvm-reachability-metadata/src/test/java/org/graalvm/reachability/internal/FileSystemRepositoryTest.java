@@ -55,7 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// Protects reachability metadata version selection and query results. §FS-common-libraries.5.3 §FS-common-libraries.5.4.
+// Protects reachability metadata version selection and query results. §FS-common-libraries.5.1.
 class FileSystemRepositoryTest {
     private FileSystemRepository repository;
     private Path repoPath;

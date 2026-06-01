@@ -68,7 +68,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-// Protects missing-metadata report contents and issue creation. §FS-common-libraries.6.2 §FS-common-libraries.6.3.
+// Protects missing-metadata report contents and issue creation. §FS-common-libraries.6.
 class MissingMetadataCommandSupportTest {
     @Test
     void detectsCoordinatesInIssueTitleOnly() {

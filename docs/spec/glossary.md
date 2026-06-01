@@ -49,4 +49,4 @@ instead of an exploded classpath. The Gradle plugin can generate and consume it 
 
 A file passed to `native-image` as `@<path>` that carries arguments which should not be sent as
 plain process arguments. Shared conversion and escaping utilities own its format, as specified by
-§FS-common-libraries.1.2.
+§FS-common-libraries.1.
