@@ -25,7 +25,7 @@ and verification without becoming product API.
 | Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §gradle/FS-gradle-plugin, §gradle/AR-gradle-plugin |
 | Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §maven/FS-maven-plugin, §maven/AR-maven-plugin |
 | Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §FS-common-libraries, §AR-common-libraries |
-| Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-native-tests-and-fixtures, §AR-native-tests-and-fixtures |
+| Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-plugin-common-behavior.3, §AR-build-infrastructure.4 |
 | Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
 | CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §CI-pull-request-ci, §CI-deploy-documentation, §CI-deploy-snapshots |
 | User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, developer guide, and grounded maintainer specification. | §FS-build-infrastructure.3 |
@@ -38,7 +38,8 @@ flowchart TD
     GradleBehavior["Gradle DSL/task behavior"] --> GradleSpec["native-gradle-plugin/docs/functional-spec.md"]
     MavenBehavior["Maven goal/XML behavior"] --> MavenSpec["native-maven-plugin/docs/functional-spec.md"]
     CommonBehavior["Resources, metadata, agent, utilities"] --> CommonSpec["docs/spec/common/functional-spec.md"]
-    NativeTests["Native test lifecycle and fixtures"] --> TestingSpec["docs/spec/testing/functional-spec.md"]
+    NativeTests["Native test lifecycle"] --> PluginCommon["docs/spec/plugin-common.md"]
+    Fixtures["Samples, fixtures, reproducers"] --> BuildArch["docs/spec/build-infra/architecture.md"]
     BuildInfra["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/build-infra/functional-spec.md"]
     CIWork["Pull request gates and actions"] --> CISpec["docs/spec/ci.md"]
 ```
@@ -62,14 +63,15 @@ not be used as shared runtime libraries for product code.
 1. A behavior change starts in the most specific component spec: §FS-plugin-common-behavior for
    behavior shared by both product plugins, §gradle/FS-gradle-plugin for Gradle,
    §maven/FS-maven-plugin for Maven, §FS-common-libraries for shared library behavior,
-   §FS-native-tests-and-fixtures for native-test or fixture behavior, or
-   §FS-build-infrastructure for build and release infrastructure.
+   §FS-plugin-common-behavior.3 for native-test behavior,
+   §FS-build-infrastructure for build and release infrastructure, or
+   §AR-build-infrastructure.4 for sample, fixture, and reproducer ownership.
 2. Product or common code implements the behavior with citations to the component section that
    owns it. Java source comments use marked `§<ID>` citations; Checkstyle allows `§` as the only
    non-ASCII citation exception.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
    commands specified by §gradle/E2E-gradle-plugin-functional-tests,
-   §maven/E2E-maven-plugin-functional-tests, and §FS-native-tests-and-fixtures.6.
+   §maven/E2E-maven-plugin-functional-tests, and §FS-plugin-common-behavior.3.6.
 4. Pull request CI runs the matching workflow gates from §CI-pull-request-ci and validates grund
    citations through §CI-check-grund-spec.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only

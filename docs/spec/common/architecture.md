@@ -2,7 +2,7 @@
 
 The `common/` directory contains libraries that should remain independent from Gradle and Maven
 plugin APIs unless a dependency is explicitly part of that library's role. These modules implement
-§FS-common-libraries and the shared test runtime in §FS-native-tests-and-fixtures.
+§FS-common-libraries and the shared test runtime in §FS-plugin-common-behavior.3.
 
 ## 1. Common module set
 

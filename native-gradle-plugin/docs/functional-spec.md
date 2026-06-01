@@ -9,7 +9,7 @@ task names, inputs, outputs, providers, and configuration-cache behavior predict
 functional contract realizes §GOAL-gradle-plugin-native-image-workflows under
 §GRUND-gradle-plugin-purpose and keeps Gradle behavior aligned through
 §GOAL-gradle-plugin-behavior-stays-aligned-with-shared-contract. It depends on
-§root/FS-common-libraries and §root/FS-native-tests-and-fixtures, and is constrained by
+§root/FS-common-libraries and §root/FS-plugin-common-behavior.3, and is constrained by
 §REQ-gradle-plugin-gradle-model-compatibility and §REQ-gradle-plugin-task-surface-stability.
 
 ## At a Glance
@@ -134,7 +134,7 @@ shared-library setting, build arguments, configuration file directories, generat
 reachability metadata, optional classpath JAR, argument-file setting, layer and PGO options,
 environment variables, system properties, and JVM arguments.
 
-`nativeTestCompile` builds the native test binary described by §root/FS-native-tests-and-fixtures. It
+`nativeTestCompile` builds the native test binary described by §root/FS-plugin-common-behavior.3. It
 uses compiled test classes, test resources, the test runtime classpath, JUnit native support,
 selected test identifiers, and the `test` binary options. It is valid to run only this task when a
 user wants to inspect or execute the compiled test image separately.
@@ -390,7 +390,7 @@ configured output directory.
 
 Gradle native tests let users keep their normal JUnit test source set and ask the plugin to build
 and execute those tests as a native image. Runtime semantics are defined by
-§root/FS-plugin-common-behavior.3 and §root/FS-native-tests-and-fixtures.
+§root/FS-plugin-common-behavior.3.
 
 ### 6.1 Test task integration
 
@@ -419,7 +419,7 @@ test failures must fail the Gradle build in the same way Java test failures do.
 
 When Native Image compatibility mode is detected, Gradle native test behavior may use the original
 JUnit ConsoleLauncher path rather than the Native Build Tools launcher path, as described by
-§root/FS-native-tests-and-fixtures.5.
+§root/FS-plugin-common-behavior.3.5.
 
 ### 6.4 Native test commands
 
@@ -441,4 +441,4 @@ full sample builds. Functional tests must exercise sample projects through Gradl
 repository's common test repository. Required scenario families include Java applications, Java
 libraries, Kotlin tests, custom source sets, multi-project tests, resources, reflection, metadata
 repository integration, agent collection, reachability metadata, Native Image options, and layered
-applications. These fixtures are owned by §root/AR-native-tests-and-fixtures.1.
+applications. These fixtures are owned by §root/AR-build-infrastructure.4.1.

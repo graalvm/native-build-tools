@@ -32,7 +32,7 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 
 Workspace members:
 
-- `root` → [docs/spec/README.md](docs/spec/README.md): repository-wide contracts, common libraries, CI, build infrastructure, testing, decisions, roadmap, and glossary.
+- `root` → [docs/spec/README.md](docs/spec/README.md): repository-wide contracts, common libraries, CI, build infrastructure, native tests, decisions, roadmap, and glossary.
 - `gradle` → [native-gradle-plugin/AGENTS.md](native-gradle-plugin/AGENTS.md): Gradle plugin namespace. Local Gradle citations use `§<ID>` inside that member; root docs cite Gradle facts with `§gradle/<ID>`.
 - `maven` → [native-maven-plugin/AGENTS.md](native-maven-plugin/AGENTS.md): Maven plugin namespace. Local Maven citations use `§<ID>` inside that member; root docs cite Maven facts with `§maven/<ID>`.
 

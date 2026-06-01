@@ -5,7 +5,7 @@ The Gradle and Maven plugins are the product surface of this repository. They mu
 image compile, run, test, resource configuration, agent metadata, and reachability metadata
 workflows through idioms that fit each build tool. This goal is realized by §gradle/FS-gradle-plugin,
 §maven/FS-maven-plugin, §FS-plugin-common-behavior, §FS-common-libraries, and
-§FS-native-tests-and-fixtures. It is bounded by §NGOAL-no-build-tool-flags-for-native-image-flags and
+§FS-plugin-common-behavior.3. It is bounded by §NGOAL-no-build-tool-flags-for-native-image-flags and
 §NGOAL-no-duplication-of-existing-build-tool-capabilities, and constrained by
 §REQ-backwards-compatibility-across-plugin-versions and
 §REQ-supported-build-tool-and-runtime-version-matrix.
@@ -23,5 +23,5 @@ support. The relevant specs are §FS-plugin-common-behavior, §FS-common-librari
 
 The repository must keep executable samples, fixtures, and reproducers close to the plugin code so
 changes can be verified against realistic Gradle and Maven projects. These scenarios provide the
-practical validation path for §FS-native-tests-and-fixtures and
-§AR-native-tests-and-fixtures.
+practical validation path for §FS-plugin-common-behavior.3 and
+§AR-build-infrastructure.4.

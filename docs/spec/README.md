@@ -10,7 +10,7 @@ workspace members named `gradle` and `maven`, with local docs under
 `native-gradle-plugin/docs/` and `native-maven-plugin/docs/`. Root docs cite product-plugin facts
 with aliases such as `§gradle/FS-gradle-plugin` and `§maven/FS-maven-plugin`; plugin docs cite
 repository-wide facts with `§root/<ID>`. Shared behavior, CI, build infrastructure, common
-libraries, testing, decisions, and glossary terms stay in `docs/spec/`.
+libraries, native-test behavior, decisions, and glossary terms stay in `docs/spec/`.
 
 ## Who should read what
 
@@ -20,7 +20,8 @@ libraries, testing, decisions, and glossary terms stay in `docs/spec/`.
 | change Gradle DSL, task, or TestKit behavior | [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md), [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) |
 | change Maven goal, parameter, lifecycle, or reproducer behavior | [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md), [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) |
 | change shared resource, metadata, agent, or utility behavior | [common/functional-spec.md](common/functional-spec.md) | [common/architecture.md](common/architecture.md), [plugin-common.md](plugin-common.md) |
-| change native test launcher, test image, sample, or fixture behavior | [testing/functional-spec.md](testing/functional-spec.md) | [testing/architecture.md](testing/architecture.md), plugin E2E docs |
+| change native test launcher or test image behavior | [plugin-common.md](plugin-common.md) | [common/functional-spec.md](common/functional-spec.md), plugin E2E docs |
+| change sample, fixture, or reproducer behavior | [build-infra/architecture.md](build-infra/architecture.md) | [build-infra/functional-spec.md](build-infra/functional-spec.md), plugin E2E docs |
 | change build, publication, generated source, docs, or release tasks | [build-infra/functional-spec.md](build-infra/functional-spec.md) | [build-infra/architecture.md](build-infra/architecture.md), [ci.md](ci.md) |
 | change pull request validation or GitHub Actions setup | [ci.md](ci.md) | [build-infra/functional-spec.md](build-infra/functional-spec.md) |
 | decide whether something is in scope | [goals.md](goals.md), [non-goals.md](non-goals.md) | [requirements.md](requirements.md), [decisions.md](decisions.md) |
@@ -34,13 +35,11 @@ libraries, testing, decisions, and glossary terms stay in `docs/spec/`.
 | [non-goals.md](non-goals.md) | Explicitly out-of-scope behavior. |
 | [requirements.md](requirements.md) | Cross-cutting compatibility and support constraints. |
 | [architecture.md](architecture.md) | Repository component map, dependency direction, and change flow. |
-| [plugin-common.md](plugin-common.md) | Shared product behavior expected from both Gradle and Maven plugins. |
+| [plugin-common.md](plugin-common.md) | Shared product behavior expected from both Gradle and Maven plugins, including native tests. |
 | [common/functional-spec.md](common/functional-spec.md) | Build-tool-neutral Native Image utilities, resources, metadata, and agent behavior. |
 | [common/architecture.md](common/architecture.md) | Shared common-library module boundaries. |
-| [testing/functional-spec.md](testing/functional-spec.md) | Native test lifecycle, JUnit support, adapters, and verification. |
-| [testing/architecture.md](testing/architecture.md) | Samples, fixtures, and native test support architecture. |
 | [build-infra/functional-spec.md](build-infra/functional-spec.md) | Maintainer task surface, generated artifacts, docs, publication, and CI data. |
-| [build-infra/architecture.md](build-infra/architecture.md) | Build infrastructure ownership and product/runtime boundary. |
+| [build-infra/architecture.md](build-infra/architecture.md) | Build infrastructure ownership, product/runtime boundary, samples, fixtures, and reproducers. |
 | [ci.md](ci.md) | Pull request workflows, shared actions, and workflow-specific gates. |
 | [decisions.md](decisions.md) | Decisions and tradeoffs. |
 | [roadmap.md](roadmap.md) | Planned work. |
@@ -79,7 +78,7 @@ Use the most specific citation that supports the behavior. For example:
 - Maven goal behavior from root docs: `§maven/FS-maven-plugin.1.1`
 - cross-plugin parity: `§FS-plugin-common-behavior.4`
 - shared resource analysis: `§FS-common-libraries.2`
-- native test lifecycle: `§FS-native-tests-and-fixtures.1`
+- native test lifecycle: `§FS-plugin-common-behavior.3.1`
 - build infrastructure task surface: `§FS-build-infrastructure.1.2`
 - CI workflow behavior: `§CI-test-native-gradle-plugin`
 

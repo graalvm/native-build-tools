@@ -74,13 +74,105 @@ path as durable configuration.
 ## 3. Native tests
 
 Both plugins must compile native test images and execute them through the shared JUnit native
-support where the build-tool test model allows it. The shared native test behavior is specified by
-§FS-native-tests-and-fixtures. Gradle adapts it through test binaries and native test tasks in
-§gradle/FS-gradle-plugin.6. Maven adapts it through the `native:test` goal in §maven/FS-maven-plugin.4.
+support where the build-tool test model allows it. Gradle adapts native tests through test
+binaries and native test tasks in §gradle/FS-gradle-plugin.6. Maven adapts native tests through
+the `native:test` goal in §maven/FS-maven-plugin.4.
 
 The practical invariant is that users keep normal JVM tests and ask Native Build Tools to compile
 those tests into a native image. Plugin-specific skip flags, task selection, and lifecycle bindings
 may differ, but a failing native test executable must fail the build in both tools.
+
+Native test support turns an ordinary JVM test run into enough information to build and execute a
+native test image:
+
+```mermaid
+flowchart LR
+    JVMTests["JVM test task/goal"]
+    IDs["JUnit unique ID files"]
+    Compile["nativeTestCompile / native:test image build"]
+    Launcher["NativeImageJUnitLauncher or compatibility launcher"]
+    Result["build-tool test result"]
+
+    JVMTests --> IDs
+    IDs --> Compile
+    Compile --> Launcher
+    Launcher --> Result
+```
+
+| Concern | Shared owner | Build-tool owner |
+| --- | --- | --- |
+| Test class/resource registration | `common/junit-platform-native` | Gradle and Maven provide classpaths and selected tests |
+| Launcher behavior | native test launcher and JUnit Platform feature | tasks/goals execute the image and map process status to build status |
+| Skip/no-test behavior | shared lifecycle concepts | build-tool-specific flags and task selection |
+| Compatibility mode | shared mode semantics | plugin-specific detection and argument wiring |
+
+### 3.1 Native test lifecycle
+
+Native test support has two phases: collect enough JUnit Platform metadata while JVM tests run,
+then build and run a native image that can execute the selected tests. The build-tool plugin must
+arrange for JVM test execution to write JUnit Platform unique IDs to a known output directory, and
+the native test image build must consume that directory so the native launcher knows which tests
+were selected.
+
+The native test image must include compiled test classes, test resources, application classes,
+runtime dependencies, JUnit Platform dependencies, and the `junit-platform-native` support code.
+After compilation, the build-tool plugin must execute the native test binary unless its
+configuration explicitly skips execution.
+
+### 3.2 Test discovery and registration
+
+Native Image cannot rely on all JVM reflection and resource discovery happening at runtime, so test
+support must register test classes and platform configuration during image building. The
+`junit-platform-native` feature must register test classes identified by the build-tool test run,
+the native launcher must load selected test identifiers, and resources from test source sets or
+Maven test resource directories must be included when the corresponding JVM test would see them.
+
+Native test support must preserve JUnit Platform behavior needed by nested tests, method sources,
+CSV sources, enum sources, converters, aggregators, class ordering, display-name generation, and
+other supported Jupiter/Vintage scenarios represented by repository tests.
+
+### 3.3 JUnit Platform support
+
+The shared launcher and feature must adapt JUnit Platform behavior to Native Image constraints.
+The Native Build Tools launcher must run only inside a native-image compiled test executable,
+create a JUnit Platform launcher request, execute tests, and return a process result that
+build-tool plugins can treat as the native test outcome.
+
+The `JUnitPlatformFeature` must register the classes, resources, services, and runtime access
+needed by supported JUnit Platform engines and Native Build Tools launcher code. The platform,
+Jupiter, and Vintage config providers must contribute Native Image metadata for their supported
+JUnit components. Additional providers may be added when the repository supports new JUnit
+Platform behavior.
+
+### 3.4 Build-tool adapters
+
+Gradle must connect the `test` binary to the `test` source set and `test` task, build it with
+`nativeTestCompile`, and execute it with `nativeTest`. Maven must expose native tests through
+`native:test`, use Maven test classes/resources and test dependency scopes, and honor `skipTests`,
+`skipNativeTests`, `skipTestExecution`, and `failNoTests`.
+
+Both adapters must allow runtime arguments to be passed to the native test executable. Runtime
+arguments are distinct from Native Image build arguments and must not affect image generation.
+
+### 3.5 Compatibility mode
+
+Native Image compatibility mode changes native test execution because the build may require the
+standard JUnit ConsoleLauncher path. The mode is defined in §GLOSS-compatibility-mode. Build-tool
+adapters must detect compatibility mode from configured Native Image build arguments or the Native
+Image options environment where the adapter has access to it.
+
+When compatibility mode is detected, the native test image may use JUnit's ConsoleLauncher instead
+of `NativeImageJUnitLauncher`. In that mode, adapters must avoid adding Native Build Tools
+launcher state that would conflict with the compatibility-mode execution path. When compatibility
+mode is not detected, adapters must use `NativeImageJUnitLauncher` and `JUnitPlatformFeature`.
+
+### 3.6 Verification surface
+
+The `common/junit-platform-native` module must contain JUnit-focused tests for launcher, feature,
+registration, and provider behavior. Gradle and Maven functional test suites must include
+application-with-tests, standalone JUnit tests, multi-project tests, Kotlin tests where supported,
+custom source sets where supported, no-test behavior, and compatibility-mode coverage. Scenario
+ownership is described by §AR-build-infrastructure.4.1.
 
 ## 4. Resources and reachability metadata
 
@@ -124,7 +216,7 @@ Parity must be verified by shared samples, product functional tests, and common 
 Product functional tests should cover the same scenario families in both build tools where
 possible, while product-specific tests cover behavior that only one build tool can express. The
 plugin end-to-end execution contracts are §gradle/E2E-gradle-plugin-functional-tests and
-§maven/E2E-maven-plugin-functional-tests, and fixture ownership is §AR-native-tests-and-fixtures.
+§maven/E2E-maven-plugin-functional-tests, and fixture ownership is §AR-build-infrastructure.4.
 
 When a new capability is added to one plugin, the implementation should either add the equivalent
 capability to the other plugin, cite the existing matching behavior, or explicitly document why the

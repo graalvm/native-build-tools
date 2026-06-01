@@ -78,7 +78,7 @@ Gradle sample build.
 
 Functional tests should run real sample builds through TestKit. They must prefer scenario
 fixtures over synthetic one-off projects when an existing sample already represents the behavior.
-Shared samples and cross-plugin scenario ownership are described by §root/AR-native-tests-and-fixtures.1.
+Shared samples and cross-plugin scenario ownership are described by §root/AR-build-infrastructure.4.1.
 
 ## 7. Dependency direction
 

@@ -46,7 +46,7 @@ that Gradle builds compile and run native applications and libraries. This prote
 `JavaApplicationWithTestsFunctionalTest`, `JUnitFunctionalTests`,
 `KotlinApplicationWithTestsFunctionalTest`, and `MultiProjectJavaApplicationWithTestsFunctionalTest`
 verify native test compilation, execution, JUnit support, Kotlin projects, and multi-project test
-dependencies. This protects §FS-gradle-plugin.6 and §root/FS-native-tests-and-fixtures.
+dependencies. This protects §FS-gradle-plugin.6 and §root/FS-plugin-common-behavior.3.
 
 ### 3.3 Resources
 

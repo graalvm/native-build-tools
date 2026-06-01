@@ -3,7 +3,7 @@
 A Native Image build mode that trades some closed-world optimizations for broader runtime
 compatibility. It changes native test execution because the test image may need JUnit's standard
 `ConsoleLauncher` path instead of the Native Build Tools launcher, as specified by
-§FS-native-tests-and-fixtures.5.
+§FS-plugin-common-behavior.3.5.
 
 # GLOSS-layered-image: Layered native image
 

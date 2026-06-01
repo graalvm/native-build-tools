@@ -74,7 +74,7 @@ unit tests. It protects the repository query and missing-metadata behavior speci
 
 `test-junit-platform-native.yml` validates `common/junit-platform-native` with checkstyle, JVM
 tests, and native tests. It protects the shared native-test runtime behavior specified by
-§FS-native-tests-and-fixtures.3.
+§FS-plugin-common-behavior.3.3.
 
 # CI-deploy-documentation: Documentation deployment workflow
 

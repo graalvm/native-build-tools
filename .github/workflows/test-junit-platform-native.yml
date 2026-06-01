@@ -1,5 +1,5 @@
 # Pull request JUnit native gate: checkstyle, JVM tests, and native tests for shared test support.
-# §CI-test-junit-platform-native; §FS-native-tests-and-fixtures.3
+# §CI-test-junit-platform-native; §FS-plugin-common-behavior.3.3
 name: "Test junit-platform-native"
 
 on:

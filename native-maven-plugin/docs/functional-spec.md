@@ -5,10 +5,10 @@ adds it to a profile, binds native goals to lifecycle phases, or invokes goals s
 `native:compile`, `native:test`, `native:write-args-file`, and `native:metadata-copy` directly.
 The mojos translate Maven project state, XML configuration, system properties, dependency scopes,
 and lifecycle phases into the shared Native Build Tools behavior in §root/FS-plugin-common-behavior,
-§root/FS-common-libraries, and §root/FS-native-tests-and-fixtures. This realizes
-§GOAL-maven-plugin-native-image-workflows under §GRUND-maven-plugin-purpose and keeps Maven
-behavior aligned through §GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract. It is
-constrained by §REQ-maven-plugin-maven-model-compatibility and
+§root/FS-common-libraries, and native test behavior from §root/FS-plugin-common-behavior.3. This
+realizes §GOAL-maven-plugin-native-image-workflows under §GRUND-maven-plugin-purpose and keeps
+Maven behavior aligned through §GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract. It
+is constrained by §REQ-maven-plugin-maven-model-compatibility and
 §REQ-maven-plugin-goal-surface-stability.
 
 ## At a Glance
@@ -79,8 +79,7 @@ mvn -Pnative -DquickBuild native:test
 ```
 
 When bound to the `test` phase, it must honor Maven skip settings and Native Build Tools test
-settings while using the shared native test contract in §root/FS-plugin-common-behavior.3 and
-§root/FS-native-tests-and-fixtures.
+settings while using the shared native test contract in §root/FS-plugin-common-behavior.3.
 
 ### 1.3 Metadata and support goals
 
@@ -291,7 +290,7 @@ whether the goal fails or skips.
 By default, `native:test` must build the image with
 `org.graalvm.junit.platform.NativeImageJUnitLauncher` and the `JUnitPlatformFeature`. If Native
 Image compatibility mode is enabled, it must use the original JUnit ConsoleLauncher path described
-by §root/FS-native-tests-and-fixtures.5.
+by §root/FS-plugin-common-behavior.3.5.
 
 ### 4.4 Test execution
 
@@ -438,4 +437,4 @@ The module's unit tests must cover mojos, configuration objects, command-line as
 utility integration that can be tested locally. Functional tests must execute Maven sample
 projects, issue reproducers, SBOM behavior, metadata repository integration, agent workflows,
 resource generation, and native test execution scenarios through a seeded local Maven repository.
-Those fixtures are owned by §root/AR-native-tests-and-fixtures.1.
+Those fixtures are owned by §root/AR-build-infrastructure.4.1.

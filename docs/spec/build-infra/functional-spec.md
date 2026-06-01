@@ -164,6 +164,6 @@ modules should not depend on infrastructure implementation classes except throug
 scripts or generated artifacts intended for runtime use.
 
 `samples/`, `test-support/`, plugin test fixtures, and Maven reproducers are evidence for product
-behavior and are specified by §FS-native-tests-and-fixtures. Spec files are not generated
-user documentation; they are stable citation targets for maintainers, code comments, tests, CI
+behavior and are specified by §AR-build-infrastructure.4. Spec files are not generated user
+documentation; they are stable citation targets for maintainers, code comments, tests, CI
 workflows, and future implementation work.

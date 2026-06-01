@@ -52,7 +52,7 @@ goal configuration, lifecycle phase, or generated command line is the failure su
 `JUnitFunctionalTests`, and `issues/ModuleWithoutSourcesFunctionalTest` verify `native:test`, skip
 flags, no-test behavior, runtime arguments, launcher selection, and reactor modules without source
 artifacts. This protects §FS-maven-plugin.1.2, §FS-maven-plugin.4, and
-§root/FS-native-tests-and-fixtures.
+§root/FS-plugin-common-behavior.3.
 
 ### 3.4 Resources
 
