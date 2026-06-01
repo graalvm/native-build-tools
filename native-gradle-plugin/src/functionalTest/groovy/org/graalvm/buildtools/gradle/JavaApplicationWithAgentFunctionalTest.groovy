@@ -303,9 +303,13 @@ org.gradle.java.installations.auto-download=false
                 })
             }
 
+            def runJavaExecutable = tasks.named('run').flatMap {
+                it.javaLauncher.map { launcher -> launcher.executablePath.asFile.canonicalFile }
+            }
+
             tasks.register('verifyRunLauncher') {
                 doLast {
-                    def actualExecutable = tasks.named('run').get().javaLauncher.get().executablePath.asFile.canonicalFile
+                    def actualExecutable = runJavaExecutable.get()
                     def expectedExecutable = new File('${graalvmHome}', 'bin/java').canonicalFile
                     def javaHomeExecutable = new File(new File(System.getenv('JAVA_HOME')), 'bin/java').canonicalFile
                     assert actualExecutable == expectedExecutable
