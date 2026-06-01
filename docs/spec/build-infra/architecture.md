@@ -75,34 +75,15 @@ Samples used in end-to-end guides should stay close to documented user workflows
 that alters user-visible behavior should update both the specification and the corresponding
 AsciiDoc guide when applicable.
 
-### 4.3 Functional test roles
-
-Functional tests prove that product plugin behavior works through real build-tool invocations.
-Gradle functional tests use TestKit and should cover plugin application, native compile/run,
-native tests, agent behavior, metadata repository integration, resource generation, custom source
-sets, Kotlin scenarios, layered images, and option handling.
-
-Maven functional tests should cover native compile/run behavior, native tests, agent behavior,
-metadata repository integration, resource generation, SBOM behavior, issue reproducers, and
-multi-module or packaging edge cases. Common module tests cover library behavior without invoking
-full product plugin builds, including command-line utility, repository lookup, schema validation,
-JUnit provider, and resource analyzer cases.
-
-### 4.4 Scenario coverage
+### 4.3 Scenario coverage
 
 Each high-risk product behavior should have at least one executable scenario. The repository should
-keep scenarios for simple application compilation, native executable execution, Java
-library/shared-library output, main class configuration, Native Image option translation,
-reflection metadata, resource metadata, tracing-agent metadata collection, metadata copy,
-reachability metadata repository use, and missing metadata reporting where practical.
+use shared samples where they keep equivalent Gradle and Maven behavior understandable, and
+build-tool-specific fixtures or reproducers where the scenario depends on one build model. Exact
+functional-test scenario families are owned by §gradle/E2E-gradle-plugin-functional-tests.3 and
+§maven/E2E-maven-plugin-functional-tests.3.
 
-Native test scenarios should cover JUnit Platform native tests, application tests, multi-project
-tests, custom test classes/resources, no-test handling, and compatibility-mode paths where
-practical. Build-tool integration scenarios should cover Gradle configuration-cache-sensitive
-wiring where practical, Maven lifecycle-bound goals, local repository seeding, and
-build-tool-specific packaging behavior.
-
-### 4.5 Fixture lifecycle
+### 4.4 Fixture lifecycle
 
 Add a new fixture when existing samples cannot express a behavior without becoming unclear or when
 a regression needs a stable reproduction shape. Cite the most specific functional spec in the test
