@@ -36,19 +36,21 @@ jobs:
     steps:
       - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
-      - name: "🦀 Install Rust toolchain"
-        uses: dtolnay/rust-toolchain@stable
       - name: "📦 Cache grund binary"
         id: cache-grund
         uses: actions/cache@v4
         with:
           path: ~/.cargo/bin/grund
           key: grund-${{ env.GRUND_VERSION }}-${{ runner.os }}
+      - name: "🧭 Add Cargo bin to PATH"
+        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: "🔧 Install grund"
         if: steps.cache-grund.outputs.cache-hit != 'true'
         # TODO: pin with `--tag v${GRUND_VERSION}` once the grund release tag scheme is confirmed;
         # the binary is otherwise pinned per-run by the GRUND_VERSION cache key above.
-        run: cargo install --git https://github.com/vjovanov/grund
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup run stable cargo install --git https://github.com/vjovanov/grund --tag "v${GRUND_VERSION}"
       - name: "✅ grund check"
         # Validates that every §<ID> citation in docs, workflows, and source doc-comments resolves,
         # and that section headings and inline-note limits hold. See AGENTS.md and .agents/grund.toml.
