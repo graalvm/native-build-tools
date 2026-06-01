@@ -239,8 +239,8 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
     @Requires({
         System.getenv("GRAALVM_HOME") != null
     })
-    @Unroll("agent keeps explicit test executable in sync with GraalVM java executable for JUnit Platform #junitVersion")
-    def "agent keeps explicit test executable in sync with GraalVM java executable"() {
+    @Unroll("agent replaces explicit test executable with GraalVM java launcher for JUnit Platform #junitVersion")
+    def "agent replaces explicit test executable with GraalVM java launcher"() {
         given:
         withSample("java-application-with-reflection")
         buildFile << """
@@ -249,7 +249,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
                 executable = new File(new File(System.getProperty('java.home'), 'bin'), javaExecutableName).absolutePath
                 doLast {
                     def expectedExecutable = new File(new File(System.getenv('GRAALVM_HOME'), 'bin'), javaExecutableName).absolutePath
-                    assert executable == expectedExecutable
+                    assert executable == null
                     assert javaLauncher.get().executablePath.asFile.absolutePath == expectedExecutable
                 }
             }

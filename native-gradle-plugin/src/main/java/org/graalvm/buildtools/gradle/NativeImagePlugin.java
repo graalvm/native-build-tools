@@ -109,6 +109,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -1052,8 +1053,8 @@ public class NativeImagePlugin implements Plugin<Project> {
             JavaLauncher javaLauncher = javaLauncherForAgent.getOrNull();
             if (javaLauncher != null) {
                 if (taskToInstrument instanceof Test test) {
+                    javaForkOptions.setExecutable(null);
                     test.getJavaLauncher().set(javaLauncher);
-                    javaForkOptions.setExecutable(javaLauncher.getExecutablePath().getAsFile().getAbsolutePath());
                 } else if (taskToInstrument instanceof JavaExec javaExec) {
                     javaExec.getJavaLauncher().set(javaLauncher);
                     javaForkOptions.setExecutable(javaLauncher.getExecutablePath().getAsFile().getAbsolutePath());
@@ -1275,6 +1276,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
 
         @Override
+        @Internal
         public boolean isCurrentJvm() {
             return false;
         }
