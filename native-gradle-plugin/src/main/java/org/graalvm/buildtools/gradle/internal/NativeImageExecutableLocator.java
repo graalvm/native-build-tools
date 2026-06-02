@@ -40,7 +40,8 @@
  */
 package org.graalvm.buildtools.gradle.internal;
 
-import org.gradle.api.GradleException;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -70,6 +71,18 @@ public class NativeImageExecutableLocator {
                 .orElse(diagnostics.fromEnvVar("JAVA_HOME", providers));
     }
 
+    /**
+     * Find the native-image executable from the given Java launcher.
+     * Returns null if the toolchain doesn't contain native-image and probing fails.
+     *
+     * @param javaLauncher              the Java launcher to probe
+     * @param disableToolchainDetection provider to disable toolchain detection
+     * @param graalvmHomeProvider       provider for GRAALVM_HOME/JAVA_HOME
+     * @param execOperations            exec operations for gu install
+     * @param logger                    logger for messages
+     * @param diagnostics               diagnostics collector
+     * @return the native-image executable file, or null if not found
+     */
     public static File findNativeImageExecutable(Property<JavaLauncher> javaLauncher,
                                                  Provider<Boolean> disableToolchainDetection,
                                                  Provider<String> graalvmHomeProvider,
@@ -78,40 +91,43 @@ public class NativeImageExecutableLocator {
                                                  Diagnostics diagnostics) {
         File executablePath = null;
         boolean toolchainDetectionIsDisabled = Boolean.TRUE.equals(disableToolchainDetection.get());
-        if (toolchainDetectionIsDisabled || !javaLauncher.isPresent()) {
-            if (graalvmHomeProvider.isPresent()) {
-                diagnostics.disableToolchainDetection();
-                String graalvmHome = graalvmHomeProvider.get();
-                executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
-            }
+        // First, check environment variables (GRAALVM_HOME/JAVA_HOME)
+        if (graalvmHomeProvider.isPresent()) {
+            diagnostics.disableToolchainDetection();
+            String graalvmHome = graalvmHomeProvider.get();
+            executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
         }
-        if (executablePath == null) {
+        // If not found via env vars, try toolchain if enabled and launcher is present
+        if (executablePath == null && !toolchainDetectionIsDisabled && javaLauncher.isPresent()) {
             JavaInstallationMetadata metadata = javaLauncher.get().getMetadata();
             diagnostics.withToolchain(metadata);
             executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
         }
+        // If we found a path but it doesn't exist, try to install native-image via gu
+        if (executablePath != null) {
+            File graalVmHomeGuess = executablePath.getParentFile();
+            if (graalVmHomeGuess != null) {
+                File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
+                if (guPath.exists() && !executablePath.exists()) {
+                    logger.log("Native Image executable wasn't found. We will now try to download it. ");
 
-        File graalVmHomeGuess = executablePath.getParentFile();
-        File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
-        if (guPath.exists() && !executablePath.exists()) {
-            logger.log("Native Image executable wasn't found. We will now try to download it. ");
-
-            ExecResult res = execOperations.exec(spec -> {
-                spec.args("install", "native-image");
-                spec.setExecutable(Paths.get(graalVmHomeGuess.getAbsolutePath(), GU_EXE));
-            });
-            if (res.getExitValue() != 0) {
-                throw new GradleException("Native Image executable wasn't found, and '" + GU_EXE + "' tool failed to install it.\n" +
-                        "Make sure to declare the GRAALVM_HOME or JAVA_HOME environment variable or install GraalVM with " +
-                        "native-image in a standard location recognized by Gradle Java toolchain support");
+                    ExecResult res = execOperations.exec(spec -> {
+                        spec.args("install", "native-image");
+                        spec.setExecutable(Paths.get(graalVmHomeGuess.getAbsolutePath(), GU_EXE));
+                    });
+                    if (res.getExitValue() != 0) {
+                        diagnostics.withGuInstall();
+                        return null;
+                    }
+                    diagnostics.withGuInstall();
+                }
             }
-            diagnostics.withGuInstall();
         }
 
-        if (!executablePath.exists()) {
-            throw new GradleException(executablePath + " wasn't found. This probably means that JDK isn't a GraalVM distribution.\n" +
-                    "Make sure to declare the GRAALVM_HOME or JAVA_HOME environment variable or install GraalVM with" +
-                    "native-image in a standard location recognized by Gradle Java toolchain support");
+        // Return null if executable doesn't exist (caller should fallback)
+        if (executablePath == null || !executablePath.exists()) {
+            diagnostics.disableToolchainDetection();
+            return null;
         }
 
         diagnostics.withExecutablePath(executablePath);

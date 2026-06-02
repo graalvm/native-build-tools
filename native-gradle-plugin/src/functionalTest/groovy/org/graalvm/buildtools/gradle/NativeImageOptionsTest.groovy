@@ -53,7 +53,6 @@ class NativeImageOptionsTest extends Specification {
                 .withPluginClasspath()
                 .withProjectDir(testDirectory.toFile())
 
-
         def buildFile = testDirectory.resolve("build.gradle")
         buildFile.text = """
             plugins {
@@ -63,7 +62,7 @@ class NativeImageOptionsTest extends Specification {
             
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(25)
+                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
                 }
             }
             
@@ -73,7 +72,38 @@ class NativeImageOptionsTest extends Specification {
                 .get()
                 .metadata
                 .languageVersion
-                .asInt() == 25
+                .asInt() == JavaVersion.current().majorVersion as int
+        """
+
+        runner.build()
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
+    def "toolchain falls back to current Java when not configured"() {
+        when:
+        def runner = GradleRunner.create()
+                .forwardStdOutput(new PrintWriter(System.out))
+                .forwardStdError(new PrintWriter(System.err))
+                .withPluginClasspath()
+                .withProjectDir(testDirectory.toFile())
+
+        def buildFile = testDirectory.resolve("build.gradle")
+        buildFile.text = """
+            plugins {
+                id 'java'
+                id 'org.graalvm.buildtools.native'
+            }
+            
+            graalvmNative.toolchainDetection = true
+            
+            assert graalvmNative.binaries.main.javaLauncher
+                .get()
+                .metadata
+                .languageVersion
+                .toString() == JavaVersion.current().majorVersion
         """
 
         runner.build()

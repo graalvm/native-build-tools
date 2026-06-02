@@ -55,22 +55,30 @@ import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
+
+import java.io.File;
+
+import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final transient NamedDomainObjectContainer<NativeImageOptions> nativeImages;
     private final transient NativeImagePlugin plugin;
     private final transient Project project;
+    private final transient ExecOperations execOperations;
     private final Property<JavaLauncher> defaultJavaLauncher;
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
                                    NativeImagePlugin plugin,
-                                   Project project) {
+                                   Project project,
+                                   ExecOperations execOperations) {
         this.nativeImages = nativeImages;
         this.plugin = plugin;
         this.project = project;
+        this.execOperations = execOperations;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         getToolchainDetection().convention(false);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
@@ -91,17 +99,35 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private void configureToolchain() {
         defaultJavaLauncher.convention(
                 getToolchainDetection().flatMap(enabled -> {
-                    if (enabled) {
-                        JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
-                        if (toolchainService != null) {
-                            JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
-                            Provider<JavaLauncher> javaToolchainLauncher = toolchainService.launcherFor(javaConvention.getToolchain());
-                            Provider<JavaLauncher> currentLauncher = toolchainService.launcherFor(spec ->
-                                    spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion())));
-                            return javaToolchainLauncher.orElse(currentLauncher);
-                        }
+                    if (!enabled) {
+                        return null;
                     }
-                    return null;
+                    JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
+                    if (toolchainService == null) {
+                        return null;
+                    }
+                    // Probe toolchain for native-image before using it
+                    // If not found, fall back to current Gradle JVM
+                    JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
+                    Provider<JavaLauncher> javaToolchainLauncher = toolchainService.launcherFor(javaConvention.getToolchain());
+                    // Verify toolchain contains native-image by probing it
+                    Provider<JavaLauncher> probeResult = javaToolchainLauncher.map(l -> {
+                        try {
+                            File nativeImage = l.getMetadata().getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
+                            if (nativeImage.exists()) {
+                                return l;
+                            }
+                            // native-image not found, return null to trigger fallback to current JVM
+                            return null;
+                        } catch (Exception e) {
+                            // Probe failed, return null to trigger fallback to current JVM
+                            return null;
+                        }
+                    });
+                    // Fallback to current JVM if toolchain probe failed
+                    Provider<JavaLauncher> currentLauncher = toolchainService.launcherFor(spec ->
+                            spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion())));
+                    return probeResult.orElse(currentLauncher);
                 })
         );
     }
