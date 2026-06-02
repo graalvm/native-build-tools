@@ -62,8 +62,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 /**
- * This goal runs native builds. It functions the same as the native:compile goal, but it does not
- * fork the build, so it is suitable for attaching to the build lifecycle.
+ * Builds a native executable in the current Maven lifecycle without forking a separate Maven build.
  * §FS-maven-plugin.1.1, §FS-maven-plugin.1.4.
  * It also owns main-class discovery, skipping, generated resources, dynamic access metadata, and base SBOM behavior.
  * §FS-maven-plugin.2.1, §FS-maven-plugin.2.2, §FS-maven-plugin.2.4, §FS-maven-plugin.2.5, §FS-maven-plugin.2.6.
