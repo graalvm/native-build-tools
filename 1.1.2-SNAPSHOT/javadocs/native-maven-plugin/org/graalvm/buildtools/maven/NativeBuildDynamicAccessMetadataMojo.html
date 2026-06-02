@@ -90,8 +90,9 @@ loadScripts(document, 'script');</script>
       requiresDependencyCollection=RUNTIME)
 </span><span class="modifiers">public class </span><span class="element-name type-name-label">NativeBuildDynamicAccessMetadataMojo</span>
 <span class="extends-implements">extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></span></div>
-<div class="block">Generates a <code>dynamic-access-metadata.json</code> file used by the dynamic access tab of the native image
- Build Report. This json file contains the mapping of all classpath entries that exist in the
+<div class="block">Generates dynamic access metadata used by the native image Build Report.
+
+ The generated <code>dynamic-access-metadata.json</code> file contains the mapping of all classpath entries that exist in the
  "library-and-framework-list.json" to their transitive dependencies.
  <p>
  If "library-and-framework-list.json" doesn't exist in the used release of the

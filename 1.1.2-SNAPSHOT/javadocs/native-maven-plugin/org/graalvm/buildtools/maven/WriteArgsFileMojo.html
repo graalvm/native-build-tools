@@ -93,8 +93,7 @@ loadScripts(document, 'script');</script>
       requiresDependencyCollection=RUNTIME)
 </span><span class="modifiers">public class </span><span class="element-name type-name-label">WriteArgsFileMojo</span>
 <span class="extends-implements">extends <a href="NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileNoForkMojo</a></span></div>
-<div class="block">Persists the arguments file to be used by the native-image command. This can be useful in situations where
- Native Build Tools plugin is not available, for example, when running native-image in a Docker container.
+<div class="block">Writes the <code>native-image</code> arguments for this project to an args file that can be reused outside Maven.
 
  The path to the args file is stored in the project properties under the key <code>graalvm.native-image.args-file</code>.</div>
 <dl class="notes">

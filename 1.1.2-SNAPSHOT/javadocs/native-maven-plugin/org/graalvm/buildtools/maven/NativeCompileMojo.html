@@ -91,8 +91,9 @@ loadScripts(document, 'script');</script>
 @Execute(phase=PACKAGE)
 </span><span class="modifiers">public class </span><span class="element-name type-name-label">NativeCompileMojo</span>
 <span class="extends-implements">extends <a href="NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileNoForkMojo</a></span></div>
-<div class="block">This goal builds native images.
- It should be invoked from the command line as a single goal (`mvn native:compile`).</div>
+<div class="block">Builds a native executable by forking Maven to the <code>package</code> phase before invoking <code>native-image</code>.
+
+ It should be invoked from the command line as a single goal (<code>mvn native:compile</code>).</div>
 </section>
 <section class="summary">
 <ul class="summary-list">

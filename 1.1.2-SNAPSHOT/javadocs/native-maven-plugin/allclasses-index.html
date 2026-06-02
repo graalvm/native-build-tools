@@ -69,7 +69,9 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/AbstractResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven">AbstractResourceConfigMojo</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/AddReachabilityMetadataMojo.html" title="class in org.graalvm.buildtools.maven">AddReachabilityMetadataMojo</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Adds dependency reachability metadata from the configured metadata repository to the project's output directory.</div>
+</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/config/agent/AgentConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">AgentConfiguration</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/config/agent/AgentOptionsConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">AgentOptionsConfiguration</a></div>
@@ -81,13 +83,19 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/config/ExcludeConfigConfiguration.html" title="class in org.graalvm.buildtools.maven.config">ExcludeConfigConfiguration</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/ListLibrariesMissingMetadataMojo.html" title="class in org.graalvm.buildtools.maven">ListLibrariesMissingMetadataMojo</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Lists direct runtime dependencies that do not have reachability metadata in the configured metadata repository.</div>
+</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/MergeAgentFilesMojo.html" title="class in org.graalvm.buildtools.maven">MergeAgentFilesMojo</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Merges tracing agent output from one or more sessions into a single metadata directory.</div>
+</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/config/agent/MetadataCopyConfiguration.html" title="class in org.graalvm.buildtools.maven.config.agent">MetadataCopyConfiguration</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/MetadataCopyMojo.html" title="class in org.graalvm.buildtools.maven">MetadataCopyMojo</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Copies and optionally merges tracing agent metadata into <code>META-INF/native-image</code> for packaging.</div>
+</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/config/MetadataRepositoryConfiguration.html" title="class in org.graalvm.buildtools.maven.config">MetadataRepositoryConfiguration</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/config/MetadataRepositoryConfiguration.DependencyConfiguration.html" title="class in org.graalvm.buildtools.maven.config">MetadataRepositoryConfiguration.DependencyConfiguration</a></div>
@@ -96,20 +104,23 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeBuildDynamicAccessMetadataMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildDynamicAccessMetadataMojo</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Generates a <code>dynamic-access-metadata.json</code> file used by the dynamic access tab of the native image
- Build Report.</div>
+<div class="block">Generates dynamic access metadata used by the native image Build Report.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeBuildResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildResourceConfigMojo</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Scans main resources and generates resource metadata for them.</div>
+</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeBuildTestResourceConfigMojo.html" title="class in org.graalvm.buildtools.maven">NativeBuildTestResourceConfigMojo</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Scans test resources and generates resource metadata for them.</div>
+</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeCompileMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileMojo</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">This goal builds native images.</div>
+<div class="block">Builds a native executable by forking Maven to the <code>package</code> phase before invoking <code>native-image</code>.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeCompileNoForkMojo.html" title="class in org.graalvm.buildtools.maven">NativeCompileNoForkMojo</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">This goal runs native builds.</div>
+<div class="block">Builds a native executable in the current Maven lifecycle without forking a separate Maven build.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeExtension.html" title="class in org.graalvm.buildtools.maven">NativeExtension</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
@@ -122,7 +133,7 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/NativeTestMojo.html" title="class in org.graalvm.buildtools.maven">NativeTestMojo</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">This goal builds and runs native tests.</div>
+<div class="block">Builds and runs the project's tests as native executables.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/RuntimeMetadata.html" title="class in org.graalvm.buildtools.maven">RuntimeMetadata</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
@@ -136,7 +147,7 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/maven/WriteArgsFileMojo.html" title="class in org.graalvm.buildtools.maven">WriteArgsFileMojo</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Persists the arguments file to be used by the native-image command.</div>
+<div class="block">Writes the <code>native-image</code> arguments for this project to an args file that can be reused outside Maven.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="org/graalvm/buildtools/utils/Xpp3DomParser.html" title="class in org.graalvm.buildtools.utils">Xpp3DomParser</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
