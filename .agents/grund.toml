@@ -64,13 +64,8 @@ title = "Plugin end-to-end and functional test execution"
 
 [[kinds]]
 prefix = "DEC"
-file = "docs/spec/decisions.md"
+folder = "docs/spec/decisions"
 title = "Project decisions and tradeoffs"
-
-[[kinds]]
-prefix = "RM"
-file = "docs/spec/roadmap.md"
-title = "Planned milestones and sequencing"
 
 [[kinds]]
 prefix = "GLOSS"

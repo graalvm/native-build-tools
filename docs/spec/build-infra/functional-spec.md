@@ -106,8 +106,8 @@ matrix for inspection.
 
 The AsciiDoc tree under `docs/src/docs/asciidoc/` remains the source for generated end-user
 documentation. It documents how users apply and configure the Gradle and Maven plugins. The
-Markdown tree under `docs/spec/` contains root grund declarations, goals, decisions, roadmap
-items, shared component specs, CI specs, and architecture specs. Gradle and Maven plugin specs live
+Markdown tree under `docs/spec/` contains root grund declarations, goals, decision records,
+shared component specs, CI specs, and architecture specs. Gradle and Maven plugin specs live
 under `native-gradle-plugin/docs/` and `native-maven-plugin/docs/` as workspace member projects.
 These maintainer-facing specs should be updated before behavior or design changes.
 

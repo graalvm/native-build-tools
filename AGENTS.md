@@ -2,7 +2,7 @@
 
 ## Grounding with grund (v2)
 
-This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, roadmap item, component spec, workflow spec, and glossary term has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, FS, AR, CI, E2E, DEC, RM, GLOSS}`), cited with the marker `§` — e.g. `§gradle/FS-gradle-plugin.3.1` (the `FS-gradle-plugin` here is a shape illustration, not necessarily the point you need). Type `$$` in a grund-aware editor and it becomes `§`. Java Checkstyle allows the `§` marker as the only non-ASCII citation exception. Bare ID-shaped tokens are ignored because `[reference] strict = true`.
+This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, non-goal, requirement, decision, component spec, workflow spec, and glossary term has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, FS, AR, CI, E2E, DEC, GLOSS}`), cited with the marker `§` — e.g. `§gradle/FS-gradle-plugin.3.1` (the `FS-gradle-plugin` here is a shape illustration, not necessarily the point you need). Type `$$` in a grund-aware editor and it becomes `§`. Java Checkstyle allows the `§` marker as the only non-ASCII citation exception. Bare ID-shaped tokens are ignored because `[reference] strict = true`.
 
 ### Grounding from a citation
 
@@ -26,13 +26,12 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 - [AR](docs/spec): Architecture specifications in root specs plus plugin-local `docs/architecture.md` files
 - [CI](docs/spec/ci.md): Pull request and repository CI workflows
 - [E2E](native-gradle-plugin/docs/e2e.md, native-maven-plugin/docs/e2e.md): Plugin end-to-end and functional test execution
-- [DEC](docs/spec/decisions.md): Project decisions and tradeoffs
-- [RM](docs/spec/roadmap.md): Planned milestones and sequencing
+- [DEC](docs/spec/decisions/README.md): Project decisions and tradeoffs
 - [GLOSS](docs/spec/glossary.md): Glossary of domain terms
 
 Workspace members:
 
-- `root` → [docs/spec/README.md](docs/spec/README.md): repository-wide contracts, common libraries, CI, build infrastructure, native tests, decisions, roadmap, and glossary.
+- `root` → [docs/spec/README.md](docs/spec/README.md): repository-wide contracts, common libraries, CI, build infrastructure, native tests, decisions, and glossary.
 - `gradle` → [native-gradle-plugin/AGENTS.md](native-gradle-plugin/AGENTS.md): Gradle plugin namespace. Local Gradle citations use `§<ID>` inside that member; root docs cite Gradle facts with `§gradle/<ID>`.
 - `maven` → [native-maven-plugin/AGENTS.md](native-maven-plugin/AGENTS.md): Maven plugin namespace. Local Maven citations use `§<ID>` inside that member; root docs cite Maven facts with `§maven/<ID>`.
 

@@ -24,7 +24,7 @@ libraries, native-test behavior, decisions, and glossary terms stay in `docs/spe
 | change sample, fixture, or reproducer behavior | [build-infra/architecture.md](build-infra/architecture.md) | [build-infra/functional-spec.md](build-infra/functional-spec.md), plugin E2E docs |
 | change build, publication, generated source, docs, or release tasks | [build-infra/functional-spec.md](build-infra/functional-spec.md) | [build-infra/architecture.md](build-infra/architecture.md), [ci.md](ci.md) |
 | change pull request validation or GitHub Actions setup | [ci.md](ci.md) | [build-infra/functional-spec.md](build-infra/functional-spec.md) |
-| decide whether something is in scope | [goals.md](goals.md), [non-goals.md](non-goals.md) | [requirements.md](requirements.md), [decisions.md](decisions.md) |
+| decide whether something is in scope | [goals.md](goals.md), [non-goals.md](non-goals.md) | [requirements.md](requirements.md), [decisions/README.md](decisions/README.md) |
 
 ## Files at a glance
 
@@ -41,8 +41,7 @@ libraries, native-test behavior, decisions, and glossary terms stay in `docs/spe
 | [build-infra/functional-spec.md](build-infra/functional-spec.md) | Maintainer task surface, generated artifacts, docs, publication, and CI data. |
 | [build-infra/architecture.md](build-infra/architecture.md) | Build infrastructure ownership, product/runtime boundary, samples, fixtures, and reproducers. |
 | [ci.md](ci.md) | Pull request workflows, shared actions, and workflow-specific gates. |
-| [decisions.md](decisions.md) | Decisions and tradeoffs. |
-| [roadmap.md](roadmap.md) | Planned work. |
+| [decisions/README.md](decisions/README.md) | Decisions and tradeoffs. |
 | [glossary.md](glossary.md) | Domain terms used across specs. |
 
 ## Workspace Members
