@@ -101,6 +101,9 @@ public class AgentConfiguration implements Serializable {
     }
 
     public List<String> getAgentCommandLine() {
+        if (!isEnabled()) {
+            return List.of();
+        }
         addDefaultAccessFilter();
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
