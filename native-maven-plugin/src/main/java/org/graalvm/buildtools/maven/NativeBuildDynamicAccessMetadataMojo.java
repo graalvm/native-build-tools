@@ -69,8 +69,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Generates a {@code dynamic-access-metadata.json} file used by the dynamic access tab of the native image
- * Build Report. This json file contains the mapping of all classpath entries that exist in the
+ * Generates dynamic access metadata used by the native image Build Report.
+ *
+ * The generated {@code dynamic-access-metadata.json} file contains the mapping of all classpath entries that exist in the
  * {@value #LIBRARY_AND_FRAMEWORK_LIST} to their transitive dependencies.
  * <p>
  * If {@value #LIBRARY_AND_FRAMEWORK_LIST} doesn't exist in the used release of the
