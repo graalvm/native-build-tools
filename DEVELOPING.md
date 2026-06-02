@@ -71,7 +71,7 @@ Examples used in daily development follow (all executed from the root of the rep
 
 GitHub workflow and composite action files (`.github/workflows/**` and `.github/actions/**`) are checked by the `Check GitHub Actions with Macaron` workflow.
 The check uses the Macaron `check-github-actions` policy with `policy_purl` set to `pkg:github.com/graalvm/native-build-tools@.*` (see [Macaron GitHub Action documentation](https://oracle.github.io/macaron/pages/macaron_action.html)).
-This check should remain a required pull request status check for the default branch.
+This check should remain a required pull request status check when pull requests touch GitHub workflow or composite action files.
 
 ## Debugging Plugin(s)
 
