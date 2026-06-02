@@ -70,15 +70,13 @@ import java.util.Set;
 
 /**
  * Generates dynamic access metadata used by the native image Build Report.
- *
- * The generated {@code dynamic-access-metadata.json} file contains the mapping of all classpath entries that exist in the
+ * The generated {@code dynamic-access-metadata.json} file maps classpath entries from
  * {@value #LIBRARY_AND_FRAMEWORK_LIST} to their transitive dependencies.
  * §FS-maven-plugin.1.3, §FS-maven-plugin.2.5.
  * <p>
- * If {@value #LIBRARY_AND_FRAMEWORK_LIST} doesn't exist in the used release of the
- * {@code GraalVM Reachability Metadata} repository, this task does nothing.
+ * If {@value #LIBRARY_AND_FRAMEWORK_LIST} doesn't exist in the used metadata repository release, this task does nothing.
  * <p>
- * The format of the generated JSON file conforms the following
+ * The generated JSON file conforms to the following
  * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
  */
 @Mojo(name = "generateDynamicAccessMetadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
