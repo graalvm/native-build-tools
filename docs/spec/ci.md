@@ -1,16 +1,17 @@
 # CI-pull-request-ci: Pull request CI validates product, shared-library, sample, and spec changes
 
 Native Build Tools pull request CI is split by ownership boundary so a change runs the cheapest
-gate that can still prove the affected behavior. Every PR workflow uses explicit `paths` filters,
-shared concurrency cancellation, and a checked-out repository. Workflows that execute native-image
-or functional tests prepare both a build JDK and a GraalVM test JDK through
-§CI-prepare-environment.
+gate that can still prove the affected behavior. PR workflows use explicit `paths` filters and a
+checked-out repository; product and spec gates use shared concurrency cancellation where repeated
+runs should supersede older runs. Workflows that execute native-image or functional tests prepare
+both a build JDK and a GraalVM test JDK through §CI-prepare-environment.
 
 ## 1. Pull request gates
 
 | Workflow | Scope | Required evidence |
 | --- | --- | --- |
 | `check-grund-spec.yml` | Spec, code citation, sample, workflow, and build-logic changes that may affect grounded documentation. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces; `grund fmt . --marker --check` must reject bare citation tokens. §CI-check-grund-spec |
+| `macaron-check-github-actions.yml` | GitHub workflow and composite action changes. | Macaron's `check-github-actions` policy must validate workflow and composite action supply-chain rules for this repository package URL. §CI-macaron-check-github-actions |
 | `test-native-gradle-plugin.yml` | Gradle plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Gradle functional tests, configuration-cache functional tests, unit tests, and inspections. §CI-test-native-gradle-plugin |
 | `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. §CI-test-native-maven-plugin |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. §CI-test-graalvm-metadata |
@@ -50,6 +51,14 @@ caches the configured `grund` binary, runs `grund check` at the repository root 
 validates the root, Gradle, and Maven namespaces together, and runs
 `grund fmt . --marker --check` so strict-mode bare ID-shaped tokens cannot silently bypass the
 citation marker rule.
+
+# CI-macaron-check-github-actions: GitHub Actions Macaron policy workflow
+
+`macaron-check-github-actions.yml` validates `.github/workflows/**` and `.github/actions/**`
+changes with the Macaron `check-github-actions` policy. The workflow checks out the repository and
+runs the pinned `oracle/macaron` action with `policy_purl` set to the Native Build Tools package
+URL pattern, so workflow and composite action changes are checked before merge. This gate is
+documented for local contributors in `DEVELOPING.md`.
 
 # CI-test-native-gradle-plugin: Gradle plugin PR workflow
 
