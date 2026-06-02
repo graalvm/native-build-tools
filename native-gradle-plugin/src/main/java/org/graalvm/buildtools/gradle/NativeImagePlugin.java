@@ -1043,7 +1043,10 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 FileSystemOperations fileOperations,
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
-        Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
+        Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(
+                agentMode,
+                graalExtension.getAgent(),
+                project.getLayout().getBuildDirectory().dir("native/agent-config"));
         //noinspection Convert2Lambda
         taskToInstrument.doFirst(new Action<Task>() {
             @Override

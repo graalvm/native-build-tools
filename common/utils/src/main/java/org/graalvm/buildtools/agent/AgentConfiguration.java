@@ -67,11 +67,16 @@ public class AgentConfiguration implements Serializable {
     private final Boolean experimentalPredefinedClasses;
     private final Boolean experimentalUnsafeAllocationTracing;
     private final Boolean trackReflectionMetadata;
+    private final Path agentConfigDir;
 
     private final AgentMode agentMode;
 
     // This constructor should be used only to specify that we have instance of agent that is disabled (to avoid using null for agent enable check)
-    public AgentConfiguration(AgentMode ...modes) {
+    public AgentConfiguration() {
+        this(null, new DisabledAgentMode());
+    }
+
+    public AgentConfiguration(Path agentConfigDir, AgentMode agentMode) {
         this.callerFilterFiles = null;
         this.accessFilterFiles = null;
         this.builtinCallerFilter = null;
@@ -79,7 +84,8 @@ public class AgentConfiguration implements Serializable {
         this.experimentalPredefinedClasses = null;
         this.experimentalUnsafeAllocationTracing = null;
         this.trackReflectionMetadata = null;
-        this.agentMode = modes.length == 1 ? modes[0] : new DisabledAgentMode();
+        this.agentConfigDir = agentConfigDir;
+        this.agentMode = agentMode;
     }
 
     public AgentConfiguration(Collection<String> callerFilterFiles,
@@ -89,7 +95,8 @@ public class AgentConfiguration implements Serializable {
                               Boolean experimentalPredefinedClasses,
                               Boolean experimentalUnsafeAllocationTracing,
                               Boolean trackReflectionMetadata,
-                              AgentMode agentMode) {
+                              AgentMode agentMode,
+                              Path agentConfigDir) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
         this.builtinCallerFilter = builtinCallerFilter;
@@ -98,6 +105,7 @@ public class AgentConfiguration implements Serializable {
         this.experimentalUnsafeAllocationTracing = experimentalUnsafeAllocationTracing;
         this.trackReflectionMetadata = trackReflectionMetadata;
         this.agentMode = agentMode;
+        this.agentConfigDir = agentConfigDir;
     }
 
     public List<String> getAgentCommandLine() {
@@ -145,9 +153,7 @@ public class AgentConfiguration implements Serializable {
     }
 
     private String getDefaultAccessFilter() {
-        String tempDir = System.getProperty("java.io.tmpdir");
-        Path agentDir = Path.of(tempDir).resolve("agent-config");
-        Path accessFilterFile = agentDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
+        Path accessFilterFile = agentConfigDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
         if (Files.exists(accessFilterFile)) {
             return accessFilterFile.toString();
         }
@@ -158,12 +164,12 @@ public class AgentConfiguration implements Serializable {
             }
 
             try {
-                Files.createDirectory(agentDir);
+                Files.createDirectories(agentConfigDir);
             } catch (FileAlreadyExistsException e) {
-                logger.info("Skip creation of directory " + agentDir + " (already created).");
+                logger.info("Skip creation of directory " + agentConfigDir + " (already created).");
             }
 
-            Path tmpAccessFilter = Files.createTempFile(agentDir, ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
+            Path tmpAccessFilter = Files.createTempFile(agentConfigDir, ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
             Files.copy(accessFilterData, tmpAccessFilter, StandardCopyOption.REPLACE_EXISTING);
 
             try {

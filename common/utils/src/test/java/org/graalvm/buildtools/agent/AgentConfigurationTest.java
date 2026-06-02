@@ -41,12 +41,21 @@
 package org.graalvm.buildtools.agent;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgentConfigurationTest {
+
+    private static final String ACCESS_FILTER_OPTION = "access-filter-file=";
+
+    @TempDir
+    Path agentConfigDir;
 
     @Test
     void disabledConfigurationReturnsEmptyCommandLine() {
@@ -55,5 +64,34 @@ class AgentConfigurationTest {
         List<String> cmdLine = disabled.getAgentCommandLine();
 
         assertTrue(cmdLine.isEmpty(), "Disabled agent configuration should not emit any options, but was: " + cmdLine);
+    }
+
+    @Test
+    void standardConfigurationEmitsDefaultAccessFilterBeforeUserAccessFilters() {
+        List<String> userAccessFilters = List.of("user-1.json", "user-2.json");
+        AgentConfiguration configuration = new AgentConfiguration(
+                List.of(),
+                new ArrayList<>(userAccessFilters),
+                null,
+                null,
+                null,
+                null,
+                null,
+                new StandardAgentMode(),
+                agentConfigDir);
+
+        List<String> cmdLine = configuration.getAgentCommandLine();
+
+        List<String> accessFilterOptions = cmdLine.stream()
+                .filter(option -> option.startsWith(ACCESS_FILTER_OPTION))
+                .toList();
+
+        assertEquals(userAccessFilters.size() + 1, accessFilterOptions.size(),
+                "Expected one default access filter plus user access filters, but got: " + accessFilterOptions);
+
+        for (int i = 0; i < userAccessFilters.size(); i++) {
+            assertEquals(ACCESS_FILTER_OPTION + userAccessFilters.get(i), accessFilterOptions.get(i + 1),
+                    "User access filters must follow the default in their original order");
+        }
     }
 }
