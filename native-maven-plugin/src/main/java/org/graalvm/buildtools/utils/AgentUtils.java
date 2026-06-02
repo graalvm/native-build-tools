@@ -51,6 +51,7 @@ import org.graalvm.buildtools.agent.ConditionalAgentMode;
 import org.graalvm.buildtools.agent.AgentConfiguration;
 
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -117,13 +118,13 @@ public abstract class AgentUtils {
         return agentMode;
     }
 
-    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) throws RuntimeException {
+    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode, Path agentConfigDir) throws RuntimeException {
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent == null) {
             Boolean agentEnabledInCmd = isAgentEnabledInCmd(session);
             if (agentEnabledInCmd != null && agentEnabledInCmd) {
                 // if agent is only enabled from command line but there is no configuration in pom.xml, we use default options
-                return new AgentConfiguration(new StandardAgentMode());
+                return new AgentConfiguration(agentConfigDir, new StandardAgentMode());
             } else {
                 return new AgentConfiguration();
             }
@@ -153,7 +154,7 @@ public abstract class AgentUtils {
 
         return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
                 builtinHeuristicFilter, enableExperimentalPredefinedClasses, enableExperimentalUnsafeAllocationTracing,
-                trackReflectionMetadata, mode);
+                trackReflectionMetadata, mode, agentConfigDir);
     }
 
     public static List<String> getDisabledStages(Xpp3Dom rootNode) {
