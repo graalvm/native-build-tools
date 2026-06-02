@@ -1,0 +1,26 @@
+name: Check GitHub Actions with Macaron
+# Validates GitHub workflows and composite actions with Macaron's check-github-actions policy.
+# Documentation: https://oracle.github.io/macaron/pages/macaron_action.html
+
+on:
+  pull_request:
+    paths:
+      - '.github/actions/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Run Macaron action
+        uses: oracle/macaron@4ddb55e3c9ef2c77b548be55c557078c4476fd9c # v0.24.0
+        with:
+          repo_path: ./
+          policy_file: check-github-actions
+          policy_purl: pkg:github.com/graalvm/native-build-tools@.*
+          reports_retention_days: 7
