@@ -46,8 +46,6 @@ jobs:
         run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
       - name: "🔧 Install grund"
         if: steps.cache-grund.outputs.cache-hit != 'true'
-        # TODO: pin with `--tag v${GRUND_VERSION}` once the grund release tag scheme is confirmed;
-        # the binary is otherwise pinned per-run by the GRUND_VERSION cache key above.
         run: |
           rustup toolchain install stable --profile minimal
           rustup run stable cargo install --git https://github.com/vjovanov/grund --tag "v${GRUND_VERSION}"

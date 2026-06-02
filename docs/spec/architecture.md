@@ -27,7 +27,11 @@ and verification without becoming product API.
 | Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-plugin-common-behavior.3, §AR-build-infrastructure.4 |
 | Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
 | CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §CI-pull-request-ci, §CI-deploy-documentation, §CI-deploy-snapshots |
-| User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, developer guide, and grounded maintainer specification. | §FS-build-infrastructure.3 |
+| User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, and developer guide stay user-facing; grounded maintainer specification lives in `docs/spec/` and `AGENTS.md`. | §FS-build-infrastructure.3 |
+
+The grund scan follows the maintainer specification, workflow, source-comment, sample, and
+build-logic surfaces. User-facing guides do not need citations unless they intentionally make a
+maintainer-facing claim.
 
 ### Change map
 
