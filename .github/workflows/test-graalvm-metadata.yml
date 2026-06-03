@@ -1,5 +1,5 @@
 # Pull request metadata library gate: checkstyle and unit tests.
-# §AR-test-graalvm-metadata; §common/FS-common-libraries.5
+# §AR-pull-request-ci.1.5; §common/FS-common-libraries.5
 name: "Test GraalVM Reachability Metadata Repository"
 
 on:

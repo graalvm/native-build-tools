@@ -96,7 +96,7 @@ sample project would, rather than reaching into compiled classes directly.
 ## 5. CI coverage
 
 `test-native-maven-plugin.yml` runs generated Maven functional-test matrices and GraalVM dev-build
-functional tests on pull requests. The CI workflow is specified by §root/AR-test-native-maven-plugin.
+functional tests on pull requests. The CI workflow is specified by §root/AR-pull-request-ci.1.4.
 
 The CI matrix is the merge gate. Local runs should reproduce the failing class or reproducer first,
 then broaden to the full suite before pushing behavior changes that affect goals, Maven parameter

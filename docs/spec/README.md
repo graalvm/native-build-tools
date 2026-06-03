@@ -86,7 +86,7 @@ Use the most specific citation that supports the behavior. For example:
 - shared resource analysis: `§common/FS-common-libraries.2`
 - native test lifecycle: `§FS-native-tests.1`
 - build infrastructure task surface: `§FS-build-infrastructure.1.2`
-- CI workflow architecture: `§AR-test-native-gradle-plugin`
+- CI workflow architecture: `§AR-pull-request-ci.1.3`
 
 Resolve cross-namespace citations with `grund <alias>/<ID>`, inspect a section map with
 `grund <alias>/<ID> --toc`, and run `grund check` from the repository root before committing spec

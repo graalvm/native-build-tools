@@ -26,7 +26,7 @@ and verification without becoming product API.
 | Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §common/FS-common-libraries, §common/AR-common-libraries |
 | Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-native-tests, §AR-build-infrastructure.4 |
 | Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
-| CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §AR-pull-request-ci, §AR-deploy-documentation, §AR-deploy-snapshots |
+| CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §AR-pull-request-ci, §AR-pull-request-ci.2.1, §AR-pull-request-ci.2.2 |
 | User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, and developer guide stay user-facing; grounded maintainer specification lives in `docs/spec/` and `AGENTS.md`. | §FS-build-infrastructure.3 |
 
 The grund scan follows the maintainer specification, workflow, source-comment, sample, and
@@ -77,7 +77,7 @@ not be used as shared runtime libraries for product code.
    commands specified by §gradle/E2E-gradle-plugin-functional-tests,
    §maven/E2E-maven-plugin-functional-tests, and §FS-native-tests.6.
 4. Pull request CI runs the matching workflow gates from §AR-pull-request-ci and validates grund
-   citations through §AR-check-grund-spec.
+   citations through §AR-pull-request-ci.1.1.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only
    through the repository's build and CI boundaries (§FS-build-infrastructure.5).
 
