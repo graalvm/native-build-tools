@@ -162,12 +162,7 @@ public class AgentConfiguration implements Serializable {
             if (accessFilterData == null) {
                 throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
-
-            try {
-                Files.createDirectories(agentConfigDir);
-            } catch (FileAlreadyExistsException e) {
-                logger.info("Skip creation of directory " + agentConfigDir + " (already created).");
-            }
+            Files.createDirectories(agentConfigDir);
 
             Path tmpAccessFilter = Files.createTempFile(agentConfigDir, ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
             Files.copy(accessFilterData, tmpAccessFilter, StandardCopyOption.REPLACE_EXISTING);
