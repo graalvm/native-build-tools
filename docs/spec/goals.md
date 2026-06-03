@@ -17,6 +17,17 @@ JUnit native support. See §FS-plugin-common-behavior, §common/FS-common-librar
 §common/AR-common-libraries. Constrained by
 §REQ-repository-fixtures-protect-real-build-scenarios.
 
+# GOAL-jvm-ecosystem-interop: Most of the JVM build ecosystem keeps working under Native Image
+
+Refines §GRUND-native-build-tools-reason-for-existence. Build-tool toolchains, common Gradle and
+Maven plugins (`application`, `java-library`, `jacoco`, Kotlin, etc.), test frameworks, packaging
+plugins, and developer tooling that JVM projects already rely on should continue to work when
+Native Build Tools is added to the project. The plugins must integrate with the host build tool's
+existing model rather than replacing it; when an ecosystem capability is structurally incompatible
+with Native Image, that gap belongs in [non-goals.md](non-goals.md) with a documented reason.
+Realized by §gradle/FS-gradle-plugin and §maven/FS-maven-plugin, bounded by
+§NGOAL-no-duplication-of-existing-build-tool-capabilities.
+
 # GOAL-concise-actionable-output: Build output is concise, actionable, and token-efficient
 
 Refines §GRUND-native-build-tools-reason-for-existence. Default Gradle and Maven plugin output

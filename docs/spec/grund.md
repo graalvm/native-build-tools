@@ -7,6 +7,7 @@ that burden: its Gradle and Maven plugins wire metadata-repo lookups, resource c
 native JUnit execution, and agent runs into the build tools JVM projects already use. Goals are
 refined in §GOAL-native-build-workflows,
 §GOAL-plugin-parity,
+§GOAL-jvm-ecosystem-interop,
 §GOAL-concise-actionable-output, and §GOAL-fast-feedback; module
 ownership is described by §AR-repository-architecture.
 
