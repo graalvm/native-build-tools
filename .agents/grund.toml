@@ -28,7 +28,7 @@ inline_style = "citation-with-note"
 inline_note_suggested_lines = 1
 
 # hard cap (error)
-inline_note_max_lines = 6
+inline_note_max_lines = 12
 
 # hard cap (error)
 inline_note_max_columns = 160
