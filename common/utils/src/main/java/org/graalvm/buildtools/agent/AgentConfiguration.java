@@ -43,10 +43,8 @@ package org.graalvm.buildtools.agent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -163,17 +161,7 @@ public class AgentConfiguration implements Serializable {
                 throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
             Files.createDirectories(agentConfigDir);
-
-            Path tmpAccessFilter = Files.createTempFile(agentConfigDir, ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
-            Files.copy(accessFilterData, tmpAccessFilter, StandardCopyOption.REPLACE_EXISTING);
-
-            try {
-                Files.move(tmpAccessFilter, accessFilterFile, StandardCopyOption.ATOMIC_MOVE);
-            } catch (FileAlreadyExistsException e) {
-                Files.delete(tmpAccessFilter);
-                logger.info(accessFilterFile + " already exists. Delete " + tmpAccessFilter);
-            }
-
+            Files.copy(accessFilterData, accessFilterFile);
             return accessFilterFile.toString();
         } catch (IOException e) {
             throw new RuntimeException("Cannot add default access-filter.json", e);
