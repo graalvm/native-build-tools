@@ -23,8 +23,8 @@ and verification without becoming product API.
 | --- | --- | --- | --- |
 | Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §gradle/FS-gradle-plugin, §gradle/AR-gradle-plugin |
 | Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §maven/FS-maven-plugin, §maven/AR-maven-plugin |
-| Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §FS-common-libraries, §AR-common-libraries |
-| Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-plugin-common-behavior.3, §AR-build-infrastructure.4 |
+| Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §common/FS-common-libraries, §common/AR-common-libraries |
+| Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-native-tests, §AR-build-infrastructure.4 |
 | Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
 | CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §CI-pull-request-ci, §CI-deploy-documentation, §CI-deploy-snapshots |
 | User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, and developer guide stay user-facing; grounded maintainer specification lives in `docs/spec/` and `AGENTS.md`. | §FS-build-infrastructure.3 |
@@ -37,14 +37,14 @@ maintainer-facing claim.
 
 ```mermaid
 flowchart TD
-    SharedBehavior["Behavior shared by Gradle and Maven"] --> PluginCommon["docs/spec/plugin-common.md"]
+    SharedBehavior["Behavior shared by Gradle and Maven"] --> PluginCommon["docs/spec/functional/plugin-common.md"]
     GradleBehavior["Gradle DSL/task behavior"] --> GradleSpec["native-gradle-plugin/docs/functional-spec.md"]
     MavenBehavior["Maven goal/XML behavior"] --> MavenSpec["native-maven-plugin/docs/functional-spec.md"]
-    CommonBehavior["Resources, metadata, agent, utilities"] --> CommonSpec["docs/spec/common/functional-spec.md"]
-    NativeTests["Native test lifecycle"] --> PluginCommon["docs/spec/plugin-common.md"]
-    Fixtures["Samples, fixtures, reproducers"] --> BuildArch["docs/spec/build-infra/architecture.md"]
-    BuildInfra["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/build-infra/functional-spec.md"]
-    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/ci.md"]
+    CommonBehavior["Resources, metadata, agent, utilities"] --> CommonSpec["common/docs/functional-spec.md"]
+    NativeTests["Native test lifecycle"] --> PluginCommon["docs/spec/functional/plugin-common.md"]
+    Fixtures["Samples, fixtures, reproducers"] --> BuildArch["docs/spec/architecture/build-infrastructure.md"]
+    BuildInfra["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/architecture/build-infrastructure.md"]
+    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/architecture/ci.md"]
 ```
 
 ## 3. Dependency direction
@@ -65,8 +65,8 @@ not be used as shared runtime libraries for product code.
 
 1. A behavior change starts in the most specific component spec: §FS-plugin-common-behavior for
    behavior shared by both product plugins, §gradle/FS-gradle-plugin for Gradle,
-   §maven/FS-maven-plugin for Maven, §FS-common-libraries for shared library behavior,
-   §FS-plugin-common-behavior.3 for native-test behavior,
+   §maven/FS-maven-plugin for Maven, §common/FS-common-libraries for shared library behavior,
+   §FS-native-tests for native-test behavior,
    §FS-build-infrastructure for build and release infrastructure, or
    §AR-build-infrastructure.4 for sample, fixture, and reproducer ownership.
 2. Product or common code implements the behavior with citations to the component section that
@@ -74,7 +74,7 @@ not be used as shared runtime libraries for product code.
    non-ASCII citation exception.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
    commands specified by §gradle/E2E-gradle-plugin-functional-tests,
-   §maven/E2E-maven-plugin-functional-tests, and §FS-plugin-common-behavior.3.6.
+   §maven/E2E-maven-plugin-functional-tests, and §FS-native-tests.6.
 4. Pull request CI runs the matching workflow gates from §CI-pull-request-ci and validates grund
    citations through §CI-check-grund-spec.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only
@@ -82,11 +82,13 @@ not be used as shared runtime libraries for product code.
 
 ## 5. Specification layout
 
-Top-level `architecture.md` describes repository-wide structure, ownership, deployment, and
-workflow boundaries. Top-level `plugin-common.md` states behavior expected from both product
-plugins. Shared repository components under `docs/spec/` split behavior from implementation where
-they need both `functional-spec.md` and `architecture.md`; the Gradle and Maven product plugins
-own workspace member specs under `native-gradle-plugin/docs/` and `native-maven-plugin/docs/`.
+The top-level `architecture/` directory describes repository-wide structure, ownership,
+deployment, workflow boundaries, and build-infrastructure behavior. The top-level `functional/`
+directory states repository-wide observable product behavior, including behavior expected from
+both product plugins. Shared repository infrastructure components may keep behavior and
+implementation boundaries together when the same maintainer surface owns both; the common, Gradle,
+and Maven components own workspace member specs under `common/docs/`,
+`native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`.
 In every location, `functional-spec.md` states externally observable behavior, user workflows,
 build-tool contracts, metadata behavior, and verification expectations; `architecture.md` states
 module ownership, dependency direction, internal structure, and implementation responsibilities.

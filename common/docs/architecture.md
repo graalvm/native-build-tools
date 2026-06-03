@@ -2,7 +2,7 @@
 
 The `common/` directory contains libraries that should remain independent from Gradle and Maven
 plugin APIs unless a dependency is explicitly part of that library's role. These modules implement
-§FS-common-libraries and the shared test runtime in §FS-plugin-common-behavior.3.
+§FS-common-libraries and the shared test runtime in §root/FS-native-tests.
 
 ## 1. Common module set
 
@@ -64,7 +64,7 @@ their contents.
 ## 5. Dependency direction
 
 Product plugins may depend on common modules. Common modules should not depend on product plugin
-implementation classes. This keeps §GOAL-shared-native-image-behavior-stays-consistent
+implementation classes. This keeps §root/GOAL-plugin-parity
 achievable without making Gradle and Maven integration code mutually dependent.
 
 Common modules may depend on Java libraries, JSON/schema tooling, JUnit Platform APIs where the

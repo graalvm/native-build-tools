@@ -46,7 +46,7 @@ that Gradle builds compile and run native applications and libraries. This prote
 `JavaApplicationWithTestsFunctionalTest`, `JUnitFunctionalTests`,
 `KotlinApplicationWithTestsFunctionalTest`, and `MultiProjectJavaApplicationWithTestsFunctionalTest`
 verify native test compilation, execution, JUnit support, Kotlin projects, and multi-project test
-dependencies. This protects §FS-gradle-plugin.6 and §root/FS-plugin-common-behavior.3.
+dependencies. This protects §FS-gradle-plugin.6 and §root/FS-native-tests.
 
 ### 3.3 Resources
 
@@ -59,13 +59,13 @@ configuration. This protects §FS-gradle-plugin.4.1 and §FS-gradle-plugin.4.2.
 `ReachabilityMetadataFunctionalTest`, `NativeConfigRepoFunctionalTest`, and
 `OfficialMetadataRepoFunctionalTest` verify official and local metadata repositories, exclusions,
 forced versions, copied metadata, and missing metadata diagnostics. This protects
-§FS-gradle-plugin.4.3, §FS-gradle-plugin.4.4, and §root/FS-common-libraries.5.
+§FS-gradle-plugin.4.3, §FS-gradle-plugin.4.4, and §common/FS-common-libraries.5.
 
 ### 3.5 Tracing agent
 
 `JavaApplicationWithAgentFunctionalTest` verifies `-Pagent`, instrumented JVM and test tasks,
 standard and conditional mode behavior, agent output, configuration-cache compatibility, and
-`metadataCopy`. This protects §FS-gradle-plugin.5 and §root/FS-common-libraries.3.
+`metadataCopy`. This protects §FS-gradle-plugin.5 and §common/FS-common-libraries.3.
 
 ### 3.6 Native Image options
 

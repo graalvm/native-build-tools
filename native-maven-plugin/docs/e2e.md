@@ -52,7 +52,7 @@ goal configuration, lifecycle phase, or generated command line is the failure su
 `JUnitFunctionalTests`, and `issues/ModuleWithoutSourcesFunctionalTest` verify `native:test`, skip
 flags, no-test behavior, runtime arguments, launcher selection, and reactor modules without source
 artifacts. This protects §FS-maven-plugin.1.2, §FS-maven-plugin.4, and
-§root/FS-plugin-common-behavior.3.
+§root/FS-native-tests.
 
 ### 3.4 Resources
 
@@ -65,13 +65,13 @@ generation and resource propagation into native builds. This protects §FS-maven
 `MetadataRepositoryFunctionalTest`, `OfficialMetadataRepositoryFunctionalTest`, and
 `issues/ExcludeDependenciesFunctionalTest` with `reproducers/issue-612` verify official and local
 metadata repositories, exclusions, forced versions, archives, URLs, and missing metadata reports.
-This protects §FS-maven-plugin.6.2, §FS-maven-plugin.6.3, and §root/FS-common-libraries.5.
+This protects §FS-maven-plugin.6.2, §FS-maven-plugin.6.3, and §common/FS-common-libraries.5.
 
 ### 3.6 Tracing agent
 
 `JavaApplicationWithAgentFunctionalTest` verifies `-Dagent=true`, standard/direct/conditional modes,
 disabled stages, merge behavior, and `native:metadata-copy`. This protects §FS-maven-plugin.5 and
-§root/FS-common-libraries.3.
+§common/FS-common-libraries.3.
 
 ### 3.7 Maven integration
 

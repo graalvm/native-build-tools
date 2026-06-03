@@ -3,7 +3,7 @@
 The Gradle plugin must expose Native Image build, run, test, resource, metadata, and tracing-agent
 workflows through Gradle concepts: plugins, extensions, named containers, tasks, providers,
 toolchains, build services, and TestKit-verifiable task graphs. This goal realizes the repository
-goal in §root/GOAL-build-tool-native-image-workflows for Gradle, follows
+goal in §root/GOAL-native-build-workflows for Gradle, follows
 §GRUND-gradle-plugin-purpose, and is specified by §FS-gradle-plugin.
 
 # GOAL-gradle-plugin-behavior-stays-aligned-with-shared-contract: Gradle behavior stays aligned with shared plugin behavior

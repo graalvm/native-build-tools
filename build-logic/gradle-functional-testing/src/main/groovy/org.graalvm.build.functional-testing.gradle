@@ -46,9 +46,8 @@
  *
  * - a minimal test coverage suite only testing the current version of Gradle
  * - a full test suite verifying the behavior will all supported versions of Gradle
- *
- * §FS-build-infrastructure.2.1.
  */
+// Functional testing suites are repository build infrastructure. §FS-build-infrastructure.2.1.
 
 plugins {
     id 'java-gradle-plugin'

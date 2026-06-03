@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Registers JUnit Platform metadata during image build. §FS-plugin-common-behavior.3.3.
+ * Registers JUnit Platform metadata during image build. §root/FS-native-tests.3.
  */
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {

@@ -1,7 +1,7 @@
 # REQ-backwards-compatibility-across-plugin-versions: Plugin upgrades keep existing Gradle and Maven builds working
 
 This requirement constrains the goals under §GRUND-native-build-tools-reason-for-existence, in
-particular §GOAL-build-tool-native-image-workflows. A project that upgrades to a newer plugin
+particular §GOAL-native-build-workflows. A project that upgrades to a newer plugin
 version must keep building without forced changes to its build script. The durable Gradle DSL
 surface in §gradle/FS-gradle-plugin.1.2 and the Maven goal and configuration
 surface in §maven/FS-maven-plugin.1 must stay compatible across minor and patch
@@ -51,3 +51,11 @@ compatibility-relevant change under §REQ-backwards-compatibility-across-plugin-
 must be deliberate. Update the declaring build files and the functional-test matrix that exercises
 the range together, refresh the user documentation, and call out the change in the changelog so
 downstream builds are not surprised.
+
+# REQ-repository-fixtures-protect-real-build-scenarios: Samples and functional tests protect real build scenarios
+
+This requirement constrains §GOAL-native-build-workflows and
+§GOAL-plugin-parity. Executable samples, fixtures, and reproducers
+stay close to the plugin code so changes can be verified against realistic Gradle and Maven
+projects. They validate §FS-native-tests and related product behavior through the fixture ownership
+described by §AR-build-infrastructure.4.

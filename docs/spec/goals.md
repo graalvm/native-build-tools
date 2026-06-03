@@ -1,27 +1,33 @@
-# GOAL-build-tool-native-image-workflows: Gradle and Maven users can build and test native images through native build-tool workflows
+# GOAL-native-build-workflows: Gradle and Maven users can build and test native images through native build-tool workflows
 
-This goal follows the project grounding in §GRUND-native-build-tools-reason-for-existence.
-The Gradle and Maven plugins are the product surface of this repository. They must expose native
-image compile, run, test, resource configuration, agent metadata, and reachability metadata
-workflows through idioms that fit each build tool. This goal is realized by §gradle/FS-gradle-plugin,
-§maven/FS-maven-plugin, §FS-plugin-common-behavior, §FS-common-libraries, and
-§FS-plugin-common-behavior.3. It is bounded by §NGOAL-no-build-tool-flags-for-native-image-flags and
-§NGOAL-no-duplication-of-existing-build-tool-capabilities, and constrained by
+The Gradle and Maven plugins expose native image compile, run, test, resource configuration,
+agent metadata, and reachability metadata workflows through idioms that fit each build tool.
+Realized by §gradle/FS-gradle-plugin, §maven/FS-maven-plugin, and §FS-plugin-common-behavior.
+Bounded by the non-goals in [non-goals.md](non-goals.md) and constrained by
 §REQ-backwards-compatibility-across-plugin-versions and
-§REQ-supported-build-tool-and-runtime-version-matrix.
+§REQ-supported-build-tool-and-runtime-version-matrix and
+§REQ-repository-fixtures-protect-real-build-scenarios.
 
-# GOAL-shared-native-image-behavior-stays-consistent: Shared native-image behavior remains consistent across Gradle and Maven
+# GOAL-plugin-parity: Shared native-image behavior remains consistent across Gradle and Maven
 
-Behavior that both product plugins should expose belongs in the cross-plugin product contract.
-Build-tool-neutral implementation primitives should live in common modules and be reused by both
-plugins. The shared layer covers native-image utility behavior, resource model analysis,
-reachability metadata lookup, tracing-agent behavior, cross-plugin parity, and JUnit native
-support. The relevant specs are §FS-plugin-common-behavior, §FS-common-libraries, and
-§AR-common-libraries.
+Behavior both plugins expose lives in the cross-plugin product contract; build-tool-neutral
+primitives live in common modules reused by both plugins. Covers native-image utilities, resource
+model analysis, reachability metadata lookup, tracing-agent behavior, cross-plugin parity, and
+JUnit native support. See §FS-plugin-common-behavior, §common/FS-common-libraries, and
+§common/AR-common-libraries. Constrained by
+§REQ-repository-fixtures-protect-real-build-scenarios.
 
-# GOAL-repository-fixtures-protect-real-build-scenarios: Samples and functional tests protect real build scenarios
+# GOAL-concise-actionable-output: Build output is concise, actionable, and token-efficient
 
-The repository must keep executable samples, fixtures, and reproducers close to the plugin code so
-changes can be verified against realistic Gradle and Maven projects. These scenarios provide the
-practical validation path for §FS-plugin-common-behavior.3 and
-§AR-build-infrastructure.4.
+Refines §GRUND-native-build-tools-reason-for-existence. Default Gradle and Maven plugin output
+should explain what the Native Build Tools integration did, where important artifacts or reports
+were written, and what action a user should take next without flooding CI logs or agent transcripts.
+Detailed diagnostics belong behind the build tool's normal verbose or debug output controls.
+
+# GOAL-fast-feedback: Native build workflows provide feedback as fast as practical
+
+Refines §GRUND-native-build-tools-reason-for-existence. The plugins should minimize avoidable
+configuration, dependency resolution, metadata processing, and repeated Native Image invocations
+while preserving correctness and build-tool idioms. Fast feedback includes local developer builds,
+functional tests, and CI validation paths, with expensive work declared as build inputs and outputs
+where the build tool can skip, cache, or parallelize it.

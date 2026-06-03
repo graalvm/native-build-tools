@@ -3,7 +3,7 @@
 The Maven plugin must expose Native Image build, test, resource, metadata, tracing-agent, and
 inspection workflows through Maven concepts: goals, lifecycle phases, plugin descriptors,
 parameters, dependency scopes, toolchains, and local-repository based functional tests. This goal
-realizes the repository goal in §root/GOAL-build-tool-native-image-workflows for Maven and is specified
+realizes the repository goal in §root/GOAL-native-build-workflows for Maven and is specified
 by §FS-maven-plugin under §GRUND-maven-plugin-purpose.
 
 # GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract: Maven behavior stays aligned with shared plugin behavior

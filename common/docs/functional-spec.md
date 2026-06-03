@@ -3,8 +3,8 @@
 Native Build Tools must help users supply the configuration that Native Image needs for resources,
 reflection, dynamic access, and third-party reachability metadata. The `common/` modules own the
 build-tool-neutral behavior that Gradle and Maven adapt into tasks, goals, and configuration
-models. This supports §FS-plugin-common-behavior and realizes
-§GOAL-shared-native-image-behavior-stays-consistent.
+models. This supports §root/FS-plugin-common-behavior and realizes
+§root/GOAL-plugin-parity.
 
 ## At a Glance
 
@@ -24,7 +24,7 @@ as task inputs, scopes, provider wiring, lifecycle bindings, and diagnostics.
 
 Common utilities keep Gradle and Maven command-line handling consistent. They must preserve
 whitespace, quotes, backslashes, and platform paths when escaping arguments; write Native Image
-argument files and return the corresponding `@...` argument (§GLOSS-argument-file); parse Native
+argument files and return the corresponding `@...` argument (§root/GLOSS-argument-file); parse Native
 Image and JDK versions well enough to choose version-specific behavior; and centralize Native
 Image configuration file names and metadata directory names used by plugins and tests.
 
@@ -43,7 +43,7 @@ Product-specific task and goal entry points are specified by §gradle/FS-gradle-
 ## 3. Native Image tracing agent
 
 Agent behavior is shared because Gradle and Maven need the same mode semantics even though they
-attach the agent to different execution APIs. The agent is defined in §GLOSS-tracing-agent.
+attach the agent to different execution APIs. The agent is defined in §root/GLOSS-tracing-agent.
 
 ### 3.1 Agent modes
 
@@ -75,7 +75,7 @@ Plugin-specific merge and copy entry points are specified by §gradle/FS-gradle-
 
 Reachability metadata repository support lets both product plugins consume the GraalVM
 Reachability Metadata Repository without build-tool-specific lookup logic. The repository is
-defined in §GLOSS-reachability-metadata-repository.
+defined in §root/GLOSS-reachability-metadata-repository.
 
 ### 5.1 Repository lookup
 
@@ -116,4 +116,4 @@ Common utility and reachability metadata modules must have unit tests for argume
 resource scanning, agent mode command lines, repository index parsing, metadata lookup, missing
 metadata support, schema validation, and Native Image version behavior. Product plugin functional
 tests cover these shared behaviors through Gradle and Maven sample projects as part of
-§FS-plugin-common-behavior.7.
+§root/FS-plugin-common-behavior.2.

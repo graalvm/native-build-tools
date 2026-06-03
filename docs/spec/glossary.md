@@ -3,7 +3,7 @@
 A Native Image build mode that trades some closed-world optimizations for broader runtime
 compatibility. It changes native test execution because the test image may need JUnit's standard
 `ConsoleLauncher` path instead of the Native Build Tools launcher, as specified by
-§FS-plugin-common-behavior.3.5.
+§FS-native-tests.5.
 
 # GLOSS-layered-image: Layered native image
 
@@ -24,14 +24,14 @@ compilation, using the reachability metadata repository and the runtime classpat
 A versioned repository that maps dependency coordinates to Native Image configuration directories,
 so projects can consume community-maintained metadata for third-party libraries instead of writing
 their own. Query behavior is shared common code, specified by
-§FS-common-libraries.5.
+§common/FS-common-libraries.5.
 
 # GLOSS-tracing-agent: Native Image tracing agent
 
 The `native-image-agent` JVM agent that records dynamic access while an application or test runs on
 the JVM, producing metadata the plugins can merge and reuse for native builds. Its shared mode
 model (standard, conditional, direct, disabled) is specified by
-§FS-common-libraries.3.
+§common/FS-common-libraries.3.
 
 # GLOSS-pgo: Profile-guided optimization (PGO)
 
@@ -49,4 +49,4 @@ instead of an exploded classpath. The Gradle plugin can generate and consume it 
 
 A file passed to `native-image` as `@<path>` that carries arguments which should not be sent as
 plain process arguments. Shared conversion and escaping utilities own its format, as specified by
-§FS-common-libraries.1.
+§common/FS-common-libraries.1.

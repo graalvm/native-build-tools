@@ -3,8 +3,8 @@
 The `native-gradle-plugin` module provides the Gradle plugin identified as
 `org.graalvm.buildtools.native`. It turns Gradle projects, tasks, providers, and the
 `graalvmNative` DSL into the shared Native Build Tools behavior defined by
-§root/FS-plugin-common-behavior, §root/FS-plugin-common-behavior.3, and
-§root/FS-common-libraries. This functional contract realizes
+§root/FS-plugin-common-behavior, §root/FS-native-tests, and
+§common/FS-common-libraries. This functional contract realizes
 §GOAL-gradle-plugin-native-image-workflows under §GRUND-gradle-plugin-purpose, keeps Gradle
 behavior aligned through §GOAL-gradle-plugin-behavior-stays-aligned-with-shared-contract, and is
 constrained by §REQ-gradle-plugin-gradle-model-compatibility and
@@ -87,7 +87,7 @@ set so `nativeTest` can build and run native JUnit tests without a separate bina
 
 Users may add entries to the `binaries` container for extra source sets or entry points. Each entry
 must create matching compile and run tasks with predictable task names derived from the binary
-name. Custom binaries apply §root/FS-plugin-common-behavior.2 without forcing users outside the
+name. Custom binaries apply §root/FS-native-image-builds without forcing users outside the
 plugin's option model.
 
 ### 1.5 Activation examples
@@ -106,7 +106,7 @@ compile and execute it through the native test launcher.
 ## 2. Native image task behavior
 
 Native image tasks are the user-facing Gradle commands for building, running, and experimenting
-with native executables. They adapt §root/FS-plugin-common-behavior.2 to Gradle task inputs and
+with native executables. They adapt §root/FS-native-image-builds to Gradle task inputs and
 outputs.
 
 ### 2.1 Compile tasks
@@ -116,7 +116,7 @@ shared-library setting, build arguments, configuration directories, generated re
 reachability metadata, optional classpath JAR, argument-file setting, layer and PGO options,
 environment variables, system properties, and JVM arguments.
 
-`nativeTestCompile` builds the native test binary described by §root/FS-plugin-common-behavior.3.
+`nativeTestCompile` builds the native test binary described by §root/FS-native-tests.
 It uses compiled test classes, test resources, the test runtime classpath, JUnit native support,
 selected test identifiers, and the `test` binary options.
 
@@ -146,7 +146,7 @@ Compile tasks must expose task options for image name, main class, debug, verbos
 build, rich output, PGO instrumentation, build args, forced build args, fat JAR mode, system
 properties, environment variables, JVM args, and forced JVM args. These one-off overrides feed the
 same option objects as the DSL, keeping command-line experimentation aligned with
-§root/FS-plugin-common-behavior.6.
+§root/FS-option-precedence.
 
 ```bash
 ./gradlew nativeCompile --quick-build-native --verbose --image-name demo-dev
@@ -209,7 +209,7 @@ boolean image flags, build arguments, JVM arguments, system properties, environm
 configuration directories, generated resources, reachability metadata, layer options
 (§root/GLOSS-layered-image), and PGO options (§root/GLOSS-pgo). Shared escaping and argument-file
 conversion must come from common utilities rather than Gradle-only string handling, keeping Gradle
-aligned with §root/FS-plugin-common-behavior.6.
+aligned with §root/FS-option-precedence.
 
 ### 3.4 Argument files
 
@@ -234,7 +234,7 @@ available processors.
 ## 4. Resources and reachability metadata
 
 The plugin exposes the shared metadata and resource contracts in
-§root/FS-plugin-common-behavior.4 and §root/FS-common-libraries through Gradle DSL and tasks.
+§root/FS-resources-and-metadata and §common/FS-common-libraries through Gradle DSL and tasks.
 
 ### 4.1 Resource autodetection
 
@@ -303,7 +303,7 @@ graalvmNative {
 ## 5. Native Image tracing agent
 
 The Gradle plugin exposes the shared tracing-agent workflow from
-§root/FS-plugin-common-behavior.5 without requiring users to edit JVM task command lines by hand.
+§root/FS-tracing-agent-workflows without requiring users to edit JVM task command lines by hand.
 
 ### 5.1 Agent enablement
 
@@ -320,7 +320,7 @@ without failing the build.
 ### 5.3 Agent modes
 
 The Gradle DSL must expose standard, conditional, direct, and disabled agent modes using the
-shared agent mode behavior from §root/FS-common-libraries.3. Conditional mode must support
+shared agent mode behavior from §common/FS-common-libraries.3. Conditional mode must support
 user-code and extra filters; direct mode must allow users to pass native agent options, including
 `{output_dir}` substitution.
 
@@ -334,7 +334,7 @@ direct mode output location. Generated output must be suitable for later merge a
 `metadataCopy` copies or merges agent output from configured input tasks into configured output
 directories. Command-line options on `metadataCopy` may select task names and destination
 directories for ad hoc use, exposing the shared agent post-processing workflow from
-§root/FS-plugin-common-behavior.5.
+§root/FS-tracing-agent-workflows.
 
 ### 5.6 Agent example
 
@@ -364,7 +364,7 @@ graalvmNative {
 
 Gradle native tests let users keep their normal JUnit test source set and ask the plugin to build
 and execute those tests as a native image. Runtime semantics are defined by
-§root/FS-plugin-common-behavior.3.
+§root/FS-native-tests.
 
 ### 6.1 Test task integration
 
@@ -393,7 +393,7 @@ test failures must fail the Gradle build in the same way Java test failures do.
 
 When Native Image compatibility mode is detected, Gradle native test behavior may use the original
 JUnit ConsoleLauncher path rather than the Native Build Tools launcher path, as described by
-§root/FS-plugin-common-behavior.3.5.
+§root/FS-native-tests.5.
 
 ### 6.4 Native test command examples
 

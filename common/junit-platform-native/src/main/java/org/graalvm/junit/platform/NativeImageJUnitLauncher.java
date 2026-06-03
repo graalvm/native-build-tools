@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Runs selected native tests. §FS-plugin-common-behavior.3.3.
+ * Runs selected native tests. §root/FS-native-tests.3.
  */
 public class NativeImageJUnitLauncher {
     static final String DEFAULT_OUTPUT_FOLDER = Paths.get("test-results-native").resolve("test").toString();

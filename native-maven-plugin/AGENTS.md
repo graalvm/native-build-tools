@@ -12,10 +12,11 @@ from the local docs first:
 - [AR](docs/architecture.md): Maven plugin architecture
 - [E2E](docs/e2e.md): Maven plugin functional test execution
 
-Repository-wide grounding, non-goals, shared plugin behavior, common library behavior, and CI
-remain in the `root` namespace under `../docs/spec`. Prefer local IDs such as
-`§FS-maven-plugin.1.1` for Maven behavior, and cite root IDs such as
-`§root/FS-plugin-common-behavior` or `§root/NGOAL-no-build-tool-flags-for-native-image-flags` only for
+Repository-wide grounding, non-goals, shared plugin behavior, and CI remain in the `root`
+namespace under `../docs/spec`. Common library behavior lives in the `common` namespace under
+`../common/docs`. Prefer local IDs such as `§FS-maven-plugin.1.1` for Maven behavior, and cite root
+or common IDs such as `§root/FS-plugin-common-behavior`,
+`§root/NGOAL-no-build-tool-flags-for-native-image-flags`, or `§common/FS-common-libraries` only for
 cross-project contracts. Java comments use the same marked citation shape because Checkstyle allows
 `§` as the only non-ASCII citation exception.
 

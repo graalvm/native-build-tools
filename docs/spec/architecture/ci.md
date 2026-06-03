@@ -77,13 +77,13 @@ Maven-facing end-to-end scenarios in §maven/E2E-maven-plugin-functional-tests.
 
 `test-graalvm-metadata.yml` validates `common/graalvm-reachability-metadata` with checkstyle and
 unit tests. It protects the repository query and missing-metadata behavior specified by
-§FS-common-libraries.5 and §FS-common-libraries.6.
+§common/FS-common-libraries.5 and §common/FS-common-libraries.6.
 
 # CI-test-junit-platform-native: JUnit native support PR workflow
 
 `test-junit-platform-native.yml` validates `common/junit-platform-native` with checkstyle, JVM
 tests, and native tests. It protects the shared native-test runtime behavior specified by
-§FS-plugin-common-behavior.3.3.
+§FS-native-tests.3.
 
 # CI-deploy-documentation: Documentation deployment workflow
 
