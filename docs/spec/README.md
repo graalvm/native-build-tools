@@ -56,7 +56,7 @@ The common libraries and product plugins are separate grund workspace members:
 
 | Alias | Subproject | Purpose |
 | --- | --- |
-| `common` | [../../common/docs/functional-spec.md](../../common/docs/functional-spec.md) | Common library functional spec and architecture. |
+| `common` | [../../common/docs/grund.md](../../common/docs/grund.md) | Common library motivation, goals, requirements, functional spec, architecture, and executable evidence. |
 | `gradle` | [../../native-gradle-plugin/docs/grund.md](../../native-gradle-plugin/docs/grund.md) | Gradle plugin motivation, goals, functional spec, architecture, requirements, and E2E evidence. |
 | `maven` | [../../native-maven-plugin/docs/grund.md](../../native-maven-plugin/docs/grund.md) | Maven plugin motivation, goals, functional spec, architecture, requirements, and E2E evidence. |
 

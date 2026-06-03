@@ -4,7 +4,8 @@ Native Build Tools must help users supply the configuration that Native Image ne
 reflection, dynamic access, and third-party reachability metadata. The `common/` modules own the
 build-tool-neutral behavior that Gradle and Maven adapt into tasks, goals, and configuration
 models. This supports §root/FS-plugin-common-behavior and realizes
-§root/GOAL-plugin-parity.
+§root/GOAL-plugin-parity through §GOAL-common-libraries-shared-native-image-semantics and
+§REQ-common-libraries-stable-shared-semantics.
 
 ## At a Glance
 
@@ -18,7 +19,8 @@ models. This supports §root/FS-plugin-common-behavior and realizes
 | Schema validation | schema lookup and Native Image major-version compatibility | plugins decide when validation runs before native-image invocation |
 
 Common code answers Native Image questions. Gradle and Maven code answer build-tool questions such
-as task inputs, scopes, provider wiring, lifecycle bindings, and diagnostics.
+as task inputs, scopes, provider wiring, lifecycle bindings, and diagnostics. This boundary is
+required by §REQ-common-libraries-no-build-tool-api-dependencies.
 
 ## 1. Shared Native Image utilities
 
@@ -109,6 +111,7 @@ Metadata-oriented JSON must be validated when the repository owns a schema for t
 the build has enough Native Image version information to choose the correct schema. Invalid
 metadata that would be passed to Native Image must fail early with a validation error rather than
 produce a later, less actionable native-image failure.
+§REQ-common-libraries-version-and-schema-compatibility.
 
 ## 8. Verification surface
 
@@ -116,4 +119,4 @@ Common utility and reachability metadata modules must have unit tests for argume
 resource scanning, agent mode command lines, repository index parsing, metadata lookup, missing
 metadata support, schema validation, and Native Image version behavior. Product plugin functional
 tests cover these shared behaviors through Gradle and Maven sample projects as part of
-§root/FS-plugin-common-behavior.2.
+§root/FS-plugin-common-behavior.2 and §E2E-common-library-tests.

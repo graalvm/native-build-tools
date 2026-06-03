@@ -19,6 +19,21 @@ section_heading_levels = "strict" # strict | warn | loose
 slug_pattern = "[a-z0-9][a-z0-9-]*"
 
 [[kinds]]
+prefix = "GRUND"
+file = "docs/grund.md"
+title = "Common library purpose"
+
+[[kinds]]
+prefix = "GOAL"
+file = "docs/goals.md"
+title = "Common library goals"
+
+[[kinds]]
+prefix = "REQ"
+file = "docs/requirements.md"
+title = "Common library requirements"
+
+[[kinds]]
 prefix = "FS"
 file = "docs/functional-spec.md"
 title = "Common library functional specification"
@@ -27,6 +42,11 @@ title = "Common library functional specification"
 prefix = "AR"
 file = "docs/architecture.md"
 title = "Common library architecture"
+
+[[kinds]]
+prefix = "E2E"
+file = "docs/e2e.md"
+title = "Common library executable tests"
 
 [scan]
 include = ["AGENTS.md", "docs", "utils", "graalvm-reachability-metadata", "junit-platform-native"]

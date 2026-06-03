@@ -11,7 +11,7 @@ product contract in §root/FS-plugin-common-behavior.
 Run the full Gradle plugin functional suite locally with:
 
 ```bash
-JAVA_HOME=$HOME/.sdkman/candidates/java/17.0.12-graal ./gradlew :native-gradle-plugin:functionalTest
+./gradlew :native-gradle-plugin:functionalTest
 ```
 
 This is the broad local validation path for Gradle plugin behavior. It builds the plugin and
@@ -24,8 +24,7 @@ builds.
 Run one Gradle functional test class with:
 
 ```bash
-JAVA_HOME=$HOME/.sdkman/candidates/java/17.0.12-graal ./gradlew \
-  :native-gradle-plugin:functionalTest \
+./gradlew :native-gradle-plugin:functionalTest \
   --tests org.graalvm.buildtools.gradle.JavaApplicationFunctionalTest
 ```
 

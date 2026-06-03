@@ -11,7 +11,7 @@ and the shared product contract in §root/FS-plugin-common-behavior.
 Run the full Maven plugin functional suite locally with:
 
 ```bash
-JAVA_HOME=$HOME/.sdkman/candidates/java/17.0.12-graal ./gradlew :native-maven-plugin:functionalTest
+./gradlew :native-maven-plugin:functionalTest
 ```
 
 This suite publishes the plugin and support artifacts to the local test repository, then runs Maven
@@ -23,8 +23,7 @@ goal, lifecycle, repository, and command-line behavior that unit tests cannot se
 Run one Maven functional test class with:
 
 ```bash
-JAVA_HOME=$HOME/.sdkman/candidates/java/17.0.12-graal ./gradlew \
-  :native-maven-plugin:functionalTest \
+./gradlew :native-maven-plugin:functionalTest \
   --tests org.graalvm.buildtools.maven.JavaApplicationFunctionalTest
 ```
 

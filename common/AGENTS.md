@@ -5,8 +5,12 @@
 This subproject is the `common` grund workspace member for shared libraries. Resolve local
 behavior from the local docs first:
 
+- [GRUND](docs/grund.md): Common library purpose
+- [GOAL](docs/goals.md): Common library goals
+- [REQ](docs/requirements.md): Common library requirements
 - [FS](docs/functional-spec.md): Common library functional specification
 - [AR](docs/architecture.md): Common library architecture
+- [E2E](docs/e2e.md): Common library executable tests
 
 ### Workspace members
 
