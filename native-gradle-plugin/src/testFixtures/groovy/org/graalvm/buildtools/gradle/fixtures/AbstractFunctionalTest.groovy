@@ -167,6 +167,26 @@ abstract class AbstractFunctionalTest extends Specification {
         }
     }
 
+    // Helper method to run Gradle with custom environment variables
+    void runWithEnv(Map<String, String> env, String... args) {
+        // Debug mode is not allowed when environment variables are set
+        // because Gradle TestKit needs to fork a separate process
+        def wasDebug = debug
+        debug = false
+        try {
+            def runner = newRunner(*args)
+            runner.withEnvironment(env)
+            result = runner.run()
+            if (hasConfigurationCache) {
+                result = newRunner(*[*args, "--rerun-tasks"] as String[]).run()
+            }
+        } finally {
+            recordOutputs()
+
+            debug = wasDebug
+        }
+    }
+
     void outputContains(String text) {
         assert output.contains(normalizeString(text))
     }

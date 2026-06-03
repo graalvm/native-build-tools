@@ -50,7 +50,6 @@ import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -309,12 +308,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getExecOperations(),
             logger,
             diagnostics);
-        if (executablePath == null) {
-            throw new GradleException(
-                    "Native image executable not found. " +
-                            "Please ensure your Gradle Java toolchain contains native-image, " +
-                            "or set GRAALVM_HOME or JAVA_HOME environment variable.");
-        }
         String versionString = getVersionString(getExecOperations(), executablePath);
         Boolean metadataEnabled = getMetadataRepositoryEnabled().getOrNull();
         String metadataRoot = getMetadataRepositoryRootPath().getOrNull();

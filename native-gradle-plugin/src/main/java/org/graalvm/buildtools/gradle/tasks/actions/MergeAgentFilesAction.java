@@ -106,10 +106,6 @@ public class MergeAgentFilesAction implements Action<Task> {
     public void execute(Task task) {
         if (isMergingEnabled.get()) {
             File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(task.getLogger()), new NativeImageExecutableLocator.Diagnostics());
-            if (nativeImage == null) {
-                task.getLogger().info("Native image executable not found, skipping agent configuration merging");
-                return;
-            }
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
             if (!launcher.exists()) {

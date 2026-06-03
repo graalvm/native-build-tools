@@ -55,7 +55,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
 
@@ -67,18 +66,15 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final transient NamedDomainObjectContainer<NativeImageOptions> nativeImages;
     private final transient NativeImagePlugin plugin;
     private final transient Project project;
-    private final transient ExecOperations execOperations;
     private final Property<JavaLauncher> defaultJavaLauncher;
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
                                    NativeImagePlugin plugin,
-                                   Project project,
-                                   ExecOperations execOperations) {
+                                   Project project) {
         this.nativeImages = nativeImages;
         this.plugin = plugin;
         this.project = project;
-        this.execOperations = execOperations;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         getToolchainDetection().convention(false);
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));

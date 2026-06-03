@@ -823,9 +823,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                     logger,
                     d
             );
-            if (nativeImage == null) {
-                return null;
-            }
             File parent = nativeImage.getParentFile();
             return parent != null ? parent.getParent() : null;
         });
