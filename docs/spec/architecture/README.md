@@ -6,6 +6,7 @@ boundary lives, and how repository automation supports the Gradle and Maven prod
 Start with the repository map in [repository.md](repository.md) for component ownership,
 dependency direction, and change flow (§AR-repository-architecture). Use
 [build-infrastructure.md](build-infrastructure.md) for build logic, documentation, release,
-sample, fixture boundaries, and maintainer-facing build behavior (§AR-build-infrastructure,
-§FS-build-infrastructure). Use [ci.md](ci.md) for pull request gates, publication workflows,
-shared actions, and workflow-specific evidence (§CI-pull-request-ci).
+sample, fixture, and product/runtime boundaries (§AR-build-infrastructure). Maintainer-facing
+build behavior lives in [../functional/build-infrastructure.md](../functional/build-infrastructure.md)
+(§FS-build-infrastructure). Pull request gates, publication workflows, shared actions, and
+workflow-specific evidence live in [../ci.md](../ci.md) (§CI-pull-request-ci).

@@ -43,8 +43,9 @@ flowchart TD
     CommonBehavior["Resources, metadata, agent, utilities"] --> CommonSpec["common/docs/functional-spec.md"]
     NativeTests["Native test lifecycle"] --> PluginCommon["docs/spec/functional/plugin-common.md"]
     Fixtures["Samples, fixtures, reproducers"] --> BuildArch["docs/spec/architecture/build-infrastructure.md"]
-    BuildInfra["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/architecture/build-infrastructure.md"]
-    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/architecture/ci.md"]
+    BuildInfraStructure["Build infrastructure boundaries"] --> BuildArch["docs/spec/architecture/build-infrastructure.md"]
+    BuildInfraBehavior["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/functional/build-infrastructure.md"]
+    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/ci.md"]
 ```
 
 ## 3. Dependency direction
@@ -83,12 +84,12 @@ not be used as shared runtime libraries for product code.
 ## 5. Specification layout
 
 The top-level `architecture/` directory describes repository-wide structure, ownership,
-deployment, workflow boundaries, and build-infrastructure behavior. The top-level `functional/`
-directory states repository-wide observable product behavior, including behavior expected from
-both product plugins. Shared repository infrastructure components may keep behavior and
-implementation boundaries together when the same maintainer surface owns both; the common, Gradle,
-and Maven components own workspace member specs under `common/docs/`,
-`native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`.
+deployment, workflow boundaries, and build-infrastructure boundaries. The top-level `functional/`
+directory states repository-wide observable product and infrastructure behavior, including
+behavior expected from both product plugins and maintainer-facing build tasks. CI workflow specs
+live in `docs/spec/ci.md` because they are executable workflow contracts rather than component
+architecture. The common, Gradle, and Maven components own workspace member specs under
+`common/docs/`, `native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`.
 In every location, `functional-spec.md` states externally observable behavior, user workflows,
 build-tool contracts, metadata behavior, and verification expectations; `architecture.md` states
 module ownership, dependency direction, internal structure, and implementation responsibilities.

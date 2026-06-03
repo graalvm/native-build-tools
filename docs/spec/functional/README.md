@@ -14,8 +14,6 @@ Build Tools must do, while architecture specs explain where that behavior is imp
 | [resources-and-metadata.md](resources-and-metadata.md) | Resource config, reachability metadata, missing-metadata reports, dynamic access metadata, schema validation (§FS-resources-and-metadata). |
 | [tracing-agent.md](tracing-agent.md) | Native Image tracing-agent attachment and post-processing (§FS-tracing-agent-workflows). |
 | [option-precedence.md](option-precedence.md) | Command-line vs durable configuration precedence (§FS-option-precedence). |
+| [build-infrastructure.md](build-infrastructure.md) | Build, documentation, release, and generated artifact behavior (§FS-build-infrastructure). |
 
-Build-infrastructure functional behavior lives with its architecture in
-[../architecture/build-infrastructure.md](../architecture/build-infrastructure.md)
-(§FS-build-infrastructure). Build-tool-specific behavior lives in the Gradle and Maven plugin
-functional specs.
+Build-tool-specific behavior lives in the Gradle and Maven plugin functional specs.
