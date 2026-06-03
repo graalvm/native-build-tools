@@ -4,7 +4,7 @@ Repository infrastructure exists to build, test, document, publish, and validate
 Tools without becoming part of the product runtime API. It supports the repository architecture in
 §AR-repository-architecture, the plugin end-to-end test contracts in
 §gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests, and the
-pull request gates in §AR-pull-request-ci.
+pull request gates in §AR-repository-ci.
 
 ## At a Glance
 
@@ -124,7 +124,7 @@ the `latest` link; snapshot documentation must not replace the latest release po
 ## 4. Continuous integration
 
 CI workflows are the repository's executable quality gates. The PR workflows are specified in
-§AR-pull-request-ci and cover Gradle plugin behavior, Maven plugin behavior, shared common
+§AR-repository-ci and cover Gradle plugin behavior, Maven plugin behavior, shared common
 libraries, JUnit native support, reachability metadata behavior, end-to-end functional tests, and
 spec citations.
 

@@ -1,5 +1,5 @@
 # Pull request Maven plugin gate: runs Maven E2E matrices and GraalVM dev-build functional tests.
-# §AR-pull-request-ci.1.4; §maven/E2E-maven-plugin-functional-tests
+# §AR-repository-ci.1.4; §maven/E2E-maven-plugin-functional-tests
 name: "Test native-maven-plugin"
 
 on:

@@ -1,4 +1,4 @@
-# Documentation website publication workflow. §AR-pull-request-ci.2.1
+# Documentation website publication workflow. §AR-repository-ci.2.1
 name: "Deploy documentation to website"
 
 on:

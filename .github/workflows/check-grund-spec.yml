@@ -1,5 +1,5 @@
 # Pull request spec gate: validates grounded docs, source comments, and workflow citations.
-# §AR-pull-request-ci.1.1
+# §AR-repository-ci.1.1
 name: "Check grund spec"
 
 on:

@@ -1,4 +1,4 @@
-# Snapshot artifact publication workflow. §AR-pull-request-ci.2.2
+# Snapshot artifact publication workflow. §AR-repository-ci.2.2
 name: "Deploy snapshots"
 
 on:
