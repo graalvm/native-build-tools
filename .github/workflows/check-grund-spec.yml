@@ -1,5 +1,5 @@
 # Pull request spec gate: validates grounded docs, source comments, and workflow citations.
-# §CI-check-grund-spec
+# §AR-check-grund-spec
 name: "Check grund spec"
 
 on:

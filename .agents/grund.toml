@@ -79,11 +79,6 @@ folder = "docs/spec"
 title = "What: behavior, requirements, and constraints"
 
 [[kinds]]
-prefix = "CI"
-file = "docs/spec/ci.md"
-title = "Pull request and repository CI workflows"
-
-[[kinds]]
 prefix = "E2E"
 folder = "docs/spec"
 title = "Executable user scenarios"

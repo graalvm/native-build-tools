@@ -1,5 +1,5 @@
 # Shared CI environment setup: installs the build JDK, optional GraalVM test JDK, and push access.
-# §CI-prepare-environment
+# §AR-prepare-environment
 name: '🔧 Prepare environment'
 description: 'Prepare the environment for testing'
 

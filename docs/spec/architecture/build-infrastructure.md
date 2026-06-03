@@ -28,8 +28,8 @@ not make generated documentation a source of product runtime behavior.
 
 GitHub workflows under `.github/workflows/` and reusable actions under `.github/actions/` own
 remote validation, dev-build checks, snapshot deployment, and release-sensitive publication
-steps. Workflow behavior is specified by §CI-pull-request-ci, §CI-deploy-documentation, and
-§CI-deploy-snapshots, and local execution equivalents are specified by
+steps. Workflow behavior is specified by §AR-pull-request-ci, §AR-deploy-documentation, and
+§AR-deploy-snapshots, and local execution equivalents are specified by
 §gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests.
 
 Secrets, release credentials, and publication destinations belong to CI or release

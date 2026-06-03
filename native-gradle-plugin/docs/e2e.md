@@ -90,13 +90,13 @@ with Gradle's configuration-cache model. They protect §REQ-gradle-plugin-gradle
 and the architecture boundaries in §AR-gradle-plugin.2 and §AR-gradle-plugin.3.
 
 Run the configuration-cache suite with the task exposed by the Gradle functional-testing
-convention, or let CI run the generated matrix from §root/CI-test-native-gradle-plugin.
+convention, or let CI run the generated matrix from §root/AR-test-native-gradle-plugin.
 
 ## 5. CI coverage
 
 `test-native-gradle-plugin.yml` runs generated Gradle functional-test matrices, configuration-cache
 functional tests, unit tests, inspections, and GraalVM dev-build functional tests on pull
-requests. The CI workflow is specified by §root/CI-test-native-gradle-plugin.
+requests. The CI workflow is specified by §root/AR-test-native-gradle-plugin.
 
 The CI matrix is the merge gate. Local runs should reproduce the failing class or scenario first,
 then broaden to the full suite before pushing behavior changes that affect task graph, Native

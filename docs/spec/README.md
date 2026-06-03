@@ -23,8 +23,8 @@ behavior, CI, build infrastructure, native-test behavior, decisions, and glossar
 | change shared resource, metadata, agent, or utility behavior | [../../common/docs/functional-spec.md](../../common/docs/functional-spec.md) | [../../common/docs/architecture.md](../../common/docs/architecture.md), [functional/plugin-common.md](functional/plugin-common.md) |
 | change native test launcher or test image behavior | [functional/native-tests.md](functional/native-tests.md) | [../../common/docs/functional-spec.md](../../common/docs/functional-spec.md), plugin E2E docs |
 | change sample, fixture, or reproducer behavior | [architecture/build-infrastructure.md](architecture/build-infrastructure.md) | plugin E2E docs |
-| change build, publication, generated source, docs, or release tasks | [functional/build-infrastructure.md](functional/build-infrastructure.md) | [architecture/build-infrastructure.md](architecture/build-infrastructure.md), [ci.md](ci.md) |
-| change pull request validation or GitHub Actions setup | [ci.md](ci.md) | [functional/build-infrastructure.md](functional/build-infrastructure.md), [architecture/build-infrastructure.md](architecture/build-infrastructure.md) |
+| change build, publication, generated source, docs, or release tasks | [functional/build-infrastructure.md](functional/build-infrastructure.md) | [architecture/build-infrastructure.md](architecture/build-infrastructure.md), [architecture/ci.md](architecture/ci.md) |
+| change pull request validation or GitHub Actions setup | [architecture/ci.md](architecture/ci.md) | [functional/build-infrastructure.md](functional/build-infrastructure.md), [architecture/build-infrastructure.md](architecture/build-infrastructure.md) |
 | decide whether something is in scope | [goals.md](goals.md), [non-goals.md](non-goals.md) | [requirements.md](requirements.md), [decisions/README.md](decisions/README.md) |
 
 ## Files at a glance
@@ -46,7 +46,7 @@ behavior, CI, build infrastructure, native-test behavior, decisions, and glossar
 | [functional/option-precedence.md](functional/option-precedence.md) | Shared contract for command-line vs durable configuration precedence. |
 | [functional/build-infrastructure.md](functional/build-infrastructure.md) | Build, documentation, release, generated artifact, and maintainer task behavior. |
 | [architecture/build-infrastructure.md](architecture/build-infrastructure.md) | Build infrastructure ownership, product/runtime boundary, samples, fixtures, and reproducers. |
-| [ci.md](ci.md) | Pull request workflows, shared actions, and workflow-specific gates. |
+| [architecture/ci.md](architecture/ci.md) | Pull request workflows, shared actions, and workflow-specific gates. |
 | [decisions/README.md](decisions/README.md) | Decisions and tradeoffs. |
 | [glossary.md](glossary.md) | Domain terms used across specs. |
 
@@ -86,7 +86,7 @@ Use the most specific citation that supports the behavior. For example:
 - shared resource analysis: `§common/FS-common-libraries.2`
 - native test lifecycle: `§FS-native-tests.1`
 - build infrastructure task surface: `§FS-build-infrastructure.1.2`
-- CI workflow behavior: `§CI-test-native-gradle-plugin`
+- CI workflow architecture: `§AR-test-native-gradle-plugin`
 
 Resolve cross-namespace citations with `grund <alias>/<ID>`, inspect a section map with
 `grund <alias>/<ID> --toc`, and run `grund check` from the repository root before committing spec

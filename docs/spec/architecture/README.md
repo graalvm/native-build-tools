@@ -9,4 +9,4 @@ dependency direction, and change flow (§AR-repository-architecture). Use
 sample, fixture, and product/runtime boundaries (§AR-build-infrastructure). Maintainer-facing
 build behavior lives in [../functional/build-infrastructure.md](../functional/build-infrastructure.md)
 (§FS-build-infrastructure). Pull request gates, publication workflows, shared actions, and
-workflow-specific evidence live in [../ci.md](../ci.md) (§CI-pull-request-ci).
+workflow-specific evidence live in [ci.md](ci.md) (§AR-pull-request-ci).

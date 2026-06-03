@@ -2,7 +2,7 @@
 
 ## Grounding with grund (v2)
 
-This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, decision, and end-to-end test has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, AR, FS, CI, E2E, DEC, GLOSS}`), cited with the marker `§` — e.g. `FS-user-login.3.1` is the shape of a section ID, and a real citation prefixes that shape with `§`. Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are ignored — `[reference] strict = true` is set in `.agents/grund.toml`, so only `§`-prefixed citations are checked.
+This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, decision, and end-to-end test has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, AR, FS, E2E, DEC, GLOSS}`), cited with the marker `§` — e.g. `FS-user-login.3.1` is the shape of a section ID, and a real citation prefixes that shape with `§`. Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are ignored — `[reference] strict = true` is set in `.agents/grund.toml`, so only `§`-prefixed citations are checked.
 
 ### Grounding from a citation
 
@@ -23,7 +23,6 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 - [REQ](docs/spec/requirements.md): Cross-cutting requirements and constraints
 - [AR](docs/spec/architecture): How: high-level implementation, structure, and design
 - [FS](docs/spec): What: behavior, requirements, and constraints
-- [CI](docs/spec/ci.md): Pull request and repository CI workflows
 - [E2E](docs/spec): Executable user scenarios
 - [DEC](docs/spec/decisions): Project decisions and tradeoffs
 - [GLOSS](docs/spec/glossary.md): Glossary of domain terms

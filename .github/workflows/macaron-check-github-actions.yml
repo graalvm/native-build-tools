@@ -1,5 +1,5 @@
 # Validates GitHub workflows and composite actions with Macaron's check-github-actions policy.
-# §CI-macaron-check-github-actions
+# §AR-macaron-check-github-actions
 # Documentation: https://oracle.github.io/macaron/pages/macaron_action.html
 name: Check GitHub Actions with Macaron
 

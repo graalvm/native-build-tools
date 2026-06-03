@@ -1,4 +1,4 @@
-# Documentation website publication workflow. §CI-deploy-documentation
+# Documentation website publication workflow. §AR-deploy-documentation
 name: "Deploy documentation to website"
 
 on:

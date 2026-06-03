@@ -26,7 +26,7 @@ and verification without becoming product API.
 | Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §common/FS-common-libraries, §common/AR-common-libraries |
 | Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-native-tests, §AR-build-infrastructure.4 |
 | Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
-| CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §CI-pull-request-ci, §CI-deploy-documentation, §CI-deploy-snapshots |
+| CI workflows | `.github/workflows/`, `.github/actions/` | Pull request gates, dev-build checks, documentation deployment, snapshot deployment, and shared action setup. | §AR-pull-request-ci, §AR-deploy-documentation, §AR-deploy-snapshots |
 | User and maintainer docs | `docs/`, `README.md`, `DEVELOPING.md`, `AGENTS.md` | User guides, changelog, and developer guide stay user-facing; grounded maintainer specification lives in `docs/spec/` and `AGENTS.md`. | §FS-build-infrastructure.3 |
 
 The grund scan follows the maintainer specification, workflow, source-comment, sample, and
@@ -45,7 +45,7 @@ flowchart TD
     Fixtures["Samples, fixtures, reproducers"] --> BuildArch["docs/spec/architecture/build-infrastructure.md"]
     BuildInfraStructure["Build infrastructure boundaries"] --> BuildArch["docs/spec/architecture/build-infrastructure.md"]
     BuildInfraBehavior["Build, docs, release, generated artifacts"] --> BuildSpec["docs/spec/functional/build-infrastructure.md"]
-    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/ci.md"]
+    CIWork["Pull request gates and actions"] --> CISpec["docs/spec/architecture/ci.md"]
 ```
 
 ## 3. Dependency direction
@@ -76,19 +76,18 @@ not be used as shared runtime libraries for product code.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
    commands specified by §gradle/E2E-gradle-plugin-functional-tests,
    §maven/E2E-maven-plugin-functional-tests, and §FS-native-tests.6.
-4. Pull request CI runs the matching workflow gates from §CI-pull-request-ci and validates grund
-   citations through §CI-check-grund-spec.
+4. Pull request CI runs the matching workflow gates from §AR-pull-request-ci and validates grund
+   citations through §AR-check-grund-spec.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only
    through the repository's build and CI boundaries (§FS-build-infrastructure.5).
 
 ## 5. Specification layout
 
 The top-level `architecture/` directory describes repository-wide structure, ownership,
-deployment, workflow boundaries, and build-infrastructure boundaries. The top-level `functional/`
-directory states repository-wide observable product and infrastructure behavior, including
-behavior expected from both product plugins and maintainer-facing build tasks. CI workflow specs
-live in `docs/spec/ci.md` because they are executable workflow contracts rather than component
-architecture. The common, Gradle, and Maven components own workspace member specs under
+deployment, CI workflow boundaries, and build-infrastructure boundaries. The top-level
+`functional/` directory states repository-wide observable product and infrastructure behavior,
+including behavior expected from both product plugins and maintainer-facing build tasks. The common,
+Gradle, and Maven components own workspace member specs under
 `common/docs/`, `native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`.
 In every location, `functional-spec.md` states externally observable behavior, user workflows,
 build-tool contracts, metadata behavior, and verification expectations; `architecture.md` states
