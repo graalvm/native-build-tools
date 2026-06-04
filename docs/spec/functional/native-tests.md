@@ -4,14 +4,14 @@ Both product plugins must take an ordinary JVM JUnit Platform test setup and pro
 test binary that executes the same selected tests. The user keeps writing standard JUnit tests; the
 plugin builds a native image of those tests and runs it. A failing native test executable must
 fail the build in both tools. This contract realizes the native-test slice of
-§GOAL-plugin-parity and is adapted by §gradle/FS-gradle-plugin.6 and
-§maven/FS-maven-plugin.4.
+§GOAL-plugin-parity and is adapted by §gradle/FS-gradle-native-tests and
+§maven/FS-maven-native-tests.
 
 ```mermaid
 flowchart LR
     JVM["JVM test run"]
     IDs["UniqueIdTrackingListener<br/>writes unique-id file"]
-    Compile["nativeTestCompile /<br/>native:test image build"]
+    Compile["native test image build"]
     Launcher["NativeImageJUnitLauncher<br/>+ JUnitPlatformFeature"]
     Result["build-tool test result"]
 
@@ -42,7 +42,7 @@ Native test support runs in two phases:
    is explicitly skipped.
 
 The build-tool plugin must run the native test binary after compilation by default. Skipping image
-execution requires an explicit setting (Gradle DSL or Maven `skipTestExecution`).
+execution requires an explicit plugin setting.
 
 ## 2. Test discovery and registration
 
@@ -52,8 +52,7 @@ following must happen during image build:
 - `JUnitPlatformFeature` (§common/FS-common-libraries.3 via Native Image `Feature` API) must
   register every test class identified by the JVM run, plus the JUnit Platform engine classes,
   reporting classes, and `NativeImageJUnitLauncher` itself.
-- The image must include test resources from each test source set (Gradle) or
-  `src/test/resources` (Maven), matching the resources the JVM test run would see.
+- The image must include the test resources the JVM test run would see.
 - Provider classes for JUnit Platform, Jupiter, and Vintage must contribute their Native Image
   metadata when the corresponding engine is on the test classpath. New providers may be added
   when the repository supports new JUnit Platform behavior.
@@ -77,21 +76,13 @@ registers everything the launcher needs at run time. Both classes are owned by
 
 ## 4. Build-tool adapters
 
-Gradle must:
+Both adapters must expose the native test lifecycle through their build-tool-native surface,
+assemble test classes, resources, dependencies, and selected test identifiers, honor the build
+tool's normal test-skip concepts, and let users pass runtime arguments to the native test
+executable. Runtime arguments must not affect image generation.
 
-- Connect the `test` binary to the `test` source set and `test` task.
-- Build with `nativeTestCompile` and execute with `nativeTest`.
-- Honor `skipTests` from Gradle's normal test infrastructure and the native test DSL toggles.
-
-Maven must:
-
-- Expose native tests through the `native:test` goal.
-- Use compile, runtime, test, compile-plus-runtime, and provided dependency scopes, plus compiled
-  test classes and test resources.
-- Honor `skipTests`, `skipNativeTests`, `skipTestExecution`, and `failNoTests`.
-
-Both adapters must let users pass runtime arguments to the native test executable. Runtime
-arguments must not affect image generation.
+Gradle-specific task wiring is specified by §gradle/FS-gradle-native-tests. Maven-specific goal
+behavior is specified by §maven/FS-maven-native-tests.
 
 ## 5. Compatibility mode
 

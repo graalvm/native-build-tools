@@ -78,7 +78,7 @@ import java.util.Set;
  * <p>
  * The format of the generated JSON file conforms the following
  * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
- * §FS-maven-plugin.1.3, §FS-maven-plugin.2.5.
+ * §FS-maven-goal-surface.3, §FS-maven-native-image-builds.5.
  */
 @Mojo(name = "generateDynamicAccessMetadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {

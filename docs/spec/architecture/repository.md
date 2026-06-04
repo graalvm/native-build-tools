@@ -38,8 +38,8 @@ maintainer-facing claim.
 ```mermaid
 flowchart TD
     SharedBehavior["Behavior shared by Gradle and Maven"] --> PluginCommon["docs/spec/functional/plugin-common.md"]
-    GradleBehavior["Gradle DSL/task behavior"] --> GradleSpec["native-gradle-plugin/docs/functional-spec.md"]
-    MavenBehavior["Maven goal/XML behavior"] --> MavenSpec["native-maven-plugin/docs/functional-spec.md"]
+    GradleBehavior["Gradle DSL/task behavior"] --> GradleSpec["native-gradle-plugin/docs/functional/"]
+    MavenBehavior["Maven goal/XML behavior"] --> MavenSpec["native-maven-plugin/docs/functional/"]
     CommonBehavior["Resources, metadata, agent, utilities"] --> CommonSpec["common/docs/functional-spec.md"]
     NativeTests["Native test lifecycle"] --> PluginCommon["docs/spec/functional/plugin-common.md"]
     Fixtures["Samples, fixtures, reproducers"] --> BuildArch["docs/spec/architecture/build-infrastructure.md"]
@@ -89,8 +89,8 @@ deployment, CI workflow boundaries, and build-infrastructure boundaries. The top
 including behavior expected from both product plugins and maintainer-facing build tasks. The common,
 Gradle, and Maven components own workspace member specs under
 `common/docs/`, `native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`.
-In every location, `functional-spec.md` states externally observable behavior, user workflows,
-build-tool contracts, metadata behavior, and verification expectations; `architecture.md` states
+In every location, functional specs state externally observable behavior, user workflows,
+build-tool contracts, metadata behavior, and verification expectations; architecture specs state
 module ownership, dependency direction, internal structure, and implementation responsibilities.
 Code, tests, YAML, and scripts should cite the most specific component or workflow section that
 justifies the behavior.

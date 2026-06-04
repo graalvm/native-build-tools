@@ -38,40 +38,40 @@ task graph is the debugging surface.
 
 `JavaApplicationFunctionalTest`, `JavaLibraryFunctionalTest`, and generated sample projects verify
 that Gradle builds compile and run native applications and libraries. This protects
-§FS-gradle-plugin.1, §FS-gradle-plugin.2, and §FS-gradle-plugin.3.
+§FS-gradle-plugin-model, §FS-gradle-native-image-tasks, and §FS-gradle-native-image-invocation.
 
 ### 3.2 Native tests
 
 `JavaApplicationWithTestsFunctionalTest`, `JUnitFunctionalTests`,
 `KotlinApplicationWithTestsFunctionalTest`, and `MultiProjectJavaApplicationWithTestsFunctionalTest`
 verify native test compilation, execution, JUnit support, Kotlin projects, and multi-project test
-dependencies. This protects §FS-gradle-plugin.6 and §root/FS-native-tests.
+dependencies. This protects §FS-gradle-native-tests and §root/FS-native-tests.
 
 ### 3.3 Resources
 
 `JavaApplicationWithResourcesFunctionalTest` verifies generated resource configuration for main and
 test classpaths, explicit resource patterns, and resources already packaged with Native Image
-configuration. This protects §FS-gradle-plugin.4.1 and §FS-gradle-plugin.4.2.
+configuration. This protects §FS-gradle-resources-and-metadata.1 and §FS-gradle-resources-and-metadata.2.
 
 ### 3.4 Reachability metadata
 
 `ReachabilityMetadataFunctionalTest`, `NativeConfigRepoFunctionalTest`, and
 `OfficialMetadataRepoFunctionalTest` verify official and local metadata repositories, exclusions,
 forced versions, copied metadata, and missing metadata diagnostics. This protects
-§FS-gradle-plugin.4.3, §FS-gradle-plugin.4.4, and §common/FS-common-libraries.5.
+§FS-gradle-resources-and-metadata.3, §FS-gradle-resources-and-metadata.4, and §common/FS-common-libraries.5.
 
 ### 3.5 Tracing agent
 
 `JavaApplicationWithAgentFunctionalTest` verifies `-Pagent`, instrumented JVM and test tasks,
 standard and conditional mode behavior, agent output, configuration-cache compatibility, and
-`metadataCopy`. This protects §FS-gradle-plugin.5 and §common/FS-common-libraries.3.
+`metadataCopy`. This protects §FS-gradle-tracing-agent and §common/FS-common-libraries.3.
 
 ### 3.6 Native Image options
 
 `NativeImageOptionsTest` and `LayeredApplicationFunctionalTest` verify build arguments, quick build,
 image names, PGO/layer-related options, fat JAR behavior, runtime arguments, and command-line
-construction. This protects §FS-gradle-plugin.2.4, §FS-gradle-plugin.3.3, and
-§FS-gradle-plugin.3.5.
+construction. This protects §FS-gradle-native-image-tasks.4, §FS-gradle-native-image-invocation.3, and
+§FS-gradle-native-image-invocation.5.
 
 ### 3.7 Gradle integration
 

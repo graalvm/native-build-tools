@@ -70,7 +70,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Converts options to native-image arguments. §FS-gradle-plugin.3.3.
+ * Converts options to native-image arguments. §FS-gradle-native-image-invocation.3.
  */
 public class NativeImageCommandLineProvider implements CommandLineArgumentProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeImageCommandLineProvider.class);

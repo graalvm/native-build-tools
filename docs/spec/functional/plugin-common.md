@@ -10,15 +10,15 @@ and §maven/FS-maven-plugin with shared primitives from §common/FS-common-libra
 
 ## Reader View
 
-| User goal | Gradle shape | Maven shape | Shared spec |
+| User goal | Gradle adaptation | Maven adaptation | Shared spec |
 | --- | --- | --- | --- |
-| Build the main application image | `./gradlew nativeCompile` from `graalvmNative.binaries.main` | `mvn -Pnative package` with `compile-no-fork`, or `mvn -Pnative native:compile` | §FS-native-image-builds |
-| Run the application image | `./gradlew nativeRun` | execute the generated binary directly or through project `exec` configuration | §FS-native-image-builds |
-| Build and run tests as a native image | `./gradlew nativeTest` | `mvn -Pnative native:test` or a lifecycle-bound `test` execution | §FS-native-tests |
-| Generate resource configuration | `generateResourcesConfigFile` and derived binary tasks | `native:generateResourceConfig` / `native:generateTestResourceConfig` | §FS-resources-and-metadata.1 |
-| Use reachability metadata | metadata repository DSL plus native compile tasks | `<metadataRepository>` plus metadata goals/native compile goals | §FS-resources-and-metadata.2 |
-| Inspect missing metadata | `listLibrariesMissingMetadata` | `native:list-libraries-missing-metadata` | §FS-resources-and-metadata.3 |
-| Collect agent output | `-Pagent` or DSL agent configuration, then `metadataCopy` | `-Dagent=true` or XML agent configuration, then `native:metadata-copy` | §FS-tracing-agent-workflows |
+| Build the main application image | §gradle/FS-gradle-native-image-tasks | §maven/FS-maven-goal-surface, §maven/FS-maven-native-image-builds | §FS-native-image-builds |
+| Run the application image | §gradle/FS-gradle-native-image-tasks | §maven/FS-maven-native-image-builds | §FS-native-image-builds |
+| Build and run tests as a native image | §gradle/FS-gradle-native-tests | §maven/FS-maven-native-tests | §FS-native-tests |
+| Generate resource configuration | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata | §FS-resources-and-metadata.1 |
+| Use reachability metadata | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata | §FS-resources-and-metadata.2 |
+| Inspect missing metadata | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata | §FS-resources-and-metadata.3 |
+| Collect agent output | §gradle/FS-gradle-tracing-agent | §maven/FS-maven-tracing-agent | §FS-tracing-agent-workflows |
 
 ```mermaid
 sequenceDiagram

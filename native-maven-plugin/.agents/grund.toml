@@ -35,8 +35,8 @@ title = "Maven plugin requirements"
 
 [[kinds]]
 prefix = "FS"
-file = "docs/functional-spec.md"
-title = "Maven plugin functional specification"
+folder = "docs/functional"
+title = "Maven plugin functional specifications"
 
 [[kinds]]
 prefix = "AR"

@@ -18,8 +18,8 @@ behavior, CI, build infrastructure, native-test behavior, decisions, and glossar
 | If you need to... | Start here | Then read |
 | --- | --- | --- |
 | understand what both product plugins promise | [functional/plugin-common.md](functional/plugin-common.md) | The Gradle and Maven functional specs |
-| change Gradle DSL, task, or TestKit behavior | [../../native-gradle-plugin/docs/functional-spec.md](../../native-gradle-plugin/docs/functional-spec.md) | [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md), [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) |
-| change Maven goal, parameter, lifecycle, or reproducer behavior | [../../native-maven-plugin/docs/functional-spec.md](../../native-maven-plugin/docs/functional-spec.md) | [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md), [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) |
+| change Gradle DSL, task, or TestKit behavior | [../../native-gradle-plugin/docs/functional/README.md](../../native-gradle-plugin/docs/functional/README.md) | [../../native-gradle-plugin/docs/architecture.md](../../native-gradle-plugin/docs/architecture.md), [../../native-gradle-plugin/docs/e2e.md](../../native-gradle-plugin/docs/e2e.md) |
+| change Maven goal, parameter, lifecycle, or reproducer behavior | [../../native-maven-plugin/docs/functional/README.md](../../native-maven-plugin/docs/functional/README.md) | [../../native-maven-plugin/docs/architecture.md](../../native-maven-plugin/docs/architecture.md), [../../native-maven-plugin/docs/e2e.md](../../native-maven-plugin/docs/e2e.md) |
 | change shared resource, metadata, agent, or utility behavior | [../../common/docs/functional-spec.md](../../common/docs/functional-spec.md) | [../../common/docs/architecture.md](../../common/docs/architecture.md), [functional/plugin-common.md](functional/plugin-common.md) |
 | change native test launcher or test image behavior | [functional/native-tests.md](functional/native-tests.md) | [../../common/docs/functional-spec.md](../../common/docs/functional-spec.md), plugin E2E docs |
 | change sample, fixture, or reproducer behavior | [architecture/build-infrastructure.md](architecture/build-infrastructure.md) | plugin E2E docs |
@@ -62,15 +62,14 @@ The common libraries and product plugins are separate grund workspace members:
 
 ## Common workflows
 
-| Workflow | Gradle entry point | Maven entry point | Shared spec |
+| Workflow | Shared spec | Gradle adaptation | Maven adaptation |
 | --- | --- | --- | --- |
-| Build an application native image | `./gradlew nativeCompile` | `mvn -Pnative package` or `mvn -Pnative native:compile` | §FS-native-image-builds |
-| Run the compiled application | `./gradlew nativeRun` | project-specific `exec:exec` or direct executable run | §FS-native-image-builds |
-| Build and run native tests | `./gradlew nativeTest` | `mvn -Pnative native:test` or bound `test` phase | §FS-native-tests |
-| Generate resource configuration | `./gradlew generateResourcesConfigFile` | `native:generateResourceConfig` | §FS-resources-and-metadata.1 |
-| Consume reachability metadata | `collectReachabilityMetadata`, then native compile | `native:add-reachability-metadata`, then native compile | §FS-resources-and-metadata.2 |
-| Collect/copy tracing-agent metadata | JVM task with `-Pagent`, then `metadataCopy` | `-Dagent=true`, then `native:metadata-copy` | §FS-tracing-agent-workflows |
-| Inspect missing metadata | `./gradlew listLibrariesMissingMetadata` | `mvn -Pnative native:list-libraries-missing-metadata` | §FS-resources-and-metadata.3 |
+| Build and run application native images | §FS-native-image-builds | §gradle/FS-gradle-native-image-tasks, §gradle/FS-gradle-native-image-invocation | §maven/FS-maven-goal-surface, §maven/FS-maven-native-image-builds |
+| Build and run native tests | §FS-native-tests | §gradle/FS-gradle-native-tests | §maven/FS-maven-native-tests |
+| Generate resource configuration | §FS-resources-and-metadata.1 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
+| Consume reachability metadata | §FS-resources-and-metadata.2 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
+| Collect/copy tracing-agent metadata | §FS-tracing-agent-workflows | §gradle/FS-gradle-tracing-agent | §maven/FS-maven-tracing-agent |
+| Inspect missing metadata | §FS-resources-and-metadata.3 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
 
 ## Citation shape
 
@@ -80,8 +79,8 @@ specs describe ownership, dependency direction, module boundaries, and implement
 
 Use the most specific citation that supports the behavior. For example:
 
-- Gradle task behavior from root docs: `§gradle/FS-gradle-plugin.2.1`
-- Maven goal behavior from root docs: `§maven/FS-maven-plugin.1.1`
+- Gradle task behavior from root docs: `§gradle/FS-gradle-native-image-tasks.1`
+- Maven goal behavior from root docs: `§maven/FS-maven-goal-surface.1`
 - cross-plugin parity: `§FS-plugin-common-behavior`
 - shared resource analysis: `§common/FS-common-libraries.2`
 - native test lifecycle: `§FS-native-tests.1`

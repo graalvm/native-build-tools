@@ -35,8 +35,8 @@ title = "Gradle plugin requirements"
 
 [[kinds]]
 prefix = "FS"
-file = "docs/functional-spec.md"
-title = "Gradle plugin functional specification"
+folder = "docs/functional"
+title = "Gradle plugin functional specifications"
 
 [[kinds]]
 prefix = "AR"

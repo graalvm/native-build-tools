@@ -4,11 +4,12 @@ Both plugins must expose resource configuration generation, reachability metadat
 lookup, missing metadata reports, dynamic access metadata, and schema validation through their
 own task or goal surface. The shared library behavior lives in §common/FS-common-libraries.2,
 §common/FS-common-libraries.5, §common/FS-common-libraries.6, and §common/FS-common-libraries.7.
-Gradle adapts through §gradle/FS-gradle-plugin.4; Maven adapts through §maven/FS-maven-plugin.6
-plus the support goals in §maven/FS-maven-plugin.1.3.
+Gradle adapts through §gradle/FS-gradle-resources-and-metadata; Maven adapts through §maven/FS-maven-resources-and-metadata
+plus the support goals in §maven/FS-maven-goal-surface.3.
 
-Generated artifacts stay in the build-tool output tree (Gradle `build/native/`, Maven `target/`
-under a `native/generated` subtree) unless the user explicitly requests a copy elsewhere.
+Generated artifacts stay in the build-tool output tree unless the user explicitly requests a copy
+elsewhere. Exact task names, goal names, output paths, and configuration names belong to the
+Gradle and Maven functional specs cited above.
 
 ## 1. Resource configuration
 
@@ -21,10 +22,9 @@ If a classpath entry already contains `META-INF/native-image/.../resource-config
 caller has not asked to ignore existing config, the plugin must not duplicate resources from that
 entry. Scanning, path normalization, and config generation belong to §common/FS-common-libraries.2.
 
-| Build tool | Entry point | Output directory |
-| --- | --- | --- |
-| Gradle | `generateResourcesConfigFile`, `generate<Binary>ResourcesConfigFile` | `build/native/generated/<task>/` |
-| Maven | `native:generateResourceConfig`, `native:generateTestResourceConfig` | `target/native/generated/generateResourceConfig/` |
+Plugin-specific entry points and output paths are specified by
+§gradle/FS-gradle-resources-and-metadata.1, §gradle/FS-gradle-resources-and-metadata.2, and
+§maven/FS-maven-resources-and-metadata.1.
 
 ## 2. Reachability metadata repository
 
@@ -34,10 +34,8 @@ repository URI, version, exclusions, and module-to-config-version overrides
 directory passed to `native-image` as a configuration file directory, not unpacked into the
 project source tree.
 
-| Build tool | Configuration | Entry point |
-| --- | --- | --- |
-| Gradle | `graalvmNative.metadataRepository`, `binaries.<name>.excludeConfig` | `collectReachabilityMetadata` plus native compile tasks |
-| Maven | `<metadataRepository>` | `native:add-reachability-metadata` plus native build goals |
+Plugin-specific configuration and entry points are specified by
+§gradle/FS-gradle-resources-and-metadata.3 and §maven/FS-maven-resources-and-metadata.2.
 
 ## 3. Missing metadata reports
 
@@ -47,10 +45,8 @@ dependencies that lack metadata coverage. The report must not modify the inputs 
 tasks. When issue-creation settings are configured, the report may open GitHub issues against the
 configured repository.
 
-| Build tool | Entry point |
-| --- | --- |
-| Gradle | `listLibrariesMissingMetadata` |
-| Maven | `native:list-libraries-missing-metadata` |
+Plugin-specific report entry points are specified by §gradle/FS-gradle-resources-and-metadata.4
+and §maven/FS-maven-resources-and-metadata.3.
 
 ## 4. Dynamic access metadata
 
@@ -60,10 +56,8 @@ one. Generation uses the configured reachability metadata repository and the run
 graph; the resulting directory is added to the Native Image configuration file directories for
 that build only.
 
-| Build tool | Entry point |
-| --- | --- |
-| Gradle | `generateDynamicAccessMetadata`, `generate<Binary>DynamicAccessMetadata` |
-| Maven | `native:generateDynamicAccessMetadata` |
+Plugin-specific generation entry points are specified by
+§gradle/FS-gradle-resources-and-metadata.5 and §maven/FS-maven-native-image-builds.5.
 
 ## 5. Schema validation
 

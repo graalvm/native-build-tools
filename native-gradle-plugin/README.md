@@ -11,7 +11,7 @@ This subproject has its own grund specification:
 * [Purpose](docs/grund.md)
 * [Goals](docs/goals.md)
 * [Requirements](docs/requirements.md)
-* [Functional specification](docs/functional-spec.md)
+* [Functional specification](docs/functional/README.md)
 * [Architecture](docs/architecture.md)
 * [End-to-end tests](docs/e2e.md)
 

@@ -4,23 +4,28 @@ Both product plugins must translate Gradle or Maven project state into a single 
 invocation. The user's durable configuration lives in the build file (Gradle DSL or Maven XML);
 one-off command-line overrides feed the same command-line assembly path so behavior does not
 diverge by configuration source. This contract realizes §GOAL-plugin-parity
-together with §FS-plugin-common-behavior, and is adapted by §gradle/FS-gradle-plugin.2 and
-§gradle/FS-gradle-plugin.3 for Gradle and §maven/FS-maven-plugin.1.1 and
-§maven/FS-maven-plugin.2 for Maven.
+together with §FS-plugin-common-behavior, and is adapted by §gradle/FS-gradle-native-image-tasks and
+§gradle/FS-gradle-native-image-invocation for Gradle and §maven/FS-maven-goal-surface.1 and
+§maven/FS-maven-native-image-builds for Maven.
 
 ## 1. Required inputs
 
 A native image build must derive the following from project state and configuration:
 
-| Input | Source |
+| Input | Contract |
 | --- | --- |
-| Classpath and module path | resolved runtime dependencies plus compiled output of the selected source set or Maven phase |
-| Main class or shared-library flag | `application.mainClass`, Maven `mainClass`, or detection from packaging plugins (Shade, Assembly, JAR) |
-| Image name and output directory | DSL/XML setting or convention from project name |
-| Build arguments | configured `buildArgs` plus any forced overrides |
-| JVM arguments, system properties, environment variables | configured values for the `native-image` driver process |
-| Configuration file directories | generated resource config (§FS-resources-and-metadata.1), resolved repository metadata (§FS-resources-and-metadata.2), dynamic access metadata (§FS-resources-and-metadata.4) |
-| Optional inputs | classpath JAR (§GLOSS-fat-jar), argument file (§GLOSS-argument-file), layer options (§GLOSS-layered-image), PGO options (§GLOSS-pgo) |
+| Classpath and module path | Derived from selected build-tool project state. |
+| Entry point or shared-library mode | Derived from user configuration, build-tool conventions, or build-tool-specific discovery. |
+| Image name and output location | Derived from user configuration or stable build-tool conventions. |
+| Build arguments | Combined from durable configuration and documented command-line overrides. |
+| JVM arguments, system properties, environment variables | Passed to the `native-image` driver process when configured. |
+| Configuration file directories | Include generated resource config (§FS-resources-and-metadata.1), resolved repository metadata (§FS-resources-and-metadata.2), and dynamic access metadata (§FS-resources-and-metadata.4). |
+| Optional inputs | Include classpath JAR (§GLOSS-fat-jar), argument file (§GLOSS-argument-file), layer options (§GLOSS-layered-image), and PGO options (§GLOSS-pgo) when supported by the plugin. |
+
+Gradle-specific task inputs are specified by §gradle/FS-gradle-native-image-tasks and
+§gradle/FS-gradle-native-image-invocation. Maven-specific goal inputs are specified by
+§maven/FS-maven-goal-surface, §maven/FS-maven-native-image-builds, and
+§maven/FS-maven-configuration-model.
 
 ## 2. Command-line construction
 
@@ -47,6 +52,6 @@ version before passing it to `native-image` (§FS-resources-and-metadata.5).
 ## 5. Shared library mode
 
 Both plugins must support shared-library output where the build tool's packaging model allows it.
-Gradle library projects default the main binary to shared-library mode; Maven uses the
-`sharedLibrary` parameter. Shared-library mode disables main-class requirements and may change the
-output file extension.
+Shared-library mode disables entry-point requirements and may change the output file extension.
+The plugin-specific configuration surface and defaults are specified by
+§gradle/FS-gradle-plugin-model and §maven/FS-maven-configuration-model.
