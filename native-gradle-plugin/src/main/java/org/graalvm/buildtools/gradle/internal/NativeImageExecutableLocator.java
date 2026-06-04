@@ -113,7 +113,7 @@ public class NativeImageExecutableLocator {
             diagnostics.disableToolchainDetection();
             String graalvmHome = graalvmHomeProvider.get();
             executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
-            
+
             // Try to install native-image via gu if the executable doesn't exist yet
             tryInstallNativeImageViaGu(executablePath, execOperations, logger, diagnostics);
         }
