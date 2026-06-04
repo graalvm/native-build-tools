@@ -102,8 +102,11 @@ public class NativeImageExecutableLocator {
         if (!toolchainDetectionIsDisabled && javaLauncher.isPresent()) {
             JavaInstallationMetadata metadata = javaLauncher.get().getMetadata();
             diagnostics.withToolchain(metadata);
-            executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
-
+            try {
+                executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
+            } catch (Exception e) {
+                // Probe failed, executablePath remains null - will fall back to environment variables
+            }
             // Try to install native-image via gu if the executable doesn't exist yet
             tryInstallNativeImageViaGu(executablePath, execOperations, logger, diagnostics);
         }
