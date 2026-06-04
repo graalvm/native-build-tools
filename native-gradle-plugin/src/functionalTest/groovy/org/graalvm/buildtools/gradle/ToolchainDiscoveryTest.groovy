@@ -34,7 +34,7 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         """.stripIndent()
 
         when:
-        def result = run 'nativeCompile'
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
 
         then:
         tasks {
@@ -83,7 +83,7 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         """.stripIndent()
 
         when:
-        def result = run 'nativeCompile'
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
 
         then:
         tasks {
@@ -133,7 +133,7 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         """.stripIndent()
 
         when:
-        def result = run 'nativeCompile'
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
 
         then:
         tasks {
@@ -224,7 +224,7 @@ fi
     """.stripIndent()
 
         when:
-        def result = runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
 
         then:
         tasks {
@@ -274,7 +274,7 @@ exit 1'''
     """.stripIndent()
 
         when:
-        def result = runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
 
         then:
         tasks {
