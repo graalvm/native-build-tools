@@ -112,7 +112,7 @@ public class NativeImageExecutableLocator {
         }
 
         // If toolchain not found or detection disabled, try environment variables
-        if (executablePath == null && graalvmHomeProvider.isPresent()) {
+        if ((executablePath == null || !executablePath.exists()) && graalvmHomeProvider.isPresent()) {
             diagnostics.disableToolchainDetection();
             String graalvmHome = graalvmHomeProvider.get();
             executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
