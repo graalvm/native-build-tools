@@ -123,11 +123,21 @@ public class NativeImageExecutableLocator {
 
         // Fail if native-image executable still not found
         if (executablePath == null || !executablePath.exists()) {
-            String pathDescription = executablePath == null
-                    ? "no GraalVM location was specified"
-                    : "native-image executable not found at " + executablePath.getAbsolutePath();
-            throw new GradleException(pathDescription + ". " +
-                    "This probably means that JDK isn't a GraalVM distribution. " +
+            StringBuilder pathDescription = new StringBuilder("native-image executable not found.");
+
+            // Add details about what paths were attempted
+            if (disableToolchainDetection.get()) {
+                pathDescription.append(" Toolchain detection was disabled.");
+            }
+
+            String graalvmHome = graalvmHomeProvider.getOrNull();
+            if (graalvmHome != null) {
+                pathDescription.append(" GRAALVM_HOME was set to: ").append(graalvmHome);
+            } else {
+                pathDescription.append(" GRAALVM_HOME/JAVA_HOME were not set.");
+            }
+
+            throw new GradleException(pathDescription + " " +
                     "Please configure either a GraalVM-based Java toolchain, " +
                     "or set GRAALVM_HOME/JAVA_HOME environment variable to point to " +
                     "a GraalVM installation that includes native-image in its bin/ directory.");
