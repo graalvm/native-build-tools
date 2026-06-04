@@ -7,6 +7,14 @@ realizes the repository goal in §root/GOAL-native-build-workflows for Maven and
 by §FS-maven-goal-surface, §FS-maven-native-image-builds,
 §FS-maven-configuration-model, §FS-maven-tracing-agent, and §FS-maven-native-tests.
 
+# GOAL-maven-plugin-idiomatic-maven-integration: Maven integration follows Maven idioms and conventions
+
+The Maven plugin should feel like a Maven plugin rather than a command wrapper hidden behind Maven
+goals. Plugin code should use mojos, descriptors, `@Parameter` binding, lifecycle phases,
+dependency scopes, project model lookup, toolchains, Aether/repository APIs, Plexus integration,
+and isolated Maven functional tests where those concepts fit the behavior. This follows
+§GRUND-maven-plugin-purpose and is constrained by §REQ-maven-plugin-maven-model-compatibility.
+
 # GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract: Maven behavior stays aligned with shared plugin behavior
 
 When the shared product contract defines behavior that applies to both product plugins, the Maven

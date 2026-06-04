@@ -4,7 +4,8 @@ The `native-maven-plugin` module provides a Maven plugin packaged as `maven-plug
 translate Maven project state, XML configuration, system properties, dependency scopes, and
 lifecycle phases into the shared Native Build Tools behavior defined by root and common specs.
 The focused files below own the citable Maven functional contracts for
-§GOAL-maven-plugin-native-image-workflows and
+§GOAL-maven-plugin-native-image-workflows,
+§GOAL-maven-plugin-idiomatic-maven-integration, and
 §GOAL-maven-plugin-behavior-stays-aligned-with-shared-contract, constrained by
 §REQ-maven-plugin-maven-model-compatibility and §REQ-maven-plugin-goal-surface-stability.
 

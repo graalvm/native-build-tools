@@ -4,7 +4,8 @@ The `native-gradle-plugin` module provides the Gradle plugin identified as
 `org.graalvm.buildtools.native`. It turns Gradle projects, tasks, providers, and the
 `graalvmNative` DSL into the shared Native Build Tools behavior defined by root and common specs.
 The focused files below own the citable Gradle functional contracts for
-§GOAL-gradle-plugin-native-image-workflows and
+§GOAL-gradle-plugin-native-image-workflows,
+§GOAL-gradle-plugin-idiomatic-gradle-integration, and
 §GOAL-gradle-plugin-behavior-stays-aligned-with-shared-contract, constrained by
 §REQ-gradle-plugin-gradle-model-compatibility and §REQ-gradle-plugin-task-surface-stability.
 

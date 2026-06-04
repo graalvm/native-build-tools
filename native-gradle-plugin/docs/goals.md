@@ -8,6 +8,15 @@ goal in §root/GOAL-native-build-workflows for Gradle, follows
 §FS-gradle-native-image-tasks, §FS-gradle-resources-and-metadata,
 §FS-gradle-tracing-agent, and §FS-gradle-native-tests.
 
+# GOAL-gradle-plugin-idiomatic-gradle-integration: Gradle integration follows Gradle idioms and conventions
+
+The Gradle plugin should feel like a Gradle plugin rather than a command wrapper hidden behind
+Gradle tasks. Plugin code should use Gradle's lazy configuration model, providers, task inputs and
+outputs, build services, toolchains, attributes, artifact transforms, configuration-cache rules,
+and TestKit verification where those concepts fit the behavior. This follows
+§GRUND-gradle-plugin-purpose and is constrained by
+§REQ-gradle-plugin-gradle-model-compatibility.
+
 # GOAL-gradle-plugin-behavior-stays-aligned-with-shared-contract: Gradle behavior stays aligned with shared plugin behavior
 
 When the shared product contract defines behavior that applies to both product plugins, the Gradle
