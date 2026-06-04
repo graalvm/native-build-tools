@@ -178,7 +178,11 @@ abstract class AbstractFunctionalTest extends Specification {
             runner.withEnvironment(env)
             result = runner.run()
             if (hasConfigurationCache) {
-                result = newRunner(*[*args, "--rerun-tasks"] as String[]).run()
+                // run a 2d time to check that not only we can store in
+                // the configuration cache, but that we can also load from it
+                result = newRunner(*[*args, "--rerun-tasks"] as String[])
+                        .withEnvironment(env)
+                        .run()
             }
         } finally {
             recordOutputs()
