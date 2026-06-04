@@ -65,8 +65,40 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         File fakeBin = new File(fakeGraalvm, "bin")
         fakeBin.mkdirs()
         File nativeImage = new File(fakeBin, "native-image")
-        nativeImage.text = "#!/bin/sh\necho 'Fake native-image from GRAALVM_HOME'"
-        new File(fakeBin, "native-image").setExecutable(true)
+        nativeImage.text = '''#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "native-image 21.0.0"
+    exit 0
+fi
+output_file=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -o)
+            if [ -n "$2" ]; then
+                output_file="$2"
+                shift 2
+            else
+                echo "Error: -o requires an argument" >&2
+                exit 1
+            fi
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+if [ -n "$output_file" ]; then
+    mkdir -p "$(dirname "$output_file")"
+    cat > "$output_file" << 'EXEC_EOF'
+#!/bin/sh
+echo "Fake native-image executable"
+exit 0
+EXEC_EOF
+    chmod +x "$output_file"
+fi
+exit 0
+'''
+new File(fakeBin, "native-image").setExecutable(true)
 
         buildFile << """
             java {
