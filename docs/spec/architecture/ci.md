@@ -39,15 +39,14 @@ documented for local contributors in `DEVELOPING.md`.
 
 `test-native-gradle-plugin.yml` validates the Gradle plugin through functional-test matrices,
 configuration-cache functional-test matrices, unit tests, inspections, and a GraalVM dev-build
-functional-test job. It is the PR gate for §gradle/FS-gradle-plugin and Gradle-facing end-to-end
-scenarios in §gradle/E2E-gradle-plugin-functional-tests.
+functional-test job. It is the PR gate for Gradle-facing end-to-end scenarios in
+§gradle/E2E-gradle-plugin-functional-tests.
 
 ### 1.4 Maven plugin PR workflow
 
 `test-native-maven-plugin.yml` validates the Maven plugin through a generated functional-test
-matrix and a GraalVM dev-build functional-test job. It is the PR gate for
-§maven/FS-maven-plugin and Maven-facing end-to-end scenarios in
-§maven/E2E-maven-plugin-functional-tests.
+matrix and a GraalVM dev-build functional-test job. It is the PR gate for Maven-facing
+end-to-end scenarios in §maven/E2E-maven-plugin-functional-tests.
 
 ### 1.5 Reachability metadata library PR workflow
 

@@ -2,7 +2,8 @@
 
 The Gradle and Maven plugins expose native image compile, run, test, resource configuration,
 agent metadata, and reachability metadata workflows through idioms that fit each build tool.
-Realized by §gradle/FS-gradle-plugin, §maven/FS-maven-plugin, and §FS-plugin-common-behavior.
+Realized by §gradle/GOAL-gradle-plugin-native-image-workflows,
+§maven/GOAL-maven-plugin-native-image-workflows, and §FS-plugin-common-behavior.
 Bounded by the non-goals in [non-goals.md](non-goals.md) and constrained by
 §REQ-backwards-compatibility-across-plugin-versions and
 §REQ-supported-build-tool-and-runtime-version-matrix and
@@ -25,7 +26,8 @@ plugins, and developer tooling that JVM projects already rely on should continue
 Native Build Tools is added to the project. The plugins must integrate with the host build tool's
 existing model rather than replacing it; when an ecosystem capability is structurally incompatible
 with Native Image, that gap belongs in [non-goals.md](non-goals.md) with a documented reason.
-Realized by §gradle/FS-gradle-plugin and §maven/FS-maven-plugin, bounded by
+Realized by §gradle/GOAL-gradle-plugin-native-image-workflows and
+§maven/GOAL-maven-plugin-native-image-workflows, bounded by
 §NGOAL-no-duplication-of-existing-build-tool-capabilities.
 
 # GOAL-concise-actionable-output: Build output is concise, actionable, and token-efficient

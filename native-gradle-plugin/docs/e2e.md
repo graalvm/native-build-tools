@@ -3,8 +3,9 @@
 Gradle end-to-end coverage lives under `native-gradle-plugin/src/functionalTest/`. These tests run
 sample or generated Gradle projects through Gradle TestKit, use the repository's local test
 repository for plugin and support artifacts, and verify the behavior users see from the Gradle
-plugin. They provide executable evidence for §FS-gradle-plugin, §AR-gradle-plugin, and the shared
-product contract in §root/FS-plugin-common-behavior.
+plugin. They provide executable evidence for the focused Gradle functional specs under
+`docs/functional/`, §AR-gradle-plugin, and the shared product contract in
+§root/FS-plugin-common-behavior.
 
 ## 1. Full local suite
 

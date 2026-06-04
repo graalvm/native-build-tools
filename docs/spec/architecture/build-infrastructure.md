@@ -44,9 +44,8 @@ local test repository, but they should not become general runtime libraries for 
 
 The repository's samples and fixtures are part of the specification surface because the product
 plugins are only useful when they work in real Gradle and Maven project shapes. This architecture
-supports §REQ-repository-fixtures-protect-real-build-scenarios and provides evidence for
-§gradle/FS-gradle-plugin, §maven/FS-maven-plugin, §common/FS-common-libraries, and
-§FS-native-tests.
+supports §REQ-repository-fixtures-protect-real-build-scenarios and provides evidence for focused
+Gradle and Maven functional specs, §common/FS-common-libraries, and §FS-native-tests.
 
 ### 4.1 Fixture groups
 

@@ -2,7 +2,7 @@
 
 `native-maven-plugin` owns Maven mojos, Maven plugin descriptor generation, Plexus integration,
 Maven configuration objects, Maven repository seeding for functional tests, Maven-specific SBOM
-integration, and issue reproducers. The module implements §FS-maven-plugin by adapting the shared
+integration, and issue reproducers. The module implements the focused Maven functional specs under `docs/functional/` by adapting the shared
 libraries from §common/AR-common-libraries into Maven's APIs.
 
 ## 1. Module responsibility

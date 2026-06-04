@@ -5,8 +5,8 @@ Gradle and Maven plugins use different build models, but they should answer the 
 questions: build a native executable, run it, test it, supply metadata, inspect missing metadata,
 and collect tracing-agent output. This functional contract is the parity boundary; the detailed
 shared behavior lives in the sibling specs below. It realizes
-§GOAL-plugin-parity and is implemented by §gradle/FS-gradle-plugin
-and §maven/FS-maven-plugin with shared primitives from §common/FS-common-libraries.
+§GOAL-plugin-parity and is implemented by the focused Gradle and Maven functional specs with
+shared primitives from §common/FS-common-libraries.
 
 ## Reader View
 

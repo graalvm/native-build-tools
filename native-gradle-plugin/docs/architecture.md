@@ -2,7 +2,7 @@
 
 `native-gradle-plugin` owns Gradle plugin registration, extension objects, task types, task
 actions, command-line providers, Gradle services, artifact transforms, and Gradle functional test
-infrastructure. The module implements §FS-gradle-plugin by adapting the shared libraries from
+infrastructure. The module implements the focused Gradle functional specs under `docs/functional/` by adapting the shared libraries from
 §common/AR-common-libraries into Gradle's APIs.
 
 ## 1. Module responsibility

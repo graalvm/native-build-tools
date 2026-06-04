@@ -3,8 +3,9 @@
 Maven end-to-end coverage lives under `native-maven-plugin/src/functionalTest/`. These tests run
 sample projects, generated projects, or issue reproducers through an isolated Maven executor,
 seed a local Maven repository with plugin and support artifacts, and verify the behavior users see
-from the Maven plugin. They provide executable evidence for §FS-maven-plugin, §AR-maven-plugin,
-and the shared product contract in §root/FS-plugin-common-behavior.
+from the Maven plugin. They provide executable evidence for the focused Maven functional specs
+under `docs/functional/`, §AR-maven-plugin, and the shared product contract in
+§root/FS-plugin-common-behavior.
 
 ## 1. Full local suite
 

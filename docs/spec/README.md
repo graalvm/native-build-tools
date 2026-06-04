@@ -8,8 +8,8 @@ docs.
 The root namespace describes repository-wide contracts. The common libraries and product plugins
 are workspace members named `common`, `gradle`, and `maven`, with local docs under `common/docs/`,
 `native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`. Root docs cite workspace-member
-facts with aliases such as `§common/FS-common-libraries`, `§gradle/FS-gradle-plugin`, and
-`§maven/FS-maven-plugin`; member docs cite repository-wide facts with `§root/<ID>`. Shared plugin
+facts with aliases such as `§common/FS-common-libraries`, `§gradle/FS-gradle-native-image-tasks`,
+and `§maven/FS-maven-goal-surface`; member docs cite repository-wide facts with `§root/<ID>`. Shared plugin
 behavior, CI, build infrastructure, native-test behavior, decisions, and glossary terms stay in
 `docs/spec/`.
 
