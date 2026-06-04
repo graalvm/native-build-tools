@@ -21,36 +21,27 @@ Existing DSL properties, extension settings, and Maven parameters keep their doc
 across compatible releases. New behavior is added through new, optional configuration with
 conservative defaults, so builds that do not opt in are unaffected.
 
-# REQ-supported-build-tool-and-runtime-version-matrix: The plugins declare and test a supported JDK, GraalVM, Gradle, and Maven version matrix
+# REQ-supported-build-tool-and-runtime-version-matrix: Supported JDK, GraalVM, Gradle, and Maven versions are declared and tested
 
 This requirement constrains the goals under §GRUND-native-build-tools-reason-for-existence,
 alongside §REQ-backwards-compatibility-across-plugin-versions. Native Build Tools integrates
 three moving external surfaces — the JDK, the GraalVM Native Image distribution, and the host build
-tool — so the project must declare which versions it supports and exercise them in CI rather than
-leaving compatibility implicit.
+tool — so the project must declare the supported version floors or ranges and exercise them in CI
+rather than leaving compatibility implicit.
 
-## 1. Current support matrix
+## 1. Source of truth
 
-Supported versions are declared in the build and CI, not in this document, so that code stays the
-source of truth. As of plugin version 1.1.2 the matrix is:
-
-| Surface | Supported | Declared in |
-| --- | --- | --- |
-| JDK | 17 or later | `build-logic/common-plugins/src/main/kotlin/org.graalvm.build.java.gradle.kts` (`JavaLanguageVersion.of(17)`) |
-| GraalVM (Native Image) | 23.0.2 build line | `gradle/libs.versions.toml` (`graalvm`) |
-| Gradle | tested floor 8.4 through 9.x | `build-logic/gradle-functional-testing/src/main/groovy/org.graalvm.build.functional-testing.gradle` |
-| Maven | 3.9.9 or later | `gradle/libs.versions.toml` (`maven`) |
-
-These values move over time; treat the cited files as authoritative and update this table when a
-floor changes.
+Supported versions must be read from the build logic, version catalog, workflow configuration, and
+functional-test matrices that execute the project. The specification cites the compatibility
+contract, but it must not duplicate exact version floors unless a value is part of a deliberate
+compatibility decision.
 
 ## 2. Changing a supported version
 
-Raising a floor — dropping support for an old JDK, GraalVM, Gradle, or Maven version — is a
-compatibility-relevant change under §REQ-backwards-compatibility-across-plugin-versions.2 and
-must be deliberate. Update the declaring build files and the functional-test matrix that exercises
-the range together, refresh the user documentation, and call out the change in the changelog so
-downstream builds are not surprised.
+Raising a floor or dropping a tested JDK, GraalVM, Gradle, or Maven version is a
+compatibility-relevant change under §REQ-backwards-compatibility-across-plugin-versions.2. Update
+the declaring build files, CI or functional-test matrix, user documentation, and changelog together
+so downstream builds are not surprised.
 
 # REQ-repository-fixtures-protect-real-build-scenarios: Samples and functional tests protect real build scenarios
 
