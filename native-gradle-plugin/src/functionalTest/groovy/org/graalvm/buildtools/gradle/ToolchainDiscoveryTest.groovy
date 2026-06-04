@@ -5,7 +5,7 @@ import spock.lang.Issue
 
 class ToolchainDiscoveryTest extends AbstractFunctionalTest {
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/845")
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
     def "toolchain takes precedence over GRAALVM_HOME env var when running nativeCompile"() {
         debug = true
 
@@ -52,7 +52,7 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         outputDoesNotContain("fake-graalvm")
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/845")
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
     def "disabling toolchainDetection uses GRAALVM_HOME fallback"() {
         debug = true
 
@@ -133,7 +133,7 @@ new File(fakeBin, "native-image").setExecutable(true)
         outputContains("GraalVM location read from environment variable: GRAALVM_HOME")
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/845")
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
     def "explicit javaLauncher overrides toolchain"() {
         debug = true
 
@@ -182,7 +182,7 @@ new File(fakeBin, "native-image").setExecutable(true)
         outputDoesNotContain("fake-graalvm")
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/845")
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
     def "gu installs native-image when not found"() {
         debug = true
 
@@ -272,7 +272,7 @@ fi
         outputContains("GraalVM location read from environment variable: GRAALVM_HOME")
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/845")
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
     def "gu installation failure falls back to error message"() {
         debug = true
 
