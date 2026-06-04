@@ -75,7 +75,7 @@ title = "How: high-level implementation, structure, and design"
 
 [[kinds]]
 prefix = "FS"
-folder = "docs/spec"
+folder = "docs/spec/functional"
 title = "What: behavior, requirements, and constraints"
 
 [[kinds]]
