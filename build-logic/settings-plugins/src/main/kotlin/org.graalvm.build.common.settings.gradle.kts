@@ -49,6 +49,8 @@ val catalogFile = file(".").let {
     cur
 }
 
+// Included builds share the repository version catalog through this settings convention.
+// §FS-build-infrastructure.2.1.
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

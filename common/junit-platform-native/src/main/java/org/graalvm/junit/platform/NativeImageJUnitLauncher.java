@@ -68,6 +68,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Runs selected native tests. §root/FS-native-tests.3.
+ */
 public class NativeImageJUnitLauncher {
     static final String DEFAULT_OUTPUT_FOLDER = Paths.get("test-results-native").resolve("test").toString();
 

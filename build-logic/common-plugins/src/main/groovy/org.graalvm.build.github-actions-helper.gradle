@@ -37,6 +37,7 @@ def latestGradleCachedVersions = [
 
 sourceSets.configureEach { sourceSet ->
     if (sourceSet.name == 'functionalTest') {
+        // Emits the GitHub Actions functional-test matrix. §FS-build-infrastructure.2.4.
         tasks.register("dumpFunctionalTestList") {
             doLast {
                 def matrix = [

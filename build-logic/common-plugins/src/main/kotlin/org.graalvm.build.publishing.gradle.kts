@@ -46,6 +46,7 @@
  * That is to say that if the project is built in isolation, the repository will
  * be in the project build directory, but if it's a member of a composite, then
  * we look for the root of the composite and use that directory instead.
+ * §FS-build-infrastructure.2.1 and §FS-build-infrastructure.1.2.
  */
 import org.graalvm.build.MavenExtension
 
@@ -154,6 +155,7 @@ plugins.withId("java-test-fixtures") {
 val publicationCoordinatesCollector = gradle.sharedServices.registerIfAbsent("publicationCoordinatesCollector", PublicationCoordinatesCollector::class.java) {
 }
 
+// Module-local coordinate reporting is aggregated by the root build. §FS-build-infrastructure.1.2.
 val showPublications by tasks.registering {
     usesService(publicationCoordinatesCollector)
     doLast {

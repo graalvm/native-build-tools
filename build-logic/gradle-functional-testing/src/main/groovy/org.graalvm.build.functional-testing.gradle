@@ -46,6 +46,7 @@
  *
  * - a minimal test coverage suite only testing the current version of Gradle
  * - a full test suite verifying the behavior will all supported versions of Gradle
+ * §FS-build-infrastructure.2.1.
  */
 
 plugins {
@@ -88,7 +89,7 @@ def fullFunctionalTest = tasks.register("fullFunctionalTest")
 ].each { baseName, gradleVersions ->
     gradleVersions.each { gradleVersion ->
         String taskName = gradleVersion == 'current' ? baseName : "gradle${gradleVersion}${baseName.capitalize()}"
-        // Add a task to run the functional tests
+        // Add a task to run the Gradle functional tests. §FS-build-infrastructure.2.1.
         def testTask = tasks.register(taskName, Test) {
             String effectiveVersion = gradleVersion
             def versionProvider = providers.systemProperty('gradleVersion')

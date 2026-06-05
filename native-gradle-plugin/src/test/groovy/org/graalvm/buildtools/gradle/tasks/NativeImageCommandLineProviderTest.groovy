@@ -48,6 +48,7 @@ import org.graalvm.buildtools.model.resources.NativeImageFlags
 import org.gradle.api.plugins.ApplicationPlugin
 import spock.lang.Issue
 
+// Protects Gradle native-image argument construction for special image modes. §FS-gradle-native-image-invocation.3.
 class NativeImageCommandLineProviderTest extends AbstractPluginTest {
     @Issue("https://github.com/graalvm/native-build-tools/issues/892")
     def "does not add classpath for layer-create build with empty classpath"() {

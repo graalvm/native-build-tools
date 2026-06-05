@@ -72,6 +72,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Registers JUnit Platform metadata during image build. §root/FS-native-tests.3.
+ */
 @SuppressWarnings("unused")
 public final class JUnitPlatformFeature implements Feature {
 

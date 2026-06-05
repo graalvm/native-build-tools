@@ -55,6 +55,7 @@ import java.util.stream.Stream;
 
 /**
  * Writes the {@code native-image} arguments for this project to an args file that can be reused outside Maven.
+ * §FS-maven-goal-surface.3, §FS-maven-native-image-builds.7, §FS-maven-resources-and-metadata.2.
  *
  * The path to the args file is stored in the project properties under the key {@code graalvm.native-image.args-file}.
  *

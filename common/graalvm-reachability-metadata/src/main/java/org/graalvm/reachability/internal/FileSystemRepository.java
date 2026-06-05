@@ -57,6 +57,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * Queries an unpacked reachability metadata repository. §FS-common-libraries.5.
+ */
 public class FileSystemRepository implements GraalVMReachabilityMetadataRepository {
 
     private final FileSystemModuleToConfigDirectoryIndex moduleIndex;

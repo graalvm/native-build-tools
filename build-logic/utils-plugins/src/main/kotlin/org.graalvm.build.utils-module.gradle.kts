@@ -56,6 +56,7 @@ tasks.withType<Test>().configureEach {
 
 extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
     val libs = catalogs.named("libs")
+    // Generates runtime version constants for utility modules. §FS-build-infrastructure.2.2.
     val generateVersionInfo = tasks.register("generateVersionInfo", org.graalvm.build.GenerateVersionClass::class.java) {
         versions.put("junitPlatformNative", libs.findVersion("nativeBuildTools").get().requiredVersion)
         versions.put("metadataRepo", libs.findVersion("metadataRepository").get().requiredVersion)

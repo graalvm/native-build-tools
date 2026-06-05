@@ -1,0 +1,61 @@
+# Pull request spec gate: validates grounded docs, source comments, and workflow citations.
+# §AR-repository-ci.1.1
+name: "Check grund spec"
+
+on:
+  pull_request:
+    paths:
+      - 'docs/spec/**'
+      - '.agents/grund.toml'
+      - 'AGENTS.md'
+      - 'common/**'
+      - 'native-gradle-plugin/**'
+      - 'native-maven-plugin/**'
+      - 'build-logic/**'
+      - 'test-support/**'
+      - 'samples/**'
+      - '.github/workflows/**'
+      - '.github/actions/**'
+  workflow_dispatch:
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+permissions:
+  contents: read
+
+env:
+  # Bump to refresh the cached binary. Validated locally against grund 0.4.0.
+  GRUND_VERSION: "0.4.0"
+
+jobs:
+  check-grund-spec:
+    name: "Validate spec citations"
+    runs-on: ubuntu-22.04
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: "📦 Cache grund binary"
+        id: cache-grund
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cargo/bin/grund
+          key: grund-${{ env.GRUND_VERSION }}-${{ runner.os }}
+      - name: "🧭 Add Cargo bin to PATH"
+        run: echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: "🔧 Install grund"
+        if: steps.cache-grund.outputs.cache-hit != 'true'
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup run stable cargo install --git https://github.com/vjovanov/grund --tag "v${GRUND_VERSION}"
+      - name: "✅ grund check"
+        # Validates that every §<ID> citation in docs, workflows, and source doc-comments resolves,
+        # and that section headings and inline-note limits hold. See AGENTS.md and .agents/grund.toml.
+        # The root workspace validates root, Gradle, and Maven namespaces together.
+        run: |
+          grund check
+      - name: "✅ grund fmt --marker check"
+        # Enforces the marked citation style while [reference] strict = true ignores bare ID tokens.
+        run: |
+          grund fmt . --marker --check

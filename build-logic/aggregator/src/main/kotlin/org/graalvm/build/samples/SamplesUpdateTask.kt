@@ -13,6 +13,10 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.regex.Pattern
 
+/**
+ * Updates sample and Maven reproducer version placeholders from configured versions.
+ * §FS-build-infrastructure.1.3.
+ */
 abstract class SamplesUpdateTask : DefaultTask() {
     @get:InputDirectory
     abstract val inputDirectory: DirectoryProperty

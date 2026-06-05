@@ -63,6 +63,10 @@ import java.util.function.BiFunction;
 
 /**
  * Builds a native executable in the current Maven lifecycle without forking a separate Maven build.
+ * §FS-maven-goal-surface.1, §FS-maven-goal-surface.4.
+ * It also owns main-class discovery, skipping, generated resources, dynamic access metadata, and base SBOM behavior.
+ * §FS-maven-native-image-builds.1, §FS-maven-native-image-builds.2,
+ * §FS-maven-native-image-builds.4, §FS-maven-native-image-builds.5, §FS-maven-native-image-builds.6.
  */
 @Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.RUNTIME,

@@ -35,6 +35,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 
+/**
+ * Downloads and stages the reachability metadata repository artifact. §FS-build-infrastructure.2.3.
+ */
 @CacheableTask
 public abstract class FetchRepositoryMetadata extends DefaultTask {
     @Input

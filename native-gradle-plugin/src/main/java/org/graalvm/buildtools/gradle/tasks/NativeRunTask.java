@@ -57,6 +57,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Executes compiled native-image binaries for Gradle tasks and passes runtime arguments.
+ * This implements §FS-gradle-native-image-tasks.2.
+ */
 @SuppressWarnings("unused")
 public abstract class NativeRunTask extends DefaultTask {
     public static final String TASK_NAME = "nativeRun";

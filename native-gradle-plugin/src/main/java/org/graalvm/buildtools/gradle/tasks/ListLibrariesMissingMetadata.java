@@ -67,6 +67,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Reports direct Gradle dependencies without reachability metadata. §FS-gradle-resources-and-metadata.4.
+ */
 public abstract class ListLibrariesMissingMetadata extends DefaultTask {
     public ListLibrariesMissingMetadata() {
         getOutputs().upToDateWhen(task -> false);

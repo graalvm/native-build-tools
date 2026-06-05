@@ -61,6 +61,7 @@ import java.util.stream.Stream;
 
 /**
  * Merges tracing agent output from one or more sessions into a single metadata directory.
+ * §FS-maven-goal-surface.3, §FS-maven-tracing-agent.4.
  */
 @Mojo(name = "merge-agent-files", defaultPhase = LifecyclePhase.TEST)
 public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {

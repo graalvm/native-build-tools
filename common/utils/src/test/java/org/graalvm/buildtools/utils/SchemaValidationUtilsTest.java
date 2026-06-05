@@ -51,6 +51,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+// Protects metadata repository schema compatibility checks. §FS-common-libraries.7.
 class SchemaValidationUtilsTest {
 
     // ---------- validateSchemas tests ----------

@@ -1,6 +1,7 @@
-name: Check GitHub Actions with Macaron
 # Validates GitHub workflows and composite actions with Macaron's check-github-actions policy.
+# §AR-repository-ci.1.2
 # Documentation: https://oracle.github.io/macaron/pages/macaron_action.html
+name: Check GitHub Actions with Macaron
 
 on:
   pull_request:

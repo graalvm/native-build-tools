@@ -70,7 +70,6 @@ import java.util.Set;
 
 /**
  * Generates dynamic access metadata used by the native image Build Report.
- *
  * The generated {@code dynamic-access-metadata.json} file contains the mapping of all classpath entries that exist in the
  * {@value #LIBRARY_AND_FRAMEWORK_LIST} to their transitive dependencies.
  * <p>
@@ -79,6 +78,7 @@ import java.util.Set;
  * <p>
  * The format of the generated JSON file conforms the following
  * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
+ * §FS-maven-goal-surface.3, §FS-maven-native-image-builds.5.
  */
 @Mojo(name = "generateDynamicAccessMetadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {

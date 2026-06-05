@@ -6,6 +6,7 @@ import spock.lang.TempDir
 
 import java.nio.file.Path
 
+// Protects Maven native-image argument handling and classpath requirements. §FS-maven-native-image-builds.3 §FS-maven-configuration-model.1.
 class AbstractNativeImageMojoTest extends Specification {
     @TempDir
     Path testDirectory

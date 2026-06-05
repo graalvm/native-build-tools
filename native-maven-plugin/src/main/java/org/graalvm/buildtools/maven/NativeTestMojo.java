@@ -67,16 +67,11 @@ import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -92,6 +87,9 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_
 /**
  * Builds and runs the project's tests as native executables.
  *
+ * §FS-maven-goal-surface.2, §FS-maven-native-tests.
+ * It owns Maven test classpath assembly, skip handling, launcher selection, and test execution.
+ * §FS-maven-native-tests.1, §FS-maven-native-tests.2, §FS-maven-native-tests.3, §FS-maven-native-tests.4.
  * @author Sebastien Deleuze
  */
 @Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,

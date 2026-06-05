@@ -59,6 +59,9 @@ import java.util.List;
 import static org.graalvm.buildtools.utils.SharedConstants.GU_EXE;
 import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
+/**
+ * Finds GraalVM executables for Gradle tasks. §FS-gradle-native-image-invocation.1.
+ */
 public class NativeImageExecutableLocator {
 
     public static Provider<String> graalvmHomeProvider(ProviderFactory providers) {
