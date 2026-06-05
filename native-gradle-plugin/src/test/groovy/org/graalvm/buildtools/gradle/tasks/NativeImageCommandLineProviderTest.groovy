@@ -50,6 +50,37 @@ import spock.lang.Issue
 
 // Protects Gradle native-image argument construction for special image modes. §FS-gradle-native-image-invocation.3.
 class NativeImageCommandLineProviderTest extends AbstractPluginTest {
+    @Issue("https://github.com/graalvm/native-build-tools/issues/668")
+    def "does not wrap system property values in quotes"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.systemProperty("propertyName", "value")
+        options.systemProperty("spacedProperty", "value with spaces")
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "main" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        args.contains("-DpropertyName=value")
+        args.contains("-DspacedProperty=value with spaces")
+        !args.contains('-DpropertyName="value"')
+        !args.contains('-DspacedProperty="value with spaces"')
+    }
+
     @Issue("https://github.com/graalvm/native-build-tools/issues/892")
     def "does not add classpath for layer-create build with empty classpath"() {
         given:
