@@ -210,7 +210,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         cliArgs.add(targetOutputPath);
         options.getSystemProperties().get().forEach((n, v) -> {
             if (v != null) {
-                cliArgs.add("-D" + n + "=\"" + v + "\"");
+                cliArgs.add("-D" + n + "=" + v);
             }
         });
 
