@@ -15,10 +15,11 @@ repository check is:
 ./gradlew check
 ```
 
-For focused common validation, run the relevant included build task, such as `:utils:test`,
-`:graalvm-reachability-metadata:test`, or `:junit-platform-native:test` from the common build
-context. Use the repository CI workflows in §root/AR-repository-ci.1.5 and
-§root/AR-repository-ci.1.6 as the merge-gate equivalents.
+For focused common validation, run the relevant included build task, such as
+`:utils:checkstyleMain`, `:utils:test`, `:graalvm-reachability-metadata:test`, or
+`:junit-platform-native:test` from the common build context. Use the repository CI workflows in
+§root/AR-repository-ci.1.5, §root/AR-repository-ci.1.6, and §root/AR-repository-ci.1.7 as the
+merge-gate equivalents.
 
 ## 2. Scenario Coverage
 
@@ -50,9 +51,10 @@ compatibility-mode support. This protects §root/FS-native-tests.3 and
 
 ## 3. CI coverage
 
+`test-common-utils.yml` validates shared utilities with checkstyle.
 `test-graalvm-metadata.yml` validates the reachability metadata library with checkstyle and unit
 tests. `test-junit-platform-native.yml` validates the JUnit native support module with checkstyle,
 JVM tests, and native tests. Product plugin CI also exercises common behavior through Gradle and
 Maven functional-test matrices. These workflow gates are specified by
-§root/AR-repository-ci.1.5, §root/AR-repository-ci.1.6,
+§root/AR-repository-ci.1.7, §root/AR-repository-ci.1.5, §root/AR-repository-ci.1.6,
 §root/AR-repository-ci.1.3, and §root/AR-repository-ci.1.4.

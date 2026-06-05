@@ -1,0 +1,42 @@
+# Pull request common utilities gate: checkstyle for shared Native Image utilities.
+# §AR-repository-ci.1.7; §common/FS-common-libraries.1
+name: "Test common utils"
+
+on:
+  pull_request:
+    paths:
+      - 'common/utils/**'
+      - 'config/checkstyle.xml'
+      - 'build-logic/common-plugins/**'
+      - 'build-logic/utils-plugins/**'
+      - '.github/actions/**'
+      - '.github/workflows/test-common-utils.yml'
+      - 'gradle/libs.versions.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  test-common-utils:
+    name: "Test common utils"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [ 17.0.12 ]
+        os: [ ubuntu-22.04 ]
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: "Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Checkstyle"
+        run: ./gradlew :utils:checkstyleMain :utils:checkstyleTest
