@@ -5,6 +5,34 @@ import spock.lang.Issue
 
 class ToolchainDiscoveryTest extends AbstractFunctionalTest {
 
+    private static final String WORKING_NATIVE_IMAGE_SCRIPT = '''#!/bin/sh
+output_file=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -o)
+            output_file="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+if [ -n "$output_file" ]; then
+    mkdir -p "$(dirname "$output_file")"
+    echo '#!/bin/sh' > "$output_file"
+    echo 'echo "Fake native-image executable"' >> "$output_file"
+    chmod +x "$output_file"
+fi
+exit 0
+'''
+
+    private static void setupWorkingNativeImage(File binDir) {
+        File nativeImage = new File(binDir, "native-image")
+        nativeImage.text = WORKING_NATIVE_IMAGE_SCRIPT
+        nativeImage.setExecutable(true)
+    }
+
     @Issue("https://github.com/graalvm/native-build-tools/issues/542")
     def "toolchain takes precedence over GRAALVM_HOME env var when running nativeCompile"() {
         debug = true
@@ -17,9 +45,7 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         fakeGraalvm.mkdirs()
         File fakeBin = new File(fakeGraalvm, "bin")
         fakeBin.mkdirs()
-        File fakeNativeImage = new File(fakeBin, "native-image")
-        fakeNativeImage.text = "#!/bin/sh\necho 'This is the fake GraalVM from GRAALVM_HOME'"
-        new File(fakeBin, "native-image").setExecutable(true)
+        setupWorkingNativeImage(fakeBin)
 
         buildFile << """
             graalvmNative.toolchainDetection = true
@@ -59,46 +85,12 @@ class ToolchainDiscoveryTest extends AbstractFunctionalTest {
         given:
         withSample("java-application")
 
-        // Create a fake GRAALVM_HOME
+        // Create a fake GRAALVM_HOME with a working native-image
         File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()
         fakeGraalvm.mkdirs()
         File fakeBin = new File(fakeGraalvm, "bin")
         fakeBin.mkdirs()
-        File nativeImage = new File(fakeBin, "native-image")
-        nativeImage.text = '''#!/bin/sh
-if [ "$1" = "--version" ]; then
-    echo "native-image 21.0.0"
-    exit 0
-fi
-output_file=""
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -o)
-            if [ -n "$2" ]; then
-                output_file="$2"
-                shift 2
-            else
-                echo "Error: -o requires an argument" >&2
-                exit 1
-            fi
-            ;;
-        *)
-            shift
-            ;;
-    esac
-done
-if [ -n "$output_file" ]; then
-    mkdir -p "$(dirname "$output_file")"
-    cat > "$output_file" << 'EXEC_EOF'
-#!/bin/sh
-echo "Fake native-image executable"
-exit 0
-EXEC_EOF
-    chmod +x "$output_file"
-fi
-exit 0
-'''
-new File(fakeBin, "native-image").setExecutable(true)
+        setupWorkingNativeImage(fakeBin)
 
         buildFile << """
             java {
@@ -140,14 +132,12 @@ new File(fakeBin, "native-image").setExecutable(true)
         given:
         withSample("java-application")
 
-        // Create a fake GRAALVM_HOME with native-image
+        // Create a fake GRAALVM_HOME with a working native-image
         File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()
         fakeGraalvm.mkdirs()
         File fakeBin = new File(fakeGraalvm, "bin")
         fakeBin.mkdirs()
-        File nativeImage = new File(fakeBin, "native-image")
-        nativeImage.text = "#!/bin/sh\necho 'Fake native-image from GRAALVM_HOME'"
-        new File(fakeBin, "native-image").setExecutable(true)
+        setupWorkingNativeImage(fakeBin)
 
         buildFile << """
             java {
@@ -189,56 +179,24 @@ new File(fakeBin, "native-image").setExecutable(true)
         given:
         withSample("java-application")
 
-        // Create a GRAALVM_HOME directory WITHOUT native-image (but with gu)
+        // Create a GRAALVM_HOME directory WITHOUT native-image (but with gu that installs it)
         File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()
         fakeGraalvm.mkdirs()
         File fakeBin = new File(fakeGraalvm, "bin")
         fakeBin.mkdirs()
         File gu = new File(fakeBin, "gu")
-        gu.text = '''#!/bin/sh
-if [ "$1" = "install" ] && [ "$2" = "native-image" ]; then
+        gu.text = """#!/bin/sh
+if [ "\$1" = "install" ] && [ "\$2" = "native-image" ]; then
   echo 'Native Image installed successfully.'
-  GU_DIR=$(cd "$(dirname "$0")" && pwd)
-  cat > "${GU_DIR}/native-image" << 'NATIVE_IMAGE_EOF'
-#!/bin/sh
-# Fake native-image that handles --version and -o
-if [ "$1" = "--version" ]; then
-    echo "native-image 21.0.0"
-    exit 0
-fi
-output_file=""
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -o)
-            if [ -n "$2" ]; then
-                output_file="$2"
-                shift 2
-            else
-                echo "Error: -o requires an argument" >&2
-                exit 1
-            fi
-            ;;
-        *)
-            shift
-            ;;
-    esac
-done
-if [ -n "$output_file" ]; then
-    mkdir -p "$(dirname "$output_file")"
-    cat > "$output_file" << 'EXEC_EOF'
-#!/bin/sh
-echo "Fake native-image executable"
-exit 0
-EXEC_EOF
-    chmod +x "$output_file"
-    echo "Fake native-image built: $output_file"
+  GU_DIR=\$(cd "\$(dirname "\$0")" && pwd)
+  cat > "\${GU_DIR}/native-image" << 'EOF'
+$WORKING_NATIVE_IMAGE_SCRIPT
+EOF
+  chmod +x "\${GU_DIR}/native-image"
 fi
 exit 0
-NATIVE_IMAGE_EOF
-  chmod +x "${GU_DIR}/native-image"
-fi
-'''
-        new File(fakeBin, "gu").setExecutable(true)
+"""
+        gu.setExecutable(true)
 
         buildFile << """
         graalvmNative.toolchainDetection = false
@@ -288,7 +246,7 @@ fi
         gu.text = '''#!/bin/sh
 echo 'gu error: package not found'
 exit 1'''
-        new File(fakeBin, "gu").setExecutable(true)
+        gu.setExecutable(true)
 
         buildFile << """
         graalvmNative.toolchainDetection = false
