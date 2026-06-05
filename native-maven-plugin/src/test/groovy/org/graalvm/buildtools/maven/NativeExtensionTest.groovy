@@ -53,8 +53,6 @@ class NativeExtensionTest extends Specification {
     private static final String JUNIT_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled"
     private static final String JUNIT_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir"
 
-    // Protects Maven/Surefire system-property binding convention.
-    // §REQ-maven-plugin-maven-model-compatibility.
     def "configures JUnit listener properties through non-deprecated systemPropertyVariables"() {
         given:
         def build = new Build()
