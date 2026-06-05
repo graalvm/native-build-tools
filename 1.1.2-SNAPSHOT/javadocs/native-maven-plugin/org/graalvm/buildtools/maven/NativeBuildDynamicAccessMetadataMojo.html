@@ -91,7 +91,6 @@ loadScripts(document, 'script');</script>
 </span><span class="modifiers">public class </span><span class="element-name type-name-label">NativeBuildDynamicAccessMetadataMojo</span>
 <span class="extends-implements">extends <a href="AbstractNativeMojo.html" title="class in org.graalvm.buildtools.maven">AbstractNativeMojo</a></span></div>
 <div class="block">Generates dynamic access metadata used by the native image Build Report.
-
  The generated <code>dynamic-access-metadata.json</code> file contains the mapping of all classpath entries that exist in the
  "library-and-framework-list.json" to their transitive dependencies.
  <p>
@@ -99,7 +98,8 @@ loadScripts(document, 'script');</script>
  <code>GraalVM Reachability Metadata</code> repository, this task does nothing.
  <p>
  The format of the generated JSON file conforms the following
- <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.</div>
+ <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
+ §FS-maven-goal-surface.3, §FS-maven-native-image-builds.5.</div>
 </section>
 <section class="summary">
 <ul class="summary-list">
