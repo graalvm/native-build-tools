@@ -20,7 +20,8 @@ without failing the build.
 The Gradle DSL must expose standard, conditional, direct, and disabled agent modes using the
 shared agent mode behavior from §common/FS-common-libraries.3. Conditional mode must support
 user-code and extra filters; direct mode must allow users to pass native agent options, including
-`{output_dir}` substitution.
+`{output_dir}` substitution. Disabled mode must leave eligible JVM tasks uninstrumented and must
+not create agent output for those tasks.
 
 ## 4. Agent output layout
 

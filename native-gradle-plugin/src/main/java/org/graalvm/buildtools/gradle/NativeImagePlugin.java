@@ -228,6 +228,11 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void instrumentTasksWithAgent(Project project, DefaultGraalVmExtension graalExtension) {
         Provider<String> agentMode = agentProperty(project, graalExtension.getAgent());
+        if ("disabled".equals(agentMode.get())) {
+            // Disabled agent mode must not instrument eligible JVM tasks. §FS-gradle-tracing-agent.3.
+            logger.log("Not instrumenting tasks with native-image-agent because the agent is disabled.");
+            return;
+        }
         Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().getOrElse(serializablePredicateOf(t -> true));
         project.getTasks().configureEach(t -> {
             if (isTaskInstrumentableByAgent(t) && taskPredicate.test(t)) {
