@@ -48,15 +48,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class AgentConfiguration implements Serializable {
 
     private static final String ACCESS_FILTER_PREFIX = "access-filter";
     private static final String ACCESS_FILTER_SUFFIX = ".json";
     private static final String DEFAULT_ACCESS_FILTER_FILE_LOCATION = "/" + ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX;
-
-    private static final Logger logger = Logger.getGlobal();
 
     private final Collection<String> callerFilterFiles;
     private final Collection<String> accessFilterFiles;
