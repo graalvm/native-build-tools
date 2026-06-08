@@ -14,7 +14,7 @@ tests prepare both a build JDK and a GraalVM test JDK through [§AR-repository-c
 | `check-grund-spec.yml` | Spec, code citation, sample, workflow, build-logic, and local hook changes that may affect grounded documentation. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces; `grund fmt . --marker --cross-refs --check` must reject bare citation tokens and unlinked Markdown citations. [§AR-repository-ci.1.1](ci.md#11-grund-validation-workflow) |
 | `macaron-check-github-actions.yml` | GitHub workflow and composite action changes. | Macaron's `check-github-actions` policy must validate workflow and composite action supply-chain rules for this repository package URL. [§AR-repository-ci.1.2](ci.md#12-github-actions-macaron-policy-workflow) |
 | `test-native-gradle-plugin.yml` | Gradle plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Gradle functional tests, configuration-cache functional tests, unit tests, and inspections. [§AR-repository-ci.1.3](ci.md#13-gradle-plugin-pr-workflow) |
-| `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. [§AR-repository-ci.1.4](ci.md#14-maven-plugin-pr-workflow) |
+| `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests, inspections, and GraalVM dev-build functional tests. [§AR-repository-ci.1.4](ci.md#14-maven-plugin-pr-workflow) |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. [§AR-repository-ci.1.5](ci.md#15-reachability-metadata-library-pr-workflow) |
 | `test-junit-platform-native.yml` | JUnit native support and relevant workflow/action changes. | Checkstyle, JVM tests, and native tests for `common/junit-platform-native`. [§AR-repository-ci.1.6](ci.md#16-junit-native-support-pr-workflow) |
 
@@ -47,7 +47,7 @@ functional-test job. It is the PR gate for Gradle-facing end-to-end scenarios in
 ### 1.4 Maven plugin PR workflow
 
 `test-native-maven-plugin.yml` validates the Maven plugin through a generated functional-test
-matrix and a GraalVM dev-build functional-test job. It is the PR gate for Maven-facing
+matrix, inspections, and a GraalVM dev-build functional-test job. It is the PR gate for Maven-facing
 end-to-end scenarios in [§maven/E2E-functional-tests](../../../native-maven-plugin/docs/e2e.md#e2e-functional-tests-maven-functional-tests-exercise-real-maven-native-image-builds).
 
 ### 1.5 Reachability metadata library PR workflow
