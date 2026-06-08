@@ -93,16 +93,16 @@ public class NativeImageUtils {
 
     public static List<String> convertToArgsFile(List<String> cliArgs, Path outputDir, Path projectDir) {
         try {
-            boolean ignored = outputDir.toFile().mkdirs();
-            File tmpFile = Files.createTempFile(outputDir, "native-image-", ".args").toFile();
+            Files.createDirectories(outputDir);
+            Path tmpFile = Files.createTempFile(outputDir, "native-image-", ".args");
             // tmpFile.deleteOnExit();
             cliArgs = cliArgs.stream().map(NativeImageUtils::escapeArg).collect(Collectors.toList());
-            Files.write(tmpFile.toPath(), cliArgs, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
+            Files.write(tmpFile, cliArgs, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
 
-            Path resultingPath = tmpFile.toPath().toAbsolutePath();
+            Path resultingPath = tmpFile.toAbsolutePath();
             if (projectDir != null) { // We know where the project dir is, so want to use relative paths
                 Path absProjectDir = projectDir.toAbsolutePath();
-                // Only relativize if both paths are on the same file system (same drive on Windows)
+                // Only relativize if both paths are on the same file system root. §FS-common-libraries.1.
                 if (resultingPath.getRoot() != null && resultingPath.getRoot().equals(absProjectDir.getRoot())) {
                     resultingPath = absProjectDir.relativize(resultingPath);
                 }
