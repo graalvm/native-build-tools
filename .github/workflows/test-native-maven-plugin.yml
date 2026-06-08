@@ -82,7 +82,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Run inspections"
         run: >
-          ./gradlew :native-maven-plugin:publishAllPublicationsToCommonRepository
+          ./gradlew :graalvm-reachability-metadata:publishAllPublicationsToCommonRepository
+          :native-maven-plugin:publishAllPublicationsToCommonRepository
           :native-maven-plugin:inspections --no-parallel
 
   functional-testing-maven-plugin-dev:
