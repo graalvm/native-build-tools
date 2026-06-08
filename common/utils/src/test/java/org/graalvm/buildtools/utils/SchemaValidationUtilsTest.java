@@ -58,7 +58,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateSchemas succeeds when required schemas with exact majors are present")
-    void validateSchemas_successExactMajors(@TempDir Path tempDir) throws IOException {
+    void validateSchemasSuccessExactMajors(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-success");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
@@ -73,7 +73,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateSchemas fails when 'schemas' directory is missing")
-    void validateSchemas_missingSchemasDir(@TempDir Path tempDir) {
+    void validateSchemasMissingSchemasDir(@TempDir Path tempDir) {
         Path repoRoot = tempDir.resolve("repo-missing");
         // Do not create 'schemas' directory
         assertThrows(IllegalStateException.class, () -> SchemaValidationUtils.validateSchemas(repoRoot));
@@ -81,7 +81,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateSchemas fails when repository provides an older required major")
-    void validateSchemas_metadataTooOld(@TempDir Path tempDir) throws IOException {
+    void validateSchemasMetadataTooOld(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-too-old");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
@@ -95,7 +95,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateSchemas fails when repository provides a newer required major")
-    void validateSchemas_toolsTooOld(@TempDir Path tempDir) throws IOException {
+    void validateSchemasToolsTooOld(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-tools-too-old");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
@@ -109,7 +109,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateSchemas fails when more schema files than supported are present (excluding reachability)")
-    void validateSchemas_tooManySchemasExcludingReachability(@TempDir Path tempDir) throws IOException {
+    void validateSchemasTooManySchemasExcludingReachability(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-too-many");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
@@ -126,7 +126,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateReachabilityMetadataSchema does nothing when neither side provides the schema")
-    void validateReachabilitySchema_neitherSideProvided(@TempDir Path tempDir) throws IOException {
+    void validateReachabilitySchemaNeitherSideProvided(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-none");
         Files.createDirectories(repoRoot.resolve("schemas"));
 
@@ -138,7 +138,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateReachabilityMetadataSchema fails when repository provides schema but GraalVM does not")
-    void validateReachabilitySchema_repoOnly(@TempDir Path tempDir) throws IOException {
+    void validateReachabilitySchemaRepoOnly(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-only");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
@@ -180,7 +180,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateReachabilityMetadataSchema warns when GraalVM provides schema but repository does not")
-    void validateReachabilitySchema_graalOnly(@TempDir Path tempDir) throws IOException {
+    void validateReachabilitySchemaGraalOnly(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-no-schema");
         Files.createDirectories(repoRoot.resolve("schemas"));
         // No reachability schema file in repo
@@ -193,7 +193,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateReachabilityMetadataSchema succeeds when versions match")
-    void validateReachabilitySchema_match_ok(@TempDir Path tempDir) throws IOException {
+    void validateReachabilitySchemaMatchOk(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-match");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);
@@ -206,7 +206,7 @@ class SchemaValidationUtilsTest {
 
     @Test
     @DisplayName("validateReachabilityMetadataSchema fails when versions mismatch")
-    void validateReachabilitySchema_mismatch(@TempDir Path tempDir) throws IOException {
+    void validateReachabilitySchemaMismatch(@TempDir Path tempDir) throws IOException {
         Path repoRoot = tempDir.resolve("repo-mismatch");
         Path schemas = repoRoot.resolve("schemas");
         Files.createDirectories(schemas);

@@ -18,7 +18,8 @@ repository check is:
 For focused common validation, run the relevant included build task, such as `:utils:test`,
 `:graalvm-reachability-metadata:test`, or `:junit-platform-native:test` from the common build
 context. Use the repository CI workflows in [§root/AR-repository-ci.1.5](../../docs/spec/architecture/ci.md#15-reachability-metadata-library-pr-workflow) and
-[§root/AR-repository-ci.1.6](../../docs/spec/architecture/ci.md#16-junit-native-support-pr-workflow) as the merge-gate equivalents.
+[§root/AR-repository-ci.1.6](../../docs/spec/architecture/ci.md#16-junit-native-support-pr-workflow), and
+[§root/AR-repository-ci.1.7](../../docs/spec/architecture/ci.md#17-common-utilities-pr-workflow) as the merge-gate equivalents.
 
 ## 2. Scenario Coverage
 
@@ -50,9 +51,13 @@ compatibility-mode support. This protects [§root/FS-native-tests.3](../../docs/
 
 ## 3. CI coverage
 
+`test-common-utils.yml` validates the shared utility module with checkstyle and unit tests.
 `test-graalvm-metadata.yml` validates the reachability metadata library with checkstyle and unit
 tests. `test-junit-platform-native.yml` validates the JUnit native support module with checkstyle,
 JVM tests, and native tests. Product plugin CI also exercises common behavior through Gradle and
 Maven functional-test matrices. These workflow gates are specified by
-[§root/AR-repository-ci.1.5](../../docs/spec/architecture/ci.md#15-reachability-metadata-library-pr-workflow), [§root/AR-repository-ci.1.6](../../docs/spec/architecture/ci.md#16-junit-native-support-pr-workflow),
-[§root/AR-repository-ci.1.3](../../docs/spec/architecture/ci.md#13-gradle-plugin-pr-workflow), and [§root/AR-repository-ci.1.4](../../docs/spec/architecture/ci.md#14-maven-plugin-pr-workflow).
+[§root/AR-repository-ci.1.7](../../docs/spec/architecture/ci.md#17-common-utilities-pr-workflow),
+[§root/AR-repository-ci.1.5](../../docs/spec/architecture/ci.md#15-reachability-metadata-library-pr-workflow),
+[§root/AR-repository-ci.1.6](../../docs/spec/architecture/ci.md#16-junit-native-support-pr-workflow),
+[§root/AR-repository-ci.1.3](../../docs/spec/architecture/ci.md#13-gradle-plugin-pr-workflow), and
+[§root/AR-repository-ci.1.4](../../docs/spec/architecture/ci.md#14-maven-plugin-pr-workflow).
