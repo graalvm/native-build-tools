@@ -46,14 +46,22 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -61,12 +69,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+// Protects common utility verification for download and extraction behavior. §FS-common-libraries.8.
 class FileUtilsTest {
 
     @Test
     @DisplayName("It can download a file from a URL that exists")
     void testDownloadOk(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://github.com/graalvm/native-build-tools/archive/refs/heads/master.zip");
+        URL url = url("https://example.test/archive/master.zip", ok("archive payload")
+                .header("Content-Disposition", "attachment; filename=native-build-tools-master.zip"));
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
@@ -80,7 +90,7 @@ class FileUtilsTest {
     @Test
     @DisplayName("It doesn't blow up with a URL that isn't a file download")
     void testDownloadNoFile(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://httpbin.org/html");
+        URL url = url("https://example.test/html", ok("<html></html>"));
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
@@ -94,7 +104,7 @@ class FileUtilsTest {
     @Test
     @DisplayName("It doesn't blow up with a URL that does not exist")
     void testDownloadNotFound(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://google.com/notfound");
+        URL url = url("https://example.test/notfound", response(HttpURLConnection.HTTP_NOT_FOUND, "Not Found"));
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
@@ -107,7 +117,12 @@ class FileUtilsTest {
     @Test
     @DisplayName("It doesn't blow up with connection timeouts")
     void testDownloadTimeout(@TempDir Path tempDir) throws IOException {
-        URL url = new URL("https://httpbin.org/delay/10");
+        URL url = url("https://example.test/delay", new TestHttpURLConnection("https://example.test/delay") {
+            @Override
+            public int getResponseCode() throws IOException {
+                throw new IOException("Read timed out");
+            }
+        });
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
@@ -173,4 +188,76 @@ class FileUtilsTest {
         assertEquals("Unsupported archive format: src/test/resources/graalvm-reachability-metadata." + format + ". Only ZIP files are supported", errorLogs.get(0));
     }
 
+    private static URL url(String spec, HttpURLConnection connection) throws IOException {
+        return new URL(null, spec, new URLStreamHandler() {
+            @Override
+            protected URLConnection openConnection(URL url) {
+                return connection;
+            }
+        });
+    }
+
+    private static TestHttpURLConnection ok(String body) {
+        return response(HttpURLConnection.HTTP_OK, "OK").body(body);
+    }
+
+    private static TestHttpURLConnection response(int responseCode, String responseMessage) {
+        return new TestHttpURLConnection("https://example.test", responseCode, responseMessage);
+    }
+
+    private static class TestHttpURLConnection extends HttpURLConnection {
+        private final Map<String, String> headers = new HashMap<>();
+        private byte[] body = new byte[0];
+
+        TestHttpURLConnection(String spec) {
+            this(spec, HTTP_OK, "OK");
+        }
+
+        TestHttpURLConnection(String spec, int responseCode, String responseMessage) {
+            super(toUrl(spec));
+            this.responseCode = responseCode;
+            this.responseMessage = responseMessage;
+        }
+
+        TestHttpURLConnection header(String name, String value) {
+            headers.put(name, value);
+            return this;
+        }
+
+        TestHttpURLConnection body(String body) {
+            this.body = body.getBytes(StandardCharsets.UTF_8);
+            return this;
+        }
+
+        @Override
+        public String getHeaderField(String name) {
+            return headers.get(name);
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return new ByteArrayInputStream(body);
+        }
+
+        @Override
+        public void disconnect() {
+        }
+
+        @Override
+        public boolean usingProxy() {
+            return false;
+        }
+
+        @Override
+        public void connect() {
+        }
+
+        private static URL toUrl(String spec) {
+            try {
+                return new URL(spec);
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+    }
 }

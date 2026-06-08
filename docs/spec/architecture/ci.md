@@ -17,6 +17,7 @@ tests prepare both a build JDK and a GraalVM test JDK through §AR-repository-ci
 | `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. §AR-repository-ci.1.4 |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. §AR-repository-ci.1.5 |
 | `test-junit-platform-native.yml` | JUnit native support and relevant workflow/action changes. | Checkstyle, JVM tests, and native tests for `common/junit-platform-native`. §AR-repository-ci.1.6 |
+| `test-common-utils.yml` | Common utilities, relevant shared build setup, and relevant workflow/action changes. | Checkstyle and unit tests for `common/utils`. §AR-repository-ci.1.7 |
 
 ### 1.1 Grund validation workflow
 
@@ -59,6 +60,13 @@ unit tests. It protects the repository query and missing-metadata behavior speci
 `test-junit-platform-native.yml` validates `common/junit-platform-native` with checkstyle, JVM
 tests, and native tests. It protects the shared native-test runtime behavior specified by
 §FS-native-tests.3.
+
+### 1.7 Common utilities PR workflow
+
+`test-common-utils.yml` validates `common/utils` with checkstyle and unit tests. It protects the
+shared utility behavior specified by §common/FS-common-libraries.1, §common/FS-common-libraries.2,
+§common/FS-common-libraries.3, §common/FS-common-libraries.4, and
+§common/FS-common-libraries.7.
 
 ## 2. Publication workflows
 
