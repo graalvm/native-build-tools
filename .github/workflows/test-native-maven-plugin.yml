@@ -1,4 +1,4 @@
-# Pull request Maven plugin gate: runs Maven E2E matrices and GraalVM dev-build functional tests.
+# Pull request Maven plugin gate: runs Maven E2E matrices, inspections, and GraalVM dev-build functional tests.
 # §AR-repository-ci.1.4; §maven/E2E-maven-plugin-functional-tests
 name: "Test native-maven-plugin"
 
@@ -21,6 +21,22 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
 
 jobs:
+  inspect-native-maven-plugin:
+    name: "Inspections"
+    runs-on: "ubuntu-22.04"
+    timeout-minutes: 20
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          java-version: '17.0.12'
+          graal-java-version: ''
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Inspections"
+        run: ./gradlew :native-maven-plugin:inspections
+
   populate-matrix:
     name: "Set matrix"
     runs-on: "ubuntu-22.04"

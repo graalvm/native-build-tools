@@ -14,7 +14,7 @@ tests prepare both a build JDK and a GraalVM test JDK through §AR-repository-ci
 | `check-grund-spec.yml` | Spec, code citation, sample, workflow, and build-logic changes that may affect grounded documentation. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces; `grund fmt . --marker --check` must reject bare citation tokens. §AR-repository-ci.1.1 |
 | `macaron-check-github-actions.yml` | GitHub workflow and composite action changes. | Macaron's `check-github-actions` policy must validate workflow and composite action supply-chain rules for this repository package URL. §AR-repository-ci.1.2 |
 | `test-native-gradle-plugin.yml` | Gradle plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Gradle functional tests, configuration-cache functional tests, unit tests, and inspections. §AR-repository-ci.1.3 |
-| `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. §AR-repository-ci.1.4 |
+| `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests, inspections, and GraalVM dev-build functional tests. §AR-repository-ci.1.4 |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. §AR-repository-ci.1.5 |
 | `test-junit-platform-native.yml` | JUnit native support and relevant workflow/action changes. | Checkstyle, JVM tests, and native tests for `common/junit-platform-native`. §AR-repository-ci.1.6 |
 
@@ -45,8 +45,8 @@ functional-test job. It is the PR gate for Gradle-facing end-to-end scenarios in
 ### 1.4 Maven plugin PR workflow
 
 `test-native-maven-plugin.yml` validates the Maven plugin through a generated functional-test
-matrix and a GraalVM dev-build functional-test job. It is the PR gate for Maven-facing
-end-to-end scenarios in §maven/E2E-maven-plugin-functional-tests.
+matrix, inspections, and a GraalVM dev-build functional-test job. It is the PR gate for
+Maven-facing end-to-end scenarios in §maven/E2E-maven-plugin-functional-tests.
 
 ### 1.5 Reachability metadata library PR workflow
 
