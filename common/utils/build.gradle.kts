@@ -52,5 +52,6 @@ dependencies {
     implementation(libs.openjson)
     testImplementation(platform(libs.test.junit.bom))
     testImplementation(libs.test.junit.jupiter.core)
+    testImplementation(libs.test.jimfs)
     testRuntimeOnly(libs.test.junit.platform.launcher)
 }
