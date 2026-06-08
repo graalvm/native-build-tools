@@ -40,9 +40,16 @@
  */
 package org.graalvm.buildtools.utils;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.regex.Pattern;
 
 class NativeImageUtilsTest {
@@ -188,6 +195,42 @@ class NativeImageUtilsTest {
         Assertions.assertEquals(Pattern.quote("/foo/bar"), NativeImageUtils.escapeArg(Pattern.quote("/foo/bar")));
         Assertions.assertEquals(Pattern.quote("c:\\foo\\bar"), NativeImageUtils.escapeArg(Pattern.quote("c:\\foo\\bar")));
         Assertions.assertEquals(Pattern.quote("c:\\foo\\bar baz"), NativeImageUtils.escapeArg(Pattern.quote("c:\\foo\\bar baz")));
+    }
+
+    @Test
+    void convertToArgsFileUsesRelativePathWhenOutputAndProjectShareRoot() throws IOException {
+        try (FileSystem fs = newWindowsFileSystem()) {
+            Path projectDir = fs.getPath("D:\\project");
+            Path outputDir = projectDir.resolve("build\\native\\tmp");
+
+            List<String> args = NativeImageUtils.convertToArgsFile(List.of("--initialize-at-build-time=org.test"), outputDir, projectDir);
+
+            Assertions.assertEquals(1, args.size());
+            Path argsFile = fs.getPath(args.get(0).substring(1));
+            Assertions.assertFalse(argsFile.isAbsolute());
+            Assertions.assertTrue(Files.exists(projectDir.resolve(argsFile)));
+        }
+    }
+
+    @Test
+    void convertToArgsFileKeepsAbsolutePathWhenOutputAndProjectHaveDifferentRoots() throws IOException {
+        try (FileSystem fs = newWindowsFileSystem()) {
+            Path outputDir = fs.getPath("C:\\temp");
+            Path projectDir = fs.getPath("D:\\project");
+
+            // Protects cross-drive argument-file conversion from unsafe relativization. §FS-common-libraries.1.
+            List<String> args = NativeImageUtils.convertToArgsFile(List.of("-H:Name=application"), outputDir, projectDir);
+
+            Assertions.assertEquals(1, args.size());
+            Path argsFile = fs.getPath(args.get(0).substring(1));
+            Assertions.assertTrue(argsFile.isAbsolute());
+            Assertions.assertTrue(argsFile.startsWith(outputDir));
+            Assertions.assertTrue(Files.exists(argsFile));
+        }
+    }
+
+    private static FileSystem newWindowsFileSystem() {
+        return Jimfs.newFileSystem(Configuration.windows().toBuilder().setRoots("C:\\", "D:\\").build());
     }
 
 }
