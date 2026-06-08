@@ -81,7 +81,9 @@ jobs:
           graal-java-version: ''
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Run inspections"
-        run: ./gradlew :native-maven-plugin:inspections
+        run: >
+          ./gradlew :native-maven-plugin:publishAllPublicationsToCommonRepository
+          :native-maven-plugin:inspections --no-parallel
 
   functional-testing-maven-plugin-dev:
     name: "Functional testing (GraalVM Dev Build)"
