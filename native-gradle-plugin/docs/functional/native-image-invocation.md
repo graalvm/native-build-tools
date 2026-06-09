@@ -22,9 +22,9 @@ that metadata to `native-image`.
 The command line must combine classpath, module path where applicable, output name, main class,
 boolean image flags, build arguments, JVM arguments, system properties, environment variables,
 configuration directories, generated resources, reachability metadata, layer options
-(§root/GLOSS-layered-image), and PGO options (§root/GLOSS-pgo). Shared escaping and argument-file
+([§root/GLOSS-layered-image](../../../docs/spec/glossary.md#gloss-layered-image-layered-native-image)), and PGO options ([§root/GLOSS-pgo](../../../docs/spec/glossary.md#gloss-pgo-profile-guided-optimization-pgo)). Shared escaping and argument-file
 conversion must come from common utilities rather than Gradle-only string handling, keeping Gradle
-aligned with §root/FS-option-precedence.
+aligned with [§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
 
 ## 4. Argument files
 
@@ -37,7 +37,7 @@ relative to the selected working directory where Native Image requires that form
 When configured to use a classpath JAR, the compile task must pass the generated JAR instead of an
 exploded classpath. The plugin may analyze runtime classpath JARs through Gradle artifact
 transforms to discover packages and resource behavior, but that transform output is an internal
-detail. The fat-jar form is defined in §root/GLOSS-fat-jar.
+detail. The fat-jar form is defined in [§root/GLOSS-fat-jar](../../../docs/spec/glossary.md#gloss-fat-jar-fat-jar-classpath-jar).
 
 ## 6. Parallel native builds
 

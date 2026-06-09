@@ -2,9 +2,9 @@
 
 Repository infrastructure exists to build, test, document, publish, and validate Native Build
 Tools without becoming part of the product runtime API. It supports the repository architecture in
-§AR-repository-architecture, the plugin end-to-end test contracts in
-§gradle/E2E-functional-tests and §maven/E2E-functional-tests, and the
-pull request gates in §AR-repository-ci.
+[§AR-repository-architecture](../architecture/repository.md#ar-repository-architecture-native-build-tools-repository-architecture), the plugin end-to-end test contracts in
+[§gradle/E2E-functional-tests](../../../native-gradle-plugin/docs/e2e.md#e2e-functional-tests-gradle-functional-tests-exercise-real-gradle-native-image-builds) and [§maven/E2E-functional-tests](../../../native-maven-plugin/docs/e2e.md#e2e-functional-tests-maven-functional-tests-exercise-real-maven-native-image-builds), and the
+pull request gates in [§AR-repository-ci](../architecture/ci.md#ar-repository-ci-repository-ci-validates-publishes-and-supports-native-build-tools-automation).
 
 ## At a Glance
 
@@ -124,7 +124,7 @@ the `latest` link; snapshot documentation must not replace the latest release po
 ## 4. Continuous integration
 
 CI workflows are the repository's executable quality gates. The PR workflows are specified in
-§AR-repository-ci and cover Gradle plugin behavior, Maven plugin behavior, shared common
+[§AR-repository-ci](../architecture/ci.md#ar-repository-ci-repository-ci-validates-publishes-and-supports-native-build-tools-automation) and cover Gradle plugin behavior, Maven plugin behavior, shared common
 libraries, JUnit native support, reachability metadata behavior, end-to-end functional tests, and
 spec citations.
 
@@ -164,6 +164,6 @@ modules should not depend on infrastructure implementation classes except throug
 scripts or generated artifacts intended for runtime use.
 
 `samples/`, `test-support/`, plugin test fixtures, and Maven reproducers are evidence for product
-behavior and are specified by §AR-build-infrastructure.4. Spec files are not generated user
+behavior and are specified by [§AR-build-infrastructure.4](../architecture/build-infrastructure.md#4-fixture-and-sample-boundary). Spec files are not generated user
 documentation; they are stable citation targets for maintainers, code comments, tests, CI
 workflows, and future implementation work.

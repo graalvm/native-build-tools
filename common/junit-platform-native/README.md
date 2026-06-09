@@ -1,6 +1,6 @@
 # JUnit Platform support for GraalVM Native Image
 Feature that enables JUnit Platform testing support for GraalVM Native Image
-![](https://github.com/graalvm/native-image-configuration/actions/workflows/junit-platform-native-feature.yml/badge.svg)
+![](https://github.com/graalvm/native-build-tools/actions/workflows/test-junit-platform-native.yml/badge.svg)
 
 ## Usage
 There are two main modes of operation using this feature:
@@ -38,7 +38,7 @@ GraalVM with `native-image` should be present on the system, as well as `$GRAALV
 ```
 This will publish the latest artifact to local maven repository.
 
-*You can also take a look at CI workflow [here](../../.github/workflows/junit-platform-native-feature.yml).*
+*You can also take a look at CI workflow [here](../../.github/workflows/test-junit-platform-native.yml).*
 
 ## Testing
 Following tasks are present in this project for testing this feature:

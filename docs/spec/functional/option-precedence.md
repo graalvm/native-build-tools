@@ -3,15 +3,15 @@
 Both plugins must keep command-line overrides and configured options predictable. The exact
 precedence rules differ because Gradle task options and Maven parameter binding use different
 models, but each plugin must document how temporary command-line input relates to durable build
-configuration. Gradle precedence is §gradle/FS-native-tasks.5; Maven precedence is
-§maven/FS-config-model.5. This contract supports
-§GOAL-plugin-parity.
+configuration. Gradle precedence is [§gradle/FS-native-tasks.5](../../../native-gradle-plugin/docs/functional/native-image-tasks.md#5-override-precedence); Maven precedence is
+[§maven/FS-config-model.5](../../../native-maven-plugin/docs/functional/configuration-model.md#5-override-precedence). This contract supports
+[§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).
 
 ## 1. Single option state
 
 Every configuration source for a given build (durable build-file configuration, command-line task
 or goal options, build-tool properties, environment variables where applicable) must write into
-the same option object that the command-line constructor in §FS-native-builds.2 reads.
+the same option object that the command-line constructor in [§FS-native-builds.2](native-image-builds.md#2-command-line-construction) reads.
 Behavior must depend on the final value of that object, not on which source produced it.
 
 ## 2. Append versus replace
@@ -35,6 +35,6 @@ invocation must carry the same effective option.
 Each plugin must explicitly document any parameter that does not follow its default precedence,
 including tracing-agent toggles where a command-line property is intentionally modeled to win over
 the build file for a single invocation. Undocumented exceptions are a parity bug. Plugin-specific
-exceptions are specified by §gradle/FS-native-tasks.5,
-§gradle/FS-tracing-agent.1, §maven/FS-config-model.5, and
-§maven/FS-tracing-agent.1.
+exceptions are specified by [§gradle/FS-native-tasks.5](../../../native-gradle-plugin/docs/functional/native-image-tasks.md#5-override-precedence),
+[§gradle/FS-tracing-agent.1](../../../native-gradle-plugin/docs/functional/tracing-agent.md#1-agent-enablement), [§maven/FS-config-model.5](../../../native-maven-plugin/docs/functional/configuration-model.md#5-override-precedence), and
+[§maven/FS-tracing-agent.1](../../../native-maven-plugin/docs/functional/tracing-agent.md#1-agent-enablement).

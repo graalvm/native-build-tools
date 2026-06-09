@@ -6,7 +6,11 @@ on:
   pull_request:
     paths:
       - 'docs/spec/**'
+      - '**/*.md'
+      - '**/*.yml'
+      - '**/*.yaml'
       - '.agents/grund.toml'
+      - '.pre-commit-config.yaml'
       - 'AGENTS.md'
       - 'common/**'
       - 'native-gradle-plugin/**'
@@ -55,7 +59,19 @@ jobs:
         # The root workspace validates root, Gradle, and Maven namespaces together.
         run: |
           grund check
-      - name: "✅ grund fmt --marker check"
-        # Enforces the marked citation style while [reference] strict = true ignores bare ID tokens.
+      - name: "✅ grund fmt --marker --cross-refs check"
+        # Enforces marked citations and generated Markdown links for citations. §AR-repository-ci.1.1
         run: |
-          grund fmt . --marker --check
+          grund fmt . --marker --cross-refs --check
+      - name: "🧾 Collect tracked link-check inputs"
+        run: |
+          git ls-files '*.md' '*.yml' '*.yaml' > .lychee-inputs
+      - name: "✅ lychee link check"
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2
+        with:
+          lycheeVersion: v0.23.0
+          args: >-
+            --include-fragments
+            --root-dir .
+            --no-progress
+            --files-from .lychee-inputs

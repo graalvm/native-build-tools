@@ -3,9 +3,9 @@
 Native Build Tools must help users supply the configuration that Native Image needs for resources,
 reflection, dynamic access, and third-party reachability metadata. The `common/` modules own the
 build-tool-neutral behavior that Gradle and Maven adapt into tasks, goals, and configuration
-models. This supports §root/FS-plugin-common and realizes
-§root/GOAL-plugin-parity through §GOAL-shared-native-image and
-§REQ-stable-semantics.
+models. This supports [§root/FS-plugin-common](../../docs/spec/functional/plugin-common.md#fs-plugin-common-gradle-and-maven-expose-aligned-native-image-plugin-behavior) and realizes
+[§root/GOAL-plugin-parity](../../docs/spec/goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven) through [§GOAL-shared-native-image](goals.md#goal-shared-native-image-shared-native-image-semantics-live-once-in-common-libraries) and
+[§REQ-stable-semantics](requirements.md#req-stable-semantics-shared-behavior-changes-preserve-plugin-parity).
 
 ## At a Glance
 
@@ -20,13 +20,13 @@ models. This supports §root/FS-plugin-common and realizes
 
 Common code answers Native Image questions. Gradle and Maven code answer build-tool questions such
 as task inputs, scopes, provider wiring, lifecycle bindings, and diagnostics. This boundary is
-required by §REQ-no-buildtool-apis.
+required by [§REQ-no-buildtool-apis](requirements.md#req-no-buildtool-apis-common-runtime-libraries-do-not-depend-on-gradle-or-maven-apis).
 
 ## 1. Shared Native Image utilities
 
 Common utilities keep Gradle and Maven command-line handling consistent. They must preserve
 whitespace, quotes, backslashes, and platform paths when escaping arguments; write Native Image
-argument files and return the corresponding `@...` argument (§root/GLOSS-argument-file); parse Native
+argument files and return the corresponding `@...` argument ([§root/GLOSS-argument-file](../../docs/spec/glossary.md#gloss-argument-file-native-image-argument-file)); parse Native
 Image and JDK versions well enough to choose version-specific behavior; and centralize Native
 Image configuration file names and metadata directory names used by plugins and tests.
 
@@ -39,13 +39,13 @@ and JARs, normalize paths with portable separators, respect existing
 write Native Image resource configuration into the directory passed by the Gradle task or Maven
 goal.
 
-Product-specific task and goal entry points are specified by §gradle/FS-resources-metadata.1,
-§gradle/FS-resources-metadata.2, and §maven/FS-resources-metadata.1.
+Product-specific task and goal entry points are specified by [§gradle/FS-resources-metadata.1](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#1-resource-autodetection),
+[§gradle/FS-resources-metadata.2](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#2-generated-resource-configuration), and [§maven/FS-resources-metadata.1](../../native-maven-plugin/docs/functional/resources-and-metadata.md#1-resource-configuration-goals).
 
 ## 3. Native Image tracing agent
 
 Agent behavior is shared because Gradle and Maven need the same mode semantics even though they
-attach the agent to different execution APIs. The agent is defined in §root/GLOSS-tracing-agent.
+attach the agent to different execution APIs. The agent is defined in [§root/GLOSS-tracing-agent](../../docs/spec/glossary.md#gloss-tracing-agent-native-image-tracing-agent).
 
 ### 3.1 Agent modes
 
@@ -59,7 +59,7 @@ expose the same mode semantics.
 ### 3.2 Plugin invocation and output
 
 Plugin-specific enablement, instrumentation hooks, and output locations are specified by
-§gradle/FS-tracing-agent and §maven/FS-tracing-agent. Both plugins may adapt the exact task or
+[§gradle/FS-tracing-agent](../../native-gradle-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-gradle-tasks-attach-and-post-process-native-image-tracing-agent-metadata) and [§maven/FS-tracing-agent](../../native-maven-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-maven-goals-attach-and-post-process-native-image-tracing-agent-metadata). Both plugins may adapt the exact task or
 process hook, but they must feed the same shared mode model into `native-image-agent`.
 
 ## 4. Agent metadata post-processing
@@ -70,15 +70,15 @@ names, and locates `native-image-configure` from the same Native Image installat
 build when possible. Copy behavior must either replace destination metadata or merge with it,
 depending on user configuration.
 
-Plugin-specific merge and copy entry points are specified by §gradle/FS-tracing-agent.5 and
-§maven/FS-tracing-agent.4.
+Plugin-specific merge and copy entry points are specified by [§gradle/FS-tracing-agent.5](../../native-gradle-plugin/docs/functional/tracing-agent.md#5-metadata-copy) and
+[§maven/FS-tracing-agent.4](../../native-maven-plugin/docs/functional/tracing-agent.md#4-merge-and-copy).
 
 ## 5. Reachability metadata repository
 
 Reachability metadata repository support lets both product plugins consume the GraalVM
 Reachability Metadata Repository without build-tool-specific lookup logic. The repository is
-defined in §root/GLOSS-reachability-metadata-repository. Product defaults that choose which
-official repository release to fetch are governed by §root/GOAL-fresh-metadata.
+defined in [§root/GLOSS-reachability-metadata-repository](../../docs/spec/glossary.md#gloss-reachability-metadata-repository-graalvm-reachability-metadata-repository). Product defaults that choose which
+official repository release to fetch are governed by [§root/GOAL-fresh-metadata](../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
 ### 5.1 Repository lookup
 
@@ -90,8 +90,8 @@ missing so plugin diagnostics and reports do not duplicate repository rules.
 
 ### 5.2 Plugin entry points and outputs
 
-Product-specific repository resolution entry points are specified by §gradle/FS-resources-metadata.3
-and §maven/FS-resources-metadata.2. In every adaptation, resolved metadata must be exposed through a
+Product-specific repository resolution entry points are specified by [§gradle/FS-resources-metadata.3](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection)
+and [§maven/FS-resources-metadata.2](../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata). In every adaptation, resolved metadata must be exposed through a
 generated build directory that the plugin can pass to Native Image as a configuration file
 directory.
 
@@ -103,8 +103,8 @@ enough coordinate and repository-status information for users or automation to d
 request support, and format issue requests against the configured GitHub repository and API URL
 when issue creation is enabled. Product plugins supply credentials and project identity.
 
-Product-specific report entry points are specified by §gradle/FS-resources-metadata.4 and
-§maven/FS-resources-metadata.3.
+Product-specific report entry points are specified by [§gradle/FS-resources-metadata.4](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#4-missing-metadata-reports) and
+[§maven/FS-resources-metadata.3](../../native-maven-plugin/docs/functional/resources-and-metadata.md#3-missing-metadata-reports).
 
 ## 7. Schema validation
 
@@ -112,7 +112,7 @@ Metadata-oriented JSON must be validated when the repository owns a schema for t
 the build has enough Native Image version information to choose the correct schema. Invalid
 metadata that would be passed to Native Image must fail early with a validation error rather than
 produce a later, less actionable native-image failure.
-§REQ-version-schema-compat.
+[§REQ-version-schema-compat](requirements.md#req-version-schema-compat-common-metadata-and-schema-behavior-tracks-supported-native-image-versions).
 
 ## 8. Verification surface
 
@@ -120,4 +120,4 @@ Common utility and reachability metadata modules must have unit tests for argume
 resource scanning, agent mode command lines, repository index parsing, metadata lookup, missing
 metadata support, schema validation, and Native Image version behavior. Product plugin functional
 tests cover these shared behaviors through Gradle and Maven sample projects as part of
-§root/FS-plugin-common.2 and §E2E-common-tests.
+[§root/FS-plugin-common.2](../../docs/spec/functional/plugin-common.md#2-verification-surface) and [§E2E-common-tests](e2e.md#e2e-common-tests-common-library-tests-exercise-shared-native-image-support-behavior).

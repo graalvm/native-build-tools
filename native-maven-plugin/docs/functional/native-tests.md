@@ -21,7 +21,7 @@ whether the goal fails or skips.
 By default, `native:test` must build the image with
 `org.graalvm.junit.platform.NativeImageJUnitLauncher` and the `JUnitPlatformFeature`. If Native
 Image compatibility mode is enabled, it must use the original JUnit ConsoleLauncher path described
-by §root/FS-native-tests.5.
+by [§root/FS-native-tests.5](../../../docs/spec/functional/native-tests.md#5-compatibility-mode).
 
 ## 4. Test execution
 

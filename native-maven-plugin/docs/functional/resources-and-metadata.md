@@ -8,7 +8,7 @@ automatically.
 
 The plugin must generate resource configuration for main and test classpaths. Generation must
 respect existing Native Image resource configuration and the shared classpath scanning behavior in
-§common/FS-common-libraries.2.
+[§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration).
 
 ## 2. Reachability metadata
 
@@ -16,13 +16,13 @@ respect existing Native Image resource configuration and the shared classpath sc
 metadata repository, exclusions, and module-to-config-version overrides. It must add the resulting
 configuration directory to the native image build without requiring users to manually copy
 repository contents. When no URI, version, or local path is pinned, the Maven default should follow
-the repository-wide freshness goal in §root/GOAL-fresh-metadata.
+the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
 ## 3. Missing metadata reports
 
 `native:list-libraries-missing-metadata` reports project dependencies that do not appear to have
 reachability metadata support and may create GitHub issues when issue creation is configured. Its
-behavior must remain aligned with §root/FS-resources-metadata.
+behavior must remain aligned with [§root/FS-resources-metadata](../../../docs/spec/functional/resources-and-metadata.md#fs-resources-metadata-both-plugins-generate-resource-config-and-consume-reachability-metadata).
 
 ## 4. Schema validation
 

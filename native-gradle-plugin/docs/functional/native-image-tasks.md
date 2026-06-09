@@ -1,7 +1,7 @@
 # FS-native-tasks: Gradle native-image tasks build and run Native Image outputs
 
 Native image tasks are the user-facing Gradle commands for building, running, and experimenting
-with native executables. They adapt §root/FS-native-builds to Gradle task inputs and
+with native executables. They adapt [§root/FS-native-builds](../../../docs/spec/functional/native-image-builds.md#fs-native-builds-both-plugins-build-native-images-from-build-tool-project-state) to Gradle task inputs and
 outputs.
 
 ## 1. Compile tasks
@@ -11,7 +11,7 @@ shared-library setting, build arguments, configuration directories, generated re
 reachability metadata, optional classpath JAR, argument-file setting, layer and PGO options,
 environment variables, system properties, and JVM arguments.
 
-`nativeTestCompile` builds the native test binary described by §root/FS-native-tests.
+`nativeTestCompile` builds the native test binary described by [§root/FS-native-tests](../../../docs/spec/functional/native-tests.md#fs-native-tests-both-plugins-compile-and-execute-junit-tests-as-a-native-image).
 It uses compiled test classes, test resources, the test runtime classpath, JUnit native support,
 selected test identifiers, and the `test` binary options.
 
@@ -33,7 +33,7 @@ A failing native test executable must fail the Gradle build.
 
 The plugin must keep compatibility aliases for deprecated task names where they still exist. An
 alias should depend on the replacement task and warn users to use the current name, protecting
-§REQ-task-surface.
+[§REQ-task-surface](../requirements.md#req-task-surface-gradle-task-and-dsl-names-remain-stable-across-compatible-releases).
 
 ## 4. Command-line overrides
 
@@ -41,7 +41,7 @@ Compile tasks must expose task options for image name, main class, debug, verbos
 build, rich output, PGO instrumentation, build args, forced build args, fat JAR mode, system
 properties, environment variables, JVM args, and forced JVM args. These one-off overrides feed the
 same option objects as the DSL, keeping command-line experimentation aligned with
-§root/FS-option-precedence.
+[§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
 
 ```bash
 ./gradlew nativeCompile --quick-build-native --verbose --image-name demo-dev
@@ -57,7 +57,7 @@ the DSL populates, so the command-line value replaces the DSL value for that bui
 
 Build arguments are the documented exception: `--build-args` appends to configured arguments,
 while `--force-build-args` replaces them. The `-Pagent` property overrides the configured agent
-default mode as in §FS-tracing-agent.1. Because every source writes to one option object,
+default mode as in [§FS-tracing-agent.1](tracing-agent.md#1-agent-enablement). Because every source writes to one option object,
 behavior depends on the final value, not on whether the value came from DSL or the command line.
 
 ## 6. Task surface examples

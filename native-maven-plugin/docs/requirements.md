@@ -11,12 +11,12 @@ properties, lifecycle phases for lifecycle integration, dependency scopes for cl
 project model lookup for configured plugin state, toolchains for executable lookup, and
 Aether/repository and Plexus APIs for Maven-managed services. Behavior that is genuinely
 build-tool-neutral should move to `common` instead of reimplementing Maven-specific logic.
-This requirement constrains §FS-goal-surface and §AR-maven-plugin.3, and supports
-§GOAL-idiomatic-maven.
+This requirement constrains [§FS-goal-surface](functional/goal-surface.md#fs-goal-surface-maven-goals-expose-native-image-workflows) and [§AR-maven-plugin.3](architecture.md#3-configuration-and-maven-integration), and supports
+[§GOAL-idiomatic-maven](goals.md#goal-idiomatic-maven-maven-integration-follows-maven-idioms-and-conventions).
 
 # REQ-goal-surface: Maven goal and parameter names remain stable across compatible releases
 
 Maven goal names, parameter names, default phases, and documented command-line properties are
 user-facing compatibility surfaces. Changes to those names must follow the repository
-compatibility requirement in §root/REQ-plugin-compatibility and the
-deprecated goal behavior in §FS-goal-surface.1.
+compatibility requirement in [§root/REQ-backwards-compatibility](../../docs/spec/requirements.md#req-backwards-compatibility-plugin-upgrades-keep-existing-gradle-and-maven-builds-working) and the
+deprecated goal behavior in [§FS-goal-surface.1](functional/goal-surface.md#1-build-goals).

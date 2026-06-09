@@ -1,7 +1,7 @@
 # FS-resources-metadata: Gradle tasks generate resources and consume reachability metadata
 
 The plugin exposes the shared metadata and resource contracts in
-§root/FS-resources-metadata and §common/FS-common-libraries through Gradle DSL and tasks.
+[§root/FS-resources-metadata](../../../docs/spec/functional/resources-and-metadata.md#fs-resources-metadata-both-plugins-generate-resource-config-and-consume-reachability-metadata) and [§common/FS-common-libraries](../../../common/docs/functional-spec.md#fs-common-libraries-common-libraries-provide-shared-native-image-utilities-and-metadata-workflows) through Gradle DSL and tasks.
 
 ## 1. Resource autodetection
 
@@ -26,7 +26,7 @@ automatically.
 metadata repository URI, version, exclusions, and module-to-config-version overrides. Its output
 directory must be consumable by native compile tasks and must contain only metadata selected for
 the binary's dependency graph. When no URI or version is pinned, the Gradle default should follow
-the repository-wide freshness goal in §root/GOAL-fresh-metadata.
+the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
 ## 4. Missing metadata reports
 
@@ -40,7 +40,7 @@ native compile task inputs.
 When a binary is configured to emit a Native Image build report, the plugin must generate
 dynamic-access metadata before invoking Native Image. The task uses the configured reachability
 metadata repository and runtime classpath graph, then makes the result available as generated
-Native Image configuration. The metadata is defined in §root/GLOSS-dynamic-access-metadata.
+Native Image configuration. The metadata is defined in [§root/GLOSS-dynamic-access-metadata](../../../docs/spec/glossary.md#gloss-dynamic-access-metadata-dynamic-access-metadata).
 
 The main binary task is `generateDynamicAccessMetadata`; custom binaries receive
 `generate<Binary>DynamicAccessMetadata`. The task output is added to the binary's classpath only

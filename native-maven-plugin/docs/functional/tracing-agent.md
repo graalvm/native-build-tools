@@ -13,7 +13,7 @@ single invocation.
 ## 2. Agent modes
 
 The Maven configuration must support standard, direct, conditional, and disabled agent modes using
-the shared agent mode contract in §common/FS-common-libraries.3. Conditional mode must support
+the shared agent mode contract in [§common/FS-common-libraries.3](../../../common/docs/functional-spec.md#3-native-image-tracing-agent). Conditional mode must support
 user-code and extra filters, and direct mode must let users provide the raw agent command line when
 they need full control.
 

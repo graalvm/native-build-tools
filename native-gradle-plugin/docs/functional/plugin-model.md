@@ -14,7 +14,7 @@ can apply plugins in either order without relying on eager configuration.
 
 The plugin must expose a `graalvmNative` extension. This is the durable Gradle DSL for native
 binaries, Native Image options, generated resources, reachability metadata, native tests, and
-tracing-agent workflows from §root/FS-plugin-common.
+tracing-agent workflows from [§root/FS-plugin-common](../../../docs/spec/functional/plugin-common.md#fs-plugin-common-gradle-and-maven-expose-aligned-native-image-plugin-behavior).
 
 For a typical application, users configure the same binary that `nativeCompile` builds:
 
@@ -59,7 +59,7 @@ set so `nativeTest` can build and run native JUnit tests without a separate bina
 
 Users may add entries to the `binaries` container for extra source sets or entry points. Each entry
 must create matching compile and run tasks with predictable task names derived from the binary
-name. Custom binaries apply §root/FS-native-builds without forcing users outside the
+name. Custom binaries apply [§root/FS-native-builds](../../../docs/spec/functional/native-image-builds.md#fs-native-builds-both-plugins-build-native-images-from-build-tool-project-state) without forcing users outside the
 plugin's option model.
 
 ## 5. Activation examples
