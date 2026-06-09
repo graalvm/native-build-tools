@@ -7,7 +7,8 @@ The Gradle plugin exposes the shared tracing-agent workflow from
 
 The agent can be enabled by DSL configuration or with the `-Pagent` Gradle property. When the
 property names a mode, that mode must override the configured default mode for the instrumented
-run.
+run. The default mode convention is `standard`, except projects that apply Gradle's
+`java-library` plugin use `conditional` as the default convention.
 
 ## 2. Instrumented tasks
 
