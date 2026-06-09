@@ -51,6 +51,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.DisabledIf;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.params.aggregator.AggregateWith;
 import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.provider.ArgumentsSource;
@@ -61,10 +62,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import static org.graalvm.junit.platform.JUnitPlatformFeatureUtils.debug;
 
 public class JupiterConfigProvider extends PluginConfigProvider {
+    private static final String EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME = "junit.jupiter.extensions.autodetection.enabled";
 
     @Override
     public void onLoad() {
@@ -72,6 +75,7 @@ public class JupiterConfigProvider extends PluginConfigProvider {
         JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(Utils.toClasses(
                 "org.junit.jupiter.engine.extension.TimeoutExtension$ExecutorResource",
                 "org.junit.jupiter.engine.extension.TimeoutInvocationFactory$SingleThreadExecutorResource"));
+        registerAutoDetectedExtensionsForReflection();
     }
 
     @Override
@@ -153,6 +157,23 @@ public class JupiterConfigProvider extends PluginConfigProvider {
             }
         }
         return classList.toArray(new Class<?>[0]);
+    }
+
+    private void registerAutoDetectedExtensionsForReflection() {
+        try {
+            if (Boolean.getBoolean(EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME)) {
+                ServiceLoader.load(Extension.class, applicationClassLoader)
+                        .stream()
+                        .map(ServiceLoader.Provider::type)
+                        .forEach(extensionType -> {
+                            // Service-registered Jupiter extensions need runtime reflection metadata in native tests. §root/FS-native-tests.2.
+                            debug("Registering auto-detected Jupiter extension for reflection: %s", extensionType.getName());
+                            JUnitPlatformFeatureUtils.registerAllClassMembersForReflection(extensionType);
+                        });
+            }
+        } catch (NoClassDefFoundError e) {
+            debug("Cannot register auto-detected Jupiter extensions. Please verify that you have dependency that includes 'org.junit.jupiter.api' if you want to use these extensions.");
+        }
     }
 
     public static void handleEnumSource(Method method, EnumSource source) {
