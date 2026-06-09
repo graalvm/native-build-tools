@@ -248,6 +248,10 @@ The agent can run in multiple modes that dictate how the metadata is collected a
 * `tasksToInstrumentPredicate` - By default, when `-Pagent` is specified, all tasks extending `JavaForkOptions` are instrumented.
 This can be limited to only specific tasks that match this predicate.
 
+When you pass `-Pagent` without an explicit mode, the plugin uses `defaultMode`.
+The default `defaultMode` is `standard`, except projects applying Gradle's `java-library` plugin default to `conditional`.
+Because `conditional` mode requires `userCodeFilterPath`, library projects should either configure a conditional user-code filter or run with an explicit mode, for example `-Pagent=standard`.
+
 [source,groovy,subs="verbatim,attributes", role="multi-language-sample"]
 ----
 agent {
