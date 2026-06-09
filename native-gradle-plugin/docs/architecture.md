@@ -4,7 +4,7 @@
 actions, command-line providers, Gradle services, artifact transforms, and Gradle functional test
 infrastructure. The module implements the focused Gradle functional specs under
 `docs/functional/` by adapting the shared libraries from §common/AR-common-libraries into Gradle's
-APIs, following §GOAL-gradle-plugin-idiomatic-gradle-integration.
+APIs, following §GOAL-idiomatic-gradle.
 
 ## 1. Module responsibility
 

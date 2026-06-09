@@ -1,4 +1,4 @@
-# FS-gradle-native-tests: Gradle tasks compile and run native JUnit tests
+# FS-native-tests: Gradle tasks compile and run native JUnit tests
 
 Gradle native tests let users keep their normal JUnit test source set and ask the plugin to build
 and execute those tests as a native image. Runtime semantics are defined by

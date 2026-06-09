@@ -3,7 +3,7 @@
 Repository infrastructure exists to build, test, document, publish, and validate Native Build
 Tools without becoming part of the product runtime API. It supports the repository architecture in
 §AR-repository-architecture, the plugin end-to-end test contracts in
-§gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests, and the
+§gradle/E2E-functional-tests and §maven/E2E-functional-tests, and the
 pull request gates in §AR-repository-ci.
 
 ## At a Glance

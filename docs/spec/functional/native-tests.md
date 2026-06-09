@@ -4,8 +4,8 @@ Both product plugins must take an ordinary JVM JUnit Platform test setup and pro
 test binary that executes the same selected tests. The user keeps writing standard JUnit tests; the
 plugin builds a native image of those tests and runs it. A failing native test executable must
 fail the build in both tools. This contract realizes the native-test slice of
-§GOAL-plugin-parity and is adapted by §gradle/FS-gradle-native-tests and
-§maven/FS-maven-native-tests.
+§GOAL-plugin-parity and is adapted by §gradle/FS-native-tests and
+§maven/FS-native-tests.
 
 ```mermaid
 flowchart LR
@@ -81,8 +81,8 @@ assemble test classes, resources, dependencies, and selected test identifiers, h
 tool's normal test-skip concepts, and let users pass runtime arguments to the native test
 executable. Runtime arguments must not affect image generation.
 
-Gradle-specific task wiring is specified by §gradle/FS-gradle-native-tests. Maven-specific goal
-behavior is specified by §maven/FS-maven-native-tests.
+Gradle-specific task wiring is specified by §gradle/FS-native-tests. Maven-specific goal
+behavior is specified by §maven/FS-native-tests.
 
 ## 5. Compatibility mode
 

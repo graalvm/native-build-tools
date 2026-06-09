@@ -1,4 +1,4 @@
-# FS-maven-tracing-agent: Maven goals attach and post-process Native Image tracing-agent metadata
+# FS-tracing-agent: Maven goals attach and post-process Native Image tracing-agent metadata
 
 The Maven plugin exposes the Native Image tracing agent and post-processing workflows through
 Maven configuration and goals. Users can collect metadata from JVM test or application runs, then

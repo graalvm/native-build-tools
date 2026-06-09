@@ -1,4 +1,4 @@
-# FS-maven-native-tests: Maven goals compile and run native JUnit tests
+# FS-native-tests: Maven goals compile and run native JUnit tests
 
 Maven native tests let users keep their normal test source tree and ask the plugin to build and
 run those tests as a native image through Maven's test lifecycle.

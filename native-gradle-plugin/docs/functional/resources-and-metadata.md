@@ -1,7 +1,7 @@
-# FS-gradle-resources-and-metadata: Gradle tasks generate resources and consume reachability metadata
+# FS-resources-metadata: Gradle tasks generate resources and consume reachability metadata
 
 The plugin exposes the shared metadata and resource contracts in
-§root/FS-resources-and-metadata and §common/FS-common-libraries through Gradle DSL and tasks.
+§root/FS-resources-metadata and §common/FS-common-libraries through Gradle DSL and tasks.
 
 ## 1. Resource autodetection
 
@@ -25,7 +25,8 @@ automatically.
 `collectReachabilityMetadata` resolves metadata for the runtime classpath from the configured
 metadata repository URI, version, exclusions, and module-to-config-version overrides. Its output
 directory must be consumable by native compile tasks and must contain only metadata selected for
-the binary's dependency graph.
+the binary's dependency graph. When no URI or version is pinned, the Gradle default should follow
+the repository-wide freshness goal in §root/GOAL-fresh-metadata.
 
 ## 4. Missing metadata reports
 

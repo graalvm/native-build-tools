@@ -71,8 +71,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Generates Native Image resource configuration for Gradle binaries. §FS-gradle-resources-and-metadata.1,
- * and §FS-gradle-resources-and-metadata.2.
+ * Generates Native Image resource configuration for Gradle binaries. §FS-resources-metadata.1,
+ * and §FS-resources-metadata.2.
  */
 @CacheableTask
 public abstract class GenerateResourcesConfigFile extends DefaultTask {

@@ -1,7 +1,7 @@
-# FS-gradle-tracing-agent: Gradle tasks attach and post-process Native Image tracing-agent metadata
+# FS-tracing-agent: Gradle tasks attach and post-process Native Image tracing-agent metadata
 
 The Gradle plugin exposes the shared tracing-agent workflow from
-§root/FS-tracing-agent-workflows without requiring users to edit JVM task command lines by hand.
+§root/FS-tracing-agent without requiring users to edit JVM task command lines by hand.
 
 ## 1. Agent enablement
 
@@ -32,7 +32,7 @@ direct mode output location. Generated output must be suitable for later merge a
 `metadataCopy` copies or merges agent output from configured input tasks into configured output
 directories. Command-line options on `metadataCopy` may select task names and destination
 directories for ad hoc use, exposing the shared agent post-processing workflow from
-§root/FS-tracing-agent-workflows.
+§root/FS-tracing-agent.
 
 ## 6. Agent example
 

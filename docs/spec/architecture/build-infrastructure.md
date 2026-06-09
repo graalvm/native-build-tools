@@ -30,7 +30,7 @@ GitHub workflows under `.github/workflows/` and reusable actions under `.github/
 remote validation, dev-build checks, snapshot deployment, and release-sensitive publication
 steps. Workflow behavior is specified by §AR-repository-ci, §AR-repository-ci.2.1, and
 §AR-repository-ci.2.2, and local execution equivalents are specified by
-§gradle/E2E-gradle-plugin-functional-tests and §maven/E2E-maven-plugin-functional-tests.
+§gradle/E2E-functional-tests and §maven/E2E-functional-tests.
 
 Secrets, release credentials, and publication destinations belong to CI or release
 configuration. Product modules expose publishable artifacts; infrastructure decides when and how
@@ -44,7 +44,7 @@ local test repository, but they should not become general runtime libraries for 
 
 The repository's samples and fixtures are part of the specification surface because the product
 plugins are only useful when they work in real Gradle and Maven project shapes. This architecture
-supports §REQ-repository-fixtures-protect-real-build-scenarios and provides evidence for focused
+supports §REQ-real-fixtures and provides evidence for focused
 Gradle and Maven functional specs, §common/FS-common-libraries, and §FS-native-tests.
 
 ### 4.1 Fixture groups
@@ -80,8 +80,8 @@ AsciiDoc guide when applicable.
 Each high-risk product behavior should have at least one executable scenario. The repository should
 use shared samples where they keep equivalent Gradle and Maven behavior understandable, and
 build-tool-specific fixtures or reproducers where the scenario depends on one build model. Exact
-functional-test scenario families are owned by §gradle/E2E-gradle-plugin-functional-tests.3 and
-§maven/E2E-maven-plugin-functional-tests.3.
+functional-test scenario families are owned by §gradle/E2E-functional-tests.3 and
+§maven/E2E-functional-tests.3.
 
 ### 4.4 Fixture lifecycle
 

@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 /**
  * Lists direct runtime dependencies that do not have reachability metadata in the configured metadata repository.
  * Optionally creates reachability metadata repository issues requesting support for libraries with missing metadata.
- * §FS-maven-goal-surface.3, §FS-maven-resources-and-metadata.3.
+ * §FS-goal-surface.3, §FS-resources-metadata.3.
  */
 @Mojo(name = "list-libraries-missing-metadata", defaultPhase = LifecyclePhase.NONE,
     requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)

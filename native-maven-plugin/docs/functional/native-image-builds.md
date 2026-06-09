@@ -1,8 +1,8 @@
-# FS-maven-native-image-builds: Maven goals build Native Image outputs from project state
+# FS-native-builds: Maven goals build Native Image outputs from project state
 
 Maven native image builds translate project packaging, dependency scopes, plugin configuration,
 and command-line properties into a Native Image invocation that satisfies
-§root/FS-native-image-builds.
+§root/FS-native-builds.
 
 ## 1. Main class discovery
 

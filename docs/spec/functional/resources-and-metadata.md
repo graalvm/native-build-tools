@@ -1,11 +1,12 @@
-# FS-resources-and-metadata: Both plugins generate resource config and consume reachability metadata
+# FS-resources-metadata: Both plugins generate resource config and consume reachability metadata
 
 Both plugins must expose resource configuration generation, reachability metadata repository
 lookup, missing metadata reports, dynamic access metadata, and schema validation through their
 own task or goal surface. The shared library behavior lives in §common/FS-common-libraries.2,
 §common/FS-common-libraries.5, §common/FS-common-libraries.6, and §common/FS-common-libraries.7.
-Gradle adapts through §gradle/FS-gradle-resources-and-metadata; Maven adapts through §maven/FS-maven-resources-and-metadata
-plus the support goals in §maven/FS-maven-goal-surface.3.
+Gradle adapts through §gradle/FS-resources-metadata; Maven adapts through §maven/FS-resources-metadata
+plus the support goals in §maven/FS-goal-surface.3. Repository defaults realize
+§GOAL-fresh-metadata.
 
 Generated artifacts stay in the build-tool output tree unless the user explicitly requests a copy
 elsewhere. Exact task names, goal names, output paths, and configuration names belong to the
@@ -23,8 +24,8 @@ caller has not asked to ignore existing config, the plugin must not duplicate re
 entry. Scanning, path normalization, and config generation belong to §common/FS-common-libraries.2.
 
 Plugin-specific entry points and output paths are specified by
-§gradle/FS-gradle-resources-and-metadata.1, §gradle/FS-gradle-resources-and-metadata.2, and
-§maven/FS-maven-resources-and-metadata.1.
+§gradle/FS-resources-metadata.1, §gradle/FS-resources-metadata.2, and
+§maven/FS-resources-metadata.1.
 
 ## 2. Reachability metadata repository
 
@@ -34,8 +35,11 @@ repository URI, version, exclusions, and module-to-config-version overrides
 directory passed to `native-image` as a configuration file directory, not unpacked into the
 project source tree.
 
+When the user has not pinned a URI, version, or local repository path, the default repository
+selection must prefer the latest compatible official metadata release available to the plugin.
+
 Plugin-specific configuration and entry points are specified by
-§gradle/FS-gradle-resources-and-metadata.3 and §maven/FS-maven-resources-and-metadata.2.
+§gradle/FS-resources-metadata.3 and §maven/FS-resources-metadata.2.
 
 ## 3. Missing metadata reports
 
@@ -45,8 +49,8 @@ dependencies that lack metadata coverage. The report must not modify the inputs 
 tasks. When issue-creation settings are configured, the report may open GitHub issues against the
 configured repository.
 
-Plugin-specific report entry points are specified by §gradle/FS-gradle-resources-and-metadata.4
-and §maven/FS-maven-resources-and-metadata.3.
+Plugin-specific report entry points are specified by §gradle/FS-resources-metadata.4
+and §maven/FS-resources-metadata.3.
 
 ## 4. Dynamic access metadata
 
@@ -57,7 +61,7 @@ graph; the resulting directory is added to the Native Image configuration file d
 that build only.
 
 Plugin-specific generation entry points are specified by
-§gradle/FS-gradle-resources-and-metadata.5 and §maven/FS-maven-native-image-builds.5.
+§gradle/FS-resources-metadata.5 and §maven/FS-native-builds.5.
 
 ## 5. Schema validation
 

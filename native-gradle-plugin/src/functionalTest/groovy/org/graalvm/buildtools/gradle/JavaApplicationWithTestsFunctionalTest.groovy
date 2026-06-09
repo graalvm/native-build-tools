@@ -46,7 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.TestResults
 import spock.lang.Issue
 import spock.lang.Unroll
 
-// Protects Gradle native-test task wiring and execution. §FS-gradle-native-tests.1 §FS-gradle-native-tests.2.
+// Protects Gradle native-test task wiring and execution. §FS-native-tests.1 §FS-native-tests.2.
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute tests in a native image with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {

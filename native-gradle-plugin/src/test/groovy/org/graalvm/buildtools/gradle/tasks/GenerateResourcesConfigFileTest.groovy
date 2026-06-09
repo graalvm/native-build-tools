@@ -41,7 +41,7 @@
 
 package org.graalvm.buildtools.gradle.tasks
 
-// Protects Gradle resource autodetection and generated resource-config shape. §FS-gradle-resources-and-metadata.1 §FS-gradle-resources-and-metadata.2.
+// Protects Gradle resource autodetection and generated resource-config shape. §FS-resources-metadata.1 §FS-resources-metadata.2.
 class GenerateResourcesConfigFileTest extends AbstractPluginTest {
     def "generates an empty resource-config.json file"() {
         def project = buildProject()

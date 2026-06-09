@@ -1,10 +1,10 @@
-# E2E-common-library-tests: Common library tests exercise shared Native Image support behavior
+# E2E-common-tests: Common library tests exercise shared Native Image support behavior
 
 Common executable evidence lives under `common/*/src/test/` and in product plugin functional tests
 that consume common modules through real Gradle and Maven builds. Common tests validate the
 build-tool-neutral behavior specified by §FS-common-libraries and the boundaries in
-§AR-common-libraries; product plugin E2E suites validate adaptation through §gradle/E2E-gradle-plugin-functional-tests
-and §maven/E2E-maven-plugin-functional-tests.
+§AR-common-libraries; product plugin E2E suites validate adaptation through §gradle/E2E-functional-tests
+and §maven/E2E-functional-tests.
 
 ## 1. Full local suite
 
@@ -46,7 +46,7 @@ creation payloads. This protects §FS-common-libraries.5 and §FS-common-librari
 `common/junit-platform-native` tests and product native-test functional suites cover native test
 launcher behavior, Native Image feature registration, test-engine configuration providers, and
 compatibility-mode support. This protects §root/FS-native-tests.3 and
-§GOAL-common-libraries-runtime-support-is-reusable.
+§GOAL-reusable-runtime.
 
 ## 3. CI coverage
 

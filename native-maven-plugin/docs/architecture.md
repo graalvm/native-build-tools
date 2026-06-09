@@ -4,7 +4,7 @@
 Maven configuration objects, Maven repository seeding for functional tests, Maven-specific SBOM
 integration, and issue reproducers. The module implements the focused Maven functional specs under
 `docs/functional/` by adapting the shared libraries from §common/AR-common-libraries into Maven's
-APIs, following §GOAL-maven-plugin-idiomatic-maven-integration.
+APIs, following §GOAL-idiomatic-maven.
 
 ## 1. Module responsibility
 

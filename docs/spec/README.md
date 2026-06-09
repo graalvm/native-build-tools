@@ -8,8 +8,8 @@ docs.
 The root namespace describes repository-wide contracts. The common libraries and product plugins
 are workspace members named `common`, `gradle`, and `maven`, with local docs under `common/docs/`,
 `native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`. Root docs cite workspace-member
-facts with aliases such as `§common/FS-common-libraries`, `§gradle/FS-gradle-native-image-tasks`,
-and `§maven/FS-maven-goal-surface`; member docs cite repository-wide facts with `§root/<ID>`. Shared plugin
+facts with aliases such as `§common/FS-common-libraries`, `§gradle/FS-native-tasks`,
+and `§maven/FS-goal-surface`; member docs cite repository-wide facts with `§root/<ID>`. Shared plugin
 behavior, CI, build infrastructure, native-test behavior, decisions, and glossary terms stay in
 `docs/spec/`.
 
@@ -64,12 +64,12 @@ The common libraries and product plugins are separate grund workspace members:
 
 | Workflow | Shared spec | Gradle adaptation | Maven adaptation |
 | --- | --- | --- | --- |
-| Build and run application native images | §FS-native-image-builds | §gradle/FS-gradle-native-image-tasks, §gradle/FS-gradle-native-image-invocation | §maven/FS-maven-goal-surface, §maven/FS-maven-native-image-builds |
-| Build and run native tests | §FS-native-tests | §gradle/FS-gradle-native-tests | §maven/FS-maven-native-tests |
-| Generate resource configuration | §FS-resources-and-metadata.1 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
-| Consume reachability metadata | §FS-resources-and-metadata.2 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
-| Collect/copy tracing-agent metadata | §FS-tracing-agent-workflows | §gradle/FS-gradle-tracing-agent | §maven/FS-maven-tracing-agent |
-| Inspect missing metadata | §FS-resources-and-metadata.3 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
+| Build and run application native images | §FS-native-builds | §gradle/FS-native-tasks, §gradle/FS-native-invocation | §maven/FS-goal-surface, §maven/FS-native-builds |
+| Build and run native tests | §FS-native-tests | §gradle/FS-native-tests | §maven/FS-native-tests |
+| Generate resource configuration | §FS-resources-metadata.1 | §gradle/FS-resources-metadata | §maven/FS-resources-metadata |
+| Consume reachability metadata | §FS-resources-metadata.2 | §gradle/FS-resources-metadata | §maven/FS-resources-metadata |
+| Collect/copy tracing-agent metadata | §FS-tracing-agent | §gradle/FS-tracing-agent | §maven/FS-tracing-agent |
+| Inspect missing metadata | §FS-resources-metadata.3 | §gradle/FS-resources-metadata | §maven/FS-resources-metadata |
 
 ## Citation shape
 
@@ -79,9 +79,9 @@ specs describe ownership, dependency direction, module boundaries, and implement
 
 Use the most specific citation that supports the behavior. For example:
 
-- Gradle task behavior from root docs: `§gradle/FS-gradle-native-image-tasks.1`
-- Maven goal behavior from root docs: `§maven/FS-maven-goal-surface.1`
-- cross-plugin parity: `§FS-plugin-common-behavior`
+- Gradle task behavior from root docs: `§gradle/FS-native-tasks.1`
+- Maven goal behavior from root docs: `§maven/FS-goal-surface.1`
+- cross-plugin parity: `§FS-plugin-common`
 - shared resource analysis: `§common/FS-common-libraries.2`
 - native test lifecycle: `§FS-native-tests.1`
 - build infrastructure task surface: `§FS-build-infrastructure.1.2`

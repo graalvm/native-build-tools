@@ -1,4 +1,4 @@
-# FS-plugin-common-behavior: Gradle and Maven expose aligned Native Image plugin behavior
+# FS-plugin-common: Gradle and Maven expose aligned Native Image plugin behavior
 
 Native Build Tools gives Java build users a build-tool-native path to GraalVM Native Image. The
 Gradle and Maven plugins use different build models, but they should answer the same practical
@@ -12,13 +12,13 @@ shared primitives from §common/FS-common-libraries.
 
 | User goal | Gradle adaptation | Maven adaptation | Shared spec |
 | --- | --- | --- | --- |
-| Build the main application image | §gradle/FS-gradle-native-image-tasks | §maven/FS-maven-goal-surface, §maven/FS-maven-native-image-builds | §FS-native-image-builds |
-| Run the application image | §gradle/FS-gradle-native-image-tasks | §maven/FS-maven-native-image-builds | §FS-native-image-builds |
-| Build and run tests as a native image | §gradle/FS-gradle-native-tests | §maven/FS-maven-native-tests | §FS-native-tests |
-| Generate resource configuration | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata | §FS-resources-and-metadata.1 |
-| Use reachability metadata | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata | §FS-resources-and-metadata.2 |
-| Inspect missing metadata | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata | §FS-resources-and-metadata.3 |
-| Collect agent output | §gradle/FS-gradle-tracing-agent | §maven/FS-maven-tracing-agent | §FS-tracing-agent-workflows |
+| Build the main application image | §gradle/FS-native-tasks | §maven/FS-goal-surface, §maven/FS-native-builds | §FS-native-builds |
+| Run the application image | §gradle/FS-native-tasks | §maven/FS-native-builds | §FS-native-builds |
+| Build and run tests as a native image | §gradle/FS-native-tests | §maven/FS-native-tests | §FS-native-tests |
+| Generate resource configuration | §gradle/FS-resources-metadata | §maven/FS-resources-metadata | §FS-resources-metadata.1 |
+| Use reachability metadata | §gradle/FS-resources-metadata | §maven/FS-resources-metadata | §FS-resources-metadata.2 |
+| Inspect missing metadata | §gradle/FS-resources-metadata | §maven/FS-resources-metadata | §FS-resources-metadata.3 |
+| Collect agent output | §gradle/FS-tracing-agent | §maven/FS-tracing-agent | §FS-tracing-agent |
 
 ```mermaid
 sequenceDiagram
@@ -43,17 +43,17 @@ sequenceDiagram
 Both product plugins must support the following capabilities unless the build-tool model makes the
 capability impossible or intentionally different:
 
-- native image builds (§FS-native-image-builds)
+- native image builds (§FS-native-builds)
 - native test compilation and execution (§FS-native-tests)
-- Native Image executable discovery and command-line assembly (§FS-native-image-builds.2, §FS-native-image-builds.3)
+- Native Image executable discovery and command-line assembly (§FS-native-builds.2, §FS-native-builds.3)
 - argument-file handling (§GLOSS-argument-file)
-- resource configuration generation (§FS-resources-and-metadata.1)
-- reachability metadata repository consumption (§FS-resources-and-metadata.2)
-- missing metadata reports (§FS-resources-and-metadata.3)
-- dynamic access metadata (§FS-resources-and-metadata.4)
-- Native Image tracing-agent modes and merge/copy workflows (§FS-tracing-agent-workflows)
-- schema validation (§FS-resources-and-metadata.5)
-- Native Image version-dependent behavior (§FS-native-image-builds.4)
+- resource configuration generation (§FS-resources-metadata.1)
+- reachability metadata repository consumption (§FS-resources-metadata.2)
+- missing metadata reports (§FS-resources-metadata.3)
+- dynamic access metadata (§FS-resources-metadata.4)
+- Native Image tracing-agent modes and merge/copy workflows (§FS-tracing-agent)
+- schema validation (§FS-resources-metadata.5)
+- Native Image version-dependent behavior (§FS-native-builds.4)
 - predictable option precedence (§FS-option-precedence)
 
 When a capability is intentionally different between Gradle and Maven, the product-specific specs
@@ -66,8 +66,8 @@ cross-tool abstraction that feels natural in neither tool.
 Parity must be verified by shared samples, product functional tests, and common module tests.
 Product functional tests should cover the same scenario families in both build tools where
 possible; product-specific tests cover behavior that only one build tool can express. The plugin
-end-to-end execution contracts are §gradle/E2E-gradle-plugin-functional-tests and
-§maven/E2E-maven-plugin-functional-tests; fixture ownership is §AR-build-infrastructure.4.
+end-to-end execution contracts are §gradle/E2E-functional-tests and
+§maven/E2E-functional-tests; fixture ownership is §AR-build-infrastructure.4.
 
 When a new capability is added to one plugin, the implementation should either add the equivalent
 capability to the other plugin, cite the existing matching behavior, or explicitly document why

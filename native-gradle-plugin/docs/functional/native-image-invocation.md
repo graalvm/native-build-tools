@@ -1,4 +1,4 @@
-# FS-gradle-native-image-invocation: Gradle tasks construct and execute Native Image invocations
+# FS-native-invocation: Gradle tasks construct and execute Native Image invocations
 
 Native Image invocation covers executable lookup, preflight checks, command-line assembly, and
 process execution.

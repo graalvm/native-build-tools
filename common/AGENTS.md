@@ -24,7 +24,7 @@ Cross-project citations use §alias/<ID>.
 Repository-wide grounding, non-goals, shared plugin behavior, and CI remain in the `root`
 namespace under `../docs/spec`. Gradle and Maven adapter behavior lives in the `gradle` and
 `maven` namespaces. Prefer local IDs such as `§FS-common-libraries.5.1` for shared library
-behavior, and cite root IDs such as `§root/FS-plugin-common-behavior` only for cross-project
+behavior, and cite root IDs such as `§root/FS-plugin-common` only for cross-project
 contracts.
 
 Use `grund common/<ID>`, `grund common/<ID> --toc`, and `grund common/<ID> --full` from the

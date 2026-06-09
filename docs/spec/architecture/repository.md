@@ -21,8 +21,8 @@ and verification without becoming product API.
 
 | Component | Paths | Role | Spec |
 | --- | --- | --- | --- |
-| Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §gradle/GOAL-gradle-plugin-native-image-workflows, §gradle/AR-gradle-plugin |
-| Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §maven/GOAL-maven-plugin-native-image-workflows, §maven/AR-maven-plugin |
+| Gradle product plugin | `native-gradle-plugin/` | Gradle plugin API, DSL, tasks, command-line providers, Gradle functional tests, and Gradle publication metadata. | §gradle/GOAL-native-workflows, §gradle/AR-gradle-plugin |
+| Maven product plugin | `native-maven-plugin/` | Maven mojos, plugin descriptor generation, Maven configuration objects, Maven functional tests, SBOM behavior, and issue reproducers. | §maven/GOAL-native-workflows, §maven/AR-maven-plugin |
 | Shared libraries | `common/utils/`, `common/graalvm-reachability-metadata/`, `common/junit-platform-native/` | Build-tool-neutral Native Image utilities, metadata repository lookup, resource analysis, agent modes, and JUnit native runtime support. | §common/FS-common-libraries, §common/AR-common-libraries |
 | Native tests, samples, and fixtures | `samples/`, `test-support/`, plugin `src/functionalTest/`, plugin `src/testFixtures/`, `native-maven-plugin/reproducers/` | Realistic projects and reusable test artifacts that verify plugin behavior. | §FS-native-tests, §AR-build-infrastructure.4 |
 | Build infrastructure | `build-logic/`, root Gradle files, `gradle/`, `config/`, `schemas/` | Repository conventions, aggregation, publication, validation, schemas, and generated support artifacts. | §FS-build-infrastructure, §AR-build-infrastructure |
@@ -64,7 +64,7 @@ not be used as shared runtime libraries for product code.
 
 ## 4. How work flows through the system
 
-1. A behavior change starts in the most specific component spec: §FS-plugin-common-behavior for
+1. A behavior change starts in the most specific component spec: §FS-plugin-common for
    behavior shared by both product plugins, focused Gradle functional specs for Gradle,
    focused Maven functional specs for Maven, §common/FS-common-libraries for shared library behavior,
    §FS-native-tests for native-test behavior,
@@ -74,8 +74,8 @@ not be used as shared runtime libraries for product code.
    owns it. Java source comments use marked `§<ID>` citations; Checkstyle allows `§` as the only
    non-ASCII citation exception.
 3. Unit tests, functional tests, and samples validate the changed behavior locally through the
-   commands specified by §gradle/E2E-gradle-plugin-functional-tests,
-   §maven/E2E-maven-plugin-functional-tests, and §FS-native-tests.6.
+   commands specified by §gradle/E2E-functional-tests,
+   §maven/E2E-functional-tests, and §FS-native-tests.6.
 4. Pull request CI runs the matching workflow gates from §AR-repository-ci and validates grund
    citations through §AR-repository-ci.1.1.
 5. Release and snapshot infrastructure publishes the externally visible plugin artifacts only

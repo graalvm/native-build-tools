@@ -1,4 +1,4 @@
-# FS-maven-goal-surface: Maven goals expose Native Image workflows
+# FS-goal-surface: Maven goals expose Native Image workflows
 
 The Maven plugin exposes Native Image workflows as Maven goals. Goal names must work for direct
 command-line use and for profile-bound builds that run through normal Maven lifecycle phases.
@@ -22,7 +22,7 @@ mvn -Pnative -DquickBuild -DskipTests package
 ```
 
 The deprecated `native:build` goal may remain as a compatibility alias, but it must warn users and
-point to `native:compile-no-fork`, protecting §REQ-maven-plugin-goal-surface-stability.
+point to `native:compile-no-fork`, protecting §REQ-goal-surface.
 
 ## 2. Test goal
 
@@ -42,16 +42,16 @@ The support goals should each answer a practical user question:
 configuration for the main and test classpaths. `native:generateDynamicAccessMetadata` prepares
 dynamic access metadata when a build report is requested. `native:add-reachability-metadata`
 resolves repository metadata and adds it to the configuration directories used by native builds.
-These goals expose §root/FS-resources-and-metadata.
+These goals expose §root/FS-resources-metadata.
 
 `native:merge-agent-files` merges tracing-agent output with `native-image-configure`, and
 `native:metadata-copy` copies or merges selected agent output into a configured metadata
-directory. These goals expose §root/FS-tracing-agent-workflows and §common/FS-common-libraries.4.
+directory. These goals expose §root/FS-tracing-agent and §common/FS-common-libraries.4.
 
 `native:list-libraries-missing-metadata` reports dependencies not covered by the configured
 reachability metadata repository. `native:write-args-file` writes the native-image arguments that
 Maven would pass, so users can inspect or reuse the invocation outside Maven. These goals expose
-§root/FS-resources-and-metadata and §root/FS-option-precedence.
+§root/FS-resources-metadata and §root/FS-option-precedence.
 
 ## 4. Lifecycle bindings
 

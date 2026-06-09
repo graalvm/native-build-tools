@@ -1,11 +1,11 @@
-# E2E-maven-plugin-functional-tests: Maven functional tests exercise real Maven Native Image builds
+# E2E-functional-tests: Maven functional tests exercise real Maven Native Image builds
 
 Maven end-to-end coverage lives under `native-maven-plugin/src/functionalTest/`. These tests run
 sample projects, generated projects, or issue reproducers through an isolated Maven executor,
 seed a local Maven repository with plugin and support artifacts, and verify the behavior users see
 from the Maven plugin. They provide executable evidence for the focused Maven functional specs
 under `docs/functional/`, §AR-maven-plugin, and the shared product contract in
-§root/FS-plugin-common-behavior.
+§root/FS-plugin-common.
 
 ## 1. Full local suite
 
@@ -38,39 +38,39 @@ goal configuration, lifecycle phase, or generated command line is the failure su
 
 `JavaApplicationFunctionalTest`, `JavaLibraryFunctionalTest`, and profile-based sample builds verify
 `compile-no-fork` bound to lifecycle phases such as `package`. This protects
-§FS-maven-goal-surface.1, §FS-maven-goal-surface.4, and §FS-maven-native-image-builds.
+§FS-goal-surface.1, §FS-goal-surface.4, and §FS-native-builds.
 
 ### 3.2 Direct goal usage
 
 `JavaApplicationFunctionalTest` and related functional tests verify direct goal usage such as
 `native:compile`, `native:write-args-file`, and support goals. This protects
-§FS-maven-goal-surface.1, §FS-maven-goal-surface.3, and §FS-maven-native-image-builds.8.
+§FS-goal-surface.1, §FS-goal-surface.3, and §FS-native-builds.8.
 
 ### 3.3 Native tests
 
 `JavaApplicationWithTestsFunctionalTest`, `MavenTestExecutionFunctionalTests`,
 `JUnitFunctionalTests`, and `issues/ModuleWithoutSourcesFunctionalTest` verify `native:test`, skip
 flags, no-test behavior, runtime arguments, launcher selection, and reactor modules without source
-artifacts. This protects §FS-maven-goal-surface.2, §FS-maven-native-tests, and
+artifacts. This protects §FS-goal-surface.2, §FS-native-tests, and
 §root/FS-native-tests.
 
 ### 3.4 Resources
 
 `JavaApplicationWithResourcesFunctionalTest` verifies main and test resource configuration
-generation and resource propagation into native builds. This protects §FS-maven-native-image-builds.4 and
-§FS-maven-resources-and-metadata.1.
+generation and resource propagation into native builds. This protects §FS-native-builds.4 and
+§FS-resources-metadata.1.
 
 ### 3.5 Reachability metadata
 
 `MetadataRepositoryFunctionalTest`, `OfficialMetadataRepositoryFunctionalTest`, and
 `issues/ExcludeDependenciesFunctionalTest` with `reproducers/issue-612` verify official and local
 metadata repositories, exclusions, forced versions, archives, URLs, and missing metadata reports.
-This protects §FS-maven-resources-and-metadata.2, §FS-maven-resources-and-metadata.3, and §common/FS-common-libraries.5.
+This protects §FS-resources-metadata.2, §FS-resources-metadata.3, and §common/FS-common-libraries.5.
 
 ### 3.6 Tracing agent
 
 `JavaApplicationWithAgentFunctionalTest` verifies `-Dagent=true`, standard/direct/conditional modes,
-disabled stages, merge behavior, and `native:metadata-copy`. This protects §FS-maven-tracing-agent and
+disabled stages, merge behavior, and `native:metadata-copy`. This protects §FS-tracing-agent and
 §common/FS-common-libraries.3.
 
 ### 3.7 Maven integration
@@ -78,8 +78,8 @@ disabled stages, merge behavior, and `native:metadata-copy`. This protects §FS-
 `SBOMFunctionalTest`, `JavaApplicationWithTestsFunctionalTest`, `issues/JavaAppWithTestsAndParentPomFunctionalTest`
 with `reproducers/issue-144`, and `issues/ModuleWithoutSourcesFunctionalTest` with
 `reproducers/issue-727` verify shaded JARs, custom packaging, SBOM behavior, parent POM merging,
-issue reproducers, and local repository seeding. This protects §FS-maven-native-image-builds.6,
-§FS-maven-configuration-model.3, and §AR-maven-plugin.6.
+issue reproducers, and local repository seeding. This protects §FS-native-builds.6,
+§FS-config-model.3, and §AR-maven-plugin.6.
 
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the

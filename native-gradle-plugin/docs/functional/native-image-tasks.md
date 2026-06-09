@@ -1,7 +1,7 @@
-# FS-gradle-native-image-tasks: Gradle native-image tasks build and run Native Image outputs
+# FS-native-tasks: Gradle native-image tasks build and run Native Image outputs
 
 Native image tasks are the user-facing Gradle commands for building, running, and experimenting
-with native executables. They adapt §root/FS-native-image-builds to Gradle task inputs and
+with native executables. They adapt §root/FS-native-builds to Gradle task inputs and
 outputs.
 
 ## 1. Compile tasks
@@ -33,7 +33,7 @@ A failing native test executable must fail the Gradle build.
 
 The plugin must keep compatibility aliases for deprecated task names where they still exist. An
 alias should depend on the replacement task and warn users to use the current name, protecting
-§REQ-gradle-plugin-task-surface-stability.
+§REQ-task-surface.
 
 ## 4. Command-line overrides
 
@@ -57,7 +57,7 @@ the DSL populates, so the command-line value replaces the DSL value for that bui
 
 Build arguments are the documented exception: `--build-args` appends to configured arguments,
 while `--force-build-args` replaces them. The `-Pagent` property overrides the configured agent
-default mode as in §FS-gradle-tracing-agent.1. Because every source writes to one option object,
+default mode as in §FS-tracing-agent.1. Because every source writes to one option object,
 behavior depends on the final value, not on whether the value came from DSL or the command line.
 
 ## 6. Task surface examples

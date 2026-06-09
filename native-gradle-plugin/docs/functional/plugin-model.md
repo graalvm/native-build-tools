@@ -1,4 +1,4 @@
-# FS-gradle-plugin-model: Gradle plugin activation and DSL model
+# FS-plugin-model: Gradle plugin activation and DSL model
 
 The plugin should behave like a normal Gradle Java plugin extension: users apply one plugin ID and
 configure native behavior beside their existing `application`, `java-library`, source set, and test
@@ -14,7 +14,7 @@ can apply plugins in either order without relying on eager configuration.
 
 The plugin must expose a `graalvmNative` extension. This is the durable Gradle DSL for native
 binaries, Native Image options, generated resources, reachability metadata, native tests, and
-tracing-agent workflows from §root/FS-plugin-common-behavior.
+tracing-agent workflows from §root/FS-plugin-common.
 
 For a typical application, users configure the same binary that `nativeCompile` builds:
 
@@ -59,7 +59,7 @@ set so `nativeTest` can build and run native JUnit tests without a separate bina
 
 Users may add entries to the `binaries` container for extra source sets or entry points. Each entry
 must create matching compile and run tasks with predictable task names derived from the binary
-name. Custom binaries apply §root/FS-native-image-builds without forcing users outside the
+name. Custom binaries apply §root/FS-native-builds without forcing users outside the
 plugin's option model.
 
 ## 5. Activation examples

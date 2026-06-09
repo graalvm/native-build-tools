@@ -49,7 +49,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult
 import org.graalvm.reachability.MissingMetadataCommandSupport
 import spock.lang.Specification
 
-// Protects Gradle missing-metadata dependency selection. §FS-gradle-resources-and-metadata.4.
+// Protects Gradle missing-metadata dependency selection. §FS-resources-metadata.4.
 class ListLibrariesMissingMetadataTest extends Specification {
 
     def "selects only direct external module dependencies"() {

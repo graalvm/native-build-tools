@@ -8,11 +8,11 @@ Build Tools must do, while architecture specs explain where that behavior is imp
 
 | File | Holds |
 | --- | --- |
-| [plugin-common.md](plugin-common.md) | Parity boundary (§FS-plugin-common-behavior) and Reader View. |
-| [native-image-builds.md](native-image-builds.md) | Building native images from project state (§FS-native-image-builds). |
+| [plugin-common.md](plugin-common.md) | Parity boundary (§FS-plugin-common) and Reader View. |
+| [native-image-builds.md](native-image-builds.md) | Building native images from project state (§FS-native-builds). |
 | [native-tests.md](native-tests.md) | Compiling and running JUnit tests as a native image (§FS-native-tests). |
-| [resources-and-metadata.md](resources-and-metadata.md) | Resource config, reachability metadata, missing-metadata reports, dynamic access metadata, schema validation (§FS-resources-and-metadata). |
-| [tracing-agent.md](tracing-agent.md) | Native Image tracing-agent attachment and post-processing (§FS-tracing-agent-workflows). |
+| [resources-and-metadata.md](resources-and-metadata.md) | Resource config, reachability metadata, missing-metadata reports, dynamic access metadata, schema validation (§FS-resources-metadata). |
+| [tracing-agent.md](tracing-agent.md) | Native Image tracing-agent attachment and post-processing (§FS-tracing-agent). |
 | [option-precedence.md](option-precedence.md) | Command-line vs durable configuration precedence (§FS-option-precedence). |
 | [build-infrastructure.md](build-infrastructure.md) | Build, documentation, release, and generated artifact behavior (§FS-build-infrastructure). |
 
