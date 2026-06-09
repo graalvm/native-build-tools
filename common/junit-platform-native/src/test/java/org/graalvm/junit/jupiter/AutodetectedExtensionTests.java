@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,67 +38,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-plugins {
-    id 'java-library'
-    id 'checkstyle'
-    id 'signing'
-    id 'org.graalvm.build.java'
-    id 'org.graalvm.build.publishing'
-}
 
-maven {
-    name = "JUnit Platform Native"
-    description = 'JUnit Platform support for GraalVM Native Image'
-}
-dependencies {
-    compileOnly libs.graalvm.svm
-    compileOnly(platform(libs.test.junit.bom))
-    compileOnly libs.test.junit.platform.console
-    compileOnly libs.test.junit.platform.launcher
-    compileOnly libs.test.junit.jupiter.core
-    testImplementation libs.test.junit.vintage
+package org.graalvm.junit.jupiter;
 
-    testImplementation libs.test.junit.jupiter.core
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-    testRuntimeOnly(platform(libs.test.junit.bom))
-    testCompileOnly(platform(libs.test.junit.bom))
-    testRuntimeOnly libs.test.junit.platform.console
-    testRuntimeOnly libs.test.junit.platform.launcher
-    testRuntimeOnly libs.test.junit.jupiter.core
-}
+class AutodetectedExtensionTests {
+    static final String EXTENSION_PROPERTY = "org.graalvm.junit.jupiter.AutodetectedExtension.invoked";
 
-apply from: "gradle/native-image-testing.gradle"
-
-tasks.named('test') {
-    doFirst {
-        delete { delete testIdsDir.get().asFile }
+    @Test
+    void appliesServiceRegisteredExtension() {
+        // Verifies native-test support for Jupiter service-registered extensions. §root/FS-native-tests.2.
+        Assertions.assertEquals("true", System.getProperty(EXTENSION_PROPERTY));
     }
-    useJUnitPlatform() {
-        systemProperty('junit.jupiter.extensions.autodetection.enabled', true)
-        systemProperty('junit.platform.listeners.uid.tracking.enabled', true)
-        systemProperty('junit.platform.listeners.uid.tracking.output.dir', "${testIdsDir.get().asFile.absolutePath}/test_ids")
-    }
-}
-
-tasks.withType(Test).configureEach {
-    testLogging {
-        events "standardOut", "passed", "skipped", "failed"
-    }
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
-signing {
-    required { gradle.taskGraph.hasTask("publish") }
-    sign publishing.publications.mavenJava
-}
-
-tasks.withType(Checkstyle).configureEach {
-    setConfigFile(layout.projectDirectory.dir("../../config/checkstyle.xml").asFile)
 }

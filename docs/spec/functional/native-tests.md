@@ -56,11 +56,13 @@ following must happen during image build:
 - Provider classes for JUnit Platform, Jupiter, and Vintage must contribute their Native Image
   metadata when the corresponding engine is on the test classpath. New providers may be added
   when the repository supports new JUnit Platform behavior.
+- When Jupiter extension autodetection is enabled, service-registered
+  `org.junit.jupiter.api.extension.Extension` providers must be available to the native test image.
 
 The repository's native-test fixtures cover nested tests, method sources, CSV sources, enum
-sources, converters, aggregators, class ordering, and display-name generation. The shared launcher
-and feature must preserve JUnit Platform semantics for any scenario the repository's fixtures
-exercise.
+sources, converters, aggregators, class ordering, display-name generation, and service-registered
+Jupiter extensions. The shared launcher and feature must preserve JUnit Platform semantics for
+any scenario the repository's fixtures exercise.
 
 ## 3. Native launcher and feature
 

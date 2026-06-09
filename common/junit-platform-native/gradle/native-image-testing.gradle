@@ -109,6 +109,7 @@ abstract class NativeTestArgumentProvider implements CommandLineArgumentProvider
                 "--no-fallback",
                 "--features=org.graalvm.junit.platform.JUnitPlatformFeature",
                 "-o", "native-image-tests",
+                "-Djunit.jupiter.extensions.autodetection.enabled=true",
                 "-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"
         ]
 
@@ -159,5 +160,8 @@ tasks.register("nativeTest", Exec) {
     dependsOn nativeTestCompile
     workingDir = "${buildDir}"
     executable = "${buildDir}/native-image-tests"
-    args = ["-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"]
+    args = [
+            "-Djunit.jupiter.extensions.autodetection.enabled=true",
+            "-Djunit.platform.listeners.uid.tracking.output.dir=${testIdsDir.get().asFile.absolutePath}"
+    ]
 }
