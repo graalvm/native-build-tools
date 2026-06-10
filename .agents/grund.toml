@@ -95,7 +95,7 @@ title = "Glossary of domain terms"
 
 [scan]
 
-include = ["AGENTS.md", "docs/spec", "build-logic", "samples", "test-support", ".github/workflows", ".github/actions"]
+include = ["AGENTS.md", ".pre-commit-config.yaml", "docs/spec", "build-logic", "samples", "test-support", ".github/workflows", ".github/actions"]
 
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 

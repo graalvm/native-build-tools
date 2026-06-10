@@ -1,4 +1,4 @@
-# FS-maven-configuration-model: Maven XML and command-line properties configure Native Image builds
+# FS-config-model: Maven XML and command-line properties configure Native Image builds
 
 The plugin maps Maven XML configuration and system properties into one native image option model.
 Users should be able to keep stable build settings in the POM and pass short-lived overrides with
@@ -37,8 +37,8 @@ toolchain-provided Native Image executable must fail clearly.
 
 Maven's standard parameter binding decides precedence between configuration sources. When a
 parameter is set in `<configuration>` XML, that explicit value takes precedence; the matching
-command-line property from §FS-maven-configuration-model.2, such as `-DskipNativeBuild=...`, applies only
+command-line property from [§FS-config-model.2](configuration-model.md#2-command-line-properties), such as `-DskipNativeBuild=...`, applies only
 when no explicit configuration is present. The exception is a parameter intentionally modeled to
-let the property win for one run, such as the agent toggle in §FS-maven-tracing-agent.1 where
+let the property win for one run, such as the agent toggle in [§FS-tracing-agent.1](tracing-agent.md#1-agent-enablement) where
 `-Dagent=false` disables an agent enabled in the POM. This is the Maven adaptation of
-§root/FS-option-precedence.
+[§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).

@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 
 /**
  * Copies and optionally merges tracing agent metadata into {@code META-INF/native-image} for packaging.
- * §FS-maven-goal-surface.3, §FS-maven-tracing-agent.4.
+ * §FS-goal-surface.3, §FS-tracing-agent.4.
  */
 @Mojo(name = "metadata-copy", defaultPhase = LifecyclePhase.NONE)
 public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {

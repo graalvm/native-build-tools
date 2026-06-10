@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      # §AR-repository-ci.1.1
+      - id: grund-check
+        name: grund check
+        entry: grund check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      # §AR-repository-ci.1.1
+      - id: grund-fmt-marker-cross-refs-check
+        name: grund fmt marker and cross-ref check
+        entry: grund fmt . --marker --cross-refs --check
+        language: system
+        pass_filenames: false
+        always_run: true

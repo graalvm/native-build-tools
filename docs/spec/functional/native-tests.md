@@ -4,8 +4,8 @@ Both product plugins must take an ordinary JVM JUnit Platform test setup and pro
 test binary that executes the same selected tests. The user keeps writing standard JUnit tests; the
 plugin builds a native image of those tests and runs it. A failing native test executable must
 fail the build in both tools. This contract realizes the native-test slice of
-§GOAL-plugin-parity and is adapted by §gradle/FS-gradle-native-tests and
-§maven/FS-maven-native-tests.
+[§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven) and is adapted by [§gradle/FS-native-tests](../../../native-gradle-plugin/docs/functional/native-tests.md#fs-native-tests-gradle-tasks-compile-and-run-native-junit-tests) and
+[§maven/FS-native-tests](../../../native-maven-plugin/docs/functional/native-tests.md#fs-native-tests-maven-goals-compile-and-run-native-junit-tests).
 
 ```mermaid
 flowchart LR
@@ -27,7 +27,7 @@ flowchart LR
 | Native launcher | `NativeImageJUnitLauncher` (entry point in the native test image) | task/goal executes the binary, maps exit code to build result |
 | Test selection | shared unique-id file format | plugin runs the JVM test to produce that file |
 | Skip and lifecycle behavior | shared skip concepts (skip image, skip execution) | build-tool-specific flags and task/goal selection |
-| Compatibility mode | shared mode semantics (§GLOSS-compatibility-mode) | plugin detects compatibility mode from build args |
+| Compatibility mode | shared mode semantics ([§GLOSS-compatibility-mode](../glossary.md#gloss-compatibility-mode-native-image-compatibility-mode)) | plugin detects compatibility mode from build args |
 
 ## 1. Two-phase lifecycle
 
@@ -49,7 +49,7 @@ execution requires an explicit plugin setting.
 Native Image cannot rely on runtime reflection and resource scanning for test discovery, so the
 following must happen during image build:
 
-- `JUnitPlatformFeature` (§common/FS-common-libraries.3 via Native Image `Feature` API) must
+- `JUnitPlatformFeature` ([§common/FS-common-libraries.3](../../../common/docs/functional-spec.md#3-native-image-tracing-agent) via Native Image `Feature` API) must
   register every test class identified by the JVM run, plus the JUnit Platform engine classes,
   reporting classes, and `NativeImageJUnitLauncher` itself.
 - The image must include the test resources the JVM test run would see.
@@ -81,13 +81,13 @@ assemble test classes, resources, dependencies, and selected test identifiers, h
 tool's normal test-skip concepts, and let users pass runtime arguments to the native test
 executable. Runtime arguments must not affect image generation.
 
-Gradle-specific task wiring is specified by §gradle/FS-gradle-native-tests. Maven-specific goal
-behavior is specified by §maven/FS-maven-native-tests.
+Gradle-specific task wiring is specified by [§gradle/FS-native-tests](../../../native-gradle-plugin/docs/functional/native-tests.md#fs-native-tests-gradle-tasks-compile-and-run-native-junit-tests). Maven-specific goal
+behavior is specified by [§maven/FS-native-tests](../../../native-maven-plugin/docs/functional/native-tests.md#fs-native-tests-maven-goals-compile-and-run-native-junit-tests).
 
 ## 5. Compatibility mode
 
 When the native test image is built with Native Image compatibility mode
-(§GLOSS-compatibility-mode), the test launcher path changes. Adapters must detect compatibility
+([§GLOSS-compatibility-mode](../glossary.md#gloss-compatibility-mode-native-image-compatibility-mode)), the test launcher path changes. Adapters must detect compatibility
 mode from the configured build arguments or Native Image options environment available to them.
 
 - **Compatibility mode detected:** the test image may use JUnit's standard `ConsoleLauncher`. The
@@ -102,4 +102,4 @@ mode from the configured build arguments or Native Image options environment ava
 unique-id collection, and provider behavior. Both plugins' functional test suites must cover at
 least: application-with-tests, standalone JUnit, multi-project, Kotlin tests where the build tool
 supports them, custom source sets where supported, no-test (zero-test-class) behavior, and
-compatibility-mode coverage. Scenario ownership is §AR-build-infrastructure.4.1.
+compatibility-mode coverage. Scenario ownership is [§AR-build-infrastructure.4.1](../architecture/build-infrastructure.md#41-fixture-groups).

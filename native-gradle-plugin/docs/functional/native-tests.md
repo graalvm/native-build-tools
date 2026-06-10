@@ -1,8 +1,8 @@
-# FS-gradle-native-tests: Gradle tasks compile and run native JUnit tests
+# FS-native-tests: Gradle tasks compile and run native JUnit tests
 
 Gradle native tests let users keep their normal JUnit test source set and ask the plugin to build
 and execute those tests as a native image. Runtime semantics are defined by
-§root/FS-native-tests.
+[§root/FS-native-tests](../../../docs/spec/functional/native-tests.md#fs-native-tests-both-plugins-compile-and-execute-junit-tests-as-a-native-image).
 
 ## 1. Test task integration
 
@@ -31,7 +31,7 @@ test failures must fail the Gradle build in the same way Java test failures do.
 
 When Native Image compatibility mode is detected, Gradle native test behavior may use the original
 JUnit ConsoleLauncher path rather than the Native Build Tools launcher path, as described by
-§root/FS-native-tests.5.
+[§root/FS-native-tests.5](../../../docs/spec/functional/native-tests.md#5-compatibility-mode).
 
 ## 4. Native test command examples
 

@@ -24,7 +24,7 @@ Cross-project citations use §alias/<ID>.
 Repository-wide grounding, non-goals, shared plugin behavior, and CI remain in the `root`
 namespace under `../docs/spec`. Gradle and Maven adapter behavior lives in the `gradle` and
 `maven` namespaces. Prefer local IDs such as `§FS-common-libraries.5.1` for shared library
-behavior, and cite root IDs such as `§root/FS-plugin-common-behavior` only for cross-project
+behavior, and cite root IDs such as `§root/FS-plugin-common` only for cross-project
 contracts.
 
 Use `grund common/<ID>`, `grund common/<ID> --toc`, and `grund common/<ID> --full` from the
@@ -38,11 +38,11 @@ behavior.
 
 - `utils/src/main/java/org/graalvm/buildtools/utils/`: shared Native Image argument handling,
   resource analysis, agent configuration models, schema validation, JUnit dependency helpers, and
-  constants. §FS-common-libraries.1, §FS-common-libraries.2, §FS-common-libraries.3,
-  §FS-common-libraries.4, §FS-common-libraries.7
+  constants. [§FS-common-libraries.1](docs/functional-spec.md#1-shared-native-image-utilities), [§FS-common-libraries.2](docs/functional-spec.md#2-resource-configuration), [§FS-common-libraries.3](docs/functional-spec.md#3-native-image-tracing-agent),
+  [§FS-common-libraries.4](docs/functional-spec.md#4-agent-metadata-post-processing), [§FS-common-libraries.7](docs/functional-spec.md#7-schema-validation)
 - `graalvm-reachability-metadata/src/main/java/org/graalvm/reachability/`: reachability metadata
   repository parsing, version selection, query classification, and missing metadata reporting.
-  §FS-common-libraries.5, §FS-common-libraries.6, §AR-common-libraries.3
+  [§FS-common-libraries.5](docs/functional-spec.md#5-reachability-metadata-repository), [§FS-common-libraries.6](docs/functional-spec.md#6-missing-metadata-reporting), [§AR-common-libraries.3](docs/architecture.md#3-reachability-metadata-architecture)
 - `junit-platform-native/src/main/java/org/graalvm/junit/platform/`: JUnit native launcher,
   Native Image feature registration, and test-engine configuration providers.
-  §AR-common-libraries.4
+  [§AR-common-libraries.4](docs/architecture.md#4-junit-native-architecture)

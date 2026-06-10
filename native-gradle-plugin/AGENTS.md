@@ -14,9 +14,9 @@ behavior from the local docs first:
 
 Repository-wide grounding, non-goals, shared plugin behavior, and CI remain in the `root`
 namespace under `../docs/spec`. Common library behavior lives in the `common` namespace under
-`../common/docs`. Prefer local IDs such as `§FS-gradle-native-image-tasks.1` for Gradle behavior, and cite
-root or common IDs such as `§root/FS-plugin-common-behavior`,
-`§root/NGOAL-no-build-tool-flags-for-native-image-flags`, or `§common/FS-common-libraries` only for
+`../common/docs`. Prefer local IDs such as `§FS-native-tasks.1` for Gradle behavior, and cite
+root or common IDs such as `§root/FS-plugin-common`,
+`§root/NGOAL-no-flag-mirroring`, or `§common/FS-common-libraries` only for
 cross-project contracts. Java comments use the same marked citation shape because Checkstyle allows
 `§` as the only non-ASCII citation exception.
 
@@ -31,20 +31,20 @@ behavior.
 
 - `src/main/java/org/graalvm/buildtools/gradle/NativeImagePlugin.java`: plugin registration,
   extension setup, default binary wiring, task registration, and Gradle model integration.
-  §FS-gradle-plugin-model, §AR-gradle-plugin.2, §AR-gradle-plugin.3
+  [§FS-plugin-model](docs/functional/plugin-model.md#fs-plugin-model-gradle-plugin-activation-and-dsl-model), [§AR-gradle-plugin.2](docs/architecture.md#2-extension-and-option-model), [§AR-gradle-plugin.3](docs/architecture.md#3-task-graph-architecture)
 - `src/main/java/org/graalvm/buildtools/gradle/tasks/`: user-visible Gradle tasks for native
   compile/run/test, resource generation, metadata collection, missing metadata reporting, dynamic
-  access metadata, and agent metadata copy. §FS-gradle-native-image-tasks, §FS-gradle-resources-and-metadata,
-  §FS-gradle-tracing-agent, §FS-gradle-native-tests
+  access metadata, and agent metadata copy. [§FS-native-tasks](docs/functional/native-image-tasks.md#fs-native-tasks-gradle-native-image-tasks-build-and-run-native-image-outputs), [§FS-resources-and-metadata](docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata),
+  [§FS-tracing-agent](docs/functional/tracing-agent.md#fs-tracing-agent-gradle-tasks-attach-and-post-process-native-image-tracing-agent-metadata), [§FS-native-tests](docs/functional/native-tests.md#fs-native-tests-gradle-tasks-compile-and-run-native-junit-tests)
 - `src/main/java/org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.java`:
-  native-image argument construction and argument-file behavior. §FS-gradle-native-image-invocation.3,
-  §FS-gradle-native-image-invocation.4
+  native-image argument construction and argument-file behavior. [§FS-native-invocation.3](docs/functional/native-image-invocation.md#3-command-line-construction),
+  [§FS-native-invocation.4](docs/functional/native-image-invocation.md#4-argument-files)
 - `src/main/java/org/graalvm/buildtools/gradle/internal/NativeImageExecutableLocator.java`:
-  GraalVM and native-image executable discovery for Gradle tasks. §FS-gradle-native-image-invocation.1,
-  §AR-gradle-plugin.4
+  GraalVM and native-image executable discovery for Gradle tasks. [§FS-native-invocation.1](docs/functional/native-image-invocation.md#1-executable-discovery),
+  [§AR-gradle-plugin.4](docs/architecture.md#4-command-line-and-executable-services)
 - `src/main/java/org/graalvm/buildtools/gradle/NativeImageService.java`: concurrency control for
-  parallel native-image builds. §FS-gradle-native-image-invocation.6
+  parallel native-image builds. [§FS-native-invocation.6](docs/functional/native-image-invocation.md#6-parallel-native-builds)
 - `src/functionalTest/`: Gradle TestKit scenarios and generated/sample project coverage.
-  §E2E-gradle-plugin-functional-tests
+  [§E2E-functional-tests](docs/e2e.md#e2e-functional-tests-gradle-functional-tests-exercise-real-gradle-native-image-builds)
 - `src/testFixtures/`: reusable Gradle functional-test fixtures and project builders.
-  §AR-gradle-plugin.6
+  [§AR-gradle-plugin.6](docs/architecture.md#6-tests-and-fixtures)

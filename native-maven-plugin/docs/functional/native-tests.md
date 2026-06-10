@@ -1,4 +1,4 @@
-# FS-maven-native-tests: Maven goals compile and run native JUnit tests
+# FS-native-tests: Maven goals compile and run native JUnit tests
 
 Maven native tests let users keep their normal test source tree and ask the plugin to build and
 run those tests as a native image through Maven's test lifecycle.
@@ -21,7 +21,7 @@ whether the goal fails or skips.
 By default, `native:test` must build the image with
 `org.graalvm.junit.platform.NativeImageJUnitLauncher` and the `JUnitPlatformFeature`. If Native
 Image compatibility mode is enabled, it must use the original JUnit ConsoleLauncher path described
-by §root/FS-native-tests.5.
+by [§root/FS-native-tests.5](../../../docs/spec/functional/native-tests.md#5-compatibility-mode).
 
 ## 4. Test execution
 

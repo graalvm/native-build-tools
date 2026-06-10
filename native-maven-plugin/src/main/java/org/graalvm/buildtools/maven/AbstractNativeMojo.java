@@ -173,7 +173,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     }
 
     private Path getDefaultRepo(Path destinationRoot) {
-        // try to get default Metadata Repository from Maven Central
+        // Prefer the default metadata repository artifact when the user did not pin a source. §FS-resources-and-metadata.2.
         URL targetUrl = resolveDefaultMetadataRepositoryUrl();
         if (targetUrl == null) {
             logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
@@ -202,7 +202,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 String version = metadataRepositoryConfiguration.getVersion();
                 if (version == null) {
                     // Both the URL and version are unset, so we want to use
-                    // the version from Maven Central
+                    // the version from Maven Central. §FS-resources-and-metadata.2.
                     targetUrl = resolveDefaultMetadataRepositoryUrl();
                     if (targetUrl == null) {
                         logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
