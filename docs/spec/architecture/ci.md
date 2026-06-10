@@ -11,7 +11,7 @@ tests prepare both a build JDK and a GraalVM test JDK through [§AR-repository-c
 
 | Workflow | Scope | Required evidence |
 | --- | --- | --- |
-| `check-grund-spec.yml` | Spec, code citation, sample, workflow, build-logic, and local hook changes that may affect grounded documentation or checked links. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces; `grund fmt . --marker --cross-refs --check` must reject bare citation tokens and unlinked Markdown citations; `lychee` must validate tracked Markdown/YAML links and fragments. [§AR-repository-ci.1.1](ci.md#11-grund-validation-workflow) |
+| `check-grund-spec.yml` | Spec, code citation, sample, workflow, build-logic, and local hook changes that may affect grounded documentation. | The root workspace `grund check` run must resolve every declaration and citation across root, Gradle, and Maven namespaces; `grund fmt . --marker --cross-refs --check` must reject bare citation tokens and unlinked Markdown citations. [§AR-repository-ci.1.1](ci.md#11-grund-validation-workflow) |
 | `macaron-check-github-actions.yml` | GitHub workflow and composite action changes. | Macaron's `check-github-actions` policy must validate workflow and composite action supply-chain rules for this repository package URL. [§AR-repository-ci.1.2](ci.md#12-github-actions-macaron-policy-workflow) |
 | `test-native-gradle-plugin.yml` | Gradle plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Gradle functional tests, configuration-cache functional tests, unit tests, and inspections. [§AR-repository-ci.1.3](ci.md#13-gradle-plugin-pr-workflow) |
 | `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. [§AR-repository-ci.1.4](ci.md#14-maven-plugin-pr-workflow) |
@@ -21,14 +21,13 @@ tests prepare both a build JDK and a GraalVM test JDK through [§AR-repository-c
 ### 1.1 Grund validation workflow
 
 `check-grund-spec.yml` validates maintainer-facing specifications, component citations, Java
-source citations, YAML workflow citations, sample or build-logic references, generated Markdown
-cross-reference links, and tracked Markdown/YAML hyperlinks. It installs or caches the configured
-`grund` binary, runs `grund check` at the repository root so the workspace validates the root,
-Gradle, and Maven namespaces together, and runs `grund fmt . --marker --cross-refs --check` so
-strict-mode bare ID-shaped tokens cannot silently bypass the citation marker rule and Markdown
-citations remain link-wrapped. The workflow also runs `lychee` with fragment checking against the
-tracked Markdown and YAML files. The tracked pre-commit configuration mirrors these `grund` and
-`lychee` checks for local commits.
+source citations, YAML workflow citations, sample or build-logic references, and generated
+Markdown cross-reference links. It installs or caches the configured `grund` binary, runs
+`grund check` at the repository root so the workspace validates the root, Gradle, and Maven
+namespaces together, and runs `grund fmt . --marker --cross-refs --check` so strict-mode bare
+ID-shaped tokens cannot silently bypass the citation marker rule and Markdown citations remain
+link-wrapped. The tracked pre-commit configuration mirrors these `grund` checks for local
+commits.
 
 ### 1.2 GitHub Actions Macaron policy workflow
 

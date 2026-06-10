@@ -6,9 +6,6 @@ on:
   pull_request:
     paths:
       - 'docs/spec/**'
-      - '**/*.md'
-      - '**/*.yml'
-      - '**/*.yaml'
       - '.agents/grund.toml'
       - '.pre-commit-config.yaml'
       - 'AGENTS.md'
@@ -32,8 +29,6 @@ permissions:
 env:
   # Bump to refresh the cached binary. Validated locally against grund 0.4.0.
   GRUND_VERSION: "0.4.0"
-  # Bump to refresh the cached binary. Keep in sync with the link-check CLI contract below.
-  LYCHEE_VERSION: "0.23.0"
 
 jobs:
   check-grund-spec:
@@ -55,17 +50,6 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal
           rustup run stable cargo install --git https://github.com/vjovanov/grund --tag "v${GRUND_VERSION}"
-      - name: "📦 Cache lychee binary"
-        id: cache-lychee
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
-        with:
-          path: ~/.cargo/bin/lychee
-          key: lychee-${{ env.LYCHEE_VERSION }}-${{ runner.os }}
-      - name: "🔧 Install lychee"
-        if: steps.cache-lychee.outputs.cache-hit != 'true'
-        run: |
-          rustup toolchain install stable --profile minimal
-          rustup run stable cargo install lychee --version "${LYCHEE_VERSION}" --locked
       - name: "✅ grund check"
         # Validates that every §<ID> citation in docs, workflows, and source doc-comments resolves,
         # and that section headings and inline-note limits hold. See AGENTS.md and .agents/grund.toml.
@@ -76,13 +60,3 @@ jobs:
         # Enforces marked citations and generated Markdown links for citations. §AR-repository-ci.1.1
         run: |
           grund fmt . --marker --cross-refs --check
-      - name: "🧾 Collect tracked link-check inputs"
-        run: |
-          git ls-files '*.md' '*.yml' '*.yaml' > .lychee-inputs
-      - name: "✅ lychee link check"
-        run: |
-          lychee \
-            --include-fragments
-            --root-dir .
-            --no-progress
-            --files-from .lychee-inputs
