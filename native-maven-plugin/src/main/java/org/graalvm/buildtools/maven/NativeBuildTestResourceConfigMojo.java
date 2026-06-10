@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 
 /**
  * Scans test resources and generates resource metadata for them.
- * §FS-goal-surface.3, §FS-resources-metadata.1.
+ * §FS-goal-surface.3, §FS-resources-and-metadata.1.
  */
 @Mojo(
         name = "generateTestResourceConfig",

@@ -17,7 +17,7 @@ Layer creation and consumption options feed Native Image command-line constructi
 Reachability information about reflection, resources, JNI, and other dynamic access that Native
 Image cannot infer statically. The plugins can generate it from a Native Image build report before
 compilation, using the reachability metadata repository and the runtime classpath graph; see
-[§gradle/FS-resources-metadata.5](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#5-dynamic-access-metadata) and [§maven/FS-native-builds.5](../../native-maven-plugin/docs/functional/native-image-builds.md#5-dynamic-access-metadata).
+[§gradle/FS-resources-and-metadata.5](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#5-dynamic-access-metadata) and [§maven/FS-native-builds.5](../../native-maven-plugin/docs/functional/native-image-builds.md#5-dynamic-access-metadata).
 
 # GLOSS-reachability-metadata-repository: GraalVM Reachability Metadata Repository
 

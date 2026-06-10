@@ -16,8 +16,8 @@ Refines [§GRUND-why-nbt](grund.md#grund-why-nbt-native-build-tools-gives-jvm-pr
 GraalVM Reachability Metadata Repository by default so users benefit from current third-party
 library metadata without vendoring Native Image configuration. The default must remain overridable
 for reproducible builds, offline builds, local repositories, and deliberately pinned metadata
-versions. Realized by [§FS-resources-metadata.2](functional/resources-and-metadata.md#2-reachability-metadata-repository), [§common/FS-common-libraries.5](../../common/docs/functional-spec.md#5-reachability-metadata-repository),
-[§gradle/FS-resources-metadata.3](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection), and [§maven/FS-resources-metadata.2](../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata); constrained by
+versions. Realized by [§FS-resources-and-metadata.2](functional/resources-and-metadata.md#2-reachability-metadata-repository), [§common/FS-common-libraries.5](../../common/docs/functional-spec.md#5-reachability-metadata-repository),
+[§gradle/FS-resources-and-metadata.3](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection), and [§maven/FS-resources-and-metadata.2](../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata); constrained by
 [§REQ-support-matrix](requirements.md#req-support-matrix-supported-jdk-graalvm-gradle-and-maven-versions-are-declared-and-tested) and [§REQ-backwards-compatibility](requirements.md#req-backwards-compatibility-plugin-upgrades-keep-existing-gradle-and-maven-builds-working).
 
 # GOAL-plugin-parity: Shared native-image behavior remains consistent across Gradle and Maven

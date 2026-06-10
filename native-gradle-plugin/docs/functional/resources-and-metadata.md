@@ -1,7 +1,7 @@
-# FS-resources-metadata: Gradle tasks generate resources and consume reachability metadata
+# FS-resources-and-metadata: Gradle tasks generate resources and consume reachability metadata
 
 The plugin exposes the shared metadata and resource contracts in
-[§root/FS-resources-metadata](../../../docs/spec/functional/resources-and-metadata.md#fs-resources-metadata-both-plugins-generate-resource-config-and-consume-reachability-metadata) and [§common/FS-common-libraries](../../../common/docs/functional-spec.md#fs-common-libraries-common-libraries-provide-shared-native-image-utilities-and-metadata-workflows) through Gradle DSL and tasks.
+[§root/FS-resources-and-metadata](../../../docs/spec/functional/resources-and-metadata.md#fs-resources-and-metadata-both-plugins-generate-resource-config-and-consume-reachability-metadata) and [§common/FS-common-libraries](../../../common/docs/functional-spec.md#fs-common-libraries-common-libraries-provide-shared-native-image-utilities-and-metadata-workflows) through Gradle DSL and tasks.
 
 ## 1. Resource autodetection
 

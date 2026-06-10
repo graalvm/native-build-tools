@@ -613,7 +613,7 @@ public class NativeImagePlugin implements Plugin<Project> {
         }
         if (defaultUri.equals(configuredUri)) {
             // The user didn't configure any custom URI or repo version, so we're going to
-            // use the Maven artifact instead
+            // use the Maven artifact instead. §FS-resources-and-metadata.3.
             Configuration configuration = project.getConfigurations().detachedConfiguration();
             Dependency e = project.getDependencies().create(REPOSITORY_COORDINATES);
             configuration.getDependencies().add(e);
@@ -710,6 +710,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private void configureNativeConfigurationRepo(ExtensionAware graalvmNative) {
         GraalVMReachabilityMetadataRepositoryExtension configurationRepository = graalvmNative.getExtensions().create("metadataRepository", GraalVMReachabilityMetadataRepositoryExtension.class);
+        // Defaults stay enabled and pinnable through version or URI. §FS-resources-and-metadata.3.
         configurationRepository.getEnabled().convention(true);
         configurationRepository.getVersion().convention(VersionInfo.METADATA_REPO_VERSION);
         configurationRepository.getUri().convention(configurationRepository.getVersion().map(serializableTransformerOf(this::getReachabilityMetadataRepositoryUrlForVersion)));

@@ -1,4 +1,4 @@
-# FS-resources-metadata: Maven goals generate resources and consume reachability metadata
+# FS-resources-and-metadata: Maven goals generate resources and consume reachability metadata
 
 Maven projects use shared metadata and resource behavior through Maven goals. Generated Native
 Image configuration should stay in Maven's `target` tree and feed later native builds
@@ -22,7 +22,7 @@ the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs
 
 `native:list-libraries-missing-metadata` reports project dependencies that do not appear to have
 reachability metadata support and may create GitHub issues when issue creation is configured. Its
-behavior must remain aligned with [§root/FS-resources-metadata](../../../docs/spec/functional/resources-and-metadata.md#fs-resources-metadata-both-plugins-generate-resource-config-and-consume-reachability-metadata).
+behavior must remain aligned with [§root/FS-resources-and-metadata](../../../docs/spec/functional/resources-and-metadata.md#fs-resources-and-metadata-both-plugins-generate-resource-config-and-consume-reachability-metadata).
 
 ## 4. Schema validation
 

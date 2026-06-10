@@ -32,6 +32,7 @@ class NativeImagePluginTest extends Specification {
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/424")
+    // Protects default and pinned Gradle metadata repository selection. §FS-resources-and-metadata.3.
     def "can set the version of the repository"() {
         when:
         repositoryUriFor(configuredUri, version)

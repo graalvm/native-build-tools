@@ -39,8 +39,8 @@ and JARs, normalize paths with portable separators, respect existing
 write Native Image resource configuration into the directory passed by the Gradle task or Maven
 goal.
 
-Product-specific task and goal entry points are specified by [§gradle/FS-resources-metadata.1](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#1-resource-autodetection),
-[§gradle/FS-resources-metadata.2](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#2-generated-resource-configuration), and [§maven/FS-resources-metadata.1](../../native-maven-plugin/docs/functional/resources-and-metadata.md#1-resource-configuration-goals).
+Product-specific task and goal entry points are specified by [§gradle/FS-resources-and-metadata.1](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#1-resource-autodetection),
+[§gradle/FS-resources-and-metadata.2](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#2-generated-resource-configuration), and [§maven/FS-resources-and-metadata.1](../../native-maven-plugin/docs/functional/resources-and-metadata.md#1-resource-configuration-goals).
 
 ## 3. Native Image tracing agent
 
@@ -90,8 +90,8 @@ missing so plugin diagnostics and reports do not duplicate repository rules.
 
 ### 5.2 Plugin entry points and outputs
 
-Product-specific repository resolution entry points are specified by [§gradle/FS-resources-metadata.3](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection)
-and [§maven/FS-resources-metadata.2](../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata). In every adaptation, resolved metadata must be exposed through a
+Product-specific repository resolution entry points are specified by [§gradle/FS-resources-and-metadata.3](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection)
+and [§maven/FS-resources-and-metadata.2](../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata). In every adaptation, resolved metadata must be exposed through a
 generated build directory that the plugin can pass to Native Image as a configuration file
 directory.
 
@@ -103,8 +103,8 @@ enough coordinate and repository-status information for users or automation to d
 request support, and format issue requests against the configured GitHub repository and API URL
 when issue creation is enabled. Product plugins supply credentials and project identity.
 
-Product-specific report entry points are specified by [§gradle/FS-resources-metadata.4](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#4-missing-metadata-reports) and
-[§maven/FS-resources-metadata.3](../../native-maven-plugin/docs/functional/resources-and-metadata.md#3-missing-metadata-reports).
+Product-specific report entry points are specified by [§gradle/FS-resources-and-metadata.4](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#4-missing-metadata-reports) and
+[§maven/FS-resources-and-metadata.3](../../native-maven-plugin/docs/functional/resources-and-metadata.md#3-missing-metadata-reports).
 
 ## 7. Schema validation
 

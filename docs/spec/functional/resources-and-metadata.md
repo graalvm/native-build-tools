@@ -1,10 +1,10 @@
-# FS-resources-metadata: Both plugins generate resource config and consume reachability metadata
+# FS-resources-and-metadata: Both plugins generate resource config and consume reachability metadata
 
 Both plugins must expose resource configuration generation, reachability metadata repository
 lookup, missing metadata reports, dynamic access metadata, and schema validation through their
 own task or goal surface. The shared library behavior lives in [§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration),
 [§common/FS-common-libraries.5](../../../common/docs/functional-spec.md#5-reachability-metadata-repository), [§common/FS-common-libraries.6](../../../common/docs/functional-spec.md#6-missing-metadata-reporting), and [§common/FS-common-libraries.7](../../../common/docs/functional-spec.md#7-schema-validation).
-Gradle adapts through [§gradle/FS-resources-metadata](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata); Maven adapts through [§maven/FS-resources-metadata](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-metadata-maven-goals-generate-resources-and-consume-reachability-metadata)
+Gradle adapts through [§gradle/FS-resources-and-metadata](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata); Maven adapts through [§maven/FS-resources-and-metadata](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata)
 plus the support goals in [§maven/FS-goal-surface.3](../../../native-maven-plugin/docs/functional/goal-surface.md#3-metadata-and-support-goals). Repository defaults realize
 [§GOAL-fresh-metadata](../goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
@@ -24,8 +24,8 @@ caller has not asked to ignore existing config, the plugin must not duplicate re
 entry. Scanning, path normalization, and config generation belong to [§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration).
 
 Plugin-specific entry points and output paths are specified by
-[§gradle/FS-resources-metadata.1](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#1-resource-autodetection), [§gradle/FS-resources-metadata.2](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#2-generated-resource-configuration), and
-[§maven/FS-resources-metadata.1](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#1-resource-configuration-goals).
+[§gradle/FS-resources-and-metadata.1](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#1-resource-autodetection), [§gradle/FS-resources-and-metadata.2](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#2-generated-resource-configuration), and
+[§maven/FS-resources-and-metadata.1](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#1-resource-configuration-goals).
 
 ## 2. Reachability metadata repository
 
@@ -39,7 +39,7 @@ When the user has not pinned a URI, version, or local repository path, the defau
 selection must prefer the latest compatible official metadata release available to the plugin.
 
 Plugin-specific configuration and entry points are specified by
-[§gradle/FS-resources-metadata.3](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection) and [§maven/FS-resources-metadata.2](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata).
+[§gradle/FS-resources-and-metadata.3](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection) and [§maven/FS-resources-and-metadata.2](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#2-reachability-metadata).
 
 ## 3. Missing metadata reports
 
@@ -49,8 +49,8 @@ dependencies that lack metadata coverage. The report must not modify the inputs 
 tasks. When issue-creation settings are configured, the report may open GitHub issues against the
 configured repository.
 
-Plugin-specific report entry points are specified by [§gradle/FS-resources-metadata.4](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#4-missing-metadata-reports)
-and [§maven/FS-resources-metadata.3](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#3-missing-metadata-reports).
+Plugin-specific report entry points are specified by [§gradle/FS-resources-and-metadata.4](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#4-missing-metadata-reports)
+and [§maven/FS-resources-and-metadata.3](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#3-missing-metadata-reports).
 
 ## 4. Dynamic access metadata
 
@@ -61,7 +61,7 @@ graph; the resulting directory is added to the Native Image configuration file d
 that build only.
 
 Plugin-specific generation entry points are specified by
-[§gradle/FS-resources-metadata.5](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#5-dynamic-access-metadata) and [§maven/FS-native-builds.5](../../../native-maven-plugin/docs/functional/native-image-builds.md#5-dynamic-access-metadata).
+[§gradle/FS-resources-and-metadata.5](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#5-dynamic-access-metadata) and [§maven/FS-native-builds.5](../../../native-maven-plugin/docs/functional/native-image-builds.md#5-dynamic-access-metadata).
 
 ## 5. Schema validation
 

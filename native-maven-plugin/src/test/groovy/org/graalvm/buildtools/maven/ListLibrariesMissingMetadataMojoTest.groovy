@@ -44,7 +44,7 @@ import org.apache.maven.artifact.Artifact
 import spock.lang.Specification
 import spock.lang.Unroll
 
-// Protects Maven missing-metadata dependency selection. §FS-resources-metadata.3.
+// Protects Maven missing-metadata dependency selection. §FS-resources-and-metadata.3.
 class ListLibrariesMissingMetadataMojoTest extends Specification {
 
     @Unroll

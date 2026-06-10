@@ -59,7 +59,7 @@ import org.graalvm.reachability.DirectoryConfiguration;
 
 /**
  * Adds dependency reachability metadata from the configured metadata repository to the project's output directory.
- * §FS-goal-surface.3, §FS-resources-metadata.2.
+ * §FS-goal-surface.3, §FS-resources-and-metadata.2.
  */
 @Mojo(name = "add-reachability-metadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class AddReachabilityMetadataMojo extends AbstractNativeMojo {

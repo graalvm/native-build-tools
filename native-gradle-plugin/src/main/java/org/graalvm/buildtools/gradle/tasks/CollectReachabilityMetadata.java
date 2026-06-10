@@ -67,7 +67,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Collects reachability metadata for Gradle runtime dependencies. §FS-resources-metadata.3.
+ * Collects reachability metadata for Gradle runtime dependencies. §FS-resources-and-metadata.3.
  * The output is consumed by native compile tasks through the generated configuration directory.
  */
 public abstract class CollectReachabilityMetadata extends DefaultTask {

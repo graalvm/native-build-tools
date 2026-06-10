@@ -58,14 +58,14 @@ artifacts. This protects [§FS-goal-surface.2](functional/goal-surface.md#2-test
 
 `JavaApplicationWithResourcesFunctionalTest` verifies main and test resource configuration
 generation and resource propagation into native builds. This protects [§FS-native-builds.4](functional/native-image-builds.md#4-generated-resource-configuration) and
-[§FS-resources-metadata.1](functional/resources-and-metadata.md#1-resource-configuration-goals).
+[§FS-resources-and-metadata.1](functional/resources-and-metadata.md#1-resource-configuration-goals).
 
 ### 3.5 Reachability metadata
 
 `MetadataRepositoryFunctionalTest`, `OfficialMetadataRepositoryFunctionalTest`, and
 `issues/ExcludeDependenciesFunctionalTest` with `reproducers/issue-612` verify official and local
 metadata repositories, exclusions, forced versions, archives, URLs, and missing metadata reports.
-This protects [§FS-resources-metadata.2](functional/resources-and-metadata.md#2-reachability-metadata), [§FS-resources-metadata.3](functional/resources-and-metadata.md#3-missing-metadata-reports), and [§common/FS-common-libraries.5](../../common/docs/functional-spec.md#5-reachability-metadata-repository).
+This protects [§FS-resources-and-metadata.2](functional/resources-and-metadata.md#2-reachability-metadata), [§FS-resources-and-metadata.3](functional/resources-and-metadata.md#3-missing-metadata-reports), and [§common/FS-common-libraries.5](../../common/docs/functional-spec.md#5-reachability-metadata-repository).
 
 ### 3.6 Tracing agent
 

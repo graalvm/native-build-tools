@@ -19,7 +19,7 @@ A native image build must derive the following from project state and configurat
 | Image name and output location | Derived from user configuration or stable build-tool conventions. |
 | Build arguments | Combined from durable configuration and documented command-line overrides. |
 | JVM arguments, system properties, environment variables | Passed to the `native-image` driver process when configured. |
-| Configuration file directories | Include generated resource config ([§FS-resources-metadata.1](resources-and-metadata.md#1-resource-configuration)), resolved repository metadata ([§FS-resources-metadata.2](resources-and-metadata.md#2-reachability-metadata-repository)), and dynamic access metadata ([§FS-resources-metadata.4](resources-and-metadata.md#4-dynamic-access-metadata)). |
+| Configuration file directories | Include generated resource config ([§FS-resources-and-metadata.1](resources-and-metadata.md#1-resource-configuration)), resolved repository metadata ([§FS-resources-and-metadata.2](resources-and-metadata.md#2-reachability-metadata-repository)), and dynamic access metadata ([§FS-resources-and-metadata.4](resources-and-metadata.md#4-dynamic-access-metadata)). |
 | Optional inputs | Include classpath JAR ([§GLOSS-fat-jar](../glossary.md#gloss-fat-jar-fat-jar-classpath-jar)), argument file ([§GLOSS-argument-file](../glossary.md#gloss-argument-file-native-image-argument-file)), layer options ([§GLOSS-layered-image](../glossary.md#gloss-layered-image-layered-native-image)), and PGO options ([§GLOSS-pgo](../glossary.md#gloss-pgo-profile-guided-optimization-pgo)) when supported by the plugin. |
 
 Gradle-specific task inputs are specified by [§gradle/FS-native-tasks](../../../native-gradle-plugin/docs/functional/native-image-tasks.md#fs-native-tasks-gradle-native-image-tasks-build-and-run-native-image-outputs) and
@@ -47,7 +47,7 @@ lookup paths were attempted and what was found.
 When the user configures a required Native Image version, the build must fail before invoking
 `native-image` if the discovered version is older. When repository metadata is consumed, the build
 must validate that metadata against the schema expected by the discovered Native Image major
-version before passing it to `native-image` ([§FS-resources-metadata.5](resources-and-metadata.md#5-schema-validation)). These gates surface declared compatibility boundaries; they
+version before passing it to `native-image` ([§FS-resources-and-metadata.5](resources-and-metadata.md#5-schema-validation)). These gates surface declared compatibility boundaries; they
 must not mask Native Image constraints or bugs that belong upstream in GraalVM
 ([§NGOAL-graalvm-is-graalvm](../non-goals.md#ngoal-graalvm-is-graalvm-graalvm-constraints-and-bugs-are-not-a-matter-of-build-tools)).
 

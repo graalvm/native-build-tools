@@ -34,7 +34,7 @@ behavior.
   [§FS-plugin-model](docs/functional/plugin-model.md#fs-plugin-model-gradle-plugin-activation-and-dsl-model), [§AR-gradle-plugin.2](docs/architecture.md#2-extension-and-option-model), [§AR-gradle-plugin.3](docs/architecture.md#3-task-graph-architecture)
 - `src/main/java/org/graalvm/buildtools/gradle/tasks/`: user-visible Gradle tasks for native
   compile/run/test, resource generation, metadata collection, missing metadata reporting, dynamic
-  access metadata, and agent metadata copy. [§FS-native-tasks](docs/functional/native-image-tasks.md#fs-native-tasks-gradle-native-image-tasks-build-and-run-native-image-outputs), [§FS-resources-metadata](docs/functional/resources-and-metadata.md#fs-resources-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata),
+  access metadata, and agent metadata copy. [§FS-native-tasks](docs/functional/native-image-tasks.md#fs-native-tasks-gradle-native-image-tasks-build-and-run-native-image-outputs), [§FS-resources-and-metadata](docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata),
   [§FS-tracing-agent](docs/functional/tracing-agent.md#fs-tracing-agent-gradle-tasks-attach-and-post-process-native-image-tracing-agent-metadata), [§FS-native-tests](docs/functional/native-tests.md#fs-native-tests-gradle-tasks-compile-and-run-native-junit-tests)
 - `src/main/java/org/graalvm/buildtools/gradle/internal/NativeImageCommandLineProvider.java`:
   native-image argument construction and argument-file behavior. [§FS-native-invocation.3](docs/functional/native-image-invocation.md#3-command-line-construction),
