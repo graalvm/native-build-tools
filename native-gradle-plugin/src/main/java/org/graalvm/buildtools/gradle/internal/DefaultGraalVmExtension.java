@@ -49,12 +49,18 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import javax.inject.Inject;
+
+import java.io.File;
+
+import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final transient NamedDomainObjectContainer<NativeImageOptions> nativeImages;
@@ -89,15 +95,35 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private void configureToolchain() {
         defaultJavaLauncher.convention(
                 getToolchainDetection().flatMap(enabled -> {
-                    if (enabled) {
-                        JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
-                        if (toolchainService != null) {
-                            return toolchainService.launcherFor(spec -> {
-                                spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                            });
-                        }
+                    if (!enabled) {
+                        return null;
                     }
-                    return null;
+                    JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
+                    if (toolchainService == null) {
+                        return null;
+                    }
+                    // Probe toolchain for native-image before using it
+                    // If not found, fall back to current Gradle JVM
+                    JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
+                    Provider<JavaLauncher> javaToolchainLauncher = toolchainService.launcherFor(javaConvention.getToolchain());
+                    // Verify toolchain contains native-image by probing it
+                    Provider<JavaLauncher> probeResult = javaToolchainLauncher.map(l -> {
+                        try {
+                            File nativeImage = l.getMetadata().getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
+                            if (nativeImage.exists()) {
+                                return l;
+                            }
+                            // native-image not found, return null to trigger fallback to current JVM
+                            return null;
+                        } catch (Exception e) {
+                            // Probe failed, return null to trigger fallback to current JVM
+                            return null;
+                        }
+                    });
+                    // Fallback to current JVM if toolchain probe failed
+                    Provider<JavaLauncher> currentLauncher = toolchainService.launcherFor(spec ->
+                            spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion())));
+                    return probeResult.orElse(currentLauncher);
                 })
         );
     }
