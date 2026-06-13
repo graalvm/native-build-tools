@@ -56,9 +56,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.graalvm.buildtools.utils.Utils.parseBoolean;
-
 public abstract class AgentUtils {
+
+    private static final String STANDARD = "standard";
+    private static final String CONDITIONAL = "conditional";
+    private static final String DIRECT = "direct";
+    private static final String DISABLED = "disabled";
 
     public static AgentMode getAgentMode(Xpp3Dom agent) throws Exception {
         Xpp3Dom defaultModeNode = Xpp3DomParser.getTagByName(agent, "defaultMode");
@@ -72,13 +75,13 @@ public abstract class AgentUtils {
         AgentMode agentMode;
         String mode = defaultModeNode.getValue();
         switch (mode.toLowerCase()) {
-            case "standard":
-                agentMode = new StandardAgentMode();
-                break;
-            case "disabled":
+            case DISABLED:
                 agentMode = new DisabledAgentMode();
                 break;
-            case "conditional":
+            case STANDARD:
+                agentMode = new StandardAgentMode();
+                break;
+            case CONDITIONAL:
                 // conditional mode needs few more options declared in xml
                 if (agentModes == null) {
                     throw new RuntimeException("Tag <modes> not provided in agent configuration.");
@@ -91,12 +94,12 @@ public abstract class AgentUtils {
                     throw new Exception("UserCodeFilterPath must be provided in agent configuration");
                 }
 
-                Boolean parallel = parseBooleanNode(agentModes, "parallel");
+                Boolean parallel = Utils.parseBooleanNode(agentModes, "parallel");
                 agentMode = new ConditionalAgentMode(userCodeFilterPathNode.getValue(),
                                                     extraFilterPathNode != null ? extraFilterPathNode.getValue() : "",
                                                      parallel == null ? false : parallel);
                 break;
-            case "direct":
+            case DIRECT:
                 // direct mode is given
                 if (agentModes == null) {
                     throw new RuntimeException("Tag <modes> not provided in agent configuration.");
@@ -138,11 +141,11 @@ public abstract class AgentUtils {
 
         ArrayList<String> callerFilterFiles = (ArrayList<String>) getFilterFiles(options, "callerFilterFiles");
         ArrayList<String> accessFilterFiles = (ArrayList<String>) getFilterFiles(options, "accessFilterFiles");
-        Boolean builtinCallerFilter = parseBooleanNode(options, "builtinCallerFilter");
-        Boolean builtinHeuristicFilter = parseBooleanNode(options, "builtinHeuristicFilter");
-        Boolean enableExperimentalPredefinedClasses = parseBooleanNode(options, "enableExperimentalPredefinedClasses");
-        Boolean enableExperimentalUnsafeAllocationTracing = parseBooleanNode(options, "enableExperimentalUnsafeAllocationTracing");
-        Boolean trackReflectionMetadata = parseBooleanNode(options, "trackReflectionMetadata");
+        Boolean builtinCallerFilter = Utils.parseBooleanNode(options, "builtinCallerFilter");
+        Boolean builtinHeuristicFilter = Utils.parseBooleanNode(options, "builtinHeuristicFilter");
+        Boolean enableExperimentalPredefinedClasses = Utils.parseBooleanNode(options, "enableExperimentalPredefinedClasses");
+        Boolean enableExperimentalUnsafeAllocationTracing = Utils.parseBooleanNode(options, "enableExperimentalUnsafeAllocationTracing");
+        Boolean trackReflectionMetadata = Utils.parseBooleanNode(options, "trackReflectionMetadata");
 
         AgentMode mode;
         try {
@@ -175,7 +178,7 @@ public abstract class AgentUtils {
         String systemProperty = session.getSystemProperties().getProperty("agent");
         if (systemProperty != null) {
             // -Dagent=[true|false] overrides configuration in the POM.
-            return parseBoolean("agent system property", systemProperty);
+            return Boolean.parseBoolean(systemProperty);
         }
 
         return null;
@@ -187,7 +190,7 @@ public abstract class AgentUtils {
             return cmdEnable;
         }
 
-        Boolean val = parseBooleanNode(agent, "enabled");
+        Boolean val = Utils.parseBooleanNode(agent, "enabled");
         if (val == null) {
             return false;
         }
@@ -209,19 +212,5 @@ public abstract class AgentUtils {
                 .stream()
                 .map(Xpp3Dom::getValue)
                 .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    private static Boolean parseBooleanNode(Xpp3Dom root, String name) {
-        if (root == null) {
-            return null;
-        }
-
-        Xpp3Dom node = Xpp3DomParser.getTagByName(root, name);
-        if (node == null) {
-            // if node is not provided, default value is false
-            return null;
-        }
-
-        return Utils.parseBoolean("<" + name + ">", node.getValue());
     }
 }
