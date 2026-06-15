@@ -21,6 +21,13 @@ test {
 }
 ```
 
+### 1.1 Custom test binaries
+
+A custom test binary registered with `registerTestBinary` must derive its classes, resources,
+runtime classpath, test identifiers, and JUnit native support from the source set and `Test` task
+selected by `usingSourceSet` and `forTestTask`. A custom source set must not have to inherit from
+the default `test` source set configurations to build or run as a native test image.
+
 ## 2. Native test execution
 
 `nativeTestCompile` builds the native test image. `nativeTest` runs that image unless the test

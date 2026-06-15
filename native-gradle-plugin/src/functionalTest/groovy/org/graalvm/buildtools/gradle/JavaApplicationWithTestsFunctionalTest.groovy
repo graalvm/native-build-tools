@@ -46,7 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.TestResults
 import spock.lang.Issue
 import spock.lang.Unroll
 
-// Protects Gradle native-test task wiring and execution. §FS-native-tests.1 §FS-native-tests.2.
+// Protects Gradle native-test task wiring and execution. §FS-native-tests.1 §FS-native-tests.1.1 §FS-native-tests.2.
 class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
     @Unroll("can execute tests in a native image with JUnit Platform #junitVersion")
     def "can build a native image and run it"() {
@@ -197,6 +197,25 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
             skipped ':nativeTestCompile', ':nativeTest'
             doesNotContain ':build'
         }
+
+        where:
+        junitVersion = System.getProperty('versions.junit')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/702")
+    @Unroll("custom test image classpath follows custom source set with JUnit Platform #junitVersion")
+    def "custom test image classpath follows custom source set"() {
+        given:
+        withSample("java-application-with-custom-tests")
+
+        when:
+        run 'dependencies', '--configuration', 'nativeImageIntegTestClasspath'
+
+        then:
+        outputContains "project :"
+        outputContains "org.junit.jupiter:junit-jupiter"
+        outputContains "org.junit.platform:junit-platform-launcher"
+        outputContains "org.graalvm.buildtools:junit-platform-native"
 
         where:
         junitVersion = System.getProperty('versions.junit')
