@@ -973,7 +973,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         createNativeConfigurations(
             project,
             binaryName,
-            JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME
+            // Custom native tests use their selected source set runtime classpath. §FS-native-tests.1.1
+            sourceSet.getRuntimeClasspathConfigurationName()
         );
         var configurations = project.getConfigurations();
         setupExtensionConfigExcludes(testExtension, configurations);

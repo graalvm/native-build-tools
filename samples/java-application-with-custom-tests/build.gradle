@@ -60,15 +60,10 @@ sourceSets {
     integTest
 }
 
-configurations {
-    integTestImplementation.extendsFrom(testImplementation)
-    integTestRuntimeOnly.extendsFrom(testRuntimeOnly)
-}
-
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+    integTestImplementation(platform("org.junit:junit-bom:${junitVersion}"))
+    integTestImplementation('org.junit.jupiter:junit-jupiter')
+    integTestRuntimeOnly('org.junit.platform:junit-platform-launcher')
     integTestImplementation project(":")
 }
 
