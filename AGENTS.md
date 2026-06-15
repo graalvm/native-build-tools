@@ -1,6 +1,6 @@
 # Native Build Tools — agent instructions
 
-## Grounding with grund (v2)
+## Grounding with grund (v3)
 
 This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, decision, and end-to-end test has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, AR, FS, E2E, DEC, GLOSS}`), cited with the marker `§` — e.g. `FS-user-login.3.1` is the shape of a section ID, and a real citation prefixes that shape with `§`. Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are ignored — `[reference] strict = true` is set in `.agents/grund.toml`, so only `§`-prefixed citations are checked.
 
@@ -39,10 +39,10 @@ Do not create a namespace for a regular module or component that still belongs t
 
 Cross-project citations use §alias/<ID>.
 
-- `common` → [common/AGENTS.md](common/AGENTS.md)
-- `gradle` → [native-gradle-plugin/AGENTS.md](native-gradle-plugin/AGENTS.md)
-- `maven` → [native-maven-plugin/AGENTS.md](native-maven-plugin/AGENTS.md)
-- `root` → [AGENTS.md](AGENTS.md)
+- [`common`](common/AGENTS.md): Build-tool-neutral shared libraries for Native Image utilities and metadata workflows
+- [`gradle`](native-gradle-plugin/AGENTS.md): Gradle plugin specs and implementation for Native Image workflows
+- [`maven`](native-maven-plugin/AGENTS.md): Maven plugin specs and implementation for Native Image workflows
+- [`root`](AGENTS.md): Workspace-level specs, release, CI, and shared Native Build Tools behavior
 
 ### Declarations and citations
 
@@ -52,6 +52,17 @@ Declarations are heading lines `# FS-user-login: …` in markdown. In a code doc
 
 - **Spec first.** For behavior or design changes, write or update the most-specific spec point before code.
 - **Cite as you write.** Place `§<ID>` at the point a claim or behavior is made — on the doc-comment for a whole behavior, inline beside the clause it enforces.
-- **Inline citation style.** Inline notes: ≤ 1 line preferred, hard cap 6 lines; ≤ 160 columns.
+- **Inline citation style.** Inline notes: ≤ 1 line preferred, hard cap 12 lines; ≤ 160 columns.
 - **Always cite the most-specific point.**
-- **Citations climb to reasons (grund.md).** Goals cite reasons, specs cite goals; architecture cites specs; code and executable tests cite specs.
+
+### Citation directions
+
+- **GOAL** should cite */GRUND or */GOAL.
+- **NGOAL** should cite */GRUND or */GOAL or */NGOAL.
+- **REQ** should cite */GRUND or */GOAL or */REQ.
+- **AR** should cite */FS or */REQ or */GOAL or */AR.
+- **FS** should cite */REQ or */GOAL or */FS; avoid citing */AR.
+- **E2E** should cite */FS.
+- **DEC** should cite */FS or */AR or */REQ or */GOAL or */NGOAL or */DEC.
+- **code** (any file outside a kind home) should cite */FS or */AR or */E2E.
+Unlisted kinds and pairs are fine.
