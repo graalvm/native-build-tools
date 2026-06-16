@@ -173,6 +173,20 @@ You can also pass **build-time** and **run-time** arguments:
 - `buildArgs.add('<buildArg>')`: Configures the build by passing options directly to `native-image`. You can pass any Native Image build option listed https://www.graalvm.org/reference-manual/native-image/overview/Options/[here].
 - `runtimeArgs.add('<runtimeArg>')`: Specifies runtime arguments consumed by your application.
 
+Each `buildArgs` list entry should contain one Native Image option expression, not a shell command line.
+Put unrelated options in separate entries, but keep values that belong to the option expression together,
+such as `--emit build-report`, `--enable-monitoring=jfr`, or `-H:Name=value`.
+
+[source,kotlin, role="multi-language-sample"]
+----
+buildArgs.addAll(
+    "--static",
+    "--libc=musl",
+    "--emit build-report",
+    "-H:+ReportExceptionStackTraces"
+)
+----
+
 ==== Command Line Options
 
 The preferred way to configure native binaries is through the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.

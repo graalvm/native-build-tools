@@ -43,10 +43,16 @@ The following configuration options are available:
    image name is not supplied, the artifact ID of the project will be used by default.
 `<buildArgs>`::
    If you want to pass additional build options to `native-image`, use the `<buildArgs>` tag. You can pass any Native Image build option listed https://www.graalvm.org/reference-manual/native-image/overview/Options/[here].
+   Each `<buildArg>` entry should contain one Native Image option expression, not a shell command line.
+   Put unrelated options in separate `<buildArg>` entries, but keep values that belong to the option expression together,
+   such as `--emit build-report`, `--enable-monitoring=jfr`, or `-H:Name=value`.
 [source,xml, role="multi-language-sample"]
 ----
 <buildArgs>
-    <buildArg>--argument</buildArg>
+    <buildArg>--static</buildArg>
+    <buildArg>--libc=musl</buildArg>
+    <buildArg>--emit build-report</buildArg>
+    <buildArg>-H:+ReportExceptionStackTraces</buildArg>
 </buildArgs>
 ----
 `<skipNativeBuild>`::
