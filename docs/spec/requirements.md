@@ -42,7 +42,9 @@ The plugins require Java 17+ to run. Native Image workflows must support JDK 25+
 against the two most recent GraalVM LTS versions. The Gradle plugin
 supports Gradle 8.3+ and currently tests `current`, `8.4`, `8.14.2`, `9.0.0`, and `9.6.1`. The Maven plugin
 supports Maven 3.9.x and currently tests with `3.9.9`. Metadata defaults must track the latest
-compatible published repository while remaining pinnable by version, URI, or local path.
+compatible published repository while remaining pinnable by version, URI, or local path. Repository
+build infrastructure must run on the supported Java floor and remain runnable on newer JDK lines
+supported by the checked-in Gradle wrapper.
 
 ## 2. Changing support
 

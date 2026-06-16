@@ -57,7 +57,7 @@ abstract class GitReset : AbstractGitTask() {
     fun execute() {
         val cmd = arrayListOf("reset")
         if (mode.isPresent) {
-            cmd.add("--${mode.get().toLowerCase()}")
+            cmd.add("--${mode.get().lowercase()}")
         }
         cmd.add(ref.get())
         runGit(cmd)
