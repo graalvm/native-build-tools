@@ -72,7 +72,9 @@ tasks.register<Test>("functionalTest") {
     inputs.files(files("../samples"))
     inputs.files(files("reproducers"))
     inputs.files(functionalTestCommonRepository)
-    systemProperty("common.repo.url", functionalTestCommonRepository.incoming.files.files.first())
+    doFirst {
+        systemProperty("common.repo.url", functionalTestCommonRepository.singleFile.absolutePath)
+    }
     testClassesDirs = functionalTest.output.classesDirs
     classpath = functionalTest.runtimeClasspath
 }
