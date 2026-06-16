@@ -103,29 +103,38 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         buildSucceeded
 
         and:
-        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, '''{
-  "resources": {
-    "includes": [
-      {
-        "pattern": "\\\\Qmessage.txt\\\\E"
-      },
-      {
-        "pattern": "\\\\Qorg/graalvm/demo/expected.txt\\\\E"
-      }
-    ],
-    "excludes": []
-  },
-  "bundles": []
-}''')
+        // Autodetection scans processed test output, not main output or raw test sources. §FS-resources-and-metadata.1.
+        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, resourceConfigFor(expectedPatterns))
 
         where:
-        detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns
-        false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []
-        true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"]
-        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"]
+        detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns                         || expectedPatterns
+        false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                                 || [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")]
+        true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"]     || [Pattern.quote("org/graalvm/demo/expected.txt")]
+        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"]     || [Pattern.quote("org/graalvm/demo/expected.txt")]
     }
 
     private static String joinForCliArg(List<String> patterns) {
         patterns.join(",")
+    }
+
+    private static String resourceConfigFor(List<String> patterns) {
+        String includes = patterns.collect { pattern ->
+"""      {
+        "pattern": "${escapeJson(pattern)}"
+      }"""
+        }.join(",\n")
+"""{
+  "resources": {
+    "includes": [
+${includes}
+    ],
+    "excludes": []
+  },
+  "bundles": []
+}"""
+    }
+
+    private static String escapeJson(String value) {
+        value.replace('\\', '\\\\')
     }
 }

@@ -10,6 +10,10 @@ The plugin must generate resource configuration for main and test classpaths. Ge
 respect existing Native Image resource configuration and the shared classpath scanning behavior in
 [§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration).
 
+For `native:generateTestResourceConfig`, autodetection for the current project must use Maven's
+processed test output directory instead of the main output artifact or raw test resource source
+directories.
+
 ## 2. Reachability metadata
 
 `native:add-reachability-metadata` resolves metadata for project dependencies from the configured
