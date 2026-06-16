@@ -41,6 +41,7 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaApplicationWithResourcesFunctionalTest extends AbstractFunctionalTest {
@@ -134,6 +135,48 @@ graalvmNative {
 """
                                           ]
         ]
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/537")
+    def "native tests include test resources without explicit resource configuration"() {
+        given:
+        withSample("java-application-with-resources")
+        file("src/test/resources/db").mkdirs()
+        file("src/test/resources/db/mysql_conf_override").text = "native-test-resource"
+        file("src/test/java/org/graalvm/demo/Issue537Test.java").text = """
+package org.graalvm.demo;
+
+import org.junit.jupiter.api.Test;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class Issue537Test {
+    @Test
+    void testResourceDirectoryIsAvailableInNativeTest() throws Exception {
+        // A normal Gradle JUnit setup is enough for nativeTest to include test resources. §FS-native-tests.1.
+        try (InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream("db/mysql_conf_override")) {
+            assertNotNull(input);
+            assertEquals("native-test-resource", new String(input.readAllBytes(), StandardCharsets.UTF_8));
+        }
+    }
+}
+"""
+
+        when:
+        run 'nativeTest'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeTest'
+            doesNotContain ':build', ':run'
+        }
+
+        and:
+        contains(file("build/native/generated/generateTestResourcesConfigFile/resource-config.json").text, '"pattern": "\\\\Qdb/mysql_conf_override\\\\E"')
     }
 
     @Unroll("can run native tests which uses resources using #pattern with JUnit Platform #junitVersion")
