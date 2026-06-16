@@ -83,6 +83,7 @@ dependencies {
     testImplementation(libs.maven.core)
     testImplementation(libs.maven.artifact)
     testImplementation(libs.jetty.server)
+    testRuntimeOnly(libs.test.junit.platform.launcher)
 
     testFixturesImplementation(libs.test.spock)
     testFixturesImplementation(libs.jetty.server)
@@ -93,6 +94,7 @@ dependencies {
     functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 
     functionalTestImplementation(libs.test.spock)
+    functionalTestRuntimeOnly(libs.test.junit.platform.launcher)
     functionalTestRuntimeOnly(libs.slf4j.simple)
 }
 

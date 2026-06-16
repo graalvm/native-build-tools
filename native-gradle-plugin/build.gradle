@@ -40,9 +40,8 @@
  */
 
 plugins {
-    id 'java-gradle-plugin'
     id 'checkstyle'
-    id 'com.gradle.plugin-publish' version '0.15.0'
+    id 'com.gradle.plugin-publish' version '2.1.1'
     id 'java-test-fixtures'
     id 'org.graalvm.build.java'
     id 'org.graalvm.build.functional-testing'
@@ -59,20 +58,19 @@ dependencies {
     implementation libs.utils
     implementation libs.jvmReachabilityMetadata
     testImplementation libs.test.spock
+    testRuntimeOnly libs.test.junit.platform.launcher
     testFixturesImplementation libs.test.spock
     testFixturesImplementation gradleTestKit()
     functionalTestCommonRepository(libs.junitPlatformNative)
     functionalTestCommonRepository(libs.jvmReachabilityMetadata)
     functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
-}
-
-pluginBundle {
-    website = 'https://graalvm.org/'
-    vcsUrl = 'https://github.com/graalvm/native-build-tools'
-    tags = ['native', 'graalvm', 'graal', 'java']
+    functionalTestRuntimeOnly libs.test.junit.platform.launcher
 }
 
 gradlePlugin {
+    website = 'https://graalvm.org/'
+    vcsUrl = 'https://github.com/graalvm/native-build-tools'
+
     // Define the plugin
     plugins {
         nativeImage {
@@ -80,6 +78,7 @@ gradlePlugin {
             implementationClass = 'org.graalvm.buildtools.gradle.NativeImagePlugin'
             displayName = maven.name.get()
             description = maven.description.get()
+            tags.addAll('native', 'graalvm', 'graal', 'java')
         }
     }
 }

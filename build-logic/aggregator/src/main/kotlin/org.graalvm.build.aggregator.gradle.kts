@@ -93,7 +93,7 @@ listOf(
     // Root publication aggregators coordinate included builds. §FS-build-infrastructure.1.2.
     val (taskPrefix, repo) = entry
     tasks.register("$taskPrefix$repo") {
-        description = "Publishes all artifacts to the ${repo.decapitalize()} repository"
+        description = "Publishes all artifacts to the ${repo.replaceFirstChar { it.lowercase() }} repository"
         group = PublishingPlugin.PUBLISH_TASK_GROUP
         gradle.includedBuilds.forEach {
             if (it.name != "docs" && !it.projectDir.path.contains("build-logic")) {

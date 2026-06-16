@@ -85,29 +85,21 @@ abstract class AbstractPluginTest extends Specification {
 
     protected File newResourcesDirectory() {
         def dir = testDirectory.resolve("exploded${resourceCount++}").toFile()
-        new FileTreeBuilder(dir) {
-            'META-INF' {
-                'INDEX.LIST'('dummy')
-            }
-            'org' {
-                'foo' {
-                    'some' {
-                        'resource.txt'('resource text')
-                    }
-                }
-            }
-        }
+        new File(dir, "META-INF").mkdirs()
+        new File(dir, "META-INF/INDEX.LIST").text = "dummy"
+        new File(dir, "org/foo/some").mkdirs()
+        new File(dir, "org/foo/some/resource.txt").text = "resource text"
         dir
     }
 
     protected File newResourcesJar(Map<String, String> extraResources = [:]) {
         File resourcesDirectory = newResourcesDirectory()
-        extraResources.each { path, contents -> {
+        extraResources.each { path, contents ->
             def resource = new File(resourcesDirectory, path)
             if (resource.getParentFile().directory || resource.getParentFile().mkdirs()) {
                 resource << contents
             }
-        }}
+        }
         File jar = new File(testDirectory.toFile(), "resources-${resourceCount}.jar")
         Path resourcesPath = resourcesDirectory.toPath()
 

@@ -34,7 +34,8 @@ rather than leaving compatibility implicit.
 Supported versions must be read from the build logic, version catalog, workflow configuration, and
 functional-test matrices that execute the project. The specification cites the compatibility
 contract, but it must not duplicate exact version floors unless a value is part of a deliberate
-compatibility decision.
+compatibility decision. Repository build infrastructure must run on the supported Java floor and
+remain runnable on newer JDK lines supported by the checked-in Gradle wrapper.
 
 ## 2. Changing a supported version
 

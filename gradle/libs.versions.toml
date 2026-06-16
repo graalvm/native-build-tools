@@ -4,7 +4,7 @@ nativeBuildTools = "1.1.3-SNAPSHOT"
 metadataRepository = "1.0.3"
 
 # External dependencies
-spock = "2.1-groovy-3.0"
+spock = "2.4-groovy-4.0"
 maven = "3.9.9"
 mavenAnnotations = "3.6.4"
 mavenEmbedder = "3.9.9"
