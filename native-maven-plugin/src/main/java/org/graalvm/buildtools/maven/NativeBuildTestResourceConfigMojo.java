@@ -41,14 +41,13 @@
 
 package org.graalvm.buildtools.maven;
 
-import org.apache.maven.model.FileSet;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
 /**
  * Scans test resources and generates resource metadata for them.
@@ -66,12 +65,7 @@ public class NativeBuildTestResourceConfigMojo extends AbstractResourceConfigMoj
     }
 
     @Override
-    protected Collection<? extends File> getExtraProjectArtifacts() {
-        return mavenProject.getBuild()
-                .getTestResources()
-                .stream()
-                .map(FileSet::getDirectory)
-                .map(File::new)
-                .collect(Collectors.toList());
+    protected Collection<? extends File> getProjectArtifacts() {
+        return Collections.singleton(new File(mavenProject.getBuild().getTestOutputDirectory()));
     }
 }
