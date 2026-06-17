@@ -163,6 +163,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                     "Note: Since the repository is enabled by default, you can disable it manually in your pom.xml file (see this: " +
                     "https://graalvm.github.io/native-build-tools/latest/maven-plugin.html#_configuring_the_metadata_repository)");
         } else {
+            logSelectedMetadataRepository();
             metadataRepository = new FileSystemRepository(repoPath, new FileSystemRepository.Logger() {
                 @Override
                 public void log(String groupId, String artifactId, String version, Supplier<String> message) {
@@ -170,6 +171,26 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 }
             });
         }
+    }
+
+    private void logSelectedMetadataRepository() {
+        // Normal Maven output exposes the repository selection. §FS-resources-and-metadata.2.
+        logger.info("Using GraalVM reachability metadata repository " + describeSelectedMetadataRepository());
+    }
+
+    private String describeSelectedMetadataRepository() {
+        if (metadataRepositoryConfiguration != null) {
+            if (metadataRepositoryConfiguration.getVersion() != null) {
+                return "version " + metadataRepositoryConfiguration.getVersion();
+            }
+            if (metadataRepositoryConfiguration.getLocalPath() != null) {
+                return "from " + metadataRepositoryConfiguration.getLocalPath().toURI().toASCIIString();
+            }
+            if (metadataRepositoryConfiguration.getUrl() != null) {
+                return "from " + metadataRepositoryConfiguration.getUrl();
+            }
+        }
+        return "version " + VersionInfo.METADATA_REPO_VERSION;
     }
 
     private Path getDefaultRepo(Path destinationRoot) {

@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.maven
 
+import org.graalvm.buildtools.VersionInfo
 import spock.lang.IgnoreIf
 
 class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
@@ -55,6 +56,8 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
 
         then:
         buildSucceeded
+        // Maven output identifies the selected metadata repository version. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository version ${VersionInfo.METADATA_REPO_VERSION}"
 
         and: "the run succeeded and retrieved data from the database"
         outputContains "Customers in the database"
@@ -74,6 +77,8 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
 
         then:
         buildSucceeded
+        // Maven output identifies the selected metadata repository version. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository version 1.0-M1"
 
         and: "the run succeeded and retrieved data from the database"
         outputContains "Customers in the database"
@@ -93,6 +98,8 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
 
         then:
         buildSucceeded
+        // Maven output identifies the selected metadata repository version. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository version 1.0-M1"
 
         and: "the run succeeded and retrieved data from the database"
         outputContains "Customers in the database"
@@ -112,5 +119,7 @@ class OfficialMetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunct
 
         then:
         buildFailed
+        // Disabled metadata avoids selected-repository noise. §FS-resources-and-metadata.2.
+        outputDoesNotContain "Using GraalVM reachability metadata repository"
     }
 }

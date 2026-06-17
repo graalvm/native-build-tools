@@ -22,6 +22,10 @@ metadata repository, exclusions, and module-to-config-version overrides. It must
 configuration directory to the native image build without requiring users to manually copy
 repository contents. When no URI, version, or local path is pinned, the Maven default should follow
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
+Normal Maven output must identify the selected metadata repository version
+or, when a version is not known for a local path or arbitrary URL, the selected repository source.
+This keeps important integration state visible without flooding build logs, as required by
+[§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
 
 ## 3. Missing metadata reports
 
