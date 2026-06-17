@@ -77,6 +77,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
     private static final String SYSTEM_PROPERTY_VARIABLES = "systemPropertyVariables";
+    private static final String AGENT_EXECUTION_ID = "agentExecutionId";
+    private static final String DEFAULT_AGENT_EXECUTION_ID = "java-agent";
 
     private static Logger logger;
 
@@ -149,9 +151,10 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
                 // Main configuration
                 if (agent.isEnabled()) {
+                    String agentExecutionId = mainAgentExecutionId(configurationRoot);
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
-                                if ("java-agent".equals(exec.getId())) {
+                                if (agentExecutionId.equals(exec.getId())) {
                                     Xpp3Dom commandlineArgs = findOrAppend(config, "arguments");
                                     Xpp3Dom[] arrayOfChildren = commandlineArgs.getChildren();
                                     for (int i = 0; i < arrayOfChildren.length; i++) {
@@ -174,6 +177,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                                     for (Xpp3Dom child : children) {
                                         commandlineArgs.addChild(child);
                                     }
+                                    // Main application agent binding follows the configured execution ID. §FS-tracing-agent.3.
                                     findOrAppend(config, "executable").setValue(getGraalvmJava());
                                 }
                             })
@@ -187,6 +191,16 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 }
             });
         }
+    }
+
+    static String mainAgentExecutionId(Xpp3Dom configurationRoot) {
+        if (configurationRoot != null) {
+            Xpp3Dom agentExecutionId = configurationRoot.getChild(AGENT_EXECUTION_ID);
+            if (agentExecutionId != null && agentExecutionId.getValue() != null && !agentExecutionId.getValue().trim().isEmpty()) {
+                return agentExecutionId.getValue().trim();
+            }
+        }
+        return DEFAULT_AGENT_EXECUTION_ID;
     }
 
     private static void setupMergeAgentFiles(PluginExecution exec, Xpp3Dom configuration, Context context) {

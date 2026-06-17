@@ -200,6 +200,9 @@ dependencies, add:
 `<agent>`::
    Configuration of the <<agent-support, native agent>>. See <<agent-support-enabling>>
    and <<agent-support-configuring-options>> for details.
+`<agentExecutionId>`::
+   The `exec-maven-plugin` execution ID used when attaching the agent to a main application run.
+   Defaults to `java-agent`.
 
 For example, to build a native image named `myapp` that uses `org.example.ClassName` as its main class with assertions enabled, the `<configuration>` should look like this:
 
@@ -327,6 +330,9 @@ Then you can execute your application with the agent by running:
 ----
 ./mvnw -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent
 ----
+
+If you rename the `exec-maven-plugin` execution, set `<agentExecutionId>` in the
+`native-maven-plugin` configuration to the same ID and invoke `exec:exec@<that-id>`.
 
 Both of the above commands generate configuration files in the _target/native/agent-output/main_ directory.
 If you want to run your native application with those configuration files, you then need to execute the following command:

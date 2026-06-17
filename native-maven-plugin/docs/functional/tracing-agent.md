@@ -21,7 +21,9 @@ they need full control.
 
 Agent output from tests must be stored under `target/native/agent-output/test`; agent output from
 application runs must be stored under `target/native/agent-output/main` unless direct mode changes
-the destination.
+the destination. Application agent runs are attached to the `exec-maven-plugin` execution named by
+the native plugin's `<agentExecutionId>` configuration value; the default execution ID is
+`java-agent` so existing POMs keep working.
 
 ## 4. Merge and copy
 
