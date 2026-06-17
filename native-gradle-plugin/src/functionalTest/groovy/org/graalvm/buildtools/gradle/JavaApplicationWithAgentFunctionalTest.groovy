@@ -116,6 +116,8 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 """.trim()
 
         and:
+        // Instrumented task output reports the Gradle-managed agent output directory. §FS-gradle-tracing-agent.4.
+        outputContains "Instrumenting task with the native-image-agent: test. Agent output: ${file('build/native/agent-output/test').path}"
         assert metadataExistsAt("build/native/agent-output/test")
 
         when:
@@ -169,6 +171,8 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         }
 
         and:
+        // Instrumented task output reports the Gradle-managed agent output directory. §FS-gradle-tracing-agent.4.
+        outputContains "Instrumenting task with the native-image-agent: run. Agent output: ${file('build/native/agent-output/run').path}"
         assert metadataExistsAt("build/native/agent-output/run")
 
         when:
