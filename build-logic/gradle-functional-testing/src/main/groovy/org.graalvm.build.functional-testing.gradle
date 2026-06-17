@@ -101,9 +101,11 @@ def fullFunctionalTest = tasks.register("fullFunctionalTest")
             // Any change to samples invalidates functional tests
             inputs.files(files("../samples"))
             inputs.files(configurations.functionalTestCommonRepository)
-            systemProperty('common.repo.url', configurations.functionalTestCommonRepository.incoming.files.files[0])
             systemProperty('gradle.test.version', effectiveVersion)
             systemProperty('versions.junit', libs.versions.junitJupiter.get())
+            doFirst {
+                systemProperty('common.repo.url', configurations.functionalTestCommonRepository.singleFile.absolutePath)
+            }
             environment('GRAALVM_HOME', graalVmHomeProvider.
                     orElse(providers.provider(() -> graalVm.get().metadata.installationPath.asFile.absolutePath))
                     .map {

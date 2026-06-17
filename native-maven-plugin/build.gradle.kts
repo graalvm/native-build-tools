@@ -83,6 +83,7 @@ dependencies {
     testImplementation(libs.maven.core)
     testImplementation(libs.maven.artifact)
     testImplementation(libs.jetty.server)
+    testRuntimeOnly(libs.test.junit.platform.launcher)
 
     testFixturesImplementation(libs.test.spock)
     testFixturesImplementation(libs.jetty.server)
@@ -93,6 +94,7 @@ dependencies {
     functionalTestCommonRepository("org.graalvm.internal:library-with-reflection")
 
     functionalTestImplementation(libs.test.spock)
+    functionalTestRuntimeOnly(libs.test.junit.platform.launcher)
     functionalTestRuntimeOnly(libs.slf4j.simple)
 }
 
@@ -172,9 +174,12 @@ tasks {
         systemProperty("junit.platform.native.version", libs.versions.nativeBuildTools.get())
         systemProperty("common.repo.uri", repoDirectory.get().asFile.toURI().toASCIIString())
         systemProperty("seed.repo.uri", localRepositoryDir.get().asFile.toURI().toASCIIString())
-        systemProperty("maven.classpath", configurations.mavenEmbedder.get().asPath)
         systemProperty("maven.settings", layout.projectDirectory.file("config/settings.xml").asFile.absolutePath)
         systemProperty("java.executable", javaLauncher.get().executablePath.asFile.absolutePath)
+        inputs.files(configurations.mavenEmbedder)
+        doFirst {
+            systemProperty("maven.classpath", configurations.mavenEmbedder.get().asPath)
+        }
     }
 }
 
