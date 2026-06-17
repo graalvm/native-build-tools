@@ -1051,8 +1051,8 @@ public class NativeImagePlugin implements Plugin<Project> {
             @Override
             public void execute(@Nonnull Task task) {
                 if (agentConfiguration.get().isEnabled()) {
-                    // Report where users can find generated tracing-agent metadata. §FS-gradle-tracing-agent.4.
-                    logger.logOnce("Instrumenting task with the native-image-agent: "
+                    // Report where users can find generated tracing-agent metadata. §FS-tracing-agent.4.
+                    logger.lifecycle("Instrumenting task with the native-image-agent: "
                             + task.getName()
                             + ". Agent output: "
                             + outputDir.get().getAsFile().getAbsolutePath());
