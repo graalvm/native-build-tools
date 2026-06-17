@@ -37,7 +37,7 @@ not create agent output for those tasks.
 Agent output must be written under `build/native/agent-output/<taskName>` unless users configure a
 direct mode output location. When a task is instrumented, the Gradle task output must report the
 Gradle-managed agent output directory so users can find collected metadata without verbose logging,
-aligning with §root/GOAL-concise-actionable-output. Generated output must be suitable for later
+aligning with [§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient). Generated output must be suitable for later
 merge and copy steps.
 
 ## 5. Metadata copy
