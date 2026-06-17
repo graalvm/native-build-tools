@@ -1082,6 +1082,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
         Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
+        Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<JavaLauncher> javaLauncherForAgent = javaLauncherForAgent(project.getProviders());
         // Agent runs prefer an available GraalVM Java without replacing task configuration with a regular JAVA_HOME. §FS-tracing-agent.2.1
         if (agentConfiguration.get().isEnabled()) {
@@ -1101,7 +1102,11 @@ public class NativeImagePlugin implements Plugin<Project> {
             @Override
             public void execute(@Nonnull Task task) {
                 if (agentConfiguration.get().isEnabled()) {
-                    logger.logOnce("Instrumenting task with the native-image-agent: " + task.getName());
+                    // Report where users can find generated tracing-agent metadata. §FS-gradle-tracing-agent.4.
+                    logger.logOnce("Instrumenting task with the native-image-agent: "
+                            + task.getName()
+                            + ". Agent output: "
+                            + outputDir.get().getAsFile().getAbsolutePath());
                     JavaLauncher javaLauncher = javaLauncherForAgent.getOrNull();
                     if (javaLauncher != null && !(task instanceof Test) && !(task instanceof JavaExec)) {
                         javaForkOptions.setExecutable(javaLauncher.getExecutablePath().getAsFile().getAbsolutePath());
@@ -1115,7 +1120,6 @@ public class NativeImagePlugin implements Plugin<Project> {
         cliProvider.getFilterableEntries().set(graalExtension.getAgent().getFilterableEntries());
         cliProvider.getAgentMode().set(agentMode);
 
-        Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<Boolean> isMergingEnabled = agentConfiguration.map(serializableTransformerOf(AgentConfiguration::isEnabled));
         Provider<AgentMode> agentModeProvider = agentConfiguration.map(serializableTransformerOf(AgentConfiguration::getAgentMode));
         Supplier<List<String>> mergeInputDirs = serializableSupplierOf(() -> outputDir.map(serializableTransformerOf(NativeImagePlugin::agentSessionDirectories)).get());
