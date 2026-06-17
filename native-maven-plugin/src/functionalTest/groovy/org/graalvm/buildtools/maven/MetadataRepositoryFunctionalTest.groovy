@@ -67,6 +67,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         then:
         buildSucceeded
         outputContains "Hello, from reflection!"
+        // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository from " +
+                file("config-directory").toURI().toASCIIString()
 
         and: "it doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
@@ -121,6 +124,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         then:
         buildSucceeded
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+        // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository from " +
+                file("config-directory").toURI().toASCIIString()
         outputContains "Reflection failed"
     }
 
@@ -134,6 +140,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         then:
         buildSucceeded
         outputContains "Hello, from reflection!"
+        // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository from " +
+                file("target/repo.zip").toURI().toASCIIString()
 
         and: "it doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
@@ -154,6 +163,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         buildSucceeded
         outputContains "Hello, from reflection!"
         outputContains "Downloaded GraalVM reachability metadata repository from http://localhost:${localServerPort}/target/repo.zip"
+        // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
+        outputContains "Using GraalVM reachability metadata repository from " +
+                "http://localhost:${localServerPort}/target/repo.zip"
 
         and: "it doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
