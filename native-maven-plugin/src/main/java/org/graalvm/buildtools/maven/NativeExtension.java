@@ -115,6 +115,19 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         return "-agentlib:native-image-agent=" + String.join(",", options);
     }
 
+    static String quoteAgentArgumentForArgLine(String agentArgument) {
+        if (!agentArgument.contains(" ")) {
+            return agentArgument;
+        }
+        if (!agentArgument.contains("\"")) {
+            return "\"" + agentArgument + "\"";
+        }
+        if (!agentArgument.contains("'")) {
+            return "'" + agentArgument + "'";
+        }
+        return agentArgument;
+    }
+
     static String agentOutputDirectoryFor(String baseDir, Context context) {
         return (baseDir + "/native/agent-output/" + context).replace('/', File.separatorChar);
     }
@@ -212,7 +225,9 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             Xpp3Dom agent = findOrAppend(systemPropertyVariables, NATIVEIMAGE_IMAGECODE);
             agent.setValue("agent");
             Xpp3Dom argLine = new Xpp3Dom("argLine");
-            argLine.setValue(agentArgument);
+            // Surefire/Failsafe parse argLine as one command-line string.
+            // Keep spaced output paths as one JVM argument. §FS-tracing-agent.1 §FS-tracing-agent.3.
+            argLine.setValue(quoteAgentArgumentForArgLine(agentArgument));
             configuration.addChild(argLine);
             findOrAppend(configuration, "jvm").setValue(getGraalvmJava());
         });
