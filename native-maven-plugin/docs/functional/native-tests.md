@@ -10,7 +10,9 @@ dependencies needed by the test image. Current-project content must come from Ma
 outputs, including the processed test output directory; raw test resource source directories must
 not be added because doing so bypasses Maven resource filtering and exclusions and duplicates
 resources already present in the processed output. The goal must also add plugin artifacts relevant
-to Native Build Tools and JUnit and inferred `junit-platform-native` dependencies.
+to Native Build Tools and JUnit and inferred `junit-platform-native` dependencies. Optional
+test-scoped JUnit dependencies that Maven resolves for the current project must remain available to
+the native test image, including when their versions come from dependency management.
 
 ## 2. Test discovery preconditions
 

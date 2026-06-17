@@ -74,8 +74,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -406,27 +407,9 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     private void addMissingDependencies(CollectRequest collectRequest) {
-        // it's a chicken-and-egg problem, we need to resolve the dependencies first, in order
-        // to have the list of dependencies which are present and infer the ones which are missing
-        var current = resolveDependencies(request -> {
-            for (var dependency : project.getDependencies()) {
-                if (!dependency.isOptional()) {
-                    request.addDependency(new Dependency(
-                        new DefaultArtifact(
-                            dependency.getGroupId(),
-                            dependency.getArtifactId(),
-                            dependency.getClassifier(),
-                            "jar",
-                            dependency.getVersion()
-                        ),
-                        "runtime"
-                    ));
-                }
-            }
-        });
-        var currentClasspath = current.getArtifactResults().stream()
-            .map(ArtifactResult::getArtifact)
-            .filter(Objects::nonNull)
+        // Use Maven's resolved test graph so optional direct dependencies and managed versions are honored. §FS-native-tests.1
+        var currentClasspath = project.getArtifacts().stream()
+            .filter(artifact -> getDependencyScopes().contains(artifact.getScope()))
             .map(artifact -> new JUnitPlatformNativeDependenciesHelper.DependencyNotation(
                 artifact.getGroupId(),
                 artifact.getArtifactId(),
@@ -434,15 +417,45 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             )).toList();
         var deps = JUnitPlatformNativeDependenciesHelper.inferMissingDependenciesForTestRuntime(currentClasspath);
         for (var missing : deps) {
+            var version = resolveMissingDependencyVersion(missing);
+            if (version.isEmpty()) {
+                logger.debug("Skipping inferred dependency " + missing.groupId() + ":" + missing.artifactId() +
+                    " because no JUnit Platform version was available.");
+                continue;
+            }
             var missingDependency = new Dependency(new DefaultArtifact(
                 missing.groupId(),
                 missing.artifactId(),
                 null,
                 null,
-                missing.version()
+                version.get()
             ), "runtime");
             collectRequest.addDependency(missingDependency);
         }
+    }
+
+    private Optional<String> resolveMissingDependencyVersion(JUnitPlatformNativeDependenciesHelper.DependencyNotation dependency) {
+        if (!isBlank(dependency.version())) {
+            return Optional.of(dependency.version());
+        }
+        return getManagedDependencyVersion(dependency.groupId(), dependency.artifactId());
+    }
+
+    private Optional<String> getManagedDependencyVersion(String groupId, String artifactId) {
+        var dependencyManagement = project.getDependencyManagement();
+        if (dependencyManagement == null) {
+            return Optional.empty();
+        }
+        return dependencyManagement.getDependencies().stream()
+            .filter(dependency -> Objects.equals(groupId, dependency.getGroupId()))
+            .filter(dependency -> Objects.equals(artifactId, dependency.getArtifactId()))
+            .map(org.apache.maven.model.Dependency::getVersion)
+            .filter(version -> !isBlank(version))
+            .findFirst();
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
     private static final class Module {
