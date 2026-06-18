@@ -54,8 +54,11 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
 
 import javax.inject.Inject;
@@ -102,6 +105,13 @@ public abstract class MetadataCopyTask extends DefaultTask {
 
     @Internal
     public abstract Property<Boolean> getToolchainDetection();
+
+    /**
+     * Launcher used to locate Native Image while merging metadata. §FS-tracing-agent.5.
+     */
+    @Nested
+    @Optional
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @Option(option = "task", description = "Executed task previously instrumented with the agent whose metadata should be copied.")
     public void overrideInputTaskNames(List<String> inputTaskNames) {
@@ -158,10 +168,11 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 agentModeProvider,
                 getMergeWithExisting(),
                 objectFactory,
+                getJavaLauncher(),
                 graalvmHomeProvider(providerFactory),
                 () -> inputDirectories,
                 () -> outputDirectories,
-                getToolchainDetection(),
+                getToolchainDetection().map(enabled -> !enabled),
                 execOperations).execute(this);
     }
 }

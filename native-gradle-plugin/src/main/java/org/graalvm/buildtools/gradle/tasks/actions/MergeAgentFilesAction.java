@@ -72,13 +72,14 @@ public class MergeAgentFilesAction implements Action<Task> {
     private final Supplier<List<String>> inputDirs;
     private final Supplier<List<String>> outputDirs;
     private final Provider<Boolean> disableToolchainDetection;
-    private final Property<JavaLauncher> noLauncherProperty;
+    private final Property<JavaLauncher> javaLauncher;
     private final ExecOperations execOperations;
 
     public MergeAgentFilesAction(Provider<Boolean> isMergingEnabled,
                                  Provider<AgentMode> agentMode,
                                  Provider<Boolean> mergeWithOutputs,
                                  ObjectFactory objectFactory,
+                                 Property<JavaLauncher> javaLauncher,
                                  Provider<String> graalvmHomeProvider,
                                  Supplier<List<String>> inputDirs,
                                  Supplier<List<String>> outputDirs,
@@ -92,7 +93,8 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.outputDirs = outputDirs;
         this.disableToolchainDetection = disableToolchainDetection;
         this.execOperations = execOperations;
-        this.noLauncherProperty = objectFactory.property(JavaLauncher.class);
+        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        this.javaLauncher.convention(javaLauncher);
     }
 
     private static final Set<String> METADATA_FILES = Set.of("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json", "reachability-metadata.json");
@@ -105,7 +107,8 @@ public class MergeAgentFilesAction implements Action<Task> {
     @Override
     public void execute(Task task) {
         if (isMergingEnabled.get()) {
-            File nativeImage = findNativeImageExecutable(noLauncherProperty, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(task.getLogger()), new NativeImageExecutableLocator.Diagnostics());
+            // Preserve Native Image executable discovery for agent post-processing. §FS-native-invocation.1.
+            File nativeImage = findNativeImageExecutable(javaLauncher, disableToolchainDetection, graalvmHomeProvider, execOperations, GraalVMLogger.of(task.getLogger()), new NativeImageExecutableLocator.Diagnostics());
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
             if (!launcher.exists()) {
