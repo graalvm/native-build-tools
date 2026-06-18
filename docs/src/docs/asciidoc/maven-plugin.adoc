@@ -64,7 +64,6 @@ The following configuration options are available:
    application modules to build their native images. It does not select the application module
    automatically; configure or run the native build in the module that owns the main class. To
    enable it, add:
-// §maven/FS-maven-native-image-builds.2
 [source,xml, role="multi-language-sample"]
 ----
 <skipNativeBuildForPom>true</skipNativeBuildForPom>
