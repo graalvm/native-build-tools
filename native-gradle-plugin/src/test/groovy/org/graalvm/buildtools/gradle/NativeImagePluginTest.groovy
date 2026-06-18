@@ -71,9 +71,9 @@ class NativeImagePluginTest extends Specification {
         taskDescription("generateTestResourcesConfigFile") == "Scans resources and generates a resource-config.json file for the test binary."
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/478")
     // Protects custom binary classpath wiring and exclusion args. §FS-plugin-model.4
     // §FS-native-tasks.1 §FS-resources-and-metadata.6
+    @Issue("https://github.com/graalvm/native-build-tools/issues/478")
     def "custom application binaries use native image classpath configuration"() {
         given:
         project.plugins.apply("java")

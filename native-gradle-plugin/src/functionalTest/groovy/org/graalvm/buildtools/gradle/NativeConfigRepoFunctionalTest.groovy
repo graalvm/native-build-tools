@@ -89,9 +89,9 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         'tar.bz2' | 'tar.bz2 file'
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/478")
     // Protects custom binary runtime classpath and metadata exclusions. §FS-plugin-model.4
     // §FS-native-tasks.1 §FS-resources-and-metadata.6
+    @Issue("https://github.com/graalvm/native-build-tools/issues/478")
     def "custom binary uses runtime classpath and metadata exclusions"() {
         given:
         withSample("native-config-integration")
