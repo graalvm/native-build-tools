@@ -652,7 +652,6 @@ Running the `./mvnw -Pnative test` will then build and run tests as native code.
 
 This plugin requires the Maven Surefire plugin 3.0.0 or higher to run tests as native code.
 
-// Native test classpath and launcher/feature behavior are specified by §maven/FS-maven-native-tests.1 and §maven/FS-maven-native-tests.3.
 Native test execution also uses the JUnit Platform while building the native test image.
 By default, the plugin builds the test image with `NativeImageJUnitLauncher` and `JUnitPlatformFeature`,
 which discover and register selected tests using the JUnit Platform artifacts on the test classpath.
@@ -697,7 +696,6 @@ If Maven Surefire is using an older version of the JUnit Platform, the build wil
 [ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.
 ----
 
-// Native-image analysis registration is specified by §FS-native-tests.2.
 If the native test classpath contains incompatible JUnit Platform launcher and engine versions,
 native-image analysis can also fail during test discovery with an error similar to the following:
 
