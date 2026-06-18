@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
@@ -86,6 +87,40 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         'zip'    | 'zip file'
         'tar.gz' | 'tar.gz file'
         'tar.bz2' | 'tar.bz2 file'
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/478")
+    // Protects custom binary runtime classpath and metadata exclusions. §FS-plugin-model.4
+    // §FS-native-tasks.1 §FS-resources-and-metadata.6
+    def "custom binary uses runtime classpath and metadata exclusions"() {
+        given:
+        withSample("native-config-integration")
+
+        buildFile << """
+graalvmNative {
+    useArgFile = false
+    binaries {
+        qa {
+            imageName = 'native-config-integration-qa'
+            mainClass = 'org.graalvm.example.Application'
+            verbose = true
+        }
+    }
+}
+        """
+
+        when:
+        run 'nativeQaRun', "-D${NativeImagePlugin.CONFIG_REPO_LOGLEVEL}=${LogLevel.LIFECYCLE}", '--info'
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeQaCompile', ':nativeQaRun'
+        }
+
+        and:
+        outputContains "Hello, from reflection!"
+        outputContains "--exclude-config"
+        outputContains "library-with-reflection-1.5.jar"
     }
 
     def "can exclude a dependency from native configuration"() {

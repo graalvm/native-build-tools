@@ -8,6 +8,8 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.util.regex.Pattern
+
 import static org.graalvm.buildtools.VersionInfo.METADATA_REPO_VERSION
 
 class NativeImagePluginTest extends Specification {
@@ -67,6 +69,31 @@ class NativeImagePluginTest extends Specification {
         taskDescription("nativeTest") == "Runs the test native binary."
         taskDescription("nativeTestBuild") == "Deprecated alias for nativeTestCompile."
         taskDescription("generateTestResourcesConfigFile") == "Scans resources and generates a resource-config.json file for the test binary."
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/478")
+    // Protects custom binary classpath wiring and exclusion args. §FS-plugin-model.4
+    // §FS-native-tasks.1 §FS-resources-and-metadata.6
+    def "custom application binaries use native image classpath configuration"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def testJar = project.file("test.jar")
+
+        when:
+        def qa = extension.binaries.create("qa")
+        def classpathConfiguration = project.configurations.getByName("nativeImageQaClasspath")
+        qa.excludeConfig.put(testJar, ["META-INF/*"])
+
+        then:
+        taskDescription("nativeQaCompile") == "Builds a native executable for the qa binary."
+        taskDescription("nativeQaRun") == "Runs the qa native binary."
+        qa.classpath.files.containsAll(classpathConfiguration.files)
+        qa.excludeConfigArgs.get() == [
+                "--exclude-config",
+                Pattern.quote(testJar.toPath().toAbsolutePath().toString()),
+                "META-INF/*"
+        ]
     }
 
     private String taskDescription(String name) {
