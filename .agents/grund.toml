@@ -1,5 +1,6 @@
 grund_config_version = 1
 project_name = "root"
+project_description = "Workspace-level specs, release, CI, and shared Native Build Tools behavior"
 
 [workspace]
 
@@ -95,7 +96,7 @@ title = "Glossary of domain terms"
 
 [scan]
 
-include = ["AGENTS.md", "docs/spec", "build-logic", "samples", "test-support", ".github/workflows", ".github/actions"]
+include = ["AGENTS.md", ".pre-commit-config.yaml", "docs/spec", "build-logic", "samples", "test-support", ".github/workflows", ".github/actions"]
 
 exclude = ["target", "node_modules", ".git", "dist", "build", ".gradle", ".venv"]
 
@@ -125,3 +126,31 @@ enabled = true
 
 # default; one of github | gitlab | mkdocs | pandoc | none
 anchor_format = "github"
+
+[citations]
+default = "may"
+
+[citations.GOAL]
+should = ["*/GRUND|*/GOAL"]
+
+[citations.NGOAL]
+should = ["*/GRUND|*/GOAL|*/NGOAL"]
+
+[citations.REQ]
+should = ["*/GRUND|*/GOAL|*/REQ"]
+
+[citations.FS]
+should = ["*/REQ|*/GOAL|*/FS"]
+should-not = ["*/AR"]
+
+[citations.AR]
+should = ["*/FS|*/REQ|*/GOAL|*/AR"]
+
+[citations.E2E]
+should = ["*/FS"]
+
+[citations.DEC]
+should = ["*/FS|*/AR|*/REQ|*/GOAL|*/NGOAL|*/DEC"]
+
+[citations.code]
+should = ["*/FS|*/AR|*/E2E"]

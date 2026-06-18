@@ -1,8 +1,8 @@
-# FS-maven-native-image-builds: Maven goals build Native Image outputs from project state
+# FS-native-builds: Maven goals build Native Image outputs from project state
 
 Maven native image builds translate project packaging, dependency scopes, plugin configuration,
 and command-line properties into a Native Image invocation that satisfies
-§root/FS-native-image-builds.
+[§root/FS-native-builds](../../../docs/spec/functional/native-image-builds.md#fs-native-builds-both-plugins-build-native-images-from-build-tool-project-state).
 
 ## 1. Main class discovery
 
@@ -27,7 +27,7 @@ native-image compilation without changing the Maven project dependency graph.
 
 Before building, the plugin must add generated resource configuration to the native image
 arguments when resource autodetection is configured. Generation uses the shared resource contract
-in §common/FS-common-libraries.2.
+in [§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration).
 
 ## 5. Dynamic access metadata
 

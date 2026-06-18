@@ -46,7 +46,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
 
-// Protects Maven native-test execution through the plugin lifecycle. §FS-maven-native-tests.4.
+// Protects Maven native-test execution through the plugin lifecycle. §FS-native-tests.4.
 class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
 
     def "can run tests in a native image with the Maven plugin"() {

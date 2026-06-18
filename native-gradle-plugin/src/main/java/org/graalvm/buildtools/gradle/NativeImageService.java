@@ -49,7 +49,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
 /**
- * Limits concurrent native-image builds. §FS-gradle-native-image-invocation.6.
+ * Limits concurrent native-image builds. §FS-native-invocation.6.
  */
 @SuppressWarnings({"UnstableApiUsage", "unused"})
 public abstract class NativeImageService implements BuildService<BuildServiceParameters.None> {

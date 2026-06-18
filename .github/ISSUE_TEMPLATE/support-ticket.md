@@ -9,7 +9,7 @@ assignees: ''
 
 **Describe the problem**
 A clear and concise description of what the problem is.
-**Make sure that you have read [the documentation](https://graalvm.github.io/native-build-tools) and that you are using the latest plugin version.**
+**Make sure that you have read [the documentation](https://graalvm.github.io/native-build-tools/) and that you are using the latest plugin version.**
 
 **Additional context**
 Add any other context about the problem here.

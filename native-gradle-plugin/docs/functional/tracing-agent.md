@@ -1,7 +1,7 @@
-# FS-gradle-tracing-agent: Gradle tasks attach and post-process Native Image tracing-agent metadata
+# FS-tracing-agent: Gradle tasks attach and post-process Native Image tracing-agent metadata
 
 The Gradle plugin exposes the shared tracing-agent workflow from
-§root/FS-tracing-agent-workflows without requiring users to edit JVM task command lines by hand.
+[§root/FS-tracing-agent](../../../docs/spec/functional/tracing-agent.md#fs-tracing-agent-both-plugins-attach-the-native-image-tracing-agent-and-post-process-its-output) without requiring users to edit JVM task command lines by hand.
 
 ## 1. Agent enablement
 
@@ -18,7 +18,7 @@ without failing the build.
 ## 3. Agent modes
 
 The Gradle DSL must expose standard, conditional, direct, and disabled agent modes using the
-shared agent mode behavior from §common/FS-common-libraries.3. Conditional mode must support
+shared agent mode behavior from [§common/FS-common-libraries.3](../../../common/docs/functional-spec.md#3-native-image-tracing-agent). Conditional mode must support
 user-code and extra filters; direct mode must allow users to pass native agent options, including
 `{output_dir}` substitution.
 
@@ -32,7 +32,7 @@ direct mode output location. Generated output must be suitable for later merge a
 `metadataCopy` copies or merges agent output from configured input tasks into configured output
 directories. Command-line options on `metadataCopy` may select task names and destination
 directories for ad hoc use, exposing the shared agent post-processing workflow from
-§root/FS-tracing-agent-workflows.
+[§root/FS-tracing-agent](../../../docs/spec/functional/tracing-agent.md#fs-tracing-agent-both-plugins-attach-the-native-image-tracing-agent-and-post-process-its-output).
 
 ## 6. Agent example
 

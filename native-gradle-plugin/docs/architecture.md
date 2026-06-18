@@ -3,8 +3,8 @@
 `native-gradle-plugin` owns Gradle plugin registration, extension objects, task types, task
 actions, command-line providers, Gradle services, artifact transforms, and Gradle functional test
 infrastructure. The module implements the focused Gradle functional specs under
-`docs/functional/` by adapting the shared libraries from §common/AR-common-libraries into Gradle's
-APIs, following §GOAL-gradle-plugin-idiomatic-gradle-integration.
+`docs/functional/` by adapting the shared libraries from [§common/AR-common-libraries](../../common/docs/architecture.md#ar-common-libraries-shared-libraries-stay-independent-from-gradle-and-maven-apis) into Gradle's
+APIs, following [§GOAL-idiomatic-gradle](goals.md#goal-idiomatic-gradle-gradle-integration-follows-gradle-idioms-and-conventions).
 
 ## 1. Module responsibility
 
@@ -46,7 +46,7 @@ binary uses Native Image layers. `GenerateResourcesConfigFile`, `GenerateDynamic
 metadata behavior to Gradle tasks and Gradle file properties.
 
 Native test task wiring is owned here, but launcher and JUnit registration behavior belongs to
-`common/junit-platform-native` as specified by §common/AR-common-libraries.4.
+`common/junit-platform-native` as specified by [§common/AR-common-libraries.4](../../common/docs/architecture.md#4-junit-native-architecture).
 
 ## 4. Command line and executable services
 
@@ -68,7 +68,7 @@ integration. The plugin registers a JAR analysis attribute and transform so clas
 be inspected without making every task implement its own scan lifecycle.
 
 Transform output must be treated as internal task input data. The functional behavior remains the
-resource and classpath analysis contract in §common/FS-common-libraries.2.
+resource and classpath analysis contract in [§common/FS-common-libraries.2](../../common/docs/functional-spec.md#2-resource-configuration).
 
 ## 6. Tests and fixtures
 
@@ -79,7 +79,7 @@ Gradle sample build.
 
 Functional tests should run real sample builds through TestKit. They must prefer scenario
 fixtures over synthetic one-off projects when an existing sample already represents the behavior.
-Shared samples and cross-plugin scenario ownership are described by §root/AR-build-infrastructure.4.1.
+Shared samples and cross-plugin scenario ownership are described by [§root/AR-build-infrastructure.4.1](../../docs/spec/architecture/build-infrastructure.md#41-fixture-groups).
 
 ## 7. Dependency direction
 

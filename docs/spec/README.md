@@ -8,8 +8,8 @@ docs.
 The root namespace describes repository-wide contracts. The common libraries and product plugins
 are workspace members named `common`, `gradle`, and `maven`, with local docs under `common/docs/`,
 `native-gradle-plugin/docs/`, and `native-maven-plugin/docs/`. Root docs cite workspace-member
-facts with aliases such as `§common/FS-common-libraries`, `§gradle/FS-gradle-native-image-tasks`,
-and `§maven/FS-maven-goal-surface`; member docs cite repository-wide facts with `§root/<ID>`. Shared plugin
+facts with aliases such as `§common/FS-common-libraries`, `§gradle/FS-native-tasks`,
+and `§maven/FS-goal-surface`; member docs cite repository-wide facts with `§root/<ID>`. Shared plugin
 behavior, CI, build infrastructure, native-test behavior, decisions, and glossary terms stay in
 `docs/spec/`.
 
@@ -64,12 +64,12 @@ The common libraries and product plugins are separate grund workspace members:
 
 | Workflow | Shared spec | Gradle adaptation | Maven adaptation |
 | --- | --- | --- | --- |
-| Build and run application native images | §FS-native-image-builds | §gradle/FS-gradle-native-image-tasks, §gradle/FS-gradle-native-image-invocation | §maven/FS-maven-goal-surface, §maven/FS-maven-native-image-builds |
-| Build and run native tests | §FS-native-tests | §gradle/FS-gradle-native-tests | §maven/FS-maven-native-tests |
-| Generate resource configuration | §FS-resources-and-metadata.1 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
-| Consume reachability metadata | §FS-resources-and-metadata.2 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
-| Collect/copy tracing-agent metadata | §FS-tracing-agent-workflows | §gradle/FS-gradle-tracing-agent | §maven/FS-maven-tracing-agent |
-| Inspect missing metadata | §FS-resources-and-metadata.3 | §gradle/FS-gradle-resources-and-metadata | §maven/FS-maven-resources-and-metadata |
+| Build and run application native images | [§FS-native-builds](functional/native-image-builds.md#fs-native-builds-both-plugins-build-native-images-from-build-tool-project-state) | [§gradle/FS-native-tasks](../../native-gradle-plugin/docs/functional/native-image-tasks.md#fs-native-tasks-gradle-native-image-tasks-build-and-run-native-image-outputs), [§gradle/FS-native-invocation](../../native-gradle-plugin/docs/functional/native-image-invocation.md#fs-native-invocation-gradle-tasks-construct-and-execute-native-image-invocations) | [§maven/FS-goal-surface](../../native-maven-plugin/docs/functional/goal-surface.md#fs-goal-surface-maven-goals-expose-native-image-workflows), [§maven/FS-native-builds](../../native-maven-plugin/docs/functional/native-image-builds.md#fs-native-builds-maven-goals-build-native-image-outputs-from-project-state) |
+| Build and run native tests | [§FS-native-tests](functional/native-tests.md#fs-native-tests-both-plugins-compile-and-execute-junit-tests-as-a-native-image) | [§gradle/FS-native-tests](../../native-gradle-plugin/docs/functional/native-tests.md#fs-native-tests-gradle-tasks-compile-and-run-native-junit-tests) | [§maven/FS-native-tests](../../native-maven-plugin/docs/functional/native-tests.md#fs-native-tests-maven-goals-compile-and-run-native-junit-tests) |
+| Generate resource configuration | [§FS-resources-and-metadata.1](functional/resources-and-metadata.md#1-resource-configuration) | [§gradle/FS-resources-and-metadata](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata) | [§maven/FS-resources-and-metadata](../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata) |
+| Consume reachability metadata | [§FS-resources-and-metadata.2](functional/resources-and-metadata.md#2-reachability-metadata-repository) | [§gradle/FS-resources-and-metadata](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata) | [§maven/FS-resources-and-metadata](../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata) |
+| Collect/copy tracing-agent metadata | [§FS-tracing-agent](functional/tracing-agent.md#fs-tracing-agent-both-plugins-attach-the-native-image-tracing-agent-and-post-process-its-output) | [§gradle/FS-tracing-agent](../../native-gradle-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-gradle-tasks-attach-and-post-process-native-image-tracing-agent-metadata) | [§maven/FS-tracing-agent](../../native-maven-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-maven-goals-attach-and-post-process-native-image-tracing-agent-metadata) |
+| Inspect missing metadata | [§FS-resources-and-metadata.3](functional/resources-and-metadata.md#3-missing-metadata-reports) | [§gradle/FS-resources-and-metadata](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata) | [§maven/FS-resources-and-metadata](../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata) |
 
 ## Citation shape
 
@@ -79,9 +79,9 @@ specs describe ownership, dependency direction, module boundaries, and implement
 
 Use the most specific citation that supports the behavior. For example:
 
-- Gradle task behavior from root docs: `§gradle/FS-gradle-native-image-tasks.1`
-- Maven goal behavior from root docs: `§maven/FS-maven-goal-surface.1`
-- cross-plugin parity: `§FS-plugin-common-behavior`
+- Gradle task behavior from root docs: `§gradle/FS-native-tasks.1`
+- Maven goal behavior from root docs: `§maven/FS-goal-surface.1`
+- cross-plugin parity: `§FS-plugin-common`
 - shared resource analysis: `§common/FS-common-libraries.2`
 - native test lifecycle: `§FS-native-tests.1`
 - build infrastructure task surface: `§FS-build-infrastructure.1.2`

@@ -7,6 +7,7 @@ on:
     paths:
       - 'docs/spec/**'
       - '.agents/grund.toml'
+      - '.pre-commit-config.yaml'
       - 'AGENTS.md'
       - 'common/**'
       - 'native-gradle-plugin/**'
@@ -26,8 +27,8 @@ permissions:
   contents: read
 
 env:
-  # Bump to refresh the cached binary. Validated locally against grund 0.4.0.
-  GRUND_VERSION: "0.4.0"
+  # Bump to refresh the cached binary. Validated locally against grund 0.5.0.
+  GRUND_VERSION: "0.5.0"
 
 jobs:
   check-grund-spec:
@@ -55,7 +56,7 @@ jobs:
         # The root workspace validates root, Gradle, and Maven namespaces together.
         run: |
           grund check
-      - name: "✅ grund fmt --marker check"
-        # Enforces the marked citation style while [reference] strict = true ignores bare ID tokens.
+      - name: "✅ grund fmt --marker --cross-refs check"
+        # Enforces marked citations and generated Markdown links for citations. §AR-repository-ci.1.1
         run: |
-          grund fmt . --marker --check
+          grund fmt . --marker --cross-refs --check

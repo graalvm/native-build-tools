@@ -1,5 +1,6 @@
 grund_config_version = 1
 project_name = "maven"
+project_description = "Maven plugin specs and implementation for Native Image workflows"
 
 [reference]
 marker = "§"
@@ -64,3 +65,25 @@ relative_paths = true
 [fmt.cross_refs]
 enabled = true
 anchor_format = "github" # github | gitlab | mkdocs | pandoc | none
+
+[citations]
+default = "may"
+
+[citations.GOAL]
+should = ["*/GRUND|*/GOAL"]
+
+[citations.REQ]
+should = ["*/GRUND|*/GOAL|*/REQ"]
+
+[citations.FS]
+should = ["*/REQ|*/GOAL|*/FS"]
+should-not = ["*/AR"]
+
+[citations.AR]
+should = ["*/FS|*/REQ|*/GOAL|*/AR"]
+
+[citations.E2E]
+should = ["*/FS"]
+
+[citations.code]
+should = ["*/FS|*/AR|*/E2E"]
