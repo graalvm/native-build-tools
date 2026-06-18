@@ -59,6 +59,7 @@ import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
+import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.ListLibrariesMissingMetadata;
@@ -380,6 +381,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                 TaskContainer tasks,
                                                 SourceSetContainer sourceSets) {
         graalExtension.getBinaries().configureEach(options -> {
+            configureCustomApplicationBinary(project, options);
             String binaryName = options.getName();
             String compileTaskName = deriveTaskName(binaryName, "native", "Compile");
             if (NATIVE_MAIN_EXTENSION.equals(binaryName)) {
@@ -485,6 +487,23 @@ public class NativeImagePlugin implements Plugin<Project> {
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
             configureJvmReachabilityExcludeConfigArgs(project, graalExtension, options, sourceSet);
         });
+    }
+
+    private void configureCustomApplicationBinary(Project project, NativeImageOptions options) {
+        ConfigurationContainer configurations = project.getConfigurations();
+        String binaryName = options.getName();
+        if (configurations.findByName(imageClasspathConfigurationNameFor(binaryName)) != null) {
+            return;
+        }
+        // Custom application binaries share the main runtime classpath and option model. §FS-plugin-model.4
+        createNativeConfigurations(project, binaryName, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        setupExtensionConfigExcludes(options, configurations);
+        Configuration imageClasspath = configurations.getByName(imageClasspathConfigurationNameFor(binaryName));
+        options.getClasspath().from(project.provider(() -> createsLayer(options) ? Collections.emptyList() : Collections.singletonList(imageClasspath)));
+    }
+
+    private static boolean createsLayer(NativeImageOptions options) {
+        return options.getLayers().stream().anyMatch(CreateLayerOptions.class::isInstance);
     }
 
     private static boolean emitsBuildReport(String buildArg) {
@@ -1002,13 +1021,13 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                  Project project,
                                                  NativeImageOptions mainExtension,
                                                  SourceSet sourceSet) {
-        NativeImageOptions testExtension = graalExtension.getBinaries().create(binaryName);
         createNativeConfigurations(
             project,
             binaryName,
             // Custom native tests use their selected source set runtime classpath. §FS-native-tests.1.1
             sourceSet.getRuntimeClasspathConfigurationName()
         );
+        NativeImageOptions testExtension = graalExtension.getBinaries().create(binaryName);
         var configurations = project.getConfigurations();
         setupExtensionConfigExcludes(testExtension, configurations);
 

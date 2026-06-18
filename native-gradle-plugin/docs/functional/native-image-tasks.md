@@ -16,8 +16,9 @@ It uses compiled test classes, test resources, the test runtime classpath, JUnit
 selected test identifiers, and the `test` binary options.
 
 Every custom binary must receive a derived `native<Binary>Compile` task. All compile tasks must
-declare Gradle inputs and outputs for the selected options and generated files so Gradle can skip,
-cache, or rerun them consistently.
+declare Gradle inputs and outputs for the selected options and generated files, including the
+binary's classpath and reachability-metadata exclusions, so Gradle can skip, cache, or rerun them
+consistently.
 
 ## 2. Run tasks
 
