@@ -322,6 +322,15 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
             task.getToolchainDetection().set(graalExtension.getToolchainDetection());
+            JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
+            if (toolchainService != null) {
+                task.getJavaLauncher().convention(graalExtension.getToolchainDetection().flatMap(enabled -> {
+                    if (enabled) {
+                        return toolchainService.launcherFor(javaConvention.getToolchain());
+                    }
+                    return null;
+                }));
+            }
         });
 
         project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
@@ -1133,10 +1142,11 @@ public class NativeImagePlugin implements Plugin<Project> {
             agentModeProvider,
             project.provider(() -> false),
             project.getObjects(),
+            javaLauncherForAgentMerge(project, taskToInstrument),
             graalvmHomeProvider(project.getProviders()),
             mergeInputDirs,
             mergeOutputDirs,
-            graalExtension.getToolchainDetection(),
+            graalExtension.getToolchainDetection().map(enabled -> !enabled),
             execOperations));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
@@ -1172,6 +1182,17 @@ public class NativeImagePlugin implements Plugin<Project> {
         return properties.stringPropertyNames().stream()
                 .anyMatch(propertyName -> propertyName.toUpperCase(Locale.ROOT).contains("GRAALVM")
                         || String.valueOf(properties.getProperty(propertyName)).toLowerCase(Locale.ROOT).contains("graalvm"));
+    }
+
+    private static Property<JavaLauncher> javaLauncherForAgentMerge(Project project, Task task) {
+        Property<JavaLauncher> javaLauncher = project.getObjects().property(JavaLauncher.class);
+        // Agent post-processing uses the instrumented JVM task launcher when Gradle exposes one. §FS-tracing-agent.5.
+        if (task instanceof JavaExec) {
+            javaLauncher.convention(((JavaExec) task).getJavaLauncher());
+        } else if (task instanceof Test) {
+            javaLauncher.convention(((Test) task).getJavaLauncher());
+        }
+        return javaLauncher;
     }
 
     private static void injectTestPluginDependencies(Project project, String binaryName, Property<Boolean> testSupportEnabled) {
