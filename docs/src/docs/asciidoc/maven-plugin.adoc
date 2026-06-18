@@ -723,6 +723,71 @@ Alternatively, set `<skipTestExecution>` to `true` in the plugin configuration:
 
 This will still build the native test image but skips execution of tests as native code.
 
+==== Isolate native test output directories
+
+The `native:test` goal writes the native test executable to the configured Maven plugin `<outputDirectory>`.
+It also uses that same directory when it executes the `native-tests` executable and writes native test reports.
+By default, the directory is `${project.build.directory}`.
+
+Set `<outputDirectory>` when multiple native test executions or Maven profiles need separate native test images:
+
+[source,xml, role="multi-language-sample"]
+----
+<configuration>
+  <outputDirectory>${project.build.directory}/native-tests-config-a</outputDirectory>
+</configuration>
+----
+
+The same option can be set from the command line with the `outputDir` property:
+
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative -DoutputDir=target/native-tests-config-a native:test
+----
+
+If your native profile binds `native:test` to the Maven `test` phase, use the same property with the phase invocation:
+
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative -DoutputDir=target/native-tests-config-a test
+----
+
+For profile-specific native test configurations, give each profile a different output directory value:
+
+[source,xml, role="multi-language-sample"]
+----
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.graalvm.buildtools</groupId>
+      <artifactId>native-maven-plugin</artifactId>
+      <configuration>
+        <outputDirectory>${native.tests.outputDirectory}</outputDirectory>
+      </configuration>
+    </plugin>
+  </plugins>
+</build>
+
+<profiles>
+  <profile>
+    <id>native-tests-config-a</id>
+    <properties>
+      <native.tests.outputDirectory>${project.build.directory}/native-tests-config-a</native.tests.outputDirectory>
+    </properties>
+  </profile>
+  <profile>
+    <id>native-tests-config-b</id>
+    <properties>
+      <native.tests.outputDirectory>${project.build.directory}/native-tests-config-b</native.tests.outputDirectory>
+    </properties>
+  </profile>
+</profiles>
+----
+
+Do not use `-H:Path` in `<buildArgs>` to isolate native test runs.
+That option can move the file produced by Native Image without changing the Maven plugin directory used to locate and execute `native-tests`.
+Use `<outputDirectory>` or `-DoutputDir=...` instead so the build output, execution path, and native test reports stay in the same directory.
+
 ==== Skip modules without native tests in multi-module builds
 
 In multi-module projects where only some sub-modules contain native tests, you need to skip test execution for any module that does not contain native tests. Any module which should contain tests, but does not, should fail the build.
