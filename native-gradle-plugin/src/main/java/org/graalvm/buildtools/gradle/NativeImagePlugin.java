@@ -173,6 +173,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     public static final String CONFIG_REPO_LOGLEVEL = "org.graalvm.internal.gradle.configrepo.logging";
     public static final Attribute<Boolean> JAR_ANALYSIS_ATTRIBUTE = Attribute.of("jar-analysis", Boolean.class);
 
+    private static final String NATIVE_CONFIGURATION_SERVICE_NAME = "nativeConfigurationService";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
@@ -576,9 +577,10 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private Provider<GraalVMReachabilityMetadataService> graalVMReachabilityMetadataService(Project project,
                                                                                             GraalVMReachabilityMetadataRepositoryExtension repositoryExtension) {
+        // Keep metadata repository service parameters project-local. §FS-resources-and-metadata.3.
         return project.getGradle()
             .getSharedServices()
-            .registerIfAbsent("nativeConfigurationService", GraalVMReachabilityMetadataService.class, spec -> {
+            .registerIfAbsent(NATIVE_CONFIGURATION_SERVICE_NAME + project.getPath(), GraalVMReachabilityMetadataService.class, spec -> {
                 LogLevel logLevel = determineLogLevel();
                 spec.getMaxParallelUsages().set(1);
                 spec.getParameters().getLogLevel().set(logLevel);
