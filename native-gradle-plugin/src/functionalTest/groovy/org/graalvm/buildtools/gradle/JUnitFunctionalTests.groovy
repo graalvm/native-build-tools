@@ -73,4 +73,40 @@ class JUnitFunctionalTests extends AbstractFunctionalTest {
 [         0 tests failed          ]
 """.trim()
     }
+
+    def "test if JUnit support works when JVM tests are skipped"() {
+        debug=true
+        given:
+        withSample("junit-tests")
+
+        when:
+        run 'nativeTest', '-DskipJVMTests', '--info'
+
+        then:
+        tasks {
+            succeeded ':testClasses', ':nativeTestCompile', ':nativeTest'
+        }
+        outputContains "VintageTests > testEvery SKIPPED"
+        outputContains "ComplexTest > accessMethodReflectively() SKIPPED"
+        outputContains "ComplexTest > resourceTest() SKIPPED"
+        outputContains "JUnitAnnotationsTests > beforeAndAfterEachTest1() SKIPPED"
+        outputContains "OrderTests > firstTest() SKIPPED"
+        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
+        outputContains "Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder ["
+        outputContains """
+[        10 containers found      ]
+[         0 containers skipped    ]
+[        10 containers started    ]
+[         0 containers aborted    ]
+[        10 containers successful ]
+[         0 containers failed     ]
+[        24 tests found           ]
+[         1 tests skipped         ]
+[        23 tests started         ]
+[         0 tests aborted         ]
+[        23 tests successful      ]
+[         0 tests failed          ]
+""".trim()
+    }
+
 }
