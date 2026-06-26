@@ -57,7 +57,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -72,6 +71,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -79,6 +79,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
@@ -312,7 +313,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getExecOperations(),
             logger,
             diagnostics);
-        String versionString = getVersionString(getExecOperations(), executablePath);
+        String versionString = getVersionString(getExecOperations(), options, executablePath);
         Boolean metadataEnabled = getMetadataRepositoryEnabled().getOrNull();
         String metadataRoot = getMetadataRepositoryRootPath().getOrNull();
         if (Boolean.TRUE.equals(metadataEnabled) && metadataRoot != null) {
@@ -334,10 +335,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getFileSystemOperations().delete(d -> d.delete(outputDir));
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             getExecOperations().exec(spec -> {
-                MapProperty<String, Object> environmentVariables = options.getEnvironmentVariables();
-                if (environmentVariables.isPresent() && !environmentVariables.get().isEmpty()) {
-                    spec.environment(environmentVariables.get());
-                }
+                addEnvironmentVariables(spec, options);
                 spec.setWorkingDir(getWorkingDirectory());
                 if (getTestListDirectory().isPresent()) {
                     NativeImagePlugin.TrackingDirectorySystemPropertyProvider directoryProvider = getObjects().newInstance(NativeImagePlugin.TrackingDirectorySystemPropertyProvider.class);
@@ -352,14 +350,22 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         }
     }
 
-    public static String getVersionString(ExecOperations execOperations, File executablePath) {
+    public static String getVersionString(ExecOperations execOperations, NativeImageOptions options, File executablePath) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ExecResult execResult = execOperations.exec(spec -> {
+            addEnvironmentVariables(spec, options);
             spec.setStandardOutput(outputStream);
             spec.args("--version");
             spec.setExecutable(executablePath.getAbsolutePath());
         });
         execResult.assertNormalExitValue();
         return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    private static void addEnvironmentVariables(ExecSpec spec, NativeImageOptions options) {
+        // Always inherit current process environment first to ensure PATH and other critical variables are available
+        spec.environment(System.getenv());
+        // Merge custom environment variables
+        spec.environment(options.getEnvironmentVariables().getOrElse(Map.of()));
     }
 }
