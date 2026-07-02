@@ -17,6 +17,7 @@ tests prepare both a build JDK and a GraalVM test JDK through [§AR-repository-c
 | `test-native-maven-plugin.yml` | Maven plugin, samples, common modules, workflow/action changes, and shared version catalog changes. | Maven functional tests plus GraalVM dev-build functional tests. [§AR-repository-ci.1.4](ci.md#14-maven-plugin-pr-workflow) |
 | `test-graalvm-metadata.yml` | Reachability metadata common module and relevant workflow/action changes. | Checkstyle and unit tests for the metadata repository library. [§AR-repository-ci.1.5](ci.md#15-reachability-metadata-library-pr-workflow) |
 | `test-junit-platform-native.yml` | JUnit native support and relevant workflow/action changes. | Checkstyle, JVM tests, and native tests for `common/junit-platform-native`. [§AR-repository-ci.1.6](ci.md#16-junit-native-support-pr-workflow) |
+| `test-common-utils.yml` | Common utilities, relevant shared build setup, and relevant workflow/action changes. | Checkstyle and unit tests for `common/utils`. [§AR-repository-ci.1.7](ci.md#17-common-utilities-pr-workflow) |
 
 ### 1.1 Grund validation workflow
 
@@ -61,6 +62,15 @@ unit tests. It protects the repository query and missing-metadata behavior speci
 `test-junit-platform-native.yml` validates `common/junit-platform-native` with checkstyle, JVM
 tests, and native tests. It protects the shared native-test runtime behavior specified by
 [§FS-native-tests.3](../functional/native-tests.md#3-native-launcher-and-feature).
+
+### 1.7 Common utilities PR workflow
+
+`test-common-utils.yml` validates `common/utils` with checkstyle and unit tests. It protects the
+shared utility behavior specified by [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities),
+[§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration),
+[§common/FS-common-libraries.3](../../../common/docs/functional-spec.md#3-native-image-tracing-agent),
+[§common/FS-common-libraries.4](../../../common/docs/functional-spec.md#4-agent-metadata-post-processing), and
+[§common/FS-common-libraries.7](../../../common/docs/functional-spec.md#7-schema-validation).
 
 ## 2. Publication workflows
 

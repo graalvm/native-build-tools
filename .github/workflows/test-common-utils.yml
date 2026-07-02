@@ -1,0 +1,52 @@
+# Pull request common utilities gate: checkstyle and unit tests for shared build-tool-neutral code.
+# §AR-repository-ci.1.7; §common/E2E-common-tests.2.1
+name: "Test common-utils"
+
+on:
+  pull_request:
+    paths:
+      - 'common/utils/**'
+      - 'build-logic/common-plugins/**'
+      - 'build-logic/settings-plugins/**'
+      - 'build-logic/utils-plugins/**'
+      - 'config/checkstyle.xml'
+      - '.github/actions/**'
+      - '.github/workflows/test-common-utils.yml'
+      - 'gradle/libs.versions.toml'
+      - 'settings.gradle.kts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "workflow = ${{ github.workflow }}, ref = ${{ github.event.ref }}, pr = ${{ github.event.pull_request.id }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.repository != 'graalvm/native-build-tools' }}
+
+jobs:
+  test-common-utils:
+    name: "Test common-utils"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version: [ 17.0.12 ]
+        os: [ ubuntu-22.04 ]
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: "🔧 Prepare environment"
+        uses: ./.github/actions/prepare-environment
+        with:
+          java-version: ${{ matrix.java-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "❓ Checkstyle"
+        run: ./gradlew :utils:checkstyleMain :utils:checkstyleTest
+      - name: "❓ Common utilities test"
+        run: ./gradlew :utils:test
+      - name: "📜 Upload tests results"
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tests-results-${{ strategy.job-index }}-${{ matrix.java-version }}-${{ matrix.os }}
+          path: common/utils/build/reports/tests/
