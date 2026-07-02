@@ -103,6 +103,15 @@ enough coordinate and repository-status information for users or automation to d
 request support, and format issue requests against the configured GitHub repository and API URL
 when issue creation is enabled. Product plugins supply credentials and project identity.
 
+When a direct runtime dependency is not covered by the configured metadata repository, reporting
+must distinguish between dependencies that are truly uncovered and dependencies that are already
+covered by a newer official metadata repository release. Coverage in a newer official release is
+still actionable for the user because the current build cannot consume it yet, but it must be
+reported separately from truly missing libraries and must advise the user to update either the
+configured metadata repository version or Native Build Tools. Issue creation must only target
+dependencies that remain uncovered after checking the newer official release. This refinement
+builds on the repository coverage semantics in [§FS-common-libraries.5.1](functional-spec.md#51-repository-lookup).
+
 Product-specific report entry points are specified by [§gradle/FS-resources-and-metadata.4](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#4-missing-metadata-reports) and
 [§maven/FS-resources-and-metadata.3](../../native-maven-plugin/docs/functional/resources-and-metadata.md#3-missing-metadata-reports).
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/list-libraries-missing-metadata-schema-v1.0.0.json",
+  "$id": "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/list-libraries-missing-metadata-schema-v1.1.0.json",
   "title": "list-libraries-missing-metadata report",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,7 @@
   ],
   "properties": {
     "$schema": {
-      "const": "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/list-libraries-missing-metadata-schema-v1.0.0.json"
+      "const": "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/list-libraries-missing-metadata-schema-v1.1.0.json"
     },
     "command": {
       "const": "listLibrariesMissingMetadata"
@@ -65,6 +65,7 @@
       "required": [
         "scanned",
         "supported",
+        "supportedInNewerMetadataRepository",
         "missing",
         "existingOpenIssue",
         "newIssueLinks",
@@ -77,6 +78,10 @@
           "minimum": 0
         },
         "supported": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "supportedInNewerMetadataRepository": {
           "type": "integer",
           "minimum": 0
         },
@@ -112,6 +117,9 @@
         "oneOf": [
           {
             "$ref": "#/$defs/supportedResult"
+          },
+          {
+            "$ref": "#/$defs/supportedInNewerMetadataRepositoryResult"
           },
           {
             "$ref": "#/$defs/missingResult"
@@ -152,6 +160,36 @@
         },
         "status": {
           "const": "supported"
+        }
+      }
+    },
+    "supportedInNewerMetadataRepositoryResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "coordinates",
+        "scope",
+        "status",
+        "supportingMetadataRepositoryVersion",
+        "supportingMetadataRepositoryUri"
+      ],
+      "properties": {
+        "coordinates": {
+          "$ref": "#/$defs/coordinates"
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "status": {
+          "const": "supported_in_newer_metadata_repository"
+        },
+        "supportingMetadataRepositoryVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supportingMetadataRepositoryUri": {
+          "type": "string",
+          "format": "uri"
         }
       }
     },
