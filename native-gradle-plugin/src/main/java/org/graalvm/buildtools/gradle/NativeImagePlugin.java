@@ -108,6 +108,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -117,6 +118,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -308,6 +310,15 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getOutputDirectories().set(graalExtension.getAgent().getMetadataCopy().getOutputDirectories());
             task.getMergeWithExisting().set(graalExtension.getAgent().getMetadataCopy().getMergeWithExisting());
             task.getToolchainDetection().set(graalExtension.getToolchainDetection());
+            JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
+            if (toolchainService != null) {
+                task.getJavaLauncher().convention(graalExtension.getToolchainDetection().flatMap(enabled -> {
+                    if (enabled) {
+                        return toolchainService.launcherFor(javaConvention.getToolchain());
+                    }
+                    return null;
+                }));
+            }
         });
 
         project.getTasks().register("collectReachabilityMetadata", CollectReachabilityMetadata.class, task -> {
@@ -1074,13 +1085,25 @@ public class NativeImagePlugin implements Plugin<Project> {
             agentModeProvider,
             project.provider(() -> false),
             project.getObjects(),
+            javaLauncherForAgentMerge(project, taskToInstrument),
             graalvmHomeProvider(project.getProviders()),
             mergeInputDirs,
             mergeOutputDirs,
-            graalExtension.getToolchainDetection(),
+            graalExtension.getToolchainDetection().map(enabled -> !enabled),
             execOperations));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
+    }
+
+    private static Property<JavaLauncher> javaLauncherForAgentMerge(Project project, Task task) {
+        Property<JavaLauncher> javaLauncher = project.getObjects().property(JavaLauncher.class);
+        // Agent post-processing uses the instrumented JVM task launcher when Gradle exposes one. §FS-tracing-agent.5.
+        if (task instanceof JavaExec) {
+            javaLauncher.convention(((JavaExec) task).getJavaLauncher());
+        } else if (task instanceof Test) {
+            javaLauncher.convention(((Test) task).getJavaLauncher());
+        }
+        return javaLauncher;
     }
 
     private static void injectTestPluginDependencies(Project project, String binaryName, Property<Boolean> testSupportEnabled) {

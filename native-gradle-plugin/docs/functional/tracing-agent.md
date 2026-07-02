@@ -34,6 +34,10 @@ directories. Command-line options on `metadataCopy` may select task names and de
 directories for ad hoc use, exposing the shared agent post-processing workflow from
 [§root/FS-tracing-agent](../../../docs/spec/functional/tracing-agent.md#fs-tracing-agent-both-plugins-attach-the-native-image-tracing-agent-and-post-process-its-output).
 
+Agent post-processing that invokes `native-image-configure` must discover `native-image` through
+the instrumented task launcher or the `metadataCopy` launcher when such a launcher is configured,
+and otherwise preserve the executable fallbacks from [§FS-native-invocation.1](native-image-invocation.md#1-executable-discovery).
+
 ## 6. Agent example
 
 Agent collection is invoked by running an eligible JVM task with `-Pagent`; post-processing is
