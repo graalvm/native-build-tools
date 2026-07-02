@@ -60,7 +60,9 @@ set so `nativeTest` can build and run native JUnit tests without a separate bina
 Users may add entries to the `binaries` container for extra source sets or entry points. Each entry
 must create matching compile and run tasks with predictable task names derived from the binary
 name. Custom binaries apply [§root/FS-native-builds](../../../docs/spec/functional/native-image-builds.md#fs-native-builds-both-plugins-build-native-images-from-build-tool-project-state) without forcing users outside the
-plugin's option model.
+plugin's option model. Custom application binaries default to the main runtime classpath unless a
+specialized registration or image mode, such as a native test binary or layer-create binary,
+provides a source-set-specific or intentionally empty classpath.
 
 ## 5. Activation examples
 
