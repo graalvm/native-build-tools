@@ -43,22 +43,17 @@ package org.graalvm.buildtools.agent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class AgentConfiguration implements Serializable {
 
     private static final String ACCESS_FILTER_PREFIX = "access-filter";
     private static final String ACCESS_FILTER_SUFFIX = ".json";
     private static final String DEFAULT_ACCESS_FILTER_FILE_LOCATION = "/" + ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX;
-
-    private static final Logger logger = Logger.getGlobal();
 
     private final Collection<String> callerFilterFiles;
     private final Collection<String> accessFilterFiles;
@@ -67,11 +62,16 @@ public class AgentConfiguration implements Serializable {
     private final Boolean experimentalPredefinedClasses;
     private final Boolean experimentalUnsafeAllocationTracing;
     private final Boolean trackReflectionMetadata;
+    private final Path agentConfigDir;
 
     private final AgentMode agentMode;
 
     // This constructor should be used only to specify that we have instance of agent that is disabled (to avoid using null for agent enable check)
-    public AgentConfiguration(AgentMode ...modes) {
+    public AgentConfiguration() {
+        this(null, new DisabledAgentMode());
+    }
+
+    public AgentConfiguration(Path agentConfigDir, AgentMode agentMode) {
         this.callerFilterFiles = null;
         this.accessFilterFiles = null;
         this.builtinCallerFilter = null;
@@ -79,7 +79,8 @@ public class AgentConfiguration implements Serializable {
         this.experimentalPredefinedClasses = null;
         this.experimentalUnsafeAllocationTracing = null;
         this.trackReflectionMetadata = null;
-        this.agentMode = modes.length == 1 ? modes[0] : new DisabledAgentMode();
+        this.agentConfigDir = agentConfigDir;
+        this.agentMode = agentMode;
     }
 
     public AgentConfiguration(Collection<String> callerFilterFiles,
@@ -89,7 +90,8 @@ public class AgentConfiguration implements Serializable {
                               Boolean experimentalPredefinedClasses,
                               Boolean experimentalUnsafeAllocationTracing,
                               Boolean trackReflectionMetadata,
-                              AgentMode agentMode) {
+                              AgentMode agentMode,
+                              Path agentConfigDir) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
         this.builtinCallerFilter = builtinCallerFilter;
@@ -98,12 +100,16 @@ public class AgentConfiguration implements Serializable {
         this.experimentalUnsafeAllocationTracing = experimentalUnsafeAllocationTracing;
         this.trackReflectionMetadata = trackReflectionMetadata;
         this.agentMode = agentMode;
+        this.agentConfigDir = agentConfigDir;
     }
 
     public List<String> getAgentCommandLine() {
-        addDefaultAccessFilter();
+        if (!isEnabled()) {
+            return List.of();
+        }
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
+        cmdLine.add("access-filter-file=" + getDefaultAccessFilter());
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
         addToCmd("builtin-caller-filter=", builtinCallerFilter, cmdLine);
         addToCmd("builtin-heuristic-filter=", builtinHeuristicFilter, cmdLine);
@@ -141,42 +147,19 @@ public class AgentConfiguration implements Serializable {
         }
     }
 
-    private void addDefaultAccessFilter() {
-        if (accessFilterFiles == null) {
-            // this could only happen if we instantiated disabled agent configuration
-            return;
-        }
-
-        String tempDir = System.getProperty("java.io.tmpdir");
-        Path agentDir = Path.of(tempDir).resolve("agent-config");
-        Path accessFilterFile = agentDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
+    private String getDefaultAccessFilter() {
+        Path accessFilterFile = agentConfigDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
         if (Files.exists(accessFilterFile)) {
-            accessFilterFiles.add(accessFilterFile.toString());
-            return;
+            return accessFilterFile.toString();
         }
 
         try (InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
             if (accessFilterData == null) {
                 throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
-
-            try {
-                Files.createDirectory(agentDir);
-            } catch (FileAlreadyExistsException e) {
-                logger.info("Skip creation of directory " + agentDir + " (already created).");
-            }
-
-            Path tmpAccessFilter = Files.createTempFile(agentDir, ACCESS_FILTER_PREFIX, ACCESS_FILTER_SUFFIX);
-            Files.copy(accessFilterData, tmpAccessFilter, StandardCopyOption.REPLACE_EXISTING);
-
-            try {
-                Files.move(tmpAccessFilter, accessFilterFile, StandardCopyOption.ATOMIC_MOVE);
-            } catch (FileAlreadyExistsException e) {
-                Files.delete(tmpAccessFilter);
-                logger.info(accessFilterFile + " already exists. Delete " + tmpAccessFilter);
-            }
-
-            accessFilterFiles.add(accessFilterFile.toString());
+            Files.createDirectories(agentConfigDir);
+            Files.copy(accessFilterData, accessFilterFile);
+            return accessFilterFile.toString();
         } catch (IOException e) {
             throw new RuntimeException("Cannot add default access-filter.json", e);
         }

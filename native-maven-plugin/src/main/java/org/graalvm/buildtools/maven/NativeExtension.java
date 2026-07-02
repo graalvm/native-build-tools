@@ -57,6 +57,7 @@ import org.graalvm.buildtools.utils.AgentUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,7 +130,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
                 AgentConfiguration agent;
                 try {
-                    agent = AgentUtils.collectAgentProperties(session, configurationRoot);
+                    agent = AgentUtils.collectAgentProperties(session, configurationRoot, Path.of(target, "native", "agent-config"));
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
