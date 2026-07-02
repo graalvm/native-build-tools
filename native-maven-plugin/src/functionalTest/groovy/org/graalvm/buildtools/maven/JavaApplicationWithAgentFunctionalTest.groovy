@@ -114,6 +114,21 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         outputContains "Metadata copy process finished."
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/555")
+    def "application agent uses configured exec plugin execution id"() {
+        given:
+        withSample("java-application-with-reflection")
+
+        when:
+        // Custom execution IDs must receive main application agent injection. §FS-tracing-agent.3.
+        mvnDebug '-PagentConfigurationWithCustomExecutionId', '-DskipTests', 'package', 'exec:exec@custom-java-agent'
+
+        then:
+        buildSucceeded
+        outputContains '-agentlib:native-image-agent='
+        metadataExistsAt("target/native/agent-output/main/")
+    }
+
     def "test agent with metadata copy task and disabled stages"() {
         given:
         withSample("java-application-with-reflection")
