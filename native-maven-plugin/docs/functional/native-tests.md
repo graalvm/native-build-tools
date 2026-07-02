@@ -8,7 +8,9 @@ run those tests as a native image through Maven's test lifecycle.
 `native:test` must include compile, runtime, test, compile-plus-runtime, and provided-scope
 dependencies needed by the test image. It must add compiled test classes, test resources, plugin
 artifacts relevant to Native Build Tools and JUnit, and inferred `junit-platform-native`
-dependencies.
+dependencies. Optional test-scoped JUnit dependencies that Maven resolves for the current project
+must remain available to the native test image, including when their versions come from dependency
+management.
 
 ## 2. Test discovery preconditions
 
