@@ -55,6 +55,19 @@ The following configuration options are available:
 ----
 <skipNativeBuild>true</skipNativeBuild>
 ----
+`<skipNativeBuildForPom>`::
+   To skip generation of the native image only for Maven projects with `pom` packaging, use
+   `<skipNativeBuildForPom>`. This option defaults to `false` for compatibility. It is useful in
+   multi-module builds where a parent aggregator POM shares the native profile or plugin
+   configuration with child modules but does not contain the application main class. Enabling this
+   option prevents native image generation in the aggregator project while still allowing
+   application modules to build their native images. It does not select the application module
+   automatically; configure or run the native build in the module that owns the main class. To
+   enable it, add:
+[source,xml, role="multi-language-sample"]
+----
+<skipNativeBuildForPom>true</skipNativeBuildForPom>
+----
 `<skipNativeTests>`::
    To skip generation and execution of the native image compiled tests, add:
 [source,xml, role="multi-language-sample"]
