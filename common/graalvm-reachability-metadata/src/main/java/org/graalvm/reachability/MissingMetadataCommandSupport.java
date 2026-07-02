@@ -42,15 +42,21 @@ package org.graalvm.reachability;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
+import org.graalvm.buildtools.utils.FileUtils;
+import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.reachability.internal.FileSystemRepository;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -75,19 +81,22 @@ import java.util.regex.Pattern;
 
 /**
  * Shared support used by Gradle and Maven to report direct runtime dependencies
- * that have no reachability metadata in the configured repository.
+ * that have no reachability metadata in the configured repository. Reporting
+ * follows §FS-common-libraries.6 and relies on repository coverage semantics
+ * from §FS-common-libraries.5.1.
  */
 public final class MissingMetadataCommandSupport {
     public static final String COMMAND_NAME = "listLibrariesMissingMetadata";
     public static final String DEFAULT_SCOPE = "direct-runtime";
     public static final String DEFAULT_GITHUB_API_URL = "https://api.github.com";
     public static final String DEFAULT_TARGET_REPOSITORY = "oracle/graalvm-reachability-metadata";
-    static final String REPORT_SCHEMA_FILENAME = "list-libraries-missing-metadata-schema-v1.0.0.json";
+    static final String REPORT_SCHEMA_FILENAME = "list-libraries-missing-metadata-schema-v1.1.0.json";
     static final String REPORT_SCHEMA_URI = "https://raw.githubusercontent.com/graalvm/native-build-tools/master/schemas/"
         + REPORT_SCHEMA_FILENAME;
 
     private static final String AUTOMATION_NOTE = "_This issue was created by automation._";
     private static final String ISSUE_TEMPLATE = "01_support_new_library.yml";
+    private static final String OFFICIAL_METADATA_REPOSITORY = "oracle/graalvm-reachability-metadata";
     private static final URI MAVEN_CENTRAL_BASE_URI = URI.create("https://repo.maven.apache.org/maven2/");
     private static final Pattern COORDINATES_PATTERN = Pattern.compile("([A-Za-z0-9_.-]+):([A-Za-z0-9_.-]+)(?::([A-Za-z0-9_.-]+))?");
     private static final long GITHUB_CLI_TIMEOUT_SECONDS = 5;
@@ -112,23 +121,21 @@ public final class MissingMetadataCommandSupport {
             .distinct()
             .toList();
         GitHubIssueClient issueClient = new GitHubIssueClient(options);
+        NewerMetadataRepositorySupportChecker newerRepositoryChecker = options.newerMetadataRepositorySupportChecker();
         Map<String, IssueReference> issueCache = new LinkedHashMap<>();
         List<Result> results = new ArrayList<>(candidates.size());
         for (DependencyCoordinate dependency : candidates) {
             try {
-                boolean covered = repository.isCoveredByRepository(query -> {
-                    query.forArtifact(artifact -> {
-                        artifact.gav(dependency.coordinates());
-                        String forcedVersion = effectiveForcedVersions.get(dependency.groupAndArtifact());
-                        if (forcedVersion != null) {
-                            artifact.forceConfigVersion(forcedVersion);
-                        } else {
-                            artifact.useLatestConfigWhenVersionIsUntested();
-                        }
-                    });
-                });
+                String forcedVersion = effectiveForcedVersions.get(dependency.groupAndArtifact());
+                boolean covered = isCoveredByRepository(repository, dependency, forcedVersion);
                 if (covered) {
                     results.add(Result.supported(dependency));
+                    continue;
+                }
+                Optional<SupportingMetadataRepository> supportingRepository = newerRepositoryChecker
+                    .findSupportingRepository(dependency, forcedVersion);
+                if (supportingRepository.isPresent()) {
+                    results.add(Result.supportedInNewerMetadataRepository(dependency, supportingRepository.get()));
                     continue;
                 }
                 IssueReference issue = issueCache.get(dependency.groupAndArtifact());
@@ -147,6 +154,21 @@ public final class MissingMetadataCommandSupport {
             }
         }
         return new Report(options, candidates.size(), results);
+    }
+
+    private static boolean isCoveredByRepository(GraalVMReachabilityMetadataRepository repository,
+                                                 DependencyCoordinate dependency,
+                                                 String forcedVersion) {
+        return repository.isCoveredByRepository(query -> {
+            query.forArtifact(artifact -> {
+                artifact.gav(dependency.coordinates());
+                if (forcedVersion != null) {
+                    artifact.forceConfigVersion(forcedVersion);
+                } else {
+                    artifact.useLatestConfigWhenVersionIsUntested();
+                }
+            });
+        });
     }
 
     private static RuntimeException createIssuesFailure(DependencyCoordinate dependency, Exception ex) {
@@ -183,6 +205,7 @@ public final class MissingMetadataCommandSupport {
         private final GitHubCliTokenSupplier gitHubCliTokenSupplier;
         private final ArtifactAvailabilityChecker artifactAvailabilityChecker;
         private final Consumer<String> warningSink;
+        private final NewerMetadataRepositorySupportChecker newerMetadataRepositorySupportChecker;
 
         public Options(String buildTool,
                        String projectName,
@@ -193,7 +216,7 @@ public final class MissingMetadataCommandSupport {
                        String githubApiUrl,
                        Clock clock) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                GitHubCliTokenSupplier.DEFAULT, ArtifactAvailabilityChecker.DEFAULT, message -> { });
+                GitHubCliTokenSupplier.DEFAULT, ArtifactAvailabilityChecker.DEFAULT, message -> { }, null);
         }
 
         public Options(String buildTool,
@@ -206,7 +229,7 @@ public final class MissingMetadataCommandSupport {
                        Clock clock,
                        Consumer<String> warningSink) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                GitHubCliTokenSupplier.DEFAULT, ArtifactAvailabilityChecker.DEFAULT, warningSink);
+                GitHubCliTokenSupplier.DEFAULT, ArtifactAvailabilityChecker.DEFAULT, warningSink, null);
         }
 
         Options(String buildTool,
@@ -219,7 +242,7 @@ public final class MissingMetadataCommandSupport {
                 Clock clock,
                 GitHubCliTokenSupplier gitHubCliTokenSupplier) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                gitHubCliTokenSupplier, ArtifactAvailabilityChecker.DEFAULT, message -> { });
+                gitHubCliTokenSupplier, ArtifactAvailabilityChecker.DEFAULT, message -> { }, null);
         }
 
         Options(String buildTool,
@@ -233,7 +256,7 @@ public final class MissingMetadataCommandSupport {
                 GitHubCliTokenSupplier gitHubCliTokenSupplier,
                 ArtifactAvailabilityChecker artifactAvailabilityChecker) {
             this(buildTool, projectName, metadataRepositoryUri, createIssues, githubToken, targetRepository, githubApiUrl, clock,
-                gitHubCliTokenSupplier, artifactAvailabilityChecker, message -> { });
+                gitHubCliTokenSupplier, artifactAvailabilityChecker, message -> { }, null);
         }
 
         Options(String buildTool,
@@ -246,7 +269,8 @@ public final class MissingMetadataCommandSupport {
                 Clock clock,
                 GitHubCliTokenSupplier gitHubCliTokenSupplier,
                 ArtifactAvailabilityChecker artifactAvailabilityChecker,
-                Consumer<String> warningSink) {
+                Consumer<String> warningSink,
+                NewerMetadataRepositorySupportChecker newerMetadataRepositorySupportChecker) {
             this.buildTool = Objects.requireNonNull(buildTool, "buildTool");
             this.projectName = Objects.requireNonNull(projectName, "projectName");
             this.metadataRepositoryUri = metadataRepositoryUri;
@@ -258,6 +282,9 @@ public final class MissingMetadataCommandSupport {
             this.gitHubCliTokenSupplier = Objects.requireNonNull(gitHubCliTokenSupplier, "gitHubCliTokenSupplier");
             this.artifactAvailabilityChecker = Objects.requireNonNull(artifactAvailabilityChecker, "artifactAvailabilityChecker");
             this.warningSink = warningSink == null ? message -> { } : warningSink;
+            this.newerMetadataRepositorySupportChecker = newerMetadataRepositorySupportChecker == null
+                ? new OfficialMetadataRepositorySupportChecker(this.metadataRepositoryUri, this.warningSink)
+                : newerMetadataRepositorySupportChecker;
         }
 
         public String buildTool() {
@@ -303,6 +330,10 @@ public final class MissingMetadataCommandSupport {
         Consumer<String> warningSink() {
             return warningSink;
         }
+
+        NewerMetadataRepositorySupportChecker newerMetadataRepositorySupportChecker() {
+            return newerMetadataRepositorySupportChecker;
+        }
     }
 
     public record DependencyCoordinate(String groupId, String artifactId, String version)
@@ -334,6 +365,7 @@ public final class MissingMetadataCommandSupport {
 
     public enum Status {
         SUPPORTED("supported"),
+        SUPPORTED_IN_NEWER_METADATA_REPOSITORY("supported_in_newer_metadata_repository"),
         MISSING("missing"),
         ERROR("error");
 
@@ -371,6 +403,8 @@ public final class MissingMetadataCommandSupport {
         private final IssueStatus issueStatus;
         private final String issueUrl;
         private final Integer issueNumber;
+        private final String supportingMetadataRepositoryVersion;
+        private final String supportingMetadataRepositoryUri;
         private final String errorMessage;
 
         private Result(DependencyCoordinate dependency,
@@ -378,17 +412,35 @@ public final class MissingMetadataCommandSupport {
                        IssueStatus issueStatus,
                        String issueUrl,
                        Integer issueNumber,
+                       String supportingMetadataRepositoryVersion,
+                       String supportingMetadataRepositoryUri,
                        String errorMessage) {
             this.dependency = dependency;
             this.status = status;
             this.issueStatus = issueStatus;
             this.issueUrl = issueUrl;
             this.issueNumber = issueNumber;
+            this.supportingMetadataRepositoryVersion = supportingMetadataRepositoryVersion;
+            this.supportingMetadataRepositoryUri = supportingMetadataRepositoryUri;
             this.errorMessage = errorMessage;
         }
 
         public static Result supported(DependencyCoordinate dependency) {
-            return new Result(dependency, Status.SUPPORTED, null, null, null, null);
+            return new Result(dependency, Status.SUPPORTED, null, null, null, null, null, null);
+        }
+
+        public static Result supportedInNewerMetadataRepository(DependencyCoordinate dependency,
+                                                                SupportingMetadataRepository supportingRepository) {
+            return new Result(
+                dependency,
+                Status.SUPPORTED_IN_NEWER_METADATA_REPOSITORY,
+                null,
+                null,
+                null,
+                supportingRepository.version(),
+                supportingRepository.uri(),
+                null
+            );
         }
 
         public static Result missing(DependencyCoordinate dependency, IssueReference issueReference) {
@@ -398,6 +450,8 @@ public final class MissingMetadataCommandSupport {
                 issueReference.issueStatus(),
                 issueReference.issueUrl(),
                 issueReference.issueNumber(),
+                null,
+                null,
                 null
             );
         }
@@ -406,6 +460,8 @@ public final class MissingMetadataCommandSupport {
             return new Result(
                 dependency,
                 Status.ERROR,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -437,6 +493,14 @@ public final class MissingMetadataCommandSupport {
             return Optional.ofNullable(errorMessage);
         }
 
+        public Optional<String> supportingMetadataRepositoryVersion() {
+            return Optional.ofNullable(supportingMetadataRepositoryVersion);
+        }
+
+        public Optional<String> supportingMetadataRepositoryUri() {
+            return Optional.ofNullable(supportingMetadataRepositoryUri);
+        }
+
         private JSONObject toJson() {
             JSONObject json = new JSONObject();
             json.put("coordinates", dependency.coordinates());
@@ -450,6 +514,12 @@ public final class MissingMetadataCommandSupport {
             }
             if (issueNumber != null) {
                 json.put("issueNumber", issueNumber);
+            }
+            if (supportingMetadataRepositoryVersion != null) {
+                json.put("supportingMetadataRepositoryVersion", supportingMetadataRepositoryVersion);
+            }
+            if (supportingMetadataRepositoryUri != null) {
+                json.put("supportingMetadataRepositoryUri", supportingMetadataRepositoryUri);
             }
             if (errorMessage != null) {
                 json.put("error", errorMessage);
@@ -484,13 +554,17 @@ public final class MissingMetadataCommandSupport {
         }
 
         public String renderConsoleOutput(String reportFilePath) {
+            List<Result> coveredInNewerRepository = results.stream()
+                .filter(r -> r.status == Status.SUPPORTED_IN_NEWER_METADATA_REPOSITORY)
+                .toList();
             List<Result> existing = filterByIssueStatus(IssueStatus.EXISTING_OPEN_ISSUE);
             List<Result> created = filterByIssueStatus(IssueStatus.CREATED_ISSUE);
             List<Result> needRequest = filterByIssueStatus(IssueStatus.NEW_ISSUE_LINK_GENERATED);
             List<Result> skipped = filterByIssueStatus(IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL);
             List<Result> errors = results.stream().filter(r -> r.status == Status.ERROR).toList();
-            int missingTotal = existing.size() + created.size() + needRequest.size() + skipped.size() + errors.size();
-            if (missingTotal == 0) {
+            int unresolvedTotal = existing.size() + created.size() + needRequest.size() + skipped.size();
+            int attentionTotal = coveredInNewerRepository.size() + unresolvedTotal + errors.size();
+            if (attentionTotal == 0) {
                 StringBuilder out = new StringBuilder();
                 out.append("All ").append(scanned).append(" direct dependencies are supported by the reachability metadata repository.");
                 if (reportFilePath != null) {
@@ -521,12 +595,27 @@ public final class MissingMetadataCommandSupport {
             }
 
             StringBuilder out = new StringBuilder();
-            out.append("Missing metadata libraries: ").append(missingTotal)
+            out.append("Dependencies needing attention: ").append(attentionTotal)
                 .append(" of ").append(scanned).append(" scanned");
-            if (!existing.isEmpty()) {
+            if (!coveredInNewerRepository.isEmpty()) {
+                out.append(" (").append(coveredInNewerRepository.size())
+                    .append(coveredInNewerRepository.size() == 1
+                        ? " covered in a newer metadata repository release"
+                        : " covered in newer metadata repository releases");
+                if (!existing.isEmpty()) {
+                    out.append(", ").append(existing.size()).append(" already requested");
+                }
+                out.append(")");
+            } else if (!existing.isEmpty()) {
                 out.append(" (").append(existing.size()).append(" already requested)");
             }
             out.append(".\n\n");
+
+            if (!coveredInNewerRepository.isEmpty()) {
+                out.append("Covered in a newer metadata repository release (update metadata repository or Native Build Tools):\n");
+                renderNewerRepositoryList(out, coveredInNewerRepository);
+                out.append('\n');
+            }
 
             if (!existing.isEmpty()) {
                 out.append("Already requested (no action needed):\n");
@@ -609,6 +698,19 @@ public final class MissingMetadataCommandSupport {
             }
         }
 
+        private void renderNewerRepositoryList(StringBuilder out, List<Result> entries) {
+            for (Result r : entries) {
+                String supportedVersion = r.supportingMetadataRepositoryVersion().orElse("a newer release");
+                out.append("  - ").append(r.dependency.coordinates())
+                    .append(" -> supported in ")
+                    .append(supportedVersion)
+                    .append('\n');
+                out.append("      update metadata repository to ")
+                    .append(supportedVersion)
+                    .append(" or upgrade Native Build Tools\n");
+            }
+        }
+
         private void renderBulletList(StringBuilder out, List<Result> entries,
                                       Map<Result, String> labels, String actionWord) {
             int maxWidth = maxCoordinateWidth(entries);
@@ -671,6 +773,7 @@ public final class MissingMetadataCommandSupport {
             JSONObject summary = new JSONObject();
             summary.put("scanned", scanned);
             summary.put("supported", supportedCount());
+            summary.put("supportedInNewerMetadataRepository", supportedInNewerMetadataRepositoryCount());
             summary.put("missing", missingCount());
             summary.put("existingOpenIssue", existingIssueCount());
             summary.put("newIssueLinks", newIssueLinkCount());
@@ -688,6 +791,10 @@ public final class MissingMetadataCommandSupport {
 
         private long supportedCount() {
             return results.stream().filter(result -> result.status == Status.SUPPORTED).count();
+        }
+
+        private long supportedInNewerMetadataRepositoryCount() {
+            return results.stream().filter(result -> result.status == Status.SUPPORTED_IN_NEWER_METADATA_REPOSITORY).count();
         }
 
         private long missingCount() {
@@ -729,6 +836,13 @@ public final class MissingMetadataCommandSupport {
 
         private boolean isSkippedIssueCreation() {
             return issueStatus == IssueStatus.SKIPPED_NOT_AVAILABLE_IN_MAVEN_CENTRAL;
+        }
+    }
+
+    record SupportingMetadataRepository(String version, String uri) {
+        SupportingMetadataRepository {
+            Objects.requireNonNull(version, "version");
+            Objects.requireNonNull(uri, "uri");
         }
     }
 
@@ -1048,6 +1162,120 @@ public final class MissingMetadataCommandSupport {
         };
 
         String get(String hostname);
+    }
+
+    interface NewerMetadataRepositorySupportChecker {
+        Optional<SupportingMetadataRepository> findSupportingRepository(DependencyCoordinate dependency, String forcedVersion);
+    }
+
+    private static final class OfficialMetadataRepositorySupportChecker implements NewerMetadataRepositorySupportChecker {
+        private final String configuredMetadataRepositoryUri;
+        private final Consumer<String> warningSink;
+        private final AtomicBoolean warningEmitted = new AtomicBoolean();
+        private volatile RepositorySnapshot repositorySnapshot;
+        private volatile boolean initialized;
+
+        private OfficialMetadataRepositorySupportChecker(String configuredMetadataRepositoryUri, Consumer<String> warningSink) {
+            this.configuredMetadataRepositoryUri = blankToNull(configuredMetadataRepositoryUri);
+            this.warningSink = warningSink;
+        }
+
+        @Override
+        public Optional<SupportingMetadataRepository> findSupportingRepository(DependencyCoordinate dependency, String forcedVersion) {
+            RepositorySnapshot snapshot = repositorySnapshot();
+            if (snapshot == null || sameRepository(snapshot.repositoryUri())) {
+                return Optional.empty();
+            }
+            return isCoveredByRepository(snapshot.repository(), dependency, forcedVersion)
+                ? Optional.of(new SupportingMetadataRepository(snapshot.version(), snapshot.repositoryUri()))
+                : Optional.empty();
+        }
+
+        private boolean sameRepository(String officialRepositoryUri) {
+            return configuredMetadataRepositoryUri != null
+                && stripTrailingSlash(configuredMetadataRepositoryUri).equals(stripTrailingSlash(officialRepositoryUri));
+        }
+
+        private RepositorySnapshot repositorySnapshot() {
+            if (!initialized) {
+                synchronized (this) {
+                    if (!initialized) {
+                        repositorySnapshot = loadRepositorySnapshot();
+                        initialized = true;
+                    }
+                }
+            }
+            return repositorySnapshot;
+        }
+
+        private RepositorySnapshot loadRepositorySnapshot() {
+            try {
+                HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+                HttpRequest request = HttpRequest.newBuilder(URI.create(DEFAULT_GITHUB_API_URL + "/repos/" + OFFICIAL_METADATA_REPOSITORY + "/releases/latest"))
+                    .timeout(Duration.ofSeconds(20))
+                    .header("Accept", "application/vnd.github+json")
+                    .header("User-Agent", "native-build-tools-missing-metadata")
+                    .GET()
+                    .build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                    throw new RuntimeException("GitHub releases lookup failed with status " + response.statusCode());
+                }
+                JSONObject json = new JSONObject(response.body());
+                String version = json.optString("tag_name", "");
+                if (version.isBlank()) {
+                    throw new RuntimeException("GitHub releases lookup did not return a release tag");
+                }
+                String repositoryUri = String.format(SharedConstants.METADATA_REPO_URL_TEMPLATE, version);
+                FileSystemRepository repository = downloadRepository(repositoryUri);
+                return new RepositorySnapshot(version, repositoryUri, repository);
+            } catch (Exception ex) {
+                if (warningEmitted.compareAndSet(false, true)) {
+                    warningSink.accept(
+                        "Lookup of newer official GraalVM reachability metadata releases failed ("
+                            + ex.getMessage()
+                            + "). Dependencies covered only by newer metadata releases will be reported as missing."
+                    );
+                }
+                return null;
+            }
+        }
+
+        private FileSystemRepository downloadRepository(String repositoryUri) throws IOException {
+            Path cacheRoot = Path.of(System.getProperty("java.io.tmpdir"), "native-build-tools", "metadata-release-cache");
+            Files.createDirectories(cacheRoot);
+            String cacheKey = FileUtils.hashFor(URI.create(repositoryUri));
+            Path extractedRepository = cacheRoot.resolve(cacheKey + "-extracted");
+            if (!Files.exists(extractedRepository)) {
+                URL url = URI.create(repositoryUri).toURL();
+                Path downloadDirectory = cacheRoot.resolve(cacheKey);
+                Optional<Path> downloaded = existingDownloadedArchive(downloadDirectory)
+                    .or(() -> FileUtils.download(url, downloadDirectory, message -> { }));
+                if (downloaded.isEmpty()) {
+                    throw new IOException("Unable to download metadata repository " + repositoryUri);
+                }
+                AtomicBoolean extractionFailed = new AtomicBoolean();
+                FileUtils.extract(downloaded.get(), extractedRepository, message -> extractionFailed.set(true));
+                if (extractionFailed.get()) {
+                    throw new IOException("Unable to extract metadata repository " + repositoryUri);
+                }
+            }
+            return new FileSystemRepository(extractedRepository);
+        }
+
+        private Optional<Path> existingDownloadedArchive(Path downloadDirectory) throws IOException {
+            if (!Files.isDirectory(downloadDirectory)) {
+                return Optional.empty();
+            }
+            try (java.util.stream.Stream<Path> paths = Files.list(downloadDirectory)) {
+                return paths.filter(Files::isRegularFile).findFirst();
+            }
+        }
+    }
+
+    private record RepositorySnapshot(String version, String repositoryUri, FileSystemRepository repository) {
     }
 
     private static final class GitHubApiException extends RuntimeException {

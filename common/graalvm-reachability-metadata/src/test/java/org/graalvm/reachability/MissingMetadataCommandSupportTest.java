@@ -59,6 +59,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -123,6 +124,7 @@ class MissingMetadataCommandSupportTest {
 
         assertEquals(2, summary.getInt("scanned"));
         assertEquals(1, summary.getInt("supported"));
+        assertEquals(0, summary.getInt("supportedInNewerMetadataRepository"));
         assertEquals(1, summary.getInt("missing"));
         assertEquals(1, summary.getInt("newIssueLinks"));
         assertEquals(0, summary.getInt("errors"));
@@ -140,8 +142,8 @@ class MissingMetadataCommandSupportTest {
         assertFalse(missingUrl.contains("maven_coordinates="),
             "maven_coordinates= should not be used because coordinates now live in the issue title only, was: " + missingUrl);
         String console = report.renderConsoleOutput();
-        assertTrue(console.contains("Missing metadata libraries: 1 of 2 scanned"),
-            "console should headline missing/scanned counts, was:\n" + console);
+        assertTrue(console.contains("Dependencies needing attention: 1 of 2 scanned"),
+            "console should headline attention/scanned counts, was:\n" + console);
         assertTrue(console.contains("To request support for this library automatically, re-run with createIssues=true:"),
             "console should include the createIssues=true call to action, was:\n" + console);
         assertTrue(console.contains("./gradlew listLibrariesMissingMetadata -PcreateIssues=true -PgithubToken=<token>"),
@@ -182,6 +184,73 @@ class MissingMetadataCommandSupportTest {
         assertEquals(1, summary.getInt("supported"));
         assertEquals(0, summary.getInt("missing"));
         assertEquals("supported", result.getString("status"));
+    }
+
+    @Test
+    void reportsLibrariesCoveredInNewerMetadataRepositorySeparatelyAndSkipsIssueCreation() throws Exception {
+        String configuredMetadataVersion = "test-current-release";
+        String supportingMetadataVersion = "test-newer-release";
+        String configuredMetadataRepositoryUri =
+            "https://example.invalid/releases/" + configuredMetadataVersion + "/metadata.zip";
+        String supportingMetadataRepositoryUri =
+            "https://example.invalid/releases/" + supportingMetadataVersion + "/metadata.zip";
+        MissingMetadataCommandSupport.DependencyCoordinate dependency =
+            new MissingMetadataCommandSupport.DependencyCoordinate("org.example", "covered-later", "test-dependency-version");
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        AtomicInteger searches = new AtomicInteger();
+        AtomicInteger creations = new AtomicInteger();
+        server.createContext("/api/v3/search/issues", exchange -> {
+            searches.incrementAndGet();
+            writeJson(exchange, "{\"items\":[]}");
+        });
+        server.createContext("/api/v3/repos/test/repo/issues", exchange -> {
+            creations.incrementAndGet();
+            writeJson(exchange, "{\"html_url\":\"http://localhost/unused\",\"number\":99}");
+        });
+        server.start();
+        try {
+            MissingMetadataCommandSupport.Report report = MissingMetadataCommandSupport.run(
+                List.of(dependency),
+                new TestRepository(Set.of()),
+                Set.of(),
+                java.util.Map.of(),
+                new MissingMetadataCommandSupport.Options(
+                    "gradle",
+                    "demo-app",
+                    configuredMetadataRepositoryUri,
+                    true,
+                    "gho_test_token",
+                    "test/repo",
+                    "http://localhost:" + server.getAddress().getPort() + "/api/v3",
+                    Clock.fixed(Instant.parse("2026-04-09T10:00:00Z"), ZoneOffset.UTC),
+                    hostname -> null,
+                    coordinate -> true,
+                    message -> { },
+                    (coordinate, forcedVersion) -> Optional.of(new MissingMetadataCommandSupport.SupportingMetadataRepository(
+                        supportingMetadataVersion,
+                        supportingMetadataRepositoryUri
+                    ))
+                )
+            );
+
+            JSONObject json = new JSONObject(report.toJsonString());
+            JSONObject summary = json.getJSONObject("summary");
+            JSONObject result = findByCoordinates(json.getJSONArray("results"), dependency.coordinates());
+            assertEquals(0, searches.get());
+            assertEquals(0, creations.get());
+            assertEquals(0, summary.getInt("supported"));
+            assertEquals(1, summary.getInt("supportedInNewerMetadataRepository"));
+            assertEquals(0, summary.getInt("missing"));
+            assertEquals("supported_in_newer_metadata_repository", result.getString("status"));
+            assertEquals(supportingMetadataVersion, result.getString("supportingMetadataRepositoryVersion"));
+            assertEquals(supportingMetadataRepositoryUri, result.getString("supportingMetadataRepositoryUri"));
+            String console = report.renderConsoleOutput();
+            assertTrue(console.contains("Covered in a newer metadata repository release"), console);
+            assertTrue(console.contains(dependency.coordinates() + " -> supported in " + supportingMetadataVersion), console);
+            assertTrue(console.contains("update metadata repository to " + supportingMetadataVersion + " or upgrade Native Build Tools"), console);
+        } finally {
+            server.stop(0);
+        }
     }
 
     @Test
@@ -235,7 +304,7 @@ class MissingMetadataCommandSupportTest {
                 results.getJSONObject(0).getString("issueUrl"));
             String console = report.renderConsoleOutput();
             String issueUrl = "http://localhost:" + server.getAddress().getPort() + "/test/repo/issues/42";
-            assertTrue(console.contains("Missing metadata libraries: 2 of 2 scanned (2 already requested)"),
+            assertTrue(console.contains("Dependencies needing attention: 2 of 2 scanned (2 already requested)"),
                 "headline should mention the existing-request count, was:\n" + console);
             assertTrue(console.contains("Already requested (no action needed):"), console);
             assertTrue(console.contains("- org.example:duplicate-lib:1.0.0  -> existing request [E1]"), console);
