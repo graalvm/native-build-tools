@@ -74,6 +74,57 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         }
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/847")
+    def "does not make JavaExec tasks up-to-date when the agent is disabled"() {
+        given:
+        withSample("java-application")
+
+        buildFile << """
+            tasks.register("org.graalvm.demo.Application.main()", JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = "org.graalvm.demo.Application"
+            }
+        """.stripIndent()
+
+        when:
+        run 'run'
+
+        then:
+        tasks {
+            succeeded ':run'
+        }
+        outputContains "Hello, native!"
+
+        when:
+        run 'run'
+
+        then:
+        tasks {
+            succeeded ':run'
+        }
+        outputContains "Hello, native!"
+        !file("build/native/agent-output/run").exists()
+
+        when:
+        run 'org.graalvm.demo.Application.main()'
+
+        then:
+        tasks {
+            succeeded ':org.graalvm.demo.Application.main()'
+        }
+        outputContains "Hello, native!"
+
+        when:
+        run 'org.graalvm.demo.Application.main()'
+
+        then:
+        tasks {
+            succeeded ':org.graalvm.demo.Application.main()'
+        }
+        outputContains "Hello, native!"
+        !file("build/native/agent-output/org.graalvm.demo.Application.main()").exists()
+    }
+
     def "can build a native image for a simple application"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/java-application")
         debug = true
