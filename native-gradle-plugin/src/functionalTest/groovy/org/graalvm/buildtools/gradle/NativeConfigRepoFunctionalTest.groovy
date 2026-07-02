@@ -42,8 +42,12 @@
 package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.graalvm.buildtools.gradle.fixtures.FileUtils
 import org.gradle.api.logging.LogLevel
 import spock.lang.Unroll
+
+import java.nio.file.Files
+import java.nio.file.Path
 
 class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
 
@@ -140,6 +144,82 @@ graalvmNative {
 
         and: "looks for specific configuration version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
+    }
+
+    def "subprojects can use different metadata repositories"() {
+        given:
+        settingsFile << """
+rootProject.name = 'multi-project-native-config'
+include 'first', 'second'
+        """
+        Files.createDirectories(path("first"))
+        Files.createDirectories(path("second"))
+        FileUtils.copyDirectory(new File("../samples/native-config-integration/config-directory").toPath(), path("first-repo"))
+        FileUtils.copyDirectory(new File("../samples/native-config-integration/config-directory").toPath(), path("second-repo"))
+        metadataConfig(path("first-repo")).text = metadataConfigFor("org.graalvm.internal.reflect.FirstProjectMessage")
+        metadataConfig(path("second-repo")).text = metadataConfigFor("org.graalvm.internal.reflect.SecondProjectMessage")
+
+        buildFile << """
+plugins {
+    id 'org.graalvm.buildtools.native' apply false
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.graalvm.buildtools.native'
+
+    dependencies {
+        implementation("org.graalvm.internal:library-with-reflection:1.5")
+    }
+}
+
+project(':first') {
+    graalvmNative {
+        metadataRepository {
+            uri(rootProject.file("first-repo"))
+        }
+    }
+}
+
+project(':second') {
+    graalvmNative {
+        metadataRepository {
+            uri(rootProject.file("second-repo"))
+        }
+    }
+}
+        """
+
+        when:
+        run ':first:collectReachabilityMetadata', ':second:collectReachabilityMetadata'
+
+        then:
+        tasks {
+            succeeded ':first:collectReachabilityMetadata', ':second:collectReachabilityMetadata'
+        }
+
+        and: "each project copies metadata from its own configured repository"
+        // Multi-project metadata collection must honor each project's configured repository URI. §FS-resources-and-metadata.3.
+        metadataOutput("first").text.contains("org.graalvm.internal.reflect.FirstProjectMessage")
+        metadataOutput("second").text.contains("org.graalvm.internal.reflect.SecondProjectMessage")
+    }
+
+    private static File metadataConfig(Path repository) {
+        repository.resolve("org.graalvm.internal/library-with-reflection/1/reflect-config.json").toFile()
+    }
+
+    private File metadataOutput(String projectName) {
+        file(projectName, "build/native-reachability-metadata/META-INF/native-image/org.graalvm.internal/library-with-reflection/1.5/reflect-config.json")
+    }
+
+    private static String metadataConfigFor(String className) {
+        """[
+  {
+    "name": "$className",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true
+  }
+]"""
     }
 
 }
