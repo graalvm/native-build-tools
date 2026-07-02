@@ -46,9 +46,11 @@ import org.apache.maven.model.Build
 import org.apache.maven.model.Plugin
 import org.apache.maven.model.PluginExecution
 import org.apache.maven.project.MavenProject
+import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.xml.Xpp3Dom
 import spock.lang.Specification
 
+// Protects Maven tracing-agent argLine transport for output paths computed from project directories. §FS-tracing-agent.1 §FS-tracing-agent.3.
 class NativeExtensionTest extends Specification {
     private static final String JUNIT_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled"
     private static final String JUNIT_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir"
@@ -84,6 +86,34 @@ class NativeExtensionTest extends Specification {
             assert systemPropertyVariables.getChild(JUNIT_TRACKING_ENABLED).value == "true"
             assert systemPropertyVariables.getChild(JUNIT_TRACKING_OUTPUT_DIR).value == NativeExtension.testIdsDirectory("target")
         }
+    }
+
+    void "test agent argument is quoted for Surefire argLine when output path contains spaces"() {
+        given:
+        def agentArgument = NativeExtension.buildAgentArgument(
+                "/tmp/path with spaces/target",
+                NativeExtension.Context.test,
+                ["config-output-dir={output_dir}"]
+        )
+
+        when:
+        def quotedAgentArgument = NativeExtension.quoteAgentArgumentForArgLine(agentArgument)
+
+        then:
+        quotedAgentArgument == "\"${agentArgument}\""
+        CommandLineUtils.translateCommandline(quotedAgentArgument).toList() == [agentArgument]
+    }
+
+    void "test agent argument is unchanged for Surefire argLine when output path has no spaces"() {
+        given:
+        def agentArgument = NativeExtension.buildAgentArgument(
+                "/tmp/path-without-spaces/target",
+                NativeExtension.Context.test,
+                ["config-output-dir={output_dir}"]
+        )
+
+        expect:
+        NativeExtension.quoteAgentArgumentForArgLine(agentArgument) == agentArgument
     }
 
     private static Plugin plugin(String artifactId) {
