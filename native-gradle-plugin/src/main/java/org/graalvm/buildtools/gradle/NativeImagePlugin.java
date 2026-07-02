@@ -947,7 +947,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 }
             });
         });
-        compileOnly.getDependencies().add(project.getDependencies().create(project));
+        compileOnly.getDependencies().add(project.getDependencies().project(Collections.singletonMap("path", project.getPath())));
     }
 
     private NativeImageOptions createMainOptions(GraalVMExtension graalExtension, Project project) {

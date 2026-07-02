@@ -50,6 +50,20 @@ import spock.lang.Requires
 import java.nio.file.Files
 
 class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
+    @Issue("https://github.com/graalvm/native-build-tools/issues/900")
+    def "does not use deprecated Project dependency notation"() {
+        given:
+        withSample("java-application")
+
+        when:
+        run 'help', '--warning-mode=fail'
+
+        then:
+        tasks {
+            succeeded ':help'
+        }
+    }
+
     @Issue("https://github.com/graalvm/native-build-tools/issues/855")
     def "does not resolve runtime classpath during configuration when dependencies change after evaluate"() {
         given:
