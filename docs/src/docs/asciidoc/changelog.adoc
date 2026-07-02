@@ -4,6 +4,7 @@
 == Release 1.0.1
 
 - Regenerate the documentation `latest` symlink automatically for releases so GitHub Pages no longer serves stale docs
+- Gradle `nativeTest` now includes test resources without requiring explicit resource configuration
 
 == Release 1.0.0
 

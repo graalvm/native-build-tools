@@ -175,6 +175,7 @@ public class NativeImagePlugin implements Plugin<Project> {
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
+    private static final String JUNIT_PLATFORM_UNIQUE_IDS_RESOURCE_PATTERN = "junit-platform-unique-ids.*";
     private static final String REPOSITORY_COORDINATES = "org.graalvm.buildtools:graalvm-reachability-metadata:" + VersionInfo.NBT_VERSION + ":repository@zip";
     private static final String DEFAULT_URI = String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
 
@@ -984,6 +985,9 @@ public class NativeImagePlugin implements Plugin<Project> {
         classpath.from(configurations.getByName(imageClasspathConfigurationNameFor(binaryName)));
         classpath.from(sourceSet.getOutput().getClassesDirs());
         classpath.from(sourceSet.getOutput().getResourcesDir());
+        testExtension.getResources().getDetectionOptions().getEnabled().convention(true);
+        // Native tests include test source-set resources by default; omit the generated discovery list. §FS-native-tests.1.
+        testExtension.getResources().getDetectionOptions().getDetectionExclusionPatterns().add(JUNIT_PLATFORM_UNIQUE_IDS_RESOURCE_PATTERN);
 
         return testExtension;
     }
