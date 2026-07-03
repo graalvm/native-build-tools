@@ -1,5 +1,4 @@
 # Pull request Gradle plugin gate: E2E matrices, cache tests, unit tests, and inspections.
-# The workflow itself is included in its path filter so CI configuration changes are exercised.
 # §AR-repository-ci.1.3; §gradle/E2E-functional-tests
 name: "Test native-gradle-plugin"
 

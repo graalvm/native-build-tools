@@ -1,5 +1,4 @@
 # Pull request Maven plugin gate: runs Maven E2E matrices and GraalVM dev-build functional tests.
-# The workflow itself is included in its path filter so CI configuration changes are exercised.
 # §AR-repository-ci.1.4; §maven/E2E-functional-tests
 name: "Test native-maven-plugin"
 
