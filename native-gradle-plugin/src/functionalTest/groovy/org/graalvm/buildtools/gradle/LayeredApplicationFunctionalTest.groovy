@@ -46,7 +46,6 @@ import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
-import spock.lang.Issue
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -59,8 +58,7 @@ import java.nio.charset.StandardCharsets
         { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
 )
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
-    // Native Image cannot link dependency layers on these JDK 25 CI platforms. §E2E-functional-tests.
-    @Issue("https://github.com/graalvm/native-build-tools/issues/955")
+    // Layers are not supported on JDK 25.0.x for the Darwin and Windows platforms exercised by CI. §E2E-functional-tests.
     @IgnoreIf({ os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")

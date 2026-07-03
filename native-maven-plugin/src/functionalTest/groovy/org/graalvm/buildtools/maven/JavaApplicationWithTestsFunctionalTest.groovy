@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.maven
 
 import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
@@ -191,7 +192,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
 
     @Requires({ getCurrentJDKVersion() >= 23 })
     @Issue("https://github.com/graalvm/native-build-tools/issues/873")
-    @IgnoreIf({ GraalVMSupport.getGraalVMHomeVersionString() ==~ /(?s).*\\b25\\.0\\.[0-3]\\b.*/ })
+    @Ignore("Ignored until GraalVM 25.0.4 is released with the bulk-query fix.")
     def "can use the Maven plugin with the runtimeArgs config to run tests in a native image"() {
         withSample("java-application-with-tests")
 
