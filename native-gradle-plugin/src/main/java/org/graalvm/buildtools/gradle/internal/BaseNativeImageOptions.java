@@ -446,8 +446,6 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         }
         layer.getLayerName().convention(binaryName);
         spec.execute(layer);
-        // The dependency layer is defined exclusively by its configured jars. §E2E-functional-tests.
-        getClasspath().setFrom(layer.getJars());
         layers(options -> options.add(layer));
     }
 }
