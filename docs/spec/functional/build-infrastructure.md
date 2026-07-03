@@ -100,10 +100,7 @@ The GitHub Actions helper convention must register `dumpFunctionalTestList` for 
 source sets. The task must emit a JSON matrix containing operating systems, Java versions, Gradle
 versions, configuration-cache versions where applicable, and discovered functional test class
 names. In GitHub Actions it writes the matrix to `GITHUB_OUTPUT`; locally it may print the same
-matrix for inspection. Snapshot Maven and Gradle functional-test jobs must use GraalVM JDK 25 and
-run on `ubuntu-22.04`, `windows-latest`, and `macos-latest` so platform-specific Native Image
-behavior can be compared. Known upstream defects may skip only their affected platform and GraalVM
-version while the remaining matrix coverage continues to run. [§FS-build-infrastructure.2.4](build-infrastructure.md#24-functional-test-matrix-data)
+matrix for inspection.
 
 ## 3. Documentation
 
