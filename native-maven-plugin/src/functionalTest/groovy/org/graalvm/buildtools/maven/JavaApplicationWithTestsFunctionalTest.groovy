@@ -190,6 +190,8 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
     }
 
     @Requires({ getCurrentJDKVersion() >= 23 })
+    @Issue("https://github.com/graalvm/native-build-tools/issues/873")
+    @IgnoreIf({ GraalVMSupport.getGraalVMHomeVersionString() ==~ /(?s).*\\b25\\.0\\.[0-3]\\b.*/ })
     def "can use the Maven plugin with the runtimeArgs config to run tests in a native image"() {
         withSample("java-application-with-tests")
 
