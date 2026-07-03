@@ -48,10 +48,10 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
 
+@Issue("https://github.com/graalvm/native-build-tools/issues/956")
+@IgnoreIf({ os.windows })
 class SBOMFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
     @Requires({ supportsBaseSBOM() })
-    @Issue("https://github.com/graalvm/native-build-tools/issues/956")
-    @IgnoreIf({ os.windows })
     def "sbom is exported and embedded when buildArg '--enable-sbom=export,embed' is used"() {
         withSample 'java-application'
 
