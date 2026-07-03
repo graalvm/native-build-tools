@@ -58,8 +58,8 @@ import java.nio.charset.StandardCharsets
         { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
 )
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
-    // Layers are not supported on JDK 25.0.x for the Darwin and Windows platforms exercised by CI. §E2E-functional-tests.
-    @IgnoreIf({ os.windows || os.macOs })
+    // Layers are not supported by configuration cache or on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.
+    @IgnoreIf({ hasConfigurationCache || os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
