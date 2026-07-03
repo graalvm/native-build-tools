@@ -59,7 +59,7 @@ import java.nio.charset.StandardCharsets
 )
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
     // Layers are not supported by configuration cache or on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.
-    @IgnoreIf({ hasConfigurationCache || os.windows || os.macOs })
+    @IgnoreIf({ Boolean.getBoolean("config.cache") || os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
