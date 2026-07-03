@@ -46,6 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -58,7 +59,8 @@ import java.nio.charset.StandardCharsets
         { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
 )
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
-    // Layers are not supported by configuration cache or on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.
+    // Layers are disabled for configuration-cache coverage pending #957 and on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/957")
     @IgnoreIf({ Boolean.getBoolean("config.cache") || os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
