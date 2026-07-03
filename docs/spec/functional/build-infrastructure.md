@@ -100,7 +100,9 @@ The GitHub Actions helper convention must register `dumpFunctionalTestList` for 
 source sets. The task must emit a JSON matrix containing operating systems, Java versions, Gradle
 versions, configuration-cache versions where applicable, and discovered functional test class
 names. In GitHub Actions it writes the matrix to `GITHUB_OUTPUT`; locally it may print the same
-matrix for inspection.
+matrix for inspection. During Windows Native Image toolchain diagnosis, the snapshot matrix must
+run its default functional-test jobs on `ubuntu-22.04`, `windows-latest`, and `macos-latest` with
+GraalVM JDK 25 so platform-specific Native Image behavior can be compared.
 
 ## 3. Documentation
 

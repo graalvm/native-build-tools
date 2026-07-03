@@ -7,7 +7,8 @@ def matrixDefault = [
 
 def latestMatrixDefault = [
         "java-version": [ "17.0.12" ],
-        "os": [ "ubuntu-22.04" ]
+        // Compare Native Image behavior across the supported CI platforms. §FS-build-infrastructure.2.4.
+        "os": [ "ubuntu-22.04", "windows-latest", "macos-latest" ]
 ]
 
 // # Following versions are disabled temporarily in order to speed up PR testing  "7.3.3", "7.2", "7.1", "6.8.3",

@@ -1,4 +1,5 @@
 # Pull request Gradle plugin gate: E2E matrices, cache tests, unit tests, and inspections.
+# The workflow itself is included in its path filter so CI configuration changes are exercised.
 # §AR-repository-ci.1.3; §gradle/E2E-functional-tests
 name: "Test native-gradle-plugin"
 
@@ -55,7 +56,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
-          graal-java-version: '21'
+          graal-java-version: '25'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-gradle-plugin:functionalTest -DgradleVersion="${{ matrix.gradle-version }}" --tests ${{ matrix.test }}
@@ -101,7 +102,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
-          graal-java-version: '21'
+          graal-java-version: '25'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin with configuration cache"
         run: ./gradlew :native-gradle-plugin:configCacheFunctionalTest -DgradleVersion="${{ matrix.gradle-config-cache-version }}" --tests ${{ matrix.test }}
@@ -128,7 +129,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
-          graal-java-version: '21'
+          graal-java-version: '25'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Unit tests and inspections"
         run: ./gradlew :native-gradle-plugin:test :native-gradle-plugin:inspections

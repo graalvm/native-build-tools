@@ -1,4 +1,5 @@
 # Pull request Maven plugin gate: runs Maven E2E matrices and GraalVM dev-build functional tests.
+# The workflow itself is included in its path filter so CI configuration changes are exercised.
 # §AR-repository-ci.1.4; §maven/E2E-functional-tests
 name: "Test native-maven-plugin"
 
@@ -56,7 +57,7 @@ jobs:
         uses: ./.github/actions/prepare-environment
         with:
           java-version: ${{ matrix.java-version }}
-          graal-java-version: '21'
+          graal-java-version: '25'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: "❓ Check and test the plugin"
         run: ./gradlew :native-maven-plugin:functionalTest --no-daemon --fail-fast --tests ${{ matrix.test }}
