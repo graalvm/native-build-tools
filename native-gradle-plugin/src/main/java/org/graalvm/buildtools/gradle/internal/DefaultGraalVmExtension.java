@@ -41,6 +41,9 @@
 
 package org.graalvm.buildtools.gradle.internal;
 
+import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
@@ -49,12 +52,14 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
 import javax.inject.Inject;
+import java.util.function.Predicate;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final transient NamedDomainObjectContainer<NativeImageOptions> nativeImages;
@@ -110,6 +115,46 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     @Override
     public void agent(Action<? super AgentOptions> spec) {
         spec.execute(getAgent());
+    }
+
+    @Override
+    public void agent(Closure<?> spec) {
+        Closure<?> configuredSpec = (Closure<?>) spec.clone();
+        configuredSpec.setDelegate(new AgentOptionsGroovyDslAdapter(getAgent()));
+        configuredSpec.setResolveStrategy(Closure.DELEGATE_FIRST);
+        configuredSpec.call();
+    }
+
+    /**
+     * Adapts Groovy's direct closure assignment to the managed predicate property. §FS-tracing-agent.2.
+     */
+    private static final class AgentOptionsGroovyDslAdapter extends GroovyObjectSupport {
+        private final AgentOptions options;
+
+        private AgentOptionsGroovyDslAdapter(AgentOptions options) {
+            this.options = options;
+        }
+
+        @Override
+        public Object getProperty(String property) {
+            return InvokerHelper.getProperty(options, property);
+        }
+
+        @Override
+        public void setProperty(String property, Object value) {
+            if ("tasksToInstrumentPredicate".equals(property) && value instanceof Closure<?>) {
+                Closure<?> predicateClosure = (Closure<?>) value;
+                Predicate<Task> predicate = task -> Boolean.TRUE.equals(predicateClosure.call(task));
+                options.getTasksToInstrumentPredicate().set(predicate);
+                return;
+            }
+            InvokerHelper.setProperty(options, property, value);
+        }
+
+        @Override
+        public Object invokeMethod(String name, Object arguments) {
+            return InvokerHelper.invokeMethod(options, name, arguments);
+        }
     }
 
     @Override

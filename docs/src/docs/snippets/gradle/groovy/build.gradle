@@ -125,7 +125,7 @@ graalvmNative {
             mergeWithExisting = true
         }
 
-        tasksToInstrumentPredicate = t -> true
+        tasksToInstrumentPredicate = { t -> true }
     }
 }
 // end::all-config-options[]
