@@ -26,6 +26,9 @@ configuration directories, generated resources, reachability metadata, layer opt
 conversion must come from common utilities rather than Gradle-only string handling, keeping Gradle
 aligned with [§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
 
+When Gradle uses its plain console, the Native Image invocation must explicitly disable colorful
+build output. Otherwise, the `richOutput` option controls Native Image's color-enabled argument.
+
 ## 4. Argument files
 
 The plugin must support Native Image argument files for command lines that should not be passed as

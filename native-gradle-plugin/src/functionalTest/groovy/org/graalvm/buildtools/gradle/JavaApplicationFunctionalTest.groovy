@@ -43,10 +43,13 @@ package org.graalvm.buildtools.gradle
 
 import org.gradle.util.GradleVersion
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
+import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
+import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
+import spock.lang.Unroll
 
 import java.nio.file.Files
 
@@ -178,6 +181,35 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         process.output.contains "Hello, native!"
 
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
+    @Unroll
+    def "passes Gradle's #console console color mode to Native Image"() {
+        given:
+        withSample("java-application")
+        buildFile << """
+            graalvmNative {
+                binaries.all {
+                    richOutput = true
+                    verbose = true
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'nativeCompile', "--console=${console}"
+
+        then:
+        tasks {
+            succeeded ':nativeCompile'
+        }
+        outputContains expectedColorArgument
+
+        where:
+        console | expectedColorArgument
+        'plain' | (NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 21 ? '--color=never' : '-H:-BuildOutputColorful')
+        'rich'  | (NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 21 ? '--color=always' : '-H:+BuildOutputColorful')
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/129")

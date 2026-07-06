@@ -111,4 +111,70 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
         args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libbase.nil") && it.contains("module=java.base") }
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
+    def "disables colorful Native Image output for Gradle's plain console with JDK #nativeImageVersion"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.richOutput.set(true)
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "main" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { nativeImageVersion },
+                project.provider { true }
+        ).asArguments()
+
+        then:
+        args.contains(disabledColorArgument)
+        !args.contains(NativeImageFlags.BUILD_OUTPUT_COLORFUL)
+
+        where:
+        nativeImageVersion | disabledColorArgument
+        17                 | "-H:-BuildOutputColorful"
+        21                 | "--color=never"
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
+    def "uses the rich-output setting when Gradle enables colors with JDK #nativeImageVersion"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.richOutput.set(true)
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "main" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { nativeImageVersion },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        args.contains(enabledColorArgument)
+        !args.contains("-H:-BuildOutputColorful")
+
+        where:
+        nativeImageVersion | enabledColorArgument
+        17                 | NativeImageFlags.BUILD_OUTPUT_COLORFUL
+        21                 | "--color=always"
+    }
 }

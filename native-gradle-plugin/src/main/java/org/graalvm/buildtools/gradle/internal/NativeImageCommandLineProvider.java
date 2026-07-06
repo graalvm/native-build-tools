@@ -84,7 +84,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
     private final Provider<Integer> majorJDKVersion;
-    private final Provider<Boolean> useColors;
+    private final Provider<Boolean> plainConsole;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
                                           Provider<String> executableName,
@@ -93,7 +93,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile,
                                           Provider<Integer> majorJDKVersion,
-                                          Provider<Boolean> useColors) {
+                                          Provider<Boolean> plainConsole) {
         this.options = options;
         this.executableName = executableName;
         this.workingDirectory = workingDirectory;
@@ -101,7 +101,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
         this.majorJDKVersion = majorJDKVersion;
-        this.useColors = useColors;
+        this.plainConsole = plainConsole;
     }
 
     @Nested
@@ -194,8 +194,10 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getVerbose(), NativeImageFlags.VERBOSE);
         appendBooleanOption(cliArgs, options.getSharedLibrary(), NativeImageFlags.SHARED);
         appendBooleanOption(cliArgs, options.getQuickBuild(), NativeImageFlags.QUICK_BUILD);
-        if (useColors.get()) {
-            appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR : NativeImageFlags.BUILD_OUTPUT_COLORFUL);
+        if (plainConsole.get()) {
+            cliArgs.add(majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR + "=never" : "-H:-BuildOutputColorful");
+        } else {
+            appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR + "=always" : NativeImageFlags.BUILD_OUTPUT_COLORFUL);
         }
         appendBooleanOption(cliArgs, options.getPgoInstrument(), NativeImageFlags.PGO_INSTRUMENT);
 

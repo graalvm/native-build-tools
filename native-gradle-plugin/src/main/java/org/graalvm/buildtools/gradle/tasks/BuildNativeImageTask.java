@@ -55,6 +55,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.provider.MapProperty;
@@ -95,7 +96,7 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
-    private final boolean useColors;
+    private final boolean plainConsole;
 
     @Internal
     public abstract Property<NativeImageOptions> getOptions();
@@ -271,7 +272,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         ProviderFactory providers = getProject().getProviders();
         this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
         this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);
-        this.useColors = "plain".equals(getProject().getGradle().getStartParameter().getConsoleOutput());
+        this.plainConsole = ConsoleOutput.Plain.equals(getProject().getGradle().getStartParameter().getConsoleOutput());
         getDisableToolchainDetection().convention(false);
     }
 
@@ -287,7 +288,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getClasspathJar(),
             getUseArgFile(),
             getProviders().provider(() -> majorJDKVersion),
-            getProviders().provider(() -> useColors))
+            getProviders().provider(() -> plainConsole))
             .asArguments();
     }
 
