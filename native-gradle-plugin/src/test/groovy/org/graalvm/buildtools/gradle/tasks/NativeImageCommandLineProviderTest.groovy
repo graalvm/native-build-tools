@@ -144,10 +144,45 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         ).asArguments()
 
         then:
-        !options.classpath.files.contains(appJar)
+        options.classpath.files.contains(appJar)
         !args.contains(appJar.absolutePath)
         args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libdependencies.nil") && it.contains("path=${dependencyJar}") }
         args.contains("-cp")
         args.contains(dependencyJar.absolutePath)
+    }
+
+    def "retains binary classpath for package-based layer-create build"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def appJar = testDirectory.resolve("app.jar").toFile()
+        appJar.text = "application"
+        def options = project.extensions.getByType(GraalVMExtension).binaries.create("libpackages")
+        options.classpath.from(appJar)
+        options.createLayer {
+            it.modules.add("java.base")
+            it.packages.add("org.graalvm.demo")
+        }
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "libpackages" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        options.classpath.files.contains(appJar)
+        args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libpackages.nil") && it.contains("package=org.graalvm.demo") }
+        args.contains("-cp")
+        args.contains(appJar.absolutePath)
     }
 }
