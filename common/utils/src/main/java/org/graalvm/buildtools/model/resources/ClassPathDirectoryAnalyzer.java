@@ -73,7 +73,7 @@ class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
         }
     }
 
-    private class DirectoryVisitor extends SimpleFileVisitor<Path> {
+    private final class DirectoryVisitor extends SimpleFileVisitor<Path> {
         List<String> resources = new ArrayList<>();
         boolean hasNativeImageResourceFile;
         boolean inNativeImageDir;

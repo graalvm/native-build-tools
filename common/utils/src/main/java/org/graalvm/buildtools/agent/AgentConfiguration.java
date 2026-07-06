@@ -71,7 +71,7 @@ public class AgentConfiguration implements Serializable {
     private final AgentMode agentMode;
 
     // This constructor should be used only to specify that we have instance of agent that is disabled (to avoid using null for agent enable check)
-    public AgentConfiguration(AgentMode ...modes) {
+    public AgentConfiguration(AgentMode... modes) {
         this.callerFilterFiles = null;
         this.accessFilterFiles = null;
         this.builtinCallerFilter = null;
