@@ -446,6 +446,8 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         }
         layer.getLayerName().convention(binaryName);
         spec.execute(layer);
+        // Layer creation uses the layer declaration as its classpath model so compile task inputs stay selective. §FS-native-tasks.1.
+        getClasspath().setFrom();
         layers(options -> options.add(layer));
     }
 }

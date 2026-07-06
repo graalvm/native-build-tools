@@ -63,14 +63,17 @@ abstract class AbstractFunctionalTest extends Specification {
     boolean IS_LINUX = System.getProperty("os.name", "unknown").contains("Linux")
     boolean IS_MAC = System.getProperty("os.name", "unknown").contains("Mac")
 
+    private final URI commonRepositoryUri = commonRepositoryUri()
     private StringWriter outputWriter
     private StringWriter errorOutputWriter
     private String output
     private String errorOutput
+    private String configurationCacheStoreOutput
     private File initScript
     private Map<String, String> environment
 
     BuildResult result
+    BuildResult configurationCacheStoreResult
 
     private static String testGradleVersion() {
         String version = System.getProperty("gradle.test.version", GradleVersion.current().version)
@@ -78,6 +81,11 @@ abstract class AbstractFunctionalTest extends Specification {
             version = GradleVersion.current().version
         }
         version
+    }
+
+    private static URI commonRepositoryUri() {
+        String repositoryPath = System.getProperty("common.repo.url")
+        repositoryPath == null ? null : new File(repositoryPath).toURI()
     }
 
     Path path(String... pathElements) {
@@ -167,12 +175,33 @@ abstract class AbstractFunctionalTest extends Specification {
 
     void run(String... args) {
         try {
+            configurationCacheStoreResult = null
+            configurationCacheStoreOutput = null
             result = newRunner(args)
                     .run()
             if (hasConfigurationCache) {
                 // run a 2d time to check that not only we can store in
                 // the configuration cache, but that we can also load from it
+                configurationCacheStoreResult = result
+                configurationCacheStoreOutput = normalizeString(outputWriter.toString())
                 result = newRunner([*args, "--rerun-tasks"] as String[])
+                        .run()
+            }
+        } finally {
+            recordOutputs()
+        }
+    }
+
+    void runAndReloadConfigurationCache(String... args) {
+        try {
+            configurationCacheStoreResult = null
+            configurationCacheStoreOutput = null
+            result = newRunner(args)
+                    .run()
+            if (hasConfigurationCache) {
+                configurationCacheStoreResult = result
+                configurationCacheStoreOutput = normalizeString(outputWriter.toString())
+                result = newRunner(args)
                         .run()
             }
         } finally {
@@ -182,6 +211,11 @@ abstract class AbstractFunctionalTest extends Specification {
 
     void outputContains(String text) {
         assert output.contains(normalizeString(text))
+    }
+
+    void configurationCacheStoreOutputContains(String text) {
+        assert configurationCacheStoreOutput != null: "No configuration-cache store build output is available"
+        assert configurationCacheStoreOutput.contains(normalizeString(text))
     }
 
     void outputDoesNotContain(String text) {
@@ -205,7 +239,17 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     void tasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
+        inspectTasks(result, spec)
+    }
+
+    void configurationCacheStoreTasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
+        assert configurationCacheStoreResult != null: "No configuration-cache store build result is available"
+        inspectTasks(configurationCacheStoreResult, spec)
+    }
+
+    private void inspectTasks(BuildResult buildResult, @DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {
         def graph = new TaskExecutionGraph()
+        graph.result = buildResult
         spec.delegate = graph
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
@@ -272,11 +316,13 @@ abstract class AbstractFunctionalTest extends Specification {
     private void assertInitScript() {
         initScript = file("init.gradle")
         if (!initScript.exists()) {
+            assert commonRepositoryUri != null: "Expected common.repo.url system property for functional test repository"
+            // The generated init script must be self-contained before the first cached TestKit build starts. §AR-gradle-plugin.6, §E2E-functional-tests.4.
             initScript << """
             allprojects {
                 repositories {
                     maven {
-                        url = "\${providers.systemProperty('common.repo.url').get()}"
+                        url = "${commonRepositoryUri}"
                     }
                     mavenCentral()
                 }
@@ -286,6 +332,8 @@ abstract class AbstractFunctionalTest extends Specification {
     }
 
     private class TaskExecutionGraph {
+        BuildResult result
+
         void succeeded(String... tasks) {
             tasks.each { task ->
                 contains(task)
