@@ -78,7 +78,7 @@ class AbstractNativeImageMojoTest extends Specification {
 
     private static class TestNativeImageMojo extends AbstractNativeImageMojo {
         @Override
-        void execute() {
+        protected void executeInternal() {
         }
 
         @Override
