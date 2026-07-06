@@ -98,7 +98,7 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     }
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         if (skip) {
             logger.info("Skipping native-image generation (parameter 'skipNativeBuild' is true).");
             return;

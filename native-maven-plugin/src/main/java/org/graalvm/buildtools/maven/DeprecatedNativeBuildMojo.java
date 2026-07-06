@@ -57,9 +57,9 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.execute();
+        super.executeInternal();
     }
 
 }

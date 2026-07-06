@@ -78,7 +78,7 @@ public class AddReachabilityMetadataMojo extends AbstractNativeMojo {
 
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    protected void executeInternal() throws MojoExecutionException, MojoFailureException {
         configureMetadataRepository();
         project.getArtifacts().stream().filter(this::isInScope)
                 .forEach(dependency -> maybeAddDependencyMetadata(dependency, null));

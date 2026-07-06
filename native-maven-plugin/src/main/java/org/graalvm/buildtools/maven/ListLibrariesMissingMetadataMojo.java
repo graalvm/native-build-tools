@@ -82,7 +82,7 @@ public class ListLibrariesMissingMetadataMojo extends AbstractNativeMojo {
     private File reportFile;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    protected void executeInternal() throws MojoExecutionException, MojoFailureException {
         if (!isMetadataRepositoryEnabled()) {
             throw new MojoExecutionException("GraalVM reachability metadata repository is disabled.");
         }

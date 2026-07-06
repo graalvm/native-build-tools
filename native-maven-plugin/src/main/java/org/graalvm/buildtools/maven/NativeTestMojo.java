@@ -162,7 +162,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         if (skipTests || skipNativeTests) {
             logger.info("Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true).");
             return;
