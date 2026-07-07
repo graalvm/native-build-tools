@@ -60,6 +60,7 @@ class AgentConfigurationTest {
     @TempDir
     Path agentConfigDir;
 
+    // §FS-common-libraries.3.1.1
     @Test
     void disabledConfigurationReturnsEmptyCommandLine() {
         AgentConfiguration disabled = new AgentConfiguration();
@@ -69,6 +70,7 @@ class AgentConfigurationTest {
         assertTrue(cmdLine.isEmpty(), "Disabled agent configuration should not emit any options, but was: " + cmdLine);
     }
 
+    // §FS-common-libraries.3.1.1
     @Test
     void standardConfigurationEmitsDefaultAccessFilterBeforeUserAccessFilters() {
         List<String> userAccessFilters = List.of("user-1.json", "user-2.json");

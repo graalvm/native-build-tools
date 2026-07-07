@@ -56,6 +56,15 @@ option list. Advanced options such as caller filters, access filters, predefined
 allocation tracing, and reflection metadata tracking must be represented once so both plugins
 expose the same mode semantics.
 
+#### 3.1.1 Access-filter precedence
+
+The shared agent model must emit its built-in default access filter before every user-provided
+access-filter file, so that user configuration takes precedence over the built-in defaults.
+`native-image-agent` evaluates access filters in order and lets later rules override earlier ones,
+so ordering the built-in filter first leaves it as a baseline that user rules override.
+
+A disabled agent configuration must emit no agent command-line options.
+
 ### 3.2 Plugin invocation and output
 
 Plugin-specific enablement, instrumentation hooks, and output locations are specified by

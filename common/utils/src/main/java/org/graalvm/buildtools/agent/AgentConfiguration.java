@@ -109,6 +109,8 @@ public class AgentConfiguration implements Serializable {
         }
         List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
         appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
+        // The default filter precedes user filters so user rules have final precedence.
+        // §FS-common-libraries.3.1.1
         cmdLine.add("access-filter-file=" + getDefaultAccessFilter());
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
         addToCmd("builtin-caller-filter=", builtinCallerFilter, cmdLine);
