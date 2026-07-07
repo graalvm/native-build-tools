@@ -43,10 +43,13 @@ package org.graalvm.buildtools.agent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -78,7 +81,7 @@ class AgentConfigurationTest {
                 null,
                 null,
                 new StandardAgentMode(),
-                agentConfigDir);
+                agentConfigDir.toString());
 
         List<String> cmdLine = configuration.getAgentCommandLine();
 
@@ -93,5 +96,25 @@ class AgentConfigurationTest {
             assertEquals(ACCESS_FILTER_OPTION + userAccessFilters.get(i), accessFilterOptions.get(i + 1),
                     "User access filters must follow the default in their original order");
         }
+    }
+
+    @Test
+    void configurationIsSerializable() {
+        AgentConfiguration configuration = new AgentConfiguration(
+                List.of(),
+                new ArrayList<>(List.of("user-1.json")),
+                null,
+                null,
+                null,
+                null,
+                null,
+                new StandardAgentMode(),
+                agentConfigDir.toString());
+
+        assertDoesNotThrow(() -> {
+            try (ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream())) {
+                out.writeObject(configuration);
+            }
+        }, "AgentConfiguration must be serializable to support the Gradle configuration cache");
     }
 }

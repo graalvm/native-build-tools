@@ -124,7 +124,7 @@ public abstract class AgentUtils {
             Boolean agentEnabledInCmd = isAgentEnabledInCmd(session);
             if (agentEnabledInCmd != null && agentEnabledInCmd) {
                 // if agent is only enabled from command line but there is no configuration in pom.xml, we use default options
-                return new AgentConfiguration(agentConfigDir, new StandardAgentMode());
+                return new AgentConfiguration(agentConfigDir.toString(), new StandardAgentMode());
             } else {
                 return new AgentConfiguration();
             }
@@ -154,7 +154,7 @@ public abstract class AgentUtils {
 
         return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
                 builtinHeuristicFilter, enableExperimentalPredefinedClasses, enableExperimentalUnsafeAllocationTracing,
-                trackReflectionMetadata, mode, agentConfigDir);
+                trackReflectionMetadata, mode, agentConfigDir.toString());
     }
 
     public static List<String> getDisabledStages(Xpp3Dom rootNode) {

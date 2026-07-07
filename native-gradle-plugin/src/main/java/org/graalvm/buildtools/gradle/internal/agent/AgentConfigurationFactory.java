@@ -96,7 +96,7 @@ public class AgentConfigurationFactory {
                     options.getEnableExperimentalUnsafeAllocationTracing().get(),
                     options.getTrackReflectionMetadata().get(),
                     agentMode,
-                    configDir.getAsFile().toPath());
+                    configDir.getAsFile().getAbsolutePath());
         }));
     }
 

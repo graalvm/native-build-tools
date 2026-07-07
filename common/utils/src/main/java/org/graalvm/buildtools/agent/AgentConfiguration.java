@@ -62,7 +62,7 @@ public class AgentConfiguration implements Serializable {
     private final Boolean experimentalPredefinedClasses;
     private final Boolean experimentalUnsafeAllocationTracing;
     private final Boolean trackReflectionMetadata;
-    private final Path agentConfigDir;
+    private final String agentConfigDir;
 
     private final AgentMode agentMode;
 
@@ -71,7 +71,7 @@ public class AgentConfiguration implements Serializable {
         this(null, new DisabledAgentMode());
     }
 
-    public AgentConfiguration(Path agentConfigDir, AgentMode agentMode) {
+    public AgentConfiguration(String agentConfigDir, AgentMode agentMode) {
         this.callerFilterFiles = null;
         this.accessFilterFiles = null;
         this.builtinCallerFilter = null;
@@ -91,7 +91,7 @@ public class AgentConfiguration implements Serializable {
                               Boolean experimentalUnsafeAllocationTracing,
                               Boolean trackReflectionMetadata,
                               AgentMode agentMode,
-                              Path agentConfigDir) {
+                              String agentConfigDir) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
         this.builtinCallerFilter = builtinCallerFilter;
@@ -148,7 +148,8 @@ public class AgentConfiguration implements Serializable {
     }
 
     private String getDefaultAccessFilter() {
-        Path accessFilterFile = agentConfigDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
+        Path agentConfigDirPath = Path.of(agentConfigDir);
+        Path accessFilterFile = agentConfigDirPath.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
         if (Files.exists(accessFilterFile)) {
             return accessFilterFile.toString();
         }
@@ -157,7 +158,7 @@ public class AgentConfiguration implements Serializable {
             if (accessFilterData == null) {
                 throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
-            Files.createDirectories(agentConfigDir);
+            Files.createDirectories(agentConfigDirPath);
             Files.copy(accessFilterData, accessFilterFile);
             return accessFilterFile.toString();
         } catch (IOException e) {
