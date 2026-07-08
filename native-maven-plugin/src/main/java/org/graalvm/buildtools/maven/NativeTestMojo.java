@@ -42,7 +42,6 @@
 package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.model.FileSet;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -128,13 +127,8 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
+        // Maven's processed test output contains both compiled tests and processed test resources. §FS-native-tests.1.
         imageClasspath.add(Paths.get(project.getBuild().getTestOutputDirectory()));
-        project.getBuild()
-            .getTestResources()
-            .stream()
-            .map(FileSet::getDirectory)
-            .map(Paths::get)
-            .forEach(imageClasspath::add);
     }
 
     @Override

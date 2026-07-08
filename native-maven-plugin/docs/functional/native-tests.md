@@ -6,9 +6,11 @@ run those tests as a native image through Maven's test lifecycle.
 ## 1. Test classpath
 
 `native:test` must include compile, runtime, test, compile-plus-runtime, and provided-scope
-dependencies needed by the test image. It must add compiled test classes, test resources, plugin
-artifacts relevant to Native Build Tools and JUnit, and inferred `junit-platform-native`
-dependencies.
+dependencies needed by the test image. Current-project content must come from Maven's build
+outputs, including the processed test output directory; raw test resource source directories must
+not be added because doing so bypasses Maven resource filtering and exclusions and duplicates
+resources already present in the processed output. The goal must also add plugin artifacts relevant
+to Native Build Tools and JUnit and inferred `junit-platform-native` dependencies.
 
 ## 2. Test discovery preconditions
 

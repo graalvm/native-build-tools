@@ -134,11 +134,15 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
 
     private Set<File> findAllProjectArtifacts() {
         Set<File> all = new LinkedHashSet<>();
-        all.add(mavenProject.getArtifact().getFile());
+        all.addAll(getProjectArtifacts());
         all.addAll(transitiveProjectsArtifacts());
         Collection<? extends File> extraProjectArtifacts = getExtraProjectArtifacts();
         all.addAll(extraProjectArtifacts);
         return all;
+    }
+
+    protected Collection<? extends File> getProjectArtifacts() {
+        return Collections.singleton(mavenProject.getArtifact().getFile());
     }
 
     protected Collection<? extends File> getExtraProjectArtifacts() {
