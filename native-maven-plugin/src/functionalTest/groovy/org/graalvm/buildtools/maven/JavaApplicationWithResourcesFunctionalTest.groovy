@@ -1,5 +1,7 @@
 package org.graalvm.buildtools.maven
 
+import com.github.openjson.JSONObject
+
 import java.util.regex.Pattern
 
 class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
@@ -80,6 +82,7 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         given:
 //        withDebug()
         withSample("java-application-with-resources")
+        configureDynamicMainResourceLookup()
 
         List<String> options = []
         if (detection) {
@@ -96,33 +99,37 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         }
 
         when:
-        mvn(['-Pnative', '-DquickBuild', 'test', *options])
+        mvn(['-Pnative', '-DquickBuild', '-DuseArgFile=true', 'test', *options])
 
         then:
         buildSucceeded
 
         and:
-        // Autodetection scans processed test output, not main output or raw test sources. §FS-resources-and-metadata.1.
-        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, resourceConfigFor(expectedPatterns))
+        // Autodetection scans processed main and test outputs, not raw resource sources. §FS-resources-and-metadata.1.
+        assertResourcePatterns(file("target/native/generated/generateTestResourceConfig/resource-config.json"), expectedPatterns)
 
-        and: "native:test uses Maven build outputs without adding the raw test resource directory"
-        def nativeImageInvocation = outputLines.find { it.contains('Executing:') && it.contains('native-image') }
-        nativeImageInvocation != null
-        nativeImageInvocation.contains(file("target/classes").absolutePath)
-        nativeImageInvocation.contains(file("target/test-classes").absolutePath)
-        !nativeImageInvocation.contains(file("src/main/resources").absolutePath)
-        !nativeImageInvocation.contains(file("src/test/resources").absolutePath)
+        and: "native:test uses Maven build outputs without adding raw resource directories"
+        def argsFiles = file("target/tmp").listFiles().findAll {
+            it.name.startsWith("native-image-") && it.name.endsWith(".args")
+        }
+        argsFiles.size() == 1
+        def nativeImageArguments = normalizePaths(argsFiles.first().text)
+        nativeImageArguments.contains(normalizePaths(file("target/classes").absolutePath))
+        nativeImageArguments.contains(normalizePaths(file("target/test-classes").absolutePath))
+        !nativeImageArguments.contains(normalizePaths(file("src/main/resources").absolutePath))
+        !nativeImageArguments.contains(normalizePaths(file("src/test/resources").absolutePath))
 
         where:
         detection | includedPatterns                                                               | restrictToModules | detectionExclusionPatterns                         || expectedPatterns
         false     | [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")] | false             | []                                                 || [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")]
-        true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"]     || [Pattern.quote("org/graalvm/demo/expected.txt")]
-        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"]     || [Pattern.quote("org/graalvm/demo/expected.txt")]
+        true      | []                                                                             | false             | ["META-INF/.*", "junit-platform-unique-ids.*"]     || [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")]
+        true      | []                                                                             | true              | ["META-INF/.*", "junit-platform-unique-ids.*"]     || [Pattern.quote("message.txt"), Pattern.quote("org/graalvm/demo/expected.txt")]
     }
 
-    def "test resource autodetection follows Maven's processed test output"() {
+    def "test resource autodetection follows Maven's processed outputs"() {
         given:
         withSample("java-application-with-resources")
+        configureDynamicMainResourceLookup()
         configureProcessedTestResources()
 
         when:
@@ -137,10 +144,19 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         !file("target/test-classes/excluded-source-only.txt").exists()
 
         and: "only resources that Maven put in the processed test output are detected"
-        matches(file("target/native/generated/generateTestResourceConfig/resource-config.json").text, resourceConfigFor([
+        assertResourcePatterns(file("target/native/generated/generateTestResourceConfig/resource-config.json"), [
+                Pattern.quote("message.txt"),
                 Pattern.quote("org/graalvm/demo/expected.txt"),
                 Pattern.quote("generated-only.txt")
-        ]))
+        ])
+    }
+
+    private void configureDynamicMainResourceLookup() {
+        def source = file("src/main/java/org/graalvm/demo/Application.java")
+        def staticLookup = 'Application.class.getResourceAsStream("/message.txt")'
+        def dynamicLookup = 'Application.class.getResourceAsStream(System.getProperty("org.graalvm.buildtools.test.resource", "/message.txt"))'
+        assert source.text.contains(staticLookup)
+        source.text = source.text.replace(staticLookup, dynamicLookup)
     }
 
     private void configureProcessedTestResources() {
@@ -193,28 +209,20 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
         pom.text = pom.text.replace(buildStart, configuredBuildStart)
     }
 
-    private static String resourceConfigFor(List<String> patterns) {
-        String includes = patterns.collect { pattern ->
-"""      {
-        "pattern": "${escapeJson(pattern)}"
-      }"""
-        }.join(",\n")
-"""{
-  "resources": {
-    "includes": [
-${includes}
-    ],
-    "excludes": []
-  },
-  "bundles": []
-}"""
+    private static void assertResourcePatterns(File configFile, List<String> expectedPatterns) {
+        def config = new JSONObject(configFile.text)
+        def resources = config.getJSONObject("resources")
+        def actualPatterns = resources.getJSONArray("includes").iterator().collect { it.getString("pattern") } as Set
+        assert actualPatterns == expectedPatterns as Set
+        assert resources.getJSONArray("excludes").isEmpty()
+        assert config.getJSONArray("bundles").isEmpty()
     }
 
     private static String joinForCliArg(List<String> patterns) {
         patterns.join(",")
     }
 
-    private static String escapeJson(String value) {
-        value.replace('\\', '\\\\')
+    private static String normalizePaths(String value) {
+        value.replace('\\\\', '\\').replace('\\', '/')
     }
 }

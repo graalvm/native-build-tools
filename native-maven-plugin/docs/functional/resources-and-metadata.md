@@ -11,9 +11,9 @@ respect existing Native Image resource configuration and the shared classpath sc
 [§common/FS-common-libraries.2](../../../common/docs/functional-spec.md#2-resource-configuration).
 
 For `native:generateTestResourceConfig`, autodetection for the current project must use Maven's
-processed test output directory instead of the main output artifact or raw test resource source
-directories. This preserves resource filtering, exclusions, and resources generated directly into
-the test output.
+processed main and test output directories instead of raw resource source directories. This scans
+the native-test runtime classpath while preserving resource filtering, exclusions, and resources
+generated directly into either output.
 
 ## 2. Reachability metadata
 

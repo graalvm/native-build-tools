@@ -46,11 +46,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
- * Scans test resources and generates resource metadata for them.
+ * Scans processed resources available to native tests and generates resource metadata for them.
  * §FS-goal-surface.3, §FS-resources-and-metadata.1.
  */
 @Mojo(
@@ -66,7 +66,10 @@ public class NativeBuildTestResourceConfigMojo extends AbstractResourceConfigMoj
 
     @Override
     protected Collection<? extends File> getProjectArtifacts() {
-        // Autodetection reflects Maven's processed test resources, including filtering and exclusions. §FS-resources-and-metadata.1.
-        return Collections.singleton(new File(mavenProject.getBuild().getTestOutputDirectory()));
+        // Autodetection reflects Maven's processed runtime classpath, including filtering and exclusions. §FS-resources-and-metadata.1.
+        return Arrays.asList(
+                new File(mavenProject.getBuild().getOutputDirectory()),
+                new File(mavenProject.getBuild().getTestOutputDirectory())
+        );
     }
 }
