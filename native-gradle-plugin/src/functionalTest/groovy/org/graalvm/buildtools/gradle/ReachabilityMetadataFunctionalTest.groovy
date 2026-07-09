@@ -46,7 +46,7 @@ import org.gradle.api.logging.LogLevel
 
 class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
-    def "uses legacy metadata for a verified Maven relocation without changing dependencies"() {
+    def "replaces fallback metadata with canonical metadata for a CI-friendly Maven relocation"() {
         given:
         settingsFile.text = ""
         writeFile("repo/example/legacy/legacy-library/1.0/legacy-library-1.0.pom", """
@@ -54,7 +54,10 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
   <modelVersion>4.0.0</modelVersion>
   <groupId>example.legacy</groupId>
   <artifactId>legacy-library</artifactId>
-  <version>1.0</version>
+  <version>\${revision}</version>
+  <properties>
+    <revision>1.0</revision>
+  </properties>
   <distributionManagement>
     <relocation>
       <groupId>example.current</groupId>
@@ -121,15 +124,38 @@ graalvmNative {
             succeeded ':collectReachabilityMetadata'
         }
 
-        and:
-        File copiedMetadata
-        file("build/native-reachability-metadata").eachFileRecurse { candidate ->
-            if (candidate.name == "resource-config.json") {
-                copiedMetadata = candidate
-            }
+        and: "only fallback metadata is initially available"
+        File legacyMetadata = file("build/native-reachability-metadata/META-INF/native-image/example.legacy/legacy-library/1.0/resource-config.json")
+        legacyMetadata.text.contains("legacy-relocation-marker")
+
+        when: "canonical metadata becomes available on a later execution"
+        writeFile("metadata/example.current/current-library/index.json", '''
+[
+  {
+    "tested-versions": ["2.0"],
+    "metadata-version": "2",
+    "latest": true
+  }
+]
+''')
+        writeFile("metadata/example.current/current-library/2/resource-config.json", '''
+{
+  "resources": {
+    "includes": [{"pattern": "canonical-relocation-marker"}]
+  }
+}
+''')
+        run 'collectReachabilityMetadata', '--rerun-tasks'
+
+        then:
+        tasks {
+            succeeded ':collectReachabilityMetadata'
         }
-        copiedMetadata != null
-        copiedMetadata.text.contains("legacy-relocation-marker")
+
+        and: "the current selection replaces the previous output without merging coordinates"
+        File canonicalMetadata = file("build/native-reachability-metadata/META-INF/native-image/example.current/current-library/2.0/resource-config.json")
+        canonicalMetadata.text.contains("canonical-relocation-marker")
+        !legacyMetadata.exists()
     }
 
     def "the application runs when using the official metadata repository"() {

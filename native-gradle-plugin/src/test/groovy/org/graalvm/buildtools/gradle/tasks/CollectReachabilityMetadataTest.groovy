@@ -37,7 +37,7 @@ class CollectReachabilityMetadataTest extends Specification {
     @TempDir
     File testDirectory
 
-    def "recognizes a POM relocation only when the resolved graph contains its exact edge"() {
+    def "uses the associated resolved coordinate when the POM has a CI-friendly version"() {
         given:
         File pom = new File(testDirectory, "legacy-library-1.0.pom")
         pom.text = """
@@ -45,7 +45,10 @@ class CollectReachabilityMetadataTest extends Specification {
   <modelVersion>4.0.0</modelVersion>
   <groupId>example.legacy</groupId>
   <artifactId>legacy-library</artifactId>
-  <version>1.0</version>
+  <version>\${revision}</version>
+  <properties>
+    <revision>1.0</revision>
+  </properties>
   <distributionManagement>
     <relocation>
       <groupId>example.current</groupId>
@@ -55,7 +58,9 @@ class CollectReachabilityMetadataTest extends Specification {
   </distributionManagement>
 </project>
 """
-        def relocations = CollectReachabilityMetadata.readRelocations([pom] as Set)
+        def relocationPom = new CollectReachabilityMetadata.RelocationPom(
+                "example.legacy", "legacy-library", "1.0", pom)
+        def relocations = CollectReachabilityMetadata.readRelocations([relocationPom])
         def canonical = component("example.current", "current-library", "2.0")
         def legacy = component("example.legacy", "legacy-library", "1.0", canonical)
         def components = [
@@ -103,7 +108,9 @@ class CollectReachabilityMetadataTest extends Specification {
 """
 
         expect:
-        CollectReachabilityMetadata.readRelocations([pom] as Set).isEmpty()
+        def relocationPom = new CollectReachabilityMetadata.RelocationPom(
+                "example", "library", "1.0", pom)
+        CollectReachabilityMetadata.readRelocations([relocationPom]).isEmpty()
     }
 
     def "uses the resolved module to decide whether fallback is excluded"() {

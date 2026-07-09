@@ -55,15 +55,17 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
@@ -74,12 +76,16 @@ import org.gradle.maven.MavenPomArtifact;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.inject.Inject;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -92,11 +98,14 @@ import org.w3c.dom.Node;
  */
 public abstract class CollectReachabilityMetadata extends DefaultTask {
 
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
+
     public void setClasspath(Configuration classpath) {
         Provider<ResolvedComponentResult> rootComponent = classpath.getIncoming().getResolutionResult().getRootComponent();
         getRootComponent().set(rootComponent);
         DependencyHandler dependencies = getProject().getDependencies();
-        getRelocationPoms().from(rootComponent.map(root -> resolveMavenPoms(root, dependencies)));
+        getRelocationPoms().set(rootComponent.map(root -> resolveMavenPoms(root, dependencies)));
     }
 
     @Input
@@ -109,9 +118,9 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
     /**
      * Maven POMs from the runtime graph used to verify relocations. §FS-resources-and-metadata.3.
      */
-    @InputFiles
-    @PathSensitive(PathSensitivity.NONE)
-    public abstract ConfigurableFileCollection getRelocationPoms();
+    @Nested
+    @Optional
+    public abstract ListProperty<RelocationPom> getRelocationPoms();
 
     /**
      * A URI pointing to a GraalVM reachability metadata repository. This must
@@ -162,12 +171,16 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     @TaskAction
     void copyReachabilityMetadata() throws IOException {
+        if (getInto().isPresent()) {
+            // A collection run replaces stale output from earlier selections. §FS-resources-and-metadata.3.
+            getFileSystemOperations().delete(spec -> spec.delete(getInto().get().getAsFile()));
+        }
         if (getRootComponent().isPresent()) {
             GraalVMReachabilityMetadataService service = getMetadataService().get();
             Set<String> excludedModules = getExcludedModules().getOrElse(Collections.emptySet());
             Map<String, String> forcedVersions = getModuleToConfigVersion().getOrElse(Collections.emptyMap());
             Map<String, ResolvedComponentResult> components = collectComponents(getRootComponent().get());
-            Map<String, String> relocations = verifiedRelocations(components, readRelocations(getRelocationPoms().getFiles()));
+            Map<String, String> relocations = verifiedRelocations(components, readRelocations(getRelocationPoms().get()));
             Map<String, Set<ModuleVersionIdentifier>> relocationSources = relocationSourcesByCanonical(components, relocations);
             for (Map.Entry<String, ResolvedComponentResult> entry : components.entrySet()) {
                 if (!relocations.containsKey(entry.getKey())) {
@@ -178,18 +191,27 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
         }
     }
 
-    private static Set<File> resolveMavenPoms(ResolvedComponentResult root, DependencyHandler dependencies) {
+    private static List<RelocationPom> resolveMavenPoms(ResolvedComponentResult root, DependencyHandler dependencies) {
         Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
         collectComponentIds(root, componentIds, new LinkedHashSet<>());
-        Set<File> poms = new LinkedHashSet<>();
+        List<RelocationPom> poms = new ArrayList<>();
         for (ComponentArtifactsResult component : dependencies.createArtifactResolutionQuery()
                 .forComponents(componentIds)
                 .withArtifacts(MavenModule.class, MavenPomArtifact.class)
                 .execute()
                 .getResolvedComponents()) {
+            ComponentIdentifier componentId = component.getId();
+            if (!(componentId instanceof ModuleComponentIdentifier)) {
+                continue;
+            }
+            ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) componentId;
             for (ArtifactResult artifact : component.getArtifacts(MavenPomArtifact.class)) {
                 if (artifact instanceof ResolvedArtifactResult) {
-                    poms.add(((ResolvedArtifactResult) artifact).getFile());
+                    poms.add(new RelocationPom(
+                            moduleId.getGroup(),
+                            moduleId.getModule(),
+                            moduleId.getVersion(),
+                            ((ResolvedArtifactResult) artifact).getFile()));
                 }
             }
         }
@@ -297,29 +319,24 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
         DirectoryConfiguration.copy(configurations, getInto().get().getAsFile().toPath());
     }
 
-    static Set<Relocation> readRelocations(Set<File> poms) {
+    static Set<Relocation> readRelocations(List<RelocationPom> poms) {
         Set<Relocation> relocations = new LinkedHashSet<>();
-        for (File pom : poms) {
+        for (RelocationPom pom : poms) {
             try {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 factory.setNamespaceAware(true);
                 factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
                 factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
                 factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-                Document document = factory.newDocumentBuilder().parse(pom);
+                Document document = factory.newDocumentBuilder().parse(pom.getPom());
                 Element project = document.getDocumentElement();
                 Element distributionManagement = directChild(project, "distributionManagement");
                 Element relocation = directChild(distributionManagement, "relocation");
                 if (relocation != null) {
-                    String sourceGroup = projectValue(project, "groupId", parentValue(project, "groupId"));
-                    String sourceArtifact = projectValue(project, "artifactId", "");
-                    String sourceVersion = projectValue(project, "version", parentValue(project, "version"));
-                    if (!sourceGroup.isEmpty() && !sourceArtifact.isEmpty() && !sourceVersion.isEmpty()) {
-                        relocations.add(new Relocation(sourceGroup, sourceArtifact, sourceVersion,
-                                relocationValue(relocation, "groupId", sourceGroup),
-                                relocationValue(relocation, "artifactId", sourceArtifact),
-                                relocationValue(relocation, "version", sourceVersion)));
-                    }
+                    relocations.add(new Relocation(pom.getSourceGroup(), pom.getSourceArtifact(), pom.getSourceVersion(),
+                            relocationValue(relocation, "groupId", pom.getSourceGroup()),
+                            relocationValue(relocation, "artifactId", pom.getSourceArtifact()),
+                            relocationValue(relocation, "version", pom.getSourceVersion())));
                 }
             } catch (Exception exception) {
                 // A malformed or unreadable POM cannot verify a relocation. §FS-resources-and-metadata.3.
@@ -332,16 +349,6 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
         Element valueElement = directChild(relocation, name);
         String value = valueElement == null ? "" : valueElement.getTextContent().trim();
         return value.isEmpty() ? defaultValue : value;
-    }
-
-    private static String projectValue(Element project, String name, String defaultValue) {
-        Element valueElement = directChild(project, name);
-        String value = valueElement == null ? "" : valueElement.getTextContent().trim();
-        return value.isEmpty() ? defaultValue : value;
-    }
-
-    private static String parentValue(Element project, String name) {
-        return projectValue(directChild(project, "parent"), name, "");
     }
 
     private static Element directChild(Element parent, String name) {
@@ -366,6 +373,44 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     private static String coordinatesWithVersion(ModuleVersionIdentifier module) {
         return coordinates(module) + ":" + module.getVersion();
+    }
+
+    /** Associates a POM input with its resolved component identity. §FS-resources-and-metadata.3. */
+    public static final class RelocationPom implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private final String sourceGroup;
+        private final String sourceArtifact;
+        private final String sourceVersion;
+        private final File pom;
+
+        RelocationPom(String sourceGroup, String sourceArtifact, String sourceVersion, File pom) {
+            this.sourceGroup = sourceGroup;
+            this.sourceArtifact = sourceArtifact;
+            this.sourceVersion = sourceVersion;
+            this.pom = pom;
+        }
+
+        @Input
+        public String getSourceGroup() {
+            return sourceGroup;
+        }
+
+        @Input
+        public String getSourceArtifact() {
+            return sourceArtifact;
+        }
+
+        @Input
+        public String getSourceVersion() {
+            return sourceVersion;
+        }
+
+        @InputFile
+        @PathSensitive(PathSensitivity.NONE)
+        public File getPom() {
+            return pom;
+        }
     }
 
     static final class Relocation {

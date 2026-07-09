@@ -25,7 +25,8 @@ automatically.
 `collectReachabilityMetadata` resolves metadata for the runtime classpath from the configured
 metadata repository URI, version, exclusions, and module-to-config-version overrides. Its output
 directory must be consumable by native compile tasks and must contain only metadata selected for
-the binary's dependency graph. When no URI or version is pinned, the Gradle default should follow
+the binary's dependency graph. Each execution replaces any output from earlier executions before
+copying the current selection. When no URI or version is pinned, the Gradle default should follow
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
 For a verified Maven relocation, collection prefers metadata for the resolved dependency and falls
@@ -33,7 +34,9 @@ back to the requested pre-relocation coordinate only when the resolved coordinat
 It selects one coordinate's metadata and does not apply this fallback to substitution or conflict
 resolution. The task must retain configuration-cache-compatible wiring, and an exclusion for the
 resolved dependency must prevent fallback metadata. It inspects POMs for components already in the
-resolved graph without adding pre-relocation coordinates as dependencies.
+resolved graph without adding pre-relocation coordinates as dependencies. The relocation source is
+the POM artifact's resolved component coordinate, including when the POM declares its project
+version through an unresolved CI-friendly placeholder.
 [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback)
 [§REQ-gradle-model](../requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility).
 
