@@ -76,8 +76,8 @@ class AbstractNativeMojoTest extends Specification {
 
     void "collects relocation sources from transitive dependency nodes"() {
         given:
-        def relocated = new DefaultArtifact("example", "legacy-library", "1.0")
-        def selected = new DefaultArtifact("example", "library", "1.0")
+        def relocated = new DefaultArtifact("example", "legacy-library", "jar", "1.0")
+        def selected = new DefaultArtifact("example", "library", "jar", "1.0")
         def child = Mock(DependencyNode) {
             getArtifact() >> selected
             getRelocations() >> [relocated]
