@@ -42,6 +42,8 @@
 package org.graalvm.buildtools.maven
 
 import org.codehaus.plexus.logging.Logger
+import org.eclipse.aether.artifact.DefaultArtifact
+import org.eclipse.aether.graph.DependencyNode
 import org.graalvm.buildtools.VersionInfo
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -70,6 +72,31 @@ class AbstractNativeMojoTest extends Specification {
         mojo.downloadedUrl.toString() == String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION)
         mojo.metadataRepository != null
         mojo.metadataRepositoryConfiguration == null
+    }
+
+    void "collects relocation sources from transitive dependency nodes"() {
+        given:
+        def relocated = new DefaultArtifact("example", "legacy-library", "1.0")
+        def selected = new DefaultArtifact("example", "library", "1.0")
+        def child = Mock(DependencyNode) {
+            getArtifact() >> selected
+            getRelocations() >> [relocated]
+            getChildren() >> []
+        }
+        def root = Mock(DependencyNode) {
+            getArtifact() >> null
+            getRelocations() >> []
+            getChildren() >> [child]
+        }
+        def relocationSources = [:]
+
+        when:
+        AbstractNativeMojo.collectRelocationSources(root, relocationSources)
+
+        then:
+        relocationSources["example:library:1.0"]*.groupId == ["example"]
+        relocationSources["example:library:1.0"]*.artifactId == ["legacy-library"]
+        relocationSources["example:library:1.0"]*.version == ["1.0"]
     }
 
     private static class MetadataFallbackMojo extends AbstractNativeMojo {

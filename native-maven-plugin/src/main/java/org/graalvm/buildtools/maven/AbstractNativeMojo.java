@@ -49,17 +49,19 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.RepositoryUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.collection.CollectResult;
+import org.eclipse.aether.collection.DependencyCollectionException;
 import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
-import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
-import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.ExponentialBackoff;
@@ -78,8 +80,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -119,6 +124,8 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected final Set<DirectoryConfiguration> metadataRepositoryConfigurations;
 
     protected GraalVMReachabilityMetadataRepository metadataRepository;
+    private Map<String, Set<Artifact>> relocationSources;
+
 
     @Component
     protected Logger logger;
@@ -349,39 +356,44 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     }
 
     private Set<Artifact> requestedRelocationSources(Artifact selected) {
-        Set<Artifact> candidates = new LinkedHashSet<>();
-        if (project.getDependencyArtifacts() != null) {
-            candidates.addAll(project.getDependencyArtifacts());
+        if (relocationSources == null) {
+            relocationSources = new LinkedHashMap<>();
+            if (project.getDependencyArtifacts() == null) {
+                return Collections.emptySet();
+            }
+            CollectRequest request = new CollectRequest();
+            request.setRepositories(project.getRemoteProjectRepositories());
+            for (Artifact dependency : project.getDependencyArtifacts()) {
+                request.addDependency(RepositoryUtils.toDependency(dependency, null));
+            }
+            try {
+                CollectResult result = repositorySystem.collectDependencies(mavenSession.getRepositorySession(), request);
+                collectRelocationSources(result.getRoot(), relocationSources);
+            } catch (DependencyCollectionException exception) {
+                getLog().debug("Unable to collect Maven relocations", exception);
+            }
         }
-        return candidates.stream()
-                .filter(candidate -> isMavenRelocationTo(candidate, selected))
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        return relocationSources.getOrDefault(coordinate(selected), Collections.emptySet());
     }
 
-    private boolean isMavenRelocationTo(Artifact requested, Artifact selected) {
-        if (requested.getGroupId().equals(selected.getGroupId())
-                && requested.getArtifactId().equals(selected.getArtifactId())
-                && requested.getVersion().equals(selected.getVersion())) {
-            return false;
-        }
-        try {
-            ArtifactDescriptorRequest request = new ArtifactDescriptorRequest();
-            request.setArtifact(new DefaultArtifact(
-                    requested.getGroupId(), requested.getArtifactId(), "", "pom", requested.getVersion()));
-            request.setRepositories(project.getRemoteProjectRepositories());
-            ArtifactDescriptorResult descriptor = repositorySystem.readArtifactDescriptor(
-                    mavenSession.getRepositorySession(), request);
-            if (descriptor.getRelocations().isEmpty()) {
-                return false;
+    static void collectRelocationSources(DependencyNode node, Map<String, Set<Artifact>> relocationSources) {
+        if (node.getArtifact() != null && !node.getRelocations().isEmpty()) {
+            Set<Artifact> sources = relocationSources.computeIfAbsent(coordinate(node.getArtifact()), ignored -> new LinkedHashSet<>());
+            for (org.eclipse.aether.artifact.Artifact relocation : node.getRelocations()) {
+                sources.add(RepositoryUtils.toArtifact(relocation));
             }
-            org.eclipse.aether.artifact.Artifact relocationTarget = descriptor.getArtifact();
-            return relocationTarget.getGroupId().equals(selected.getGroupId())
-                    && relocationTarget.getArtifactId().equals(selected.getArtifactId())
-                    && relocationTarget.getVersion().equals(selected.getVersion());
-        } catch (Exception exception) {
-            getLog().debug("Unable to inspect Maven relocation for " + requested, exception);
-            return false;
         }
+        for (DependencyNode child : node.getChildren()) {
+            collectRelocationSources(child, relocationSources);
+        }
+    }
+
+    private static String coordinate(Artifact artifact) {
+        return artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
+    }
+
+    private static String coordinate(org.eclipse.aether.artifact.Artifact artifact) {
+        return artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
     }
 
     protected Optional<String> getMetadataVersion(Artifact dependency) {
