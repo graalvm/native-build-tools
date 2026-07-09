@@ -31,7 +31,9 @@ the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs
 For a verified Maven relocation, collection prefers metadata for the resolved dependency and falls
 back to the requested pre-relocation coordinate only when the resolved coordinate has no metadata.
 It selects one coordinate's metadata and does not apply this fallback to substitution or conflict
-resolution. [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback).
+resolution. The task must retain configuration-cache-compatible wiring, and an exclusion for the
+resolved dependency must prevent fallback metadata. [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback)
+[§REQ-gradle-model](../requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility).
 
 ## 4. Missing metadata reports
 

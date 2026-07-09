@@ -51,14 +51,18 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.IOException;
@@ -92,6 +96,13 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     @Internal
     public abstract Property<GraalVMReachabilityMetadataService> getMetadataService();
+
+    /**
+     * Maven POMs from the runtime graph used to verify relocations. §FS-resources-and-metadata.3.
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract ConfigurableFileCollection getRelocationPoms();
 
     /**
      * A URI pointing to a GraalVM reachability metadata repository. This must
@@ -146,10 +157,11 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
             GraalVMReachabilityMetadataService service = getMetadataService().get();
             Set<String> excludedModules = getExcludedModules().getOrElse(Collections.emptySet());
             Map<String, String> forcedVersions = getModuleToConfigVersion().getOrElse(Collections.emptyMap());
+            Set<Relocation> relocations = readRelocations(getRelocationPoms().getFiles());
             Map<ResolvedComponentResult, Set<ModuleComponentSelector>> requestedBySelected = new LinkedHashMap<>();
             collectRequestedComponents(getRootComponent().get(), requestedBySelected, new HashSet<>());
             for (Map.Entry<ResolvedComponentResult, Set<ModuleComponentSelector>> entry : requestedBySelected.entrySet()) {
-                copyMetadata(entry.getKey(), entry.getValue(), service, excludedModules, forcedVersions);
+                copyMetadata(entry.getKey(), entry.getValue(), relocations, service, excludedModules, forcedVersions);
             }
         }
     }
@@ -176,14 +188,15 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     private void copyMetadata(ResolvedComponentResult component,
                               Set<ModuleComponentSelector> requestedComponents,
+                              Set<Relocation> relocations,
                               GraalVMReachabilityMetadataService service,
                               Set<String> excludedModules,
                               Map<String, String> forcedVersions) throws IOException {
         ModuleVersionIdentifier selected = component.getModuleVersion();
         Set<DirectoryConfiguration> configurations = service.findConfigurationsFor(excludedModules, forcedVersions, selected);
-        if (configurations.isEmpty()) {
+        if (configurations.isEmpty() && !isExcluded(selected, excludedModules)) {
             for (ModuleComponentSelector requested : requestedComponents) {
-                if (isMavenRelocationTo(requested, selected)) {
+                if (isMavenRelocationTo(requested, selected, relocations)) {
                     configurations = findConfigurations(service, excludedModules, forcedVersions, requested);
                     if (!configurations.isEmpty()) {
                         break;
@@ -212,36 +225,40 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
         });
     }
 
-    private boolean isMavenRelocationTo(ModuleComponentSelector requested, ModuleVersionIdentifier selected) {
+    static boolean isMavenRelocationTo(ModuleComponentSelector requested,
+                                      ModuleVersionIdentifier selected,
+                                      Set<Relocation> relocations) {
         String version = requested.getVersionConstraint().getRequiredVersion();
-        if (version.isEmpty()) {
-            return false;
-        }
-        try {
-            Configuration configuration = getProject().getConfigurations().detachedConfiguration(
-                    getProject().getDependencies().create(requested.getGroup() + ":" + requested.getModule() + ":" + version + "@pom")
-            );
-            configuration.setTransitive(false);
-            File pom = configuration.resolve().stream().findFirst().orElse(null);
-            if (pom == null) {
-                return false;
+        return !version.isEmpty() && relocations.stream().anyMatch(relocation -> relocation.matches(requested, selected, version));
+    }
+
+    static Set<Relocation> readRelocations(Set<File> poms) {
+        Set<Relocation> relocations = new LinkedHashSet<>();
+        for (File pom : poms) {
+            try {
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                factory.setNamespaceAware(true);
+                factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                Document document = factory.newDocumentBuilder().parse(pom);
+                Element project = document.getDocumentElement();
+                NodeList relocationElements = document.getElementsByTagNameNS("*", "relocation");
+                if (relocationElements.getLength() != 0) {
+                    Element relocation = (Element) relocationElements.item(0);
+                    String sourceGroup = projectValue(project, "groupId", parentValue(project, "groupId"));
+                    String sourceArtifact = projectValue(project, "artifactId", "");
+                    String sourceVersion = projectValue(project, "version", parentValue(project, "version"));
+                    if (!sourceGroup.isEmpty() && !sourceArtifact.isEmpty() && !sourceVersion.isEmpty()) {
+                        relocations.add(new Relocation(sourceGroup, sourceArtifact, sourceVersion,
+                                relocationValue(relocation, "groupId", sourceGroup),
+                                relocationValue(relocation, "artifactId", sourceArtifact),
+                                relocationValue(relocation, "version", sourceVersion)));
+                    }
+                }
+            } catch (Exception exception) {
+                // A malformed or unreadable POM cannot verify a relocation. §FS-resources-and-metadata.3.
             }
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            Document document = factory.newDocumentBuilder().parse(pom);
-            NodeList relocations = document.getElementsByTagNameNS("*", "relocation");
-            if (relocations.getLength() == 0) {
-                return false;
-            }
-            Element relocation = (Element) relocations.item(0);
-            return relocationValue(relocation, "groupId", requested.getGroup()).equals(selected.getGroup())
-                    && relocationValue(relocation, "artifactId", requested.getModule()).equals(selected.getName())
-                    && relocationValue(relocation, "version", version).equals(selected.getVersion());
-        } catch (Exception exception) {
-            getLogger().debug("Unable to inspect Maven relocation for {}:{}:{}", requested.getGroup(), requested.getModule(), version, exception);
-            return false;
         }
+        return relocations;
     }
 
     private static String relocationValue(Element relocation, String name, String defaultValue) {
@@ -251,6 +268,61 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
         }
         String value = values.item(0).getTextContent().trim();
         return value.isEmpty() ? defaultValue : value;
+    }
+
+    private static String projectValue(Element project, String name, String defaultValue) {
+        NodeList values = project.getElementsByTagNameNS("*", name);
+        for (int i = 0; i < values.getLength(); i++) {
+            if (values.item(i).getParentNode() == project) {
+                String value = values.item(i).getTextContent().trim();
+                return value.isEmpty() ? defaultValue : value;
+            }
+        }
+        return defaultValue;
+    }
+
+    private static String parentValue(Element project, String name) {
+        NodeList parents = project.getElementsByTagNameNS("*", "parent");
+        if (parents.getLength() == 0) {
+            return "";
+        }
+        return projectValue((Element) parents.item(0), name, "");
+    }
+
+    static boolean isExcluded(ModuleVersionIdentifier module, Set<String> excludedModules) {
+        return excludedModules.contains(coordinates(module));
+    }
+
+    private static String coordinates(ModuleVersionIdentifier module) {
+        return module.getGroup() + ":" + module.getName();
+    }
+
+    static final class Relocation {
+        private final String sourceGroup;
+        private final String sourceArtifact;
+        private final String sourceVersion;
+        private final String targetGroup;
+        private final String targetArtifact;
+        private final String targetVersion;
+
+        Relocation(String sourceGroup, String sourceArtifact, String sourceVersion,
+                   String targetGroup, String targetArtifact, String targetVersion) {
+            this.sourceGroup = sourceGroup;
+            this.sourceArtifact = sourceArtifact;
+            this.sourceVersion = sourceVersion;
+            this.targetGroup = targetGroup;
+            this.targetArtifact = targetArtifact;
+            this.targetVersion = targetVersion;
+        }
+
+        boolean matches(ModuleComponentSelector requested, ModuleVersionIdentifier selected, String requestedVersion) {
+            return sourceGroup.equals(requested.getGroup())
+                    && sourceArtifact.equals(requested.getModule())
+                    && sourceVersion.equals(requestedVersion)
+                    && targetGroup.equals(selected.getGroup())
+                    && targetArtifact.equals(selected.getName())
+                    && targetVersion.equals(selected.getVersion());
+        }
     }
 
 }
