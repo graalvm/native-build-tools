@@ -45,16 +45,21 @@ import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ArtifactResult;
+import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -64,21 +69,22 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.maven.MavenModule;
+import org.gradle.maven.MavenPomArtifact;
 
-import java.io.IOException;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
 
 /**
  * Collects reachability metadata for Gradle runtime dependencies. §FS-resources-and-metadata.3 §common/FS-common-libraries.5.3.
@@ -87,7 +93,10 @@ import org.w3c.dom.NodeList;
 public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     public void setClasspath(Configuration classpath) {
-        getRootComponent().set(classpath.getIncoming().getResolutionResult().getRootComponent());
+        Provider<ResolvedComponentResult> rootComponent = classpath.getIncoming().getResolutionResult().getRootComponent();
+        getRootComponent().set(rootComponent);
+        DependencyHandler dependencies = getProject().getDependencies();
+        getRelocationPoms().from(rootComponent.map(root -> resolveMavenPoms(root, dependencies)));
     }
 
     @Input
@@ -157,79 +166,135 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
             GraalVMReachabilityMetadataService service = getMetadataService().get();
             Set<String> excludedModules = getExcludedModules().getOrElse(Collections.emptySet());
             Map<String, String> forcedVersions = getModuleToConfigVersion().getOrElse(Collections.emptyMap());
-            Set<Relocation> relocations = readRelocations(getRelocationPoms().getFiles());
-            Map<ResolvedComponentResult, Set<ModuleComponentSelector>> requestedBySelected = new LinkedHashMap<>();
-            collectRequestedComponents(getRootComponent().get(), requestedBySelected, new HashSet<>());
-            for (Map.Entry<ResolvedComponentResult, Set<ModuleComponentSelector>> entry : requestedBySelected.entrySet()) {
-                copyMetadata(entry.getKey(), entry.getValue(), relocations, service, excludedModules, forcedVersions);
-            }
-        }
-    }
-
-    private void collectRequestedComponents(ResolvedComponentResult component,
-                                            Map<ResolvedComponentResult, Set<ModuleComponentSelector>> requestedBySelected,
-                                            Set<ResolvedComponentResult> visited) {
-        if (visited.add(component)) {
-            requestedBySelected.computeIfAbsent(component, ignored -> new LinkedHashSet<>());
-            for (DependencyResult dependency : component.getDependencies()) {
-                if (dependency instanceof ResolvedDependencyResult) {
-                    ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
-                    ResolvedComponentResult selected = resolvedDependency.getSelected();
-                    ComponentSelector requested = resolvedDependency.getRequested();
-                    if (requested instanceof ModuleComponentSelector) {
-                        requestedBySelected.computeIfAbsent(selected, ignored -> new LinkedHashSet<>())
-                                .add((ModuleComponentSelector) requested);
-                    }
-                    collectRequestedComponents(selected, requestedBySelected, visited);
+            Map<String, ResolvedComponentResult> components = collectComponents(getRootComponent().get());
+            Map<String, String> relocations = verifiedRelocations(components, readRelocations(getRelocationPoms().getFiles()));
+            Map<String, Set<ModuleVersionIdentifier>> relocationSources = relocationSourcesByCanonical(components, relocations);
+            for (Map.Entry<String, ResolvedComponentResult> entry : components.entrySet()) {
+                if (!relocations.containsKey(entry.getKey())) {
+                    copyMetadata(entry.getValue(), relocationSources.getOrDefault(entry.getKey(), Collections.emptySet()),
+                            service, excludedModules, forcedVersions);
                 }
             }
         }
     }
 
+    private static Set<File> resolveMavenPoms(ResolvedComponentResult root, DependencyHandler dependencies) {
+        Set<ComponentIdentifier> componentIds = new LinkedHashSet<>();
+        collectComponentIds(root, componentIds, new LinkedHashSet<>());
+        Set<File> poms = new LinkedHashSet<>();
+        for (ComponentArtifactsResult component : dependencies.createArtifactResolutionQuery()
+                .forComponents(componentIds)
+                .withArtifacts(MavenModule.class, MavenPomArtifact.class)
+                .execute()
+                .getResolvedComponents()) {
+            for (ArtifactResult artifact : component.getArtifacts(MavenPomArtifact.class)) {
+                if (artifact instanceof ResolvedArtifactResult) {
+                    poms.add(((ResolvedArtifactResult) artifact).getFile());
+                }
+            }
+        }
+        return poms;
+    }
+
+    private static void collectComponentIds(ResolvedComponentResult component,
+                                            Set<ComponentIdentifier> componentIds,
+                                            Set<ComponentIdentifier> visited) {
+        if (visited.add(component.getId())) {
+            if (component.getId() instanceof ModuleComponentIdentifier) {
+                componentIds.add(component.getId());
+            }
+            for (DependencyResult dependency : component.getDependencies()) {
+                if (dependency instanceof ResolvedDependencyResult) {
+                    collectComponentIds(((ResolvedDependencyResult) dependency).getSelected(), componentIds, visited);
+                }
+            }
+        }
+    }
+
+    static Map<String, ResolvedComponentResult> collectComponents(ResolvedComponentResult root) {
+        Map<String, ResolvedComponentResult> components = new LinkedHashMap<>();
+        collectComponents(root, components, new LinkedHashSet<>());
+        return components;
+    }
+
+    private static void collectComponents(ResolvedComponentResult component,
+                                          Map<String, ResolvedComponentResult> components,
+                                          Set<ComponentIdentifier> visited) {
+        if (visited.add(component.getId())) {
+            if (component.getModuleVersion() != null) {
+                components.put(coordinatesWithVersion(component.getModuleVersion()), component);
+            }
+            for (DependencyResult dependency : component.getDependencies()) {
+                if (dependency instanceof ResolvedDependencyResult) {
+                    collectComponents(((ResolvedDependencyResult) dependency).getSelected(), components, visited);
+                }
+            }
+        }
+    }
+
+    static Map<String, String> verifiedRelocations(Map<String, ResolvedComponentResult> components,
+                                                   Set<Relocation> candidates) {
+        Map<String, String> relocations = new LinkedHashMap<>();
+        for (Relocation candidate : candidates) {
+            ResolvedComponentResult source = components.get(candidate.sourceCoordinates());
+            if (source != null && directlyDependsOn(source, candidate.targetCoordinates())) {
+                relocations.put(candidate.sourceCoordinates(), candidate.targetCoordinates());
+            }
+        }
+        return relocations;
+    }
+
+    private static boolean directlyDependsOn(ResolvedComponentResult source, String targetCoordinates) {
+        for (DependencyResult dependency : source.getDependencies()) {
+            if (dependency instanceof ResolvedDependencyResult) {
+                ModuleVersionIdentifier selected = ((ResolvedDependencyResult) dependency).getSelected().getModuleVersion();
+                if (selected != null && coordinatesWithVersion(selected).equals(targetCoordinates)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static Map<String, Set<ModuleVersionIdentifier>> relocationSourcesByCanonical(
+            Map<String, ResolvedComponentResult> components,
+            Map<String, String> relocations) {
+        Map<String, Set<ModuleVersionIdentifier>> sources = new LinkedHashMap<>();
+        for (String source : relocations.keySet()) {
+            String target = finalRelocationTarget(source, relocations);
+            ResolvedComponentResult sourceComponent = components.get(source);
+            if (sourceComponent != null && !source.equals(target)) {
+                sources.computeIfAbsent(target, ignored -> new LinkedHashSet<>()).add(sourceComponent.getModuleVersion());
+            }
+        }
+        return sources;
+    }
+
+    private static String finalRelocationTarget(String source, Map<String, String> relocations) {
+        Set<String> visited = new LinkedHashSet<>();
+        String target = source;
+        while (visited.add(target) && relocations.containsKey(target)) {
+            target = relocations.get(target);
+        }
+        return target;
+    }
+
     private void copyMetadata(ResolvedComponentResult component,
-                              Set<ModuleComponentSelector> requestedComponents,
-                              Set<Relocation> relocations,
+                              Set<ModuleVersionIdentifier> relocationSources,
                               GraalVMReachabilityMetadataService service,
                               Set<String> excludedModules,
                               Map<String, String> forcedVersions) throws IOException {
         ModuleVersionIdentifier selected = component.getModuleVersion();
         Set<DirectoryConfiguration> configurations = service.findConfigurationsFor(excludedModules, forcedVersions, selected);
         if (configurations.isEmpty() && !isExcluded(selected, excludedModules)) {
-            for (ModuleComponentSelector requested : requestedComponents) {
-                if (isMavenRelocationTo(requested, selected, relocations)) {
-                    configurations = findConfigurations(service, excludedModules, forcedVersions, requested);
-                    if (!configurations.isEmpty()) {
-                        break;
-                    }
+            for (ModuleVersionIdentifier source : relocationSources) {
+                configurations = service.findConfigurationsFor(excludedModules, forcedVersions, source);
+                if (!configurations.isEmpty()) {
+                    break;
                 }
             }
         }
         DirectoryConfiguration.copy(configurations, getInto().get().getAsFile().toPath());
-    }
-
-    private Set<DirectoryConfiguration> findConfigurations(GraalVMReachabilityMetadataService service,
-                                                            Set<String> excludedModules,
-                                                            Map<String, String> forcedVersions,
-                                                            ModuleComponentSelector requested) {
-        String groupAndArtifact = requested.getGroup() + ":" + requested.getModule();
-        return service.findConfigurationsFor(query -> {
-            if (!excludedModules.contains(groupAndArtifact)) {
-                query.forArtifact(artifact -> {
-                    artifact.gav(groupAndArtifact + ":" + requested.getVersionConstraint().getRequiredVersion());
-                    if (forcedVersions.containsKey(groupAndArtifact)) {
-                        artifact.forceConfigVersion(forcedVersions.get(groupAndArtifact));
-                    }
-                });
-            }
-            query.useLatestConfigWhenVersionIsUntested();
-        });
-    }
-
-    static boolean isMavenRelocationTo(ModuleComponentSelector requested,
-                                      ModuleVersionIdentifier selected,
-                                      Set<Relocation> relocations) {
-        String version = requested.getVersionConstraint().getRequiredVersion();
-        return !version.isEmpty() && relocations.stream().anyMatch(relocation -> relocation.matches(requested, selected, version));
     }
 
     static Set<Relocation> readRelocations(Set<File> poms) {
@@ -239,11 +304,13 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 factory.setNamespaceAware(true);
                 factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+                factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
                 Document document = factory.newDocumentBuilder().parse(pom);
                 Element project = document.getDocumentElement();
-                NodeList relocationElements = document.getElementsByTagNameNS("*", "relocation");
-                if (relocationElements.getLength() != 0) {
-                    Element relocation = (Element) relocationElements.item(0);
+                Element distributionManagement = directChild(project, "distributionManagement");
+                Element relocation = directChild(distributionManagement, "relocation");
+                if (relocation != null) {
                     String sourceGroup = projectValue(project, "groupId", parentValue(project, "groupId"));
                     String sourceArtifact = projectValue(project, "artifactId", "");
                     String sourceVersion = projectValue(project, "version", parentValue(project, "version"));
@@ -262,31 +329,31 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
     }
 
     private static String relocationValue(Element relocation, String name, String defaultValue) {
-        NodeList values = relocation.getElementsByTagNameNS("*", name);
-        if (values.getLength() == 0) {
-            return defaultValue;
-        }
-        String value = values.item(0).getTextContent().trim();
+        Element valueElement = directChild(relocation, name);
+        String value = valueElement == null ? "" : valueElement.getTextContent().trim();
         return value.isEmpty() ? defaultValue : value;
     }
 
     private static String projectValue(Element project, String name, String defaultValue) {
-        NodeList values = project.getElementsByTagNameNS("*", name);
-        for (int i = 0; i < values.getLength(); i++) {
-            if (values.item(i).getParentNode() == project) {
-                String value = values.item(i).getTextContent().trim();
-                return value.isEmpty() ? defaultValue : value;
-            }
-        }
-        return defaultValue;
+        Element valueElement = directChild(project, name);
+        String value = valueElement == null ? "" : valueElement.getTextContent().trim();
+        return value.isEmpty() ? defaultValue : value;
     }
 
     private static String parentValue(Element project, String name) {
-        NodeList parents = project.getElementsByTagNameNS("*", "parent");
-        if (parents.getLength() == 0) {
-            return "";
+        return projectValue(directChild(project, "parent"), name, "");
+    }
+
+    private static Element directChild(Element parent, String name) {
+        if (parent != null) {
+            for (Node child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+                if (child.getNodeType() == Node.ELEMENT_NODE
+                        && name.equals(child.getLocalName() == null ? child.getNodeName() : child.getLocalName())) {
+                    return (Element) child;
+                }
+            }
         }
-        return projectValue((Element) parents.item(0), name, "");
+        return null;
     }
 
     static boolean isExcluded(ModuleVersionIdentifier module, Set<String> excludedModules) {
@@ -295,6 +362,10 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     private static String coordinates(ModuleVersionIdentifier module) {
         return module.getGroup() + ":" + module.getName();
+    }
+
+    private static String coordinatesWithVersion(ModuleVersionIdentifier module) {
+        return coordinates(module) + ":" + module.getVersion();
     }
 
     static final class Relocation {
@@ -315,13 +386,12 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
             this.targetVersion = targetVersion;
         }
 
-        boolean matches(ModuleComponentSelector requested, ModuleVersionIdentifier selected, String requestedVersion) {
-            return sourceGroup.equals(requested.getGroup())
-                    && sourceArtifact.equals(requested.getModule())
-                    && sourceVersion.equals(requestedVersion)
-                    && targetGroup.equals(selected.getGroup())
-                    && targetArtifact.equals(selected.getName())
-                    && targetVersion.equals(selected.getVersion());
+        String sourceCoordinates() {
+            return sourceGroup + ":" + sourceArtifact + ":" + sourceVersion;
+        }
+
+        String targetCoordinates() {
+            return targetGroup + ":" + targetArtifact + ":" + targetVersion;
         }
     }
 

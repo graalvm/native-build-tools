@@ -32,7 +32,9 @@ For a verified Maven relocation, collection prefers metadata for the resolved de
 back to the requested pre-relocation coordinate only when the resolved coordinate has no metadata.
 It selects one coordinate's metadata and does not apply this fallback to substitution or conflict
 resolution. The task must retain configuration-cache-compatible wiring, and an exclusion for the
-resolved dependency must prevent fallback metadata. [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback)
+resolved dependency must prevent fallback metadata. It inspects POMs for components already in the
+resolved graph without adding pre-relocation coordinates as dependencies.
+[§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback)
 [§REQ-gradle-model](../requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility).
 
 ## 4. Missing metadata reports

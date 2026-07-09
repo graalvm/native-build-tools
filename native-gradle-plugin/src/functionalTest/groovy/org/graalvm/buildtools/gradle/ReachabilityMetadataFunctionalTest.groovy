@@ -46,6 +46,92 @@ import org.gradle.api.logging.LogLevel
 
 class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
+    def "uses legacy metadata for a verified Maven relocation without changing dependencies"() {
+        given:
+        settingsFile.text = ""
+        writeFile("repo/example/legacy/legacy-library/1.0/legacy-library-1.0.pom", """
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example.legacy</groupId>
+  <artifactId>legacy-library</artifactId>
+  <version>1.0</version>
+  <distributionManagement>
+    <relocation>
+      <groupId>example.current</groupId>
+      <artifactId>current-library</artifactId>
+      <version>2.0</version>
+    </relocation>
+  </distributionManagement>
+</project>
+""")
+        writeFile("repo/example/current/current-library/2.0/current-library-2.0.pom", """
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example.current</groupId>
+  <artifactId>current-library</artifactId>
+  <version>2.0</version>
+  <packaging>pom</packaging>
+</project>
+""")
+        writeFile("metadata/schemas/reachability-metadata-schema-v1.2.0.json", '{"version":"1.2.0"}')
+        writeFile("metadata/schemas/metadata-library-index-schema-v2.0.0.json", '{}')
+        writeFile("metadata/schemas/library-and-framework-list-schema-v1.0.0.json", '{}')
+        writeFile("metadata/example.legacy/legacy-library/index.json", '''
+[
+  {
+    "tested-versions": ["1.0"],
+    "metadata-version": "1",
+    "latest": true
+  }
+]
+''')
+        writeFile("metadata/example.legacy/legacy-library/1/resource-config.json", '''
+{
+  "resources": {
+    "includes": [{"pattern": "legacy-relocation-marker"}]
+  }
+}
+''')
+        buildFile.text = """
+plugins {
+    id 'java'
+    id 'org.graalvm.buildtools.native'
+}
+
+repositories {
+    maven { url = uri(file('repo')) }
+}
+
+dependencies {
+    implementation 'example.legacy:legacy-library:1.0'
+}
+
+graalvmNative {
+    metadataRepository {
+        uri(file('metadata'))
+    }
+}
+"""
+
+        when:
+        run 'collectReachabilityMetadata'
+
+        then:
+        tasks {
+            succeeded ':collectReachabilityMetadata'
+        }
+
+        and:
+        File copiedMetadata
+        file("build/native-reachability-metadata").eachFileRecurse { candidate ->
+            if (candidate.name == "resource-config.json") {
+                copiedMetadata = candidate
+            }
+        }
+        copiedMetadata != null
+        copiedMetadata.text.contains("legacy-relocation-marker")
+    }
+
     def "the application runs when using the official metadata repository"() {
         given:
         withSample("metadata-repo-integration")
@@ -71,6 +157,12 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 ''')
         and: "has copied reachability-metadata.properties file"
         file("build/native-reachability-metadata/META-INF/native-image/io.netty/netty-codec-http/4.1.80.Final/reachability-metadata.properties").text.trim() == 'override=true'
+    }
+
+    private void writeFile(String relativePath, String contents) {
+        File target = file(relativePath)
+        target.parentFile.mkdirs()
+        target.text = contents
     }
 
 }

@@ -102,7 +102,8 @@ the resolved artifact coordinate, it must prefer metadata for the resolved coord
 metadata is unavailable, it may use metadata for the requested pre-relocation coordinate. The
 plugin must select one coordinate's configuration only; it must not merge both. A requested
 coordinate must not be used as a fallback for ordinary dependency substitution, version conflict
-resolution, or unverified transitive dependencies.
+resolution, or unverified transitive dependencies. Verifying a relocation and selecting fallback
+metadata must not modify the build tool's resolved dependency graph.
 
 ## 6. Missing metadata reporting
 

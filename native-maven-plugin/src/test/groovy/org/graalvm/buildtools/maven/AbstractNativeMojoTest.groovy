@@ -41,8 +41,15 @@
 
 package org.graalvm.buildtools.maven
 
+import org.apache.maven.artifact.handler.DefaultArtifactHandler
+import org.apache.maven.model.Dependency
+import org.apache.maven.model.DependencyManagement
+import org.apache.maven.model.Exclusion
+import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.logging.Logger
+import org.eclipse.aether.artifact.ArtifactTypeRegistry
 import org.eclipse.aether.artifact.DefaultArtifact
+import org.eclipse.aether.artifact.DefaultArtifactType
 import org.eclipse.aether.graph.DependencyNode
 import org.graalvm.buildtools.VersionInfo
 import spock.lang.Specification
@@ -97,6 +104,41 @@ class AbstractNativeMojoTest extends Specification {
         relocationSources["example:library:1.0"]*.groupId == ["example"]
         relocationSources["example:library:1.0"]*.artifactId == ["legacy-library"]
         relocationSources["example:library:1.0"]*.version == ["1.0"]
+    }
+
+    void "collects relocations with effective dependency management and exclusions"() {
+        given:
+        def direct = new Dependency(
+                groupId: "example",
+                artifactId: "application",
+                version: "1.0",
+                exclusions: [new Exclusion(groupId: "excluded", artifactId: "library")],
+        )
+        def managed = new Dependency(
+                groupId: "example.legacy",
+                artifactId: "legacy-library",
+                version: "2.0",
+        )
+        def dependencyManagement = new DependencyManagement()
+        dependencyManagement.addDependency(managed)
+        def project = new MavenProject()
+        project.model.addDependency(direct)
+        project.model.dependencyManagement = dependencyManagement
+        project.dependencyArtifacts = [new org.apache.maven.artifact.DefaultArtifact(
+                "example", "application", "1.0", "compile", "jar", null, new DefaultArtifactHandler("jar"),
+        )] as Set
+        def artifactTypes = Stub(ArtifactTypeRegistry) {
+            get(_) >> new DefaultArtifactType("jar")
+        }
+
+        when:
+        def request = AbstractNativeMojo.relocationCollectRequest(project, artifactTypes)
+
+        then:
+        request.dependencies*.artifact*.toString() == ["example:application:jar:1.0"]
+        request.dependencies.first().exclusions*.groupId == ["excluded"]
+        request.dependencies.first().exclusions*.artifactId == ["library"]
+        request.managedDependencies*.artifact*.toString() == ["example.legacy:legacy-library:jar:2.0"]
     }
 
     private static class MetadataFallbackMojo extends AbstractNativeMojo {

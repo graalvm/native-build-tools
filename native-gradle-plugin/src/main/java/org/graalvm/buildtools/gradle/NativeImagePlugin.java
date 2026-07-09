@@ -79,7 +79,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -321,10 +320,6 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.setDescription("Collects reachability metadata for the runtime classpath.");
             Configuration runtimeClasspath = project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
             task.setClasspath(runtimeClasspath);
-            Configuration relocationPoms = project.getConfigurations().detachedConfiguration();
-            relocationPoms.extendsFrom(runtimeClasspath);
-            relocationPoms.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "pom");
-            task.getRelocationPoms().from(relocationPoms);
         });
 
         GraalVMReachabilityMetadataRepositoryExtension metadataRepositoryExtension = reachabilityExtensionOn(graalExtension);

@@ -21,7 +21,9 @@ the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs
 For a verified Maven relocation, Maven metadata collection prefers the resolved artifact's metadata
 and falls back to metadata for the requested pre-relocation coordinate only when the resolved
 artifact has no metadata. It selects one coordinate's metadata and must not treat substitution or
-conflict resolution as relocation. [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback).
+conflict resolution as relocation. Relocation inspection must honor the effective dependency
+management and exclusions without changing the project dependency graph.
+[§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback).
 
 ## 3. Missing metadata reports
 

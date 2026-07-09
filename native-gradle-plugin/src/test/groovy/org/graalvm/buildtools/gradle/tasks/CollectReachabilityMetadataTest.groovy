@@ -27,8 +27,8 @@
 package org.graalvm.buildtools.gradle.tasks
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -37,7 +37,7 @@ class CollectReachabilityMetadataTest extends Specification {
     @TempDir
     File testDirectory
 
-    def "recognizes a POM relocation only for its exact requested and selected coordinates"() {
+    def "recognizes a POM relocation only when the resolved graph contains its exact edge"() {
         given:
         File pom = new File(testDirectory, "legacy-library-1.0.pom")
         pom.text = """
@@ -56,12 +56,54 @@ class CollectReachabilityMetadataTest extends Specification {
 </project>
 """
         def relocations = CollectReachabilityMetadata.readRelocations([pom] as Set)
-        def legacyRequested = requested("example.legacy", "legacy-library", "1.0")
+        def canonical = component("example.current", "current-library", "2.0")
+        def legacy = component("example.legacy", "legacy-library", "1.0", canonical)
+        def components = [
+                "example.legacy:legacy-library:1.0": legacy,
+                "example.current:current-library:2.0": canonical,
+        ]
 
         expect:
-        CollectReachabilityMetadata.isMavenRelocationTo(legacyRequested, selected("example.current", "current-library", "2.0"), relocations)
-        !CollectReachabilityMetadata.isMavenRelocationTo(legacyRequested, selected("example.current", "current-library", "3.0"), relocations)
-        !CollectReachabilityMetadata.isMavenRelocationTo(requested("example.legacy", "legacy-library", "1.1"), selected("example.current", "current-library", "2.0"), relocations)
+        CollectReachabilityMetadata.verifiedRelocations(components, relocations) == [
+                "example.legacy:legacy-library:1.0": "example.current:current-library:2.0",
+        ]
+
+        when:
+        components["example.legacy:legacy-library:1.0"] = component("example.legacy", "legacy-library", "1.0")
+
+        then:
+        CollectReachabilityMetadata.verifiedRelocations(components, relocations).isEmpty()
+    }
+
+    def "ignores relocation elements outside Maven distribution management"() {
+        given:
+        File pom = new File(testDirectory, "shade-plugin.pom")
+        pom.text = """
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>example</groupId>
+  <artifactId>library</artifactId>
+  <version>1.0</version>
+  <build>
+    <plugins>
+      <plugin>
+        <configuration>
+          <relocations>
+            <relocation>
+              <groupId>not.maven</groupId>
+              <artifactId>not-a-relocation</artifactId>
+              <version>2.0</version>
+            </relocation>
+          </relocations>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+"""
+
+        expect:
+        CollectReachabilityMetadata.readRelocations([pom] as Set).isEmpty()
     }
 
     def "uses the resolved module to decide whether fallback is excluded"() {
@@ -69,15 +111,13 @@ class CollectReachabilityMetadataTest extends Specification {
         CollectReachabilityMetadata.isExcluded(selected("example.current", "current-library", "2.0"), ["example.current:current-library"] as Set)
         !CollectReachabilityMetadata.isExcluded(selected("example.legacy", "legacy-library", "1.0"), ["example.current:current-library"] as Set)
     }
-
-
-    private ModuleComponentSelector requested(String group, String module, String version) {
-        Stub(ModuleComponentSelector) {
-            getGroup() >> group
-            getModule() >> module
-            getVersionConstraint() >> Stub(VersionConstraint) {
-                getRequiredVersion() >> version
-            }
+    private ResolvedComponentResult component(String group, String name, String version,
+                                              ResolvedComponentResult dependency = null) {
+        Stub(ResolvedComponentResult) {
+            getModuleVersion() >> selected(group, name, version)
+            getDependencies() >> (dependency == null ? [] : [Stub(ResolvedDependencyResult) {
+                getSelected() >> dependency
+            }])
         }
     }
 

@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
@@ -53,6 +54,8 @@ import org.apache.maven.RepositoryUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.ArtifactType;
+import org.eclipse.aether.artifact.ArtifactTypeRegistry;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.collection.CollectResult;
@@ -62,6 +65,8 @@ import org.eclipse.aether.graph.DependencyNode;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.util.artifact.ArtifactIdUtils;
+import org.eclipse.aether.util.artifact.JavaScopes;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.ExponentialBackoff;
@@ -80,7 +85,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -141,6 +148,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
 
     @Component
     protected RepositorySystem repositorySystem;
+
+    @Component
+    protected ArtifactHandlerManager artifactHandlerManager;
 
     @Inject
     protected AbstractNativeMojo() {
@@ -358,14 +368,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     private Set<Artifact> requestedRelocationSources(Artifact selected) {
         if (relocationSources == null) {
             relocationSources = new LinkedHashMap<>();
-            if (project.getDependencyArtifacts() == null) {
-                return Collections.emptySet();
-            }
-            CollectRequest request = new CollectRequest();
+            ArtifactTypeRegistry artifactTypes = RepositoryUtils.newArtifactTypeRegistry(artifactHandlerManager);
+            CollectRequest request = relocationCollectRequest(project, artifactTypes);
             request.setRepositories(project.getRemoteProjectRepositories());
-            for (Artifact dependency : project.getDependencyArtifacts()) {
-                request.addDependency(RepositoryUtils.toDependency(dependency, null));
-            }
             try {
                 CollectResult result = repositorySystem.collectDependencies(mavenSession.getRepositorySession(), request);
                 collectRelocationSources(result.getRoot(), relocationSources);
@@ -374,6 +379,56 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             }
         }
         return relocationSources.getOrDefault(coordinate(selected), Collections.emptySet());
+    }
+
+    /** Recreates Maven's effective collection request without mutating the project graph. §FS-resources-and-metadata.2. */
+    static CollectRequest relocationCollectRequest(MavenProject project, ArtifactTypeRegistry artifactTypes) {
+        CollectRequest request = new CollectRequest();
+        if (project.getArtifact() != null) {
+            request.setRootArtifact(RepositoryUtils.toArtifact(project.getArtifact()));
+        }
+        request.setRequestContext("project");
+        if (project.getDependencyArtifacts() == null) {
+            for (org.apache.maven.model.Dependency dependency : project.getDependencies()) {
+                if (dependency.getGroupId() != null && dependency.getArtifactId() != null
+                        && dependency.getVersion() != null) {
+                    request.addDependency(RepositoryUtils.toDependency(dependency, artifactTypes));
+                }
+            }
+        } else {
+            Map<String, org.apache.maven.model.Dependency> dependencies = new HashMap<>();
+            for (org.apache.maven.model.Dependency dependency : project.getDependencies()) {
+                String classifier = dependency.getClassifier();
+                if (classifier == null) {
+                    ArtifactType type = artifactTypes.get(dependency.getType());
+                    if (type != null) {
+                        classifier = type.getClassifier();
+                    }
+                }
+                String key = ArtifactIdUtils.toVersionlessId(dependency.getGroupId(), dependency.getArtifactId(),
+                        dependency.getType(), classifier);
+                dependencies.put(key, dependency);
+            }
+            for (Artifact artifact : project.getDependencyArtifacts()) {
+                org.apache.maven.model.Dependency dependency = dependencies.get(artifact.getDependencyConflictId());
+                Collection<org.apache.maven.model.Exclusion> exclusions = dependency == null
+                        ? null
+                        : dependency.getExclusions();
+                Dependency collected = RepositoryUtils.toDependency(artifact, exclusions);
+                if (!JavaScopes.SYSTEM.equals(collected.getScope()) && collected.getArtifact().getFile() != null) {
+                    org.eclipse.aether.artifact.Artifact dependencyArtifact = collected.getArtifact();
+                    dependencyArtifact = dependencyArtifact.setFile(null).setVersion(dependencyArtifact.getBaseVersion());
+                    collected = collected.setArtifact(dependencyArtifact);
+                }
+                request.addDependency(collected);
+            }
+        }
+        if (project.getDependencyManagement() != null) {
+            for (org.apache.maven.model.Dependency dependency : project.getDependencyManagement().getDependencies()) {
+                request.addManagedDependency(RepositoryUtils.toDependency(dependency, artifactTypes));
+            }
+        }
+        return request;
     }
 
     static void collectRelocationSources(DependencyNode node, Map<String, Set<Artifact>> relocationSources) {
