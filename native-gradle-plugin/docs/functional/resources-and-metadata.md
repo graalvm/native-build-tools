@@ -28,6 +28,11 @@ directory must be consumable by native compile tasks and must contain only metad
 the binary's dependency graph. When no URI or version is pinned, the Gradle default should follow
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
+For a verified Maven relocation, collection prefers metadata for the resolved dependency and falls
+back to the requested pre-relocation coordinate only when the resolved coordinate has no metadata.
+It selects one coordinate's metadata and does not apply this fallback to substitution or conflict
+resolution. [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback).
+
 ## 4. Missing metadata reports
 
 `listLibrariesMissingMetadata` inspects direct runtime dependencies, compares them with the

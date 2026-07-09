@@ -58,6 +58,8 @@ import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
+import org.eclipse.aether.resolution.ArtifactDescriptorResult;
 import org.graalvm.buildtools.VersionInfo;
 import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration;
 import org.graalvm.buildtools.utils.ExponentialBackoff;
@@ -77,6 +79,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -314,22 +317,70 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
         }
     }
 
+    /**
+     * Selects canonical metadata first, then verified requested-coordinate relocation metadata. §common/FS-common-libraries.5.3.
+     */
     protected void maybeAddDependencyMetadata(Artifact dependency, Consumer<File> excludeAction) {
         if (isMetadataRepositoryEnabled() && metadataRepository != null && !isArtifactExcludedFromMetadataRepository(dependency)) {
-            Set<DirectoryConfiguration> configurations = metadataRepository.findConfigurationsFor(q -> {
-                q.useLatestConfigWhenVersionIsUntested();
-                q.forArtifact(artifact -> {
-                    artifact.gav(String.join(":",
-                            dependency.getGroupId(),
-                            dependency.getArtifactId(),
-                            dependency.getVersion()));
-                    getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
-                });
-            });
+            Set<DirectoryConfiguration> configurations = findMetadataConfigurations(dependency);
+            if (configurations.isEmpty()) {
+                for (Artifact requested : requestedRelocationSources(dependency)) {
+                    configurations = findMetadataConfigurations(requested);
+                    if (!configurations.isEmpty()) {
+                        break;
+                    }
+                }
+            }
             metadataRepositoryConfigurations.addAll(configurations);
             if (excludeAction != null && configurations.stream().anyMatch(DirectoryConfiguration::isOverride)) {
                 excludeAction.accept(dependency.getFile());
             }
+        }
+    }
+
+    private Set<DirectoryConfiguration> findMetadataConfigurations(Artifact dependency) {
+        return metadataRepository.findConfigurationsFor(q -> {
+            q.useLatestConfigWhenVersionIsUntested();
+            q.forArtifact(artifact -> {
+                artifact.gav(String.join(":", dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion()));
+                getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
+            });
+        });
+    }
+
+    private Set<Artifact> requestedRelocationSources(Artifact selected) {
+        Set<Artifact> candidates = new LinkedHashSet<>();
+        if (project.getDependencyArtifacts() != null) {
+            candidates.addAll(project.getDependencyArtifacts());
+        }
+        return candidates.stream()
+                .filter(candidate -> isMavenRelocationTo(candidate, selected))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private boolean isMavenRelocationTo(Artifact requested, Artifact selected) {
+        if (requested.getGroupId().equals(selected.getGroupId())
+                && requested.getArtifactId().equals(selected.getArtifactId())
+                && requested.getVersion().equals(selected.getVersion())) {
+            return false;
+        }
+        try {
+            ArtifactDescriptorRequest request = new ArtifactDescriptorRequest();
+            request.setArtifact(new DefaultArtifact(
+                    requested.getGroupId(), requested.getArtifactId(), "", "pom", requested.getVersion()));
+            request.setRepositories(project.getRemoteProjectRepositories());
+            ArtifactDescriptorResult descriptor = repositorySystem.readArtifactDescriptor(
+                    mavenSession.getRepositorySession(), request);
+            if (descriptor.getRelocations().isEmpty()) {
+                return false;
+            }
+            org.eclipse.aether.artifact.Artifact relocationTarget = descriptor.getArtifact();
+            return relocationTarget.getGroupId().equals(selected.getGroupId())
+                    && relocationTarget.getArtifactId().equals(selected.getArtifactId())
+                    && relocationTarget.getVersion().equals(selected.getVersion());
+        } catch (Exception exception) {
+            getLog().debug("Unable to inspect Maven relocation for " + requested, exception);
+            return false;
         }
     }
 

@@ -95,6 +95,15 @@ and [§maven/FS-resources-and-metadata.2](../../native-maven-plugin/docs/functio
 generated build directory that the plugin can pass to Native Image as a configuration file
 directory.
 
+### 5.3 Maven relocation fallback
+
+When a build tool verifies that an exact requested dependency coordinate is relocated by Maven to
+the resolved artifact coordinate, it must prefer metadata for the resolved coordinate. If that
+metadata is unavailable, it may use metadata for the requested pre-relocation coordinate. The
+plugin must select one coordinate's configuration only; it must not merge both. A requested
+coordinate must not be used as a fallback for ordinary dependency substitution, version conflict
+resolution, or unverified transitive dependencies.
+
 ## 6. Missing metadata reporting
 
 Missing metadata reporting must identify libraries where users are likely to need additional

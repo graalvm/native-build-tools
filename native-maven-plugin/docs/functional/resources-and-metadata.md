@@ -18,6 +18,11 @@ configuration directory to the native image build without requiring users to man
 repository contents. When no URI, version, or local path is pinned, the Maven default should follow
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 
+For a verified Maven relocation, Maven metadata collection prefers the resolved artifact's metadata
+and falls back to metadata for the requested pre-relocation coordinate only when the resolved
+artifact has no metadata. It selects one coordinate's metadata and must not treat substitution or
+conflict resolution as relocation. [§common/FS-common-libraries.5.3](../../../common/docs/functional-spec.md#53-maven-relocation-fallback).
+
 ## 3. Missing metadata reports
 
 `native:list-libraries-missing-metadata` reports project dependencies that do not appear to have
