@@ -52,6 +52,8 @@ import org.eclipse.aether.artifact.DefaultArtifact
 import org.eclipse.aether.artifact.DefaultArtifactType
 import org.eclipse.aether.graph.DependencyNode
 import org.graalvm.buildtools.VersionInfo
+import org.graalvm.buildtools.maven.config.MetadataRepositoryConfiguration
+import org.graalvm.reachability.GraalVMReachabilityMetadataRepository
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -79,6 +81,28 @@ class AbstractNativeMojoTest extends Specification {
         mojo.downloadedUrl.toString() == String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION)
         mojo.metadataRepository != null
         mojo.metadataRepositoryConfiguration == null
+    }
+
+    void "does not use excluded relocation source metadata as fallback"() {
+        given:
+        def mojo = new MetadataFallbackMojo(testDirectory)
+        def repository = Mock(GraalVMReachabilityMetadataRepository)
+        mojo.metadataRepository = repository
+        mojo.metadataRepositoryConfiguration = new MetadataRepositoryConfiguration()
+        mojo.metadataRepositoryConfiguration.dependencies = [
+                new MetadataRepositoryConfiguration.DependencyConfiguration("example.legacy", "legacy-library", true),
+        ]
+        setRelocationSources(mojo, [
+                "example.current:current-library:1.0": [mavenArtifact("example.legacy", "legacy-library", "1.0")] as Set,
+        ])
+
+        when:
+        mojo.maybeAddDependencyMetadata(mavenArtifact("example.current", "current-library", "1.0"), null)
+
+        then:
+        1 * repository.findConfigurationsFor(_) >> Collections.emptySet()
+        0 * repository.findConfigurationsFor(_)
+        mojo.metadataRepositoryConfigurations.empty
     }
 
     void "collects relocation sources from transitive dependency nodes"() {
@@ -139,6 +163,17 @@ class AbstractNativeMojoTest extends Specification {
         request.dependencies.first().exclusions*.groupId == ["excluded"]
         request.dependencies.first().exclusions*.artifactId == ["library"]
         request.managedDependencies*.artifact*.toString() == ["example.legacy:legacy-library:jar:2.0"]
+    }
+
+    private static void setRelocationSources(AbstractNativeMojo mojo, Map<String, Set<org.apache.maven.artifact.Artifact>> sources) {
+        def field = AbstractNativeMojo.getDeclaredField("relocationSources")
+        field.accessible = true
+        field.set(mojo, sources)
+    }
+
+    private static org.apache.maven.artifact.Artifact mavenArtifact(String groupId, String artifactId, String version) {
+        new org.apache.maven.artifact.DefaultArtifact(groupId, artifactId, version, "compile", "jar", null,
+                new DefaultArtifactHandler("jar"))
     }
 
     private static class MetadataFallbackMojo extends AbstractNativeMojo {

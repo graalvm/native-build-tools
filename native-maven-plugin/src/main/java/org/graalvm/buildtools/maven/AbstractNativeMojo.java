@@ -342,6 +342,9 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             Set<DirectoryConfiguration> configurations = findMetadataConfigurations(dependency);
             if (configurations.isEmpty()) {
                 for (Artifact requested : requestedRelocationSources(dependency)) {
+                    if (isArtifactExcludedFromMetadataRepository(requested)) {
+                        continue;
+                    }
                     configurations = findMetadataConfigurations(requested);
                     if (!configurations.isEmpty()) {
                         break;
