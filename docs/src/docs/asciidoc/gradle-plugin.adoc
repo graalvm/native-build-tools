@@ -175,15 +175,13 @@ You can also pass **build-time** and **run-time** arguments:
 
 Each `buildArgs` list entry should contain one Native Image option expression, not a shell command line.
 Put unrelated options in separate entries, but keep values that belong to the option expression together,
-such as `--emit build-report`, `--enable-monitoring=jfr`, or `-H:Name=value`.
+such as `--emit build-report` or `--enable-monitoring=jfr`.
 
 [source,kotlin, role="multi-language-sample"]
 ----
 buildArgs.addAll(
-    "--static",
-    "--libc=musl",
     "--emit build-report",
-    "-H:+ReportExceptionStackTraces"
+    "--enable-monitoring=jfr"
 )
 ----
 
