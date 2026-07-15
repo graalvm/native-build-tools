@@ -611,6 +611,26 @@ image name is not supplied, the artifact ID of the project will be used by defau
 </div>
 <div class="dlist">
 <dl>
+<dt class="hdlist1"><code>&lt;skipNativeBuildForPom&gt;</code></dt>
+<dd>
+<p>To skip generation of the native image only for Maven projects with <code>pom</code> packaging, use
+<code>&lt;skipNativeBuildForPom&gt;</code>. This option defaults to <code>false</code> for compatibility. It is useful in
+multi-module builds where a parent aggregator POM shares the native profile or plugin
+configuration with child modules but does not contain the application main class. Enabling this
+option prevents native image generation in the aggregator project while still allowing
+application modules to build their native images. It does not select the application module
+automatically; configure or run the native build in the module that owns the main class. To
+enable it, add:</p>
+</dd>
+</dl>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="xml" class="language-xml hljs">&lt;skipNativeBuildForPom&gt;true&lt;/skipNativeBuildForPom&gt;</code></pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
 <dt class="hdlist1"><code>&lt;skipNativeTests&gt;</code></dt>
 <dd>
 <p>To skip generation and execution of the native image compiled tests, add:</p>
