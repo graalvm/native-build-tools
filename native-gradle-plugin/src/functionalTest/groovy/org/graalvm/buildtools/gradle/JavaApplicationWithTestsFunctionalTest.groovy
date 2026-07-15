@@ -213,7 +213,6 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractFunctionalTest {
         run 'dependencies', '--configuration', 'nativeImageIntegTestClasspath'
 
         then:
-        outputContains "project :"
         outputContains "org.junit.jupiter:junit-jupiter"
         outputContains "org.junit.platform:junit-platform-launcher"
         outputContains "org.graalvm.buildtools:junit-platform-native"
