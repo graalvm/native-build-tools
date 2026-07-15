@@ -1122,6 +1122,11 @@ This can be limited to only specific tasks that match this predicate.</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>When you pass <code>-Pagent</code> without an explicit mode, the plugin uses <code>defaultMode</code>.
+The default <code>defaultMode</code> is <code>standard</code>, except projects applying Gradle&#8217;s <code>java-library</code> plugin default to <code>conditional</code>.
+Because <code>conditional</code> mode requires <code>userCodeFilterPath</code>, library projects should either configure a conditional user-code filter or run with an explicit mode, for example <code>-Pagent=standard</code>.</p>
+</div>
 <div class="listingblock multi-language-sample">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">agent {
