@@ -137,6 +137,7 @@ graalvmNative {
         ]
     }
 
+    // Protects default test-resource wiring for nativeTest. §FS-native-tests.1.
     @Issue("https://github.com/graalvm/native-build-tools/issues/537")
     def "native tests include test resources without explicit resource configuration"() {
         given:
@@ -157,7 +158,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class Issue537Test {
     @Test
     void testResourceDirectoryIsAvailableInNativeTest() throws Exception {
-        // A normal Gradle JUnit setup is enough for nativeTest to include test resources. §FS-native-tests.1.
         try (InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream("db/mysql_conf_override")) {
             assertNotNull(input);
             assertEquals("native-test-resource", new String(input.readAllBytes(), StandardCharsets.UTF_8));
