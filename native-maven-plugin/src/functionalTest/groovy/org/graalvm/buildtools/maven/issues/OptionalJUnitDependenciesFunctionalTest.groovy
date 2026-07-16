@@ -45,6 +45,7 @@ import org.graalvm.buildtools.maven.AbstractGraalVMMavenFunctionalTest
 import spock.lang.Issue
 
 class OptionalJUnitDependenciesFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    // Optional test-scoped JUnit dependencies managed by a BOM are part of native:test's classpath. §FS-native-tests.1
     @Issue("https://github.com/graalvm/native-build-tools/issues/756")
     def "native tests resolve optional JUnit dependencies with managed versions"() {
         withReproducer("issue-756")
@@ -54,7 +55,6 @@ class OptionalJUnitDependenciesFunctionalTest extends AbstractGraalVMMavenFuncti
 
         then:
         buildSucceeded
-        // Optional test-scoped JUnit dependencies managed by a BOM are part of native:test's classpath. §FS-native-tests.1
         outputContains "junit-platform-launcher"
         outputDoesNotContain "version can neither be null, empty nor blank"
     }
