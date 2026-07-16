@@ -87,7 +87,6 @@ class NativeExtensionTest extends Specification {
         }
     }
 
-    // Protects Maven tracing-agent argLine transport for output paths computed from project directories. §FS-tracing-agent.3.
     void "test agent argument is quoted for Surefire argLine when output path contains spaces"() {
         given:
         def agentArgument = NativeExtension.buildAgentArgument(
