@@ -588,6 +588,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 LogLevel logLevel = determineLogLevel();
                 spec.getMaxParallelUsages().set(1);
                 spec.getParameters().getLogLevel().set(logLevel);
+                spec.getParameters().getEnabled().set(repositoryExtension.getEnabled());
                 spec.getParameters().getUri().set(repositoryExtension.getUri().map(serializableTransformerOf(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, m -> logFallbackToDefaultUri(m, logger)))));
                 spec.getParameters().getRepositoryDescription().set(
                     repositoryExtension.getUri().zip(repositoryExtension.getVersion(),
