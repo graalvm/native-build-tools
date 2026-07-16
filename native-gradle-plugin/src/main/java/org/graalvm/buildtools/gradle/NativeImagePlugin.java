@@ -1065,6 +1065,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                 JavaForkOptions javaForkOptions) {
         Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
         Provider<JavaLauncher> javaLauncherForAgent = javaLauncherForAgent(project.getProviders());
+        // Agent runs prefer an available GraalVM Java without replacing task configuration with a regular JAVA_HOME. §FS-tracing-agent.2.1
         if (agentConfiguration.get().isEnabled()) {
             JavaLauncher javaLauncher = javaLauncherForAgent.getOrNull();
             if (javaLauncher != null) {

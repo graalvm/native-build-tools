@@ -209,6 +209,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
     @Unroll("agent uses GraalVM's Java executable for run task with JUnit Platform #junitVersion")
     def "agent uses GraalVM java executable"() {
         given:
+        // Enabled agent tasks prefer GRAALVM_HOME. §FS-tracing-agent.2.1
         withSample("java-application-with-reflection")
         buildFile << """
             tasks.named('run') {
@@ -242,6 +243,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
     @Unroll("agent replaces explicit test executable with GraalVM java launcher for JUnit Platform #junitVersion")
     def "agent replaces explicit test executable with GraalVM java launcher"() {
         given:
+        // Test tasks keep their launcher and executable aligned while preferring GRAALVM_HOME. §FS-tracing-agent.2.1
         withSample("java-application-with-reflection")
         buildFile << """
             tasks.named('test') {
@@ -274,8 +276,12 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
     @Unroll("agent does not replace configured launcher with regular JAVA_HOME for JUnit Platform #junitVersion")
     def "agent does not replace configured launcher with regular JAVA_HOME"() {
         given:
+        // A regular JAVA_HOME must not replace an explicitly configured launcher. §FS-tracing-agent.2.1
         withSample("java-application-with-reflection")
         def graalvmHome = System.getenv("GRAALVM_HOME")
+        def graalvmRelease = new Properties()
+        new File(graalvmHome, "release").withInputStream { graalvmRelease.load(it) }
+        def graalvmJavaVersion = graalvmRelease.getProperty("JAVA_VERSION").replace('"', '').tokenize('.')[0].toInteger()
         def fakeJavaHome = file("fake-java-home")
         def fakeJava = new File(fakeJavaHome, "bin/java")
         fakeJava.parentFile.mkdirs()
@@ -299,7 +305,7 @@ org.gradle.java.installations.auto-download=false
         buildFile << """
             tasks.named('run') {
                 javaLauncher.set(javaToolchains.launcherFor {
-                    languageVersion.set(JavaLanguageVersion.of(${getCurrentJDKVersion()}))
+                    languageVersion.set(JavaLanguageVersion.of(${graalvmJavaVersion}))
                 })
             }
 

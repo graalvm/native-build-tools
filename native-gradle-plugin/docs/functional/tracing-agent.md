@@ -16,6 +16,14 @@ Every task that implements `JavaForkOptions` is eligible for instrumentation. Th
 `tasksToInstrumentPredicate` setting may narrow that set. Non-matching tasks must be skipped
 without failing the build.
 
+### 2.1 Agent Java runtime
+
+When agent instrumentation is enabled, the task must prefer the Java executable from a valid
+`GRAALVM_HOME`. If that is unavailable, the task may use `JAVA_HOME` only when the installation
+identifies itself as GraalVM. A regular JDK in `JAVA_HOME` must not replace the task's configured
+launcher or executable. When instrumentation is disabled, the plugin must leave the task's Java
+runtime selection unchanged.
+
 ## 3. Agent modes
 
 The Gradle DSL must expose standard, conditional, direct, and disabled agent modes using the
