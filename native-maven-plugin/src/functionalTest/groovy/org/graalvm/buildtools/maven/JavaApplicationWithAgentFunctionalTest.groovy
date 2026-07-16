@@ -80,6 +80,10 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
         // Agent is used with Surefire
         outputContains '-agentlib:native-image-agent='
 
+        and:
+        // Instrumented execution output reports the Maven-managed agent output directory. §FS-tracing-agent.3.
+        outputContains "Instrumenting Maven test execution with the native-image-agent. Agent output: " +
+                file('target/native/agent-output/test').absolutePath
 
         and:
         // Agent generates files
@@ -115,7 +119,17 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
     def "test agent with metadata copy task"() {
         given:
         withSample("java-application-with-reflection")
+
+        when:
         mvn'-Pnative', '-DquickBuild', '-DskipNativeBuild=true', 'package', '-Dagent=true', 'exec:exec@java-agent'
+
+        then:
+        buildSucceeded
+
+        and:
+        // Instrumented execution output reports the Maven-managed agent output directory. §FS-tracing-agent.3.
+        outputContains "Instrumenting Maven application execution with the native-image-agent. Agent output: " +
+                file('target/native/agent-output/main').absolutePath
 
         when:
         mvn'-Pnative', '-DquickBuild', '-DskipNativeTests', '-Dagent=true', 'native:metadata-copy'

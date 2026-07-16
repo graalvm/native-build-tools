@@ -59,7 +59,9 @@ import org.graalvm.buildtools.utils.SharedConstants;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -149,6 +151,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+                Set<Context> instrumentedContexts = EnumSet.noneOf(Context.class);
 
                 // Test configuration
                 List<String> plugins = List.of("maven-surefire-plugin", "maven-failsafe-plugin");
@@ -157,7 +160,9 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                         configureJunitListener(plugin, testIdsDir);
                         if (agent.isEnabled()) {
                             List<String> agentOptions = agent.getAgentCommandLine();
-                            configureAgentForPlugin(plugin, buildAgentArgument(target, Context.test, agentOptions));
+                            if (configureAgentForPlugin(plugin, buildAgentArgument(target, Context.test, agentOptions))) {
+                                instrumentedContexts.add(Context.test);
+                            }
                         }
                     });
                 }
@@ -168,6 +173,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                     withPlugin(build, "exec-maven-plugin", execPlugin ->
                             updatePluginConfiguration(execPlugin, (exec, config) -> {
                                 if (agentExecutionId.equals(exec.getId())) {
+                                    instrumentedContexts.add(Context.main);
                                     Xpp3Dom commandlineArgs = findOrAppend(config, "arguments");
                                     Xpp3Dom[] arrayOfChildren = commandlineArgs.getChildren();
                                     for (int i = 0; i < arrayOfChildren.length; i++) {
@@ -201,6 +207,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
                         setupMergeAgentFiles(exec, configuration, context);
                     });
+                    instrumentedContexts.forEach(context -> logAgentOutput(target, context));
                 }
             });
         }
@@ -233,7 +240,10 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 .ifPresent(consumer);
     }
 
-    private static void configureAgentForPlugin(Plugin plugin, String agentArgument) {
+    private static boolean configureAgentForPlugin(Plugin plugin, String agentArgument) {
+        if (plugin.getExecutions().isEmpty()) {
+            return false;
+        }
         updatePluginConfiguration(plugin, (exec, configuration) -> {
             Xpp3Dom systemPropertyVariables = findOrAppend(configuration, SYSTEM_PROPERTY_VARIABLES);
             Xpp3Dom agent = findOrAppend(systemPropertyVariables, NATIVEIMAGE_IMAGECODE);
@@ -245,6 +255,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             configuration.addChild(argLine);
             findOrAppend(configuration, "jvm").setValue(getGraalvmJava());
         });
+        return true;
+    }
+
+    private static void logAgentOutput(String baseDir, Context context) {
+        String execution = context == Context.test ? "test" : "application";
+        String outputDirectory = new File(agentOutputDirectoryFor(baseDir, context)).getAbsolutePath();
+        // Report where users can find generated tracing-agent metadata. §FS-tracing-agent.3.
+        logger.info("Instrumenting Maven " + execution + " execution with the native-image-agent. Agent output: " + outputDirectory);
     }
 
     private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {

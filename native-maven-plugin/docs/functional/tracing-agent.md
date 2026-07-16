@@ -26,6 +26,10 @@ the native plugin's `<agentExecutionId>` configuration value; the default execut
 `java-agent` so existing POMs keep working. Generated test-agent arguments derived from project paths
 must remain a single JVM argument when passed through Maven test runners, including when those paths
 contain spaces.
+When Maven configures an instrumented test or application execution, normal build
+output must report the Maven-managed agent output directory so users can find collected metadata
+without debug logging, aligning with
+[§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
 
 ## 4. Merge and copy
 
