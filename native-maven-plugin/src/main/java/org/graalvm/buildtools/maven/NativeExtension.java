@@ -240,7 +240,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             agent.setValue("agent");
             Xpp3Dom argLine = new Xpp3Dom("argLine");
             // Surefire/Failsafe parse argLine as one command-line string.
-            // Keep spaced output paths as one JVM argument. §FS-tracing-agent.1 §FS-tracing-agent.3.
+            // Keep spaced output paths as one JVM argument. §FS-tracing-agent.3.
             argLine.setValue(quoteAgentArgumentForArgLine(agentArgument));
             configuration.addChild(argLine);
             findOrAppend(configuration, "jvm").setValue(getGraalvmJava());

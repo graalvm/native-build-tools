@@ -50,7 +50,7 @@ import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.xml.Xpp3Dom
 import spock.lang.Specification
 
-// Protects Maven tracing-agent argLine transport for output paths computed from project directories. §FS-tracing-agent.1 §FS-tracing-agent.3.
+// Protects Maven tracing-agent argLine transport for output paths computed from project directories. §FS-tracing-agent.3.
 class NativeExtensionTest extends Specification {
     private static final String JUNIT_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled"
     private static final String JUNIT_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir"
