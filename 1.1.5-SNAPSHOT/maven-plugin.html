@@ -878,6 +878,11 @@ dependencies, add:</p>
 <p>Configuration of the <a href="#agent-support">native agent</a>. See <a href="#agent-support-enabling">Enabling the Agent</a>
 and <a href="#agent-support-configuring-options">Configuring the Agent</a> for details.</p>
 </dd>
+<dt class="hdlist1"><code>&lt;agentExecutionId&gt;</code></dt>
+<dd>
+<p>The <code>exec-maven-plugin</code> execution ID used when attaching the agent to a main application run.
+Defaults to <code>java-agent</code>.</p>
+</dd>
 </dl>
 </div>
 <div class="paragraph">
@@ -1162,6 +1167,10 @@ at the end of the agent invocation command. For example:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mvnw -Pnative -Dagent=true -DskipTests -DskipNativeBuild=true package exec:exec@java-agent</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>If you rename the <code>exec-maven-plugin</code> execution, set <code>&lt;agentExecutionId&gt;</code> in the
+<code>native-maven-plugin</code> configuration to the same ID and invoke <code>exec:exec@&lt;that-id&gt;</code>.</p>
 </div>
 <div class="paragraph">
 <p>Both of the above commands generate configuration files in the <em>target/native/agent-output/main</em> directory.
