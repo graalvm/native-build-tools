@@ -96,12 +96,16 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
 
         Property<URI> getUri();
 
+        Property<String> getRepositoryDescription();
+
         DirectoryProperty getCacheDir();
     }
 
     public GraalVMReachabilityMetadataService() throws URISyntaxException {
         URI uri = getParameters().getUri().get();
         this.repository = newRepository(uri);
+        // Normal Gradle output exposes the repository selection. §FS-resources-and-metadata.3.
+        GraalVMLogger.of(LOGGER).lifecycle("Using GraalVM reachability metadata repository " + getParameters().getRepositoryDescription().get());
     }
 
     private GraalVMReachabilityMetadataRepository newRepository(URI uri) throws URISyntaxException {

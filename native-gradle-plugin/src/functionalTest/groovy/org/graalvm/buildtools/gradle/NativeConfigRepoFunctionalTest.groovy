@@ -74,6 +74,11 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         then:
         outputContains "Hello, from reflection!"
 
+        and: "identifies the selected metadata repository source"
+        // Gradle output identifies the selected metadata repository source. §FS-resources-and-metadata.3.
+        outputContains "Using GraalVM reachability metadata repository from " +
+                file("config-directory${extension ? '.' + extension : ''}").toURI().toASCIIString()
+
         and: "doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
 

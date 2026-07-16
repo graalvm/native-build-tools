@@ -44,6 +44,8 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
 
+import static org.graalvm.buildtools.VersionInfo.METADATA_REPO_VERSION
+
 class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
 
     def "the application runs when using the official metadata repository by default"() {
@@ -58,6 +60,10 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
         tasks {
             succeeded ':jar', ':nativeCompile', ':nativeRun'
         }
+
+        and: "identifies the selected official metadata repository version"
+        // Gradle output identifies the selected metadata repository version. §FS-resources-and-metadata.3.
+        outputContains "Using GraalVM reachability metadata repository version ${METADATA_REPO_VERSION}"
 
         and: "the run succeeded and retrieved data from the database"
         outputContains "Customers in the database"
@@ -79,6 +85,10 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
         tasks {
             failed ':nativeCompile'
         }
+
+        and: "doesn't identify a repository when metadata is disabled"
+        // Disabled metadata avoids selected-repository noise. §FS-resources-and-metadata.3.
+        outputDoesNotContain "Using GraalVM reachability metadata repository"
     }
 
 }

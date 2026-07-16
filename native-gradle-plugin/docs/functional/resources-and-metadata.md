@@ -27,6 +27,10 @@ metadata repository URI, version, exclusions, and module-to-config-version overr
 directory must be consumable by native compile tasks and must contain only metadata selected for
 the binary's dependency graph. When no URI or version is pinned, the Gradle default should follow
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
+Normal Gradle output must identify the selected metadata repository version
+or, when a version is not known for a local path or arbitrary URL, the selected repository source.
+This keeps important integration state visible without flooding build logs, as required by
+[§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
 
 ## 4. Missing metadata reports
 

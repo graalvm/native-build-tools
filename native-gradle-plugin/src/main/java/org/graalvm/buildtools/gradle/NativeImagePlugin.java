@@ -589,6 +589,9 @@ public class NativeImagePlugin implements Plugin<Project> {
                 spec.getMaxParallelUsages().set(1);
                 spec.getParameters().getLogLevel().set(logLevel);
                 spec.getParameters().getUri().set(repositoryExtension.getUri().map(serializableTransformerOf(configuredUri -> computeMetadataRepositoryUri(project, repositoryExtension, m -> logFallbackToDefaultUri(m, logger)))));
+                spec.getParameters().getRepositoryDescription().set(
+                    repositoryExtension.getUri().zip(repositoryExtension.getVersion(),
+                        serializableBiFunctionOf(NativeImagePlugin::describeSelectedMetadataRepository)));
                 spec.getParameters().getCacheDir().set(
                     new File(project.getGradle().getGradleUserHomeDir(), "native-build-tools/repositories"));
                 spec.getParameters().getBackoffMaxRetries().convention(
@@ -603,6 +606,20 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static void logFallbackToDefaultUri(URI defaultUri, GraalVMLogger logger) {
         logger.warn("Unable to find the GraalVM reachability metadata repository in Maven repository. " +
                     "Falling back to the default repository at " + defaultUri);
+    }
+
+    static String describeSelectedMetadataRepository(URI configuredUri, String version) {
+        if (version != null) {
+            try {
+                URI versionUri = new URI(String.format(METADATA_REPO_URL_TEMPLATE, version));
+                if (versionUri.equals(configuredUri)) {
+                    return "version " + version;
+                }
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("Unable to convert repository version to URI", e);
+            }
+        }
+        return "from " + configuredUri.toASCIIString();
     }
 
     static URI computeMetadataRepositoryUri(Project project,

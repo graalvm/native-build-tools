@@ -51,6 +51,20 @@ class NativeImagePluginTest extends Specification {
         "https://custom.uri"                 | 'ignored'             | 'https://custom.uri'                                                                                                  | null
     }
 
+    // Protects Gradle's version-versus-source repository description. §FS-resources-and-metadata.3.
+    def "describes the selected metadata repository"() {
+        expect:
+        NativeImagePlugin.describeSelectedMetadataRepository(uri, version) == description
+
+        where:
+        uri                                                                                                                | version               | description
+        new URI(DEFAULT_GITHUB_RELEASES_METADATA_URI)                                                                      | METADATA_REPO_VERSION | "version ${METADATA_REPO_VERSION}"
+        new URI('https://github.com/oracle/graalvm-reachability-metadata/releases/download/155/graalvm-reachability-metadata-155.zip') | '155'                 | 'version 155'
+        new URI('https://custom.uri/repository.zip')                                                                       | METADATA_REPO_VERSION | 'from https://custom.uri/repository.zip'
+        new URI('file:/tmp/repository.zip')                                                                                | METADATA_REPO_VERSION | 'from file:/tmp/repository.zip'
+        new URI('https://custom.uri/repository.zip')                                                                       | null                  | 'from https://custom.uri/repository.zip'
+    }
+
     def "registers descriptions for user-facing tasks"() {
         when:
         project.plugins.apply("java")
