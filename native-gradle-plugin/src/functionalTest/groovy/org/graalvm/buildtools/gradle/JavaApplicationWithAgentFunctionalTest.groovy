@@ -81,6 +81,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         !file("build/native/agent-output/test").exists()
     }
 
+    // Explicit predicates must continue to narrow the eligible instrumented task set. §FS-tracing-agent.2.
     @Issue("https://github.com/graalvm/native-build-tools/issues/303")
     def "explicit Predicate assignment remains supported"() {
         given:
@@ -107,6 +108,7 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
         !file("build/native/agent-output/test").exists()
     }
 
+    // Kotlin DSL predicates must continue to narrow the eligible instrumented task set. §FS-tracing-agent.2.
     @Issue("https://github.com/graalvm/native-build-tools/issues/303")
     def "Kotlin DSL continues to configure the managed predicate property"() {
         given:
