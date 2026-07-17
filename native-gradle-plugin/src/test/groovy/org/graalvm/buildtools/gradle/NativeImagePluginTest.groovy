@@ -105,7 +105,7 @@ class NativeImagePluginTest extends Specification {
         qa.classpath.files.containsAll(classpathConfiguration.files)
         qa.excludeConfigArgs.get() == [
                 "--exclude-config",
-                Pattern.quote(testJar.toPath().toAbsolutePath().toString()),
+                Pattern.quote(testJar.toPath().toAbsolutePath().toString().replace(File.separator, '/')),
                 "META-INF/*"
         ]
     }

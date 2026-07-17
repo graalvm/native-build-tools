@@ -1070,7 +1070,8 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static void addExcludeConfigArg(List<String> args, Path jarPath, List<String> listOfResourcePatterns) {
         listOfResourcePatterns.forEach(resourcePattern -> {
             args.add("--exclude-config");
-            args.add(Pattern.quote(jarPath.toAbsolutePath().toString()));
+            // Native Image receives portable path separators in exclude-config regular expressions. §FS-resources-and-metadata.3.
+            args.add(Pattern.quote(jarPath.toAbsolutePath().toString().replace(File.separatorChar, '/')));
             args.add(String.format("%s", resourcePattern));
         });
     }
