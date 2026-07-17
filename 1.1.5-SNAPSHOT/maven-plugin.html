@@ -1701,6 +1701,78 @@ For example, you might wish to disable only native testing support for use cases
 </div>
 </div>
 <div class="sect3">
+<h4 id="_isolate_native_test_output_directories"><a class="anchor" href="#_isolate_native_test_output_directories"></a>Isolate native test output directories</h4>
+<div class="paragraph">
+<p>The <code>native:test</code> goal writes the native test executable to the configured Maven plugin <code>&lt;outputDirectory&gt;</code>.
+It also uses that same directory when it executes the <code>native-tests</code> executable and writes native test reports.
+By default, the directory is <code>${project.build.directory}</code>.</p>
+</div>
+<div class="paragraph">
+<p>Set <code>&lt;outputDirectory&gt;</code> when multiple native test executions or Maven profiles need separate native test images:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;configuration&gt;
+  &lt;outputDirectory&gt;${project.build.directory}/native-tests-config-a&lt;/outputDirectory&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same option can be set from the command line with the <code>outputDir</code> property:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mvnw -Pnative -DoutputDir=target/native-tests-config-a native:test</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If your native profile binds <code>native:test</code> to the Maven <code>test</code> phase, use the same property with the phase invocation:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mvnw -Pnative -DoutputDir=target/native-tests-config-a test</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For profile-specific native test configurations, give each profile a different output directory value:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;build&gt;
+  &lt;plugins&gt;
+    &lt;plugin&gt;
+      &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+      &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+      &lt;configuration&gt;
+        &lt;outputDirectory&gt;${native.tests.outputDirectory}&lt;/outputDirectory&gt;
+      &lt;/configuration&gt;
+    &lt;/plugin&gt;
+  &lt;/plugins&gt;
+&lt;/build&gt;
+
+&lt;profiles&gt;
+  &lt;profile&gt;
+    &lt;id&gt;native-tests-config-a&lt;/id&gt;
+    &lt;properties&gt;
+      &lt;native.tests.outputDirectory&gt;${project.build.directory}/native-tests-config-a&lt;/native.tests.outputDirectory&gt;
+    &lt;/properties&gt;
+  &lt;/profile&gt;
+  &lt;profile&gt;
+    &lt;id&gt;native-tests-config-b&lt;/id&gt;
+    &lt;properties&gt;
+      &lt;native.tests.outputDirectory&gt;${project.build.directory}/native-tests-config-b&lt;/native.tests.outputDirectory&gt;
+    &lt;/properties&gt;
+  &lt;/profile&gt;
+&lt;/profiles&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Do not use <code>-H:Path</code> in <code>&lt;buildArgs&gt;</code> to isolate native test runs.
+That option can move the file produced by Native Image without changing the Maven plugin directory used to locate and execute <code>native-tests</code>.
+Use <code>&lt;outputDirectory&gt;</code> or <code>-DoutputDir=&#8230;&#8203;</code> instead so the build output, execution path, and native test reports stay in the same directory.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_skip_modules_without_native_tests_in_multi_module_builds"><a class="anchor" href="#_skip_modules_without_native_tests_in_multi_module_builds"></a>Skip modules without native tests in multi-module builds</h4>
 <div class="paragraph">
 <p>In multi-module projects where only some sub-modules contain native tests, you need to skip test execution for any module that does not contain native tests. Any module which should contain tests, but does not, should fail the build.</p>
