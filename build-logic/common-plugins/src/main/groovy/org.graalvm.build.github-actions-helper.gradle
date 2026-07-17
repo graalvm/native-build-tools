@@ -45,7 +45,8 @@ sourceSets.configureEach { sourceSet ->
                 ]
 
                 // add all defaults
-                matrix.putAll(runFullGradleMatrix ? matrixDefault : latestMatrixDefault)
+                // TEST-ONLY: exercise cross-platform fixes on snapshot PRs.
+                matrix.putAll(matrixDefault)
 
                 // add gradle specific stuff
                 if (matrixType == "gradle") {
