@@ -133,6 +133,7 @@ import org.gradle.process.JavaForkOptions;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -658,7 +659,18 @@ public class NativeImagePlugin implements Plugin<Project> {
                 throw new RuntimeException("Unable to convert repository version to URI", e);
             }
         }
-        return "from " + configuredUri.toASCIIString();
+        return "from " + canonicalRepositoryUri(configuredUri);
+    }
+
+    private static String canonicalRepositoryUri(URI configuredUri) {
+        if (!"file".equals(configuredUri.getScheme())) {
+            return configuredUri.toASCIIString();
+        }
+        try {
+            return new File(configuredUri).getCanonicalFile().toURI().toASCIIString();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot resolve metadata repository path " + configuredUri, e);
+        }
     }
 
     static URI computeMetadataRepositoryUri(Project project,
