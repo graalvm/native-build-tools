@@ -184,7 +184,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
                 return "version " + metadataRepositoryConfiguration.getVersion();
             }
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
-                return "from " + metadataRepositoryConfiguration.getLocalPath().toURI().toASCIIString();
+                return "from " + canonicalFileUri(metadataRepositoryConfiguration.getLocalPath());
             }
             if (metadataRepositoryConfiguration.getUrl() != null) {
                 return "from " + metadataRepositoryConfiguration.getUrl();
@@ -311,7 +311,7 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
     protected String describeMetadataRepositoryLocation() {
         if (metadataRepositoryConfiguration != null) {
             if (metadataRepositoryConfiguration.getLocalPath() != null) {
-                return metadataRepositoryConfiguration.getLocalPath().toURI().toASCIIString();
+                return canonicalFileUri(metadataRepositoryConfiguration.getLocalPath());
             }
             if (metadataRepositoryConfiguration.getUrl() != null) {
                 return metadataRepositoryConfiguration.getUrl().toString();
@@ -325,6 +325,14 @@ public abstract class AbstractNativeMojo extends AbstractMojo {
             return resolved.toString();
         }
         return String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION);
+    }
+
+    private static String canonicalFileUri(File file) {
+        try {
+            return file.getCanonicalFile().toURI().toASCIIString();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot resolve metadata repository path " + file, e);
+        }
     }
 
     public boolean isArtifactExcludedFromMetadataRepository(Artifact dependency) {

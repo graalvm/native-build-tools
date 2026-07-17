@@ -57,6 +57,7 @@ import org.graalvm.buildtools.utils.AgentUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -260,9 +261,17 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     private static void logAgentOutput(String baseDir, Context context) {
         String execution = context == Context.test ? "test" : "application";
-        String outputDirectory = new File(agentOutputDirectoryFor(baseDir, context)).getAbsolutePath();
+        String outputDirectory = canonicalPath(new File(agentOutputDirectoryFor(baseDir, context)));
         // Report where users can find generated tracing-agent metadata. §FS-tracing-agent.3.
         logger.info("Instrumenting Maven " + execution + " execution with the native-image-agent. Agent output: " + outputDirectory);
+    }
+
+    private static String canonicalPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot resolve agent output path " + file, e);
+        }
     }
 
     private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {

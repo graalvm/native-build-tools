@@ -30,6 +30,8 @@ When Maven configures an instrumented test or application execution, normal buil
 output must report the Maven-managed agent output directory so users can find collected metadata
 without debug logging, aligning with
 [§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
+The reported directory must be canonicalized so filesystem aliases do not produce
+platform-dependent locations.
 
 ## 4. Merge and copy
 
