@@ -42,6 +42,8 @@ package org.graalvm.buildtools.model.resources;
 
 public abstract class NativeImageFlags {
     public static final String BUILD_OUTPUT_COLORFUL = "-H:+BuildOutputColorful";
+    // Legacy console-color arguments are shared by both adapters. §root/FS-native-builds.2.
+    public static final String BUILD_OUTPUT_COLORLESS = "-H:-BuildOutputColorful";
     public static final String COLOR = "--color";
     public static final String CONFIGURATION_FILE_DIRECTORIES = "-H:ConfigurationFileDirectories";
     public static final String LAYER_CREATE = "-H:LayerCreate";

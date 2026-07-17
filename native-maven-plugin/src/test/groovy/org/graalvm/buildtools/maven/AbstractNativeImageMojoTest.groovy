@@ -1,6 +1,8 @@
 package org.graalvm.buildtools.maven
 
 import org.apache.maven.plugin.MojoExecutionException
+import org.graalvm.buildtools.model.resources.NativeImageFlags
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -33,6 +35,45 @@ class AbstractNativeImageMojoTest extends Specification {
                 "C:\\Users\\Lahoucine EL ADDALI\\Desktop\\outdir\\target/java-application-with-custom-packaging-0.1.jar",
                 "-H:ConfigurationFileDirectories=C:\\Users\\Lahoucine EL ADDALI\\Downloads\\4.5.0.0_kubernetes_kubernetes-demo-java-maven\\api\\target\\native\\generated\\generateResourceConfig"
         ]
+    }
+
+    // Maven console mode selects the Native Image version's color argument. §FS-native-builds.9.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
+    def "uses Maven's #label console color mode with JDK #nativeImageMajorVersion"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.colorEnabled = colorEnabled
+        mojo.nativeImageMajorVersion = nativeImageMajorVersion
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        args.contains(expectedColorArgument)
+
+        where:
+        label      | colorEnabled | nativeImageMajorVersion | expectedColorArgument
+        "disabled" | false        | 17                      | NativeImageFlags.BUILD_OUTPUT_COLORLESS
+        "disabled" | false        | 21                      | "--color=never"
+        "enabled"  | true         | 17                      | NativeImageFlags.BUILD_OUTPUT_COLORFUL
+        "enabled"  | true         | 21                      | "--color=always"
+    }
+
+    // Explicit build arguments retain precedence over Maven's detected color mode. §FS-native-builds.9.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
+    def "places explicit color build arguments after Maven's detected default"() {
+        given:
+        def mojo = newMojo(["--color=never"])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.colorEnabled = true
+        mojo.nativeImageMajorVersion = 21
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        args.indexOf("--color=always") < args.lastIndexOf("--color=never")
     }
 
     void "it allows empty classpath for layer-create builds"() {
@@ -77,6 +118,9 @@ class AbstractNativeImageMojoTest extends Specification {
     }
 
     private static class TestNativeImageMojo extends AbstractNativeImageMojo {
+        boolean colorEnabled
+        int nativeImageMajorVersion = 25
+
         @Override
         void execute() {
         }
@@ -88,6 +132,16 @@ class AbstractNativeImageMojoTest extends Specification {
 
         @Override
         protected void populateClasspath() {
+        }
+
+        @Override
+        protected boolean isColorEnabled() {
+            colorEnabled
+        }
+
+        @Override
+        protected int getNativeImageMajorVersion() {
+            nativeImageMajorVersion
         }
     }
 }

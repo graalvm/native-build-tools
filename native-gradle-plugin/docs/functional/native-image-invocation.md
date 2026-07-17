@@ -27,7 +27,8 @@ conversion must come from common utilities rather than Gradle-only string handli
 aligned with [§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
 
 When Gradle uses its plain console, the Native Image invocation must explicitly disable colorful
-build output. Otherwise, the `richOutput` option controls Native Image's color-enabled argument.
+build output. Otherwise, the `richOutput` option controls Native Image's color-enabled argument,
+adapting [§root/FS-native-builds.2](../../../docs/spec/functional/native-image-builds.md#2-command-line-construction).
 
 ## 4. Argument files
 

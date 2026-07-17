@@ -66,3 +66,10 @@ mvn -Pnative -DquickBuild native:test
 mvn -Pnative native:write-args-file
 mvn -Pnative native:list-libraries-missing-metadata
 ```
+
+## 9. Console colors
+
+The native-image invocation must follow Maven's detected console color state. It must use
+`--color=always` or `--color=never` on JDK 21 and later, and `-H:+BuildOutputColorful` or
+`-H:-BuildOutputColorful` on older versions. Explicit user build arguments come later and may
+override this detected default, adapting [§root/FS-native-builds.2](../../../docs/spec/functional/native-image-builds.md#2-command-line-construction).

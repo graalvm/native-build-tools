@@ -33,6 +33,11 @@ Both plugins must construct the `native-image` command line through shared utili
 [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities) so escaping, quoting, and argument-file conversion stay identical.
 Plugin-specific string handling must not bypass those utilities.
 
+When a build tool disables colored console output, its adapter must explicitly disable Native
+Image colors with the flag supported by the discovered Native Image version. When console colors
+are enabled, plugin-specific rich-output configuration may enable them explicitly. User-supplied
+build arguments retain precedence over the adapter's detected console mode.
+
 When a user-configured option set exceeds platform argument limits, or when configuration requests
 it explicitly, the command line must be written as a Native Image argument file (`@<path>`).
 

@@ -141,7 +141,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
 
         where:
         nativeImageVersion | disabledColorArgument
-        17                 | "-H:-BuildOutputColorful"
+        17                 | NativeImageFlags.BUILD_OUTPUT_COLORLESS
         21                 | "--color=never"
     }
 
@@ -170,7 +170,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
 
         then:
         args.contains(enabledColorArgument)
-        !args.contains("-H:-BuildOutputColorful")
+        !args.contains(NativeImageFlags.BUILD_OUTPUT_COLORLESS)
 
         where:
         nativeImageVersion | enabledColorArgument

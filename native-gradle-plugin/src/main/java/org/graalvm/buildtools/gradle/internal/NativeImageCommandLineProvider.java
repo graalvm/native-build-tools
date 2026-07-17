@@ -195,7 +195,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getSharedLibrary(), NativeImageFlags.SHARED);
         appendBooleanOption(cliArgs, options.getQuickBuild(), NativeImageFlags.QUICK_BUILD);
         if (plainConsole.get()) {
-            cliArgs.add(majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR + "=never" : "-H:-BuildOutputColorful");
+            cliArgs.add(majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR + "=never" : NativeImageFlags.BUILD_OUTPUT_COLORLESS);
         } else {
             appendBooleanOption(cliArgs, options.getRichOutput(), majorJDKVersion.getOrElse(-1) >= 21 ? NativeImageFlags.COLOR + "=always" : NativeImageFlags.BUILD_OUTPUT_COLORFUL);
         }

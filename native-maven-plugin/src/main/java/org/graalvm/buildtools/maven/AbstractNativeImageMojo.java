@@ -51,6 +51,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
@@ -246,6 +247,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             cliArgs.add("-Ob");
         }
 
+        addConsoleColorArgument(cliArgs);
+
         cliArgs.add("-o");
         cliArgs.add(outputDirectory.toPath().toAbsolutePath() + File.separator + imageName);
 
@@ -295,6 +298,26 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             actualCliArgs.add(mainClass);
         }
         return Collections.unmodifiableList(actualCliArgs);
+    }
+
+    // Maven's detected console mode controls version-appropriate Native Image color flags. §FS-native-builds.9.
+    private void addConsoleColorArgument(List<String> cliArgs) throws MojoExecutionException {
+        boolean colorEnabled = isColorEnabled();
+        if (getNativeImageMajorVersion() >= 21) {
+            cliArgs.add(NativeImageFlags.COLOR + (colorEnabled ? "=always" : "=never"));
+        } else {
+            cliArgs.add(colorEnabled ? NativeImageFlags.BUILD_OUTPUT_COLORFUL : NativeImageFlags.BUILD_OUTPUT_COLORLESS);
+        }
+    }
+
+    protected boolean isColorEnabled() {
+        return MessageUtils.isColorEnabled();
+    }
+
+    protected int getNativeImageMajorVersion() throws MojoExecutionException {
+        Path executable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(
+                logger, toolchainManager, session, enforceToolchain);
+        return NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger, executable));
     }
 
     static List<String> processBuildArgs(List<String> buildArgs) {
@@ -578,7 +601,14 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             return nativeImageVersionInformation;
         }
 
-        Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImage(logger);
+        return getVersionInformation(logger, NativeImageConfigurationUtils.getNativeImage(logger));
+    }
+
+    private static String getVersionInformation(Logger logger, Path nativeImageExecutable) throws MojoExecutionException {
+        if (nativeImageVersionInformation != null) {
+            return nativeImageVersionInformation;
+        }
+
         try {
             ProcessBuilder processBuilder = new ProcessBuilder(nativeImageExecutable.toString());
             processBuilder.command().add("--version");

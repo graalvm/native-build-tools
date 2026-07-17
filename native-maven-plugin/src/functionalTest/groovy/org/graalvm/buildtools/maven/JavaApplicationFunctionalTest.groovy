@@ -41,17 +41,20 @@
 
 package org.graalvm.buildtools.maven
 
+import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Issue
 
 import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE;
 
 class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    // Maven's disabled console colors propagate to Native Image. §FS-native-builds.9, §E2E-functional-tests.3.1.
     def "proper options are added to the native-image invocation"() {
         withSample("java-application")
 
         when:
         mvn '-Pnative', '-DskipTests', '-DnativeDryRun', '-DuseArgFile=false',
                 '-Dclasspath=/', '-Ddebug', '-Dfallback=false', '-Dverbose', '-DsharedLibrary',
+                '-Dstyle.color=never',
                 '-DquickBuild',
                 'package'
 
@@ -60,6 +63,8 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         outputContains NATIVE_IMAGE_EXE
         outputContains "-cp " // actual path is OS-specific (/ vs C:\)
         outputContains "-g --no-fallback --verbose --shared -Ob"
+        def majorVersion = NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString())
+        outputContains(majorVersion >= 21 ? "--color=never" : "-H:-BuildOutputColorful")
     }
 
     def "can build and execute a native image with the Maven plugin"() {

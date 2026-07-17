@@ -183,6 +183,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     }
 
+    // Gradle console mode controls Native Image color arguments. §FS-native-invocation.3.
     @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     @Unroll
     def "passes Gradle's #console console color mode to Native Image"() {
