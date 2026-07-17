@@ -112,8 +112,8 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libbase.nil") && it.contains("module=java.base") }
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     // Plain Gradle consoles disable Native Image colors with version-appropriate arguments. §FS-native-invocation.3
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     def "disables colorful Native Image output for Gradle's plain console with JDK #nativeImageVersion"() {
         given:
         def project = newProject()
@@ -146,8 +146,8 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         21                 | "--color=never"
     }
 
-    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     // Rich Gradle output enables Native Image colors with version-appropriate arguments. §FS-native-invocation.3
+    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     def "uses the rich-output setting when Gradle enables colors with JDK #nativeImageVersion"() {
         given:
         def project = newProject()
