@@ -86,6 +86,8 @@ without depending on external publication.
 Samples under `samples/` provide cross-plugin Maven scenarios when possible. Dedicated
 `native-maven-plugin/reproducers/` projects are appropriate for Maven-specific regressions whose
 shape would not make sense as a shared sample.
+Assertions for process-reported paths must derive expected values from canonical existing files so
+filesystem aliases do not create host-specific failures.
 
 ## 7. Dependency direction
 

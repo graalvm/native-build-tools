@@ -34,7 +34,8 @@ Image configuration file names and metadata directory names used by plugins and 
 
 Resource detection helps users include non-classpath resources without hand-written
 `resource-config.json` for common project shapes. The analyzer must inspect classpath directories
-and JARs, normalize paths with portable separators, respect existing
+and JARs, normalize every directory entry with portable separators before filtering or generating
+resource patterns, respect existing
 `META-INF/native-image/.../resource-config.json` files unless the caller asks to ignore them, and
 write Native Image resource configuration into the directory passed by the Gradle task or Maven
 goal.

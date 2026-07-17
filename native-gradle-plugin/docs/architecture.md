@@ -79,6 +79,8 @@ Gradle sample build.
 
 Functional tests should run real sample builds through TestKit. They must prefer scenario
 fixtures over synthetic one-off projects when an existing sample already represents the behavior.
+Assertions for process-reported paths must derive expected values from canonical existing files so
+filesystem aliases do not create host-specific failures.
 Shared samples and cross-plugin scenario ownership are described by [§root/AR-build-infrastructure.4.1](../../docs/spec/architecture/build-infrastructure.md#41-fixture-groups).
 
 ## 7. Dependency direction

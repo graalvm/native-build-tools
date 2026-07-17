@@ -43,9 +43,12 @@ package org.graalvm.buildtools.utils;
 import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -71,5 +74,18 @@ public class ClassPathEntryAnalyzerTest {
                 false
         );
         assertEquals(Collections.emptyList(), analyzer.getResources());
+    }
+
+    @Test
+    @DisplayName("Directory resource paths use portable separators")
+    public void testShouldNormalizeDirectoryResourcePaths(@TempDir Path tempDirectory) throws IOException {
+        Path resource = tempDirectory.resolve("db").resolve("mysql_conf_override");
+        Files.createDirectories(resource.getParent());
+        Files.createFile(resource);
+
+        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(tempDirectory.toFile(), s -> true, false);
+
+        // Nested directory resource names remain portable. §FS-common-libraries.2.
+        assertEquals(Collections.singletonList("db/mysql_conf_override"), analyzer.getResources());
     }
 }
