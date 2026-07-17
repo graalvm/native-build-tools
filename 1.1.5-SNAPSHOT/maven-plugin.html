@@ -1578,11 +1578,25 @@ The plugin provides explicit support for the JUnit Jupiter and JUnit Vintage tes
 <p>This plugin requires the Maven Surefire plugin 3.0.0 or higher to run tests as native code.</p>
 </div>
 <div class="paragraph">
+<p>Native test execution also uses the JUnit Platform while building the native test image.
+By default, the plugin builds the test image with <code>NativeImageJUnitLauncher</code> and <code>JUnitPlatformFeature</code>,
+which discover and register selected tests using the JUnit Platform artifacts on the test classpath.
+For that reason, the <code>junit-platform-launcher</code> artifact available to native test execution must be
+compatible with the JUnit Platform engine artifacts, such as JUnit Jupiter or JUnit Vintage.</p>
+</div>
+<div class="paragraph">
 <p>Each version of the Maven Surefire plugin has a dependency on a particular version of the JUnit Platform.
-You therefore need to ensure that Maven Surefire is using at least version 1.8 of the JUnit Platform.
-Beginning with version 3.0 M4, Maven Surefire automatically aligns the JUnit Platform version used by Surefire with the version needed by the user&#8217;s configured version of JUnit Jupiter or JUnit Vintage.
-Since the examples here use Maven Surefire 3.0 M5, their maven POMs do not require any special configuration regarding the JUnit Platform version.
-However, if you are using a version of Maven Surefire prior to 3.0 M4, you will need to add an explicit dependency on the <code>junit-platform-launcher</code> artifact to the <code>dependencies</code> section of your <code>native</code> profile configuration. For example:</p>
+Ensure that Maven Surefire and Native Build Tools use compatible JUnit Platform artifacts,
+and that those artifacts are at least version 1.8.
+Beginning with version 3.0 M4, Maven Surefire automatically aligns the JUnit Platform version used by
+Surefire with the version needed by the user&#8217;s configured version of JUnit Jupiter or JUnit Vintage.
+Since the examples here use Maven Surefire 3.0 M5, their Maven POMs do not require any special configuration regarding the JUnit Platform version.
+However, if you are using a version of Maven Surefire prior to 3.0 M4, or if your native test
+classpath otherwise contains mismatched JUnit Platform artifacts, you will need to add an explicit
+dependency on the <code>junit-platform-launcher</code> artifact to the <code>dependencies</code> section of your <code>native</code>
+profile configuration.
+Choose a <code>junit-platform-launcher</code> version managed by your JUnit BOM or one that matches the JUnit Platform version used by your test engines.
+For example:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
@@ -1618,6 +1632,16 @@ configuration in the above example.</p>
 <div class="listingblock">
 <div class="content">
 <pre>[ERROR] Test configuration file wasn't found. Make sure that test execution wasn't skipped.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the native test classpath contains incompatible JUnit Platform launcher and engine versions,
+native-image analysis can also fail during test discovery with an error similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>OutputDirectoryProvider not available; probably due to unaligned versions of the junit-platform-engine
+and junit-platform-launcher jars on the classpath/module path.</pre>
 </div>
 </div>
 </div>
