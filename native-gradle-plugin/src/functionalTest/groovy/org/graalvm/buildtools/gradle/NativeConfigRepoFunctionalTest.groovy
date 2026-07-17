@@ -151,6 +151,7 @@ graalvmNative {
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
     }
 
+    // §FS-resources-and-metadata.3
     def "subprojects can use different metadata repositories"() {
         given:
         settingsFile << """
@@ -204,7 +205,6 @@ project(':second') {
         }
 
         and: "each project copies metadata from its own configured repository"
-        // Multi-project metadata collection must honor each project's configured repository URI. §FS-resources-and-metadata.3.
         metadataOutput("first").text.contains("org.graalvm.internal.reflect.FirstProjectMessage")
         metadataOutput("second").text.contains("org.graalvm.internal.reflect.SecondProjectMessage")
     }
