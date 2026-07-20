@@ -165,7 +165,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         mvn '-Pnative', '-DquickBuild', 'test'
 
-        def expectedOutput = ["local-repo", "org", "apache", "commons", "commons-lang3", "3.12.0", "commons-lang3-3.12.0.jar"].join(File.separator)
+        def expectedOutput = ["local-repo", "org", "apache", "commons", "commons-lang3", "3.18.0", "commons-lang3-3.18.0.jar"].join(File.separator)
 
         then:
         buildSucceeded
@@ -179,7 +179,7 @@ class JavaApplicationWithTestsFunctionalTest extends AbstractGraalVMMavenFunctio
         when:
         mvn '-Pnative', '-DquickBuild', '-DskipNativeTests', 'package'
 
-        def expectedOutput = ["local-repo", "org", "apache", "commons", "commons-lang3", "3.12.0", "commons-lang3-3.12.0.jar"].join(File.separator)
+        def expectedOutput = ["local-repo", "org", "apache", "commons", "commons-lang3", "3.18.0", "commons-lang3-3.18.0.jar"].join(File.separator)
 
         then:
         buildSucceeded
