@@ -396,7 +396,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private void configureAutomaticTaskCreation(Project project,
-                                                GraalVMExtension graalExtension,
+                                                DefaultGraalVmExtension graalExtension,
                                                 TaskContainer tasks,
                                                 SourceSetContainer sourceSets) {
         graalExtension.getBinaries().configureEach(options -> {
@@ -412,6 +412,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     builder.getOptions().convention(options);
                     builder.getUseArgFile().convention(graalExtension.getUseArgFile());
+                    builder.setConventionJavaLauncher(graalExtension.getDefaultJavaLauncher());
+                    options.getJavaLauncher().convention(graalExtension.getDefaultJavaLauncher());
 
                     GraalVMReachabilityMetadataRepositoryExtension repoExt = reachabilityExtensionOn(graalExtension);
                     Provider<Boolean> repoEnabled =
@@ -887,13 +889,19 @@ public class NativeImagePlugin implements Plugin<Project> {
         // In Compatibility Mode, also pass -Djava.home from the GraalVM used for the build
         Provider<String> graalVmHome = project.getProviders().provider(() -> {
             NativeImageExecutableLocator.Diagnostics d = new NativeImageExecutableLocator.Diagnostics();
+            Provider<JavaLauncher> javaLauncher = testOptions.getJavaLauncher().isPresent()
+                    ? testOptions.getJavaLauncher()
+                    : graalExtension.getDefaultJavaLauncher();
+            boolean isExplicit = testOptions.getJavaLauncher().isPresent();
             File nativeImage = NativeImageExecutableLocator.findNativeImageExecutable(
-                    testOptions.getJavaLauncher(),
+                    javaLauncher.getOrNull(),
+                    isExplicit,
                     graalExtension.getToolchainDetection().map(enabled -> !enabled),
                     graalvmHomeProvider(project.getProviders(), d),
                     getExecOperations(),
                     logger,
-                    d
+                    d,
+                    NativeImageExecutableLocator.defaultFallbackCandidates(project.getProviders())
             );
             File parent = nativeImage.getParentFile();
             return parent != null ? parent.getParent() : null;
@@ -1183,7 +1191,8 @@ public class NativeImagePlugin implements Plugin<Project> {
             mergeInputDirs,
             mergeOutputDirs,
             graalExtension.getToolchainDetection().map(enabled -> !enabled),
-            execOperations));
+            execOperations,
+            project.getProviders()));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
     }

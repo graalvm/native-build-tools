@@ -5,10 +5,74 @@ process execution.
 
 ## 1. Executable discovery
 
-Compile and metadata tasks must find `native-image` from the configured Gradle Java launcher or
-toolchain when toolchain detection is enabled. When detection is disabled or no launcher supplies
-Native Image, the plugin must use GraalVM/JDK environment and path fallbacks. Failure messages must
-tell the user which lookup path was attempted.
+Compile and metadata tasks must find the `native-image` executable by probing, in order:
+
+### 1.1. Explicit java launcher
+
+When a user explicitly configures `javaLauncher` on a native binary
+(`graalvmNative.binaries.all { javaLauncher.set(…) }`), that launcher is authoritative.
+The plugin must probe its installation path for `bin/native-image`. If the executable is
+missing, the build MUST fail with a diagnostic that names the launcher and its installation
+path. The plugin MUST NOT silently fall back to another launcher,
+environment variable, or path-based discovery — including `gu install native-image`.
+
+### 1.2. Convention-selected launcher
+
+When no explicit launcher is set, the plugin selects a launcher by convention:
+
+1. **Toolchain detection** (`toolchainDetection = true`): the configured Java toolchain is
+   probed for `bin/native-image`. If found, that launcher is used. If `native-image` is not
+   present, `configureToolchain()` returns `null` and the plugin continues to environment
+   variable fallback.
+2. **Toolchain disabled**: no convention launcher is set, the plugin goes directly to
+   environment variable fallback.
+
+The convention-selected launcher is used only when it contains `bin/native-image`. If it
+does not, the plugin continues to environment-variable fallback.
+
+### 1.3. Environment-variable fallback
+
+When no convention launcher supplies `native-image`, the plugin probes, in order:
+
+1. `GRAALVM_HOME/bin/native-image`
+2. `JAVA_HOME/bin/native-image`
+3. `{java.home}/bin/native-image` — the Gradle JVM itself, as a last resort when neither
+   environment variable is set
+
+If none resolve to an existing executable, the plugin attempts `gu install native-image`
+(see [§FS-native-invocation.1.4](native-image-invocation.md#14-gu-based-installation)) on the resolved
+GraalVM home; if that still does not provide `native-image`, it probes the other GraalVM homes
+(`GRAALVM_HOME`/`JAVA_HOME`/`{java.home}` other than the one just tried). If no `native-image` is
+found in any of those locations, the locator fails with a diagnostic ([§FS-native-invocation.1.5](native-image-invocation.md#15-failure-messages)).
+
+### 1.4. gu-based installation
+
+When the GraalVM installation resolved through the environment-variable fallback (GRAALVM_HOME →
+JAVA_HOME → Gradle JVM) contains a working `gu` tool but does not yet have `native-image`, the plugin MAY attempt
+`gu install native-image`. This fallback MUST NOT apply when an explicit launcher
+([§FS-native-invocation.1.1](native-image-invocation.md#11-explicit-java-launcher)) was configured — the
+user-selected installation must provide `native-image` without implicit installation.
+
+### 1.5. Failure messages
+
+All failure messages MUST tell the user:
+
+* which lookup paths were attempted
+* for an explicit launcher, the launcher name and installation path
+* for convention selection, whether toolchain detection was enabled
+* which environment variables were (or were not) set
+
+The `NativeImageExecutableLocator.Diagnostics` class collects this information for the
+`BuildNativeImageTask` to emit at build time.
+
+### 1.6. Toolchain detection interaction
+
+When `toolchainDetection = true` and the toolchain-resolved launcher does not contain
+`native-image`, `configureToolchain()` in `DefaultGraalVmExtension` returns `null`.
+The plugin then falls through to environment variable fallback (GRAALVM_HOME →
+JAVA_HOME → Gradle JVM). This means the toolchain's GraalVM is used only if it already
+provides `native-image`; otherwise the build uses the same environment-variable resolution
+path as builds without a toolchain.
 
 ## 2. Version and schema gates
 

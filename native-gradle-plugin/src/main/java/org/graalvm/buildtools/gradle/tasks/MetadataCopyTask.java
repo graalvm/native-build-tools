@@ -173,6 +173,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 () -> inputDirectories,
                 () -> outputDirectories,
                 getToolchainDetection().map(enabled -> !enabled),
-                execOperations).execute(this);
+                execOperations,
+                providerFactory).execute(this);
     }
 }

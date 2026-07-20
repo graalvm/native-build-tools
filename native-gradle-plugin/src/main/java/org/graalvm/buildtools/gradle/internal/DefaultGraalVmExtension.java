@@ -49,12 +49,12 @@ import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
-import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
@@ -76,6 +76,8 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         getToolchainDetection().convention(false);
+        // Every binary exposes a javaLauncher convention so graalvmNative.binaries.main.javaLauncher
+        // is always resolvable (e.g. its metadata.languageVersion) when toolchain detection is on. §FS-native-invocation.1.5
         nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
         AgentOptions agentOpts = getAgent();
@@ -91,18 +93,28 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         configureToolchain();
     }
 
+    public Provider<JavaLauncher> getDefaultJavaLauncher() {
+        return defaultJavaLauncher;
+    }
+
     private void configureToolchain() {
         defaultJavaLauncher.convention(
                 getToolchainDetection().flatMap(enabled -> {
-                    if (enabled) {
-                        JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
-                        if (toolchainService != null) {
-                            return toolchainService.launcherFor(spec -> {
-                                spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
-                            });
-                        }
+                    if (!enabled) {
+                        return null;
                     }
-                    return null;
+                    JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
+                    if (toolchainService == null) {
+                        return null;
+                    }
+                    // Resolve the toolchain launcher for the configured Java toolchain.
+                    // This keeps graalvmNative.binaries.main.javaLauncher queryable (e.g. its
+                    // metadata.languageVersion) whenever toolchain detection is enabled.
+                    // Whether the toolchain actually contains native-image is decided at build
+                    // time by NativeImageExecutableLocator, which falls back to GRAALVM_HOME
+                    // when the launcher's installation lacks it. §FS-native-invocation.1.5
+                    JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
+                    return toolchainService.launcherFor(javaConvention.getToolchain());
                 })
         );
     }
