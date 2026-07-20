@@ -112,6 +112,80 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libbase.nil") && it.contains("module=java.base") }
     }
 
+    // Uses declared layer JARs instead of the inherited binary classpath. §FS-native-invocation.3.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/957")
+    def "uses layer jars instead of inherited binary classpath for layer-create build"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def appJar = testDirectory.resolve("app.jar").toFile()
+        def dependencyJar = testDirectory.resolve("dependency.jar").toFile()
+        appJar.text = "application"
+        dependencyJar.text = "dependency"
+        def options = project.extensions.getByType(GraalVMExtension).binaries.create("libdependencies")
+        options.classpath.from(appJar)
+        options.createLayer {
+            it.modules.add("java.base")
+            it.jars.from(dependencyJar)
+        }
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "libdependencies" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        options.classpath.files.contains(appJar)
+        !args.contains(appJar.absolutePath)
+        args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libdependencies.nil") && it.contains("path=${dependencyJar}") }
+        args.contains("-cp")
+        args.contains(dependencyJar.absolutePath)
+    }
+
+    def "retains binary classpath for package-based layer-create build"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def appJar = testDirectory.resolve("app.jar").toFile()
+        appJar.text = "application"
+        def options = project.extensions.getByType(GraalVMExtension).binaries.create("libpackages")
+        options.classpath.from(appJar)
+        options.createLayer {
+            it.modules.add("java.base")
+            it.packages.add("org.graalvm.demo")
+        }
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "libpackages" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        options.classpath.files.contains(appJar)
+        args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libpackages.nil") && it.contains("package=org.graalvm.demo") }
+        args.contains("-cp")
+        args.contains(appJar.absolutePath)
+    }
     // Plain Gradle consoles disable Native Image colors with version-appropriate arguments. §FS-native-invocation.3
     @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     def "disables colorful Native Image output for Gradle's plain console with JDK #nativeImageVersion"() {

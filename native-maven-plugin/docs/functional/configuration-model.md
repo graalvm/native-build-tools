@@ -42,3 +42,10 @@ when no explicit configuration is present. The exception is a parameter intentio
 let the property win for one run, such as the agent toggle in [§FS-tracing-agent.1](tracing-agent.md#1-agent-enablement) where
 `-Dagent=false` disables an agent enabled in the POM. This is the Maven adaptation of
 [§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
+
+## 6. Plugin-wide goal skipping
+
+Setting `<skip>true</skip>` in the native Maven plugin's root `<configuration>` must skip every
+plugin goal before it resolves dependencies, downloads metadata, generates files, or otherwise
+causes a goal-specific side effect. When it is absent or false, each goal retains its existing
+specialized skip controls and behavior.

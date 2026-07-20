@@ -82,7 +82,7 @@ class AbstractNativeMojoTest extends Specification {
         }
 
         @Override
-        void execute() {
+        protected void executeInternal() {
         }
 
         @Override

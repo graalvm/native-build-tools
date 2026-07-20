@@ -14,7 +14,8 @@ run. The default mode convention is `standard`, except projects that apply Gradl
 
 Every task that implements `JavaForkOptions` is eligible for instrumentation. The
 `tasksToInstrumentPredicate` setting may narrow that set. Non-matching tasks must be skipped
-without failing the build.
+without failing the build. In Groovy DSL, the predicate may be assigned directly as a closure;
+its result must determine whether each eligible task is instrumented.
 
 ### 2.1 Agent Java runtime
 

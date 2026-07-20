@@ -221,6 +221,49 @@ For example, to build a native image named `myapp` that uses `org.example.ClassN
 Most of the aforementioned properties can also be set on the command line as a part of Maven invocation. For example, if you want to temporarily enable verbose mode, you can append `-Dverbose` to your Maven command.
 ====
 
+[[resources]]
+== Resources
+
+To include classpath resources in a native image, configure resource patterns and run
+`generateResourceConfig` before the native build goal. For example, the following execution
+includes `application.properties` and creates the native image during the `package` phase:
+
+[source,xml, role="multi-language-sample"]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <executions>
+    <execution>
+      <id>build-native</id>
+      <phase>package</phase>
+      <goals>
+        <goal>generateResourceConfig</goal>
+        <goal>compile-no-fork</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <resourceIncludedPatterns>
+      <pattern>application.properties</pattern>
+    </resourceIncludedPatterns>
+  </configuration>
+</plugin>
+----
+
+`generateResourceConfig` writes the configuration to
+_target/native/generated/generateResourceConfig/resource-config.json_. The following
+`compile-no-fork` goal automatically consumes that generated configuration when it builds the
+native image.
+
+To detect resources automatically instead of listing patterns, enable autodetection when running
+the same execution:
+
+[source,bash, role="multi-language-sample"]
+----
+./mvnw -Pnative -Dresources.autodetection.enabled=true package
+----
+
 [[native-image-tracing-agent]]
 == Native Image Tracing Agent
 

@@ -42,12 +42,12 @@
 package org.graalvm.buildtools.maven.config;
 
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
+import org.graalvm.buildtools.maven.AbstractSkippableMojo;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 
 import java.io.File;
@@ -55,8 +55,7 @@ import java.nio.file.Path;
 
 import static org.graalvm.buildtools.utils.NativeImageUtils.nativeImageConfigureFileName;
 
-public abstract class AbstractMergeAgentFilesMojo extends AbstractMojo {
-
+public abstract class AbstractMergeAgentFilesMojo extends AbstractSkippableMojo {
 
     @Component
     protected Logger logger;

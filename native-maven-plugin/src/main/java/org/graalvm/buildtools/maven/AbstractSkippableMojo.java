@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,59 +41,25 @@
 
 package org.graalvm.buildtools.maven;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.reachability.DirectoryConfiguration;
 
-/**
- * Adds dependency reachability metadata from the configured metadata repository to the project's output directory.
- * §FS-goal-surface.3, §FS-resources-and-metadata.2.
- */
-@Mojo(name = "add-reachability-metadata", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.RUNTIME, requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class AddReachabilityMetadataMojo extends AbstractNativeMojo {
+public abstract class AbstractSkippableMojo extends AbstractMojo {
 
-    private static final Set<String> SCOPES;
-    static {
-        Set<String> scopes = new HashSet<>();
-        scopes.add(Artifact.SCOPE_COMPILE);
-        scopes.add(Artifact.SCOPE_RUNTIME);
-        scopes.add(Artifact.SCOPE_COMPILE_PLUS_RUNTIME);
-        SCOPES = Collections.unmodifiableSet(scopes);
-    }
-
-    @Parameter(defaultValue = "${project.build.outputDirectory}", required = true)
-    protected File outputDirectory;
-
+    // A root plugin configuration skips every goal before its goal-specific work begins. §FS-config-model.6.
+    @Parameter(property = "skip", defaultValue = "false")
+    private boolean skip;
 
     @Override
-    protected void executeInternal() throws MojoExecutionException, MojoFailureException {
-        configureMetadataRepository();
-        project.getArtifacts().stream().filter(this::isInScope)
-                .forEach(dependency -> maybeAddDependencyMetadata(dependency, null));
-        if (isMetadataRepositoryEnabled() && !metadataRepositoryConfigurations.isEmpty()) {
-            Path destination = outputDirectory.toPath();
-            try {
-                DirectoryConfiguration.copy(metadataRepositoryConfigurations, destination);
-            } catch (IOException ex) {
-                throw new MojoExecutionException(ex.getMessage(), ex);
-            }
+    public final void execute() throws MojoExecutionException, MojoFailureException {
+        if (skip) {
+            getLog().info("Skipping native Maven plugin goal (parameter 'skip' is true).");
+            return;
         }
+        executeInternal();
     }
 
-    private boolean isInScope(Artifact artifact) {
-        return SCOPES.contains(artifact.getScope());
-    }
-
+    protected abstract void executeInternal() throws MojoExecutionException, MojoFailureException;
 }

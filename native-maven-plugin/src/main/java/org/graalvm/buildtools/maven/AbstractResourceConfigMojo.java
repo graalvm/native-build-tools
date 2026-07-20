@@ -43,7 +43,6 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -71,7 +70,7 @@ import static java.util.stream.Collectors.toCollection;
 import static org.graalvm.buildtools.model.resources.Helper.asNamedValues;
 import static org.graalvm.buildtools.model.resources.Helper.asPatternValues;
 
-public abstract class AbstractResourceConfigMojo extends AbstractMojo {
+public abstract class AbstractResourceConfigMojo extends AbstractSkippableMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject mavenProject;
@@ -108,7 +107,7 @@ public abstract class AbstractResourceConfigMojo extends AbstractMojo {
     private boolean ignoreExistingResourcesConfig;
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         Set<PatternValue> includes = asPatternValues(resourceIncludedPatterns);
         Set<PatternValue> excludes = asPatternValues(resourceExcludedPatterns);
         Set<NamedValue> bundles = asNamedValues(resourceBundles);

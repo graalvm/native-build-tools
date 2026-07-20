@@ -83,7 +83,7 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
     private MavenSession session;
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         if (agentConfiguration != null && (agentConfiguration.isEnabled() || agentIsEnabledFromCmd())) {
             // in direct mode user is fully responsible for agent configuration, and we will not execute anything besides line that user provided
             if (agentConfiguration.getDefaultMode().equalsIgnoreCase("direct")) {

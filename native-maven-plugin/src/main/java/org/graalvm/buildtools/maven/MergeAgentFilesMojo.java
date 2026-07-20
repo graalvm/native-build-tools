@@ -44,7 +44,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.graalvm.buildtools.maven.config.AbstractMergeAgentFilesMojo;
 import org.graalvm.buildtools.maven.config.agent.AgentConfiguration;
@@ -65,9 +64,6 @@ import java.util.stream.Stream;
  */
 @Mojo(name = "merge-agent-files", defaultPhase = LifecyclePhase.TEST)
 public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    protected MavenProject project;
-
     @Parameter(defaultValue = "${project.build.directory}", readonly = true, required = true)
     protected String target;
 
@@ -82,7 +78,7 @@ public class MergeAgentFilesMojo extends AbstractMergeAgentFilesMojo {
     private static final List<String> DEFAULT_DIRS = Arrays.asList("main", "test");
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         // we need this mojo to be executed only once
         numberOfExecutions++;
         if (numberOfExecutions > 1) {

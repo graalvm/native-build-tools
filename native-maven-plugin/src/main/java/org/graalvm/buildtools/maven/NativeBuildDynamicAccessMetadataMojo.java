@@ -97,7 +97,7 @@ public class NativeBuildDynamicAccessMetadataMojo extends AbstractNativeMojo {
     private File outputJson;
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    protected void executeInternal() throws MojoExecutionException, MojoFailureException {
         configureMetadataRepository();
         File jsonFile = ((FileSystemRepository) metadataRepository).getRootDirectory().resolve(LIBRARY_AND_FRAMEWORK_LIST).toFile();
 

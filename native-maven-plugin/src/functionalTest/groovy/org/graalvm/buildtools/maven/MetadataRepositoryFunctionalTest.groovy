@@ -206,4 +206,23 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
   }
 ]''')
     }
+
+    // Plugin-level skip prevents add-reachability-metadata side effects. §FS-config-model.6, §E2E-functional-tests.3.2.
+    void "plugin-level skip prevents reachability metadata download and copy"() {
+        given:
+        withSample("native-config-integration")
+        def pom = file("pom.xml")
+        pom.text = pom.text.replaceFirst(/(?s)(<id>addMetadataHints<\/id>.*?<configuration>)/,
+                '$1\n                            <skip>true</skip>')
+
+        when:
+        mvn '-PaddMetadataHints', 'package'
+
+        then:
+        buildSucceeded
+        outputContains "Skipping native Maven plugin goal (parameter 'skip' is true)."
+        outputDoesNotContain "Downloaded GraalVM reachability metadata repository"
+        !file("target/graalvm-reachability-metadata").exists()
+        !file("target/classes/META-INF/native-image/org.graalvm.internal/library-with-reflection/1.5/reflect-config.json").exists()
+    }
 }

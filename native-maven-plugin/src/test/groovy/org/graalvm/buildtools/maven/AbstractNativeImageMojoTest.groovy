@@ -122,7 +122,7 @@ class AbstractNativeImageMojoTest extends Specification {
         int nativeImageMajorVersion = 25
 
         @Override
-        void execute() {
+        protected void executeInternal() {
         }
 
         @Override

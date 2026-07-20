@@ -41,6 +41,7 @@
 
 package org.graalvm.buildtools.gradle.dsl;
 
+import groovy.lang.Closure;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -71,6 +72,13 @@ public interface GraalVMExtension {
     AgentOptions getAgent();
 
     void agent(Action<? super AgentOptions> spec);
+
+    /**
+     * Configures agent options from a Groovy DSL closure. §FS-tracing-agent.2.
+     *
+     * @param spec Groovy DSL configuration
+     */
+    void agent(Closure<?> spec);
 
     DirectoryProperty getGeneratedResourcesDirectory();
 

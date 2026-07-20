@@ -179,15 +179,13 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         }
         cliArgs.addAll(options.getExcludeConfigArgs().get());
         String classpathString = buildClasspathString(options).trim();
-        if (!classpathString.isEmpty()) {
-            cliArgs.add("-cp");
-            cliArgs.add(classpathString);
-        } else if (jarsClasspath != null && !jarsClasspath.isEmpty()) {
-            // This is a shortcut in case of the creation of a layer using the "jars" mode (e.g, not package, nor modules)
-            // in which case the classpath must replicate the jars so we want to avoid that the user has to configure
-            // things twice
+        if (jarsClasspath != null && !jarsClasspath.isEmpty()) {
+            // JAR-defined layers intentionally exclude the binary classpath from the layer build. §FS-native-invocation.3.
             cliArgs.add("-cp");
             cliArgs.add(jarsClasspath.getAsPath());
+        } else if (!classpathString.isEmpty()) {
+            cliArgs.add("-cp");
+            cliArgs.add(classpathString);
         }
         appendBooleanOption(cliArgs, options.getDebug(), "-g");
         appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), NativeImageFlags.NO_FALLBACK);

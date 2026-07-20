@@ -69,7 +69,7 @@ public class WriteArgsFileMojo extends NativeCompileNoForkMojo {
     public static final String PROPERTY_NAME = "graalvm.native-image.args-file";
 
     @Override
-    public void execute() throws MojoExecutionException {
+    protected void executeInternal() throws MojoExecutionException {
         List<String> args = getBuildArgs();
 
         getLog().debug("Cleaning old native image build args");

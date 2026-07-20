@@ -50,6 +50,92 @@ import spock.lang.Unroll
 
 class JavaApplicationWithAgentFunctionalTest extends AbstractFunctionalTest {
 
+    // Groovy closures narrow instrumented tasks while preserving nested agent DSL blocks. §FS-tracing-agent.2.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/303")
+    def "direct Groovy predicate closure can disable instrumentation"() {
+        given:
+        withSample("java-application-with-reflection")
+        buildFile << """
+            graalvmNative {
+                agent {
+                    tasksToInstrumentPredicate = { t -> false }
+                    modes {
+                        conditional {
+                            parallel = false
+                        }
+                    }
+                    metadataCopy {
+                        mergeWithExisting = true
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'test', '-Pagent'
+
+        then:
+        tasks {
+            succeeded ':test'
+        }
+        !file("build/native/agent-output/test").exists()
+    }
+
+    // Explicit predicates must continue to narrow the eligible instrumented task set. §FS-tracing-agent.2.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/303")
+    def "explicit Predicate assignment remains supported"() {
+        given:
+        withSample("java-application-with-reflection")
+        buildFile << """
+            import java.util.function.Predicate
+            import org.gradle.api.Task
+
+            graalvmNative {
+                agent {
+                    Predicate<Task> predicate = { t -> false }
+                    tasksToInstrumentPredicate = predicate
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'test', '-Pagent'
+
+        then:
+        tasks {
+            succeeded ':test'
+        }
+        !file("build/native/agent-output/test").exists()
+    }
+
+    // Kotlin DSL predicates must continue to narrow the eligible instrumented task set. §FS-tracing-agent.2.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/303")
+    def "Kotlin DSL continues to configure the managed predicate property"() {
+        given:
+        kotlinSettingsFile.text = 'rootProject.name = "agent-predicate-kotlin-dsl"\n'
+        kotlinBuildFile.text = """
+            import java.util.function.Predicate
+            import org.gradle.api.Task
+
+            plugins {
+                java
+                id("org.graalvm.buildtools.native")
+            }
+
+            graalvmNative {
+                agent {
+                    tasksToInstrumentPredicate.set(Predicate<Task> { false })
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'test', '-Pagent'
+
+        then:
+        !file("build/native/agent-output/test").exists()
+    }
+
     def getCurrentJDKVersion() {
         return NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString())
     }

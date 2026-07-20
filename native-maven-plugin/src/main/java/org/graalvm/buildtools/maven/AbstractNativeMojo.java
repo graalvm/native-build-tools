@@ -43,7 +43,6 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
@@ -87,7 +86,7 @@ import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEM
 /**
  * @author Sebastien Deleuze
  */
-public abstract class AbstractNativeMojo extends AbstractMojo {
+public abstract class AbstractNativeMojo extends AbstractSkippableMojo {
     private static final String GROUP_ID = "org.graalvm.buildtools";
     private static final String GRAALVM_REACHABILITY_METADATA_ARTIFACT_ID = "graalvm-reachability-metadata";
     private static final String REPOSITORY_FORMAT = "zip";

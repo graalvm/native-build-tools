@@ -46,7 +46,6 @@ import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
-import spock.lang.Issue
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -59,37 +58,67 @@ import java.nio.charset.StandardCharsets
         { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
 )
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
-    // Layers are disabled for configuration-cache coverage pending #957 and on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.
-    @Issue("https://github.com/graalvm/native-build-tools/issues/957")
-    @IgnoreIf({ Boolean.getBoolean("config.cache") || os.windows || os.macOs })
+    // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
+    @IgnoreIf({ os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
         given:
         withSample("layered-java-application")
+        buildFile << """
+            // Layered-image configuration-cache coverage isolates layer task inputs.
+            // §E2E-functional-tests.3.6, §E2E-functional-tests.4.
+            graalvmNative.metadataRepository.enabled = false
+        """.stripIndent()
 
         when:
-        run 'nativeLibdependenciesCompile'
+        runAndReloadConfigurationCache 'nativeLibdependenciesCompile'
 
         then:
-        tasks {
-            succeeded ':nativeLibdependenciesCompile'
+        if (hasConfigurationCache) {
+            configurationCacheStoreTasks {
+                succeeded ':nativeLibdependenciesCompile'
+            }
+            tasks {
+                upToDate ':nativeLibdependenciesCompile'
+            }
+        } else {
+            tasks {
+                succeeded ':nativeLibdependenciesCompile'
+            }
         }
-        outputContains "'-H:LayerCreate' (origin(s): command line)"
+        if (hasConfigurationCache) {
+            configurationCacheStoreOutputContains "'-H:LayerCreate' (origin(s): command line)"
+        } else {
+            outputContains "'-H:LayerCreate' (origin(s): command line)"
+        }
 
         when:
-        run 'nativeRun', '-Pmessage="Hello, layered images!"'
+        runAndReloadConfigurationCache 'nativeRun', '-Pmessage="Hello, layered images!"'
 
         then:
-        tasks {
-            upToDate ':nativeLibdependenciesCompile'
-            succeeded ':nativeCompile'
+        if (hasConfigurationCache) {
+            configurationCacheStoreTasks {
+                upToDate ':nativeLibdependenciesCompile'
+                succeeded ':nativeCompile'
+            }
+            tasks {
+                upToDate ':nativeLibdependenciesCompile', ':nativeCompile'
+            }
+        } else {
+            tasks {
+                upToDate ':nativeLibdependenciesCompile'
+                succeeded ':nativeCompile'
+            }
         }
         nativeApp.exists()
 
         and:
-        outputContains "- '-H:LayerUse' (origin(s): command line)"
-        outputContains "Hello, layered images!"
+        if (hasConfigurationCache) {
+            configurationCacheStoreOutputContains "- '-H:LayerUse' (origin(s): command line)"
+        } else {
+            outputContains "- '-H:LayerUse' (origin(s): command line)"
+        }
 
         when: "Updating the application without changing the dependencies"
         file("src/main/java/org/graalvm/demo/Application.java").text = """
@@ -108,18 +137,33 @@ public class Application {
 }
 
 """
-        run 'nativeRun', '-Pmessage="Hello, layered images!"'
+        runAndReloadConfigurationCache 'nativeRun', '-Pmessage="Hello, layered images!"'
 
         then:
-        tasks {
-            // Base layer is not rebuilt
-            upToDate ':nativeLibdependenciesCompile'
-            // Application layer is recompiled
-            succeeded ':nativeCompile'
+        if (hasConfigurationCache) {
+            configurationCacheStoreTasks {
+                // Base layer is not rebuilt
+                upToDate ':nativeLibdependenciesCompile'
+                // Application layer is recompiled
+                succeeded ':nativeCompile'
+            }
+            tasks {
+                upToDate ':nativeLibdependenciesCompile', ':nativeCompile'
+            }
+        } else {
+            tasks {
+                // Base layer is not rebuilt
+                upToDate ':nativeLibdependenciesCompile'
+                // Application layer is recompiled
+                succeeded ':nativeCompile'
+            }
         }
 
-        outputContains "- '-H:LayerUse' (origin(s): command line)"
-        outputContains "Hello, layered images!"
+        if (hasConfigurationCache) {
+            configurationCacheStoreOutputContains "- '-H:LayerUse' (origin(s): command line)"
+        } else {
+            outputContains "- '-H:LayerUse' (origin(s): command line)"
+        }
     }
 
     @Ignore("Disable test temporarily because of a problem on GraalVM side")
