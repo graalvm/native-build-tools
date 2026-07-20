@@ -112,6 +112,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=libbase.nil") && it.contains("module=java.base") }
     }
 
+    // Uses declared layer JARs instead of the inherited binary classpath. §FS-native-invocation.3.
     @Issue("https://github.com/graalvm/native-build-tools/issues/957")
     def "uses layer jars instead of inherited binary classpath for layer-create build"() {
         given:
