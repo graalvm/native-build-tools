@@ -57,6 +57,8 @@ import org.graalvm.buildtools.utils.AgentUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -139,6 +141,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
 
     @Override
     public void afterProjectsRead(MavenSession session) {
+        Path defaultAccessFilter = AgentConfiguration.getDefaultAccessFilterPath(createSessionAgentConfigDirectory());
         for (MavenProject project : session.getProjects()) {
             Build build = project.getBuild();
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
@@ -148,7 +151,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
                 AgentConfiguration agent;
                 try {
-                    agent = AgentUtils.collectAgentProperties(session, configurationRoot, Path.of(target, "native", "agent-config"));
+                    agent = AgentUtils.collectAgentProperties(session, configurationRoot, defaultAccessFilter);
+                    if (agent.isEnabled()) {
+                        // Keep the eagerly created filter outside target so a later clean cannot remove it.
+                        // §FS-tracing-agent.3.1
+                        AgentConfiguration.writeDefaultAccessFilter(defaultAccessFilter);
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -211,6 +219,14 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                     instrumentedContexts.forEach(context -> logAgentOutput(target, context));
                 }
             });
+        }
+    }
+
+    static Path createSessionAgentConfigDirectory() {
+        try {
+            return Files.createTempDirectory("native-build-tools-agent-config-");
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot create the native-image-agent session configuration directory", e);
         }
     }
 

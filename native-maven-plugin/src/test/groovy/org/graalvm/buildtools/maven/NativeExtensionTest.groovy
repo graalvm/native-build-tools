@@ -50,6 +50,9 @@ import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.xml.Xpp3Dom
 import spock.lang.Specification
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 class NativeExtensionTest extends Specification {
     private static final String JUNIT_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled"
     private static final String JUNIT_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir"
@@ -113,6 +116,22 @@ class NativeExtensionTest extends Specification {
 
         expect:
         NativeExtension.quoteAgentArgumentForArgLine(agentArgument) == agentArgument
+    }
+
+    // Each Maven session uses a unique filter directory outside project build output. §FS-tracing-agent.3.1
+    void "creates unique agent configuration directories under the system temporary directory"() {
+        given:
+        Path first = NativeExtension.createSessionAgentConfigDirectory()
+        Path second = NativeExtension.createSessionAgentConfigDirectory()
+
+        expect:
+        first.parent == Path.of(System.getProperty("java.io.tmpdir")).toAbsolutePath()
+        second.parent == first.parent
+        first != second
+
+        cleanup:
+        Files.deleteIfExists(first)
+        Files.deleteIfExists(second)
     }
 
     private static Plugin plugin(String artifactId) {

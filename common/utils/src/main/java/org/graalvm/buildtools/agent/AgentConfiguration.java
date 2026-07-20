@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,7 +63,7 @@ public class AgentConfiguration implements Serializable {
     private final Boolean experimentalPredefinedClasses;
     private final Boolean experimentalUnsafeAllocationTracing;
     private final Boolean trackReflectionMetadata;
-    private final String agentConfigDir;
+    private final String defaultAccessFilterFile;
 
     private final AgentMode agentMode;
 
@@ -71,7 +72,7 @@ public class AgentConfiguration implements Serializable {
         this(null, new DisabledAgentMode());
     }
 
-    public AgentConfiguration(String agentConfigDir, AgentMode agentMode) {
+    public AgentConfiguration(String defaultAccessFilterFile, AgentMode agentMode) {
         this.callerFilterFiles = null;
         this.accessFilterFiles = null;
         this.builtinCallerFilter = null;
@@ -79,7 +80,7 @@ public class AgentConfiguration implements Serializable {
         this.experimentalPredefinedClasses = null;
         this.experimentalUnsafeAllocationTracing = null;
         this.trackReflectionMetadata = null;
-        this.agentConfigDir = agentConfigDir;
+        this.defaultAccessFilterFile = defaultAccessFilterFile;
         this.agentMode = agentMode;
     }
 
@@ -91,7 +92,7 @@ public class AgentConfiguration implements Serializable {
                               Boolean experimentalUnsafeAllocationTracing,
                               Boolean trackReflectionMetadata,
                               AgentMode agentMode,
-                              String agentConfigDir) {
+                              String defaultAccessFilterFile) {
         this.callerFilterFiles = callerFilterFiles;
         this.accessFilterFiles = accessFilterFiles;
         this.builtinCallerFilter = builtinCallerFilter;
@@ -100,18 +101,19 @@ public class AgentConfiguration implements Serializable {
         this.experimentalUnsafeAllocationTracing = experimentalUnsafeAllocationTracing;
         this.trackReflectionMetadata = trackReflectionMetadata;
         this.agentMode = agentMode;
-        this.agentConfigDir = agentConfigDir;
+        this.defaultAccessFilterFile = defaultAccessFilterFile;
     }
 
     public List<String> getAgentCommandLine() {
         if (!isEnabled()) {
             return List.of();
         }
-        List<String> cmdLine = new ArrayList<>(agentMode.getAgentCommandLine());
-        appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
+        List<String> cmdLine = new ArrayList<>();
         // The default filter precedes user filters so user rules have final precedence.
         // §FS-common-libraries.3.1.1
-        cmdLine.add("access-filter-file=" + getDefaultAccessFilter());
+        cmdLine.add("access-filter-file=" + defaultAccessFilterFile);
+        cmdLine.addAll(agentMode.getAgentCommandLine());
+        appendOptionToValues("caller-filter-file=", callerFilterFiles, cmdLine);
         appendOptionToValues("access-filter-file=", accessFilterFiles, cmdLine);
         addToCmd("builtin-caller-filter=", builtinCallerFilter, cmdLine);
         addToCmd("builtin-heuristic-filter=", builtinHeuristicFilter, cmdLine);
@@ -122,7 +124,8 @@ public class AgentConfiguration implements Serializable {
     }
 
     public Collection<String> getAgentFiles() {
-        List<String> files = new ArrayList<>(callerFilterFiles.size() + accessFilterFiles.size());
+        List<String> files = new ArrayList<>(callerFilterFiles.size() + accessFilterFiles.size() + 1);
+        files.add(defaultAccessFilterFile);
         files.addAll(callerFilterFiles);
         files.addAll(accessFilterFiles);
         files.addAll(agentMode.getInputFiles());
@@ -149,20 +152,17 @@ public class AgentConfiguration implements Serializable {
         }
     }
 
-    private String getDefaultAccessFilter() {
-        Path agentConfigDirPath = Path.of(agentConfigDir);
-        Path accessFilterFile = agentConfigDirPath.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
-        if (Files.exists(accessFilterFile)) {
-            return accessFilterFile.toString();
-        }
+    public static Path getDefaultAccessFilterPath(Path agentConfigDir) {
+        return agentConfigDir.resolve(ACCESS_FILTER_PREFIX + ACCESS_FILTER_SUFFIX);
+    }
 
+    public static void writeDefaultAccessFilter(Path accessFilterFile) {
         try (InputStream accessFilterData = AgentConfiguration.class.getResourceAsStream(DEFAULT_ACCESS_FILTER_FILE_LOCATION)) {
             if (accessFilterData == null) {
                 throw new IOException("Cannot access data from: " + DEFAULT_ACCESS_FILTER_FILE_LOCATION);
             }
-            Files.createDirectories(agentConfigDirPath);
-            Files.copy(accessFilterData, accessFilterFile);
-            return accessFilterFile.toString();
+            Files.createDirectories(accessFilterFile.getParent());
+            Files.copy(accessFilterData, accessFilterFile, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new RuntimeException("Cannot add default access-filter.json", e);
         }

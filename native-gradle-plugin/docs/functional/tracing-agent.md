@@ -41,6 +41,13 @@ Gradle-managed agent output directory so users can find collected metadata witho
 aligning with [§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient). Generated output must be suitable for later
 merge and copy steps.
 
+### 4.1 Default access filter
+
+When the agent is enabled, Gradle must generate the built-in default access filter as a declared
+task output under `build/native/agent-config` before an instrumented task runs. Configuration and
+command-line argument calculation must remain side-effect-free so generating the filter does not
+invalidate the configuration cache.
+
 ## 5. Metadata copy
 
 `metadataCopy` copies or merges agent output from configured input tasks into configured output

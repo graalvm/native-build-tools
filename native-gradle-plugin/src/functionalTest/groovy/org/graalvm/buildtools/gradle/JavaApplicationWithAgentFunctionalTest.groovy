@@ -427,6 +427,7 @@ org.gradle.java.installations.auto-download=false
         junitVersion = System.getProperty('versions.junit')
     }
 
+    // The default filter is generated as task output without invalidating the configuration cache. §FS-tracing-agent.4.1
     @Unroll("plugin supports configuration cache (JUnit Platform #junitVersion)")
     def "supports configuration cache"() {
         given:
@@ -437,12 +438,14 @@ org.gradle.java.installations.auto-download=false
 
         then:
         tasks {
-            succeeded ':run'
+            succeeded ':generateAgentAccessFilter',
+                    ':run'
             doesNotContain ':jar'
         }
 
         and:
         assert metadataExistsAt("build/native/agent-output/run")
+        file("build/native/agent-config/access-filter.json").exists()
 
         when:
         run'run', '-Pagent', '--configuration-cache', '--rerun-tasks'

@@ -52,6 +52,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -63,8 +64,10 @@ import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.s
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
 
 public class AgentConfigurationFactory {
-    public static Provider<AgentConfiguration> getAgentConfiguration(Provider<String> modeName, AgentOptions options, Provider<Directory> agentConfigDir) {
-        return modeName.zip(agentConfigDir, serializableBiFunctionOf((name, configDir) -> {
+    public static Provider<AgentConfiguration> getAgentConfiguration(Provider<String> modeName,
+                                                                     AgentOptions options,
+                                                                     Provider<RegularFile> defaultAccessFilter) {
+        return modeName.zip(defaultAccessFilter, serializableBiFunctionOf((name, accessFilter) -> {
             AgentMode agentMode;
             ConfigurableFileCollection callerFilterFiles = options.getCallerFilterFiles();
             ConfigurableFileCollection accessFilterFiles = options.getAccessFilterFiles();
@@ -96,7 +99,7 @@ public class AgentConfigurationFactory {
                     options.getEnableExperimentalUnsafeAllocationTracing().get(),
                     options.getTrackReflectionMetadata().get(),
                     agentMode,
-                    configDir.getAsFile().getAbsolutePath());
+                    accessFilter.getAsFile().getAbsolutePath());
         }));
     }
 

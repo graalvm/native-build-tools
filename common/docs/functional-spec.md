@@ -59,11 +59,15 @@ expose the same mode semantics.
 #### 3.1.1 Access-filter precedence
 
 The shared agent model must emit its built-in default access filter before every user-provided
-access-filter file, so that user configuration takes precedence over the built-in defaults.
+access-filter file, including filters supplied as raw direct-mode options, so that user
+configuration takes precedence over the built-in defaults.
 `native-image-agent` evaluates access filters in order and lets later rules override earlier ones,
 so ordering the built-in filter first leaves it as a baseline that user rules override.
 
 A disabled agent configuration must emit no agent command-line options.
+
+Constructing the agent command line must not create the built-in filter. The shared model describes
+the filter's path, while each build-tool adapter must materialize the file at a lifecycle-safe point.
 
 ### 3.2 Plugin invocation and output
 

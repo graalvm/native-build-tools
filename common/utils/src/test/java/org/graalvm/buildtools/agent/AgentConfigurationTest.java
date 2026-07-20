@@ -45,12 +45,14 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AgentConfigurationTest {
@@ -74,6 +76,7 @@ class AgentConfigurationTest {
     @Test
     void standardConfigurationEmitsDefaultAccessFilterBeforeUserAccessFilters() {
         List<String> userAccessFilters = List.of("user-1.json", "user-2.json");
+        Path defaultAccessFilter = AgentConfiguration.getDefaultAccessFilterPath(agentConfigDir);
         AgentConfiguration configuration = new AgentConfiguration(
                 List.of(),
                 new ArrayList<>(userAccessFilters),
@@ -83,7 +86,7 @@ class AgentConfigurationTest {
                 null,
                 null,
                 new StandardAgentMode(),
-                agentConfigDir.toString());
+                defaultAccessFilter.toString());
 
         List<String> cmdLine = configuration.getAgentCommandLine();
 
@@ -93,6 +96,8 @@ class AgentConfigurationTest {
 
         assertEquals(userAccessFilters.size() + 1, accessFilterOptions.size(),
                 "Expected one default access filter plus user access filters, but got: " + accessFilterOptions);
+        assertEquals(ACCESS_FILTER_OPTION + defaultAccessFilter, accessFilterOptions.get(0));
+        assertFalse(Files.exists(defaultAccessFilter), "Constructing the command line must not create the default filter");
 
         for (int i = 0; i < userAccessFilters.size(); i++) {
             assertEquals(ACCESS_FILTER_OPTION + userAccessFilters.get(i), accessFilterOptions.get(i + 1),
@@ -100,8 +105,35 @@ class AgentConfigurationTest {
         }
     }
 
+    // Raw direct-mode options must follow the built-in default without being reordered. §FS-common-libraries.3.1.1
+    @Test
+    void directConfigurationEmitsDefaultAccessFilterBeforeModeOptions() {
+        List<String> directOptions = List.of(
+                "config-output-dir=metadata",
+                "access-filter-file=direct-1.json",
+                "access-filter-file=direct-2.json");
+        Path defaultAccessFilter = AgentConfiguration.getDefaultAccessFilterPath(agentConfigDir);
+        AgentConfiguration configuration = new AgentConfiguration(
+                List.of(),
+                List.of(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                new DirectAgentMode(directOptions),
+                defaultAccessFilter.toString());
+
+        List<String> cmdLine = configuration.getAgentCommandLine();
+
+        assertEquals(ACCESS_FILTER_OPTION + defaultAccessFilter, cmdLine.get(0));
+        assertEquals(directOptions, cmdLine.subList(1, directOptions.size() + 1));
+        assertFalse(Files.exists(defaultAccessFilter), "Constructing the command line must not create the default filter");
+    }
+
     @Test
     void configurationIsSerializable() {
+        Path defaultAccessFilter = AgentConfiguration.getDefaultAccessFilterPath(agentConfigDir);
         AgentConfiguration configuration = new AgentConfiguration(
                 List.of(),
                 new ArrayList<>(List.of("user-1.json")),
@@ -111,7 +143,7 @@ class AgentConfigurationTest {
                 null,
                 null,
                 new StandardAgentMode(),
-                agentConfigDir.toString());
+                defaultAccessFilter.toString());
 
         assertDoesNotThrow(() -> {
             try (ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream())) {
