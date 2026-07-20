@@ -43,14 +43,20 @@ package org.graalvm.buildtools.utils;
 import org.graalvm.buildtools.model.resources.ClassPathEntryAnalyzer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ClassPathEntryAnalyzerTest {
+    @TempDir
+    Path temporaryDirectory;
+
     @Test
     @DisplayName("A non existent jar shouldn't cause an exception")
     public void testShouldAllowNonExistentJar() throws IOException {
@@ -71,5 +77,22 @@ public class ClassPathEntryAnalyzerTest {
                 false
         );
         assertEquals(Collections.emptyList(), analyzer.getResources());
+    }
+
+    @Test
+    @DisplayName("Directory resources should use portable path separators")
+    public void testShouldNormalizeDirectoryResourcePathSeparators() throws IOException {
+        Path resource = temporaryDirectory.resolve("org/graalvm/demo/expected.txt");
+        Files.createDirectories(resource.getParent());
+        Files.writeString(resource, "resource");
+
+        ClassPathEntryAnalyzer analyzer = ClassPathEntryAnalyzer.of(
+                temporaryDirectory.toFile(),
+                path -> true,
+                false
+        );
+
+        // Directory scanning emits portable Native Image resource names. §FS-common-libraries.2.
+        assertEquals(Collections.singletonList("org/graalvm/demo/expected.txt"), analyzer.getResources());
     }
 }

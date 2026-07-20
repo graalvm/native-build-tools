@@ -82,7 +82,7 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         and: "identifies the selected metadata repository source"
         // Gradle output identifies the selected metadata repository source. §FS-resources-and-metadata.3.
         outputContains "Using GraalVM reachability metadata repository from " +
-                file("config-directory${extension ? '.' + extension : ''}").toURI().toASCIIString()
+                file("config-directory${extension ? '.' + extension : ''}").canonicalFile.toURI().toASCIIString()
 
         and: "doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
@@ -98,8 +98,8 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
         'tar.bz2' | 'tar.bz2 file'
     }
 
-    // Protects custom binary runtime classpath and metadata exclusions. §FS-plugin-model.4
-    // §FS-native-tasks.1 §FS-resources-and-metadata.6
+    // Protects custom binary runtime classpath and metadata exclusions through argument files.
+    // §FS-plugin-model.4 §FS-native-tasks.1 §FS-native-invocation.4 §FS-resources-and-metadata.6
     @Issue("https://github.com/graalvm/native-build-tools/issues/478")
     def "custom binary uses runtime classpath and metadata exclusions"() {
         given:
@@ -107,7 +107,7 @@ class NativeConfigRepoFunctionalTest extends AbstractFunctionalTest {
 
         buildFile << """
 graalvmNative {
-    useArgFile = false
+    useArgFile = true
     binaries {
         qa {
             imageName = 'native-config-integration-qa'
@@ -128,8 +128,9 @@ graalvmNative {
 
         and:
         outputContains "Hello, from reflection!"
-        outputContains "--exclude-config"
-        outputContains "library-with-reflection-1.5.jar"
+        def nativeImageArgs = nativeImageArgsFor("nativeQaCompile")
+        nativeImageArgs.contains("--exclude-config")
+        nativeImageArgs.any { it.contains("library-with-reflection-1.5.jar") }
     }
 
     def "can exclude a dependency from native configuration"() {
@@ -246,6 +247,13 @@ project(':second') {
 
     private static File metadataConfig(Path repository) {
         repository.resolve("org.graalvm.internal/library-with-reflection/1/reflect-config.json").toFile()
+    }
+
+    private List<String> nativeImageArgsFor(String taskName) {
+        def matcher = result.output =~ /\[native-image-plugin\] Args are: \[@(.+?\.args), /
+        assert matcher.find(): "Expected native-image argument file in output"
+        Path workingDirectory = path("build", "native", taskName)
+        Files.readAllLines(workingDirectory.resolve(matcher.group(1)).normalize())
     }
 
     private File metadataOutput(String projectName) {

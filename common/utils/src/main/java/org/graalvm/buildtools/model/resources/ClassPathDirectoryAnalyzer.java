@@ -106,7 +106,8 @@ class ClassPathDirectoryAnalyzer extends ClassPathEntryAnalyzer {
                 hasNativeImageResourceFile = true;
                 return FileVisitResult.TERMINATE;
             }
-            maybeAddResource(root.relativize(file).toString(), resources);
+            // Native Image resource names use portable separators. §FS-common-libraries.2.
+            maybeAddResource(relativePathOf(file), resources);
             return FileVisitResult.CONTINUE;
         }
     }
