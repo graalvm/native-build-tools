@@ -218,6 +218,18 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         normalizeString(result.stdOut).contains(normalizeString(text))
     }
 
+    // Temp directories can be reported through equivalent aliases (macOS symlinks or Windows 8.3 paths).
+    // §E2E-functional-tests.3.5 §E2E-functional-tests.3.6
+    boolean outputContainsAbsoluteOrCanonicalPath(String prefix, File location) {
+        [location.absolutePath, location.canonicalPath].any { path -> outputContains(prefix + path) }
+    }
+
+    boolean outputContainsAbsoluteOrCanonicalUri(String prefix, File location) {
+        [location.absoluteFile, location.canonicalFile]
+                .collect { file -> file.toURI().toASCIIString() }
+                .any { uri -> outputContains(prefix + uri) }
+    }
+
     boolean outputContainsPattern(String pattern) {
         def normalizedOutput = normalizeString(result.stdOut)
         def lines = normalizedOutput.split('\n')

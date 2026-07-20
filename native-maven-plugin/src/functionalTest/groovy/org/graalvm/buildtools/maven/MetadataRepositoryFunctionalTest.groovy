@@ -68,8 +68,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         buildSucceeded
         outputContains "Hello, from reflection!"
         // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
-        outputContains "Using GraalVM reachability metadata repository from " +
-                file("config-directory").canonicalFile.toURI().toASCIIString()
+        outputContainsAbsoluteOrCanonicalUri(
+                "Using GraalVM reachability metadata repository from ",
+                file("config-directory"))
 
         and: "it doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."
@@ -125,8 +126,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         buildSucceeded
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration is forced to version 2"
         // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
-        outputContains "Using GraalVM reachability metadata repository from " +
-                file("config-directory").canonicalFile.toURI().toASCIIString()
+        outputContainsAbsoluteOrCanonicalUri(
+                "Using GraalVM reachability metadata repository from ",
+                file("config-directory"))
         outputContains "Reflection failed"
     }
 
@@ -141,8 +143,9 @@ class MetadataRepositoryFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         buildSucceeded
         outputContains "Hello, from reflection!"
         // Maven output identifies the selected metadata repository source. §FS-resources-and-metadata.2.
-        outputContains "Using GraalVM reachability metadata repository from " +
-                file("target/repo.zip").canonicalFile.toURI().toASCIIString()
+        outputContainsAbsoluteOrCanonicalUri(
+                "Using GraalVM reachability metadata repository from ",
+                file("target/repo.zip"))
 
         and: "it doesn't find a configuration directory for the current version"
         outputContains "[graalvm reachability metadata repository for org.graalvm.internal:library-with-reflection:1.5]: Configuration directory not found. Trying latest version."

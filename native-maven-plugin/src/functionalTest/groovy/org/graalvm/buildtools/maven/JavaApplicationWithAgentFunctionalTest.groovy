@@ -82,8 +82,9 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         and:
         // Instrumented execution output reports the Maven-managed agent output directory. §FS-tracing-agent.3.
-        outputContains "Instrumenting Maven test execution with the native-image-agent. Agent output: " +
-                file('target/native/agent-output/test').canonicalPath
+        outputContainsAbsoluteOrCanonicalPath(
+                "Instrumenting Maven test execution with the native-image-agent. Agent output: ",
+                file('target/native/agent-output/test'))
 
         and:
         // Agent generates files
@@ -128,8 +129,9 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         and:
         // Instrumented execution output reports the Maven-managed agent output directory. §FS-tracing-agent.3.
-        outputContains "Instrumenting Maven application execution with the native-image-agent. Agent output: " +
-                file('target/native/agent-output/main').canonicalPath
+        outputContainsAbsoluteOrCanonicalPath(
+                "Instrumenting Maven application execution with the native-image-agent. Agent output: ",
+                file('target/native/agent-output/main'))
 
         when:
         mvn'-Pnative', '-DquickBuild', '-DskipNativeTests', '-Dagent=true', 'native:metadata-copy'
