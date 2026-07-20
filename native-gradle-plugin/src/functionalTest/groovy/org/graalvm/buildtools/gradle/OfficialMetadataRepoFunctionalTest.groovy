@@ -51,6 +51,7 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
     def "the application runs when using the official metadata repository by default"() {
         given:
         withSample("metadata-repo-integration")
+        configureWindowsGraalVm25Compatibility()
         debug = true
 
         when:
@@ -89,6 +90,19 @@ class OfficialMetadataRepoFunctionalTest extends AbstractFunctionalTest {
         and: "doesn't identify a repository when metadata is disabled"
         // Disabled metadata avoids selected-repository noise. §FS-resources-and-metadata.3.
         outputDoesNotContain "Using GraalVM reachability metadata repository"
+    }
+
+    private void configureWindowsGraalVm25Compatibility() {
+        if (!System.getProperty("os.name", "").contains("Windows")) {
+            return
+        }
+        // Keeps the official-metadata scenario executable with GraalVM 25 on Windows. §E2E-functional-tests.
+        buildFile << """
+            graalvmNative.binaries.all {
+                buildArgs.add("--initialize-at-build-time=ch.qos.logback.classic.Logger")
+                buildArgs.add("--initialize-at-run-time=io.netty.handler.codec.compression.ZstdOptions")
+            }
+        """.stripIndent()
     }
 
 }
