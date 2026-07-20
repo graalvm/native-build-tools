@@ -54,7 +54,7 @@ mvn -Pnative -DquickBuild test
 
 ## 6. Surefire and Failsafe configuration
 
-To preserve the selected JVM test set required by §root/FS-native-tests.2, `native:test` and
+To preserve the selected JVM test set required by [§root/FS-native-tests.2](../../../docs/spec/functional/native-tests.md#2-test-discovery-and-registration), `native:test` and
 `native:integration-test` must read test configuration only from the execution of Maven Surefire
 or Maven Failsafe whose goal matches the native goal. That execution supplies environment variables,
 system properties, and `testClassesDirectory`; the selected directory is used for classpath assembly
