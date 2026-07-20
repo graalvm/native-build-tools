@@ -100,6 +100,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private final ObjectFactory objects;
     private final ProviderFactory providers;
     private final transient NativeImageLayerRegistry layerRegistry;
+    private final JavaLauncherProperty javaLauncher;
 
     @Override
     @Internal
@@ -231,7 +232,31 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
      */
     @Nested
     @Optional
-    public abstract Property<JavaLauncher> getJavaLauncher();
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher.getProperty();
+    }
+
+    /**
+     * Installs the plugin-provided convention launcher on the javaLauncher property.
+     * Provenance is tracked by the property proxy: a user's explicit {@code set}/{@code value}
+     * marks the value non-convention-sourced; installing or consulting the convention never does.
+     * §FS-native-invocation.1.2
+     */
+    public void setJavaLauncherConvention(Provider<JavaLauncher> convention) {
+        // Goes through the proxied property so the provenance flag stays in sync.
+        javaLauncher.getProperty().convention(convention);
+    }
+
+    /**
+     * Returns whether the binary's javaLauncher was assigned explicitly by the user
+     * rather than supplied by the plugin-installed convention (§FS-native-invocation.1.1).
+     * Resolving this provider resolves the property, so it must be read at execution time,
+     * never during configuration, where resolving the convention can trigger toolchain
+     * detection. §FS-native-invocation.1.2
+     */
+    public Provider<Boolean> getJavaLauncherExplicit() {
+        return javaLauncher.explicit();
+    }
 
     /**
      * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
@@ -295,6 +320,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         this.objects = objectFactory;
         this.providers = providers;
         this.layerRegistry = layerRegistry;
+        this.javaLauncher = JavaLauncherProperty.of(objectFactory.property(JavaLauncher.class), providers);
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {

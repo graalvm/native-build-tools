@@ -91,7 +91,54 @@ class MergeAgentFilesActionTest extends Specification {
                 { [new File(fakeGraalVmHome, "agent-input").absolutePath] },
                 { [new File(fakeGraalVmHome, "agent-output").absolutePath] },
                 project.provider { false },
-                execOperations)
+                project.provider { false },
+                execOperations,
+                project.providers.provider { environmentGraalVmHome.absolutePath },
+                project.providers.provider { null },
+                project.providers.provider { null })
+
+        when:
+        action.execute(task)
+
+        then:
+        noExceptionThrown()
+        0 * execOperations.exec(_)
+    }
+
+    // §FS-native-invocation.1.3: fallback candidates must come from the same environment providers the task models as inputs.
+    def "derives fallback candidates from the injected environment providers"() {
+        given:
+        def project = ProjectBuilder.builder()
+                .withProjectDir(testDirectory.resolve("project").toFile())
+                .build()
+        def emptyGraalVmHome = testDirectory.resolve("empty-graalvm").toFile()
+        def emptyGraalVmBin = new File(emptyGraalVmHome, "bin")
+        assert emptyGraalVmBin.mkdirs()
+        def environmentGraalVmHome = testDirectory.resolve("environment-graalvm").toFile()
+        def environmentGraalVmBin = new File(environmentGraalVmHome, "bin")
+        assert environmentGraalVmBin.mkdirs()
+        assert new File(environmentGraalVmBin, NATIVE_IMAGE_EXE).createNewFile()
+        assert new File(environmentGraalVmBin, nativeImageConfigureFileName()).createNewFile()
+
+        def javaLauncher = project.objects.property(JavaLauncher)
+        def task = project.tasks.create("mergeAgentFiles")
+        def execOperations = Mock(ExecOperations)
+
+        def action = new MergeAgentFilesAction(
+                project.provider { true },
+                project.provider { new DisabledAgentMode() },
+                project.provider { false },
+                project.objects,
+                javaLauncher,
+                project.provider { emptyGraalVmHome.absolutePath },
+                { [new File(environmentGraalVmHome, "agent-input").absolutePath] },
+                { [new File(environmentGraalVmHome, "agent-output").absolutePath] },
+                project.provider { false },
+                project.provider { false },
+                execOperations,
+                project.providers.provider { environmentGraalVmHome.absolutePath },
+                project.providers.provider { null },
+                project.providers.provider { null })
 
         when:
         action.execute(task)
