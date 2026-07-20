@@ -205,7 +205,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         tasks {
             succeeded ':nativeCompile'
         }
-        outputContains expectedColorArgument
+        nativeImageInvocationContains('nativeCompile', expectedColorArgument)
 
         where:
         console | expectedColorArgument
@@ -390,6 +390,19 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         }
         outputContains "--pgo="
         outputContains "PGO: user-provided"
+    }
+
+    // Windows keeps Native Image options in an argument file by default. §FS-native-invocation.3.
+    private boolean nativeImageInvocationContains(String taskName, String expectedArgument) {
+        if (outputContains(expectedArgument)) {
+            return true
+        }
+        def matcher = result.output =~ /\[native-image-plugin\] Args are: \[@(.+?\.args), /
+        if (!matcher.find()) {
+            return false
+        }
+        def workingDirectory = path('build', 'native', taskName)
+        Files.readAllLines(workingDirectory.resolve(matcher.group(1)).normalize()).contains(expectedArgument)
     }
 
 }

@@ -205,8 +205,9 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
                     </execution>
                 </executions>
             </plugin>'''
-        assert pom.text.contains(buildStart)
-        pom.text = pom.text.replace(buildStart, configuredBuildStart)
+        def pomText = pom.text.replace('\r\n', '\n')
+        assert pomText.contains(buildStart)
+        pom.text = pomText.replace(buildStart, configuredBuildStart)
     }
 
     private static void assertResourcePatterns(File configFile, List<String> expectedPatterns) {
