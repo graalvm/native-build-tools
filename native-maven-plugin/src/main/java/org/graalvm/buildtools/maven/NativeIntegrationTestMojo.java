@@ -46,7 +46,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
 /**
- * This goal builds and runs native integration tests.
+ * This goal builds and runs native integration tests. §FS-native-tests.6.
  *
  * @author Jonathan Knight
  */

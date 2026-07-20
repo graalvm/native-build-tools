@@ -170,6 +170,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 List<String> plugins = List.of("maven-surefire-plugin", "maven-failsafe-plugin");
                 for (String pluginName : plugins) {
                     withPlugin(build, pluginName, plugin -> {
+                        // Keep each test provider's selected test IDs isolated. §FS-native-tests.6.
                         String testIdsDir = testIdsDirectory(target, plugin.getArtifactId());
                         configureJunitListener(plugin, testIdsDir);
                         if (agent.isEnabled()) {
