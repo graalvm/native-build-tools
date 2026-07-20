@@ -29,8 +29,6 @@ the binary's dependency graph. When no URI or version is pinned, the Gradle defa
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 Normal Gradle output must identify the selected metadata repository version
 or, when a version is not known for a local path or arbitrary URL, the selected repository source.
-File entries in `excludeConfig` must use portable separators in their Native Image regular-expression
-arguments so custom binary builds work on every supported platform.
 For a local repository source, that output must use its canonical file URI so filesystem aliases
 do not make the reported location ambiguous across supported platforms.
 This keeps important integration state visible without flooding build logs, as required by

@@ -205,6 +205,9 @@ class JavaApplicationWithResourcesFunctionalTest extends AbstractGraalVMMavenFun
                     </execution>
                 </executions>
             </plugin>'''
+        def lineSeparator = pom.text.contains("\r\n") ? "\r\n" : "\n"
+        buildStart = buildStart.replace("\n", lineSeparator)
+        configuredBuildStart = configuredBuildStart.replace("\n", lineSeparator)
         assert pom.text.contains(buildStart)
         pom.text = pom.text.replace(buildStart, configuredBuildStart)
     }
