@@ -394,7 +394,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
 
     // Windows keeps Native Image options in an argument file by default. §FS-native-invocation.3.
     private boolean nativeImageInvocationContains(String taskName, String expectedArgument) {
-        if (outputContains(expectedArgument)) {
+        if (result.output.contains(expectedArgument)) {
             return true
         }
         def matcher = result.output =~ /\[native-image-plugin\] Args are: \[@(.+?\.args), /
