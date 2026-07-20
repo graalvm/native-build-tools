@@ -253,6 +253,10 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             Xpp3Dom dom = (Xpp3Dom) configuration;
             environment = applyPluginProperties(dom.getChild("environmentVariables"), environment);
             systemProperties = applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+            // This JVM-agent marker is invalid in the native-image build process. §FS-native-tests.6.
+            if (systemProperties != null) {
+                systemProperties.remove("org.graalvm.nativeimage.imagecode");
+            }
             Xpp3Dom testClasses = dom.getChild("testClassesDirectory");
             if (testClasses != null && testClasses.getValue() != null && !testClasses.getValue().isBlank()) {
                 testClassesDirectory = new File(testClasses.getValue());
