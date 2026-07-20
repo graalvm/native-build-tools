@@ -191,6 +191,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         withSample("java-application")
         buildFile << """
             graalvmNative {
+                useArgFile = true
                 binaries.all {
                     richOutput = true
                     verbose = true
@@ -392,7 +393,7 @@ class JavaApplicationFunctionalTest extends AbstractFunctionalTest {
         outputContains "PGO: user-provided"
     }
 
-    // Windows keeps Native Image options in an argument file by default. §FS-native-invocation.3.
+    // This scenario uses an argument file so console-color assertions are deterministic on every OS. §FS-native-invocation.3.
     private boolean nativeImageInvocationContains(String taskName, String expectedArgument) {
         if (result.output.contains(expectedArgument)) {
             return true
