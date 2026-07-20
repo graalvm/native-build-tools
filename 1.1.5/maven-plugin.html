@@ -477,6 +477,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#native-image-options">Native Image Options</a></li>
 </ul>
 </li>
+<li><a href="#resources">Resources</a></li>
 <li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a>
 <ul class="sectlevel2">
 <li><a href="#agent-support-enabling">Enabling the Agent</a></li>
@@ -911,6 +912,54 @@ Defaults to <code>java-agent</code>.</p>
 </td>
 </tr>
 </table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="resources"><a class="anchor" href="#resources"></a>Resources</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To include classpath resources in a native image, configure resource patterns and run
+<code>generateResourceConfig</code> before the native build goal. For example, the following execution
+includes <code>application.properties</code> and creates the native image during the <code>package</code> phase:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;executions&gt;
+    &lt;execution&gt;
+      &lt;id&gt;build-native&lt;/id&gt;
+      &lt;phase&gt;package&lt;/phase&gt;
+      &lt;goals&gt;
+        &lt;goal&gt;generateResourceConfig&lt;/goal&gt;
+        &lt;goal&gt;compile-no-fork&lt;/goal&gt;
+      &lt;/goals&gt;
+    &lt;/execution&gt;
+  &lt;/executions&gt;
+  &lt;configuration&gt;
+    &lt;resourceIncludedPatterns&gt;
+      &lt;pattern&gt;application.properties&lt;/pattern&gt;
+    &lt;/resourceIncludedPatterns&gt;
+  &lt;/configuration&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>generateResourceConfig</code> writes the configuration to
+<em>target/native/generated/generateResourceConfig/resource-config.json</em>. The following
+<code>compile-no-fork</code> goal automatically consumes that generated configuration when it builds the
+native image.</p>
+</div>
+<div class="paragraph">
+<p>To detect resources automatically instead of listing patterns, enable autodetection when running
+the same execution:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mvnw -Pnative -Dresources.autodetection.enabled=true package</code></pre>
 </div>
 </div>
 </div>
