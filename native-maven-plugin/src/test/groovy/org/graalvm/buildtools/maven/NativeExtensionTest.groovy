@@ -48,6 +48,7 @@ import org.apache.maven.model.PluginExecution
 import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.xml.Xpp3Dom
+import org.graalvm.buildtools.agent.AgentConfiguration
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -118,7 +119,7 @@ class NativeExtensionTest extends Specification {
         NativeExtension.quoteAgentArgumentForArgLine(agentArgument) == agentArgument
     }
 
-    // Each Maven session uses a unique filter directory outside project build output. §FS-tracing-agent.3.1
+    // Enabled Maven sessions use a temporary filter directory and remove it at session end. §FS-tracing-agent.3.1
     void "creates unique agent configuration directories under the system temporary directory"() {
         given:
         Path first = NativeExtension.createSessionAgentConfigDirectory()
@@ -128,10 +129,14 @@ class NativeExtensionTest extends Specification {
         first.parent == Path.of(System.getProperty("java.io.tmpdir")).toAbsolutePath()
         second.parent == first.parent
         first != second
+        !Files.exists(AgentConfiguration.getDefaultAccessFilterPath(first))
 
         cleanup:
-        Files.deleteIfExists(first)
-        Files.deleteIfExists(second)
+        AgentConfiguration.writeDefaultAccessFilter(AgentConfiguration.getDefaultAccessFilterPath(first))
+        NativeExtension.deleteSessionAgentConfigDirectory(first)
+        assert !Files.exists(first)
+
+        NativeExtension.deleteSessionAgentConfigDirectory(second)
     }
 
     private static Plugin plugin(String artifactId) {

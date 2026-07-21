@@ -36,7 +36,8 @@ without debug logging, aligning with
 Maven must materialize the built-in default access filter in a unique per-session directory under
 `java.io.tmpdir` before configuring instrumented executions. The filter must remain outside the
 project build directory so a later `clean` lifecycle phase cannot delete a path already injected
-into test or application JVM arguments.
+into test or application JVM arguments. Maven must create this directory only for enabled agent
+configurations and must remove the filter and its directory when the Maven session ends.
 
 ## 4. Merge and copy
 
