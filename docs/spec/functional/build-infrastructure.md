@@ -76,6 +76,10 @@ settings, Maven publication repositories and POM metadata, shared version catalo
 Checkstyle configuration, documentation rendering, Gradle functional-test wiring, and common local
 repository exposure for composite builds.
 
+The shared Java convention must configure every Javadoc task to run all doclint checks except the
+missing-documentation category. Missing API comments and missing `@param`, `@return`, and `@throws`
+tags must not produce warnings, while all other doclint categories remain enabled.
+
 Convention plugins may add tasks and configurations to modules that apply them. Those additions
 are maintainer-facing build behavior, not runtime behavior of the Native Build Tools plugins.
 

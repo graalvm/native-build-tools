@@ -78,8 +78,10 @@ extensions.findByType<VersionCatalogsExtension>()?.also { catalogs ->
     }
 }
 
-tasks.javadoc {
+// Shared Javadoc validation keeps every non-missing doclint check enabled. §FS-build-infrastructure.2.1.
+tasks.withType<Javadoc>().configureEach {
     (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
+    (options as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:all,-missing", true)
     (options as StandardJavadocDocletOptions).noTimestamp(true)
 }
 
