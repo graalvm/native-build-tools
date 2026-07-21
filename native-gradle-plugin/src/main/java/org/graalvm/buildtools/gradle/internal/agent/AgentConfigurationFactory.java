@@ -52,6 +52,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -59,12 +60,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.utils.SharedConstants.AGENT_OUTPUT_FOLDER;
 
 public class AgentConfigurationFactory {
-    public static Provider<AgentConfiguration> getAgentConfiguration(Provider<String> modeName, AgentOptions options) {
-        return modeName.map(serializableTransformerOf(name -> {
+    public static Provider<AgentConfiguration> getAgentConfiguration(Provider<String> modeName,
+                                                                     AgentOptions options,
+                                                                     Provider<RegularFile> defaultAccessFilter) {
+        return modeName.zip(defaultAccessFilter, serializableBiFunctionOf((name, accessFilter) -> {
             AgentMode agentMode;
             ConfigurableFileCollection callerFilterFiles = options.getCallerFilterFiles();
             ConfigurableFileCollection accessFilterFiles = options.getAccessFilterFiles();
@@ -95,7 +98,8 @@ public class AgentConfigurationFactory {
                     options.getEnableExperimentalPredefinedClasses().get(),
                     options.getEnableExperimentalUnsafeAllocationTracing().get(),
                     options.getTrackReflectionMetadata().get(),
-                    agentMode);
+                    agentMode,
+                    accessFilter.getAsFile().getAbsolutePath());
         }));
     }
 

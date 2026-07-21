@@ -57,6 +57,9 @@ import org.graalvm.buildtools.utils.AgentUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -83,6 +86,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     private static final String DEFAULT_AGENT_EXECUTION_ID = "java-agent";
 
     private static Logger logger;
+
+    private Path sessionAgentConfigDirectory;
 
     @Override
     public void enableLogging(Logger logger) {
@@ -147,7 +152,12 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
                 AgentConfiguration agent;
                 try {
-                    agent = AgentUtils.collectAgentProperties(session, configurationRoot);
+                    agent = AgentUtils.collectAgentProperties(session, configurationRoot, this::defaultAccessFilter);
+                    if (agent.isEnabled()) {
+                        // Keep the generated filter outside target so a later clean cannot remove it.
+                        // §FS-tracing-agent.3.1
+                        AgentConfiguration.writeDefaultAccessFilter(defaultAccessFilter());
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -211,6 +221,41 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 }
             });
         }
+    }
+
+    static Path createSessionAgentConfigDirectory() {
+        try {
+            return Files.createTempDirectory("native-build-tools-agent-config-");
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot create the native-image-agent session configuration directory", e);
+        }
+    }
+
+    private Path defaultAccessFilter() {
+        if (sessionAgentConfigDirectory == null) {
+            sessionAgentConfigDirectory = createSessionAgentConfigDirectory();
+        }
+        return AgentConfiguration.getDefaultAccessFilterPath(sessionAgentConfigDirectory);
+    }
+
+    @Override
+    public void afterSessionEnd(MavenSession session) {
+        if (sessionAgentConfigDirectory == null) {
+            return;
+        }
+        try {
+            deleteSessionAgentConfigDirectory(sessionAgentConfigDirectory);
+        } catch (IOException e) {
+            logger.warn("Cannot delete native-image-agent session configuration directory " + sessionAgentConfigDirectory + ".", e);
+        } finally {
+            sessionAgentConfigDirectory = null;
+        }
+    }
+
+    // Deletes the filter before its parent directory so each enabled session leaves no temporary state. §FS-tracing-agent.3.1
+    static void deleteSessionAgentConfigDirectory(Path agentConfigDirectory) throws IOException {
+        Files.deleteIfExists(AgentConfiguration.getDefaultAccessFilterPath(agentConfigDirectory));
+        Files.deleteIfExists(agentConfigDirectory);
     }
 
     static String mainAgentExecutionId(Xpp3Dom configurationRoot) {

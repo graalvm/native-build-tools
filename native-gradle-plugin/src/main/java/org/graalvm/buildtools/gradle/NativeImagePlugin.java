@@ -60,6 +60,7 @@ import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.GenerateAgentAccessFilter;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.ListLibrariesMissingMetadata;
@@ -244,10 +245,18 @@ public class NativeImagePlugin implements Plugin<Project> {
             logger.log("Not instrumenting tasks with native-image-agent because the agent is disabled.");
             return;
         }
+        TaskProvider<GenerateAgentAccessFilter> defaultAccessFilter = project.getTasks().register(
+                "generateAgentAccessFilter",
+                GenerateAgentAccessFilter.class,
+                task -> {
+                    task.setDescription("Generates the native-image-agent built-in access filter.");
+                    task.getOutputFile().convention(project.getLayout().getBuildDirectory()
+                            .file("native/agent-config/access-filter.json"));
+                });
         Predicate<? super Task> taskPredicate = graalExtension.getAgent().getTasksToInstrumentPredicate().getOrElse(serializablePredicateOf(t -> true));
         project.getTasks().configureEach(t -> {
             if (isTaskInstrumentableByAgent(t) && taskPredicate.test(t)) {
-                configureAgent(project, agentMode, graalExtension, getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
+                configureAgent(project, agentMode, graalExtension, defaultAccessFilter, getExecOperations(), getFileOperations(), t, (JavaForkOptions) t);
             } else {
                 String reason;
                 if (isTaskInstrumentableByAgent(t)) {
@@ -1107,11 +1116,15 @@ public class NativeImagePlugin implements Plugin<Project> {
     private void configureAgent(Project project,
                                 Provider<String> agentMode,
                                 GraalVMExtension graalExtension,
+                                TaskProvider<GenerateAgentAccessFilter> defaultAccessFilter,
                                 ExecOperations execOperations,
                                 FileSystemOperations fileOperations,
                                 Task taskToInstrument,
                                 JavaForkOptions javaForkOptions) {
-        Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(agentMode, graalExtension.getAgent());
+        Provider<AgentConfiguration> agentConfiguration = AgentConfigurationFactory.getAgentConfiguration(
+                agentMode,
+                graalExtension.getAgent(),
+                defaultAccessFilter.flatMap(GenerateAgentAccessFilter::getOutputFile));
         Provider<Directory> outputDir = AgentConfigurationFactory.getAgentOutputDirectoryForTask(project.getLayout(), taskToInstrument.getName());
         Provider<JavaLauncher> javaLauncherForAgent = javaLauncherForAgent(project.getProviders());
         // Agent runs prefer an available GraalVM Java without replacing task configuration with a regular JAVA_HOME. §FS-tracing-agent.2.1
@@ -1157,6 +1170,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         cliProvider.getOutputDirectory().set(outputDir);
         cliProvider.getAgentOptions().set(agentConfiguration.map(serializableTransformerOf(AgentConfiguration::getAgentCommandLine)));
         javaForkOptions.getJvmArgumentProviders().add(cliProvider);
+        // The generated filter is a declared output and is materialized only during task execution. §FS-tracing-agent.4.1
+        taskToInstrument.dependsOn(defaultAccessFilter);
 
         taskToInstrument.doLast(new MergeAgentFilesAction(
             isMergingEnabled,

@@ -51,9 +51,11 @@ import org.graalvm.buildtools.agent.ConditionalAgentMode;
 import org.graalvm.buildtools.agent.AgentConfiguration;
 
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.utils.Utils.parseBoolean;
@@ -117,13 +119,13 @@ public abstract class AgentUtils {
         return agentMode;
     }
 
-    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode) throws RuntimeException {
+    public static AgentConfiguration collectAgentProperties(MavenSession session, Xpp3Dom rootNode, Supplier<Path> defaultAccessFilter) throws RuntimeException {
         Xpp3Dom agent = Xpp3DomParser.getTagByName(rootNode, "agent");
         if (agent == null) {
             Boolean agentEnabledInCmd = isAgentEnabledInCmd(session);
             if (agentEnabledInCmd != null && agentEnabledInCmd) {
                 // if agent is only enabled from command line but there is no configuration in pom.xml, we use default options
-                return new AgentConfiguration(new StandardAgentMode());
+                return new AgentConfiguration(defaultAccessFilter.get().toString(), new StandardAgentMode());
             } else {
                 return new AgentConfiguration();
             }
@@ -151,9 +153,13 @@ public abstract class AgentUtils {
             throw new RuntimeException("Agent mode configuration error. Reason: " + e.getMessage());
         }
 
+        if (mode instanceof DisabledAgentMode) {
+            return new AgentConfiguration();
+        }
+
         return new AgentConfiguration(callerFilterFiles, accessFilterFiles, builtinCallerFilter,
                 builtinHeuristicFilter, enableExperimentalPredefinedClasses, enableExperimentalUnsafeAllocationTracing,
-                trackReflectionMetadata, mode);
+                trackReflectionMetadata, mode, defaultAccessFilter.get().toString());
     }
 
     public static List<String> getDisabledStages(Xpp3Dom rootNode) {

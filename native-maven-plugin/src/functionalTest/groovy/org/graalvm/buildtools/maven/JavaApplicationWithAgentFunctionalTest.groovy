@@ -73,8 +73,8 @@ class JavaApplicationWithAgentFunctionalTest extends AbstractGraalVMMavenFunctio
 
         when:
         // Run Maven in debug mode (-X) in order to capture the command line arguments
-        // used to launch Surefire with the agent.
-        mvnDebug '-Pnative', '-DquickBuild', 'test', '-Dagent=true', '-DskipNativeTests'
+        // used to launch Surefire with the agent. Clean must not delete the eagerly generated filter. §FS-tracing-agent.3.1
+        mvnDebug '-Pnative', '-DquickBuild', 'clean', 'test', '-Dagent=true', '-DskipNativeTests'
 
         then:
         // Agent is used with Surefire

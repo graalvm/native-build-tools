@@ -48,7 +48,11 @@ import org.apache.maven.model.PluginExecution
 import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.util.cli.CommandLineUtils
 import org.codehaus.plexus.util.xml.Xpp3Dom
+import org.graalvm.buildtools.agent.AgentConfiguration
 import spock.lang.Specification
+
+import java.nio.file.Files
+import java.nio.file.Path
 
 class NativeExtensionTest extends Specification {
     private static final String JUNIT_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled"
@@ -113,6 +117,26 @@ class NativeExtensionTest extends Specification {
 
         expect:
         NativeExtension.quoteAgentArgumentForArgLine(agentArgument) == agentArgument
+    }
+
+    // Enabled Maven sessions use a temporary filter directory and remove it at session end. §FS-tracing-agent.3.1
+    void "creates unique agent configuration directories under the system temporary directory"() {
+        given:
+        Path first = NativeExtension.createSessionAgentConfigDirectory()
+        Path second = NativeExtension.createSessionAgentConfigDirectory()
+
+        expect:
+        first.parent == Path.of(System.getProperty("java.io.tmpdir")).toAbsolutePath()
+        second.parent == first.parent
+        first != second
+        !Files.exists(AgentConfiguration.getDefaultAccessFilterPath(first))
+
+        cleanup:
+        AgentConfiguration.writeDefaultAccessFilter(AgentConfiguration.getDefaultAccessFilterPath(first))
+        NativeExtension.deleteSessionAgentConfigDirectory(first)
+        assert !Files.exists(first)
+
+        NativeExtension.deleteSessionAgentConfigDirectory(second)
     }
 
     private static Plugin plugin(String artifactId) {
