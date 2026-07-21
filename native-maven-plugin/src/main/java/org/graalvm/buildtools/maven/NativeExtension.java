@@ -76,6 +76,7 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.getNati
 public class NativeExtension extends AbstractMavenLifecycleParticipant implements LogEnabled {
 
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled";
+    private static final String JUNIT_PLATFORM_DRY_RUN_ENABLED = "junit.platform.execution.dryRun.enabled";
     private static final String JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir";
     private static final String NATIVEIMAGE_IMAGECODE = "org.graalvm.nativeimage.imagecode";
     private static final String SYSTEM_PROPERTY_VARIABLES = "systemPropertyVariables";
@@ -153,11 +154,16 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 }
                 Set<Context> instrumentedContexts = EnumSet.noneOf(Context.class);
 
+                boolean skipJVMTests = shouldSkipJVMTests(session);
+                if (skipJVMTests && agent.isEnabled()) {
+                    throw new IllegalStateException("Native Image Agent and skipJVMTests cannot be used at the same time.");
+                }
+
                 // Test configuration
                 List<String> plugins = List.of("maven-surefire-plugin", "maven-failsafe-plugin");
                 for (String pluginName : plugins) {
                     withPlugin(build, pluginName, plugin -> {
-                        configureJunitListener(plugin, testIdsDir);
+                        configureJunitListener(plugin, testIdsDir, skipJVMTests);
                         if (agent.isEnabled()) {
                             List<String> agentOptions = agent.getAgentCommandLine();
                             if (configureAgentForPlugin(plugin, buildAgentArgument(target, Context.test, agentOptions))) {
@@ -223,6 +229,11 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         return DEFAULT_AGENT_EXECUTION_ID;
     }
 
+    private static boolean shouldSkipJVMTests(MavenSession session) {
+        String option = session.getSystemProperties().getProperty(SharedConstants.SKIP_JVM_TESTS);
+        return (option != null && option.isEmpty()) || Boolean.parseBoolean(option);
+    }
+
     private static void setupMergeAgentFiles(PluginExecution exec, Xpp3Dom configuration, Context context) {
         List<String> goals = new ArrayList<>();
         goals.add("merge-agent-files");
@@ -265,12 +276,17 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         logger.info("Instrumenting Maven " + execution + " execution with the native-image-agent. Agent output: " + outputDirectory);
     }
 
-    private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir) {
+    private static void configureJunitListener(Plugin surefirePlugin, String testIdsDir, boolean skipJVMTests) {
         updatePluginConfiguration(surefirePlugin, (exec, configuration) -> {
             Xpp3Dom systemPropertyVariables = findOrAppend(configuration, SYSTEM_PROPERTY_VARIABLES);
             Xpp3Dom junitTracking = findOrAppend(systemPropertyVariables, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_ENABLED);
             Xpp3Dom testIdsProperty = findOrAppend(systemPropertyVariables, JUNIT_PLATFORM_LISTENERS_UID_TRACKING_OUTPUT_DIR);
             junitTracking.setValue("true");
+
+            if (skipJVMTests) {
+                Xpp3Dom junitDryRun = findOrAppend(systemPropertyVariables, JUNIT_PLATFORM_DRY_RUN_ENABLED);
+                junitDryRun.setValue("true");
+            }
             testIdsProperty.setValue(testIdsDir);
         });
     }

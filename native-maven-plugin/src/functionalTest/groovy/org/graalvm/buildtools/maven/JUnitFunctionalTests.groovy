@@ -67,4 +67,34 @@ class JUnitFunctionalTests extends AbstractGraalVMMavenFunctionalTest {
 [         0 tests failed          ]
 """.trim()
     }
+
+    def "test if JUint support works when JVM tests are skipped"() {
+        withSample("junit-tests")
+
+        when:
+        mvn '-DquickBuild', '-DskipJVMTests', '-Pnative', 'test'
+
+        then:
+        buildSucceeded
+        outputDoesNotContain "[junit-platform-native] WARNING: Trying to find test-ids on default locations"
+        outputContains "[junit-platform-native] Running in 'test listener' mode"
+        outputContainsPattern "Tests run: 4, Failures: 0, Errors: 0, Skipped: 4, .* - in tests.ComplexTest"
+        outputContainsPattern "Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, .* - in tests.OrderTests"
+        outputContainsPattern "Tests run: 14, Failures: 0, Errors: 0, Skipped: 14, .* - in tests.JUnitAnnotationsTests"
+        outputContainsPattern "Tests run: 3, Failures: 0, Errors: 0, Skipped: 3, .* - in tests.VintageTests"
+        outputContains """
+[        10 containers found      ]
+[         0 containers skipped    ]
+[        10 containers started    ]
+[         0 containers aborted    ]
+[        10 containers successful ]
+[         0 containers failed     ]
+[        24 tests found           ]
+[         1 tests skipped         ]
+[        23 tests started         ]
+[         0 tests aborted         ]
+[        23 tests successful      ]
+[         0 tests failed          ]
+""".trim()
+    }
 }
