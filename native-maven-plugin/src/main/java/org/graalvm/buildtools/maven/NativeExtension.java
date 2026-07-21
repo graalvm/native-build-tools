@@ -217,7 +217,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                             })
                     );
                     updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
-                        Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
+                        Context context = contextForNativeExecution(exec);
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
                         setupMergeAgentFiles(exec, configuration, context);
@@ -261,6 +261,17 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     static void deleteSessionAgentConfigDirectory(Path agentConfigDirectory) throws IOException {
         Files.deleteIfExists(AgentConfiguration.getDefaultAccessFilterPath(agentConfigDirectory));
         Files.deleteIfExists(agentConfigDirectory);
+    }
+
+    /**
+     * Resolves the tracing-agent context for a native plugin execution. §FS-tracing-agent.3.
+     */
+    static Context contextForNativeExecution(PluginExecution execution) {
+        return execution.getGoals().stream().anyMatch(NativeExtension::isNativeTestGoal) ? Context.test : Context.main;
+    }
+
+    private static boolean isNativeTestGoal(String goal) {
+        return NativeTestMojo.TEST_GOAL.equals(goal) || NativeTestMojo.INTEGRATION_TEST_GOAL.equals(goal);
     }
 
     static String mainAgentExecutionId(Xpp3Dom configurationRoot) {
