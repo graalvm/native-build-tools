@@ -106,6 +106,10 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
         return baseDir + File.separator + "test-ids";
     }
 
+    static String testIdsDirectory(String baseDir, String pluginName) {
+        return baseDir + File.separator + pluginName + "-test-ids";
+    }
+
     static String buildAgentArgument(String baseDir, Context context, List<String> agentOptions) {
         List<String> options = new ArrayList<>(agentOptions);
         String effectiveOutputDir = agentOutputDirectoryFor(baseDir, context);
@@ -147,7 +151,6 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
             Build build = project.getBuild();
             withPlugin(build, "native-maven-plugin", nativePlugin -> {
                 String target = build.getDirectory();
-                String testIdsDir = testIdsDirectory(target);
 
                 Xpp3Dom configurationRoot = (Xpp3Dom) nativePlugin.getConfiguration();
                 AgentConfiguration agent;
@@ -167,6 +170,8 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                 List<String> plugins = List.of("maven-surefire-plugin", "maven-failsafe-plugin");
                 for (String pluginName : plugins) {
                     withPlugin(build, pluginName, plugin -> {
+                        // Keep each test provider's selected test IDs isolated. §FS-native-tests.6.
+                        String testIdsDir = testIdsDirectory(target, plugin.getArtifactId());
                         configureJunitListener(plugin, testIdsDir);
                         if (agent.isEnabled()) {
                             List<String> agentOptions = agent.getAgentCommandLine();
@@ -212,7 +217,7 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
                             })
                     );
                     updatePluginConfiguration(nativePlugin, (exec, configuration) -> {
-                        Context context = exec.getGoals().stream().anyMatch("test"::equals) ? Context.test : Context.main;
+                        Context context = contextForNativeExecution(exec);
                         Xpp3Dom agentResourceDirectory = findOrAppend(configuration, "agentResourceDirectory");
                         agentResourceDirectory.setValue(agentOutputDirectoryFor(target, context));
                         setupMergeAgentFiles(exec, configuration, context);
@@ -256,6 +261,17 @@ public class NativeExtension extends AbstractMavenLifecycleParticipant implement
     static void deleteSessionAgentConfigDirectory(Path agentConfigDirectory) throws IOException {
         Files.deleteIfExists(AgentConfiguration.getDefaultAccessFilterPath(agentConfigDirectory));
         Files.deleteIfExists(agentConfigDirectory);
+    }
+
+    /**
+     * Resolves the tracing-agent context for a native plugin execution. §FS-tracing-agent.3.
+     */
+    static Context contextForNativeExecution(PluginExecution execution) {
+        return execution.getGoals().stream().anyMatch(NativeExtension::isNativeTestGoal) ? Context.test : Context.main;
+    }
+
+    private static boolean isNativeTestGoal(String goal) {
+        return NativeTestMojo.TEST_GOAL.equals(goal) || NativeTestMojo.INTEGRATION_TEST_GOAL.equals(goal);
     }
 
     static String mainAgentExecutionId(Xpp3Dom configurationRoot) {

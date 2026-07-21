@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,30 +39,20 @@
  * SOFTWARE.
  */
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+package org.graalvm.buildtools.maven;
 
-repositories {
-    mavenCentral()
-}
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
-
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-    .get()
-
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-    // Maven Failsafe owns the integration-test fixture. §maven/FS-native-tests.6.
-    exclude "**/*IT.class"
+/**
+ * This goal builds and runs native integration tests. §FS-native-tests.6.
+ *
+ * @author Jonathan Knight
+ */
+@Mojo(name = NativeIntegrationTestMojo.INTEGRATION_TEST_GOAL,
+        defaultPhase = LifecyclePhase.INTEGRATION_TEST, threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.TEST,
+        requiresDependencyCollection = ResolutionScope.TEST)
+public class NativeIntegrationTestMojo extends NativeTestMojo {
 }

@@ -39,30 +39,10 @@
  * SOFTWARE.
  */
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
+pluginManagement {
+    plugins {
+        id 'org.graalvm.buildtools.native' version getProperty('native.gradle.plugin.version')
+    }
 }
 
-repositories {
-    mavenCentral()
-}
-
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
-
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-    .get()
-
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-    // Maven Failsafe owns the integration-test fixture. §maven/FS-native-tests.6.
-    exclude "**/*IT.class"
-}
+rootProject.name = 'java-application'

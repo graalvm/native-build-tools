@@ -1,6 +1,10 @@
 [[changelog]]
 == Changelog
 
+== Release 1.1.6
+
+- Maven native test goals now read the matching Surefire or Failsafe execution, including its configured `testClassesDirectory`, and keep their test-ID output separate.
+
 == Release 1.0.1
 
 - Regenerate the documentation `latest` symlink automatically for releases so GitHub Pages no longer serves stale docs

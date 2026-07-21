@@ -63,6 +63,4 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    // Maven Failsafe owns the integration-test fixture. §maven/FS-native-tests.6.
-    exclude "**/*IT.class"
 }

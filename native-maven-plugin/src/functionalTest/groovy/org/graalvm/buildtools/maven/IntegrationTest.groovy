@@ -11,6 +11,7 @@ class IntegrationTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         file("target/failsafe-reports").exists()
         file("target/failsafe-reports/org.graalvm.demo.CalculatorTestIT.txt").readLines().any(line -> line.contains("Tests run: 6, Failures: 0, Errors: 0, Skipped: 0"))
+        outputContains "Using configuration from maven-failsafe-plugin"
         outputContains "[junit-platform-native] Running in 'test listener' mode"
         outputContains """
 [         3 containers found      ]

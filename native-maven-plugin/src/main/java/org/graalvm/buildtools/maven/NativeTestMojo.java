@@ -43,6 +43,7 @@ package org.graalvm.buildtools.maven;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -92,12 +93,14 @@ import static org.graalvm.buildtools.utils.NativeImageConfigurationUtils.NATIVE_
  * §FS-native-tests.1, §FS-native-tests.2, §FS-native-tests.3, §FS-native-tests.4.
  * @author Sebastien Deleuze
  */
-@Mojo(name = "test", defaultPhase = LifecyclePhase.TEST, threadSafe = true,
+@Mojo(name = NativeTestMojo.TEST_GOAL, defaultPhase = LifecyclePhase.TEST, threadSafe = true,
     requiresDependencyResolution = ResolutionScope.TEST,
     requiresDependencyCollection = ResolutionScope.TEST)
 public class NativeTestMojo extends AbstractNativeImageMojo {
 
     public static final String COMPATIBILITY_MODE_ARG = "-H:+CompatibilityMode";
+    public static final String TEST_GOAL = "test";
+    public static final String INTEGRATION_TEST_GOAL = "integration-test";
     @Parameter(property = "skipTests", defaultValue = "false")
     private boolean skipTests;
 
@@ -125,11 +128,14 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     @Parameter(property = "failNoTests", defaultValue = "true")
     private boolean failNoTests;
 
+    @Parameter(property = "testClassesDirectory", defaultValue = "${project.build.testOutputDirectory}")
+    private File testClassesDirectory;
+
     @Override
     protected void populateApplicationClasspath() throws MojoExecutionException {
         super.populateApplicationClasspath();
         // Maven's processed test output contains both compiled tests and processed test resources. §FS-native-tests.1.
-        imageClasspath.add(Paths.get(project.getBuild().getTestOutputDirectory()));
+        imageClasspath.add(testClassesDirectory.toPath());
     }
 
     @Override
@@ -167,6 +173,8 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
             logger.info("Skipping native-image tests (parameter 'skipTests' or 'skipNativeTests' is true).");
             return;
         }
+
+        configureEnvironment();
         if (!hasTests()) {
             logger.info("Skipped native-image tests since there are no test classes.");
             return;
@@ -185,8 +193,6 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         logger.info("Initializing project: " + project.getName());
         logger.info("====================");
 
-        configureEnvironment();
-
         // Detect Compatibility Mode; do not short-circuit the build anymore.
         boolean compatibilityMode = isCompatibilityModeEnabled();
         if (compatibilityMode) {
@@ -203,7 +209,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         if (systemProperties == null) {
             systemProperties = new HashMap<>();
         }
-        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
+        systemProperties.putIfAbsent("junit.platform.listeners.uid.tracking.output.dir",
             NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath()));
         if (runtimeArgs == null) {
             runtimeArgs = new ArrayList<>();
@@ -218,27 +224,51 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         }
     }
 
-    private void configureEnvironment() {
-        List<Plugin> plugins = new ArrayList<>();
-
+    /**
+     * Configures native tests from the matching Surefire or Failsafe execution. §FS-native-tests.6.
+     */
+    protected void configureEnvironment() {
         Plugin surefire = project.getPlugin("org.apache.maven.plugins:maven-surefire-plugin");
-        if (surefire != null) {
-            plugins.add(surefire);
-        }
-
         Plugin failsafe = project.getPlugin("org.apache.maven.plugins:maven-failsafe-plugin");
-        if (failsafe != null) {
-            plugins.add(failsafe);
+        String currentGoal = mojoExecution.getGoal();
+        boolean configured = surefire != null && processTestPluginConfig(surefire, currentGoal);
+        if (!configured && failsafe != null) {
+            processTestPluginConfig(failsafe, currentGoal);
         }
+    }
 
-        for (Plugin plugin : plugins) {
-            Object configuration = plugin.getConfiguration();
-            if (configuration instanceof Xpp3Dom) {
-                Xpp3Dom dom = (Xpp3Dom) configuration;
-                environment = applyPluginProperties(dom.getChild("environmentVariables"), environment);
-                systemProperties = applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+    private boolean processTestPluginConfig(Plugin plugin, String currentGoal) {
+        for (PluginExecution execution : plugin.getExecutions()) {
+            if (execution.getGoals().contains(currentGoal)) {
+                processTestPlugin(plugin, execution);
+                return true;
             }
         }
+        return false;
+    }
+
+    private void processTestPlugin(Plugin plugin, PluginExecution execution) {
+        Object configuration = execution.getConfiguration();
+        if (configuration instanceof Xpp3Dom) {
+            Xpp3Dom dom = (Xpp3Dom) configuration;
+            environment = applyPluginProperties(dom.getChild("environmentVariables"), environment);
+            systemProperties = applyPluginProperties(dom.getChild("systemPropertyVariables"), systemProperties);
+            // This JVM-agent marker is invalid in the native-image build process. §FS-native-tests.6.
+            if (systemProperties != null) {
+                systemProperties.remove("org.graalvm.nativeimage.imagecode");
+            }
+            Xpp3Dom testClasses = dom.getChild("testClassesDirectory");
+            if (testClasses != null && testClasses.getValue() != null && !testClasses.getValue().isBlank()) {
+                testClassesDirectory = new File(testClasses.getValue());
+            }
+        }
+        if (systemProperties == null) {
+            systemProperties = new HashMap<>();
+        }
+        systemProperties.put("junit.platform.listeners.uid.tracking.output.dir",
+            NativeExtension.testIdsDirectory(outputDirectory.getAbsolutePath(), plugin.getArtifactId()));
+        getLog().info("Using configuration from " + plugin.getArtifactId()
+            + ", execution id \"" + execution.getId() + "\"");
     }
 
     private Map<String, String> applyPluginProperties(Xpp3Dom pluginProperty, Map<String, String> values) {
@@ -285,7 +315,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
     }
 
     private boolean hasTests() {
-        Path testOutputPath = Paths.get(project.getBuild().getTestOutputDirectory());
+        Path testOutputPath = testClassesDirectory.toPath();
         if (Files.exists(testOutputPath) && Files.isDirectory(testOutputPath)) {
             try (Stream<Path> testClasses = Files.walk(testOutputPath)) {
                 return testClasses.anyMatch(p -> p.getFileName().toString().endsWith(".class"));

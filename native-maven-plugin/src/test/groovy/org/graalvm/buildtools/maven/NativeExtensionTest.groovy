@@ -87,7 +87,7 @@ class NativeExtensionTest extends Specification {
             assert configuration.getChild("systemProperties") == null
             assert systemPropertyVariables != null
             assert systemPropertyVariables.getChild(JUNIT_TRACKING_ENABLED).value == "true"
-            assert systemPropertyVariables.getChild(JUNIT_TRACKING_OUTPUT_DIR).value == NativeExtension.testIdsDirectory("target")
+            assert systemPropertyVariables.getChild(JUNIT_TRACKING_OUTPUT_DIR).value == NativeExtension.testIdsDirectory("target", testPlugin.artifactId)
         }
     }
 
@@ -137,6 +137,25 @@ class NativeExtensionTest extends Specification {
         assert !Files.exists(first)
 
         NativeExtension.deleteSessionAgentConfigDirectory(second)
+    }
+
+    def "uses the test agent context for both native test goals"() {
+        expect:
+        NativeExtension.contextForNativeExecution(executionFor(goal)) == NativeExtension.Context.test
+
+        where:
+        goal << [NativeTestMojo.TEST_GOAL, NativeTestMojo.INTEGRATION_TEST_GOAL]
+    }
+
+    def "uses the main agent context for non-test native goals"() {
+        expect:
+        NativeExtension.contextForNativeExecution(executionFor("compile-no-fork")) == NativeExtension.Context.main
+    }
+
+    private static PluginExecution executionFor(String goal) {
+        def execution = new PluginExecution()
+        execution.addGoal(goal)
+        execution
     }
 
     private static Plugin plugin(String artifactId) {
