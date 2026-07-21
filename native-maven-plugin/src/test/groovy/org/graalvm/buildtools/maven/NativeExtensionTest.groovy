@@ -158,6 +158,15 @@ class NativeExtensionTest extends Specification {
         execution
     }
 
+    def "appends the test agent argument to an existing test runner argLine"() {
+        given:
+        def agentArgument = "-agentlib:native-image-agent=config-output-dir=target/native/agent-output/test"
+
+        expect:
+        NativeExtension.appendAgentArgument("-javaagent:existing-agent.jar", agentArgument) ==
+                "-javaagent:existing-agent.jar " + agentArgument
+    }
+
     private static Plugin plugin(String artifactId) {
         def plugin = new Plugin()
         plugin.artifactId = artifactId

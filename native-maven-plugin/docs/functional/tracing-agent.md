@@ -25,7 +25,8 @@ the destination. Application agent runs are attached to the `exec-maven-plugin` 
 the native plugin's `<agentExecutionId>` configuration value; the default execution ID is
 `java-agent` so existing POMs keep working. Generated test-agent arguments derived from project paths
 must remain a single JVM argument when passed through Maven test runners, including when those paths
-contain spaces.
+contain spaces. When adding that argument, Maven must preserve the test runner's existing `argLine`
+options.
 When Maven configures an instrumented test or application execution, normal build
 output must report the Maven-managed agent output directory so users can find collected metadata
 without debug logging, aligning with
