@@ -2179,7 +2179,7 @@ graalvmNative {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">val graal by sourceSets.creating
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">val graal = sourceSets.create("graal")
 
 dependencies {
     "graalCompileOnly"("org.graalvm.nativeimage:svm:21.2.0")
