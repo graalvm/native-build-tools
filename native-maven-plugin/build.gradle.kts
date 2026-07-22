@@ -84,6 +84,7 @@ dependencies {
     testImplementation(libs.maven.artifact)
     testImplementation(libs.jetty.server)
     testRuntimeOnly(libs.test.junit.platform.launcher)
+    testRuntimeOnly(libs.slf4j.simple.test)
 
     testFixturesImplementation(libs.test.spock)
     testFixturesImplementation(libs.jetty.server)
@@ -95,7 +96,7 @@ dependencies {
 
     functionalTestImplementation(libs.test.spock)
     functionalTestRuntimeOnly(libs.test.junit.platform.launcher)
-    functionalTestRuntimeOnly(libs.slf4j.simple)
+    functionalTestRuntimeOnly(libs.slf4j.simple.test)
 }
 
 publishing {
