@@ -12,8 +12,9 @@ exclusions, environment variables, system properties, JVM args, configuration fi
 metadata repository settings, required Native Image version, and agent configuration.
 
 The fallback parameter is deprecated because Native Image removed fallback support in GraalVM
-25.1. It remains available for compatibility with older GraalVM versions, where setting it to
-`false` still produces the `--no-fallback` argument.
+25.1. It remains available for compatibility: setting it to `false` produces `--no-fallback`
+before 25.1 and when the GraalVM release cannot be identified, while 25.1 and later omit the
+generated flag. Explicit user build arguments remain unchanged.
 
 ## 2. Command-line properties
 

@@ -45,8 +45,8 @@ same option objects as the DSL, keeping command-line experimentation aligned wit
 [§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
 
 The fallback option is deprecated because Native Image removed fallback support in GraalVM 25.1.
-It remains available for compatibility with older GraalVM versions, where disabling fallback still
-produces the `--no-fallback` argument.
+It remains available for compatibility: disabling fallback produces `--no-fallback` before 25.1
+and when the GraalVM release cannot be identified, while 25.1 and later omit the generated flag.
 
 ```bash
 ./gradlew nativeCompile --quick-build-native --verbose --image-name demo-dev

@@ -125,6 +125,39 @@ class AbstractNativeImageMojoTest extends Specification {
         args.indexOf("--color=always") < args.lastIndexOf("--color=never")
     }
 
+    // GraalVM 25.1 removes only the plugin-generated compatibility flag. §FS-config-model.1.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/991")
+    def "#label the generated no-fallback argument"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.fallbackRemoved = fallbackRemoved
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        args.contains(NativeImageFlags.NO_FALLBACK) == expected
+
+        where:
+        label        | fallbackRemoved | expected
+        "retains"    | false           | true
+        "suppresses" | true            | false
+    }
+
+    def "retains an explicit no-fallback argument after fallback removal"() {
+        given:
+        def mojo = newMojo([NativeImageFlags.NO_FALLBACK])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.fallbackRemoved = true
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        args.count { it == NativeImageFlags.NO_FALLBACK } == 1
+    }
+
     void "it allows empty classpath for layer-create builds"() {
         given:
         def mojo = newMojo([layerCreateArg])
@@ -174,6 +207,7 @@ class AbstractNativeImageMojoTest extends Specification {
     }
 
     private static class TestNativeImageMojo extends AbstractNativeImageMojo {
+        boolean fallbackRemoved
         int nativeImageMajorVersion = 25
 
         @Override
@@ -192,6 +226,11 @@ class AbstractNativeImageMojoTest extends Specification {
         @Override
         protected int getNativeImageMajorVersion() {
             nativeImageMajorVersion
+        }
+
+        @Override
+        protected boolean isFallbackRemoved() {
+            fallbackRemoved
         }
     }
 }

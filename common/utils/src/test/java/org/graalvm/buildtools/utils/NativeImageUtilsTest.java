@@ -171,6 +171,26 @@ class NativeImageUtilsTest {
     }
 
     @Test
+    void distinguishesGraalVMReleaseFromJDKVersion() {
+        String graalVM250 = "native-image 25.0.3 2026-04-21\n" +
+                "GraalVM Runtime Environment Oracle GraalVM 25.0.3+9.1 (build 25.0.3+9-LTS-jvmci-b01)";
+        String graalVM251 = "native-image 25.0.3 2026-04-21\n" +
+                "GraalVM Runtime Environment Oracle GraalVM 25.1.3+9.1 (build 25.0.3+9-LTS-jvmci-25.1-b19)";
+        String graalVMCE251 = "native-image 25.0.3 2026-04-21\n" +
+                "GraalVM Runtime Environment GraalVM CE 25.1.3+9.1 (build 25.0.3+9-jvmci-25.1-b19)";
+
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast(graalVM250, 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(graalVM251, 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(graalVMCE251, 25, 1));
+    }
+
+    @Test
+    void treatsUnknownGraalVMReleaseAsOlder() {
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast("native-image 25.0.3", 25, 1));
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast("invalid", 25, 1));
+    }
+
+    @Test
     void checkLowerVersion() {
         Assertions.assertThrows(IllegalStateException.class, () ->
             NativeImageUtils.checkVersion("23", "GraalVM 22.2.1")
