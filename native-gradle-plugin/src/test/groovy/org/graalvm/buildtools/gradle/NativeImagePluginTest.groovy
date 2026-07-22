@@ -2,6 +2,7 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
+import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
@@ -31,6 +32,13 @@ class NativeImagePluginTest extends Specification {
                 .findByType(GraalVMExtension)
                 .extensions
                 .findByType(GraalVMReachabilityMetadataRepositoryExtension)
+    }
+
+    // Protects the deprecated Gradle fallback DSL surface. §FS-native-tasks.4.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/991")
+    def "marks the fallback DSL option as deprecated"() {
+        expect:
+        NativeImageCompileOptions.getMethod("getFallback").isAnnotationPresent(Deprecated)
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/424")

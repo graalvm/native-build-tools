@@ -16,6 +16,13 @@ class AbstractNativeImageMojoTest extends Specification {
     @TempDir
     Path testDirectory
 
+    // Protects the deprecated Maven fallback parameter surface. §FS-config-model.1.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/991")
+    def "marks the fallback parameter as deprecated"() {
+        expect:
+        AbstractNativeImageMojo.getDeclaredField("fallback").isAnnotationPresent(Deprecated)
+    }
+
     void "it can process build args"() {
         given:
         def buildArgs = [

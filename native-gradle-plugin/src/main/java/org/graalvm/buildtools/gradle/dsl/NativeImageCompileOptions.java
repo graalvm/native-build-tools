@@ -135,9 +135,14 @@ public interface NativeImageCompileOptions {
     Property<Boolean> getDebug();
 
     /**
+     * Native Image fallback support was removed in GraalVM 25.1, making this option a no-op there.
+     * The option remains functional with older GraalVM versions. §FS-native-tasks.4.
+     *
+     * @deprecated Native Image fallback support was removed in GraalVM 25.1.
      * @return Whether to enable fallbacks (defaults to false).
      */
     @Input
+    @Deprecated
     Property<Boolean> getFallback();
 
     /**

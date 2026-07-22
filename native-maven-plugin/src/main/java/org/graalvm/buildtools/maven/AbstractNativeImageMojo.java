@@ -138,7 +138,14 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "debug", defaultValue = "false")
     protected boolean debug;
 
+    /**
+     * Native Image fallback support was removed in GraalVM 25.1, making this parameter a no-op
+     * there. The parameter remains functional with older GraalVM versions. §FS-config-model.1.
+     *
+     * @deprecated Native Image fallback support was removed in GraalVM 25.1.
+     */
     @Parameter(property = "fallback", defaultValue = "false")
+    @Deprecated
     protected boolean fallback;
 
     @Parameter(property = "verbose", defaultValue = "false")

@@ -44,6 +44,10 @@ properties, environment variables, JVM args, and forced JVM args. These one-off 
 same option objects as the DSL, keeping command-line experimentation aligned with
 [§root/FS-option-precedence](../../../docs/spec/functional/option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state).
 
+The fallback option is deprecated because Native Image removed fallback support in GraalVM 25.1.
+It remains available for compatibility with older GraalVM versions, where disabling fallback still
+produces the `--no-fallback` argument.
+
 ```bash
 ./gradlew nativeCompile --quick-build-native --verbose --image-name demo-dev
 ./gradlew nativeCompile --build-args=--initialize-at-build-time=com.example
