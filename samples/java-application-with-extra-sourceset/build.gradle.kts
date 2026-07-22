@@ -53,7 +53,7 @@ repositories {
 }
 
 // tag::extra-sourceset[]
-val graal by sourceSets.creating
+val graal = sourceSets.create("graal")
 
 dependencies {
     "graalCompileOnly"("org.graalvm.nativeimage:svm:21.2.0")

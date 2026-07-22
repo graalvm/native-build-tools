@@ -132,7 +132,7 @@ tasks.register<Zip>("releaseZip") {
     }
 }
 
-val updateSamples by tasks.registering
+val updateSamples = tasks.register("updateSamples")
 
 mapOf(
     "updateSamplesDir" to "samples",
