@@ -15,6 +15,7 @@ junitPlatform = "1.13.0"
 junitJupiter = "5.13.0"
 jimfs = "1.3.0"
 slf4j = "1.7.9"
+slf4jTest = "2.0.13"
 groovy = "3.0.11"
 jetty = "11.0.11"
 plexusUtils = "4.0.2"
@@ -56,6 +57,7 @@ maven-resolver-transport-http = { module = "org.apache.maven.resolver:maven-reso
 maven-resolver-transport-file = { module = "org.apache.maven.resolver:maven-resolver-transport-file", version.ref = "mavenResolver"}
 
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+slf4j-simple-test = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jTest" }
 
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
 

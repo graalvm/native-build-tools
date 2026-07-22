@@ -41,6 +41,8 @@
 
 package org.graalvm.buildtools.maven
 
+import org.apache.maven.execution.DefaultMavenExecutionRequest
+import org.apache.maven.execution.DefaultMavenExecutionResult
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.model.Build
 import org.apache.maven.model.Plugin
@@ -58,6 +60,7 @@ class NativeExtensionTest extends Specification {
     private static final String JUNIT_TRACKING_ENABLED = "junit.platform.listeners.uid.tracking.enabled"
     private static final String JUNIT_TRACKING_OUTPUT_DIR = "junit.platform.listeners.uid.tracking.output.dir"
 
+    // Surefire and Failsafe use separate test-ID directories configured through system properties. §FS-native-tests.6
     def "configures JUnit listener properties through non-deprecated systemPropertyVariables"() {
         given:
         def build = new Build()
@@ -71,10 +74,9 @@ class NativeExtensionTest extends Specification {
         def project = new MavenProject()
         project.build = build
 
-        def session = Stub(MavenSession) {
-            getProjects() >> [project]
-            getSystemProperties() >> new Properties()
-        }
+        def request = new DefaultMavenExecutionRequest()
+        request.systemProperties = new Properties()
+        def session = new MavenSession(null, request, new DefaultMavenExecutionResult(), [project])
 
         when:
         new NativeExtension().afterProjectsRead(session)
