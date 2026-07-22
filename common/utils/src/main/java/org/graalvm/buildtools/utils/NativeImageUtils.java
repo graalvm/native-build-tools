@@ -65,8 +65,8 @@ public class NativeImageUtils {
     private static final Pattern javaVersionPattern = Pattern.compile("^native-image ([0-9]+).*", Pattern.DOTALL);
     private static final Pattern javaVersionLegacyPattern = Pattern.compile(".* \\(Java Version ([0-9]+)\\.([0-9]+)\\.([0-9]+).*");
 
-    private static final Pattern graalvmRuntimeVersionPattern = Pattern.compile(
-            "^GraalVM Runtime Environment .*?\\b([0-9]+)\\.([0-9]+)(?:\\.[0-9]+)?(?:[-+\\s].*)?$",
+    private static final Pattern runtimeVersionPattern = Pattern.compile(
+            "^[^\\r\\n]*Runtime Environment\\s+.*?\\b([0-9]+)\\.([0-9]+)(?:\\.[0-9]+)*\\b",
             Pattern.MULTILINE);
 
 
@@ -196,9 +196,10 @@ public class NativeImageUtils {
     }
 
     /**
-     * Checks the GraalVM release reported by {@code native-image --version}, which may differ from
-     * the JDK version on the first output line. Unknown formats are treated conservatively as not
-     * satisfying the requested version. §FS-common-libraries.1.
+     * Checks the GraalVM release reported on the runtime-environment line of
+     * {@code native-image --version}, which may differ from the JDK version on the first output
+     * line. Unknown formats are treated conservatively as not satisfying the requested version.
+     * §FS-common-libraries.1.
      *
      * @param versionString output returned by {@code native-image --version}
      * @param requiredMajor required GraalVM release major version
@@ -206,7 +207,7 @@ public class NativeImageUtils {
      * @return whether a recognized GraalVM release is at least the requested major and minor
      */
     public static boolean isGraalVMVersionAtLeast(String versionString, int requiredMajor, int requiredMinor) {
-        Matcher matcher = graalvmRuntimeVersionPattern.matcher(versionString.trim());
+        Matcher matcher = runtimeVersionPattern.matcher(versionString.trim());
         if (!matcher.find()) {
             return false;
         }

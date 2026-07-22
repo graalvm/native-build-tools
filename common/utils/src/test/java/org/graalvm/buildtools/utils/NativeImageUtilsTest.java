@@ -185,6 +185,29 @@ class NativeImageUtilsTest {
     }
 
     @Test
+    void recognizesRuntimeReleaseAcrossDistributions() {
+        String oracleGraalVM250 = "native-image 25.0.3 2026-04-21\n" +
+                "GraalVM Runtime Environment Oracle GraalVM 25.0.3+9.1 (build 25.0.3+9-LTS-jvmci-b01)\n" +
+                "Substrate VM Oracle GraalVM 25.0.3+9.1 (build 25.0.3+9-LTS, serial gc, compressed references)";
+        String mandrel250 = "native-image 25.0.3 2026-04-21\n" +
+                "OpenJDK Runtime Environment Mandrel-25.0.3.0-Final (build 25.0.3+9-LTS)\n" +
+                "OpenJDK 64-Bit Server VM Mandrel-25.0.3.0-Final (build 25.0.3+9-LTS, mixed mode)";
+        String liberica250 = "native-image 25.0.3 2026-04-21\n" +
+                "GraalVM Runtime Environment Liberica-NIK-25.0.3-2 (build 25.0.3+12-LTS)\n" +
+                "Substrate VM Liberica-NIK-25.0.3-2 (build 25.0.3+12-LTS, serial gc)";
+
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast(oracleGraalVM250, 25, 1));
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast(mandrel250, 25, 1));
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast(liberica250, 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(
+                oracleGraalVM250.replace("Oracle GraalVM 25.0.3", "Oracle GraalVM 25.1.0"), 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(
+                mandrel250.replace("Mandrel-25.0.3.0-Final", "Mandrel-25.1.0.0-Final"), 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(
+                liberica250.replace("Liberica-NIK-25.0.3-2", "Liberica-NIK-25.1.0-1"), 25, 1));
+    }
+
+    @Test
     void treatsUnknownGraalVMReleaseAsOlder() {
         Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast("native-image 25.0.3", 25, 1));
         Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast("invalid", 25, 1));
