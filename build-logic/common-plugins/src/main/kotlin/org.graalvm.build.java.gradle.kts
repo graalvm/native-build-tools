@@ -92,6 +92,6 @@ tasks.withType<Test>().configureEach {
 }
 
 // Maintainer inspections aggregate Checkstyle. §FS-build-infrastructure.1.1.
-val inspections by tasks.registering {
+val inspections = tasks.register("inspections") {
     dependsOn(tasks.withType<Checkstyle>())
 }

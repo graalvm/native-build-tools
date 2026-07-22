@@ -45,9 +45,10 @@ plugins {
     id("org.graalvm.build.maven-embedder")
 }
 
-val functionalTest by sourceSets.creating
+// Shared functional-test wiring is convention-plugin behavior. §root/FS-build-infrastructure.2.1
+val functionalTest = sourceSets.create("functionalTest")
 
-val functionalTestCommonRepository by configurations.creating {
+val functionalTestCommonRepository = configurations.create("functionalTestCommonRepository") {
     // This configuration will trigger the composite build
     // which builds the JUnit native library, and publish it to a repository
     // which can then be injected into tests

@@ -1,7 +1,3 @@
-import org.gradle.kotlin.dsl.creating
-import org.gradle.kotlin.dsl.getValue
-import org.gradle.kotlin.dsl.invoke
-
 /*
  * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
@@ -43,7 +39,8 @@ import org.gradle.kotlin.dsl.invoke
  * SOFTWARE.
  */
 
-val mavenEmbedder by configurations.creating
-val testFixturesImplementation by configurations.getting
+// Shared maintainer-facing build configurations are convention-plugin behavior. §root/FS-build-infrastructure.2.1
+val mavenEmbedder = configurations.create("mavenEmbedder")
+val testFixturesImplementation = configurations.getByName("testFixturesImplementation")
 
 testFixturesImplementation.extendsFrom(mavenEmbedder)

@@ -60,7 +60,7 @@ plugins {
     java
 }
 
-val javadocs by configurations.creating {
+val javadocs = configurations.create("javadocs") {
     isCanBeConsumed = false
     isCanBeResolved = true
     attributes {

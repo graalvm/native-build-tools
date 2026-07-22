@@ -156,7 +156,7 @@ graalvmNative {
 }
 // end::disable-test-support[]
 
-val integTest by sourceSets.creating
+sourceSets.create("integTest")
 val integTest = tasks.register<Test>("integTest")
 
 // tag::custom-binary[]

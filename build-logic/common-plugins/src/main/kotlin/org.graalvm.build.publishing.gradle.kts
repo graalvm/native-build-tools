@@ -62,7 +62,7 @@ val mavenExtension = project.extensions.create<MavenExtension>("maven").also {
 val publishingTasks = tasks.withType<AbstractPublishToMaven>()
         .matching { it.name.endsWith("ToCommonRepository") }
 
-val repositoryElements by configurations.creating {
+val repositoryElements = configurations.create("repositoryElements") {
     // Configure an outgoing configuration which artifact
     // is going to be the local Maven repository we generate
     isCanBeConsumed = true
@@ -156,7 +156,7 @@ val publicationCoordinatesCollector = gradle.sharedServices.registerIfAbsent("pu
 }
 
 // Module-local coordinate reporting is aggregated by the root build. §FS-build-infrastructure.1.2.
-val showPublications by tasks.registering {
+val showPublications = tasks.register("showPublications") {
     usesService(publicationCoordinatesCollector)
     doLast {
         publishing.publications.all {
