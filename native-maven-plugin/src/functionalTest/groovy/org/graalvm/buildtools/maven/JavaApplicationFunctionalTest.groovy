@@ -62,8 +62,15 @@ class JavaApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
         buildSucceeded
         outputContains NATIVE_IMAGE_EXE
         outputContains "-cp " // actual path is OS-specific (/ vs C:\)
-        outputContains "-g --no-fallback --verbose --shared -Ob"
-        def majorVersion = NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString())
+        def versionInformation = GraalVMSupport.getGraalVMHomeVersionString()
+        // GraalVM 25.1+ omits the plugin-generated compatibility flag. §FS-config-model.1.
+        if (NativeImageUtils.isGraalVMVersionAtLeast(versionInformation, 25, 1)) {
+            outputContains "-g --verbose --shared -Ob"
+            outputDoesNotContain "--no-fallback"
+        } else {
+            outputContains "-g --no-fallback --verbose --shared -Ob"
+        }
+        def majorVersion = NativeImageUtils.getMajorJDKVersion(versionInformation)
         outputContains(majorVersion >= 21 ? "--color=never" : "-H:-BuildOutputColorful")
     }
 
