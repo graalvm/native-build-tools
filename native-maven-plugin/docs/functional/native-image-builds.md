@@ -69,7 +69,10 @@ mvn -Pnative native:list-libraries-missing-metadata
 
 ## 9. Console colors
 
-The native-image invocation must follow Maven's detected console color state. It must use
+When Maven's `style.color` property explicitly selects a colored or colorless mode, or when Maven
+runs non-interactively, the native-image invocation must follow that selection. It must use
 `--color=always` or `--color=never` on JDK 21 and later, and `-H:+BuildOutputColorful` or
-`-H:-BuildOutputColorful` on older versions. Explicit user build arguments come later and may
-override this detected default, adapting [§root/FS-native-builds.2](../../../docs/spec/functional/native-image-builds.md#2-command-line-construction).
+`-H:-BuildOutputColorful` on older versions. When the Maven plugin API does not expose a resolved
+console mode, the invocation must omit a color argument and let Native Image detect its output
+mode. Explicit user build arguments come later and may override Maven's exposed mode, adapting
+[§root/FS-native-builds.2](../../../docs/spec/functional/native-image-builds.md#2-command-line-construction).
