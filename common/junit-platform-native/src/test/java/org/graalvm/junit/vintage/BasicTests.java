@@ -44,11 +44,11 @@ package org.graalvm.junit.vintage;
 import org.junit.Assert;
 import org.junit.Test;
 
+// Exercises JUnit Vintage behavior in native test executables. §E2E-common-tests.2.4.
 public class BasicTests {
 
     @Test
     public void test() {
-        System.out.println("Hello, World! This is JUnit 4 test.");
         Assert.assertEquals("This shouldn't fail", 42, 42);
     }
 }

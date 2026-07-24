@@ -44,17 +44,13 @@ package org.graalvm.junit.jupiter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 
+// Exercises nested JUnit Jupiter discovery in native test executables. §E2E-common-tests.2.4.
 public class NestedTests {
 
     @Nested
     class NestedTest {
-
-        NestedTest(TestInfo info) {
-            System.out.println("Running nested test: " + info.getDisplayName());
-        }
 
         @Test
         @DisplayName("Test in a nested test class")
@@ -63,10 +59,6 @@ public class NestedTests {
 
         @Nested
         class NestedNestedTest {
-
-            NestedNestedTest(TestInfo info) {
-                System.out.println("Running nested nested test: " + info.getDisplayName());
-            }
 
             @Test
             @DisplayName("Test in a nested nested test class")

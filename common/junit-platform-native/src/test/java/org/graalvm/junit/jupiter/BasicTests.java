@@ -49,11 +49,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
+// Exercises JUnit Jupiter behavior in native test executables. §E2E-common-tests.2.4.
 class BasicTests {
-
-    BasicTests(TestInfo info) {
-        System.out.println("Running test: " + info.getDisplayName());
-    }
 
     @BeforeAll
     static void beforeAll() {

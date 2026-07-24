@@ -80,12 +80,6 @@ tasks.named('test') {
     }
 }
 
-tasks.withType(Test).configureEach {
-    testLogging {
-        events "standardOut", "passed", "skipped", "failed"
-    }
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {

@@ -80,7 +80,6 @@ class FileUtilsTest {
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
-        System.out.println("errorLogs = " + errorLogs);
 
         assertTrue(download.isPresent());
         assertEquals("native-build-tools-master.zip", download.get().getFileName().toString());
@@ -94,7 +93,6 @@ class FileUtilsTest {
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
-        System.out.println("errorLogs = " + errorLogs);
 
         assertTrue(download.isPresent());
         assertEquals("html", download.get().getFileName().toString());
@@ -108,7 +106,6 @@ class FileUtilsTest {
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
-        System.out.println("errorLogs = " + errorLogs);
 
         assertFalse(download.isPresent());
         assertEquals(1, errorLogs.size());
@@ -126,7 +123,6 @@ class FileUtilsTest {
         List<String> errorLogs = new ArrayList<>();
 
         Optional<Path> download = FileUtils.download(url, tempDir, errorLogs::add);
-        System.out.println("errorLogs = " + errorLogs);
 
         assertFalse(download.isPresent());
         assertEquals(1, errorLogs.size());
