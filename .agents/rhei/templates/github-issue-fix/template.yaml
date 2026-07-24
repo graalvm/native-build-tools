@@ -1,0 +1,10 @@
+name: github-issue-fix
+version: 0.2.0
+description: Fix one Native Build Tools GitHub issue through approval, implementation, validation, focused review, and draft PR publication.
+
+inputs:
+  - name: issue
+    description: Native Build Tools GitHub issue number or URL to fix.
+    type: string
+    required: true
+    positional: 1
