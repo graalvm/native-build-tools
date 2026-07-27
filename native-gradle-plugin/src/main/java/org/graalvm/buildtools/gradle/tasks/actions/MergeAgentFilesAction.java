@@ -114,7 +114,7 @@ public class MergeAgentFilesAction implements Action<Task> {
             // Preserve Native Image executable discovery for agent post-processing. §FS-native-invocation.1.
             File nativeImage = findNativeImageExecutable(
                     javaLauncher.getOrNull(),
-                    javaLauncher.isPresent(),
+                    javaLauncher.getOrNull() != null,
                     disableToolchainDetection,
                     graalvmHomeProvider,
                     execOperations,

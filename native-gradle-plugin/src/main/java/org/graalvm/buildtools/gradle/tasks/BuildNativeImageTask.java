@@ -315,7 +315,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
         var javaLauncherProperty = options.getJavaLauncher();
-        boolean isExplicit = javaLauncherProperty.isPresent();
+        boolean isExplicit = javaLauncherProperty.getOrNull() != null;
         JavaLauncher launcher = isExplicit ? javaLauncherProperty.get() :
                 (conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null);
 
