@@ -335,12 +335,14 @@ public class NativeImagePlugin implements Plugin<Project> {
             task.getToolchainDetection().set(graalExtension.getToolchainDetection());
             JavaToolchainService toolchainService = project.getExtensions().findByType(JavaToolchainService.class);
             if (toolchainService != null) {
-                task.getJavaLauncher().convention(graalExtension.getToolchainDetection().flatMap(enabled -> {
+                Provider<JavaLauncher> toolchainLauncher = graalExtension.getToolchainDetection().flatMap(enabled -> {
                     if (enabled) {
                         return toolchainService.launcherFor(javaConvention.getToolchain());
                     }
                     return null;
-                }));
+                });
+                task.getJavaLauncher().convention(toolchainLauncher);
+                task.setConventionJavaLauncher(toolchainLauncher);
             }
         });
 
@@ -1191,6 +1193,7 @@ public class NativeImagePlugin implements Plugin<Project> {
             mergeInputDirs,
             mergeOutputDirs,
             graalExtension.getToolchainDetection().map(enabled -> !enabled),
+            project.provider(() -> false),
             execOperations,
             project.getProviders()));
 

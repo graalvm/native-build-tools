@@ -91,6 +91,7 @@ class MergeAgentFilesActionTest extends Specification {
                 { [new File(fakeGraalVmHome, "agent-input").absolutePath] },
                 { [new File(fakeGraalVmHome, "agent-output").absolutePath] },
                 project.provider { false },
+                project.provider { false },
                 execOperations,
                 project.getProviders())
 

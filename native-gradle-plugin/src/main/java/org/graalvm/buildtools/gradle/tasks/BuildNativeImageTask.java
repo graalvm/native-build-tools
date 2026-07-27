@@ -315,9 +315,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
         var javaLauncherProperty = options.getJavaLauncher();
-        boolean isExplicit = javaLauncherProperty.getOrNull() != null;
-        JavaLauncher launcher = isExplicit ? javaLauncherProperty.get() :
-                (conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null);
+        JavaLauncher launcher = javaLauncherProperty.getOrNull();
+        JavaLauncher conventionValue = conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null;
+        boolean isExplicit = launcher != null && !sameInstallation(launcher, conventionValue);
 
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
             launcher, isExplicit,
@@ -362,6 +362,14 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             });
             logger.lifecycle("Native Image written to: " + outputDir);
         }
+    }
+
+    private static boolean sameInstallation(JavaLauncher a, JavaLauncher b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        return a.getMetadata().getInstallationPath().getAsFile()
+            .equals(b.getMetadata().getInstallationPath().getAsFile());
     }
 
     public static String getVersionString(ExecOperations execOperations, NativeImageOptions options, File executablePath) {

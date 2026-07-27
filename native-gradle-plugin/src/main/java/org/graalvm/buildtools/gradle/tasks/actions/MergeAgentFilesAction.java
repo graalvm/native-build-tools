@@ -74,6 +74,7 @@ public class MergeAgentFilesAction implements Action<Task> {
     private final Supplier<List<String>> outputDirs;
     private final Provider<Boolean> disableToolchainDetection;
     private final Property<JavaLauncher> javaLauncher;
+    private final Provider<Boolean> isExplicitLauncher;
     private final ExecOperations execOperations;
     private final ProviderFactory providers;
 
@@ -86,6 +87,7 @@ public class MergeAgentFilesAction implements Action<Task> {
                                  Supplier<List<String>> inputDirs,
                                  Supplier<List<String>> outputDirs,
                                  Provider<Boolean> disableToolchainDetection,
+                                 Provider<Boolean> isExplicitLauncher,
                                  ExecOperations execOperations,
                                  ProviderFactory providers) {
         this.isMergingEnabled = isMergingEnabled;
@@ -95,6 +97,7 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.inputDirs = inputDirs;
         this.outputDirs = outputDirs;
         this.disableToolchainDetection = disableToolchainDetection;
+        this.isExplicitLauncher = isExplicitLauncher;
         this.execOperations = execOperations;
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.javaLauncher.convention(javaLauncher);
@@ -114,7 +117,7 @@ public class MergeAgentFilesAction implements Action<Task> {
             // Preserve Native Image executable discovery for agent post-processing. §FS-native-invocation.1.
             File nativeImage = findNativeImageExecutable(
                     javaLauncher.getOrNull(),
-                    javaLauncher.getOrNull() != null,
+                    isExplicitLauncher.get(),
                     disableToolchainDetection,
                     graalvmHomeProvider,
                     execOperations,

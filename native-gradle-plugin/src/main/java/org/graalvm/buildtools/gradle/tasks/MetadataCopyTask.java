@@ -81,6 +81,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
     private final ProviderFactory providerFactory;
     private final ObjectFactory objectFactory;
     private final ExecOperations execOperations;
+    private Provider<JavaLauncher> conventionJavaLauncher;
 
     @Inject
     public MetadataCopyTask(ProjectLayout layout,
@@ -112,6 +113,10 @@ public abstract class MetadataCopyTask extends DefaultTask {
     @Nested
     @Optional
     public abstract Property<JavaLauncher> getJavaLauncher();
+
+    public void setConventionJavaLauncher(Provider<JavaLauncher> javaLauncher) {
+        this.conventionJavaLauncher = javaLauncher;
+    }
 
     @Option(option = "task", description = "Executed task previously instrumented with the agent whose metadata should be copied.")
     public void overrideInputTaskNames(List<String> inputTaskNames) {
@@ -163,6 +168,10 @@ public abstract class MetadataCopyTask extends DefaultTask {
         Provider<Boolean> isMergeEnabled = providerFactory.provider(() -> true);
         Provider<AgentMode> agentModeProvider = providerFactory.provider(StandardAgentMode::new);
 
+        JavaLauncher resolvedLauncher = getJavaLauncher().getOrNull();
+        JavaLauncher conventionValue = conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null;
+        boolean isExplicit = resolvedLauncher != null && !sameInstallation(resolvedLauncher, conventionValue);
+
         new MergeAgentFilesAction(
                 isMergeEnabled,
                 agentModeProvider,
@@ -173,7 +182,16 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 () -> inputDirectories,
                 () -> outputDirectories,
                 getToolchainDetection().map(enabled -> !enabled),
+                providerFactory.provider(() -> isExplicit),
                 execOperations,
                 providerFactory).execute(this);
     }
+
+    private static boolean sameInstallation(JavaLauncher a, JavaLauncher b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        return a.getMetadata().getInstallationPath().getAsFile()
+            .equals(b.getMetadata().getInstallationPath().getAsFile());
+}
 }
