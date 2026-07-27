@@ -2,6 +2,7 @@ import org.graalvm.build.maven.GeneratePluginDescriptor
 import org.graalvm.build.maven.GenerateRuntimeMetadata
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom
 import org.gradle.api.tasks.Copy
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.withType
 
@@ -85,11 +86,46 @@ val writeConstants = tasks.register<GenerateRuntimeMetadata>("writeRuntimeMetada
     metadata.put("JUNIT_PLATFORM_NATIVE_ARTIFACT_ID", "junit-platform-native")
 }
 
+val currentBuildTreePath = when {
+    gradle.buildPath == ":" -> project.path
+    project.path == ":" -> gradle.buildPath
+    else -> gradle.buildPath + project.path
+}
+
 sourceSets {
     main {
         java {
             srcDir(writeConstants)
         }
+    }
+    // Unit tests use class directories, while assembly and publication retain the packaged descriptor boundary. §AR-maven-plugin.6
+    testFixtures {
+        val externalCompileClasspath = configurations.testFixturesCompileClasspath.get().incoming.artifactView {
+            componentFilter { identifier ->
+                identifier !is ProjectComponentIdentifier || identifier.buildTreePath != currentBuildTreePath
+            }
+        }.files
+        val externalRuntimeClasspath = configurations.testFixturesRuntimeClasspath.get().incoming.artifactView {
+            componentFilter { identifier ->
+                identifier !is ProjectComponentIdentifier || identifier.buildTreePath != currentBuildTreePath
+            }
+        }.files
+        compileClasspath = sourceSets.main.get().output + externalCompileClasspath
+        runtimeClasspath = output + sourceSets.main.get().output + externalRuntimeClasspath
+    }
+    test {
+        val externalCompileClasspath = configurations.testCompileClasspath.get().incoming.artifactView {
+            componentFilter { identifier ->
+                identifier !is ProjectComponentIdentifier || identifier.buildTreePath != currentBuildTreePath
+            }
+        }.files
+        val externalRuntimeClasspath = configurations.testRuntimeClasspath.get().incoming.artifactView {
+            componentFilter { identifier ->
+                identifier !is ProjectComponentIdentifier || identifier.buildTreePath != currentBuildTreePath
+            }
+        }.files
+        compileClasspath = sourceSets.main.get().output + sourceSets.testFixtures.get().output + externalCompileClasspath
+        runtimeClasspath = output + sourceSets.main.get().output + sourceSets.testFixtures.get().output + externalRuntimeClasspath
     }
 }
 

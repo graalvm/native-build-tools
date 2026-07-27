@@ -94,6 +94,21 @@ keeps tests independent from external publication and protects the Maven-specifi
 The local repository is part of the test contract: tests should resolve the plugin exactly as a
 sample project would, rather than reaching into compiled classes directly.
 
+Online `prepareMavenLocalRepo` builds a replacement seed in staging and publishes it only after
+Maven succeeds. Its seed-state manifest keys the prepared seeding project, Maven settings,
+embedder classpath, goals, flags, supplied version/system-property values, and seed schema. The
+manifest inventories every stable repository file by relative path and content hash; transient
+locks, temporary downloads, and resolver-status files are excluded.
+
+Offline descriptor and functional-test prerequisites validate that manifest without invoking
+Maven or modifying the repository. Validation requires the current input key and the complete
+inventoried file set with matching hashes. Missing, stale, truncated, or corrupted state fails
+with: `The seeded Maven repository is missing or stale; run prepareMavenLocalRepo online.` A
+failed online refresh or offline validation must leave the previous repository unchanged. Offline
+functional tests copy the validated seed and current common publication repository into their
+isolated local repository and invoke Maven offline, so they neither alter the seed nor contact
+remote repositories.
+
 ## 5. CI coverage
 
 `test-native-maven-plugin.yml` runs generated Maven functional-test matrices, Maven plugin
