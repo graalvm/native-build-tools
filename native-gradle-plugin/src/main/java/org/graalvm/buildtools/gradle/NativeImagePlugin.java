@@ -341,7 +341,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                     }
                     return null;
                 });
-                task.getJavaLauncher().convention(toolchainLauncher);
                 task.setConventionJavaLauncher(toolchainLauncher);
             }
         });
@@ -415,7 +414,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.getOptions().convention(options);
                     builder.getUseArgFile().convention(graalExtension.getUseArgFile());
                     builder.setConventionJavaLauncher(graalExtension.getDefaultJavaLauncher());
-                    options.getJavaLauncher().convention(graalExtension.getDefaultJavaLauncher());
 
                     GraalVMReachabilityMetadataRepositoryExtension repoExt = reachabilityExtensionOn(graalExtension);
                     Provider<Boolean> repoEnabled =

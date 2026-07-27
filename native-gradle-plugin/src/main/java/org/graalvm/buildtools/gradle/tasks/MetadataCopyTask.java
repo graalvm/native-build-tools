@@ -168,9 +168,10 @@ public abstract class MetadataCopyTask extends DefaultTask {
         Provider<Boolean> isMergeEnabled = providerFactory.provider(() -> true);
         Provider<AgentMode> agentModeProvider = providerFactory.provider(StandardAgentMode::new);
 
-        JavaLauncher resolvedLauncher = getJavaLauncher().getOrNull();
+        JavaLauncher userLauncher = getJavaLauncher().getOrNull();
         JavaLauncher conventionValue = conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null;
-        boolean isExplicit = resolvedLauncher != null && !sameInstallation(resolvedLauncher, conventionValue);
+        JavaLauncher resolvedLauncher = userLauncher != null ? userLauncher : conventionValue;
+        boolean isExplicit = userLauncher != null;
 
         new MergeAgentFilesAction(
                 isMergeEnabled,
@@ -186,12 +187,4 @@ public abstract class MetadataCopyTask extends DefaultTask {
                 execOperations,
                 providerFactory).execute(this);
     }
-
-    private static boolean sameInstallation(JavaLauncher a, JavaLauncher b) {
-        if (a == null || b == null) {
-            return a == b;
-        }
-        return a.getMetadata().getInstallationPath().getAsFile()
-            .equals(b.getMetadata().getInstallationPath().getAsFile());
-}
 }

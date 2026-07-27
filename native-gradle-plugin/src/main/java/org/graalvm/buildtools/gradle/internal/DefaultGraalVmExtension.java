@@ -76,9 +76,6 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         getToolchainDetection().convention(false);
-        // Every binary exposes a javaLauncher convention so graalvmNative.binaries.main.javaLauncher
-        // is always resolvable (e.g. its metadata.languageVersion) when toolchain detection is on. §FS-native-invocation.1.5
-        nativeImages.configureEach(options -> options.getJavaLauncher().convention(defaultJavaLauncher));
         getTestSupport().convention(true);
         AgentOptions agentOpts = getAgent();
         agentOpts.getDefaultMode().convention("standard");

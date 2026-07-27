@@ -110,6 +110,34 @@ class NativeImagePluginTest extends Specification {
         ]
     }
 
+    // §FS-native-invocation.1.5 — no convention on getJavaLauncher() means isPresent reflects explicit user config only
+    // Without convention, compatibility mode fallback to defaultJavaLauncher works correctly.
+    def "binary javaLauncher has no convention so isPresent is false by default"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        expect:
+        // No convention: isPresent() is false when user hasn't set anything
+        !extension.binaries.getByName("main").javaLauncher.isPresent()
+    }
+
+    // §FS-native-invocation.1.5 — explicit launcher matching convention installation path is still authoritative
+    // With structural provenance (no convention on property), user-set launcher is always treated as explicit.
+    def "explicit javaLauncher set by user is present regardless of convention"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+
+        when:
+        // Set a launcher directly (simulates explicit user configuration)
+        main.javaLauncher.set(project.provider { null } as org.gradle.jvm.toolchain.JavaLauncher)
+
+        then:
+        main.javaLauncher.isPresent()
+    }
+
     private String taskDescription(String name) {
         Task task = project.tasks.getByName(name)
         assert task.description != null

@@ -361,4 +361,103 @@ exit 1'''
         // so we only verify the warning message which is always produced.
         outputContains("gu tool failed to install native-image")
     }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
+    // §FS-native-invocation.1.2 — convention-selected launcher: no explicit set, convention provides native-image
+    def "convention launcher provides native-image when no explicit launcher set"() {
+        debug = true
+
+        given:
+        withSample("java-application")
+        file("gradle.properties") << """
+            org.gradle.java.installations.auto-download=false
+            org.gradle.java.installations.paths=${System.getenv("JAVA_HOME") ?: System.getProperty("java.home")}
+        """.stripIndent()
+
+        // Create a fake GRAALVM_HOME with a working native-image
+        File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()
+        fakeGraalvm.mkdirs()
+        File fakeBin = new File(fakeGraalvm, "bin")
+        fakeBin.mkdirs()
+        setupWorkingNativeImage(fakeBin)
+
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+                }
+            }
+            graalvmNative.metadataRepository.enabled = false
+            graalvmNative.toolchainDetection = true
+            graalvmNative.binaries.all {
+                buildArgs.add("-Ob")
+                // No explicit javaLauncher — relies on convention from toolchain
+            }
+        """.stripIndent()
+
+        when:
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+        }
+
+        and:
+        getExecutableFile("build/native/nativeCompile/java-application").exists()
+
+        and:
+        // Toolchain detection was used — no explicit launcher set, convention resolved via toolchain
+        outputContains("GraalVM Toolchain detection is enabled")
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
+    // §FS-native-invocation.1.6 — toolchain detection interaction: compatibility mode uses convention fallback
+    def "compatibility mode works without explicit launcher"() {
+        debug = true
+
+        given:
+        withSample("java-application")
+        file("gradle.properties") << """
+            org.gradle.java.installations.auto-download=false
+            org.gradle.java.installations.paths=${System.getenv("JAVA_HOME") ?: System.getProperty("java.home")}
+        """.stripIndent()
+
+        File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()
+        fakeGraalvm.mkdirs()
+        File fakeBin = new File(fakeGraalvm, "bin")
+        fakeBin.mkdirs()
+        setupWorkingNativeImage(fakeBin)
+
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+                }
+            }
+            graalvmNative.metadataRepository.enabled = false
+            graalvmNative.toolchainDetection = true
+            graalvmNative.binaries.all {
+                buildArgs.add("-Ob")
+                buildArgs.add("-H:+CompatibilityMode")
+                // No explicit javaLauncher — isPresent() returns false,
+                // so the compatibility mode code falls back to conventionJavaLauncher
+            }
+        """.stripIndent()
+
+        when:
+        runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
+
+        then:
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+        }
+
+        and:
+        getExecutableFile("build/native/nativeCompile/java-application").exists()
+
+        and:
+        outputContains("Compatibility Mode detected")
+        outputContains("GraalVM Toolchain detection is enabled")
+    }
 }
