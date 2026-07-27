@@ -31,11 +31,10 @@ class NativeImageOptionsTest extends Specification {
             
             graalvmNative.toolchainDetection = true
             
-            assert graalvmNative.binaries.main.javaLauncher
-                .get()
-                .metadata
-                .languageVersion
-                .toString() == JavaVersion.current().majorVersion
+            // options.getJavaLauncher() has no plugin-installed convention;
+            // the toolchain launcher is resolved at task execution time via
+            // the separate conventionJavaLauncher field.
+            assert !graalvmNative.binaries.main.javaLauncher.isPresent()
         """
 
         runner.build()
