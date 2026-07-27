@@ -55,8 +55,10 @@ The complete state diagram and transition commentary are at the top of
 
 1. Intake creates or reuses an issue worktree from the configured base branch, snapshots the
    issue, reads repository instructions, and records issue adequacy and spec fit.
-2. Compatible issues receive a content-addressed proposal. Proposal comments
-   and decisions are recovered from GitHub across fresh runs.
+2. Compatible issues receive a content-addressed proposal headed
+   `Implementation proposal`, with scope and the remaining approval details
+   presented as sections beneath it. Proposal comments and decisions are
+   recovered from GitHub across fresh runs.
 3. An exact `/rhei approve <proposal-id>` comment from a repository member
    with write, maintain, or admin permission authorizes implementation.
 4. Implementation follows NBT's spec-first and grounding rules, then runs

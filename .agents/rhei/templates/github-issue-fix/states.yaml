@@ -61,6 +61,8 @@
 # writes one configured-actor issue comment carrying
 # `<!-- rhei-proposal:v1 id=<id> attempt=<n> -->`, then applies the already
 # existing `rhei:awaiting-approval` label. The workflow never creates labels.
+# Proposal content is headed `Implementation proposal`, with its substantive
+# parts nested as sections beneath that title.
 #
 # Only the latest supported marker from the configured Rhei actor is current.
 # A decision must have an exact first line `/rhei approve <current-id>` or
@@ -297,11 +299,21 @@ states:
       Set the attempt to one more than the latest GitHub proposal attempt, or 1
       when none exists; never exceed `{{proposal_attempts}}`.
 
-      Write `{output.proposal.path}` with the accepted issue scope, applicable
+      Write `{output.proposal.path}` as an implementation proposal. Begin with
+      the exact heading `# Implementation proposal`, then use these exact
+      second-level headings in order:
+      - `## Scope`
+      - `## Repository and specification constraints`
+      - `## Intended behavior and file changes`
+      - `## Validation strategy`
+      - `## Risks and mitigations`
+      - `## Known gaps`
+      Fill those sections with the accepted issue scope, applicable
       repository/spec constraints, concrete intended behavior and file changes,
-      validation strategy, risks, and known gaps. Do not include a marker,
-      proposal ID, commands, or provenance footer; the deterministic publisher
-      adds those from canonical content and durable invocation evidence.
+      validation strategy, risks, and known gaps. Do not add content before the
+      overarching title. Do not include a marker, proposal ID, commands, or
+      provenance footer; the deterministic publisher adds those from canonical
+      content and durable invocation evidence.
       Write `{output.proposal-metadata.path}` as JSON with `attempt`, the source
       decision/proposal ID when present, and whether this is a revision.
     outputs:
