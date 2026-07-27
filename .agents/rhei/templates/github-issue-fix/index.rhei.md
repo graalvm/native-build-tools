@@ -3,9 +3,9 @@
 
 ## Overview
 
-This workspace fixes one GitHub issue from `graalvm/native-build-tools`: `{{issue}}`.
+This workspace fixes one GitHub issue from `{{repo}}`: `{{issue}}`.
 
-The first task creates or reuses an isolated worktree from `.`,
+The first task creates or reuses an isolated worktree from `{{repo_checkout}}`,
 fetches the issue, discovers repository instructions and grounding configuration,
 records a spec-fit artifact, and writes exactly one follow-up task. The follow-up
 task starts in proposal approval inspection, local proposal generation, or
@@ -21,19 +21,19 @@ a local handoff.
 
 | Field | Value |
 |---|---|
-| Repository | `graalvm/native-build-tools` |
+| Repository | `{{repo}}` |
 | Issue | `{{issue}}` |
-| Source checkout | `.` |
-| Work subdirectory | `.` |
-| Worktree root | `../native-build-tools-rhei-worktrees` |
-| Base branch | `master` |
-| Branch prefix | `rhei` |
-| Publication mode | `draft` |
-| Rhei GitHub actor | `jormundur00` |
-| Proposal attempt limit | `3` |
-| PR push remote | `origin` |
-| PR head owner | `graalvm` |
-| PR labels | `["rhei"]` |
+| Source checkout | `{{repo_checkout}}` |
+| Work subdirectory | `{{work_subdir}}` |
+| Worktree root | `{{worktree_root}}` |
+| Base branch | `{{base_branch}}` |
+| Branch prefix | `{{branch_prefix}}` |
+| Publication mode | `{{publication_mode}}` |
+| Rhei GitHub actor | `{% if rhei_actor == "auto" %}<active gh account>{% else %}{{rhei_actor}}{% endif %}` |
+| Proposal attempt limit | `{{proposal_attempts}}` |
+| PR push remote | `{{pr_push_remote}}` |
+| PR head owner | `{{pr_head_owner}}` |
+| PR labels | `{{pr_labels}}` |
 
 ## Validation Commands
 

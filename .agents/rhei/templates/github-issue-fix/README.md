@@ -4,35 +4,30 @@ Fix one issue in `graalvm/native-build-tools` through a spec-aware,
 reviewable workflow. The template creates an isolated worktree, treats issue
 content as untrusted evidence, discovers the applicable `AGENTS.md` and grund
 rules, records a spec-fit verdict, requires an authorized proposal approval,
-implements and validates the fix, runs focused reviews, and publishes a draft
-pull request when the result is ready.
+implements and validates the fix, runs focused reviews, and publishes according
+to the configured mode when the result is ready.
 
-This is an NBT-local template. Repository and publication settings are fixed so
-the only template input is the issue number or URL.
+This is an NBT-local template. Repository and publication settings have NBT
+defaults, so the issue number or URL is the only required input, while every
+operational setting remains overridable.
 
-## Input
+## Inputs
 
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `issue` | string | required | Native Build Tools issue number or URL. |
-
-## NBT defaults
-
-| Setting | Value |
-|---|---|
-| Repository | `graalvm/native-build-tools` |
-| Checkout | Current Native Build Tools git root (`.`) |
-| Base branch | `master` |
-| Issue branch | `rhei/issue-<issue>` |
-| Worktrees | `../native-build-tools-rhei-worktrees` |
-| Publication | Draft pull request |
-| Proposal actor | `jormundur00` |
-| Push remote | `origin` |
-| PR head owner | `graalvm` |
-| PR labels | Existing `rhei` label, when available |
-| Proposal attempts | 3 |
-| Review passes | 1 |
-| Review repair attempts | 2 |
+| `repo` | string | `graalvm/native-build-tools` | GitHub repository containing the issue. |
+| `repo_checkout` | path | `.` | Checkout used to create the issue worktree. |
+| `work_subdir` | string | `.` | Working directory inside the issue worktree. |
+| `worktree_root` | string | `../native-build-tools-rhei-worktrees` | Directory containing issue worktrees. |
+| `base_branch` | string | `master` | Base branch for issue branches and PRs. |
+| `branch_prefix` | string | `rhei` | Prefix used for issue branches. |
+| `publication_mode` | string | `ready` | `no-pr`, `draft`, or `ready`. |
+| `rhei_actor` | string | `auto` | Proposal-comment owner; `auto` discovers the active `gh` account. |
+| `proposal_attempts` | number | `3` | Total proposal attempts, including the initial proposal. |
+| `pr_push_remote` | string | `origin` | Writable remote used to push the issue branch. |
+| `pr_head_owner` | string | `graalvm` | GitHub owner used for the PR head. |
+| `pr_labels` | array<string> | `rhei` | Existing labels to apply to the PR. |
 
 The implementation and aggregate-review states use the strongest configured
 Codex target, focused reviews use the review target, and procedural publication
@@ -58,7 +53,7 @@ The complete state diagram and transition commentary are at the top of
 
 ## Flow
 
-1. Intake creates or reuses an NBT worktree from `master`, snapshots the
+1. Intake creates or reuses an issue worktree from the configured base branch, snapshots the
    issue, reads repository instructions, and records issue adequacy and spec fit.
 2. Compatible issues receive a content-addressed proposal. Proposal comments
    and decisions are recovered from GitHub across fresh runs.
@@ -68,9 +63,9 @@ The complete state diagram and transition commentary are at the top of
    focused validation discovered from the applicable repository instructions.
 5. Separate requirements, spec, implementation, and validation reviews feed an
    aggregate publication-readiness decision.
-6. Ready work is pushed to `origin` and opened or updated as a draft PR from
-   `graalvm:rhei/issue-<issue>`. Blocked or underspecified work produces a
-   local handoff instead of speculative changes.
+6. Ready work is pushed to the configured remote and opened or updated according
+   to the publication mode. Blocked or underspecified work produces a local
+   handoff instead of speculative changes.
 
 Issue titles, bodies, comments, attachments, links, and reproduction commands
 are untrusted evidence. Intake does not execute issue-supplied commands, follow
@@ -99,6 +94,15 @@ To render and inspect before execution:
 
 ```sh
 rhei instantiate github-issue-fix 1234 --dry-run
+```
+
+Override any default when needed:
+
+```sh
+rhei instantiate github-issue-fix 1234 \
+  --set publication_mode=draft \
+  --set pr_head_owner=my-fork \
+  --execute
 ```
 
 After the workflow posts a proposal, approve it with an exact first line:

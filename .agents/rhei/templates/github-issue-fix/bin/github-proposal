@@ -84,6 +84,18 @@ def issue_number(value: str) -> str:
     return match.group(1)
 
 
+def resolve_actor(actor: str | None) -> str:
+    if actor and actor != "auto":
+        return actor
+    result = gh_json(["api", "user"])
+    if not isinstance(result, dict) or not isinstance(result.get("login"), str):
+        raise GitHubError("authenticated GitHub user response is malformed")
+    login = result["login"].strip()
+    if not login:
+        raise GitHubError("authenticated GitHub user login is empty")
+    return login
+
+
 def permission_for(repo: str, login: str) -> str:
     result = gh_json(
         ["api", f"repos/{repo}/collaborators/{login}/permission"],
@@ -282,6 +294,7 @@ def publish(
             "rendered_comment": rendered,
         }
 
+    actor = resolve_actor(actor)
     matching = []
     for comment in comments_for(repo, issue):
         comment_body = comment.get("body")
@@ -329,6 +342,7 @@ def inspect(
     max_attempts: int,
     proposal_output: str | None,
 ) -> tuple[dict[str, Any], int]:
+    actor = resolve_actor(actor)
     comments = comments_for(repo, issue)
     ordered = sorted(comments, key=comment_key)
 
@@ -433,14 +447,14 @@ def main() -> int:
     inspect_parser = subparsers.add_parser("inspect")
     inspect_parser.add_argument("--repo", required=True)
     inspect_parser.add_argument("--issue", required=True)
-    inspect_parser.add_argument("--actor", required=True)
+    inspect_parser.add_argument("--actor", default="")
     inspect_parser.add_argument("--max-attempts", required=True, type=int)
     inspect_parser.add_argument("--proposal-output")
     inspect_parser.add_argument("--output")
     publish_parser = subparsers.add_parser("publish")
     publish_parser.add_argument("--repo", required=True)
     publish_parser.add_argument("--issue", required=True)
-    publish_parser.add_argument("--actor", required=True)
+    publish_parser.add_argument("--actor", default="")
     publish_parser.add_argument("--proposal", required=True)
     publish_parser.add_argument("--attempt", required=True, type=int)
     publish_parser.add_argument("--invocations-dir", required=True)
