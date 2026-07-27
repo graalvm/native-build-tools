@@ -318,7 +318,7 @@ exit 0
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/542")
-    // §FS-native-invocation.1.5 — failure messages show attempted paths
+    // §FS-native-invocation.1.5 — gu failure is non-fatal: warns and falls back to alternative homes
     def "gu installation failure falls back to error message"() {
         debug = true
 
@@ -356,12 +356,9 @@ exit 1'''
         runWithEnv(['GRAALVM_HOME': fakeGraalvm.absolutePath], 'nativeCompile')
 
         then:
-        tasks {
-            succeeded ':jar'
-            failed ':nativeCompile'
-        }
-
-        and:
-        errorOutputContains("gu tool failed to install native-image")
+        // gu failure is non-fatal — warning is logged instead of throwing.
+        // Build outcome is environment-dependent (Gradle JVM fallback may find native-image),
+        // so we only verify the warning message which is always produced.
+        outputContains("gu tool failed to install native-image")
     }
 }
