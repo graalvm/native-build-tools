@@ -170,7 +170,9 @@ public class NativeImageExecutableLocator {
 
         // If launcher not provided or convention launcher didn't find native-image, try environment variables
         if ((executablePath == null || !executablePath.exists()) && graalvmHomeProvider.isPresent()) {
-            diagnostics.disableToolchainDetection();
+            if (disableToolchainDetection.get()) {
+                diagnostics.disableToolchainDetection();
+            }
             String graalvmHome = graalvmHomeProvider.get();
             executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
 
@@ -256,9 +258,10 @@ public class NativeImageExecutableLocator {
             spec.setIgnoreExitValue(true);
         });
         if (res.getExitValue() != 0) {
-            throw new GradleException("gu tool failed to install native-image. " +
+            logger.warn("gu tool failed to install native-image. " +
                     "Please install native-image manually via 'gu install native-image' " +
                     "or configure a GraalVM installation that already includes native-image.");
+            return;
         }
         logger.lifecycle("Native Image installed successfully.");
         diagnostics.withGuInstall();

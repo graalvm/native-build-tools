@@ -134,7 +134,7 @@ class NativeImageExecutableLocatorTest extends Specification {
         when:
         def result = NativeImageExecutableLocator.findNativeImageExecutable(
                 launcher, false,
-                Stub(Provider),
+                Stub(Provider) { get() >> false },
                 graalvmHomeProvider,
                 execOperations,
                 logger,
@@ -191,7 +191,7 @@ class NativeImageExecutableLocatorTest extends Specification {
         when:
         def result = NativeImageExecutableLocator.findNativeImageExecutable(
                 launcher, false,
-                Stub(Provider),
+                Stub(Provider) { get() >> false },
                 graalvmHomeProvider,
                 execOperations,
                 logger,
