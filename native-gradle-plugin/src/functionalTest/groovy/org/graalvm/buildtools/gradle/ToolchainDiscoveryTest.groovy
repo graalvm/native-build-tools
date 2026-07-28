@@ -451,9 +451,14 @@ exit 1'''
                    'nativeCompile')
 
         then:
-        // Plugin detects compatibility mode via NATIVE_IMAGE_OPTIONS env var (configuration-time)
-        outputContains('Compatibility Mode detected')
-        // Toolchain detection is active and convention fallback was used
+        // Compatibility Mode is detected during project evaluation (afterEvaluate),
+        // which only fires on the store run when using configuration cache.
+        if (hasConfigurationCache) {
+            configurationCacheStoreOutputContains('Compatibility Mode detected')
+        } else {
+            outputContains('Compatibility Mode detected')
+        }
+        // Toolchain detection is active and convention fallback was used (task-time message, fires on both runs)
         outputContains('GraalVM Toolchain detection is enabled')
     }
 }

@@ -225,7 +225,11 @@ abstract class AbstractFunctionalTest extends Specification {
             runner.withEnvironment(mergedEnv)
             result = runner.run()
             if (hasConfigurationCache) {
-                // run a 2d time to check that not only we can store in
+                // Save first-run output before the second run resets the writer.
+                // Configuration-time messages (afterEvaluate) only fire on the store run.
+                configurationCacheStoreResult = result
+                configurationCacheStoreOutput = normalizeString(outputWriter.toString())
+                // run a 2nd time to check that not only we can store in
                 // the configuration cache, but that we can also load from it
                 result = newRunner(*[*args, "--rerun-tasks"] as String[])
                         .withEnvironment(mergedEnv)
