@@ -51,7 +51,6 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
@@ -300,18 +299,49 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         return Collections.unmodifiableList(actualCliArgs);
     }
 
-    // Maven's detected console mode controls version-appropriate Native Image color flags. §FS-native-builds.9.
+    // Maven-exposed console modes control version-appropriate Native Image color flags. §FS-native-builds.9.
     private void addConsoleColorArgument(List<String> cliArgs) throws MojoExecutionException {
-        boolean colorEnabled = isColorEnabled();
+        Optional<Boolean> colorEnabled = getMavenColorSetting();
+        if (colorEnabled.isEmpty()) {
+            return;
+        }
         if (getNativeImageMajorVersion() >= 21) {
-            cliArgs.add(NativeImageFlags.COLOR + (colorEnabled ? "=always" : "=never"));
+            cliArgs.add(NativeImageFlags.COLOR + (colorEnabled.get() ? "=always" : "=never"));
         } else {
-            cliArgs.add(colorEnabled ? NativeImageFlags.BUILD_OUTPUT_COLORFUL : NativeImageFlags.BUILD_OUTPUT_COLORLESS);
+            cliArgs.add(colorEnabled.get()
+                    ? NativeImageFlags.BUILD_OUTPUT_COLORFUL
+                    : NativeImageFlags.BUILD_OUTPUT_COLORLESS);
         }
     }
 
-    protected boolean isColorEnabled() {
-        return MessageUtils.isColorEnabled();
+    protected Optional<Boolean> getMavenColorSetting() {
+        String styleColor = session.getUserProperties().getProperty("style.color");
+        if (styleColor == null) {
+            styleColor = session.getSystemProperties().getProperty("style.color");
+        }
+        Optional<Boolean> explicitStyleColor = parseMavenColorMode(styleColor);
+        if (explicitStyleColor.isPresent()) {
+            return explicitStyleColor;
+        }
+
+        if (!session.getRequest().isInteractiveMode()) {
+            return Optional.of(false);
+        }
+        return Optional.empty();
+    }
+
+    private static Optional<Boolean> parseMavenColorMode(String colorMode) {
+        if ("always".equalsIgnoreCase(colorMode)
+                || "yes".equalsIgnoreCase(colorMode)
+                || "force".equalsIgnoreCase(colorMode)) {
+            return Optional.of(true);
+        }
+        if ("never".equalsIgnoreCase(colorMode)
+                || "no".equalsIgnoreCase(colorMode)
+                || "none".equalsIgnoreCase(colorMode)) {
+            return Optional.of(false);
+        }
+        return Optional.empty();
     }
 
     protected int getNativeImageMajorVersion() throws MojoExecutionException {

@@ -1,5 +1,8 @@
 package org.graalvm.buildtools.maven
 
+import org.apache.maven.execution.DefaultMavenExecutionRequest
+import org.apache.maven.execution.DefaultMavenExecutionResult
+import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.MojoExecutionException
 import org.graalvm.buildtools.model.resources.NativeImageFlags
 import spock.lang.Issue
@@ -37,13 +40,14 @@ class AbstractNativeImageMojoTest extends Specification {
         ]
     }
 
-    // Maven console mode selects the Native Image version's color argument. §FS-native-builds.9.
-    @Issue("https://github.com/graalvm/native-build-tools/issues/366")
-    def "uses Maven's #label console color mode with JDK #nativeImageMajorVersion"() {
+    // An explicit Maven style selects the Native Image version's color argument. §FS-native-builds.9.
+    @Issue(["https://github.com/graalvm/native-build-tools/issues/366",
+            "https://github.com/graalvm/native-build-tools/issues/1000"])
+    def "uses Maven's explicit #styleColor style with JDK #nativeImageMajorVersion"() {
         given:
         def mojo = newMojo([])
         mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
-        mojo.colorEnabled = colorEnabled
+        mojo.session.userProperties.setProperty("style.color", styleColor)
         mojo.nativeImageMajorVersion = nativeImageMajorVersion
 
         when:
@@ -53,20 +57,58 @@ class AbstractNativeImageMojoTest extends Specification {
         args.contains(expectedColorArgument)
 
         where:
-        label      | colorEnabled | nativeImageMajorVersion | expectedColorArgument
-        "disabled" | false        | 17                      | NativeImageFlags.BUILD_OUTPUT_COLORLESS
-        "disabled" | false        | 21                      | "--color=never"
-        "enabled"  | true         | 17                      | NativeImageFlags.BUILD_OUTPUT_COLORFUL
-        "enabled"  | true         | 21                      | "--color=always"
+        styleColor | nativeImageMajorVersion | expectedColorArgument
+        "never"    | 17                      | NativeImageFlags.BUILD_OUTPUT_COLORLESS
+        "never"    | 21                      | "--color=never"
+        "always"   | 17                      | NativeImageFlags.BUILD_OUTPUT_COLORFUL
+        "always"   | 21                      | "--color=always"
+        "none"     | 21                      | "--color=never"
+        "force"    | 21                      | "--color=always"
     }
 
-    // Explicit build arguments retain precedence over Maven's detected color mode. §FS-native-builds.9.
+    // Maven batch mode disables Native Image colors even when no color property is present. §FS-native-builds.9.
+    def "disables colors for Maven batch mode"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.session.request.interactiveMode = false
+        mojo.nativeImageMajorVersion = 21
+
+        expect:
+        mojo.getBuildArgs().contains("--color=never")
+    }
+
+    // Unresolved color selection remains Native Image's responsibility without Maven implementation classes. §FS-native-builds.9.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1000")
+    def "omits a color argument when Maven color mode is #styleColor"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        if (styleColor != null) {
+            mojo.session.userProperties.setProperty("style.color", styleColor)
+        }
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        !args.any {
+            it.startsWith(NativeImageFlags.COLOR) ||
+                    it == NativeImageFlags.BUILD_OUTPUT_COLORFUL ||
+                    it == NativeImageFlags.BUILD_OUTPUT_COLORLESS
+        }
+
+        where:
+        styleColor << [null, "auto"]
+    }
+
+    // Explicit build arguments retain precedence over Maven's explicit color mode. §FS-native-builds.9.
     @Issue("https://github.com/graalvm/native-build-tools/issues/366")
-    def "places explicit color build arguments after Maven's detected default"() {
+    def "places explicit color build arguments after Maven's explicit selection"() {
         given:
         def mojo = newMojo(["--color=never"])
         mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
-        mojo.colorEnabled = true
+        mojo.session.userProperties.setProperty("style.color", "always")
         mojo.nativeImageMajorVersion = 21
 
         when:
@@ -114,11 +156,17 @@ class AbstractNativeImageMojoTest extends Specification {
         mojo.buildArgs = buildArgs
         mojo.configFiles = []
         mojo.useArgFile = false
+        def userProperties = new Properties()
+        def systemProperties = new Properties()
+        def request = new DefaultMavenExecutionRequest()
+                .setUserProperties(userProperties)
+                .setSystemProperties(systemProperties)
+                .setInteractiveMode(true)
+        mojo.session = new MavenSession(null, null, request, new DefaultMavenExecutionResult())
         mojo
     }
 
     private static class TestNativeImageMojo extends AbstractNativeImageMojo {
-        boolean colorEnabled
         int nativeImageMajorVersion = 25
 
         @Override
@@ -132,11 +180,6 @@ class AbstractNativeImageMojoTest extends Specification {
 
         @Override
         protected void populateClasspath() {
-        }
-
-        @Override
-        protected boolean isColorEnabled() {
-            colorEnabled
         }
 
         @Override
