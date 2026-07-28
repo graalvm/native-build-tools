@@ -173,12 +173,17 @@ public abstract class MetadataCopyTask extends DefaultTask {
         JavaLauncher resolvedLauncher = userLauncher != null ? userLauncher : conventionValue;
         boolean isExplicit = userLauncher != null;
 
+        Property<JavaLauncher> resolvedLauncherProperty = objectFactory.property(JavaLauncher.class);
+        if (resolvedLauncher != null) {
+            resolvedLauncherProperty.set(resolvedLauncher);
+        }
+
         new MergeAgentFilesAction(
                 isMergeEnabled,
                 agentModeProvider,
                 getMergeWithExisting(),
                 objectFactory,
-                getJavaLauncher(),
+                resolvedLauncherProperty,
                 graalvmHomeProvider(providerFactory),
                 () -> inputDirectories,
                 () -> outputDirectories,
