@@ -20,10 +20,12 @@ environment variable, or path-based discovery — including `gu install native-i
 
 When no explicit launcher is set, the plugin selects a launcher by convention:
 
-1. **Toolchain detection** (`toolchainDetection = true`): the configured Java toolchain is
-   probed for `bin/native-image`. If found, that launcher is used. If `native-image` is not
-   present, `configureToolchain()` returns `null` and the plugin continues to environment
-   variable fallback.
+1. **Toolchain detection** (`toolchainDetection = true`): `configureToolchain()` resolves
+   the configured Java toolchain and exposes it as the binary's `javaLauncher` convention
+   — it does **not** check for `native-image` presence. At build time,
+   `NativeImageExecutableLocator` probes the toolchain's installation for
+   `bin/native-image`. If found, that launcher is used. If `native-image` is not present,
+   the locator falls through to environment variable fallback.
 2. **Toolchain disabled**: no convention launcher is set, the plugin goes directly to
    environment variable fallback.
 
@@ -32,18 +34,20 @@ does not, the plugin continues to environment-variable fallback.
 
 ### 1.3. Environment-variable fallback
 
-When no convention launcher supplies `native-image`, the plugin probes, in order:
+When no convention launcher supplies `native-image`, the plugin resolves a single primary
+GraalVM home from the first available environment variable:
 
-1. `GRAALVM_HOME/bin/native-image`
-2. `JAVA_HOME/bin/native-image`
-3. `{java.home}/bin/native-image` — the Gradle JVM itself, as a last resort when neither
-   environment variable is set
+1. `GRAALVM_HOME` — if set
+2. `JAVA_HOME` — if `GRAALVM_HOME` is not set
+3. `{java.home}` — the Gradle JVM itself, as a last resort when neither env var is set
 
-If none resolve to an existing executable, the plugin attempts `gu install native-image`
-(see [§FS-native-invocation.1.4](native-image-invocation.md#14-gu-based-installation)) on the resolved
-GraalVM home; if that still does not provide `native-image`, it probes the other GraalVM homes
-(`GRAALVM_HOME`/`JAVA_HOME`/`{java.home}` other than the one just tried). If no `native-image` is
-found in any of those locations, the locator fails with a diagnostic ([§FS-native-invocation.1.5](native-image-invocation.md#15-failure-messages)).
+The plugin probes the primary home for `bin/native-image`. If `native-image` is not found
+there, it attempts `gu install native-image` (see
+[§FS-native-invocation.1.4](native-image-invocation.md#14-gu-based-installation)) on that same home.
+If the primary GraalVM still lacks `native-image` after `gu`, the plugin probes the
+*other* GraalVM homes — whichever of `GRAALVM_HOME`/`JAVA_HOME`/`{java.home}` was not
+selected as the primary. If no `native-image` is found in any of those locations, the
+locator fails with a diagnostic ([§FS-native-invocation.1.5](native-image-invocation.md#15-failure-messages)).
 
 ### 1.4. gu-based installation
 
@@ -68,11 +72,13 @@ The `NativeImageExecutableLocator.Diagnostics` class collects this information f
 ### 1.6. Toolchain detection interaction
 
 When `toolchainDetection = true` and the toolchain-resolved launcher does not contain
-`native-image`, `configureToolchain()` in `DefaultGraalVmExtension` returns `null`.
-The plugin then falls through to environment variable fallback (GRAALVM_HOME →
-JAVA_HOME → Gradle JVM). This means the toolchain's GraalVM is used only if it already
-provides `native-image`; otherwise the build uses the same environment-variable resolution
-path as builds without a toolchain.
+`native-image`, `configureToolchain()` in `DefaultGraalVmExtension` still returns the
+toolchain launcher (it never checks for `native-image`). The
+`NativeImageExecutableLocator` performs the `native-image` check at build time and falls
+through to environment variable fallback (GRAALVM_HOME → JAVA_HOME → Gradle JVM) when
+the toolchain's installation lacks `native-image`. This means the toolchain's GraalVM is
+used only if it already provides `native-image`; otherwise the build uses the same
+environment-variable resolution path as builds without a toolchain.
 
 ## 2. Version and schema gates
 

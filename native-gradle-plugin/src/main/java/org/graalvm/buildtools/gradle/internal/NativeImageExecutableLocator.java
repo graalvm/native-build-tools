@@ -148,6 +148,7 @@ public class NativeImageExecutableLocator {
             diagnostics.withToolchain(metadata);
             try {
                 executablePath = metadata.getInstallationPath().file("bin/" + NATIVE_IMAGE_EXE).getAsFile();
+                diagnostics.addProbedPath(executablePath.getAbsolutePath());
             } catch (Exception e) {
                 // Probe failed, executablePath remains null
             }
@@ -175,6 +176,7 @@ public class NativeImageExecutableLocator {
             }
             String graalvmHome = graalvmHomeProvider.get();
             executablePath = Paths.get(graalvmHome).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
+            diagnostics.addProbedPath(executablePath.getAbsolutePath());
 
             // Try to install native-image via gu if the executable doesn't exist yet
             tryInstallNativeImageViaGu(executablePath, execOperations, logger, diagnostics);
@@ -210,6 +212,16 @@ public class NativeImageExecutableLocator {
             if (graalvmHome == null) {
                 errorMessage.append(" The build is running with Gradle on a non-GraalVM JDK. ");
             }
+            List<String> probed = diagnostics.getProbedPaths();
+            if (!probed.isEmpty()) {
+                errorMessage.append(" Probed paths:");
+                for (String p : probed) {
+                    errorMessage.append("\n");
+                    errorMessage.append("   - ");
+                    errorMessage.append(p);
+                }
+            }
+            errorMessage.append("\n");
             errorMessage.append("Please configure a GraalVM-based Java toolchain or set GRAALVM_HOME/JAVA_HOME to a GraalVM with native-image.");
 
             throw new GradleException(errorMessage.toString());
@@ -293,6 +305,7 @@ public class NativeImageExecutableLocator {
                 continue;
             }
             File candidateExe = Paths.get(home).resolve("bin/" + NATIVE_IMAGE_EXE).toFile();
+            diagnostics.addProbedPath(candidateExe.getAbsolutePath());
             if (candidateExe.exists()) {
                 logger.lifecycle("Using native-image from alternative GraalVM home: " + home);
                 diagnostics.setLocationSource(label);
@@ -309,6 +322,7 @@ public class NativeImageExecutableLocator {
         private boolean guInstall;
         private File executablePath;
         private JavaInstallationMetadata toolchain;
+        private final List<String> probedPaths = new ArrayList<>();
 
         public Provider<String> fromEnvVar(String envVar, ProviderFactory factory) {
             return factory.environmentVariable(envVar)
@@ -337,6 +351,9 @@ public class NativeImageExecutableLocator {
             this.envVar = source;
         }
 
+        public void addProbedPath(String path) {
+            probedPaths.add(path);
+        }
 
         public void withToolchain(JavaInstallationMetadata toolchain) {
             this.toolchain = toolchain;
@@ -381,7 +398,17 @@ public class NativeImageExecutableLocator {
                     diags.add("Native Image executable path: " + executablePath.getAbsolutePath());
                 }
             }
+            if (!probedPaths.isEmpty()) {
+                diags.add("Probed paths:");
+                for (String path : probedPaths) {
+                    diags.add("   - " + path);
+                }
+            }
             return Collections.unmodifiableList(diags);
+        }
+
+        public List<String> getProbedPaths() {
+            return Collections.unmodifiableList(probedPaths);
         }
     }
 }

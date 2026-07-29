@@ -51,7 +51,7 @@ exit 0
         // auto-provisioning so the build is deterministic and offline-friendly.
         file("gradle.properties") << """
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getenv("JAVA_HOME") ?: System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${System.getProperty("java.home")}
         """.stripIndent()
 
         // Create a fake GRAALVM_HOME with a working native-image
@@ -107,7 +107,7 @@ exit 0
         // auto-provisioning so the build is deterministic and offline-friendly.
         file("gradle.properties") << """
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getenv("JAVA_HOME") ?: System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${System.getProperty("java.home")}
         """.stripIndent()
 
         // Create a fake GRAALVM_HOME that would provide a different native-image
@@ -371,7 +371,7 @@ exit 1'''
         withSample("java-application")
         file("gradle.properties") << """
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getenv("JAVA_HOME") ?: System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${System.getProperty("java.home")}
         """.stripIndent()
 
         // Create a fake GRAALVM_HOME with a working native-image
@@ -420,7 +420,7 @@ exit 1'''
         withSample("java-application")
         file("gradle.properties") << """
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getenv("JAVA_HOME") ?: System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${System.getProperty("java.home")}
         """.stripIndent()
 
         File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()

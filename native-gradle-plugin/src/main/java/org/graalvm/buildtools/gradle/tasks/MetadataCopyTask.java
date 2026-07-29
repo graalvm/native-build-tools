@@ -81,7 +81,6 @@ public abstract class MetadataCopyTask extends DefaultTask {
     private final ProviderFactory providerFactory;
     private final ObjectFactory objectFactory;
     private final ExecOperations execOperations;
-    private Provider<JavaLauncher> conventionJavaLauncher;
 
     @Inject
     public MetadataCopyTask(ProjectLayout layout,
@@ -114,9 +113,9 @@ public abstract class MetadataCopyTask extends DefaultTask {
     @Optional
     public abstract Property<JavaLauncher> getJavaLauncher();
 
-    public void setConventionJavaLauncher(Provider<JavaLauncher> javaLauncher) {
-        this.conventionJavaLauncher = javaLauncher;
-    }
+    @Nested
+    @Optional
+    public abstract Property<JavaLauncher> getConventionJavaLauncher();
 
     @Option(option = "task", description = "Executed task previously instrumented with the agent whose metadata should be copied.")
     public void overrideInputTaskNames(List<String> inputTaskNames) {
@@ -169,7 +168,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
         Provider<AgentMode> agentModeProvider = providerFactory.provider(StandardAgentMode::new);
 
         JavaLauncher userLauncher = getJavaLauncher().getOrNull();
-        JavaLauncher conventionValue = conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null;
+        JavaLauncher conventionValue = getConventionJavaLauncher().getOrNull();
         JavaLauncher resolvedLauncher = userLauncher != null ? userLauncher : conventionValue;
         boolean isExplicit = userLauncher != null;
 

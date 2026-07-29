@@ -100,7 +100,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
     private final boolean plainConsole;
 
-    private Provider<JavaLauncher> conventionJavaLauncher;
+    @Nested
+    @Optional
+    public abstract Property<JavaLauncher> getConventionJavaLauncher();
 
     @Internal
     public abstract Property<NativeImageOptions> getOptions();
@@ -280,10 +282,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getDisableToolchainDetection().convention(false);
     }
 
-    public void setConventionJavaLauncher(Provider<JavaLauncher> javaLauncher) {
-        this.conventionJavaLauncher = javaLauncher;
-    }
-
     private List<String> buildActualCommandLineArgs(int majorJDKVersion) {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
@@ -316,7 +314,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
         var javaLauncherProperty = options.getJavaLauncher();
         JavaLauncher userLauncher = javaLauncherProperty.getOrNull();
-        JavaLauncher conventionValue = conventionJavaLauncher != null ? conventionJavaLauncher.getOrNull() : null;
+        JavaLauncher conventionValue = getConventionJavaLauncher().getOrNull();
         JavaLauncher launcher = userLauncher != null ? userLauncher : conventionValue;
         boolean isExplicit = userLauncher != null;
 
