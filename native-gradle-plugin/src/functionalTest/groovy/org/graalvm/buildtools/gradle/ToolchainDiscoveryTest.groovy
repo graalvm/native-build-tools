@@ -250,9 +250,11 @@ exit 0
         and:
         // The executable was found via the alternative (JAVA_HOME) GraalVM home
         outputContains("Using native-image from alternative GraalVM home: " + javaHome.absolutePath)
-        // The resolved executable must live under JAVA_HOME, NOT the failed GRAALVM_HOME
+        // The resolved source must be JAVA_HOME, not the failed GRAALVM_HOME
+        // (fake-graalvm now appears in Probed paths diagnostics so we assert the source label instead)
+        outputContains("GraalVM location source: JAVA_HOME")
+        // The resolved native-image path should include fake-jdk (JAVA_HOME), not fake-graalvm
         outputContains("fake-jdk")
-        outputDoesNotContain("fake-graalvm")
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/542")
