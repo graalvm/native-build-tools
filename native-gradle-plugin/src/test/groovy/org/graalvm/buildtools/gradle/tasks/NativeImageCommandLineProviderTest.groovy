@@ -251,6 +251,30 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.contains(appJar.absolutePath)
     }
 
+    // Keeps the logical bundle name separate from the native shared-library image name. §FS-native-tasks.1.
+    def "layer-create build preserves its native library output name"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.create("libdependencies")
+        options.createLayer {
+            it.layerName.set("dependencies")
+            it.modules.add("java.base")
+        }
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = commandLineArguments(project, options, "libdependencies")
+        def outputOption = args.indexOf("-o")
+
+        then:
+        args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=dependencies.nil") }
+        outputOption >= 0
+        args[outputOption + 1] == testDirectory.resolve("libdependencies").toString()
+    }
+
     def "renders typed layer files through the shared layer argument utility"() {
         given:
         def project = newProject()

@@ -262,10 +262,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     public BuildNativeImageTask() {
         DirectoryProperty buildDir = getProject().getLayout().getBuildDirectory();
         Provider<Directory> outputDir = buildDir.dir("native/" + getName());
-        getWorkingDirectory().set(outputDir);
         setDescription("Builds a native image.");
         setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         getOutputDirectory().convention(outputDir);
+        getWorkingDirectory().set(getOutputDirectory());
         ProviderFactory providers = getProject().getProviders();
         this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
         this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);

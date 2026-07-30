@@ -443,16 +443,21 @@ public class NativeImagePlugin implements Plugin<Project> {
                 task.getImage().convention(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile));
                 task.getRuntimeArgs().convention(options.getRuntimeArgs());
                 if (!options.getLayerFiles().isEmpty()) {
-                    var libsDirs = project.getObjects().fileCollection();
-                    libsDirs.from(options.getLayerFiles().getElements().map(elements -> elements.stream()
-                        .map(location -> location.getAsFile().getParentFile())
-                        .toList()));
+                    Provider<String> libsPath = options.getLayerFiles().getElements()
+                        .map(serializableTransformerOf(elements -> elements.stream()
+                            .map(location -> location.getAsFile().getParent())
+                            .distinct()
+                            .collect(Collectors.joining(File.pathSeparator))));
                     if (IS_WINDOWS) {
                         var pathVariable = providers.environmentVariable("PATH");
-                        task.getEnvironment().put("PATH", pathVariable.map(path -> path + ";" + libsDirs.getAsPath()).orElse(providers.provider(libsDirs::getAsPath)));
+                        task.getEnvironment().put("PATH", pathVariable
+                            .zip(libsPath, serializableBiFunctionOf((path, libs) -> path + File.pathSeparator + libs))
+                            .orElse(libsPath));
                     } else {
                         var ldLibraryPath = providers.environmentVariable("LD_LIBRARY_PATH");
-                        task.getEnvironment().put("LD_LIBRARY_PATH", ldLibraryPath.map(path -> path + ":" + libsDirs.getAsPath()).orElse(providers.provider(libsDirs::getAsPath)));
+                        task.getEnvironment().put("LD_LIBRARY_PATH", ldLibraryPath
+                            .zip(libsPath, serializableBiFunctionOf((path, libs) -> path + File.pathSeparator + libs))
+                            .orElse(libsPath));
                     }
                 }
                 task.getInternalRuntimeArgs().convention(
