@@ -23,13 +23,17 @@ consistently.
 Every named layer receives a derived `native<Layer>Layer` task with an output under
 `build/native/layers/<layer>/<layer>.nil`. Its inputs are the explicit selection and, only when
 packages require it, the configured application classpath. Consuming compile and run tasks are
-wired to that output through providers.
+wired to that output through providers. The layer task creates and executes from its declared
+output directory before invoking Native Image. It uses the logical layer name for the `.nil`
+bundle and the platform's native shared-library naming derived from `lib<layer>` for the companion
+library consumed by later image builds.
 
 ## 2. Run tasks
 
 `nativeRun` executes the output of `nativeCompile` for the `main` binary and passes runtime
 arguments from the binary configuration. When layered Native Image output is used, it sets up layer
-library paths. Custom runnable binaries receive derived run tasks that execute their own
+library paths lazily from the produced layer files while remaining compatible with Gradle's
+configuration cache. Custom runnable binaries receive derived run tasks that execute their own
 compile-task output.
 
 `nativeTest` executes the output of `nativeTestCompile` unless native test execution is skipped.

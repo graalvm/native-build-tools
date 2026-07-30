@@ -188,9 +188,6 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         appendBooleanOption(cliArgs, options.getPgoInstrument(), NativeImageFlags.PGO_INSTRUMENT);
 
         String targetOutputPath = getExecutableName().get();
-        if (layerCreateName != null) {
-            targetOutputPath = layerCreateName;
-        }
         if (getOutputDirectory().isPresent()) {
             targetOutputPath = getOutputDirectory().get() + File.separator + targetOutputPath;
         }

@@ -168,6 +168,11 @@ abstract class AbstractFunctionalTest extends Specification {
                 binaries.all {
                     buildArgs.add("-Ob")
                 }
+                // Layer-sensitive Native Image options must match between producers and consumers.
+                // §FS-native-invocation.3.
+                layers.all {
+                    buildArgs.add("-Ob")
+                }
             }
             """.stripIndent()
         }
