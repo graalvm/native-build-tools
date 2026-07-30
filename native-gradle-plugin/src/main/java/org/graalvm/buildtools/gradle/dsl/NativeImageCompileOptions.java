@@ -250,10 +250,51 @@ public interface NativeImageCompileOptions {
     @Nested
     DomainObjectSet<LayerOptions> getLayers();
 
+    /**
+     * Internal normalized layer-create model used by dedicated layer tasks and the legacy adapter.
+     * §FS-plugin-model.2.
+     *
+     * @return the optional layer-create selection
+     */
+    @Nested
+    @Optional
+    Property<CreateLayerOptions> getLayerCreate();
+
+    /**
+     * Produced layer files consumed by this binary. §FS-native-invocation.3.
+     *
+     * @return the layer files
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    ConfigurableFileCollection getLayerFiles();
+
     void layers(Action<? super DomainObjectSet<LayerOptions>> spec);
 
+    /**
+     * Consumes a layer produced by a legacy binary-scoped layer declaration. §FS-plugin-model.2.
+     *
+     * @param name the legacy layer-producing binary name
+     * @deprecated define a named layer in {@code graalvmNative.layers} and pass its typed
+     *             {@link NativeImageLayer} object to {@link #useLayer(NativeImageLayer)}
+     */
+    @Deprecated
     void useLayer(String name);
 
+    void useLayer(NativeImageLayer layer);
+
+    void useLayer(Provider<? extends NativeImageLayer> layer);
+
+    void setLayer(NativeImageLayer layer);
+
+    /**
+     * Configures this legacy {@code lib}-prefixed binary as a Native Image layer producer.
+     * §FS-plugin-model.2.
+     *
+     * @param spec the legacy layer contents
+     * @deprecated define a named layer in {@code graalvmNative.layers} instead
+     */
+    @Deprecated
     void createLayer(Action<? super CreateLayerOptions> spec);
 
     default Provider<List<File>> externalDependenciesOf(Provider<Configuration> configurationProvider) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,52 +38,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.utils;
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+import org.graalvm.buildtools.model.resources.NativeImageFlags;
 
-repositories {
-    mavenCentral()
-}
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
-
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .get()
-
-dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-tasks.named("nativeRun") {
-    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
-}
-
-graalvmNative {
-    // Named layers are built independently from application binaries. §gradle/FS-plugin-model.2.
-    layers {
-        dependencies {
-            contents {
-                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
-            }
-        }
+/**
+ * Shared rendering of Native Image layer arguments. §FS-common-libraries.1.
+ */
+public final class NativeImageLayerArguments {
+    private NativeImageLayerArguments() {
     }
-    binaries {
-        main {
-            layer = graalvmNative.layers.dependencies
+
+    public static String renderLayerCreate(String layerName, ArtifactSelection selection) {
+        validateLayerName(layerName);
+        Objects.requireNonNull(selection, "selection");
+        List<String> selectors = new ArrayList<>();
+        selection.getModules().forEach(module -> selectors.add("module=" + module));
+        selection.getPackages().forEach(packageName -> selectors.add("package=" + packageName));
+        selection.getPaths().forEach(path -> selectors.add("path=" + path));
+        String argument = NativeImageFlags.LAYER_CREATE + "=" + layerName + ".nil";
+        return selectors.isEmpty() ? argument : argument + "," + String.join(",", selectors);
+    }
+
+    public static String renderLayerUse(Path layerFile) {
+        Objects.requireNonNull(layerFile, "layerFile");
+        return NativeImageFlags.LAYER_USE + "=" + layerFile.toAbsolutePath();
+    }
+
+    private static void validateLayerName(String layerName) {
+        if (layerName == null || layerName.isBlank()) {
+            throw new IllegalArgumentException("Layer name must not be blank");
         }
     }
 }

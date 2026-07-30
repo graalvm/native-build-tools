@@ -32,6 +32,11 @@ delegate to the current compile implementation. `NativeTestMojo` specializes the
 for test classpaths, JUnit dependencies, launcher selection, test identifier handling, and native
 test execution.
 
+`LayerCreateMojo` specializes the same invocation infrastructure for a single named layer and
+attaches the resulting `.nil` file. The lifecycle extension registers the `nil` artifact handler
+and keeps layer artifacts outside Java classpath assembly.
+[§FS-goal-surface.6](functional/goal-surface.md#6-layer-creation).
+
 Resource generation, dynamic access metadata, reachability metadata addition, merge-agent-files,
 metadata-copy, missing metadata listing, and write-args-file each get dedicated mojos. They should
 reuse common utility classes rather than duplicating Native Image metadata logic.

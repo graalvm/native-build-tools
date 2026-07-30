@@ -54,3 +54,12 @@ Setting `<skip>true</skip>` in the native Maven plugin's root `<configuration>` 
 plugin goal before it resolves dependencies, downloads metadata, generates files, or otherwise
 causes a goal-specific side effect. When it is absent or false, each goal retains its existing
 specialized skip controls and behavior.
+
+## 7. Layer configuration
+
+A `layer-create` execution accepts one layer definition with a required name and neutral contents:
+`all`, module names, package names, explicit files, and selected `groupId:artifactId`
+dependencies with configurable transitivity. Normal compile goals accept `useLayers` entries that
+select project dependencies of type `nil` by coordinates. Missing, ambiguous, and duplicate
+selections fail before Native Image is invoked.
+[§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).

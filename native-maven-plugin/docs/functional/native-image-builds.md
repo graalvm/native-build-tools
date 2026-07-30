@@ -23,6 +23,14 @@ Application native image builds must include compile, runtime, and combined comp
 dependencies unless users provide an explicit classpath. Exclusions remove selected artifacts from
 native-image compilation without changing the Maven project dependency graph.
 
+Dependencies of type `nil` must not enter the Java classpath. Configured `useLayers` resolve those
+dependencies separately, declare each layer once, and append `-H:LayerUse=<resolved path>` to the
+Native Image invocation. Layer creation resolves Maven artifacts to paths and delegates selector
+serialization to [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
+Native Image 25.0.3 is excluded from layer consumption because that release can fail internally
+after loading a layer. The plugin must reject that exact version before launching Native Image and
+tell users to upgrade Native Image or remove `useLayers`.
+
 ## 4. Generated resource configuration
 
 Before building, the plugin must add generated resource configuration to the native image

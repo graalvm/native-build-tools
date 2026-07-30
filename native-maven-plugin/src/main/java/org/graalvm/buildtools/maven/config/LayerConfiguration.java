@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,52 +38,77 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.maven.config;
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-repositories {
-    mavenCentral()
-}
+/**
+ * Maven configuration for one named Native Image layer. §FS-config-model.7.
+ */
+public class LayerConfiguration {
+    private String name;
+    private boolean all;
+    private String includeDependencies;
+    private List<String> modules = new ArrayList<>();
+    private List<String> packages = new ArrayList<>();
+    private List<File> paths = new ArrayList<>();
+    private List<LayerDependencyConfiguration> dependencies = new ArrayList<>();
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
-
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .get()
-
-dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-tasks.named("nativeRun") {
-    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
-}
-
-graalvmNative {
-    // Named layers are built independently from application binaries. §gradle/FS-plugin-model.2.
-    layers {
-        dependencies {
-            contents {
-                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
-            }
-        }
+    public String getName() {
+        return name;
     }
-    binaries {
-        main {
-            layer = graalvmNative.layers.dependencies
-        }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isAll() {
+        return all || "all".equalsIgnoreCase(includeDependencies);
+    }
+
+    public void setAll(boolean all) {
+        this.all = all;
+    }
+
+    public String getIncludeDependencies() {
+        return includeDependencies;
+    }
+
+    public void setIncludeDependencies(String includeDependencies) {
+        this.includeDependencies = includeDependencies;
+    }
+
+    public List<String> getModules() {
+        return modules;
+    }
+
+    public void setModules(List<String> modules) {
+        this.modules = modules;
+    }
+
+    public List<String> getPackages() {
+        return packages;
+    }
+
+    public void setPackages(List<String> packages) {
+        this.packages = packages;
+    }
+
+    public List<File> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<File> paths) {
+        this.paths = paths;
+    }
+
+    public List<LayerDependencyConfiguration> getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(List<LayerDependencyConfiguration> dependencies) {
+        this.dependencies = dependencies;
     }
 }

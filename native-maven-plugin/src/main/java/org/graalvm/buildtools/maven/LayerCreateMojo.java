@@ -1,0 +1,172 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ *
+ * The Universal Permissive License (UPL), Version 1.0
+ *
+ * Subject to the condition set forth below, permission is hereby granted to any
+ * person obtaining a copy of this software, associated documentation and/or
+ * data (collectively the "Software"), free of charge and under any and all
+ * copyright rights in the Software, and any and all patent rights owned or
+ * freely licensable by each licensor hereunder covering either (i) the
+ * unmodified Software as contributed to or provided by such licensor, or (ii)
+ * the Larger Works (as defined below), to deal in both
+ *
+ * (a) the Software, and
+ *
+ * (b) any piece of software and/or hardware listed in the lrgrwrks.txt file if
+ * one is included with the Software each a "Larger Work" to which the Software
+ * is contributed by such licensors),
+ *
+ * without restriction, including without limitation the rights to copy, create
+ * derivative works of, display, perform, and distribute the Software and make,
+ * use, sell, offer for sale, import, export, have made, and have sold the
+ * Software and the Larger Work(s), and to sublicense the foregoing rights on
+ * either these or other terms.
+ *
+ * This license is subject to the following condition:
+ *
+ * The above copyright notice and either this complete permission notice or at a
+ * minimum a reference to the UPL must be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package org.graalvm.buildtools.maven;
+
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProjectHelper;
+import org.graalvm.buildtools.maven.config.LayerConfiguration;
+import org.graalvm.buildtools.maven.config.LayerDependencyConfiguration;
+import org.graalvm.buildtools.model.resources.NativeImageFlags;
+import org.graalvm.buildtools.utils.ArtifactSelection;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Creates and attaches one Maven-resolvable Native Image layer. §FS-goal-surface.6.
+ */
+@Mojo(name = "layer-create", threadSafe = true,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        requiresDependencyCollection = ResolutionScope.RUNTIME)
+public class LayerCreateMojo extends AbstractNativeImageMojo {
+    @Parameter(required = true)
+    private LayerConfiguration layer;
+
+    @Component
+    private MavenProjectHelper projectHelper;
+
+    @Override
+    protected List<String> getDependencyScopes() {
+        return Arrays.asList(Artifact.SCOPE_COMPILE, Artifact.SCOPE_RUNTIME, Artifact.SCOPE_COMPILE_PLUS_RUNTIME);
+    }
+
+    @Override
+    protected void executeInternal() throws MojoExecutionException {
+        if (layer == null || layer.getName() == null || layer.getName().isBlank()) {
+            throw new MojoExecutionException("The layer-create goal requires a non-blank layer name");
+        }
+        outputDirectory = new File(project.getBuild().getDirectory(), "native/layers/" + layer.getName());
+        // Native Image requires the shared library inside a layer bundle to use a library name;
+        // the public layer and attached artifact remain <name>.nil. §FS-goal-surface.6.
+        imageName = "lib" + layer.getName();
+        mainClass = null;
+        List<Path> selectedPaths = resolveSelectedPaths();
+        classpath = selectedPaths.stream().map(Path::toString).toList();
+        if (layer.isAll() || !layer.getPackages().isEmpty()) {
+            List<Path> invocationClasspath = new ArrayList<>(runtimeArtifactPaths());
+            if (!layer.getPackages().isEmpty() && defaultClassesDirectory != null) {
+                invocationClasspath.add(defaultClassesDirectory.toPath().toAbsolutePath());
+            }
+            classpath = invocationClasspath.stream().map(Path::toString).toList();
+        }
+        ArtifactSelection selection = new ArtifactSelection(
+            layer.isAll(),
+            layer.getModules(),
+            layer.getPackages(),
+            layer.isAll() ? List.of() : selectedPaths
+        );
+        if (buildArgs == null) {
+            buildArgs = new ArrayList<>();
+        }
+        buildArgs.add(0, NativeImageLayerArguments.renderLayerCreate(layer.getName(), selection));
+        buildArgs.add(0, NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
+        buildImage();
+
+        File layerFile = new File(outputDirectory, layer.getName() + ".nil");
+        if (!dryRun && !layerFile.isFile()) {
+            throw new MojoExecutionException("Native Image did not produce the expected layer " + layerFile);
+        }
+        if (!dryRun) {
+            projectHelper.attachArtifact(project, "nil", null, layerFile);
+        }
+    }
+
+    private List<Path> resolveSelectedPaths() throws MojoExecutionException {
+        Set<Path> paths = new LinkedHashSet<>();
+        for (File path : layer.getPaths()) {
+            paths.add(path.toPath().toAbsolutePath());
+        }
+        for (LayerDependencyConfiguration dependency : layer.getDependencies()) {
+            String selector = dependency.getArtifact();
+            if (selector == null || selector.isBlank()) {
+                throw new MojoExecutionException("Layer dependency coordinates must not be blank");
+            }
+            boolean matched = false;
+            for (Artifact artifact : project.getArtifacts()) {
+                if (matches(artifact, selector, dependency.isTransitive())) {
+                    if (artifact.getFile() != null) {
+                        paths.add(artifact.getFile().toPath().toAbsolutePath());
+                    }
+                    matched = true;
+                }
+            }
+            if (!matched) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' was not found in the resolved project dependencies");
+            }
+        }
+        return new ArrayList<>(paths);
+    }
+
+    private List<Path> runtimeArtifactPaths() {
+        return project.getArtifacts().stream()
+            .filter(artifact -> getDependencyScopes().contains(artifact.getScope()))
+            .filter(artifact -> !"nil".equals(artifact.getType()))
+            .filter(artifact -> artifact.getFile() != null)
+            .map(artifact -> artifact.getFile().toPath().toAbsolutePath())
+            .toList();
+    }
+
+    private static boolean matches(Artifact artifact, String selector, boolean transitive) {
+        String[] parts = selector.split(":");
+        if (parts.length < 2 || parts.length > 3) {
+            throw new IllegalArgumentException("Layer dependency must use groupId:artifactId[:version]: " + selector);
+        }
+        boolean exact = artifact.getGroupId().equals(parts[0])
+            && artifact.getArtifactId().equals(parts[1])
+            && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
+        if (exact || !transitive || artifact.getDependencyTrail() == null) {
+            return exact;
+        }
+        String prefix = parts[0] + ":" + parts[1] + ":";
+        return artifact.getDependencyTrail().stream().anyMatch(entry -> entry.startsWith(prefix));
+    }
+}

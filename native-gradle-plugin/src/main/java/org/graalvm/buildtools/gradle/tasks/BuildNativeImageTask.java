@@ -213,11 +213,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @Internal
     public Provider<RegularFile> getCreatedLayerFile() {
-        return getOptions().zip(getOutputDirectory(), (options, dir) -> dir.file(options.getLayers().stream()
-            .filter(CreateLayerOptions.class::isInstance)
-            .map(cl -> cl.getLayerName().get() + ".nil")
-            .findFirst()
-            .orElseThrow()));
+        return getOptions().zip(getOutputDirectory(), (options, dir) ->
+            dir.file(options.getLayerCreate().get().getLayerName().get() + ".nil"));
     }
 
     @Internal

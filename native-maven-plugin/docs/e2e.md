@@ -81,6 +81,15 @@ with `reproducers/issue-144`, and `issues/ModuleWithoutSourcesFunctionalTest` wi
 issue reproducers, and local repository seeding. This protects [§FS-native-builds.6](functional/native-image-builds.md#6-base-sbom),
 [§FS-config-model.3](functional/configuration-model.md#3-parent-pom-merging), and [§AR-maven-plugin.6](architecture.md#6-functional-test-infrastructure).
 
+### 3.8 Layer artifacts
+
+`LayeredApplicationFunctionalTest` verifies that a reactor producer creates and attaches a `nil`
+layer artifact, a consumer resolves it outside the Java classpath, and a supported Native Image
+release builds the consuming application. It also verifies the actionable compatibility rejection
+for Native Image 25.0.3. This protects [§FS-goal-surface.6](functional/goal-surface.md#6-layer-creation),
+[§FS-native-builds.3](functional/native-image-builds.md#3-classpath-and-scopes), and
+[§FS-config-model.7](functional/configuration-model.md#7-layer-configuration).
+
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the
 closest scenario family.

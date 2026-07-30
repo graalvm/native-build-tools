@@ -53,9 +53,11 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
+import org.graalvm.buildtools.maven.config.UseLayerConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -101,6 +103,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
     private static final Pattern LAYER_CREATE_ARG = Pattern.compile(
             Pattern.quote(NativeImageFlags.LAYER_CREATE) + "(@[^=]*)?=.+");
+    private static final Pattern NATIVE_IMAGE_25_0_3 = Pattern.compile(
+            "(?m)^native-image 25\\.0\\.3(?:\\s|$)");
     private static String nativeImageVersionInformation = null;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
@@ -196,6 +200,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "exclusions")
     protected List<Exclusion> exclusions;
 
+    @Parameter(property = "useLayers")
+    protected List<UseLayerConfiguration> useLayers;
+
     @Component
     protected ToolchainManager toolchainManager;
 
@@ -286,6 +293,12 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     .map(Path::toString)
                     .collect(Collectors.joining(","))
             );
+        }
+
+        List<String> layerUseArgs = resolveLayerUseArguments();
+        if (!layerUseArgs.isEmpty()) {
+            cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
+            cliArgs.addAll(layerUseArgs);
         }
 
         if (buildArgs != null && !buildArgs.isEmpty()) {
@@ -491,7 +504,10 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         Set<Artifact> collected = new HashSet<>();
         // Must keep classpath order is the same with surefire test
         for (Artifact dependency : project.getArtifacts()) {
-            if (getDependencyScopes().contains(dependency.getScope()) && collected.add(dependency) && !isExcluded(dependency)) {
+            if (!"nil".equals(dependency.getType())
+                    && getDependencyScopes().contains(dependency.getScope())
+                    && collected.add(dependency)
+                    && !isExcluded(dependency)) {
                 Path dependencyPath = processSupportedArtifacts(dependency);
                 if (dependencyPath != null) {
                     imageClasspath.add(dependencyPath);
@@ -505,6 +521,49 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 }
             }
         }
+    }
+
+    private List<String> resolveLayerUseArguments() throws MojoExecutionException {
+        if (useLayers == null || useLayers.isEmpty()) {
+            return List.of();
+        }
+        Set<String> selected = new HashSet<>();
+        List<String> arguments = new ArrayList<>();
+        for (UseLayerConfiguration useLayer : useLayers) {
+            String selector = useLayer.getArtifact();
+            if (selector == null || selector.isBlank()) {
+                throw new MojoExecutionException("useLayers entries require non-blank artifact coordinates");
+            }
+            if (!selected.add(selector)) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' is selected more than once");
+            }
+            List<Artifact> matches = project.getArtifacts().stream()
+                .filter(artifact -> "nil".equals(artifact.getType()))
+                .filter(artifact -> matchesLayerCoordinate(artifact, selector))
+                .toList();
+            if (matches.isEmpty()) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' was not found");
+            }
+            if (matches.size() > 1) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' is ambiguous: " + matches);
+            }
+            File layerFile = matches.get(0).getFile();
+            if (layerFile == null) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' has no resolved file");
+            }
+            arguments.add(NativeImageLayerArguments.renderLayerUse(layerFile.toPath()));
+        }
+        return arguments;
+    }
+
+    private static boolean matchesLayerCoordinate(Artifact artifact, String selector) {
+        String[] parts = selector.split(":");
+        if (parts.length < 2 || parts.length > 3) {
+            throw new IllegalArgumentException("Layer dependency must use groupId:artifactId[:version]: " + selector);
+        }
+        return artifact.getGroupId().equals(parts[0])
+            && artifact.getArtifactId().equals(parts[1])
+            && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
     }
 
     protected void addInferredDependenciesToClasspath() {
@@ -590,6 +649,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
+        if (useLayers != null && !useLayers.isEmpty()) {
+            checkLayerConsumptionCompatibility(getVersionInformation(logger, nativeImageExecutable));
+        }
         if (isMetadataRepositoryEnabled() && metadataRepository != null) {
             SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(null)), nativeImageExecutable);
         }
@@ -620,6 +682,15 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    // Native Image 25.0.3 can crash after loading a layer, so fail before invocation. §FS-native-builds.3.
+    static void checkLayerConsumptionCompatibility(String versionInformation) throws MojoExecutionException {
+        if (NATIVE_IMAGE_25_0_3.matcher(versionInformation).find()) {
+            throw new MojoExecutionException(
+                    "Native Image 25.0.3 does not support reliable layer consumption. "
+                    + "Upgrade Native Image to a newer release or remove the useLayers configuration.");
         }
     }
 

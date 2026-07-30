@@ -32,6 +32,10 @@ tasks so one binary has one authoritative configuration model. Delegating option
 used when a task needs a compile-only or runtime-only view of a binary, but the wrapper must not
 fork behavior from the underlying `NativeImageOptions` object.
 
+Named layers are separate domain objects with dedicated producer tasks; binaries consume their
+provider-backed outputs. The compatibility boundary and cross-tool artifact model follow
+[§root/DEC-layer-model](../../docs/spec/decisions/layer-model.md#dec-layer-model-native-image-layers-use-shared-selection-and-build-tool-native-wiring).
+
 ## 3. Task graph architecture
 
 For each binary, the plugin registers a compile task, run task, resource config task, and dynamic
