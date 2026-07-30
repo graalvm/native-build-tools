@@ -21,8 +21,10 @@ behavior, and JUnit configuration providers.
 ## 2. Utility architecture
 
 Utilities must remain Java libraries with plain inputs and outputs. Native Image utilities accept
-strings, paths, versions, and option collections; they must not know whether a caller is Gradle,
-Maven, a unit test, or another tool.
+strings, paths, versions, and option collections; layer selection is represented by immutable
+plain Java values whose rendering is shared by both plugins. Utilities must not know whether a
+caller is Gradle, Maven, a unit test, or another tool.
+[§FS-common-libraries.1](functional-spec.md#1-shared-native-image-utilities).
 
 Resource analyzers operate on classpath directories and JAR files. Build-tool integrations are
 responsible for selecting classpath entries; analyzers are responsible for interpreting those

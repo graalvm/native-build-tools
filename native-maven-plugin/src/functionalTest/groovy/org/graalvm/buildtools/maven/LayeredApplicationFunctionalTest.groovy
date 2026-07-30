@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,52 +38,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.maven
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.IgnoreIf
+import spock.lang.Requires
 
-repositories {
-    mavenCentral()
-}
+// Exercises Maven reactor production and consumption of nil layer artifacts. §E2E-functional-tests.3.8.
+class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
+    def "loads the nil artifact handler and reactor model"() {
+        given:
+        withSample("layered-maven-application")
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
+        when:
+        mvn 'help:effective-pom', '-DskipTests'
 
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .get()
-
-dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-tasks.named("nativeRun") {
-    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
-}
-
-graalvmNative {
-    // Named layers are built independently from application binaries. §gradle/FS-plugin-model.2.
-    layers {
-        dependencies {
-            contents {
-                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
-            }
-        }
+        then:
+        buildSucceeded
+        outputContains "<type>nil</type>"
+        outputContains "<goal>layer-create</goal>"
     }
-    binaries {
-        main {
-            layer = graalvmNative.layers.dependencies
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds and consumes a layer artifact in one reactor"() {
+        given:
+        withSample("layered-maven-application")
+        def nativeImage2503 = GraalVMSupport.getGraalVMHomeVersionString().contains("native-image 25.0.3")
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', 'package'
+
+        then:
+        file("base-layer/target/native/layers/base/base.nil").isFile()
+        outputContains "-H:LayerCreate=base.nil"
+        if (nativeImage2503) {
+            buildFailed
+            outputContains "Native Image 25.0.3 does not support reliable layer consumption"
+            outputContains "Upgrade Native Image to a newer release or remove the useLayers configuration"
+            outputDoesNotContain "LayeredDispatchTableFeature"
+        } else {
+            buildSucceeded
+            file("application/target/application").isFile()
+            outputContains "-H:LayerUse="
         }
     }
 }

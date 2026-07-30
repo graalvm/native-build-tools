@@ -99,6 +99,20 @@ public interface GraalVMExtension {
     void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec);
 
     /**
+     * Returns first-class named Native Image layers. §FS-plugin-model.2.
+     *
+     * @return configured layers
+     */
+    NamedDomainObjectContainer<NativeImageLayer> getLayers();
+
+    /**
+     * Configures named Native Image layers. §FS-plugin-model.2.
+     *
+     * @param spec layer configuration
+     */
+    void layers(Action<? super NamedDomainObjectContainer<NativeImageLayer>> spec);
+
+    /**
      * Registers a new native image binary with testing support.
      *
      * @param name the name of the binary

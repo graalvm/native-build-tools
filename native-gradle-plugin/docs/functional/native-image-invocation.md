@@ -39,6 +39,14 @@ For a layer created from declared JARs, the command line must use those JARs as 
 the layer input remains limited to the declaration. A layer created from packages must instead
 retain the binary classpath, which supplies the classes selected by those package names.
 
+Named layer tasks translate their Gradle-native contents into the shared artifact-selection
+model and use the common renderer from
+[§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
+Consuming binaries pass each produced `.nil` file with `-H:LayerUse`, depend on its producer task,
+and declare the file as an input. Complete configurations and selected dependency coordinates are
+resolved lazily through Gradle artifact APIs before translation.
+[§REQ-gradle-model](../requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility).
+
 ## 4. Argument files
 
 The plugin must support Native Image argument files for command lines that should not be passed as

@@ -20,6 +20,7 @@ and actionable under [§GOAL-concise-actionable-output](../goals.md#goal-concise
 | Use reachability metadata | [§gradle/FS-resources-and-metadata](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata) | [§maven/FS-resources-and-metadata](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata) | [§FS-resources-and-metadata.2](resources-and-metadata.md#2-reachability-metadata-repository) |
 | Inspect missing metadata | [§gradle/FS-resources-and-metadata](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata) | [§maven/FS-resources-and-metadata](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata) | [§FS-resources-and-metadata.3](resources-and-metadata.md#3-missing-metadata-reports) |
 | Collect agent output | [§gradle/FS-tracing-agent](../../../native-gradle-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-gradle-tasks-attach-and-post-process-native-image-tracing-agent-metadata) | [§maven/FS-tracing-agent](../../../native-maven-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-maven-goals-attach-and-post-process-native-image-tracing-agent-metadata) | [§FS-tracing-agent](tracing-agent.md#fs-tracing-agent-both-plugins-attach-the-native-image-tracing-agent-and-post-process-its-output) |
+| Create and consume layers | [§gradle/FS-plugin-model.2](../../../native-gradle-plugin/docs/functional/plugin-model.md#2-extension-surface) | [§maven/FS-goal-surface.6](../../../native-maven-plugin/docs/functional/goal-surface.md#6-layer-creation) | [§FS-native-builds.6](native-image-builds.md#6-layered-images) |
 
 ```mermaid
 sequenceDiagram
@@ -56,6 +57,7 @@ capability impossible or intentionally different:
 - schema validation ([§FS-resources-and-metadata.5](resources-and-metadata.md#5-schema-validation))
 - Native Image version-dependent behavior ([§FS-native-builds.4](native-image-builds.md#4-version-and-schema-gates))
 - predictable option precedence ([§FS-option-precedence](option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state))
+- named layer creation and consumption through build-tool-native dependency wiring ([§FS-native-builds.6](native-image-builds.md#6-layered-images))
 
 When a capability is intentionally different between Gradle and Maven, the product-specific specs
 must explain the difference at the point where each plugin adapts this common contract.

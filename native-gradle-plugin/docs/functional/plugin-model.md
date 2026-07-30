@@ -34,6 +34,32 @@ The extension feeds the option objects consumed by compile, run, resource-genera
 and native-test tasks. Users should not repeat `imageName`, `mainClass`, `buildArgs`, metadata
 directories, or resource settings separately on each task.
 
+Named Native Image layers are first-class entries in a `layers` container beside `binaries`.
+Each layer owns its contents and deterministic `.nil` output. Binaries consume one or more layer
+objects through typed, lazy references:
+
+```groovy
+graalvmNative {
+    layers {
+        base {
+            contents {
+                modules.add('java.base')
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+    binaries {
+        main {
+            useLayer(layers.base)
+        }
+    }
+}
+```
+
+The previous binary-scoped `createLayer` and string-based `useLayer` surface remains as a
+deprecated compatibility adapter. Only legacy layer declarations retain the `lib` binary-name
+rule. [§root/REQ-backwards-compatibility.1](../../../docs/spec/requirements.md#1-deprecation-over-removal).
+
 ## 3. Default binaries
 
 For Java application projects, the plugin must create a `main` binary whose `mainClass` convention
@@ -61,8 +87,8 @@ Users may add entries to the `binaries` container for extra source sets or entry
 must create matching compile and run tasks with predictable task names derived from the binary
 name. Custom binaries apply [§root/FS-native-builds](../../../docs/spec/functional/native-image-builds.md#fs-native-builds-both-plugins-build-native-images-from-build-tool-project-state) without forcing users outside the
 plugin's option model. Custom application binaries default to the main runtime classpath unless a
-specialized registration or image mode, such as a native test binary or layer-create binary,
-provides a source-set-specific or intentionally empty classpath.
+specialized registration, such as a native test binary, provides a source-set-specific classpath.
+Named layers create dedicated tasks outside the binary container.
 
 ## 5. Activation examples
 

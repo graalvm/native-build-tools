@@ -20,6 +20,11 @@ declare Gradle inputs and outputs for the selected options and generated files, 
 binary's classpath and reachability-metadata exclusions, so Gradle can skip, cache, or rerun them
 consistently.
 
+Every named layer receives a derived `native<Layer>Layer` task with an output under
+`build/native/layers/<layer>/<layer>.nil`. Its inputs are the explicit selection and, only when
+packages require it, the configured application classpath. Consuming compile and run tasks are
+wired to that output through providers.
+
 ## 2. Run tasks
 
 `nativeRun` executes the output of `nativeCompile` for the `main` binary and passes runtime

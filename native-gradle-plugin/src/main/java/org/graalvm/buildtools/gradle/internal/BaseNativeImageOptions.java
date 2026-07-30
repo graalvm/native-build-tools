@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -430,22 +431,48 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
 
     @Override
     public void useLayer(String name) {
+        // Keep the deprecated string adapter operational while directing callers to typed layer objects. §FS-plugin-model.2.
+        LOGGER.warn("useLayer(String) is deprecated; configure graalvmNative.layers and pass the typed layer object instead.");
         var taskName = compileTaskNameForBinary(name);
         var layer = objects.newInstance(UseLayerOptions.class);
         layer.getLayerName().convention(name);
         layer.getLayerFile().convention(tasks.named(taskName, BuildNativeImageTask.class).flatMap(BuildNativeImageTask::getCreatedLayerFile));
+        getLayerFiles().from(layer.getLayerFile());
         layers(options -> options.add(layer));
     }
 
     @Override
+    public void useLayer(NativeImageLayer layer) {
+        // Typed layer consumption records the producing layer output on the binary. §FS-plugin-model.2.
+        if (getLayerFiles().getFrom().contains(layer.getOutputFile())) {
+            throw new IllegalArgumentException("Layer '" + layer.getName() + "' is already assigned to binary '" + getName() + "'");
+        }
+        getLayerFiles().from(layer.getOutputFile());
+    }
+
+    @Override
+    public void useLayer(Provider<? extends NativeImageLayer> layer) {
+        // Provider-backed layer consumption preserves the typed, lazy extension surface. §FS-plugin-model.2.
+        getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
+    }
+
+    @Override
+    public void setLayer(NativeImageLayer layer) {
+        useLayer(layer);
+    }
+
+    @Override
     public void createLayer(Action<? super CreateLayerOptions> spec) {
+        LOGGER.warn("createLayer is deprecated; configure a named layer in graalvmNative.layers instead.");
         var layer = objects.newInstance(CreateLayerOptions.class);
         var binaryName = getName();
         if (!binaryName.startsWith("lib")) {
             throw new IllegalArgumentException("Binary name for a layer must start with 'lib'");
         }
         layer.getLayerName().convention(binaryName);
+        layer.getAll().convention(false);
         spec.execute(layer);
+        getLayerCreate().set(layer);
         layers(options -> options.add(layer));
     }
 }

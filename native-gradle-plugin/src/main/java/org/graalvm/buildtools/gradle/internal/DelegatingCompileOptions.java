@@ -41,6 +41,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
+import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
@@ -52,6 +53,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLauncher;
 
 import java.util.List;
@@ -182,13 +184,43 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     }
 
     @Override
+    public Property<CreateLayerOptions> getLayerCreate() {
+        // Forward layer-create inputs without changing their invocation semantics. §FS-native-invocation.3.
+        return options.getLayerCreate();
+    }
+
+    @Override
+    public ConfigurableFileCollection getLayerFiles() {
+        // Forward produced layer inputs without changing their lazy file semantics. §FS-native-invocation.3.
+        return options.getLayerFiles();
+    }
+
+    @Override
     public void layers(Action<? super DomainObjectSet<LayerOptions>> spec) {
         options.layers(spec);
     }
 
     @Override
     public void useLayer(String name) {
+        // Forward the deprecated compatibility adapter unchanged. §FS-plugin-model.2.
         options.useLayer(name);
+    }
+
+    @Override
+    public void useLayer(NativeImageLayer layer) {
+        // Forward typed layer consumption unchanged. §FS-plugin-model.2.
+        options.useLayer(layer);
+    }
+
+    @Override
+    public void useLayer(Provider<? extends NativeImageLayer> layer) {
+        // Forward provider-backed typed layer consumption unchanged. §FS-plugin-model.2.
+        options.useLayer(layer);
+    }
+
+    @Override
+    public void setLayer(NativeImageLayer layer) {
+        options.setLayer(layer);
     }
 
     @Override

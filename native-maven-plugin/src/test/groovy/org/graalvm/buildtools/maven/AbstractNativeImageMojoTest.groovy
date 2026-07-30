@@ -4,6 +4,10 @@ import org.apache.maven.execution.DefaultMavenExecutionRequest
 import org.apache.maven.execution.DefaultMavenExecutionResult
 import org.apache.maven.execution.MavenSession
 import org.apache.maven.plugin.MojoExecutionException
+import org.apache.maven.artifact.DefaultArtifact
+import org.apache.maven.artifact.handler.DefaultArtifactHandler
+import org.apache.maven.project.MavenProject
+import org.graalvm.buildtools.maven.config.UseLayerConfiguration
 import org.graalvm.buildtools.model.resources.NativeImageFlags
 import spock.lang.Issue
 import spock.lang.Specification
@@ -11,7 +15,8 @@ import spock.lang.TempDir
 
 import java.nio.file.Path
 
-// Protects Maven native-image argument handling and classpath requirements. §FS-native-builds.3 §FS-config-model.1.
+// Protects Maven native-image argument handling, layer resolution, and classpath requirements.
+// §FS-native-builds.3 §FS-config-model.1 §FS-config-model.7.
 class AbstractNativeImageMojoTest extends Specification {
     @TempDir
     Path testDirectory
@@ -186,6 +191,57 @@ class AbstractNativeImageMojoTest extends Specification {
         then:
         def e = thrown(MojoExecutionException)
         e.message.contains("Image classpath is empty")
+    }
+
+    void "it resolves configured nil dependencies outside the Java classpath"() {
+        given:
+        def layerFile = testDirectory.resolve("base.nil").toFile()
+        layerFile.text = "layer"
+        def artifact = new DefaultArtifact(
+                "com.acme", "base-layer", "1.0", "runtime", "nil", null,
+                new DefaultArtifactHandler("nil"))
+        artifact.file = layerFile
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project = new MavenProject()
+        mojo.project.artifacts = [artifact] as Set
+        def useLayer = new UseLayerConfiguration()
+        useLayer.artifact = "com.acme:base-layer"
+        mojo.useLayers = [useLayer]
+
+        when:
+        def args = mojo.getBuildArgs()
+
+        then:
+        args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
+        args.contains("${NativeImageFlags.LAYER_USE}=${layerFile.absolutePath}".toString())
+        !args.contains(layerFile.absolutePath)
+    }
+
+    // The Maven adapter rejects the Native Image release with a known layer-consumption crash. §FS-native-builds.3.
+    void "it rejects layer consumption on Native Image 25.0.3"() {
+        when:
+        AbstractNativeImageMojo.checkLayerConsumptionCompatibility(
+                "native-image 25.0.3 2026-04-21\nGraalVM Runtime Environment Oracle GraalVM 25.0.3+9.1")
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message.contains("Native Image 25.0.3 does not support reliable layer consumption")
+        e.message.contains("Upgrade Native Image")
+        e.message.contains("remove the useLayers configuration")
+    }
+
+    void "it permits layer consumption on other Native Image versions"() {
+        expect:
+        AbstractNativeImageMojo.checkLayerConsumptionCompatibility(versionInformation)
+
+        where:
+        versionInformation << [
+                "native-image 25 2025-09-16",
+                "native-image 25.0.2 2026-01-20",
+                "native-image 25.0.4 2026-07-21",
+                "native-image 26-dev 2026-07-30"
+        ]
     }
 
     private TestNativeImageMojo newMojo(List<String> buildArgs) {

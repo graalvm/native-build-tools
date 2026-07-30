@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,52 +38,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.utils;
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Objects;
 
-repositories {
-    mavenCentral()
-}
+/**
+ * Immutable build-tool-neutral selection of artifacts for a Native Image layer.
+ * §FS-common-libraries.1.
+ */
+public final class ArtifactSelection {
+    private final boolean all;
+    private final List<String> modules;
+    private final List<String> packages;
+    private final List<Path> paths;
 
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
-
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .get()
-
-dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-tasks.named("nativeRun") {
-    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
-}
-
-graalvmNative {
-    // Named layers are built independently from application binaries. §gradle/FS-plugin-model.2.
-    layers {
-        dependencies {
-            contents {
-                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
-            }
+    public ArtifactSelection(boolean all, List<String> modules, List<String> packages, List<Path> paths) {
+        this.all = all;
+        this.modules = validatedStrings("module", modules);
+        this.packages = validatedStrings("package", packages);
+        this.paths = List.copyOf(Objects.requireNonNull(paths, "paths"));
+        if (this.paths.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("Layer paths must not contain null values");
+        }
+        if (all && (!this.modules.isEmpty() || !this.packages.isEmpty() || !this.paths.isEmpty())) {
+            throw new IllegalArgumentException("The 'all' layer selector cannot be combined with modules, packages, or paths");
         }
     }
-    binaries {
-        main {
-            layer = graalvmNative.layers.dependencies
+
+    public static ArtifactSelection empty() {
+        return new ArtifactSelection(false, List.of(), List.of(), List.of());
+    }
+
+    private static List<String> validatedStrings(String kind, List<String> values) {
+        List<String> copy = List.copyOf(Objects.requireNonNull(values, kind + "s"));
+        if (copy.stream().anyMatch(value -> value == null || value.isBlank())) {
+            throw new IllegalArgumentException("Layer " + kind + " selectors must not be blank");
         }
+        return copy;
+    }
+
+    public boolean isAll() {
+        return all;
+    }
+
+    public List<String> getModules() {
+        return modules;
+    }
+
+    public List<String> getPackages() {
+        return packages;
+    }
+
+    public List<Path> getPaths() {
+        return paths;
     }
 }

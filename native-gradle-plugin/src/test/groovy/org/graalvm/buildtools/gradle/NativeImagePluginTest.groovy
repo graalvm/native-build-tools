@@ -3,6 +3,7 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
@@ -13,6 +14,7 @@ import java.util.regex.Pattern
 
 import static org.graalvm.buildtools.VersionInfo.METADATA_REPO_VERSION
 
+// Verifies the durable Gradle extension and task model. §FS-plugin-model.2 §FS-native-tasks.1.
 class NativeImagePluginTest extends Specification {
 
     private static final String DEFAULT_GITHUB_RELEASES_METADATA_URI = "https://github.com/oracle/graalvm-reachability-metadata/releases/download/${METADATA_REPO_VERSION}/graalvm-reachability-metadata-${METADATA_REPO_VERSION}.zip"
@@ -91,6 +93,25 @@ class NativeImagePluginTest extends Specification {
         taskDescription("nativeTest") == "Runs the test native binary."
         taskDescription("nativeTestBuild") == "Deprecated alias for nativeTestCompile."
         taskDescription("generateTestResourcesConfigFile") == "Scans resources and generates a resource-config.json file for the test binary."
+    }
+
+    def "named layers own dedicated tasks and can be assigned to binaries"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+        extension.binaries.main.layer = layer
+        def task = project.tasks.getByName("nativeDependenciesLayer") as BuildNativeImageTask
+
+        then:
+        task.description == "Builds the dependencies Native Image layer."
+        task.options.get().layerCreate.get().layerName.get() == "dependencies"
+        task.options.get().layerCreate.get().modules.get() == ["java.base"]
+        task.outputDirectory.get().asFile == project.layout.buildDirectory.dir("native/layers/dependencies").get().asFile
+        extension.binaries.main.layerFiles.files == [layer.outputFile.get().asFile] as Set
     }
 
     // Protects custom binary classpath wiring and exclusion args. §FS-plugin-model.4

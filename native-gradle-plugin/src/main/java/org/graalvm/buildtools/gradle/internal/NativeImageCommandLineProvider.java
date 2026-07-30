@@ -43,9 +43,9 @@ package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
-import org.graalvm.buildtools.gradle.tasks.LayerOptions;
-import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
+import org.graalvm.buildtools.utils.ArtifactSelection;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -131,58 +131,40 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     public List<String> asArguments() {
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
-        boolean hasLayers = !options.getLayers().isEmpty();
+        boolean hasLayers = options.getLayerCreate().isPresent() || !options.getLayerFiles().isEmpty();
         String layerCreateName = null;
         ConfigurableFileCollection jarsClasspath = null;
+        ConfigurableFileCollection layerClasspath = null;
         if (hasLayers) {
             LOGGER.warn("Experimental support for layered images enabled. DSL may change at any time.");
             cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
-            var layers = options.getLayers();
-            var arg = new StringBuilder();
-            for (LayerOptions layer : layers) {
-                if (arg.length() > 0) {
-                    arg.append(" ");
-                }
-                if (layer instanceof CreateLayerOptions) {
-                    var create = (CreateLayerOptions) layer;
-                    layerCreateName = layer.getLayerName().get();
-                    arg.append(NativeImageFlags.LAYER_CREATE + "=");
-                    arg.append(layerCreateName).append(".nil");
-                    var modules = create.getModules().get();
-                    jarsClasspath = create.getJars();
-                    boolean hasModules = !modules.isEmpty();
-                    boolean hasPackage = create.getPackages().isPresent() && !create.getPackages().get().isEmpty();
-                    boolean hasJars = !jarsClasspath.getFiles().isEmpty();
-                    if (hasModules || hasPackage || hasJars) {
-                        var packages = create.getPackages().get();
-                        arg.append(",");
-                        if (hasModules) {
-                            arg.append(modules.stream().map(m -> "module=" + m).collect(Collectors.joining(",")));
-                        }
-                        if (hasPackage) {
-                            if (hasModules) {
-                                arg.append(",");
-                            }
-                            arg.append(packages.stream().map(p -> "package=" + p).collect(Collectors.joining(",")));
-                        }
-                        if (hasJars) {
-                            if (hasModules || hasPackage) {
-                                arg.append(",");
-                            }
-                            arg.append(jarsClasspath.getFiles().stream().map(p -> "path=" + p).collect(Collectors.joining(",")));
-                        }
-                    }
-                } else {
-                    var layerUse = (UseLayerOptions) layer;
-                    arg.append(NativeImageFlags.LAYER_USE + "=");
-                    arg.append(layerUse.getLayerFile().getAsFile().get().getAbsolutePath());
-                }
+            if (options.getLayerCreate().isPresent()) {
+                CreateLayerOptions create = options.getLayerCreate().get();
+                layerCreateName = create.getLayerName().get();
+                jarsClasspath = create.getJars();
+                layerClasspath = create.getClasspath();
+                boolean all = create.getAll().getOrElse(false);
+                List<Path> selectedPaths = all
+                    ? List.of()
+                    : jarsClasspath.getFiles().stream().map(File::toPath).toList();
+                ArtifactSelection selection = new ArtifactSelection(
+                    all,
+                    create.getModules().getOrElse(List.of()),
+                    create.getPackages().getOrElse(List.of()),
+                    selectedPaths
+                );
+                cliArgs.add(NativeImageLayerArguments.renderLayerCreate(layerCreateName, selection));
             }
-            cliArgs.add(arg.toString());
+            for (File layerFile : options.getLayerFiles()) {
+                cliArgs.add(NativeImageLayerArguments.renderLayerUse(layerFile.toPath()));
+            }
         }
         cliArgs.addAll(options.getExcludeConfigArgs().get());
         String classpathString = buildClasspathString(options).trim();
-        if (jarsClasspath != null && !jarsClasspath.isEmpty()) {
+        if (layerClasspath != null && !layerClasspath.isEmpty()) {
+            cliArgs.add("-cp");
+            cliArgs.add(layerClasspath.getAsPath());
+        } else if (jarsClasspath != null && !jarsClasspath.isEmpty()) {
             // JAR-defined layers intentionally exclude the binary classpath from the layer build. §FS-native-invocation.3.
             cliArgs.add("-cp");
             cliArgs.add(jarsClasspath.getAsPath());

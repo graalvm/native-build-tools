@@ -36,6 +36,20 @@ micronaut {
 }
 
 graalvmNative {
+    // Layer contents use Gradle dependency resolution and a dedicated producer task. §gradle/FS-plugin-model.2.
+    layers {
+        dependencies {
+            contents {
+                modules("java.base")
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+            buildArgs(
+                "-H:ApplicationLayerOnlySingletons=io.micronaut.core.io.service.ServiceScanner\$StaticServiceDefinitions",
+                "-H:ApplicationLayerInitializedClasses=io.micronaut.core.io.service.MicronautMetaServiceLoaderUtils",
+                "-H:ApplicationLayerInitializedClasses=io.micronaut.inject.annotation.AnnotationMetadataSupport"
+            )
+        }
+    }
     binaries {
         all {
             verbose = true
@@ -54,20 +68,8 @@ graalvmNative {
                 "--initialize-at-build-time=io.micronaut.http.server.netty.discovery.\$NettyServiceDiscovery\$ApplicationEventListener\$onStart1\$Intercepted\$Definition\$Exec"
             )
         }
-        create("libdependencies") {
-            var externalJars = externalDependenciesOf(configurations.runtimeClasspath)
-            createLayer {
-                modules = ["java.base"]
-                jars.from(externalJars)
-            }
-            buildArgs(
-                "-H:ApplicationLayerOnlySingletons=io.micronaut.core.io.service.ServiceScanner\$StaticServiceDefinitions",
-                "-H:ApplicationLayerInitializedClasses=io.micronaut.core.io.service.MicronautMetaServiceLoaderUtils",
-                "-H:ApplicationLayerInitializedClasses=io.micronaut.inject.annotation.AnnotationMetadataSupport"
-            )
-        }
         named("main") {
-            useLayer("libdependencies")
+            layer = graalvmNative.layers.dependencies
         }
     }
 }

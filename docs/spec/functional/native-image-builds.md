@@ -62,3 +62,11 @@ Both plugins must support shared-library output where the build tool's packaging
 Shared-library mode disables entry-point requirements and may change the output file extension.
 The plugin-specific configuration surface and defaults are specified by
 [§gradle/FS-plugin-model](../../../native-gradle-plugin/docs/functional/plugin-model.md#fs-plugin-model-gradle-plugin-activation-and-dsl-model) and [§maven/FS-config-model](../../../native-maven-plugin/docs/functional/configuration-model.md#fs-config-model-maven-xml-and-command-line-properties-configure-native-image-builds).
+
+## 6. Layered images
+
+Both plugins must support named layer creation from resolved build-tool dependencies and layer
+consumption through declared task or artifact relationships. Selection rendering belongs to
+common utilities; Gradle owns provider/task wiring and Maven owns goal/artifact/repository wiring.
+The two surfaces may use build-tool-native syntax but must preserve equivalent selector and
+multi-layer behavior. [§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,52 +38,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.maven.config;
 
-plugins {
-    id 'application'
-    id 'org.graalvm.buildtools.native'
-}
+/**
+ * Selects one declared Maven dependency of type {@code nil}. §FS-config-model.7.
+ */
+public class UseLayerConfiguration {
+    private String artifact;
 
-repositories {
-    mavenCentral()
-}
-
-application {
-    mainClass.set('org.graalvm.demo.Application')
-}
-
-def junitVersion = providers.gradleProperty('junit.jupiter.version')
-        .get()
-
-dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
-    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
-    testImplementation('org.junit.jupiter:junit-jupiter')
-    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
-}
-
-test {
-    useJUnitPlatform()
-}
-
-tasks.named("nativeRun") {
-    runtimeArgs.add(providers.gradleProperty("message").orElse("default message"))
-}
-
-graalvmNative {
-    // Named layers are built independently from application binaries. §gradle/FS-plugin-model.2.
-    layers {
-        dependencies {
-            contents {
-                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
-            }
-        }
+    public String getArtifact() {
+        return artifact;
     }
-    binaries {
-        main {
-            layer = graalvmNative.layers.dependencies
-        }
+
+    public void setArtifact(String artifact) {
+        this.artifact = artifact;
     }
 }

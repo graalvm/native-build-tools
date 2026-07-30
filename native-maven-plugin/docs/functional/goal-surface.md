@@ -98,3 +98,15 @@ project model.
     </build>
 </profile>
 ```
+
+## 6. Layer creation
+
+`native:layer-create` creates one named Native Image layer from the execution's configured
+modules, packages, resolved files, all runtime dependencies, or selected dependency coordinates.
+It produces `target/native/layers/<name>/<name>.nil` and attaches that file to the current Maven
+project with type `nil`. The goal is thread-safe and may be bound explicitly in a producer module.
+[§REQ-maven-model](../requirements.md#req-maven-model-the-maven-plugin-preserves-maven-model-compatibility).
+
+The Native Build Tools extension registers `nil` as a resolvable artifact type so reactor, local
+repository, and remote repository dependencies participate in normal Maven ordering and
+resolution. A `nil` dependency is not part of the Java application classpath.

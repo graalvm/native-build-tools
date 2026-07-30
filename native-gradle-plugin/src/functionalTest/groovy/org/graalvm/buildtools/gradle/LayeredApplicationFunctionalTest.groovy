@@ -54,11 +54,25 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
 
-@Requires(
-        { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
-)
+// Exercises the top-level layer model, named task wiring, and configuration-cache isolation.
+// §FS-plugin-model.2 §FS-native-tasks.1 §FS-native-invocation.3.
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
+    def "configures a named layer outside the binary container"() {
+        given:
+        withSample("layered-java-application")
+
+        when:
+        run 'tasks', '--all'
+
+        then:
+        outputContains "nativeDependenciesLayer"
+        outputContains "Builds the dependencies Native Image layer."
+    }
+
     // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
     @IgnoreIf({ os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
@@ -72,19 +86,19 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         """.stripIndent()
 
         when:
-        runAndReloadConfigurationCache 'nativeLibdependenciesCompile'
+        runAndReloadConfigurationCache 'nativeDependenciesLayer'
 
         then:
         if (hasConfigurationCache) {
             configurationCacheStoreTasks {
-                succeeded ':nativeLibdependenciesCompile'
+                succeeded ':nativeDependenciesLayer'
             }
             tasks {
-                upToDate ':nativeLibdependenciesCompile'
+                upToDate ':nativeDependenciesLayer'
             }
         } else {
             tasks {
-                succeeded ':nativeLibdependenciesCompile'
+                succeeded ':nativeDependenciesLayer'
             }
         }
         if (hasConfigurationCache) {
@@ -99,15 +113,15 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         then:
         if (hasConfigurationCache) {
             configurationCacheStoreTasks {
-                upToDate ':nativeLibdependenciesCompile'
+                upToDate ':nativeDependenciesLayer'
                 succeeded ':nativeCompile'
             }
             tasks {
-                upToDate ':nativeLibdependenciesCompile', ':nativeCompile'
+                upToDate ':nativeDependenciesLayer', ':nativeCompile'
             }
         } else {
             tasks {
-                upToDate ':nativeLibdependenciesCompile'
+                upToDate ':nativeDependenciesLayer'
                 succeeded ':nativeCompile'
             }
         }
@@ -143,17 +157,17 @@ public class Application {
         if (hasConfigurationCache) {
             configurationCacheStoreTasks {
                 // Base layer is not rebuilt
-                upToDate ':nativeLibdependenciesCompile'
+                upToDate ':nativeDependenciesLayer'
                 // Application layer is recompiled
                 succeeded ':nativeCompile'
             }
             tasks {
-                upToDate ':nativeLibdependenciesCompile', ':nativeCompile'
+                upToDate ':nativeDependenciesLayer', ':nativeCompile'
             }
         } else {
             tasks {
                 // Base layer is not rebuilt
-                upToDate ':nativeLibdependenciesCompile'
+                upToDate ':nativeDependenciesLayer'
                 // Application layer is recompiled
                 succeeded ':nativeCompile'
             }
@@ -167,6 +181,9 @@ public class Application {
     }
 
     @Ignore("Disable test temporarily because of a problem on GraalVM side")
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
     def "can build a layered Micronaut application"() {
         given:
         withSample("layered-mn-application")
@@ -176,7 +193,7 @@ public class Application {
 
         then:
         tasks {
-            succeeded ':nativeLibdependenciesCompile', ':nativeCompile'
+            succeeded ':nativeDependenciesLayer', ':nativeCompile'
         }
 
         when:
@@ -185,7 +202,7 @@ public class Application {
             .inheritIO()
             .command("build/native/nativeCompile/layered-mn-app${IS_WINDOWS?".exe":""}")
         def env = builder.environment()
-        env["LD_LIBRARY_PATH"] = testDirectory.resolve("build/native/nativeLibdependenciesCompile").toString()
+        env["LD_LIBRARY_PATH"] = testDirectory.resolve("build/native/layers/dependencies").toString()
         def process = builder.start()
         def client = HttpClient.newHttpClient()
         def request = HttpRequest.newBuilder()
