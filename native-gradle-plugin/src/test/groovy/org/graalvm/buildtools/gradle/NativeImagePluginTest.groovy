@@ -143,6 +143,43 @@ class NativeImagePluginTest extends Specification {
         main.javaLauncherExplicit.get()
     }
 
+    // §FS-native-invocation.1.1 — an explicit assignment made after querying the convention value
+    // is still explicit: provenance tracks the current assignment, not resolution history.
+    def "querying the convention launcher then assigning it back is reported explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        when:
+        // Query the effective (convention-supplied) launcher, then assign it back explicitly.
+        def launcher = main.javaLauncher.get()
+        main.javaLauncher.set(launcher)
+
+        then:
+        main.javaLauncherExplicit.get()
+    }
+
+    // §FS-native-invocation.1.2 — unsetting an explicit assignment restores the convention
+    // provenance: the value is present again but no longer explicit.
+    def "unsetting an explicit launcher assignment is no longer reported explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        when:
+        def launcher = main.javaLauncher.get()
+        main.javaLauncher.set(launcher)
+        main.javaLauncher.unset()
+
+        then:
+        main.javaLauncher.isPresent()
+        !main.javaLauncherExplicit.get()
+    }
+
     private String taskDescription(String name) {
         Task task = project.tasks.getByName(name)
         assert task.description != null
