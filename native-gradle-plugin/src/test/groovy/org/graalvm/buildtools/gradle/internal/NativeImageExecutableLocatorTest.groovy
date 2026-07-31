@@ -46,12 +46,15 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import static org.graalvm.buildtools.utils.SharedConstants.NATIVE_IMAGE_EXE
+import static org.graalvm.buildtools.utils.SharedConstants.GU_EXE
 
 /**
  * Unit tests for {@link NativeImageExecutableLocator}.
@@ -69,6 +72,8 @@ class NativeImageExecutableLocatorTest extends Specification {
         def toolchainNativeImage = new File(toolchainDir, "bin/$NATIVE_IMAGE_EXE")
 
         def metadata = Stub(JavaInstallationMetadata) {
+            getLanguageVersion() >> JavaLanguageVersion.of(17)
+            getVendor() >> "TestVendor"
             getInstallationPath() >> Stub(Directory) {
                 file(_) >> Stub(RegularFile) {
                     getAsFile() >> toolchainNativeImage
@@ -97,6 +102,8 @@ class NativeImageExecutableLocatorTest extends Specification {
         def ex = thrown(GradleException)
         ex.message.contains("does not contain the 'native-image' executable")
         ex.message.contains("remove the javaLauncher configuration")
+        ex.message.contains("explicitly configured javaLauncher (17")
+        ex.message.contains(toolchainDir.absolutePath)
     }
 
     def "convention launcher without native-image falls back to GRAALVM_HOME for §FS-native-invocation.1.2/1.3"() {
@@ -253,7 +260,114 @@ class NativeImageExecutableLocatorTest extends Specification {
         def ex = thrown(GradleException)
         // env-var home is set, so the message must not claim a non-GraalVM JDK.
         !ex.message.contains("non-GraalVM JDK")
+        ex.message.contains("gu tool was not available")
+    }
+
+    def "failure message enumerates which environment candidates were set or unset for §FS-native-invocation.1.5"() {
+        given:
+        def toolchainDir = new File(tempDir, "toolchain-jdk")
+        toolchainDir.mkdirs()
+        def toolchainNativeImage = new File(toolchainDir, "bin/$NATIVE_IMAGE_EXE")
+
+        def metadata = Stub(JavaInstallationMetadata) {
+            getLanguageVersion() >> JavaLanguageVersion.of(17)
+            getVendor() >> "TestVendor"
+            getInstallationPath() >> Stub(Directory) {
+                file(_) >> Stub(RegularFile) {
+                    getAsFile() >> toolchainNativeImage
+                }
+                getAsFile() >> toolchainDir
+            }
+        }
+        def launcher = Stub(JavaLauncher) {
+            getMetadata() >> metadata
+        }
+        def diagnostics = new NativeImageExecutableLocator.Diagnostics()
+        def logger = GraalVMLogger.of(Stub(Logger))
+        def execOperations = Stub(ExecOperations)
+        // Primary home resolved from the provider lacks native-image and has no gu.
+        def graalvmHome = new File(tempDir, "set-graalvm")
+        new File(graalvmHome, "bin").mkdirs()
+        def graalvmHomeProvider = Stub(Provider) {
+            isPresent() >> true
+            get() >> graalvmHome.absolutePath
+            getOrNull() >> graalvmHome.absolutePath
+        }
+        // GRAALVM_HOME is set to the failing home; JAVA_HOME and the Gradle JVM are not set.
+        def fallbackCandidates = List.of(
+                new NativeImageExecutableLocator.VmHomeCandidate(graalvmHome.absolutePath, "GRAALVM_HOME"),
+                new NativeImageExecutableLocator.VmHomeCandidate(null, "JAVA_HOME"),
+                new NativeImageExecutableLocator.VmHomeCandidate(null, "Gradle JVM (java.home)")
+        )
+
+        when:
+        NativeImageExecutableLocator.findNativeImageExecutable(
+                launcher, false,
+                Stub(Provider) { get() >> false },
+                graalvmHomeProvider,
+                execOperations,
+                logger,
+                diagnostics,
+                fallbackCandidates)
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains("GRAALVM_HOME: " + graalvmHome.absolutePath)
+        ex.message.contains("JAVA_HOME: not set")
+        ex.message.contains("Gradle JVM (java.home): not set")
+    }
+
+    def "failure message reports the gu install attempt when gu exists but fails for §FS-native-invocation.1.5"() {
+        given:
+        def toolchainDir = new File(tempDir, "toolchain-jdk")
+        toolchainDir.mkdirs()
+        def toolchainNativeImage = new File(toolchainDir, "bin/$NATIVE_IMAGE_EXE")
+
+        def metadata = Stub(JavaInstallationMetadata) {
+            getLanguageVersion() >> JavaLanguageVersion.of(17)
+            getVendor() >> "TestVendor"
+            getInstallationPath() >> Stub(Directory) {
+                file(_) >> Stub(RegularFile) {
+                    getAsFile() >> toolchainNativeImage
+                }
+                getAsFile() >> toolchainDir
+            }
+        }
+        def launcher = Stub(JavaLauncher) {
+            getMetadata() >> metadata
+        }
+        def diagnostics = new NativeImageExecutableLocator.Diagnostics()
+        def logger = GraalVMLogger.of(Stub(Logger))
+        // Selected home has a gu tool, but invoking it fails with a non-zero exit code.
+        def graalvmHome = new File(tempDir, "gu-graalvm")
+        def graalvmBin = new File(graalvmHome, "bin")
+        graalvmBin.mkdirs()
+        new File(graalvmBin, GU_EXE).createNewFile()
+        def execOperations = Stub(ExecOperations) {
+            exec(_) >> Stub(ExecResult) {
+                getExitValue() >> 1
+            }
+        }
+        def graalvmHomeProvider = Stub(Provider) {
+            isPresent() >> true
+            get() >> graalvmHome.absolutePath
+            getOrNull() >> graalvmHome.absolutePath
+        }
+
+        when:
+        NativeImageExecutableLocator.findNativeImageExecutable(
+                launcher, false,
+                Stub(Provider) { get() >> false },
+                graalvmHomeProvider,
+                execOperations,
+                logger,
+                diagnostics,
+                List.of())
+
+        then:
+        def ex = thrown(GradleException)
         ex.message.contains("even after attempting gu install")
+        !ex.message.contains("gu tool was not available")
     }
 
     def "Gradle JVM source is recorded in diagnostics when used as last resort for §FS-native-invocation.1.5"() {

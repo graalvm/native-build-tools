@@ -86,6 +86,9 @@ All failure messages MUST tell the user:
 * for convention selection, whether toolchain detection was enabled and whether the
   launcher was convention-selected rather than explicitly configured
 * which environment variables were (or were not) set
+* whether the `gu` tool was available and whether installation was attempted
+  ([§FS-native-invocation.1.4](native-image-invocation.md#14-gu-based-installation)) — "after attempting gu install" is
+  reported only when `gu` actually ran, and a missing `gu` is reported as unavailable
 
 The `NativeImageExecutableLocator.Diagnostics` class collects this information for the
 `BuildNativeImageTask` to emit at build time.

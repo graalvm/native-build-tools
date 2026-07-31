@@ -177,7 +177,8 @@ public class NativeImageExecutableLocator {
                     installPath = metadata.getInstallationPath().getAsFile().getAbsolutePath();
                 }
                 throw new GradleException(
-                        "The Java toolchain at " + installPath + " does not contain the 'native-image' executable. " +
+                        "The explicitly configured javaLauncher (" + metadata.getLanguageVersion() + ", " + metadata.getVendor() + ") at " + installPath +
+                        " does not contain the 'native-image' executable. " +
                         "Please select a GraalVM-based Java toolchain that includes native-image in its bin/ directory, " +
                         "or remove the javaLauncher configuration to let the plugin fall back to GRAALVM_HOME/JAVA_HOME " +
                         "environment variables.");
@@ -219,7 +220,13 @@ public class NativeImageExecutableLocator {
                 String envVarName = diagnostics.getEnvVarName() != null
                         ? diagnostics.getEnvVarName()
                         : "the resolved GraalVM home";
-                errorMessage.append("native-image was not found at " + envVarName + " (" + graalvmHome + "), even after attempting gu install.");
+                errorMessage.append("native-image was not found at " + envVarName + " (" + graalvmHome + ")");
+                if (diagnostics.isGuInstallAttempted()) {
+                    errorMessage.append(", even after attempting gu install");
+                } else if (diagnostics.isGuUnavailable()) {
+                    errorMessage.append("; the gu tool was not available in that installation to install native-image");
+                }
+                errorMessage.append(".");
             } else {
                 errorMessage.append("Neither GRAALVM_HOME nor JAVA_HOME is set, and no GraalVM toolchain was resolved.");
             }
@@ -227,13 +234,17 @@ public class NativeImageExecutableLocator {
             if (graalvmHome == null) {
                 errorMessage.append(" The build is running with Gradle on a non-GraalVM JDK. ");
             }
+            if (fallbackVmHomeCandidates != null && !fallbackVmHomeCandidates.isEmpty()) {
+                errorMessage.append("\nLookup sources:");
+                for (VmHomeCandidate candidate : fallbackVmHomeCandidates) {
+                    errorMessage.append("\n   - " + candidate.label + ": " + (candidate.home == null ? "not set" : candidate.home));
+                }
+            }
             List<String> probed = diagnostics.getProbedPaths();
             if (!probed.isEmpty()) {
-                errorMessage.append(" Probed paths:");
+                errorMessage.append("\nProbed paths:");
                 for (String p : probed) {
-                    errorMessage.append("\n");
-                    errorMessage.append("   - ");
-                    errorMessage.append(p);
+                    errorMessage.append("\n   - " + p);
                 }
             }
             errorMessage.append("\n");
@@ -275,10 +286,14 @@ public class NativeImageExecutableLocator {
 
         File guPath = graalVmHomeGuess.toPath().resolve(GU_EXE).toFile();
         if (!guPath.exists() || executablePath.exists()) {
+            if (!guPath.exists()) {
+                diagnostics.withGuUnavailable();
+            }
             return;
         }
 
         logger.lifecycle("Native Image executable wasn't found. Installing via gu...");
+        diagnostics.withGuAttempted();
         ExecResult res = execOperations.exec(spec -> {
             spec.args("install", "native-image");
             spec.setExecutable(Paths.get(graalVmHomeGuess.getAbsolutePath(), GU_EXE));
@@ -288,6 +303,7 @@ public class NativeImageExecutableLocator {
             logger.warn("gu tool failed to install native-image. " +
                     "Please install native-image manually via 'gu install native-image' " +
                     "or configure a GraalVM installation that already includes native-image.");
+            diagnostics.withGuInstallFailed();
             return;
         }
         logger.lifecycle("Native Image installed successfully.");
@@ -334,6 +350,9 @@ public class NativeImageExecutableLocator {
     public static final class Diagnostics {
         private boolean toolchainDetectionDisabled;
         private String envVar;
+        private boolean guUnavailable;
+        private boolean guAttempted;
+        private boolean guInstallFailed;
         private boolean guInstall;
         private File executablePath;
         private JavaInstallationMetadata toolchain;
@@ -383,6 +402,26 @@ public class NativeImageExecutableLocator {
             guInstall = true;
         }
 
+        public void withGuUnavailable() {
+            guUnavailable = true;
+        }
+
+        public void withGuAttempted() {
+            guAttempted = true;
+        }
+
+        public void withGuInstallFailed() {
+            guInstallFailed = true;
+        }
+
+        public boolean isGuInstallAttempted() {
+            return guAttempted;
+        }
+
+        public boolean isGuUnavailable() {
+            return guUnavailable;
+        }
+
         public String getEnvVarName() {
             return envVar;
         }
@@ -397,8 +436,14 @@ public class NativeImageExecutableLocator {
             if (envVar != null) {
                 diags.add("GraalVM location source: " + envVar);
             }
-            if (guInstall) {
-                diags.add("Native Image executable was installed using 'gu' tool");
+            if (guAttempted) {
+                if (guInstall) {
+                    diags.add("Native Image executable was installed using 'gu' tool");
+                } else if (guInstallFailed) {
+                    diags.add("Native Image installation using 'gu' tool was attempted but failed");
+                }
+            } else if (guUnavailable) {
+                diags.add("The 'gu' tool was not available at the selected GraalVM home to install native-image");
             }
             if (toolchain != null) {
                 diags.add("GraalVM uses toolchain detection. Selected:");
