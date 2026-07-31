@@ -71,6 +71,6 @@ common utilities; Gradle owns provider/task wiring and Maven owns goal/artifact/
 The two surfaces may use build-tool-native syntax but must preserve equivalent selector and
 multi-layer behavior. The `all` selector includes the complete runtime dependency graph, including
 artifacts produced by other projects in the same multi-project or reactor build. Empty layer
-selections fail before Native Image is invoked. Both plugins reject Native Image 25.0.3 before
-layer consumption because that release cannot consume layers reliably.
+selections fail before Native Image is invoked. Both plugins reject Native Image 25.0.3 and 25.0.4
+before layer consumption because those releases cannot consume layers reliably.
 [§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).

@@ -40,6 +40,7 @@
  */
 package org.graalvm.buildtools.maven
 
+import org.graalvm.buildtools.utils.NativeImageLayerArguments
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.IgnoreIf
 import spock.lang.Requires
@@ -64,7 +65,8 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     def "builds and consumes a layer artifact in one reactor"() {
         given:
         withSample("layered-maven-application")
-        def nativeImage2503 = GraalVMSupport.getGraalVMHomeVersionString().contains("native-image 25.0.3")
+        def unsupportedLayerConsumption = NativeImageLayerArguments.isLayerConsumptionUnsupported(
+                GraalVMSupport.getGraalVMHomeVersionString())
 
         when:
         mvn '-DquickBuild', '-DskipTests', 'package'
@@ -72,9 +74,9 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         then:
         file("base-layer/target/native/layers/base/base.nil").isFile()
         outputContains "-H:LayerCreate=base.nil"
-        if (nativeImage2503) {
+        if (unsupportedLayerConsumption) {
             buildFailed
-            outputContains "Native Image 25.0.3 does not support reliable layer consumption"
+            outputContains "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption"
             outputContains "Upgrade Native Image to a newer release or remove the useLayers configuration"
             outputDoesNotContain "LayeredDispatchTableFeature"
         } else {

@@ -86,7 +86,7 @@ issue reproducers, and local repository seeding. This protects [§FS-native-buil
 `LayeredApplicationFunctionalTest` verifies that a reactor producer creates and attaches a `nil`
 layer artifact, a consumer resolves it outside the Java classpath, and a supported Native Image
 release builds and runs the consuming application with the expected output. It also verifies the
-actionable compatibility rejection for Native Image 25.0.3. This protects [§FS-goal-surface.6](functional/goal-surface.md#6-layer-creation),
+actionable compatibility rejection for affected Native Image 25.0 releases. This protects [§FS-goal-surface.6](functional/goal-surface.md#6-layer-creation),
 [§FS-native-builds.3](functional/native-image-builds.md#3-classpath-and-scopes), and
 [§FS-config-model.7](functional/configuration-model.md#7-layer-configuration).
 

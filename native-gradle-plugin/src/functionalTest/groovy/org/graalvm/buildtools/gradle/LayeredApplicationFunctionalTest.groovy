@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
+import org.graalvm.buildtools.utils.NativeImageLayerArguments
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -88,7 +89,8 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
     @IgnoreIf({
-        os.windows || os.macOs || GraalVMSupport.getGraalVMHomeVersionString().contains("native-image 25.0.3")
+        os.windows || os.macOs || NativeImageLayerArguments.isLayerConsumptionUnsupported(
+                GraalVMSupport.getGraalVMHomeVersionString())
     })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
