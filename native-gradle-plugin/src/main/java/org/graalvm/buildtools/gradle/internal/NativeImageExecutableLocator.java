@@ -98,10 +98,25 @@ public class NativeImageExecutableLocator {
      * and testable (§FS-native-invocation.1.3).
      */
     public static List<VmHomeCandidate> defaultFallbackCandidates(ProviderFactory providers) {
+        return defaultFallbackCandidates(
+                providers.environmentVariable("GRAALVM_HOME"),
+                providers.environmentVariable("JAVA_HOME"),
+                providers.provider(() -> System.getProperty("java.home")));
+    }
+
+    /**
+     * Builds the cross-home fallback candidates from explicit providers. Tasks that
+     * fingerprint these sources as inputs MUST pass the same providers here so the
+     * probed candidate set and the up-to-date inputs stay in sync (§FS-native-invocation.1.3).
+     */
+    public static List<VmHomeCandidate> defaultFallbackCandidates(
+            Provider<String> graalVmHome,
+            Provider<String> javaHome,
+            Provider<String> gradleJvmHome) {
         return List.of(
-                new VmHomeCandidate(providers.environmentVariable("GRAALVM_HOME").getOrNull(), "GRAALVM_HOME"),
-                new VmHomeCandidate(providers.environmentVariable("JAVA_HOME").getOrNull(), "JAVA_HOME"),
-                new VmHomeCandidate(providers.provider(() -> System.getProperty("java.home")).getOrNull(), "Gradle JVM (java.home)")
+                new VmHomeCandidate(graalVmHome.getOrNull(), "GRAALVM_HOME"),
+                new VmHomeCandidate(javaHome.getOrNull(), "JAVA_HOME"),
+                new VmHomeCandidate(gradleJvmHome.getOrNull(), "Gradle JVM (java.home)")
         );
     }
 

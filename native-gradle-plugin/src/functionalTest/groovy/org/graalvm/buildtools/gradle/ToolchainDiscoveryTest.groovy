@@ -3,6 +3,7 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import spock.lang.Issue
 
+import spock.lang.IgnoreIf
 class ToolchainDiscoveryTest extends AbstractFunctionalTest {
 
     private static final String WORKING_NATIVE_IMAGE_SCRIPT = '''#!/bin/sh
@@ -462,5 +463,119 @@ exit 1'''
         }
         // Toolchain detection is active and convention fallback was used (task-time message, fires on both runs)
         outputContains('GraalVM Toolchain detection is enabled')
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
+    // §FS-native-invocation.1.3 — the env fallback candidates are task inputs: switching JAVA_HOME
+    // between builds (GRAALVM_HOME unchanged) must re-run nativeCompile, not leave it UP-TO-DATE
+    // with the previous home's executable. Skipped under configuration cache: runWithEnv's second
+    // run forces --rerun-tasks, which masks the UP-TO-DATE/SUCCESS distinction this test asserts.
+    @IgnoreIf({ Boolean.getBoolean("config.cache") })
+    def "changing JAVA_HOME re-runs nativeCompile when native-image comes from JAVA_HOME fallback"() {
+        given:
+        withSample("java-application")
+
+        // GRAALVM_HOME: a fake GraalVM WITHOUT native-image and WITHOUT a gu tool
+        // (gu install is skipped, so the locator falls back to the alternative homes)
+        File graalvmHome = testDirectory.resolve("fake-graalvm").toFile()
+        graalvmHome.mkdirs()
+        new File(graalvmHome, "bin").mkdirs()
+
+        // Two distinct fake JAVA_HOME homes, each with a working native-image
+        File javaHome1 = testDirectory.resolve("fake-jdk1").toFile()
+        File javaHome1Bin = new File(javaHome1, "bin")
+        javaHome1Bin.mkdirs()
+        setupWorkingNativeImage(javaHome1Bin)
+
+        File javaHome2 = testDirectory.resolve("fake-jdk2").toFile()
+        File javaHome2Bin = new File(javaHome2, "bin")
+        javaHome2Bin.mkdirs()
+        setupWorkingNativeImage(javaHome2Bin)
+
+        buildFile << """
+        graalvmNative.toolchainDetection = false
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+            }
+        }
+        tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
+            disableToolchainDetection = true
+        }
+        graalvmNative.metadataRepository.enabled = false
+        graalvmNative.binaries.all {
+            buildArgs.add("-Ob")
+        }
+    """.stripIndent()
+
+        when: "the first build resolves native-image from JAVA_HOME=fake-jdk1"
+        runWithEnv(['GRAALVM_HOME': graalvmHome.absolutePath, 'JAVA_HOME': javaHome1.absolutePath], 'nativeCompile')
+
+        then: "the build succeeds and the executable is produced"
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+        }
+        getExecutableFile("build/native/nativeCompile/java-application").exists()
+
+        when: "a second build keeps GRAALVM_HOME but switches JAVA_HOME to fake-jdk2"
+        runWithEnv(['GRAALVM_HOME': graalvmHome.absolutePath, 'JAVA_HOME': javaHome2.absolutePath], 'nativeCompile')
+
+        then: "nativeCompile re-runs — it must NOT be UP-TO-DATE with the stale fake-jdk1 executable"
+        tasks {
+            succeeded ':nativeCompile'
+        }
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/542")
+    // §FS-native-invocation.1.3 — control: with an unchanged environment the second build is
+    // UP-TO-DATE, proving the JAVA_HOME swap in the sibling test is what forces the re-run.
+    // Skipped under configuration cache: runWithEnv's second run forces --rerun-tasks (see above).
+    @IgnoreIf({ Boolean.getBoolean("config.cache") })
+    def "unchanged environment keeps nativeCompile UP-TO-DATE"() {
+        given:
+        withSample("java-application")
+
+        // GRAALVM_HOME: a fake GraalVM WITHOUT native-image and WITHOUT a gu tool
+        File graalvmHome = testDirectory.resolve("fake-graalvm").toFile()
+        graalvmHome.mkdirs()
+        new File(graalvmHome, "bin").mkdirs()
+
+        // A single fake JAVA_HOME home with a working native-image
+        File javaHome = testDirectory.resolve("fake-jdk").toFile()
+        File javaHomeBin = new File(javaHome, "bin")
+        javaHomeBin.mkdirs()
+        setupWorkingNativeImage(javaHomeBin)
+
+        buildFile << """
+        graalvmNative.toolchainDetection = false
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+            }
+        }
+        tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).configureEach {
+            disableToolchainDetection = true
+        }
+        graalvmNative.metadataRepository.enabled = false
+        graalvmNative.binaries.all {
+            buildArgs.add("-Ob")
+        }
+    """.stripIndent()
+
+        when: "the first build resolves native-image from JAVA_HOME"
+        runWithEnv(['GRAALVM_HOME': graalvmHome.absolutePath, 'JAVA_HOME': javaHome.absolutePath], 'nativeCompile')
+
+        then: "the build succeeds"
+        tasks {
+            succeeded ':jar', ':nativeCompile'
+        }
+
+        when: "a second build with the identical environment"
+        runWithEnv(['GRAALVM_HOME': graalvmHome.absolutePath, 'JAVA_HOME': javaHome.absolutePath], 'nativeCompile')
+
+        then: "nativeCompile is UP-TO-DATE"
+        tasks {
+            upToDate ':nativeCompile'
+        }
     }
 }

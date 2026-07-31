@@ -49,6 +49,15 @@ If the primary GraalVM still lacks `native-image` after `gu`, the plugin probes 
 selected as the primary. If no `native-image` is found in any of those locations, the
 locator fails with a diagnostic ([§FS-native-invocation.1.5](native-image-invocation.md#15-failure-messages)).
 
+Because the resolved executable may come from any of `GRAALVM_HOME`, `JAVA_HOME`, or
+`{java.home}`, compile and metadata tasks MUST model each of the three sources as a task
+input whose value distinguishes unset, empty, and set states. A change to any source —
+including one shadowed by an earlier fallback in the resolution order — MUST re-run the
+task rather than leave it UP-TO-DATE with an executable resolved from the previous
+environment. The fallback candidates probed at execution time MUST be derived from the
+same providers that back those inputs, so the probe set and the up-to-date fingerprint
+never diverge.
+
 ### 1.4. gu-based installation
 
 When the GraalVM installation resolved through the environment-variable fallback (GRAALVM_HOME →

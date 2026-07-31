@@ -84,6 +84,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
@@ -97,6 +98,9 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
+    private final Provider<String> graalvmHomeEnv;
+    private final Provider<String> javaHomeEnv;
+    private final Provider<String> gradleJvmHome;
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
     private final boolean plainConsole;
 
@@ -217,6 +221,25 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         return graalvmHomeProvider;
     }
 
+    // The environment sources that can supply native-image through the fallback candidates
+    // (§FS-native-invocation.1.3) are task inputs in a 3-state sentinel form: "set:<value>",
+    // "set:" for an empty value, and "unset". Distinguishing the states makes a change to
+    // any source re-run the task instead of leaving it UP-TO-DATE with the previous executable.
+    @Input
+    protected Provider<String> getGraalvmHomeEnvInput() {
+        return graalvmHomeEnv.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    @Input
+    protected Provider<String> getJavaHomeEnvInput() {
+        return javaHomeEnv.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    @Input
+    protected Provider<String> getGradleJvmHomeInput() {
+        return gradleJvmHome.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
     @Internal
     public Provider<RegularFile> getCreatedLayerFile() {
         return getOptions().zip(getOutputDirectory(), (options, dir) -> dir.file(options.getLayers().stream()
@@ -278,6 +301,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         ProviderFactory providers = getProject().getProviders();
         this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
         this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);
+        this.graalvmHomeEnv = providers.environmentVariable("GRAALVM_HOME");
+        this.javaHomeEnv = providers.environmentVariable("JAVA_HOME");
+        this.gradleJvmHome = providers.systemProperty("java.home");
         this.plainConsole = ConsoleOutput.Plain.equals(getProject().getGradle().getStartParameter().getConsoleOutput());
         getDisableToolchainDetection().convention(false);
     }
@@ -325,7 +351,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getExecOperations(),
             logger,
             diagnostics,
-            NativeImageExecutableLocator.defaultFallbackCandidates(getProviders()));
+            NativeImageExecutableLocator.defaultFallbackCandidates(graalvmHomeEnv, javaHomeEnv, gradleJvmHome));
         String versionString = getVersionString(getExecOperations(), options, executablePath);
         Boolean metadataEnabled = getMetadataRepositoryEnabled().getOrNull();
         String metadataRoot = getMetadataRepositoryRootPath().getOrNull();
