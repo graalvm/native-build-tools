@@ -281,8 +281,8 @@ The consumer declares and selects the attached artifact:
 
 Coordinates use `groupId:artifactId` or `groupId:artifactId:version`. The plugin reports malformed,
 missing, ambiguous, and duplicate selections before invoking Native Image, and warns when a
-declared `nil` dependency is not selected. Native Image 25.0.3 cannot consume layers reliably, so
-upgrade to a newer release before using `<useLayers>`.
+declared `nil` dependency is not selected. Native Image 25.0.3 and 25.0.4 cannot consume layers
+reliably, so upgrade to 25.0.5 or later before using `<useLayers>`.
 
 [NOTE]
 ====

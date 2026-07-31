@@ -160,14 +160,22 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
             .toList();
     }
 
-    private static boolean matches(Artifact artifact, String[] parts, boolean transitive) {
+    static boolean matches(Artifact artifact, String[] parts, boolean transitive) {
         boolean exact = artifact.getGroupId().equals(parts[0])
             && artifact.getArtifactId().equals(parts[1])
             && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
         if (exact || !transitive || artifact.getDependencyTrail() == null) {
             return exact;
         }
-        String prefix = parts[0] + ":" + parts[1] + ":";
-        return artifact.getDependencyTrail().stream().anyMatch(entry -> entry.startsWith(prefix));
+        // A version-qualified root must match exactly before its transitive trail is selected. §FS-config-model.7.
+        return artifact.getDependencyTrail().stream().anyMatch(entry -> matchesTrailCoordinate(entry, parts));
+    }
+
+    private static boolean matchesTrailCoordinate(String entry, String[] parts) {
+        String[] trailParts = entry.split(":", -1);
+        return trailParts.length >= 4
+            && trailParts[0].equals(parts[0])
+            && trailParts[1].equals(parts[1])
+            && (parts.length == 2 || trailParts[trailParts.length - 1].equals(parts[2]));
     }
 }
