@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle.tasks;
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
@@ -103,10 +104,6 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> gradleJvmHome;
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
     private final boolean plainConsole;
-
-    @Nested
-    @Optional
-    public abstract Property<JavaLauncher> getConventionJavaLauncher();
 
     @Internal
     public abstract Property<NativeImageOptions> getOptions();
@@ -339,10 +336,10 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
         var javaLauncherProperty = options.getJavaLauncher();
-        JavaLauncher userLauncher = javaLauncherProperty.getOrNull();
-        JavaLauncher conventionValue = getConventionJavaLauncher().getOrNull();
-        JavaLauncher launcher = userLauncher != null ? userLauncher : conventionValue;
-        boolean isExplicit = userLauncher != null;
+        JavaLauncher launcher = javaLauncherProperty.getOrNull();
+        // Provenance: convention-sourced values are never explicit, even though the property
+        // is present in both cases. §FS-native-invocation.1.2
+        boolean isExplicit = ((BaseNativeImageOptions) options).getJavaLauncherExplicit().get();
 
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
             launcher, isExplicit,

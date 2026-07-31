@@ -18,7 +18,10 @@ environment variable, or path-based discovery — including `gu install native-i
 
 ### 1.2. Convention-selected launcher
 
-When no explicit launcher is set, the plugin selects a launcher by convention:
+When no explicit launcher is set, the plugin selects a launcher by convention. The plugin
+installs that convention on each native binary's public `javaLauncher` property
+(`graalvmNative.binaries.all { javaLauncher.convention(…) }`), so the property resolves
+to the convention value and stays queryable at configuration time:
 
 1. **Toolchain detection** (`toolchainDetection = true`): `configureToolchain()` resolves
    the configured Java toolchain and exposes it as the binary's `javaLauncher` convention
@@ -26,11 +29,19 @@ When no explicit launcher is set, the plugin selects a launcher by convention:
    `NativeImageExecutableLocator` probes the toolchain's installation for
    `bin/native-image`. If found, that launcher is used. If `native-image` is not present,
    the locator falls through to environment variable fallback.
-2. **Toolchain disabled**: no convention launcher is set, the plugin goes directly to
-   environment variable fallback.
+2. **Toolchain disabled**: the convention yields no launcher, and the plugin goes directly
+   to environment variable fallback.
 
 The convention-selected launcher is used only when it contains `bin/native-image`. If it
 does not, the plugin continues to environment-variable fallback.
+
+Because the convention is installed on the public property, the plugin tracks launcher
+provenance independently of the property value: a launcher is *explicit* only when the
+user assigned it directly
+([§FS-native-invocation.1.1](native-image-invocation.md#11-explicit-java-launcher)); a value supplied by the
+convention is never treated as explicit. Provenance must not be derived from property
+presence (the property is present in both cases), nor from the resolved launcher (the
+convention supplies the same launcher the default resolution would).
 
 ### 1.3. Environment-variable fallback
 
@@ -72,7 +83,8 @@ All failure messages MUST tell the user:
 
 * which lookup paths were attempted
 * for an explicit launcher, the launcher name and installation path
-* for convention selection, whether toolchain detection was enabled
+* for convention selection, whether toolchain detection was enabled and whether the
+  launcher was convention-selected rather than explicitly configured
 * which environment variables were (or were not) set
 
 The `NativeImageExecutableLocator.Diagnostics` class collects this information for the

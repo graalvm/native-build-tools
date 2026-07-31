@@ -413,7 +413,6 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
                     builder.getOptions().convention(options);
                     builder.getUseArgFile().convention(graalExtension.getUseArgFile());
-                    builder.getConventionJavaLauncher().set(graalExtension.getDefaultJavaLauncher());
                     builder.getDisableToolchainDetection().convention(graalExtension.getToolchainDetection().map(enabled -> !enabled));
 
                     GraalVMReachabilityMetadataRepositoryExtension repoExt = reachabilityExtensionOn(graalExtension);
@@ -890,12 +889,17 @@ public class NativeImagePlugin implements Plugin<Project> {
         // In Compatibility Mode, also pass -Djava.home from the GraalVM used for the build
         Provider<String> graalVmHome = project.getProviders().provider(() -> {
             NativeImageExecutableLocator.Diagnostics d = new NativeImageExecutableLocator.Diagnostics();
-            Provider<JavaLauncher> javaLauncher = testOptions.getJavaLauncher().isPresent()
-                    ? testOptions.getJavaLauncher()
-                    : graalExtension.getDefaultJavaLauncher();
-            boolean isExplicit = testOptions.getJavaLauncher().isPresent();
+            Provider<JavaLauncher> javaLauncher = testOptions.getJavaLauncher();
+            JavaLauncher launcher = javaLauncher.getOrNull();
+            if (launcher == null) {
+                // Unset binary property: fall back to the plugin default (the same value the
+                // convention would supply). §FS-native-invocation.1.2
+                javaLauncher = graalExtension.getDefaultJavaLauncher();
+                launcher = javaLauncher.getOrNull();
+            }
+            boolean isExplicit = ((BaseNativeImageOptions) testOptions).getJavaLauncherExplicit().getOrElse(false) && launcher != null;
             File nativeImage = NativeImageExecutableLocator.findNativeImageExecutable(
-                    javaLauncher.getOrNull(),
+                    launcher,
                     isExplicit,
                     graalExtension.getToolchainDetection().map(enabled -> !enabled),
                     graalvmHomeProvider(project.getProviders(), d),

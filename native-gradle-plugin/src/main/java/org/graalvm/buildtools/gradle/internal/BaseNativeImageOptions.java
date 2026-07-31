@@ -75,6 +75,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -94,6 +95,8 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private final String name;
     private final transient TaskContainer tasks;
     private final ObjectFactory objects;
+    private final AtomicBoolean javaLauncherConventionConsulted = new AtomicBoolean(false);
+    private final ProviderFactory providers;
 
     @Override
     @Internal
@@ -228,6 +231,37 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     public abstract Property<JavaLauncher> getJavaLauncher();
 
     /**
+     * Installs the plugin-provided convention launcher on the {@code javaLauncher} property,
+     * wrapped so the plugin can distinguish a value supplied by the convention from one
+     * assigned explicitly by the user. §FS-native-invocation.1.2
+     */
+    public void setJavaLauncherConvention(Provider<JavaLauncher> convention) {
+        // The wrapper records that the property was resolved through the convention, so the
+        // plugin can tell a convention-sourced value from one assigned explicitly by the user.
+        // The supplier runs only when the property resolves its convention, never when the
+        // user assigns a value directly. §FS-native-invocation.1.2
+        AtomicBoolean consulted = javaLauncherConventionConsulted;
+        getJavaLauncher().convention(providers.provider(() -> {
+            consulted.set(true);
+            return convention.getOrNull();
+        }));
+    }
+
+    /**
+     * Returns whether the binary's {@code javaLauncher} was assigned explicitly by the user
+     * rather than supplied by the plugin-installed convention (§FS-native-invocation.1.1).
+     * Querying this provider resolves the property, so it must be read at execution time,
+     * never during configuration, where resolving the convention can trigger toolchain
+     * detection. §FS-native-invocation.1.2
+     */
+    public Provider<Boolean> getJavaLauncherExplicit() {
+        // isPresent() must be evaluated before the consulted flag: resolving the property is
+        // what consults the convention, so checking the flag first would answer "explicit"
+        // for a convention-sourced value never resolved before. §FS-native-invocation.1.2
+        return providers.provider(() -> getJavaLauncher().isPresent() && !javaLauncherConventionConsulted.get());
+    }
+
+    /**
      * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
      * to be passed to native-image.
      *
@@ -283,6 +317,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         this.layers = objectFactory.domainObjectSet(LayerOptions.class);
         this.tasks = tasks;
         this.objects = objectFactory;
+        this.providers = providers;
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {

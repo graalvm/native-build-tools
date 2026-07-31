@@ -110,32 +110,37 @@ class NativeImagePluginTest extends Specification {
         ]
     }
 
-    // §FS-native-invocation.1.5 — no convention on getJavaLauncher() means isPresent reflects explicit user config only
-    // Without convention, compatibility mode fallback to defaultJavaLauncher works correctly.
-    def "binary javaLauncher has no convention so isPresent is false by default"() {
-        given:
-        project.plugins.apply("java")
-        def extension = project.extensions.getByType(GraalVMExtension)
-
-        expect:
-        // No convention: isPresent() is false when user hasn't set anything
-        !extension.binaries.getByName("main").javaLauncher.isPresent()
-    }
-
-    // §FS-native-invocation.1.5 — explicit launcher matching convention installation path is still authoritative
-    // With structural provenance (no convention on property), user-set launcher is always treated as explicit.
-    def "explicit javaLauncher set by user is present regardless of convention"() {
+    // §FS-native-invocation.1.2 — the plugin installs the javaLauncher convention on the public
+    // binary property; provenance distinguishes convention-sourced from user-explicit launchers.
+    def "binary javaLauncher resolves from the toolchain convention and is not explicit"() {
         given:
         project.plugins.apply("java")
         def extension = project.extensions.getByType(GraalVMExtension)
         def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        expect:
+        // The restored convention supplies a launcher...
+        main.javaLauncher.isPresent()
+        // ...but the value came from the convention, not from an explicit assignment.
+        !main.javaLauncherExplicit.get()
+    }
+
+    // §FS-native-invocation.1.2 — a user-assigned launcher is explicit even when it equals the
+    // convention value: provenance tracks the assignment, not the resolved launcher.
+    def "explicit javaLauncher set by user is reported explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
 
         when:
-        // Set a launcher directly (simulates explicit user configuration)
-        main.javaLauncher.set(project.provider { null } as org.gradle.jvm.toolchain.JavaLauncher)
+        // Same launcher the convention would supply, but assigned directly by the user.
+        main.javaLauncher.set(extension.defaultJavaLauncher.get())
 
         then:
-        main.javaLauncher.isPresent()
+        main.javaLauncherExplicit.get()
     }
 
     private String taskDescription(String name) {

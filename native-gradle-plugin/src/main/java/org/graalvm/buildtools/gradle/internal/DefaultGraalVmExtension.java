@@ -76,6 +76,12 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
         getToolchainDetection().convention(false);
+        // Restore the public javaLauncher convention on every binary: the property resolves
+        // from the default (toolchain-selected) launcher, with provenance tracked so the
+        // plugin can tell convention-sourced values apart from explicit assignments.
+        // §FS-native-invocation.1.2
+        nativeImages.configureEach(options ->
+                ((BaseNativeImageOptions) options).setJavaLauncherConvention(defaultJavaLauncher));
         getTestSupport().convention(true);
         AgentOptions agentOpts = getAgent();
         agentOpts.getDefaultMode().convention("standard");
@@ -109,7 +115,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
                     // metadata.languageVersion) whenever toolchain detection is enabled.
                     // Whether the toolchain actually contains native-image is decided at build
                     // time by NativeImageExecutableLocator, which falls back to GRAALVM_HOME
-                    // when the launcher's installation lacks it. §FS-native-invocation.1.5
+                    // when the launcher's installation lacks it. §FS-native-invocation.1.6
                     JavaPluginExtension javaConvention = project.getExtensions().getByType(JavaPluginExtension.class);
                     return toolchainService.launcherFor(javaConvention.getToolchain());
                 })
