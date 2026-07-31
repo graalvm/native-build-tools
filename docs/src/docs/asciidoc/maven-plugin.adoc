@@ -216,6 +216,74 @@ For example, to build a native image named `myapp` that uses `org.example.ClassN
 </configuration>
 ----
 
+[[layered-images]]
+=== Layered Native Images
+
+The `layer-create` goal produces a `.nil` Native Image layer and attaches it to the Maven project.
+A consuming module declares that artifact with `<type>nil</type>` and selects it through
+`<useLayers>`. The `nil` dependency is resolved separately and never enters the Java classpath.
+
+[IMPORTANT]
+====
+Configure the Native Build Tools plugin with `<extensions>true</extensions>` in the parent or every
+module that resolves `nil` dependencies. Without it, Maven does not load the `nil` artifact handler;
+the dependency may be treated like a normal Java artifact or fail to resolve with an unexpected
+extension.
+====
+
+A producer execution can select modules, packages, explicit paths, dependency coordinates, or all
+runtime dependencies:
+
+[source,xml]
+----
+<execution>
+  <id>create-base-layer</id>
+  <phase>package</phase>
+  <goals>
+    <goal>layer-create</goal>
+  </goals>
+  <configuration>
+    <layer>
+      <name>base</name>
+      <modules>
+        <module>java.base</module>
+      </modules>
+      <dependencies>
+        <dependency>
+          <artifact>org.slf4j:slf4j-api</artifact>
+        </dependency>
+      </dependencies>
+    </layer>
+  </configuration>
+</execution>
+----
+
+The consumer declares and selects the attached artifact:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.example</groupId>
+  <artifactId>base-layer</artifactId>
+  <version>${project.version}</version>
+  <type>nil</type>
+  <scope>runtime</scope>
+</dependency>
+
+<configuration>
+  <useLayers>
+    <useLayer>
+      <artifact>org.example:base-layer</artifact>
+    </useLayer>
+  </useLayers>
+</configuration>
+----
+
+Coordinates use `groupId:artifactId` or `groupId:artifactId:version`. The plugin reports malformed,
+missing, ambiguous, and duplicate selections before invoking Native Image, and warns when a
+declared `nil` dependency is not selected. Native Image 25.0.3 cannot consume layers reliably, so
+upgrade to a newer release before using `<useLayers>`.
+
 [NOTE]
 ====
 Most of the aforementioned properties can also be set on the command line as a part of Maven invocation. For example, if you want to temporarily enable verbose mode, you can append `-Dverbose` to your Maven command.

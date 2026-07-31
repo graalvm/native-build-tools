@@ -43,8 +43,8 @@ package org.graalvm.buildtools.gradle.dsl;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -103,11 +103,11 @@ public abstract class LayerContents {
     }
 
     public void fromConfiguration(Configuration configuration) {
-        getFiles().from(externalDependenciesOf(configuration));
+        getFiles().from(resolvedArtifactsOf(configuration));
     }
 
     public void fromConfiguration(Provider<Configuration> configuration) {
-        getFiles().from(configuration.flatMap(this::externalDependenciesOf));
+        getFiles().from(configuration.flatMap(this::resolvedArtifactsOf));
     }
 
     public void dependencies(String notation) {
@@ -120,6 +120,21 @@ public abstract class LayerContents {
         addDependency(notation, spec.isTransitive());
     }
 
+    public void dependencies(Provider<? extends MinimalExternalModuleDependency> dependency) {
+        dependencies(dependency, spec -> {
+        });
+    }
+
+    public void dependencies(Provider<? extends MinimalExternalModuleDependency> dependency,
+                             Action<? super LayerDependencySpec> action) {
+        LayerDependencySpec spec = new LayerDependencySpec();
+        action.execute(spec);
+        Provider<String> notation = dependency.map(value ->
+            value.getModule().toString() + ":" + value.getVersionConstraint().getRequiredVersion());
+        getDependencies().add(notation.map(value -> new LayerDependency(value, spec.isTransitive())));
+        getFiles().from(notation.flatMap(value -> resolvedArtifactsOf(detachedConfiguration(value, spec.isTransitive()))));
+    }
+
     private void addDependency(String notation, boolean transitive) {
         LayerDependency selection = new LayerDependency(notation, transitive);
         getDependencies().add(selection);
@@ -127,14 +142,21 @@ public abstract class LayerContents {
         if (dependency instanceof ModuleDependency) {
             ((ModuleDependency) dependency).setTransitive(transitive);
         }
-        getFiles().from(externalDependenciesOf(project.getConfigurations().detachedConfiguration(dependency)));
+        getFiles().from(resolvedArtifactsOf(project.getConfigurations().detachedConfiguration(dependency)));
     }
 
-    private Provider<List<File>> externalDependenciesOf(Configuration configuration) {
+    private Configuration detachedConfiguration(String notation, boolean transitive) {
+        Dependency dependency = project.getDependencies().create(notation);
+        if (dependency instanceof ModuleDependency) {
+            ((ModuleDependency) dependency).setTransitive(transitive);
+        }
+        return project.getConfigurations().detachedConfiguration(dependency);
+    }
+
+    private Provider<List<File>> resolvedArtifactsOf(Configuration configuration) {
         return configuration.getIncoming()
             .artifactView(view -> {
                 view.setLenient(false);
-                view.componentFilter(id -> id instanceof ModuleComponentIdentifier);
             })
             .getArtifacts()
             .getResolvedArtifacts()

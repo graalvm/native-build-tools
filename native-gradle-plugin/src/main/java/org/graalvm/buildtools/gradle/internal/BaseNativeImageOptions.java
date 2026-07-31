@@ -91,6 +91,7 @@ import static org.graalvm.buildtools.gradle.NativeImagePlugin.compileTaskNameFor
 public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private static final GraalVMLogger LOGGER = GraalVMLogger.of(Logging.getLogger(BaseNativeImageOptions.class));
     private final DomainObjectSet<LayerOptions> layers;
+    private NativeImageLayer assignedLayer;
 
     private final String name;
     private final transient TaskContainer tasks;
@@ -278,6 +279,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);
         getPgoInstrument().convention(false);
+        getLayerNames().convention(List.of());
         DirectoryProperty pgoProfileDir = objectFactory.directoryProperty();
         pgoProfileDir.convention(layout.getProjectDirectory().dir("src/pgo-profiles/" + name));
         getPgoProfilesDirectory().convention(pgoProfileDir.map(d -> d.getAsFile().exists() ? d : null));
@@ -433,6 +435,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     public void useLayer(String name) {
         // Keep the deprecated string adapter operational while directing callers to typed layer objects. §FS-plugin-model.2.
         LOGGER.warn("useLayer(String) is deprecated; configure graalvmNative.layers and pass the typed layer object instead.");
+        addLayerName(name);
         var taskName = compileTaskNameForBinary(name);
         var layer = objects.newInstance(UseLayerOptions.class);
         layer.getLayerName().convention(name);
@@ -444,21 +447,36 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     @Override
     public void useLayer(NativeImageLayer layer) {
         // Typed layer consumption records the producing layer output on the binary. §FS-plugin-model.2.
-        if (getLayerFiles().getFrom().contains(layer.getOutputFile())) {
-            throw new IllegalArgumentException("Layer '" + layer.getName() + "' is already assigned to binary '" + getName() + "'");
-        }
+        addLayerName(layer.getName());
         getLayerFiles().from(layer.getOutputFile());
     }
 
     @Override
     public void useLayer(Provider<? extends NativeImageLayer> layer) {
         // Provider-backed layer consumption preserves the typed, lazy extension surface. §FS-plugin-model.2.
+        getLayerNames().add(layer.map(NativeImageLayer::getName));
         getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
     }
 
     @Override
+    public NativeImageLayer getLayer() {
+        return assignedLayer;
+    }
+
+    @Override
     public void setLayer(NativeImageLayer layer) {
-        useLayer(layer);
+        // Singular property assignment replaces any prior layer selection. §FS-plugin-model.2.
+        assignedLayer = layer;
+        getLayerNames().set(List.of(layer.getName()));
+        getLayerFiles().setFrom(layer.getOutputFile());
+    }
+
+    private void addLayerName(String layerName) {
+        if (getLayerNames().getOrElse(List.of()).contains(layerName)) {
+            throw new IllegalArgumentException("Layer '" + layerName + "' is already assigned to binary '" + getName() + "'");
+        }
+        assignedLayer = null;
+        getLayerNames().add(layerName);
     }
 
     @Override

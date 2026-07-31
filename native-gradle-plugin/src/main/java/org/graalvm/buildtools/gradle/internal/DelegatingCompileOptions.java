@@ -196,6 +196,11 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     }
 
     @Override
+    public ListProperty<String> getLayerNames() {
+        return options.getLayerNames();
+    }
+
+    @Override
     public void layers(Action<? super DomainObjectSet<LayerOptions>> spec) {
         options.layers(spec);
     }
@@ -216,6 +221,11 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     public void useLayer(Provider<? extends NativeImageLayer> layer) {
         // Forward provider-backed typed layer consumption unchanged. §FS-plugin-model.2.
         options.useLayer(layer);
+    }
+
+    @Override
+    public NativeImageLayer getLayer() {
+        return options.getLayer();
     }
 
     @Override

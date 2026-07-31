@@ -46,7 +46,6 @@ import org.graalvm.buildtools.gradle.tasks.LayerOptions;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
@@ -57,6 +56,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -269,6 +269,15 @@ public interface NativeImageCompileOptions {
     @PathSensitive(PathSensitivity.NAME_ONLY)
     ConfigurableFileCollection getLayerFiles();
 
+    /**
+     * Logical names of layers consumed by this binary, used for duplicate validation.
+     * §FS-native-invocation.3.
+     *
+     * @return the selected layer names
+     */
+    @Input
+    ListProperty<String> getLayerNames();
+
     void layers(Action<? super DomainObjectSet<LayerOptions>> spec);
 
     /**
@@ -285,6 +294,9 @@ public interface NativeImageCompileOptions {
 
     void useLayer(Provider<? extends NativeImageLayer> layer);
 
+    @Internal
+    NativeImageLayer getLayer();
+
     void setLayer(NativeImageLayer layer);
 
     /**
@@ -297,15 +309,14 @@ public interface NativeImageCompileOptions {
     @Deprecated
     void createLayer(Action<? super CreateLayerOptions> spec);
 
-    default Provider<List<File>> externalDependenciesOf(Provider<Configuration> configurationProvider) {
-        return configurationProvider.flatMap(this::externalDependenciesOf);
+    default Provider<List<File>> resolvedArtifactsOf(Provider<Configuration> configurationProvider) {
+        return configurationProvider.flatMap(this::resolvedArtifactsOf);
     }
 
-    default Provider<List<File>> externalDependenciesOf(Configuration configuration) {
+    default Provider<List<File>> resolvedArtifactsOf(Configuration configuration) {
         return configuration.getIncoming()
             .artifactView(view -> {
                 view.setLenient(false);
-                view.componentFilter(id -> id instanceof ModuleComponentIdentifier);
             })
             .getArtifacts()
             .getResolvedArtifacts()

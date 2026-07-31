@@ -61,5 +61,6 @@ A `layer-create` execution accepts one layer definition with a required name and
 `all`, module names, package names, explicit files, and selected `groupId:artifactId`
 dependencies with configurable transitivity. Normal compile goals accept `useLayers` entries that
 select project dependencies of type `nil` by coordinates. Missing, ambiguous, and duplicate
-selections fail before Native Image is invoked.
+selections fail before Native Image is invoked. The plugin must be loaded with
+`<extensions>true</extensions>` so Maven registers `nil` as a resolvable artifact type.
 [§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).

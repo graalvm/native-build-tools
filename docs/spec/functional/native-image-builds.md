@@ -69,4 +69,8 @@ Both plugins must support named layer creation from resolved build-tool dependen
 consumption through declared task or artifact relationships. Selection rendering belongs to
 common utilities; Gradle owns provider/task wiring and Maven owns goal/artifact/repository wiring.
 The two surfaces may use build-tool-native syntax but must preserve equivalent selector and
-multi-layer behavior. [§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).
+multi-layer behavior. The `all` selector includes the complete runtime dependency graph, including
+artifacts produced by other projects in the same multi-project or reactor build. Empty layer
+selections fail before Native Image is invoked. Both plugins reject Native Image 25.0.3 before
+layer consumption because that release cannot consume layers reliably.
+[§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).

@@ -224,6 +224,26 @@ Here is an example of additional options usage:
 </configuration>
 ----
 
+[[build-layered-image]]
+=== Build a Layered Native Image
+
+Use a multi-module build with one producer module bound to `native:layer-create` and one consumer
+module. The consumer declares the producer with `<type>nil</type>` and selects it in
+`<useLayers>`. Keep `<extensions>true</extensions>` on the Native Build Tools plugin so Maven can
+resolve the `nil` artifact type.
+
+Run the full reactor:
+
+[source,bash]
+----
+./mvnw -Pnative -DskipTests package
+----
+
+Maven creates the layer in the producer's _target/native/layers/_ directory, attaches it to the
+reactor project, resolves it outside the Java classpath, and passes it to the consumer image.
+See <<maven-plugin.adoc#layered-images,Layered Native Images>> for complete producer and consumer
+configuration.
+
 [TIP]
 ====
 As an alternative, you can pass additional build options via the `NATIVE_IMAGE_OPTIONS` environment variable, on the command line.

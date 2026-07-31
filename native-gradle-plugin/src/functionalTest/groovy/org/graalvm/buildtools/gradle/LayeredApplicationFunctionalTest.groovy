@@ -69,11 +69,27 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         outputContains "Builds the dependencies Native Image layer."
     }
 
+    def "rejects an empty named layer before invoking Native Image"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << """
+            graalvmNative.layers.create("empty")
+        """
+
+        when:
+        fails 'nativeEmptyLayer'
+
+        then:
+        errorOutputContains "Layer 'empty' has no contents"
+    }
+
     // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({
+        os.windows || os.macOs || GraalVMSupport.getGraalVMHomeVersionString().contains("native-image 25.0.3")
+    })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 

@@ -112,6 +112,59 @@ class NativeImagePluginTest extends Specification {
         task.options.get().layerCreate.get().modules.get() == ["java.base"]
         task.outputDirectory.get().asFile == project.layout.buildDirectory.dir("native/layers/dependencies").get().asFile
         extension.binaries.main.layerFiles.files == [layer.outputFile.get().asFile] as Set
+        extension.binaries.main.layer == layer
+    }
+
+    def "singular layer assignment replaces its previous value"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def first = extension.layers.create("first")
+        first.contents.modules("java.base")
+        def second = extension.layers.create("second")
+        second.contents.modules("java.logging")
+
+        when:
+        extension.binaries.main.layer = first
+        extension.binaries.main.layer = second
+
+        then:
+        extension.binaries.main.layer == second
+        extension.binaries.main.layerNames.get() == ["second"]
+        extension.binaries.main.layerFiles.files == [second.outputFile.get().asFile] as Set
+    }
+
+    def "provider layer selections preserve names for duplicate validation"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+
+        when:
+        extension.binaries.main.useLayer(layer)
+        extension.binaries.main.useLayer(project.provider { layer })
+
+        then:
+        extension.binaries.main.layerNames.get() == ["dependencies", "dependencies"]
+    }
+
+    def "layer configurations include project dependency artifacts"() {
+        given:
+        def root = ProjectBuilder.builder().withName("root").build()
+        def producer = ProjectBuilder.builder().withName("producer").withParent(root).build()
+        def consumer = ProjectBuilder.builder().withName("consumer").withParent(root).build()
+        producer.plugins.apply("java-library")
+        consumer.plugins.apply("java")
+        consumer.plugins.apply(NativeImagePlugin)
+        consumer.dependencies.add("implementation", consumer.dependencies.project(path: ":producer"))
+        def layer = consumer.extensions.getByType(GraalVMExtension).layers.create("dependencies")
+
+        when:
+        layer.contents.fromConfiguration(consumer.configurations.runtimeClasspath)
+
+        then:
+        layer.contents.files.buildDependencies.getDependencies(null).contains(producer.tasks.named("jar").get())
     }
 
     // Protects custom binary classpath wiring and exclusion args. §FS-plugin-model.4
