@@ -341,7 +341,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     }
                     return null;
                 });
-                task.getConventionJavaLauncher().set(toolchainLauncher);
+                task.getJavaLauncher().convention(toolchainLauncher);
             }
         });
 

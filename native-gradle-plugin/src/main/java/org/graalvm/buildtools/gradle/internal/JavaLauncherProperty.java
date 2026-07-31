@@ -58,15 +58,15 @@ import java.util.function.BiFunction;
  * explicit, {@link #unset()} restores convention provenance, and installing a convention never
  * affects the flag. §FS-native-invocation.1.1 §FS-native-invocation.1.2</p>
  */
-final class JavaLauncherProperty implements Property<JavaLauncher> {
+public final class JavaLauncherProperty implements Property<JavaLauncher> {
     private final Property<JavaLauncher> delegate;
     private volatile boolean explicit;
 
-    JavaLauncherProperty(Property<JavaLauncher> delegate) {
+    public JavaLauncherProperty(Property<JavaLauncher> delegate) {
         this.delegate = delegate;
     }
 
-    boolean isExplicit() {
+    public boolean isExplicit() {
         return explicit;
     }
 

@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle.tasks;
 import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.gradle.internal.JavaLauncherProperty;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.gradle.api.DefaultTask;
@@ -86,6 +87,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
     private final Provider<String> graalvmHomeEnv;
     private final Provider<String> javaHomeEnv;
     private final Provider<String> gradleJvmHome;
+    private final JavaLauncherProperty javaLauncher;
 
     @Inject
     public MetadataCopyTask(ProjectLayout layout,
@@ -100,6 +102,7 @@ public abstract class MetadataCopyTask extends DefaultTask {
         this.graalvmHomeEnv = providerFactory.environmentVariable("GRAALVM_HOME");
         this.javaHomeEnv = providerFactory.environmentVariable("JAVA_HOME");
         this.gradleJvmHome = providerFactory.systemProperty("java.home");
+        this.javaLauncher = new JavaLauncherProperty(objectFactory.property(JavaLauncher.class));
     }
 
     @Internal
@@ -119,11 +122,9 @@ public abstract class MetadataCopyTask extends DefaultTask {
      */
     @Nested
     @Optional
-    public abstract Property<JavaLauncher> getJavaLauncher();
-
-    @Nested
-    @Optional
-    public abstract Property<JavaLauncher> getConventionJavaLauncher();
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
 
     // The environment sources that can supply native-image through the fallback candidates
     // (§FS-native-invocation.1.3) are task inputs in a 3-state sentinel form: "set:<value>",
@@ -194,10 +195,8 @@ public abstract class MetadataCopyTask extends DefaultTask {
         Provider<Boolean> isMergeEnabled = providerFactory.provider(() -> true);
         Provider<AgentMode> agentModeProvider = providerFactory.provider(StandardAgentMode::new);
 
-        JavaLauncher userLauncher = getJavaLauncher().getOrNull();
-        JavaLauncher conventionValue = getConventionJavaLauncher().getOrNull();
-        JavaLauncher resolvedLauncher = userLauncher != null ? userLauncher : conventionValue;
-        boolean isExplicit = userLauncher != null;
+        JavaLauncher resolvedLauncher = javaLauncher.getOrNull();
+        boolean isExplicit = javaLauncher.isExplicit();
 
         Property<JavaLauncher> resolvedLauncherProperty = objectFactory.property(JavaLauncher.class);
         if (resolvedLauncher != null) {
