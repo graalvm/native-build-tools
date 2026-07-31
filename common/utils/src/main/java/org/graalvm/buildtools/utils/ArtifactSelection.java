@@ -94,4 +94,8 @@ public final class ArtifactSelection {
     public List<Path> getPaths() {
         return paths;
     }
+
+    public boolean isEmpty() {
+        return !all && modules.isEmpty() && packages.isEmpty() && paths.isEmpty();
+    }
 }

@@ -47,9 +47,12 @@ import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
+import org.graalvm.buildtools.utils.ArtifactSelection;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -79,7 +82,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
@@ -302,6 +307,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     @TaskAction
     public void exec() {
         NativeImageOptions options = getOptions().get();
+        validateLayerConfiguration(options);
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
@@ -319,6 +325,12 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         }
         if (options.getRequiredVersion().isPresent()) {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
+        }
+        if (!options.getLayerFiles().isEmpty()
+                && NativeImageLayerArguments.isLayerConsumptionUnsupported(versionString)) {
+            throw new GradleException(
+                "Native Image 25.0.3 does not support reliable layer consumption. "
+                    + "Upgrade Native Image to a newer release or remove the configured layers.");
         }
         int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
         boolean fallbackRemoved = NativeImageUtils.isGraalVMVersionAtLeast(versionString, 25, 1);
@@ -349,6 +361,28 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                 spec.setExecutable(executable);
             });
             logger.lifecycle("Native Image written to: " + outputDir);
+        }
+    }
+
+    static void validateLayerConfiguration(NativeImageOptions options) {
+        List<String> layerNames = options.getLayerNames().getOrElse(List.of());
+        Set<String> distinctLayerNames = new HashSet<>(layerNames);
+        if (distinctLayerNames.size() != layerNames.size()) {
+            throw new GradleException("A Native Image layer is selected more than once: " + layerNames);
+        }
+        if (options.getLayerCreate().isPresent()) {
+            var create = options.getLayerCreate().get();
+            ArtifactSelection selection = new ArtifactSelection(
+                create.getAll().getOrElse(false),
+                create.getModules().getOrElse(List.of()),
+                create.getPackages().getOrElse(List.of()),
+                create.getJars().getFiles().stream().map(File::toPath).toList()
+            );
+            if (selection.isEmpty()) {
+                throw new GradleException(
+                    "Layer '" + create.getLayerName().get() + "' has no contents; configure all, modules, "
+                        + "packages, from, fromConfiguration, or dependencies.");
+            }
         }
     }
 

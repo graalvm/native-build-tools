@@ -185,6 +185,50 @@ buildArgs.addAll(
 )
 ----
 
+[[layered-images]]
+=== Layered Native Images
+
+Named layers live in the `graalvmNative.layers` container. A layer can select modules, packages,
+files, a resolved Gradle configuration, dependency coordinates, or the complete runtime dependency
+graph. The plugin registers a task named `native<LayerName>Layer`, writes the layer under
+_build/native/layers/<layerName>/_, and wires consuming binaries to that task automatically.
+
+[source,groovy,role="multi-language-sample"]
+----
+graalvmNative {
+    layers {
+        dependencies {
+            contents {
+                modules('java.base')
+                fromConfiguration(configurations.runtimeClasspath)
+                // Version catalog accessors are also accepted:
+                // dependencies(libs.slf4j.api)
+            }
+        }
+    }
+    binaries {
+        main {
+            layer = graalvmNative.layers.dependencies
+        }
+    }
+}
+----
+
+`fromConfiguration(...)` and `all = true` include both external modules and artifacts produced by
+other projects in a multi-project build. Use repeated `useLayer(...)` calls to consume multiple
+layers. Assigning the singular `layer` property replaces its previous value.
+
+[IMPORTANT]
+====
+Inside a Groovy binary closure, the deprecated binary-level `layers` property shadows the
+extension's named-layer container. Use the qualified form
+`graalvmNative.layers.<layerName>`, as shown above.
+====
+
+Empty layers and duplicate layer selections fail before Native Image is invoked. Native Image
+25.0.3 cannot consume layers reliably, so the plugin asks you to upgrade or remove the layer
+configuration.
+
 ==== Command Line Options
 
 The preferred way to configure native binaries is through the DSL, so that you can provide reproducible builds which do not depend on obscure CLI invocations.

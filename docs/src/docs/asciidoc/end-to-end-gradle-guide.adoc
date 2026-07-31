@@ -164,6 +164,33 @@ This works similarly to `JAVA_TOOL_OPTIONS`, where the value of the environment 
 
 Learn more about Native Image build configuration https://www.graalvm.org/reference-manual/native-image/overview/BuildConfiguration/[on the website].
 
+[[build-layered-image]]
+=== Build a Layered Native Image
+
+Define a named layer and assign it to the application binary:
+
+[source,groovy]
+----
+graalvmNative {
+    layers {
+        dependencies {
+            contents {
+                modules('java.base')
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+    binaries.main {
+        layer = graalvmNative.layers.dependencies
+    }
+}
+----
+
+Run `./gradlew nativeRun`. Gradle first executes `nativeDependenciesLayer`, then consumes the
+generated _build/native/layers/dependencies/dependencies.nil_ while building the application.
+See <<gradle-plugin.adoc#layered-images,Layered Native Images>> for selector and compatibility
+details.
+
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
 

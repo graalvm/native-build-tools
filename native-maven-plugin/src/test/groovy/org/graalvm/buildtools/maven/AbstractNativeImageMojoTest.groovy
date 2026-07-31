@@ -7,6 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.artifact.DefaultArtifact
 import org.apache.maven.artifact.handler.DefaultArtifactHandler
 import org.apache.maven.project.MavenProject
+import org.codehaus.plexus.logging.Logger
 import org.graalvm.buildtools.maven.config.UseLayerConfiguration
 import org.graalvm.buildtools.model.resources.NativeImageFlags
 import spock.lang.Issue
@@ -218,6 +219,58 @@ class AbstractNativeImageMojoTest extends Specification {
         !args.contains(layerFile.absolutePath)
     }
 
+    void "it reports malformed layer coordinate '#coordinate' as a Maven execution error"() {
+        when:
+        AbstractNativeImageMojo.parseLayerCoordinate(coordinate)
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message.contains("groupId:artifactId[:version]")
+
+        where:
+        coordinate << ["base", ":base", "com.acme:", "com:acme:base:1.0"]
+    }
+
+    void "it explains how to declare a missing nil layer dependency"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project = new MavenProject()
+        mojo.project.artifacts = [] as Set
+        def useLayer = new UseLayerConfiguration()
+        useLayer.artifact = "com.acme:base-layer"
+        mojo.useLayers = [useLayer]
+
+        when:
+        mojo.getBuildArgs()
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message.contains("<type>nil</type>")
+    }
+
+    void "it warns about nil dependencies not selected by useLayers"() {
+        given:
+        def layerFile = testDirectory.resolve("base.nil").toFile()
+        layerFile.text = "layer"
+        def artifact = new DefaultArtifact(
+            "com.acme", "base-layer", "1.0", "runtime", "nil", null,
+            new DefaultArtifactHandler("nil"))
+        artifact.file = layerFile
+        def logger = Mock(Logger)
+        def mojo = newMojo([])
+        mojo.logger = logger
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project = new MavenProject()
+        mojo.project.artifacts = [artifact] as Set
+
+        when:
+        mojo.getBuildArgs()
+
+        then:
+        1 * logger.warn({ it.contains("has type nil but is not referenced by useLayers") })
+    }
+
     // The Maven adapter rejects the Native Image release with a known layer-consumption crash. §FS-native-builds.3.
     void "it rejects layer consumption on Native Image 25.0.3"() {
         when:
@@ -252,6 +305,9 @@ class AbstractNativeImageMojoTest extends Specification {
         mojo.buildArgs = buildArgs
         mojo.configFiles = []
         mojo.useArgFile = false
+        mojo.logger = Mock(Logger)
+        mojo.project = new MavenProject()
+        mojo.project.artifacts = [] as Set
         def userProperties = new Properties()
         def systemProperties = new Properties()
         def request = new DefaultMavenExecutionRequest()

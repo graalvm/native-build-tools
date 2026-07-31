@@ -38,51 +38,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.graalvm.buildtools.utils;
+package org.graalvm.buildtools.gradle.tasks
 
-import org.graalvm.buildtools.model.resources.NativeImageFlags;
+import org.graalvm.buildtools.gradle.NativeImagePlugin
+import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
+import org.gradle.api.GradleException
+import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Specification
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.regex.Pattern;
+// Protects layer preflight validation before Native Image invocation. §FS-native-invocation.3.
+class BuildNativeImageTaskTest extends Specification {
+    def "rejects an empty named layer"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        project.plugins.apply("java")
+        project.plugins.apply(NativeImagePlugin)
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def layer = extension.layers.create("empty")
+        def task = project.tasks.getByName("nativeEmptyLayer") as BuildNativeImageTask
 
-/**
- * Shared rendering of Native Image layer arguments. §FS-common-libraries.1.
- */
-public final class NativeImageLayerArguments {
-    private static final Pattern NATIVE_IMAGE_25_0_3 = Pattern.compile("(?m)^native-image\\s+25\\.0\\.3(?:\\s|$)");
+        when:
+        BuildNativeImageTask.validateLayerConfiguration(task.options.get())
 
-    private NativeImageLayerArguments() {
+        then:
+        def e = thrown(GradleException)
+        e.message.contains("Layer 'empty' has no contents")
     }
 
-    public static String renderLayerCreate(String layerName, ArtifactSelection selection) {
-        validateLayerName(layerName);
-        Objects.requireNonNull(selection, "selection");
-        if (selection.isEmpty()) {
-            throw new IllegalArgumentException("Layer '" + layerName + "' has no contents");
-        }
-        List<String> selectors = new ArrayList<>();
-        selection.getModules().forEach(module -> selectors.add("module=" + module));
-        selection.getPackages().forEach(packageName -> selectors.add("package=" + packageName));
-        selection.getPaths().forEach(path -> selectors.add("path=" + path));
-        String argument = NativeImageFlags.LAYER_CREATE + "=" + layerName + ".nil";
-        return selectors.isEmpty() ? argument : argument + "," + String.join(",", selectors);
-    }
+    def "rejects duplicate provider-backed layer selections"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        project.plugins.apply("java")
+        project.plugins.apply(NativeImagePlugin)
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+        def binary = extension.binaries.main
+        binary.useLayer(project.provider { layer })
+        binary.useLayer(project.provider { layer })
 
-    public static String renderLayerUse(Path layerFile) {
-        Objects.requireNonNull(layerFile, "layerFile");
-        return NativeImageFlags.LAYER_USE + "=" + layerFile.toAbsolutePath();
-    }
+        when:
+        BuildNativeImageTask.validateLayerConfiguration(binary)
 
-    public static boolean isLayerConsumptionUnsupported(String versionInformation) {
-        return NATIVE_IMAGE_25_0_3.matcher(Objects.requireNonNull(versionInformation, "versionInformation")).find();
-    }
-
-    private static void validateLayerName(String layerName) {
-        if (layerName == null || layerName.isBlank()) {
-            throw new IllegalArgumentException("Layer name must not be blank");
-        }
+        then:
+        def e = thrown(GradleException)
+        e.message.contains("A Native Image layer is selected more than once")
     }
 }

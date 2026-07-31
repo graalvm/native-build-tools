@@ -50,11 +50,19 @@ graalvmNative {
     }
     binaries {
         main {
-            useLayer(layers.base)
+            useLayer(graalvmNative.layers.base)
         }
     }
 }
 ```
+
+Inside a binary closure, the deprecated binary-scoped `layers` property shadows the extension
+container. Groovy builds must therefore use the qualified `graalvmNative.layers.<name>` path.
+The singular `layer` property replaces its previous assignment, while repeated `useLayer(...)`
+calls add distinct layers. Duplicate layer selections fail before Native Image is invoked.
+
+`fromConfiguration(...)` and `all` include resolved external and project dependencies. Dependency
+selectors also accept Gradle providers, including version-catalog accessors.
 
 The previous binary-scoped `createLayer` and string-based `useLayer` surface remains as a
 deprecated compatibility adapter. Only legacy layer declarations retain the `lib` binary-name

@@ -78,9 +78,13 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
             outputContains "Upgrade Native Image to a newer release or remove the useLayers configuration"
             outputDoesNotContain "LayeredDispatchTableFeature"
         } else {
-            buildSucceeded
-            file("application/target/application").isFile()
-            outputContains "-H:LayerUse="
+            assert result.exitCode == 0
+            def application = file("application/target/application")
+            assert application.isFile()
+            assert outputContains("-H:LayerUse=")
+            def execution = [application.absolutePath].execute()
+            assert execution.waitFor() == 0
+            assert execution.in.text.contains("Hello, layered Maven!")
         }
     }
 }

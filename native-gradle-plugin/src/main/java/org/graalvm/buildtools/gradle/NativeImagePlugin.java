@@ -536,7 +536,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 .getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
             create.getClasspath().from(layer.getContents().getAll()
                 .flatMap(all -> Boolean.TRUE.equals(all)
-                    ? layerOptions.externalDependenciesOf(runtimeClasspath)
+                    ? layerOptions.resolvedArtifactsOf(runtimeClasspath)
                     : project.getProviders().provider(Collections::emptyList)));
             create.getClasspath().from(layer.getContents().getPackages()
                 .flatMap(packages -> packages.isEmpty()

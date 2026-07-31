@@ -136,7 +136,6 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         ConfigurableFileCollection jarsClasspath = null;
         ConfigurableFileCollection layerClasspath = null;
         if (hasLayers) {
-            LOGGER.warn("Experimental support for layered images enabled. DSL may change at any time.");
             cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
             if (options.getLayerCreate().isPresent()) {
                 CreateLayerOptions create = options.getLayerCreate().get();

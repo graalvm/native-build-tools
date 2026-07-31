@@ -103,8 +103,6 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected static final String NATIVE_IMAGE_DRY_RUN = "nativeDryRun";
     private static final Pattern LAYER_CREATE_ARG = Pattern.compile(
             Pattern.quote(NativeImageFlags.LAYER_CREATE) + "(@[^=]*)?=.+");
-    private static final Pattern NATIVE_IMAGE_25_0_3 = Pattern.compile(
-            "(?m)^native-image 25\\.0\\.3(?:\\s|$)");
     private static String nativeImageVersionInformation = null;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
@@ -524,10 +522,15 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     private List<String> resolveLayerUseArguments() throws MojoExecutionException {
+        List<Artifact> nilArtifacts = project.getArtifacts().stream()
+            .filter(artifact -> "nil".equals(artifact.getType()))
+            .toList();
         if (useLayers == null || useLayers.isEmpty()) {
+            warnAboutUnreferencedLayers(nilArtifacts);
             return List.of();
         }
         Set<String> selected = new HashSet<>();
+        Set<Artifact> selectedArtifacts = new HashSet<>();
         List<String> arguments = new ArrayList<>();
         for (UseLayerConfiguration useLayer : useLayers) {
             String selector = useLayer.getArtifact();
@@ -537,15 +540,21 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             if (!selected.add(selector)) {
                 throw new MojoExecutionException("Layer dependency '" + selector + "' is selected more than once");
             }
-            List<Artifact> matches = project.getArtifacts().stream()
-                .filter(artifact -> "nil".equals(artifact.getType()))
-                .filter(artifact -> matchesLayerCoordinate(artifact, selector))
+            String[] coordinate = parseLayerCoordinate(selector);
+            List<Artifact> matches = nilArtifacts.stream()
+                .filter(artifact -> matchesLayerCoordinate(artifact, coordinate))
                 .toList();
             if (matches.isEmpty()) {
-                throw new MojoExecutionException("Layer dependency '" + selector + "' was not found");
+                throw new MojoExecutionException(
+                    "Layer dependency '" + selector + "' was not found. Declare the corresponding "
+                        + "<dependency> with <type>nil</type> in the project.");
             }
             if (matches.size() > 1) {
                 throw new MojoExecutionException("Layer dependency '" + selector + "' is ambiguous: " + matches);
+            }
+            if (!selectedArtifacts.add(matches.get(0))) {
+                throw new MojoExecutionException(
+                    "Layer dependency '" + selector + "' selects an artifact that is already selected");
             }
             File layerFile = matches.get(0).getFile();
             if (layerFile == null) {
@@ -553,14 +562,30 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             }
             arguments.add(NativeImageLayerArguments.renderLayerUse(layerFile.toPath()));
         }
+        warnAboutUnreferencedLayers(nilArtifacts.stream()
+            .filter(artifact -> !selectedArtifacts.contains(artifact))
+            .toList());
         return arguments;
     }
 
-    private static boolean matchesLayerCoordinate(Artifact artifact, String selector) {
-        String[] parts = selector.split(":");
-        if (parts.length < 2 || parts.length > 3) {
-            throw new IllegalArgumentException("Layer dependency must use groupId:artifactId[:version]: " + selector);
+    private void warnAboutUnreferencedLayers(List<Artifact> artifacts) {
+        for (Artifact artifact : artifacts) {
+            logger.warn("Layer dependency '" + artifact.getGroupId() + ":" + artifact.getArtifactId()
+                + "' has type nil but is not referenced by useLayers; it will not be consumed.");
         }
+    }
+
+    static String[] parseLayerCoordinate(String selector) throws MojoExecutionException {
+        String[] parts = selector.split(":", -1);
+        if (parts.length < 2 || parts.length > 3
+                || Arrays.stream(parts).anyMatch(String::isBlank)) {
+            throw new MojoExecutionException(
+                "Layer dependency must use groupId:artifactId[:version]: " + selector);
+        }
+        return parts;
+    }
+
+    private static boolean matchesLayerCoordinate(Artifact artifact, String[] parts) {
         return artifact.getGroupId().equals(parts[0])
             && artifact.getArtifactId().equals(parts[1])
             && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
@@ -687,7 +712,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     // Native Image 25.0.3 can crash after loading a layer, so fail before invocation. §FS-native-builds.3.
     static void checkLayerConsumptionCompatibility(String versionInformation) throws MojoExecutionException {
-        if (NATIVE_IMAGE_25_0_3.matcher(versionInformation).find()) {
+        if (NativeImageLayerArguments.isLayerConsumptionUnsupported(versionInformation)) {
             throw new MojoExecutionException(
                     "Native Image 25.0.3 does not support reliable layer consumption. "
                     + "Upgrade Native Image to a newer release or remove the useLayers configuration.");

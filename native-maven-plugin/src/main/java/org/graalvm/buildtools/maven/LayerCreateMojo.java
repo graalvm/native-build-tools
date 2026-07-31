@@ -104,6 +104,10 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
             layer.getPackages(),
             layer.isAll() ? List.of() : selectedPaths
         );
+        if (selection.isEmpty()) {
+            throw new MojoExecutionException(
+                "Layer '" + layer.getName() + "' has no contents; configure all, modules, packages, paths, or dependencies.");
+        }
         if (buildArgs == null) {
             buildArgs = new ArrayList<>();
         }
@@ -130,9 +134,10 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
             if (selector == null || selector.isBlank()) {
                 throw new MojoExecutionException("Layer dependency coordinates must not be blank");
             }
+            String[] coordinate = AbstractNativeImageMojo.parseLayerCoordinate(selector);
             boolean matched = false;
             for (Artifact artifact : project.getArtifacts()) {
-                if (matches(artifact, selector, dependency.isTransitive())) {
+                if (matches(artifact, coordinate, dependency.isTransitive())) {
                     if (artifact.getFile() != null) {
                         paths.add(artifact.getFile().toPath().toAbsolutePath());
                     }
@@ -155,11 +160,7 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
             .toList();
     }
 
-    private static boolean matches(Artifact artifact, String selector, boolean transitive) {
-        String[] parts = selector.split(":");
-        if (parts.length < 2 || parts.length > 3) {
-            throw new IllegalArgumentException("Layer dependency must use groupId:artifactId[:version]: " + selector);
-        }
+    private static boolean matches(Artifact artifact, String[] parts, boolean transitive) {
         boolean exact = artifact.getGroupId().equals(parts[0])
             && artifact.getArtifactId().equals(parts[1])
             && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
