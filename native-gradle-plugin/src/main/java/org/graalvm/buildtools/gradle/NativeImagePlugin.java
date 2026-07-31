@@ -1194,7 +1194,9 @@ public class NativeImagePlugin implements Plugin<Project> {
             graalExtension.getToolchainDetection().map(enabled -> !enabled),
             project.provider(() -> false),
             execOperations,
-            project.getProviders()));
+            project.getProviders().environmentVariable("GRAALVM_HOME"),
+            project.getProviders().environmentVariable("JAVA_HOME"),
+            project.getProviders().systemProperty("java.home")));
 
         taskToInstrument.doLast(new CleanupAgentFilesAction(mergeInputDirs, fileOperations));
     }

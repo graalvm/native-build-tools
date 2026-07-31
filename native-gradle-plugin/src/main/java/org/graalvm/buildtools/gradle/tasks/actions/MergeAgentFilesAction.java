@@ -49,7 +49,6 @@ import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
@@ -76,7 +75,9 @@ public class MergeAgentFilesAction implements Action<Task> {
     private final Property<JavaLauncher> javaLauncher;
     private final Provider<Boolean> isExplicitLauncher;
     private final ExecOperations execOperations;
-    private final ProviderFactory providers;
+    private final Provider<String> graalvmHomeEnv;
+    private final Provider<String> javaHomeEnv;
+    private final Provider<String> gradleJvmHome;
 
     public MergeAgentFilesAction(Provider<Boolean> isMergingEnabled,
                                  Provider<AgentMode> agentMode,
@@ -89,7 +90,9 @@ public class MergeAgentFilesAction implements Action<Task> {
                                  Provider<Boolean> disableToolchainDetection,
                                  Provider<Boolean> isExplicitLauncher,
                                  ExecOperations execOperations,
-                                 ProviderFactory providers) {
+                                 Provider<String> graalvmHomeEnv,
+                                 Provider<String> javaHomeEnv,
+                                 Provider<String> gradleJvmHome) {
         this.isMergingEnabled = isMergingEnabled;
         this.agentMode = agentMode;
         this.mergeWithOutputs = mergeWithOutputs;
@@ -101,7 +104,9 @@ public class MergeAgentFilesAction implements Action<Task> {
         this.execOperations = execOperations;
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.javaLauncher.convention(javaLauncher);
-        this.providers = providers;
+        this.graalvmHomeEnv = graalvmHomeEnv;
+        this.javaHomeEnv = javaHomeEnv;
+        this.gradleJvmHome = gradleJvmHome;
     }
 
     private static final Set<String> METADATA_FILES = Set.of("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json", "reachability-metadata.json");
@@ -123,7 +128,7 @@ public class MergeAgentFilesAction implements Action<Task> {
                     execOperations,
                     GraalVMLogger.of(task.getLogger()),
                     new NativeImageExecutableLocator.Diagnostics(),
-                    NativeImageExecutableLocator.defaultFallbackCandidates(providers));
+                    NativeImageExecutableLocator.defaultFallbackCandidates(graalvmHomeEnv, javaHomeEnv, gradleJvmHome));
             File workingDir = nativeImage.getParentFile();
             File launcher = new File(workingDir, nativeImageConfigureFileName());
             if (!launcher.exists()) {
