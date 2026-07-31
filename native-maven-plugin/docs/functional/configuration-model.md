@@ -58,9 +58,10 @@ specialized skip controls and behavior.
 ## 7. Layer configuration
 
 A `layer-create` execution accepts one layer definition with a required name and neutral contents:
-`all`, module names, package names, explicit files, and selected `groupId:artifactId`
-dependencies with configurable transitivity. Normal compile goals accept `useLayers` entries that
-select project dependencies of type `nil` by coordinates. Missing, ambiguous, and duplicate
-selections fail before Native Image is invoked. The plugin must be loaded with
-`<extensions>true</extensions>` so Maven registers `nil` as a resolvable artifact type.
+`all`, module names, package names, explicit files, and selected `groupId:artifactId[:version]`
+dependencies with configurable transitivity. Version-qualified selections must match the resolved
+root dependency exactly before including its transitive dependency trail. Normal compile goals
+accept `useLayers` entries that select project dependencies of type `nil` by coordinates. Missing,
+ambiguous, and duplicate selections fail before Native Image is invoked. The plugin must be loaded
+with `<extensions>true</extensions>` so Maven registers `nil` as a resolvable artifact type.
 [§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).

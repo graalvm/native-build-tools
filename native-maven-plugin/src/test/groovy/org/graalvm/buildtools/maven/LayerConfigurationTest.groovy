@@ -16,6 +16,8 @@
  */
 package org.graalvm.buildtools.maven
 
+import org.apache.maven.artifact.DefaultArtifact
+import org.apache.maven.artifact.handler.DefaultArtifactHandler
 import org.graalvm.buildtools.maven.config.LayerConfiguration
 import org.graalvm.buildtools.maven.config.LayerDependencyConfiguration
 import spock.lang.Specification
@@ -44,5 +46,31 @@ class LayerConfigurationTest extends Specification {
 
         then:
         !dependency.transitive
+    }
+
+    def "version-qualified transitive selection requires the resolved root version"() {
+        given:
+        def artifact = new DefaultArtifact(
+            "com.acme", "extension", "2.0", "runtime", "jar", null, new DefaultArtifactHandler("jar"))
+        artifact.dependencyTrail = ["org.example:application:jar:1.0", "com.acme:extension:jar:2.0"]
+
+        expect:
+        !LayerCreateMojo.matches(artifact, ["com.acme", "extension", "1.0"] as String[], true)
+        LayerCreateMojo.matches(artifact, ["com.acme", "extension", "2.0"] as String[], true)
+    }
+
+    def "transitive selection follows the exactly matched root dependency trail"() {
+        given:
+        def artifact = new DefaultArtifact(
+            "com.acme", "support", "3.0", "runtime", "jar", null, new DefaultArtifactHandler("jar"))
+        artifact.dependencyTrail = [
+            "org.example:application:jar:1.0",
+            "com.acme:extension:jar:2.0",
+            "com.acme:support:jar:3.0"
+        ]
+
+        expect:
+        LayerCreateMojo.matches(artifact, ["com.acme", "extension", "2.0"] as String[], true)
+        !LayerCreateMojo.matches(artifact, ["com.acme", "extension", "1.0"] as String[], true)
     }
 }

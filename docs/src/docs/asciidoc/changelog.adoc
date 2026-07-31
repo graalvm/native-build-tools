@@ -6,7 +6,7 @@
 - Added first-class named Native Image layers to the Gradle plugin and Maven `layer-create` /
   `useLayers` support with resolvable `nil` artifacts.
 - Added early validation for empty, duplicate, missing, malformed, and unsupported layer
-  configurations. Native Image 25.0.3 is rejected for layer consumption.
+  configurations. Native Image 25.0.3 and 25.0.4 are rejected for layer consumption.
 
 == Release 1.1.6
 

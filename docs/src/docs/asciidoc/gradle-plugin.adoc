@@ -226,8 +226,8 @@ extension's named-layer container. Use the qualified form
 ====
 
 Empty layers and duplicate layer selections fail before Native Image is invoked. Native Image
-25.0.3 cannot consume layers reliably, so the plugin asks you to upgrade or remove the layer
-configuration.
+25.0.3 and 25.0.4 cannot consume layers reliably, so the plugin asks you to upgrade to 25.0.5 or
+later, or remove the layer configuration.
 
 ==== Command Line Options
 
