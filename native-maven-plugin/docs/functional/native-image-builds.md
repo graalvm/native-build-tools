@@ -30,9 +30,9 @@ produce a warning. Missing selections must tell users to declare the correspondi
 dependency, and malformed coordinates must fail with a normal Maven execution error. Layer
 creation resolves Maven artifacts to paths and delegates selector serialization to
 [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
-Native Image 25.0.3 is excluded from layer consumption because that release can fail internally
-after loading a layer. The plugin must reject that exact version before launching Native Image and
-tell users to upgrade Native Image or remove `useLayers`.
+Native Image 25.0.3 and 25.0.4 are excluded from layer consumption because those releases can fail
+internally after loading a layer. The plugin must reject those versions before launching Native
+Image and tell users to upgrade Native Image or remove `useLayers`.
 
 ## 4. Generated resource configuration
 

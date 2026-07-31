@@ -46,7 +46,7 @@ Consuming binaries pass each produced `.nil` file with `-H:LayerUse`, depend on 
 and declare the file as an input. Complete configurations and selected dependency coordinates are
 resolved lazily through Gradle artifact APIs before translation. Resolved configurations include
 project artifacts as well as external modules. Empty layer selections, duplicate consumption, and
-Native Image 25.0.3 consumption fail with actionable errors before Native Image is invoked.
+Native Image 25.0.3 or 25.0.4 consumption fail with actionable errors before Native Image is invoked.
 [§REQ-gradle-model](../requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility).
 
 ## 4. Argument files

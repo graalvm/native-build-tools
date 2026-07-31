@@ -52,7 +52,8 @@ import java.util.regex.Pattern;
  * Shared rendering of Native Image layer arguments. §FS-common-libraries.1.
  */
 public final class NativeImageLayerArguments {
-    private static final Pattern NATIVE_IMAGE_25_0_3 = Pattern.compile("(?m)^native-image\\s+25\\.0\\.3(?:\\s|$)");
+    private static final Pattern UNSUPPORTED_LAYER_CONSUMPTION_VERSION =
+        Pattern.compile("(?m)^native-image\\s+25\\.0\\.[34](?:\\s|$)");
 
     private NativeImageLayerArguments() {
     }
@@ -77,7 +78,9 @@ public final class NativeImageLayerArguments {
     }
 
     public static boolean isLayerConsumptionUnsupported(String versionInformation) {
-        return NATIVE_IMAGE_25_0_3.matcher(Objects.requireNonNull(versionInformation, "versionInformation")).find();
+        return UNSUPPORTED_LAYER_CONSUMPTION_VERSION
+            .matcher(Objects.requireNonNull(versionInformation, "versionInformation"))
+            .find();
     }
 
     private static void validateLayerName(String layerName) {

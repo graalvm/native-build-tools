@@ -99,10 +99,14 @@ class NativeImageLayerArgumentsTest {
     }
 
     @Test
-    void identifiesTheUnsupportedLayerConsumptionRelease() {
+    void identifiesUnsupportedLayerConsumptionReleases() {
         assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
             "native-image 25.0.3 2026-04-21\nGraalVM Runtime Environment Oracle GraalVM 25.0.3+9.1"));
-        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
+        assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
             "native-image 25.0.4 2026-07-21"));
+        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
+            "native-image 25.0.2 2026-01-20"));
+        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
+            "native-image 25.0.5 2026-10-20"));
     }
 }

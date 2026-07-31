@@ -329,7 +329,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         if (!options.getLayerFiles().isEmpty()
                 && NativeImageLayerArguments.isLayerConsumptionUnsupported(versionString)) {
             throw new GradleException(
-                "Native Image 25.0.3 does not support reliable layer consumption. "
+                "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption. "
                     + "Upgrade Native Image to a newer release or remove the configured layers.");
         }
         int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
