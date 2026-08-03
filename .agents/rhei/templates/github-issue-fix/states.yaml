@@ -40,8 +40,8 @@
 #                      not block publication when focused validation passed.
 #   review-dispatch -> validate-fix when ready but required review passes remain
 #   review-dispatch -> address-review when not ready and repair attempts remain
-#   review-dispatch -> record-blocked-publication only after the configured final review cycle
-#   The shared review-cycle budget and its repair capacity implement §FS-rhei-github-issue-fix.1.
+#   review-dispatch -> record-blocked-publication when substantive blockers remain after repair attempts
+#   final-cycle citation-only hygiene is disclosed but does not block otherwise ready publication
 #
 # Per-task paths:
 #   issue-intake: issue-intake -> completed
@@ -529,10 +529,17 @@ states:
       documentation updates, include them in this same change set and cite the
       most-specific relevant `§` IDs according to the target repo's rules.
       When the target repository has a specification citation or reference
-      convention, add the most-specific applicable spec reference to every
-      added or modified test source file, including test helpers, fixtures, and
-      infrastructure-only test sources. Apply this file-level rule even when
-      the changed lines do not directly assert user-visible behavior.
+      convention, proactively add the most-specific applicable spec reference
+      to every added or modified internal source, build script, test source,
+      test helper, fixture, and infrastructure-only test file where repository
+      rules require one. Cite the behavior at the narrowest useful declaration,
+      statement, or file-level scope, resolve every chosen ID, and do not rely
+      on later review to discover missing citations.
+      Before declaring implementation ready, inspect the complete worktree diff
+      against its base and perform an explicit citation-coverage pass over all
+      changed internal files. Run the repository's citation validation and
+      formatting checks when available, and record that audit in the
+      implementation note.
       Do not invent a reference when the repository has
       no applicable convention or spec point; record that absence in the
       implementation note instead.
@@ -555,8 +562,9 @@ states:
       of these exact markers:
       - `Implementation status: ready` when a coherent fix is complete and can
         proceed to validation. Include files changed, rationale, spec/doc
-        updates, tests added or changed, test-source spec references or
-        justified absence, known risks, and `Proposal ID: <id>`.
+        updates, tests added or changed, citation coverage for every changed
+        internal source/build/test file or justified absence, citation-check
+        results, known risks, and `Proposal ID: <id>`.
       - `Implementation status: reproposal` when new evidence makes a materially
         different approach necessary. Stop implementation, record the current
         proposal ID, the evidence and reason for divergence, the proposed scope
@@ -599,7 +607,7 @@ states:
   validate-fix:
     description: Run grund and repository validation for the issue fix.
     target: "codex[yolo]:openai:gpt-5.6-sol"
-    visits: {{review_cycles}}
+    visits: 3
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -709,7 +717,7 @@ states:
   requirements-review:
     description: Review whether the implementation satisfies the GitHub issue requirements.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: {{review_cycles}}
+    visits: 3
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -751,7 +759,7 @@ states:
   spec-review:
     description: Review goals, non-goals, grund citations, and spec compatibility.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: {{review_cycles}}
+    visits: 3
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -762,7 +770,8 @@ states:
       - name: review-brief
         path: runtime/github-issue-fix/{task_id}/review-brief.md
     instructions: |
-      Review spec and repo-rule fit for Task {task_id}: {task_title}.
+      Review spec and repo-rule fit for Task {task_id}: {task_title}, focused
+      review cycle {visit_count} of {visits}.
 
       Inspect the current diff in the recorded worktree, the compact review
       brief, and the full repository-rules and spec-fit artifacts. Treat the
@@ -775,12 +784,24 @@ states:
       - whether every added or modified test source file carries the
         most-specific applicable spec reference when the repository has a
         citation/reference convention, including helpers, fixtures, and
-        infrastructure-only test sources; missing, inapplicable, or overly
-        broad required references are blocking findings
+        infrastructure-only test sources
       - whether spec or documentation updates are required for the behavior
       - whether the change adds product surface outside the accepted scope
       - whether internal `§...` citations were added to public user-facing
         documentation without explicit repository guidance requiring them
+
+      Citation readiness policy:
+      - Before the final focused review cycle, missing required citations are
+        fixable blocking findings so `address-review` can add them.
+      - On the final focused review cycle, a missing citation, an applicable but
+        overly broad citation, or citation-comment placement is a non-blocking
+        follow-up when the required behavior is already specified, all existing
+        citations resolve, and repository grounding/format checks pass.
+        Put those findings under non-blocking follow-ups and report
+        `Spec ready: yes` when no other spec or repository-rule blocker remains.
+      - Missing required specification behavior, broken or invented references,
+        misleading/inapplicable citations, and grounding failures remain
+        blocking on every cycle.
 
       Write `{output.spec-review.path}` with:
       - the approved proposal ID from the review brief
@@ -802,7 +823,7 @@ states:
   implementation-review:
     description: Review code quality, scope, maintainability, and edge cases.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: {{review_cycles}}
+    visits: 3
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -826,7 +847,9 @@ states:
         behavior of each cited test file rather than merely syntactic
       - whether unrelated cleanup or broad refactoring slipped in
       - whether comments were inserted between annotations and the declarations
-        they annotate; comments should precede the annotation block instead
+        they annotate; comments should precede the annotation block instead,
+        but citation-comment placement alone is a non-blocking follow-up unless
+        it breaks syntax, tooling, or changes annotation behavior
 
       Write `{output.implementation-review.path}` with:
       - the approved proposal ID from the review brief and whether the diff
@@ -849,7 +872,7 @@ states:
   validation-review:
     description: Review validation coverage, command choice, failures, and CI risk.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: {{review_cycles}}
+    visits: 3
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -899,7 +922,7 @@ states:
   aggregate-review:
     description: Combine focused reviews into one PR-readiness decision for this cycle.
     target: "codex[yolo]:openai:gpt-5.6-sol"
-    visits: {{review_cycles}}
+    visits: 3
     inputs:
       - name: review-brief
         path: runtime/github-issue-fix/{task_id}/review-brief.md
@@ -926,8 +949,8 @@ states:
       Preserve the approved proposal ID in the aggregate review evidence.
 
       Readiness policy:
-      - Requirements, spec/grund, and implementation blockers always block
-        publication.
+      - Requirements, substantive spec/grund, and substantive implementation
+        blockers always block publication.
       - Validation failures in focused checks, explicitly configured
         validation commands, or affected-area compile/test checks block
         publication.
@@ -935,10 +958,18 @@ states:
         documentation block publication unless repository instructions
         explicitly require them or the touched file already uses them for
         readers.
-      - Missing, inapplicable, or overly broad spec references on any added or
-        modified test source file block publication when the target repository
-        has a citation/reference convention. This includes helpers, fixtures,
-        and infrastructure-only test sources.
+      - Before the final focused review cycle, missing required citations are
+        fixable blockers and should route through `address-review`.
+      - On the final focused review cycle, citation-only omissions, applicable
+        but overly broad citations, and citation-comment placement are
+        non-blocking follow-ups when the underlying behavior is specified,
+        existing citations resolve, and grounding/format checks pass. Do not
+        let citation hygiene alone turn otherwise ready work into blocked
+        publication; report `Ready to publish: yes` when no other blocker
+        remains.
+      - Missing specification behavior, broken or invented references,
+        misleading/inapplicable citations, and failed grounding checks remain
+        blockers on every cycle.
       - Missing full repository builds, full functional suites, exact CI
         matrices, or documentation renders are validation gaps to disclose, not
         blockers by themselves, when focused validation for the issue behavior
@@ -980,7 +1011,7 @@ states:
 
   review-dispatch:
     description: Deterministically route the aggregate review verdict to publication, repair, or handoff.
-    visits: {{review_cycles}}
+    visits: 3
     program:
       command:
         - bash
@@ -1003,7 +1034,7 @@ states:
   address-review:
     description: Address blocking findings from the latest focused review cycle.
     target: "codex[yolo]:openai:gpt-5.6-sol"
-    visits: {{review_cycles - 1}}
+    visits: 2
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -1350,13 +1381,13 @@ transitions:
   - from: review-dispatch
     to: address-review
     exit_code: 1
-    condition: visitCount < {{review_cycles}}
+    condition: visitCount <= 2
     description: The aggregate review is not ready and fix attempts remain.
 
   - from: review-dispatch
     to: record-blocked-publication
     exit_code: 1
-    condition: visitCount >= {{review_cycles}}
+    condition: visitCount > 2
     description: The aggregate review is not ready and fix attempts are exhausted; record blocked publication.
 
   - from: review-dispatch

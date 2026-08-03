@@ -31,7 +31,6 @@ a local handoff.
 | Publication mode | `{{publication_mode}}` |
 | Rhei GitHub actor | `{% if rhei_actor == "auto" %}<active gh account>{% else %}{{rhei_actor}}{% endif %}` |
 | Proposal attempt limit | `{{proposal_attempts}}` |
-| Focused review cycle limit | `{{review_cycles}}` |
 | PR push remote | `{{pr_push_remote}}` |
 | PR head owner | `{{pr_head_owner}}` |
 | PR labels | `{{pr_labels}}` |
