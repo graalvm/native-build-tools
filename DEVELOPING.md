@@ -4,9 +4,15 @@ This document describes how to set up and develop Native Build Tools on your loc
 
 ## Environment
 
-Start by setting `JAVA_HOME` to a [Gradle-compatible JDK](https://docs.gradle.org/current/userguide/compatibility.html).
+The repository build has two distinct Java requirements:
 
-Some build tasks require a GraalVM JDK (e.g., tests). You should set `GRAALVM_HOME` to an appropriate GraalVM JDK.
+- `JAVA_HOME` must point to a JDK that can launch the checked-in Gradle wrapper. It may be a newer JDK supported by that wrapper.
+- Gradle must be able to discover a JDK 17 installation because repository Java sources are compiled with a Java 17 toolchain. The launcher JDK and compilation JDK do not need to be the same installation. See the [Gradle toolchain documentation](https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) for the supported discovery mechanisms.
+
+GraalVM is not required for ordinary JVM compilation and unit tests. Native Image tasks and
+functional-test scenarios that invoke `native-image`, including the full
+`:native-gradle-plugin:functionalTest` and `:native-maven-plugin:functionalTest` suites, require an
+appropriate GraalVM JDK with `native-image` installed. Set `GRAALVM_HOME` to that installation.
 
 ## IDE Setup
 
@@ -35,7 +41,7 @@ You can use the various commands in the [Gradle build lifecycle](https://docs.gr
 Examples used in daily development follow (all executed from the root of the repository):
 
 ```bash
-# Compile all projects
+# Compile all projects, including documentation
 ./gradlew assemble
 
 # Compile only the native-gradle-plugin (for example)
@@ -60,12 +66,29 @@ Examples used in daily development follow (all executed from the root of the rep
 ./gradlew :native-gradle-plugin:inspections
 ./gradlew :native-maven-plugin:inspections
 
-# Build and run all tests, complete (and very long) build
+# Authoritative full build: assemble, verify, and render documentation
 ./gradlew build
 
 # Clean all projects
 ./gradlew clean
 ```
+
+The property-free commands above use full mode, which includes every composite build. The root
+`assemble`, `test`, `check`, and `inspections` tasks delegate to the matching task in every build
+selected by the mode. The default root `build` also renders the documentation with Asciidoctor.
+
+For faster local feedback when documentation is unrelated to the change, enable core mode. Core
+mode omits the `docs` composite before it is configured, while retaining product, common, and
+build-logic builds:
+
+```bash
+./gradlew assemble -Porg.graalvm.build.core=true
+./gradlew test -Porg.graalvm.build.core=true
+./gradlew build -Porg.graalvm.build.core=true
+```
+
+Only `true` and `false` are accepted property values. Core mode is not a substitute for the
+property-free full build used for pull-request, release, or publication validation.
 
 ## CI Checks
 

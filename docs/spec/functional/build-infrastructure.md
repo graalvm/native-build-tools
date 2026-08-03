@@ -10,7 +10,8 @@ pull request gates in [§AR-repository-ci](../architecture/ci.md#ar-repository-c
 
 | Maintainer need | Task or component | Output or effect |
 | --- | --- | --- |
-| Validate included builds | `test`, `check`, `inspections` | delegated verification across product/common/docs builds |
+| Assemble included builds | `assemble` | delegated assembly across builds in the selected root mode |
+| Validate included builds | `build`, `test`, `check`, `inspections` | delegated lifecycle work across builds in the selected root mode |
 | Inspect publishable artifacts | `showPublications` | Maven coordinates printed from publishable modules |
 | Publish locally for tests | `publishAllPublicationsToCommonRepository` | repository under `build/common-repo` |
 | Prepare release archive | `releaseZip` | ZIP of common repository publication output |
@@ -27,12 +28,23 @@ internal convention plugins. Root and build-logic tasks may assemble, test, publ
 prepare generated artifacts for the repository's modules. Aggregation tasks may coordinate
 cross-module maintenance work, but product behavior must still live in product or common modules.
 
-### 1.1 Verification aggregators
+Root orchestration has two modes. Full mode is the default when
+`org.graalvm.build.core` is absent or `false`; it includes every repository composite, including
+documentation, and is the authoritative path for pull-request, release, and publication
+validation. Core mode is selected only by `org.graalvm.build.core=true`; it includes product,
+common, and build-logic composites while omitting the documentation composite before that build is
+configured. Any other property value must fail settings evaluation rather than silently weakening
+validation. Core mode is a local-feedback path that avoids unnecessary documentation configuration
+and dependency resolution in support of [§GOAL-fast-feedback](../goals.md#goal-fast-feedback-native-build-workflows-provide-feedback-as-fast-as-practical).
 
-The root `test`, `check`, and `inspections` tasks are maintainer-facing shortcuts over the
-included builds. They must delegate to the matching task in each included build so a maintainer can
-run one root command when validating repository-wide changes. They are not product API, and their
-task graph may change when included builds are added or removed.
+### 1.1 Lifecycle aggregators
+
+The root `assemble`, `test`, `check`, and `inspections` tasks are maintainer-facing shortcuts over
+the builds included by the selected root mode. They must delegate to the matching task in each
+included build so a maintainer can run one root command when building or validating repository-wide
+changes. The root `build` task combines the selected mode's assembly and verification lifecycle;
+in full mode it must additionally complete documentation rendering. These tasks are not product
+API, and their task graph may change when included builds are added or removed.
 
 ### 1.2 Publication and release aggregators
 
@@ -85,6 +97,12 @@ skipped tests or replaying routine test streams. Detailed test events and captur
 remain available through Gradle's normal diagnostic levels and generated test reports, refining
 the concise-output goal in [§GOAL-concise-actionable-output](../goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
 
+Root orchestration must resolve the required Java 17 compilation toolchain before delegating build
+lifecycle work to included builds. If no matching installation is discoverable, it must fail with a
+concise repository prerequisite diagnostic that identifies Java 17 and points maintainers to Gradle
+toolchain discovery configuration. This check must use Gradle's toolchain service and must not
+configure automatic JDK provisioning or replace the underlying resolution cause.
+
 Convention plugins may add tasks and configurations to modules that apply them. Those additions
 are maintainer-facing build behavior, not runtime behavior of the Native Build Tools plugins.
 
@@ -129,6 +147,12 @@ Documentation build logic must resolve Javadoc artifacts, expand them into the g
 documentation tree, run AsciiDoc conversion, and publish rendered documentation to the configured
 documentation branch. Release documentation should publish under the release version and refresh
 the `latest` link; snapshot documentation must not replace the latest release pointer.
+
+The documentation build's standard `build` lifecycle must run AsciiDoc conversion. Consequently,
+the default full root `build` must render documentation, while core mode must neither configure the
+documentation composite nor execute its rendering tasks. This lifecycle distinction does not alter
+the Java 17 repository build floor or the ability to launch the checked-in wrapper with a supported
+newer JDK as required by [§REQ-support-matrix.1](../requirements.md#1-declared-support).
 
 ## 4. Continuous integration
 

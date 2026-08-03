@@ -48,7 +48,16 @@ repositories {
     gradlePluginPortal()
 }
 
+// Test infrastructure for documentation lifecycle rendering. §FS-build-infrastructure.3.1
 dependencies {
     implementation("org.asciidoctor.jvm.convert:org.asciidoctor.jvm.convert.gradle.plugin:4.0.5")
     implementation("org.ajoberstar:gradle-git-publish:3.0.0")
+    testImplementation(gradleTestKit())
+    testImplementation(platform("org.junit:junit-bom:5.13.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -39,23 +39,46 @@
  * SOFTWARE.
  */
 
-plugins {
-    `kotlin-dsl`
-}
+package org.graalvm.build
 
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-}
+import org.gradle.testkit.runner.GradleRunner
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.exists
+import kotlin.io.path.writeText
 
-// Test infrastructure for the selected root build mode and lifecycle aggregation. §FS-build-infrastructure.1.1
-dependencies {
-    testImplementation(gradleTestKit())
-    testImplementation(platform(libs.test.junit.bom))
-    testImplementation(libs.test.junit.jupiter.core)
-    testRuntimeOnly(libs.test.junit.platform.launcher)
-}
+// Documentation lifecycle rendering is specified by §FS-build-infrastructure.3.1.
+class DocumentationLifecycleTest {
+    @TempDir
+    lateinit var testDirectory: Path
 
-tasks.test {
-    useJUnitPlatform()
+    @Test
+    fun `build renders asciidoc documentation`() {
+        testDirectory.resolve("settings.gradle.kts").writeText("rootProject.name = \"documentation-fixture\"")
+        testDirectory.resolve("build.gradle.kts").writeText(
+            """
+            plugins {
+                id("org.graalvm.build.documentation")
+            }
+
+            repositories {
+                mavenCentral()
+            }
+            """.trimIndent()
+        )
+        testDirectory.resolve("src/docs/asciidoc").createDirectories()
+        testDirectory.resolve("src/docs/asciidoc/index.adoc").writeText("= Documentation lifecycle")
+
+        val result = GradleRunner.create()
+            .withProjectDir(testDirectory.toFile())
+            .withPluginClasspath()
+            .withArguments("build", "--stacktrace")
+            .build()
+
+        assertTrue(result.output.contains(":asciidoctor"))
+        assertTrue(testDirectory.resolve("build/docs/asciidoc/index.html").exists())
+    }
 }
