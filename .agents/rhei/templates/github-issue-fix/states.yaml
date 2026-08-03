@@ -40,7 +40,8 @@
 #                      not block publication when focused validation passed.
 #   review-dispatch -> validate-fix when ready but required review passes remain
 #   review-dispatch -> address-review when not ready and repair attempts remain
-#   review-dispatch -> record-blocked-publication when not ready and repair attempts are exhausted
+#   review-dispatch -> record-blocked-publication only after the configured final review cycle
+#   The shared review-cycle budget and its repair capacity implement §FS-rhei-github-issue-fix.1.
 #
 # Per-task paths:
 #   issue-intake: issue-intake -> completed
@@ -598,7 +599,7 @@ states:
   validate-fix:
     description: Run grund and repository validation for the issue fix.
     target: "codex[yolo]:openai:gpt-5.6-sol"
-    visits: 3
+    visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -708,7 +709,7 @@ states:
   requirements-review:
     description: Review whether the implementation satisfies the GitHub issue requirements.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: 3
+    visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -750,7 +751,7 @@ states:
   spec-review:
     description: Review goals, non-goals, grund citations, and spec compatibility.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: 3
+    visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -801,7 +802,7 @@ states:
   implementation-review:
     description: Review code quality, scope, maintainability, and edge cases.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: 3
+    visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -848,7 +849,7 @@ states:
   validation-review:
     description: Review validation coverage, command choice, failures, and CI risk.
     target: "codex[yolo]:openai:gpt-5.6-terra"
-    visits: 3
+    visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -898,7 +899,7 @@ states:
   aggregate-review:
     description: Combine focused reviews into one PR-readiness decision for this cycle.
     target: "codex[yolo]:openai:gpt-5.6-sol"
-    visits: 3
+    visits: {{review_cycles}}
     inputs:
       - name: review-brief
         path: runtime/github-issue-fix/{task_id}/review-brief.md
@@ -979,7 +980,7 @@ states:
 
   review-dispatch:
     description: Deterministically route the aggregate review verdict to publication, repair, or handoff.
-    visits: 3
+    visits: {{review_cycles}}
     program:
       command:
         - bash
@@ -1002,7 +1003,7 @@ states:
   address-review:
     description: Address blocking findings from the latest focused review cycle.
     target: "codex[yolo]:openai:gpt-5.6-sol"
-    visits: 2
+    visits: {{review_cycles - 1}}
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -1349,13 +1350,13 @@ transitions:
   - from: review-dispatch
     to: address-review
     exit_code: 1
-    condition: visitCount <= 2
+    condition: visitCount < {{review_cycles}}
     description: The aggregate review is not ready and fix attempts remain.
 
   - from: review-dispatch
     to: record-blocked-publication
     exit_code: 1
-    condition: visitCount > 2
+    condition: visitCount >= {{review_cycles}}
     description: The aggregate review is not ready and fix attempts are exhausted; record blocked publication.
 
   - from: review-dispatch

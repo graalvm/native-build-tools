@@ -25,6 +25,7 @@ operational setting remains overridable.
 | `publication_mode` | string | `ready` | `no-pr`, `draft`, or `ready`. |
 | `rhei_actor` | string | `auto` | Proposal-comment owner; `auto` discovers the active `gh` account. |
 | `proposal_attempts` | number | `3` | Total proposal attempts, including the initial proposal. |
+| `review_cycles` | number | `4` | Maximum focused review cycles; all but the final cycle may route blockers through repair. |
 | `pr_push_remote` | string | `origin` | Writable remote used to push the issue branch. |
 | `pr_head_owner` | string | `graalvm` | GitHub owner used for the PR head. |
 | `pr_labels` | array<string> | `rhei` | Existing labels to apply to the PR. |
@@ -64,7 +65,9 @@ The complete state diagram and transition commentary are at the top of
 4. Implementation follows NBT's spec-first and grounding rules, then runs
    focused validation discovered from the applicable repository instructions.
 5. Separate requirements, spec, implementation, and validation reviews feed an
-   aggregate publication-readiness decision.
+   aggregate publication-readiness decision. The shared review-cycle limit
+   defaults to four, allowing up to three repair and re-review passes before a
+   still-blocked result is recorded locally.
 6. Ready work is pushed to the configured remote and opened or updated according
    to the publication mode. Blocked or underspecified work produces a local
    handoff instead of speculative changes.

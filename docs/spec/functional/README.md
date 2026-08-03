@@ -17,3 +17,9 @@ Build Tools must do, while architecture specs explain where that behavior is imp
 | [build-infrastructure.md](build-infrastructure.md) | Build, documentation, release, and generated artifact behavior ([§FS-build-infrastructure](build-infrastructure.md#fs-build-infrastructure-build-documentation-and-release-infrastructure)). |
 
 Build-tool-specific behavior lives in the Gradle and Maven plugin functional specs.
+
+## Repository workflows
+
+| File | Holds |
+| --- | --- |
+| [rhei-github-issue-fix.md](rhei-github-issue-fix.md) | Bounded focused review and repair behavior for the repository-local issue workflow ([§FS-rhei-github-issue-fix](rhei-github-issue-fix.md#fs-rhei-github-issue-fix-rhei-github-issue-fix-workflow)). |
