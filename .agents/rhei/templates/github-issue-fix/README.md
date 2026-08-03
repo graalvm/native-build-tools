@@ -25,6 +25,7 @@ operational setting remains overridable.
 | `publication_mode` | string | `ready` | `no-pr`, `draft`, or `ready`. |
 | `rhei_actor` | string | `auto` | Proposal-comment owner; `auto` discovers the active `gh` account. |
 | `proposal_attempts` | number | `3` | Total proposal attempts, including the initial proposal. |
+| `review_cycles` | number | `3` | Maximum focused review cycles; all but the final cycle may route blockers through repair. |
 | `pr_push_remote` | string | `origin` | Writable remote used to push the issue branch. |
 | `pr_head_owner` | string | `graalvm` | GitHub owner used for the PR head. |
 | `pr_labels` | array<string> | `rhei` | Existing labels to apply to the PR. |
@@ -105,6 +106,7 @@ Override any default when needed:
 ```sh
 rhei instantiate github-issue-fix 1234 \
   --set publication_mode=draft \
+  --set review_cycles=4 \
   --set pr_head_owner=my-fork \
   --execute
 ```

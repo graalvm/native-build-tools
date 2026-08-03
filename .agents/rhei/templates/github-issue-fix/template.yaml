@@ -1,5 +1,5 @@
 name: github-issue-fix
-version: 0.2.0
+version: 0.3.0
 description: Fix one Native Build Tools GitHub issue through approval, implementation, validation, focused review, and configurable PR publication.
 
 inputs:
@@ -57,6 +57,12 @@ inputs:
     type: number
     default: 3
     validate: "[1-9][0-9]*"
+
+  - name: review_cycles
+    description: Maximum focused review cycles; every cycle before the last may be followed by one repair attempt.
+    type: number
+    default: 3
+    validate: "[2-9][0-9]*"
 
   - name: pr_push_remote
     description: Writable git remote used to push the issue branch.
