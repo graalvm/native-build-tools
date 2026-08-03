@@ -36,7 +36,10 @@ directories, or resource settings separately on each task.
 
 Named Native Image layers are first-class entries in a `layers` container beside `binaries`.
 Each layer owns its contents and deterministic `.nil` output. Binaries consume one or more layer
-objects through typed, lazy references:
+objects through typed, lazy references. Layers may consume earlier layers through the same API,
+allowing a build to express a multi-level Native Image layer stack. `usesLayer('<name>')` is the
+order-independent Groovy DSL form and resolves the named layer lazily, so consumers may be
+declared before their producers:
 
 ```groovy
 graalvmNative {
@@ -47,26 +50,35 @@ graalvmNative {
                 fromConfiguration(configurations.runtimeClasspath)
             }
         }
+        applicationFramework {
+            usesLayer('base')
+            contents {
+                packages('com.example.framework')
+            }
+        }
     }
     binaries {
         main {
-            useLayer(graalvmNative.layers.base)
+            usesLayer('base')
         }
     }
 }
 ```
 
 Inside a binary closure, the deprecated binary-scoped `layers` property shadows the extension
-container. Groovy builds must therefore use the qualified `graalvmNative.layers.<name>` path.
+container. Groovy builds may use `usesLayer('<name>')` or the qualified
+`graalvmNative.layers.<name>` path.
 The singular `layer` property replaces its previous assignment, while repeated `useLayer(...)`
 calls add distinct layers. Duplicate layer selections fail before Native Image is invoked.
+The same duplicate and name validation applies when a named layer consumes another named layer.
 
 `fromConfiguration(...)` and `all` include resolved external and project dependencies. Dependency
 selectors also accept Gradle providers, including version-catalog accessors.
 
-The previous binary-scoped `createLayer` and string-based `useLayer` surface remains as a
-deprecated compatibility adapter. Only legacy layer declarations retain the `lib` binary-name
-rule. [§root/REQ-backwards-compatibility.1](../../../docs/spec/requirements.md#1-deprecation-over-removal).
+The previous binary-scoped `createLayer`, string-based `useLayer`, and
+`externalDependenciesOf(...)` surfaces remain as deprecated compatibility adapters with their
+original naming and external-module-only semantics. Only legacy layer declarations retain the
+`lib` binary-name rule. [§root/REQ-backwards-compatibility.1](../../../docs/spec/requirements.md#1-deprecation-over-removal).
 
 ## 3. Default binaries
 
@@ -88,6 +100,8 @@ application {
 
 The plugin must also create a `test` binary connected to the default `test` task and `test` source
 set so `nativeTest` can build and run native JUnit tests without a separate binary declaration.
+Test and shared-library binaries use the same layer-consumption model as executable binaries;
+layer selection is explicit on each binary and is not inherited from `binaries.main`.
 
 ## 4. Custom binaries
 

@@ -50,8 +50,10 @@ import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.LayerOptions;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
@@ -96,6 +98,8 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private final String name;
     private final transient TaskContainer tasks;
     private final ObjectFactory objects;
+    private final ProviderFactory providers;
+    private final NamedDomainObjectContainer<NativeImageLayer> namedLayers;
 
     @Override
     @Internal
@@ -262,6 +266,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
                                   ProviderFactory providers,
                                   JavaToolchainService toolchains,
                                   TaskContainer tasks,
+                                  NamedDomainObjectContainer<NativeImageLayer> namedLayers,
                                   String defaultImageName) {
         this.name = name;
         getDebug().convention(false);
@@ -286,6 +291,8 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         this.layers = objectFactory.domainObjectSet(LayerOptions.class);
         this.tasks = tasks;
         this.objects = objectFactory;
+        this.providers = providers;
+        this.namedLayers = namedLayers;
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
@@ -459,6 +466,15 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     }
 
     @Override
+    public void usesLayer(String name) {
+        // Resolve the container only when Gradle queries the binary, allowing layers to be declared later. §FS-plugin-model.2.
+        NativeImageLayerArguments.validateLayerName(name);
+        Provider<NativeImageLayer> layer = providers.provider(() -> namedLayers.getByName(name));
+        addLayerName(name);
+        getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
+    }
+
+    @Override
     public NativeImageLayer getLayer() {
         return assignedLayer;
     }
@@ -488,6 +504,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
             throw new IllegalArgumentException("Binary name for a layer must start with 'lib'");
         }
         layer.getLayerName().convention(binaryName);
+        getImageName().set(binaryName);
         layer.getAll().convention(false);
         spec.execute(layer);
         getLayerCreate().set(layer);

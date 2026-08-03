@@ -43,15 +43,20 @@ package org.graalvm.buildtools.gradle.dsl;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 
 import javax.inject.Inject;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * First-class named Native Image layer. §FS-plugin-model.2.
@@ -59,11 +64,16 @@ import javax.inject.Inject;
 public abstract class NativeImageLayer implements Named {
     private final String name;
     private final LayerContents contents;
+    private final Project project;
+    private final ConfigurableFileCollection layerFiles;
+    private final Set<String> configuredLayerNames = new HashSet<>();
 
     @Inject
     public NativeImageLayer(String name, ObjectFactory objects, Project project) {
         this.name = name;
         this.contents = objects.newInstance(LayerContents.class, project);
+        this.project = project;
+        this.layerFiles = project.files();
     }
 
     @Override
@@ -89,6 +99,30 @@ public abstract class NativeImageLayer implements Named {
 
     public void buildArgs(String... arguments) {
         getBuildArgs().addAll(arguments);
+    }
+
+    /**
+     * Adds a lazily resolved named producer layer to this layer. §FS-plugin-model.2.
+     */
+    public void usesLayer(String name) {
+        NativeImageLayerArguments.validateLayerName(name);
+        if (!configuredLayerNames.add(name)) {
+            throw new IllegalArgumentException("Layer '" + name + "' is selected more than once");
+        }
+        getUseLayerNames().add(name);
+        Provider<NativeImageLayer> layer = project.provider(() -> project.getExtensions()
+            .getByType(GraalVMExtension.class)
+            .getLayers()
+            .getByName(name));
+        layerFiles.from(layer.flatMap(NativeImageLayer::getOutputFile));
+    }
+
+    @Internal
+    public abstract ListProperty<String> getUseLayerNames();
+
+    @Internal
+    public ConfigurableFileCollection getUseLayerFiles() {
+        return layerFiles;
     }
 
     @Internal

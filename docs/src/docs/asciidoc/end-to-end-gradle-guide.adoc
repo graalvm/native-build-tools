@@ -181,13 +181,16 @@ graalvmNative {
         }
     }
     binaries.main {
-        layer = graalvmNative.layers.dependencies
+        usesLayer('dependencies')
     }
 }
 ----
 
 Run `./gradlew nativeRun`. Gradle first executes `nativeDependenciesLayer`, then consumes the
 generated _build/native/layers/dependencies/dependencies.nil_ while building the application.
+Repeat layer-sensitive binary build arguments on the layer itself; layers do not inherit
+`binaries.all { buildArgs(...) }` because one layer can be consumed by differently configured
+binaries.
 See <<gradle-plugin.adoc#layered-images,Layered Native Images>> for selector and compatibility
 details.
 

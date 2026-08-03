@@ -80,9 +80,29 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
     }
 
     @Override
+    protected void populateClasspath() {
+        // Layer creation always sets an explicit selection, including an intentionally empty modules-only classpath. §FS-native-builds.3.
+        for (String entry : classpath) {
+            imageClasspath.add(Path.of(entry).toAbsolutePath());
+        }
+        imageClasspath.removeIf(entry -> !entry.toFile().exists());
+    }
+
+    @Override
     protected void executeInternal() throws MojoExecutionException {
         if (layer == null || layer.getName() == null || layer.getName().isBlank()) {
             throw new MojoExecutionException("The layer-create goal requires a non-blank layer name");
+        }
+        try {
+            NativeImageLayerArguments.validateLayerName(layer.getName());
+        } catch (IllegalArgumentException ex) {
+            throw new MojoExecutionException(ex.getMessage(), ex);
+        }
+        String includeDependencies = layer.getIncludeDependencies();
+        if (includeDependencies != null && !includeDependencies.isBlank()
+                && !"all".equalsIgnoreCase(includeDependencies)) {
+            throw new MojoExecutionException(
+                "Layer includeDependencies accepts only 'all', but was '" + includeDependencies + "'");
         }
         outputDirectory = new File(project.getBuild().getDirectory(), "native/layers/" + layer.getName());
         // Native Image requires the shared library inside a layer bundle to use a library name;
@@ -124,7 +144,7 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
         }
     }
 
-    private List<Path> resolveSelectedPaths() throws MojoExecutionException {
+    List<Path> resolveSelectedPaths() throws MojoExecutionException {
         Set<Path> paths = new LinkedHashSet<>();
         for (File path : layer.getPaths()) {
             paths.add(path.toPath().toAbsolutePath());

@@ -77,16 +77,60 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         if (unsupportedLayerConsumption) {
             buildFailed
             outputContains "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption"
-            outputContains "Upgrade Native Image to a newer release or remove the useLayers configuration"
+            outputContains "Upgrade Native Image, remove the useLayers configuration"
             outputDoesNotContain "LayeredDispatchTableFeature"
         } else {
             assert result.exitCode == 0
             def application = file("application/target/application")
             assert application.isFile()
             assert outputContains("-H:LayerUse=")
-            def execution = [application.absolutePath].execute()
+            def environment = System.getenv().collect { key, value -> "${key}=${value}" }
+            def layerDirectory = file("base-layer/target/native/layers/base").absolutePath
+            def inheritedLibraryPath = System.getenv("LD_LIBRARY_PATH")
+            environment << "LD_LIBRARY_PATH=${inheritedLibraryPath ? inheritedLibraryPath + File.pathSeparator : ''}${layerDirectory}"
+            def execution = [application.absolutePath].execute(environment, application.parentFile)
             assert execution.waitFor() == 0
             assert execution.in.text.contains("Hello, layered Maven!")
         }
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds a modules-only layer without leaking the project classpath"() {
+        given:
+        withSample("layered-maven-application")
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text
+            .replace('''    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.17</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+''', '')
+            .replace('''                                <packages>
+                                    <package>org.slf4j</package>
+                                </packages>
+                                <dependencies>
+                                    <dependency>
+                                        <artifact>org.slf4j:slf4j-api</artifact>
+                                    </dependency>
+                                </dependencies>
+''', '')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', '-pl', 'base-layer', 'package'
+
+        then:
+        buildSucceeded
+        file("base-layer/target/native/layers/base/base.nil").isFile()
+        def invocation = result.stdOut.readLines().find {
+            it.contains("Executing:") && it.contains("-H:LayerCreate=base.nil,module=java.base")
+        }
+        invocation != null
+        !invocation.contains(" -cp ")
     }
 }

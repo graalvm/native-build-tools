@@ -134,6 +134,71 @@ class NativeImagePluginTest extends Specification {
         extension.binaries.main.layerFiles.files == [second.outputFile.get().asFile] as Set
     }
 
+    def "name based layer selection is independent of declaration order"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        extension.binaries.main.usesLayer("dependencies")
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+
+        then:
+        extension.binaries.main.layerNames.get() == ["dependencies"]
+        extension.binaries.main.layerFiles.files == [layer.outputFile.get().asFile] as Set
+    }
+
+    def "named layers can consume other named layers independent of declaration order"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        def framework = extension.layers.create("framework")
+        framework.usesLayer("base")
+        framework.contents.packages("com.example.framework")
+        def base = extension.layers.create("base")
+        base.contents.modules("java.base")
+
+        then:
+        framework.useLayerNames.get() == ["base"]
+        framework.useLayerFiles.files == [base.outputFile.get().asFile] as Set
+
+        and:
+        def frameworkTask = project.tasks.named("nativeFrameworkLayer").get()
+        frameworkTask.options.get().layerNames.get() == ["base"]
+        frameworkTask.options.get().layerFiles.files == [base.outputFile.get().asFile] as Set
+    }
+
+    def "duplicate layer chaining fails during configuration"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def framework = extension.layers.create("framework")
+
+        when:
+        framework.usesLayer("base")
+        framework.usesLayer("base")
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("selected more than once")
+    }
+
+    def "invalid layer names fail when declared"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        extension.layers.create("my,base layer")
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("letters, digits, dots, underscores, or hyphens")
+    }
+
     def "provider layer selections preserve names for duplicate validation"() {
         given:
         project.plugins.apply("java")

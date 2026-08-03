@@ -69,7 +69,7 @@ graalvmNative {
             )
         }
         named("main") {
-            layer = graalvmNative.layers.dependencies
+            usesLayer('dependencies')
         }
     }
 }

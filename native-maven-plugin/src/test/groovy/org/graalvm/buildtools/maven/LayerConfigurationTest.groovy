@@ -20,6 +20,7 @@ import org.apache.maven.artifact.DefaultArtifact
 import org.apache.maven.artifact.handler.DefaultArtifactHandler
 import org.graalvm.buildtools.maven.config.LayerConfiguration
 import org.graalvm.buildtools.maven.config.LayerDependencyConfiguration
+import org.apache.maven.plugin.MojoExecutionException
 import spock.lang.Specification
 
 // Verifies Maven XML mapping for layer selection. §FS-config-model.7.
@@ -31,6 +32,58 @@ class LayerConfigurationTest extends Specification {
 
         expect:
         configuration.all
+    }
+
+    def "module only layer preserves an explicitly empty classpath"() {
+        given:
+        def mojo = new TestLayerCreateMojo()
+        mojo.classpath = []
+
+        when:
+        mojo.populateClasspath()
+
+        then:
+        mojo.imageClasspath.empty
+    }
+
+    def "explicit Maven layer paths are resolved without dependency matching"() {
+        given:
+        def selectedFile = File.createTempFile("native-layer-path", ".jar")
+        def mojo = new TestLayerCreateMojo()
+        setLayer(mojo, new LayerConfiguration(paths: [selectedFile]))
+
+        expect:
+        mojo.resolveSelectedPaths() == [selectedFile.toPath().toAbsolutePath()]
+
+        cleanup:
+        selectedFile.delete()
+    }
+
+    def "invalid includeDependencies value fails before building"() {
+        given:
+        def mojo = new TestLayerCreateMojo()
+        def configuration = new LayerConfiguration(name: "base", includeDependencies: "runtime")
+        setLayer(mojo, configuration)
+
+        when:
+        mojo.runExecute()
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message.contains("accepts only 'all'")
+    }
+
+    def "invalid Maven layer name fails before building"() {
+        given:
+        def mojo = new TestLayerCreateMojo()
+        setLayer(mojo, new LayerConfiguration(name: "my,base layer"))
+
+        when:
+        mojo.runExecute()
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message.contains("letters, digits, dots, underscores, or hyphens")
     }
 
     def "dependency selection is transitive by default and configurable"() {
@@ -72,5 +125,22 @@ class LayerConfigurationTest extends Specification {
         expect:
         LayerCreateMojo.matches(artifact, ["com.acme", "extension", "2.0"] as String[], true)
         !LayerCreateMojo.matches(artifact, ["com.acme", "extension", "1.0"] as String[], true)
+    }
+
+    private static class TestLayerCreateMojo extends LayerCreateMojo {
+        void runExecute() throws MojoExecutionException {
+            super.executeInternal()
+        }
+
+        @Override
+        protected void addInferredDependenciesToClasspath() {
+            throw new AssertionError("explicit classpath must not add inferred dependencies")
+        }
+    }
+
+    private static void setLayer(LayerCreateMojo mojo, LayerConfiguration configuration) {
+        def field = LayerCreateMojo.getDeclaredField("layer")
+        field.accessible = true
+        field.set(mojo, configuration)
     }
 }

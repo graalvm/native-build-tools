@@ -327,10 +327,12 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
         }
         if (!options.getLayerFiles().isEmpty()
-                && NativeImageLayerArguments.isLayerConsumptionUnsupported(versionString)) {
+                && NativeImageLayerArguments.isLayerConsumptionUnsupported(versionString)
+                && !Boolean.getBoolean("org.graalvm.buildtools.layers.allowUnsupportedConsumption")) {
             throw new GradleException(
                 "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption. "
-                    + "Upgrade Native Image to a newer release or remove the configured layers.");
+                    + "Upgrade Native Image, remove the configured layers, or set "
+                    + "-Dorg.graalvm.buildtools.layers.allowUnsupportedConsumption=true to proceed at your own risk.");
         }
         int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
         boolean fallbackRemoved = NativeImageUtils.isGraalVMVersionAtLeast(versionString, 25, 1);

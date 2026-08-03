@@ -335,6 +335,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         producerArgs.any {
             it.startsWith("${NativeImageFlags.LAYER_CREATE}=liblegacy.nil") && it.contains("module=java.base")
         }
+        producerArgs[producerArgs.indexOf("-o") + 1].endsWith(File.separator + "liblegacy")
         consumerArgs.contains("${NativeImageFlags.LAYER_USE}=${layerFile.absolutePath}".toString())
     }
 

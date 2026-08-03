@@ -62,9 +62,6 @@ public final class ArtifactSelection {
         if (this.paths.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Layer paths must not contain null values");
         }
-        if (all && (!this.modules.isEmpty() || !this.packages.isEmpty() || !this.paths.isEmpty())) {
-            throw new IllegalArgumentException("The 'all' layer selector cannot be combined with modules, packages, or paths");
-        }
     }
 
     public static ArtifactSelection empty() {

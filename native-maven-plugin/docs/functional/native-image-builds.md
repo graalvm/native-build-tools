@@ -30,9 +30,18 @@ produce a warning. Missing selections must tell users to declare the correspondi
 dependency, and malformed coordinates must fail with a normal Maven execution error. Layer
 creation resolves Maven artifacts to paths and delegates selector serialization to
 [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
+An explicitly configured empty classpath remains empty for module-only layer creation and must not
+fall back to the application or dependency classpath. Layered executables require their produced
+shared libraries to be available through the platform library search path when executed or
+deployed.
+Layer consumption applies consistently to compile, shared-library, and native-test goals when
+`useLayers` is configured for that execution. Plugin-wide `useLayers` therefore also applies to
+`native:test`; users who want different test behavior must scope the configuration to executions.
+The `layer-create` goal may itself consume configured layers, enabling multi-level layer stacks.
 Native Image 25.0.3 and 25.0.4 are excluded from layer consumption because those releases can fail
 internally after loading a layer. The plugin must reject those versions before launching Native
-Image and tell users to upgrade Native Image or remove `useLayers`.
+Image and tell users to upgrade Native Image, remove `useLayers`, or explicitly opt into the
+documented unsupported-version override.
 
 ## 4. Generated resource configuration
 
