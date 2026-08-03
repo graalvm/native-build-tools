@@ -52,8 +52,13 @@ import java.util.regex.Pattern;
  * Shared rendering of Native Image layer arguments. §FS-common-libraries.1.
  */
 public final class NativeImageLayerArguments {
+    private static final Pattern GRAALVM_RUNTIME_VERSION = Pattern.compile(
+        "(?m)^GraalVM Runtime Environment .*\\s(\\d+\\.\\d+\\.\\d+(?:[.+-][^\\s]*)?)\\s+\\(build");
+    private static final Pattern NATIVE_IMAGE_VERSION = Pattern.compile(
+        "(?m)^native-image\\s+(\\d+\\.\\d+\\.\\d+(?:[.+-][^\\s]*)?)(?:\\s|$)");
     private static final Pattern UNSUPPORTED_LAYER_CONSUMPTION_VERSION =
-        Pattern.compile("(?m)^native-image\\s+25\\.0\\.[34](?:\\s|$)");
+        Pattern.compile("25\\.0\\.[34](?:[.+-].*)?");
+    private static final Pattern VALID_LAYER_NAME = Pattern.compile("[A-Za-z0-9._-]+");
 
     private NativeImageLayerArguments() {
     }
@@ -78,14 +83,23 @@ public final class NativeImageLayerArguments {
     }
 
     public static boolean isLayerConsumptionUnsupported(String versionInformation) {
-        return UNSUPPORTED_LAYER_CONSUMPTION_VERSION
-            .matcher(Objects.requireNonNull(versionInformation, "versionInformation"))
-            .find();
+        String information = Objects.requireNonNull(versionInformation, "versionInformation");
+        var runtimeVersion = GRAALVM_RUNTIME_VERSION.matcher(information);
+        if (runtimeVersion.find()) {
+            return UNSUPPORTED_LAYER_CONSUMPTION_VERSION.matcher(runtimeVersion.group(1)).matches();
+        }
+        var nativeImageVersion = NATIVE_IMAGE_VERSION.matcher(information);
+        return nativeImageVersion.find()
+            && UNSUPPORTED_LAYER_CONSUMPTION_VERSION.matcher(nativeImageVersion.group(1)).matches();
     }
 
-    private static void validateLayerName(String layerName) {
+    public static void validateLayerName(String layerName) {
         if (layerName == null || layerName.isBlank()) {
             throw new IllegalArgumentException("Layer name must not be blank");
+        }
+        if (!VALID_LAYER_NAME.matcher(layerName).matches()) {
+            throw new IllegalArgumentException(
+                "Layer name '" + layerName + "' must contain only letters, digits, dots, underscores, or hyphens");
         }
     }
 }

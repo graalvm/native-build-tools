@@ -198,6 +198,94 @@ public class Application {
         }
     }
 
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds a layer with a package selector"() {
+        given:
+        withSample("layered-java-application")
+        buildFile.text = buildFile.text.replace('''                modules("java.base")
+                fromConfiguration(configurations.runtimeClasspath)
+''', '''                packages("org.slf4j")
+''')
+        buildFile << '''
+            graalvmNative {
+                metadataRepository.enabled = false
+                layers.dependencies.verbose = true
+            }
+        '''.stripIndent()
+
+        when:
+        run 'nativeDependenciesLayer'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer'
+        }
+        outputContains "-H:LayerCreate=dependencies.nil,package=org.slf4j"
+        file("build/native/layers/dependencies/dependencies.nil").isFile()
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({
+        os.windows || os.macOs || NativeImageLayerArguments.isLayerConsumptionUnsupported(
+                GraalVMSupport.getGraalVMHomeVersionString())
+    })
+    def "native test binaries can consume named layers"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            graalvmNative {
+                metadataRepository.enabled = false
+                layers.dependencies.contents.modules('java.sql')
+                binaries.test {
+                    usesLayer('dependencies')
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'nativeTestCompile'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeTestCompile'
+        }
+        outputContains "- '-H:LayerUse' (origin(s): command line)"
+        getExecutableFile("build/native/nativeTestCompile/layered-java-application-tests").exists()
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({
+        os.windows || os.macOs || NativeImageLayerArguments.isLayerConsumptionUnsupported(
+                GraalVMSupport.getGraalVMHomeVersionString())
+    })
+    def "shared library binaries can consume named layers"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            graalvmNative {
+                metadataRepository.enabled = false
+                binaries.main.sharedLibrary = true
+            }
+        '''.stripIndent()
+
+        when:
+        run 'nativeCompile'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeCompile'
+        }
+        outputContains "- '-H:LayerUse' (origin(s): command line)"
+        file("build/native/nativeCompile/layered-java-application${IS_WINDOWS ? '.dll' : IS_MAC ? '.dylib' : '.so'}").exists()
+    }
+
     @Ignore("Disable test temporarily because of a problem on GraalVM side")
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }

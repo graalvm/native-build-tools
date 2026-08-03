@@ -712,10 +712,12 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
 
     // Affected Native Image 25.0 releases can crash after loading a layer, so fail before invocation. §FS-native-builds.3.
     static void checkLayerConsumptionCompatibility(String versionInformation) throws MojoExecutionException {
-        if (NativeImageLayerArguments.isLayerConsumptionUnsupported(versionInformation)) {
+        if (NativeImageLayerArguments.isLayerConsumptionUnsupported(versionInformation)
+                && !Boolean.getBoolean("org.graalvm.buildtools.layers.allowUnsupportedConsumption")) {
             throw new MojoExecutionException(
                     "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption. "
-                    + "Upgrade Native Image to a newer release or remove the useLayers configuration.");
+                    + "Upgrade Native Image, remove the useLayers configuration, or set "
+                    + "-Dorg.graalvm.buildtools.layers.allowUnsupportedConsumption=true to proceed at your own risk.");
         }
     }
 

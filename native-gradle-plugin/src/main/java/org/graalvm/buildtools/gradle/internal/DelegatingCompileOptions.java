@@ -224,6 +224,11 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     }
 
     @Override
+    public void usesLayer(String name) {
+        options.usesLayer(name);
+    }
+
+    @Override
     public NativeImageLayer getLayer() {
         return options.getLayer();
     }

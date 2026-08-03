@@ -83,7 +83,7 @@ graalvmNative {
     }
     binaries {
         main {
-            layer = graalvmNative.layers.dependencies
+            usesLayer('dependencies')
         }
     }
 }

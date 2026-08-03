@@ -223,12 +223,12 @@ The `layer-create` goal produces a `.nil` Native Image layer and attaches it to 
 A consuming module declares that artifact with `<type>nil</type>` and selects it through
 `<useLayers>`. The `nil` dependency is resolved separately and never enters the Java classpath.
 
-[IMPORTANT]
+[TIP]
 ====
-Configure the Native Build Tools plugin with `<extensions>true</extensions>` in the parent or every
-module that resolves `nil` dependencies. Without it, Maven does not load the `nil` artifact handler;
-the dependency may be treated like a normal Java artifact or fail to resolve with an unexpected
-extension.
+Configure the Native Build Tools plugin with `<extensions>true</extensions>` in the parent so Maven
+registers the `nil` artifact handler early and consistently across reactor and repository builds.
+Some Maven versions can preserve an explicitly declared `<type>nil</type>` without extension loading,
+but the extension remains the supported, predictable setup.
 ====
 
 A producer execution can select modules, packages, explicit paths, dependency coordinates, or all
@@ -282,7 +282,19 @@ The consumer declares and selects the attached artifact:
 Coordinates use `groupId:artifactId` or `groupId:artifactId:version`. The plugin reports malformed,
 missing, ambiguous, and duplicate selections before invoking Native Image, and warns when a
 declared `nil` dependency is not selected. Native Image 25.0.3 and 25.0.4 cannot consume layers
-reliably, so upgrade to 25.0.5 or later before using `<useLayers>`.
+reliably, so upgrade to 25.0.5 or later before using `<useLayers>`. To deliberately test an affected
+release, pass `-Dorg.graalvm.buildtools.layers.allowUnsupportedConsumption=true` at your own risk.
+Layer names may contain letters, digits, dots, underscores, and hyphens. The legacy
+`<includeDependencies>` option accepts only `all`; other values fail fast.
+
+`<useLayers>` applies to every goal that receives that configuration, including `native:test` and
+shared-library builds. Put it in an execution-specific `<configuration>` when tests should use a
+different layer stack from the main image. A `layer-create` execution may also configure
+`<useLayers>` to build one named layer on top of another.
+
+The application executable dynamically loads the shared libraries contained in its producer
+layers. Ship those libraries with the application and add their directories to `LD_LIBRARY_PATH`
+on Linux, `DYLD_LIBRARY_PATH` on macOS, or `PATH` on Windows before launching the executable.
 
 [NOTE]
 ====

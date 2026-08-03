@@ -229,8 +229,8 @@ Here is an example of additional options usage:
 
 Use a multi-module build with one producer module bound to `native:layer-create` and one consumer
 module. The consumer declares the producer with `<type>nil</type>` and selects it in
-`<useLayers>`. Keep `<extensions>true</extensions>` on the Native Build Tools plugin so Maven can
-resolve the `nil` artifact type.
+`<useLayers>`. Keep `<extensions>true</extensions>` on the Native Build Tools plugin so Maven
+registers the `nil` artifact type consistently.
 
 Run the full reactor:
 
@@ -241,6 +241,9 @@ Run the full reactor:
 
 Maven creates the layer in the producer's _target/native/layers/_ directory, attaches it to the
 reactor project, resolves it outside the Java classpath, and passes it to the consumer image.
+When deploying or running the executable directly, ship the layer's shared libraries and add their
+directory to the platform library search path (`LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on
+macOS, or `PATH` on Windows).
 See <<maven-plugin.adoc#layered-images,Layered Native Images>> for complete producer and consumer
 configuration.
 

@@ -46,6 +46,7 @@ import org.graalvm.buildtools.gradle.tasks.LayerOptions;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
@@ -294,6 +295,13 @@ public interface NativeImageCompileOptions {
 
     void useLayer(Provider<? extends NativeImageLayer> layer);
 
+    /**
+     * Lazily consumes a first-class named layer, independent of declaration order. §FS-plugin-model.2.
+     *
+     * @param name named layer to consume
+     */
+    void usesLayer(String name);
+
     @Internal
     NativeImageLayer getLayer();
 
@@ -323,6 +331,45 @@ public interface NativeImageCompileOptions {
             .map(artifacts -> {
                 var files = new ArrayList<File>();
                 // not using .stream() intentionally because of https://github.com/gradle/gradle/issues/33152
+                for (var artifact : artifacts) {
+                    files.add(artifact.getFile());
+                }
+                return files;
+            });
+    }
+
+    /**
+     * Resolves only external module artifacts, preserving the pre-1.1.8 adapter semantics.
+     * §FS-plugin-model.2.
+     *
+     * @param configurationProvider configuration provider
+     * @return resolved external artifact files
+     * @deprecated use {@link #resolvedArtifactsOf(Provider)} when project artifacts should be included
+     */
+    @Deprecated
+    default Provider<List<File>> externalDependenciesOf(Provider<Configuration> configurationProvider) {
+        return configurationProvider.flatMap(this::externalDependenciesOf);
+    }
+
+    /**
+     * Resolves only external module artifacts, preserving the pre-1.1.8 adapter semantics.
+     * §FS-plugin-model.2.
+     *
+     * @param configuration configuration to resolve
+     * @return resolved external artifact files
+     * @deprecated use {@link #resolvedArtifactsOf(Configuration)} when project artifacts should be included
+     */
+    @Deprecated
+    default Provider<List<File>> externalDependenciesOf(Configuration configuration) {
+        return configuration.getIncoming()
+            .artifactView(view -> {
+                view.setLenient(false);
+                view.componentFilter(id -> id instanceof ModuleComponentIdentifier);
+            })
+            .getArtifacts()
+            .getResolvedArtifacts()
+            .map(artifacts -> {
+                var files = new ArrayList<File>();
                 for (var artifact : artifacts) {
                     files.add(artifact.getFile());
                 }

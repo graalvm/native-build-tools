@@ -80,13 +80,20 @@ class NativeImageLayerArgumentsTest {
     void validatesNamesSelectorsAndCombinations() {
         assertThrows(IllegalArgumentException.class,
             () -> NativeImageLayerArguments.renderLayerCreate(" ", ArtifactSelection.empty()));
+        IllegalArgumentException invalidName = assertThrows(IllegalArgumentException.class,
+            () -> NativeImageLayerArguments.renderLayerCreate("my,base layer",
+                new ArtifactSelection(false, List.of("java.base"), List.of(), List.of())));
+        assertTrue(invalidName.getMessage().contains("letters, digits, dots, underscores, or hyphens"));
         IllegalArgumentException empty = assertThrows(IllegalArgumentException.class,
             () -> NativeImageLayerArguments.renderLayerCreate("base", ArtifactSelection.empty()));
         assertTrue(empty.getMessage().contains("Layer 'base' has no contents"));
         assertThrows(IllegalArgumentException.class,
             () -> new ArtifactSelection(false, List.of(""), List.of(), List.of()));
-        assertThrows(IllegalArgumentException.class,
-            () -> new ArtifactSelection(true, List.of("java.base"), List.of(), List.of()));
+        assertEquals(List.of("java.base"),
+            new ArtifactSelection(true, List.of("java.base"), List.of(), List.of()).getModules());
+        assertEquals("-H:LayerCreate=base.nil,module=java.base",
+            NativeImageLayerArguments.renderLayerCreate("base",
+                new ArtifactSelection(true, List.of("java.base"), List.of(), List.of())));
     }
 
     @Test
@@ -104,6 +111,11 @@ class NativeImageLayerArgumentsTest {
             "native-image 25.0.3 2026-04-21\nGraalVM Runtime Environment Oracle GraalVM 25.0.3+9.1"));
         assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
             "native-image 25.0.4 2026-07-21"));
+        assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
+            "native-image 25.0.4.1 Mandrel-25.0.4.1-Final"));
+        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
+            "native-image 25.0.3 2026-04-21\n"
+                + "GraalVM Runtime Environment GraalVM CE 25.1.3+9.1 (build 25.0.3+9-jvmci-25.1-b19)"));
         assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
             "native-image 25.0.2 2026-01-20"));
         assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(

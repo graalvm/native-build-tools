@@ -46,7 +46,11 @@ Consuming binaries pass each produced `.nil` file with `-H:LayerUse`, depend on 
 and declare the file as an input. Complete configurations and selected dependency coordinates are
 resolved lazily through Gradle artifact APIs before translation. Resolved configurations include
 project artifacts as well as external modules. Empty layer selections, duplicate consumption, and
-Native Image 25.0.3 or 25.0.4 consumption fail with actionable errors before Native Image is invoked.
+invalid layer names fail with actionable errors before Native Image is invoked. A named layer may
+consume named layers; its task passes their `.nil` files with `-H:LayerUse`, declares them as task
+inputs, and depends on their producer tasks. Layer tasks use the same reachability-metadata
+repository and schema preflight as binary tasks. Native Image 25.0.3 or 25.0.4 consumption fails
+before invocation unless the user explicitly enables the documented unsupported-version override.
 [§REQ-gradle-model](../requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility).
 
 ## 4. Argument files
