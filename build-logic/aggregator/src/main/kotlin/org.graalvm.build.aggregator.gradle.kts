@@ -1,5 +1,8 @@
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.GradleException
 import org.gradle.api.publish.plugins.PublishingPlugin
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.kotlin.dsl.*
@@ -47,13 +50,35 @@ import java.nio.file.Files.createTempDirectory
  */
 
 plugins {
-    base
+    `java-base`
+}
+
+// Report the Java 17 prerequisite before included builds start. §FS-build-infrastructure.2.1.
+val java17Launcher = extensions.getByType<JavaToolchainService>().launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(17))
+}
+try {
+    java17Launcher.get()
+} catch (failure: Exception) {
+    val prerequisiteFailure = GradleException(
+        "A discoverable JDK 17 installation is required to build Native Build Tools. " +
+            "Configure Gradle Java toolchain discovery (for example, org.gradle.java.installations.paths) " +
+            "and retry. The JDK that launches Gradle may be newer than Java 17."
+    )
+    prerequisiteFailure.addSuppressed(failure)
+    throw prerequisiteFailure
 }
 
 // Root verification aggregators delegate to included builds. §FS-build-infrastructure.1.1.
 tasks.named("clean") {
     gradle.includedBuilds.forEach {
         dependsOn(it.task(":clean"))
+    }
+}
+
+tasks.named("assemble") {
+    gradle.includedBuilds.forEach {
+        dependsOn(it.task(":assemble"))
     }
 }
 
@@ -72,6 +97,13 @@ tasks.register("inspections") {
 tasks.named("check") {
     gradle.includedBuilds.forEach {
         dependsOn(it.task(":check"))
+    }
+}
+
+// Full-mode build renders documentation through the included docs lifecycle. §FS-build-infrastructure.1.1.
+tasks.named("build") {
+    gradle.includedBuilds.find { it.name == "docs" }?.let {
+        dependsOn(it.task(":build"))
     }
 }
 

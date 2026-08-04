@@ -94,6 +94,11 @@ tasks {
             }
         }
     }
+
+    // Standard documentation lifecycle renders the user guide. §FS-build-infrastructure.3.1.
+    named("build") {
+        dependsOn(asciidoctor)
+    }
 }
 
 afterEvaluate {

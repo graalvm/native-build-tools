@@ -46,9 +46,22 @@ pluginManagement {
 
 rootProject.name = "native-build-tools"
 
+// Root composition modes are specified by §FS-build-infrastructure.1.
+val coreBuild = providers.gradleProperty("org.graalvm.build.core").orNull?.let { value ->
+    when (value) {
+        "true" -> true
+        "false" -> false
+        else -> throw GradleException(
+            "Gradle property 'org.graalvm.build.core' must be 'true' or 'false', but was '$value'."
+        )
+    }
+} ?: false
+
 includeBuild("common/junit-platform-native")
 includeBuild("common/utils")
 includeBuild("common/graalvm-reachability-metadata")
 includeBuild("native-gradle-plugin")
 includeBuild("native-maven-plugin")
-includeBuild("docs")
+if (!coreBuild) {
+    includeBuild("docs")
+}
