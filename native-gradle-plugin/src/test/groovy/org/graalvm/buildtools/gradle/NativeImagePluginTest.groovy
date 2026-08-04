@@ -4,6 +4,7 @@ import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
+import org.graalvm.buildtools.gradle.tasks.ValidateNativeImageLayerSelectionTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
@@ -212,6 +213,24 @@ class NativeImagePluginTest extends Specification {
 
         then:
         extension.binaries.main.layerNames.get() == ["dependencies", "dependencies"]
+    }
+
+    def "provider layer selections use a pre-producer validation task"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+
+        when:
+        extension.binaries.main.useLayer(layer)
+        extension.binaries.main.useLayer(project.provider { layer })
+        def validation = project.tasks.getByName("validateNativeCompileLayerSelection") as ValidateNativeImageLayerSelectionTask
+
+        then:
+        validation.binaryName.get() == "main"
+        validation.layerNames.get() == ["dependencies", "dependencies"]
+        project.tasks.getByName("nativeCompile").taskDependencies.getDependencies(null).contains(validation)
     }
 
     def "layer configurations include project dependency artifacts"() {

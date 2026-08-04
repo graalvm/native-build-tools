@@ -71,6 +71,12 @@ container. Groovy builds may use `usesLayer('<name>')` or the qualified
 The singular `layer` property replaces its previous assignment, while repeated `useLayer(...)`
 calls add distinct layers. Duplicate layer selections fail before Native Image is invoked.
 The same duplicate and name validation applies when a named layer consumes another named layer.
+Every selection form (`layer =`, `useLayer(NativeImageLayer)`,
+`useLayer(Provider<NativeImageLayer>)`, and `usesLayer(String)`) contributes its logical layer
+name to the same selection set. A consuming binary may select each logical name only once. The
+plugin resolves provider-backed names at a cache-safe validation boundary after configuration and
+fails that validation before any selected producer task executes; it retains lazy name resolution
+and configuration-cache compatibility.
 
 `fromConfiguration(...)` and `all` include resolved external and project dependencies. Dependency
 selectors also accept Gradle providers, including version-catalog accessors.

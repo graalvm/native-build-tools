@@ -61,6 +61,7 @@ import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.ValidateNativeImageLayerSelectionTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateAgentAccessFilter;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
@@ -431,6 +432,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.getMetadataRepositoryEnabled().set(repoEnabled);
                     builder.getMetadataRepositoryRootPath().set(repoRootPath);
                 });
+            configureLayerSelectionValidation(project, tasks, compileTaskName, options, imageBuilder);
             String runTaskName = deriveTaskName(binaryName, "native", "Run");
             var providers = project.getProviders();
             if (NATIVE_MAIN_EXTENSION.equals(binaryName)) {
@@ -566,11 +568,33 @@ public class NativeImagePlugin implements Plugin<Project> {
                 builder.getMetadataRepositoryRootPath().set(svc.map(serializableTransformerOf(service ->
                     service.getRepositoryDirectory().map(path -> path.toAbsolutePath().toString()).orElse(null))));
             });
+            configureLayerSelectionValidation(project, tasks, taskName, layerOptions, task);
             SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, layerOptions, mainSourceSet);
             configureJvmReachabilityExcludeConfigArgs(project, graalExtension, layerOptions, mainSourceSet);
             layer.getOutputFile().convention(task.flatMap(BuildNativeImageTask::getCreatedLayerFile));
         });
+    }
+
+    /**
+     * Orders duplicate validation before all Native Image producers in a requested task graph.
+     * §FS-plugin-model.2.
+     */
+    private static void configureLayerSelectionValidation(Project project,
+                                                          TaskContainer tasks,
+                                                          String consumerTaskName,
+                                                          NativeImageOptions options,
+                                                          TaskProvider<BuildNativeImageTask> consumer) {
+        String validationTaskName = "validate" + capitalize(consumerTaskName) + "LayerSelection";
+        TaskProvider<ValidateNativeImageLayerSelectionTask> validation = tasks.register(
+            validationTaskName, ValidateNativeImageLayerSelectionTask.class, task -> {
+                task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                task.setDescription("Validates Native Image layer selection for " + options.getName() + ".");
+                task.getBinaryName().set(options.getName());
+                task.getLayerNames().set(options.getLayerNames());
+            });
+        consumer.configure(task -> task.dependsOn(validation));
+        tasks.withType(BuildNativeImageTask.class).configureEach(producer -> producer.mustRunAfter(validation));
     }
 
     private void configureCustomApplicationBinary(Project project, NativeImageOptions options) {
