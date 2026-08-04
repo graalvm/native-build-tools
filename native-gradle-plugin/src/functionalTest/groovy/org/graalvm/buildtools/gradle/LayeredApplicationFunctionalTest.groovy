@@ -254,6 +254,66 @@ public class Application {
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
     @IgnoreIf({ os.windows || os.macOs })
+    def "builds and runs an all selector layer"() {
+        def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
+
+        given:
+        withSample("layered-java-application")
+        buildFile.text = buildFile.text.replace('''                modules("java.base")
+                fromConfiguration(configurations.runtimeClasspath)
+''', '''                all = true
+''')
+        buildFile << '''
+            graalvmNative.metadataRepository.enabled = false
+            graalvmNative.layers.dependencies.verbose = true
+        '''.stripIndent()
+
+        when:
+        run 'nativeRun', '-Pmessage="all selector"'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeCompile', ':nativeRun'
+        }
+        outputContains "-H:LayerCreate=dependencies.nil"
+        outputContains "- '-H:LayerUse' (origin(s): command line)"
+        file("build/native/layers/dependencies/dependencies.nil").isFile()
+        nativeApp.isFile()
+        outputContains "all selector"
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds and runs a layer from explicit paths"() {
+        given:
+        withSample("layered-java-application")
+        buildFile.text = buildFile.text.replace('''                fromConfiguration(configurations.runtimeClasspath)
+''', '''                from(configurations.runtimeClasspath)
+''')
+        buildFile << '''
+            graalvmNative.metadataRepository.enabled = false
+            graalvmNative.layers.dependencies.verbose = true
+        '''.stripIndent()
+
+        when:
+        run 'nativeRun', '-Pmessage="path selector"'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeCompile', ':nativeRun'
+        }
+        outputContains "-H:LayerCreate=dependencies.nil,module=java.base,path="
+        outputContains "- '-H:LayerUse' (origin(s): command line)"
+        file("build/native/layers/dependencies/dependencies.nil").isFile()
+        outputContains "path selector"
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({ os.windows || os.macOs })
     def "native test binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
@@ -268,14 +328,15 @@ public class Application {
         '''.stripIndent()
 
         when:
-        run 'nativeTestCompile'
+        run 'nativeTest'
 
         then:
         tasks {
-            succeeded ':nativeDependenciesLayer', ':nativeTestCompile'
+            succeeded ':nativeDependenciesLayer', ':nativeTestCompile', ':nativeTest'
         }
         outputContains "- '-H:LayerUse' (origin(s): command line)"
         getExecutableFile("build/native/nativeTestCompile/layered-java-application-tests").exists()
+        outputContains "[         1 tests successful      ]"
     }
 
     @Requires(
@@ -301,6 +362,44 @@ public class Application {
         }
         outputContains "- '-H:LayerUse' (origin(s): command line)"
         file("build/native/nativeCompile/layered-java-application${IS_WINDOWS ? '.dll' : IS_MAC ? '.dylib' : '.so'}").exists()
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds and runs a three-level layer stack"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            graalvmNative {
+                metadataRepository.enabled = false
+                layers {
+                    framework {
+                        usesLayer('dependencies')
+                        contents.modules('java.sql')
+                        verbose = true
+                    }
+                }
+                binaries.main {
+                    usesLayer('dependencies')
+                    usesLayer('framework')
+                }
+                layers.dependencies.verbose = true
+            }
+        '''.stripIndent()
+
+        when:
+        run 'nativeRun', '-Pmessage="three levels"'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeFrameworkLayer', ':nativeCompile', ':nativeRun'
+        }
+        outputContains "-H:LayerCreate=framework.nil,module=java.sql"
+        output.count("- '-H:LayerUse' (origin(s): command line)") >= 2
+        file("build/native/layers/framework/framework.nil").isFile()
+        outputContains "three levels"
     }
 
     @Ignore("Disable test temporarily because of a problem on GraalVM side")
