@@ -39,8 +39,6 @@
  * SOFTWARE.
  */
 
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 /**
  * Defines common logic used by all libraries GraalVM projects in this repository
  * §FS-build-infrastructure.2.1.
@@ -83,12 +81,6 @@ tasks.withType<Javadoc>().configureEach {
     (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
     (options as StandardJavadocDocletOptions).addBooleanOption("Xdoclint:all,-missing", true)
     (options as StandardJavadocDocletOptions).noTimestamp(true)
-}
-
-tasks.withType<Test>().configureEach {
-    testLogging {
-        events.addAll(listOf(TestLogEvent.STANDARD_OUT, TestLogEvent.PASSED, TestLogEvent.SKIPPED, TestLogEvent.FAILED))
-    }
 }
 
 // Maintainer inspections aggregate Checkstyle. §FS-build-infrastructure.1.1.

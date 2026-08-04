@@ -80,6 +80,11 @@ The shared Java convention must configure every Javadoc task to run all doclint 
 missing-documentation category. Missing API comments and missing `@param`, `@return`, and `@throws`
 tags must not produce warnings, while all other doclint categories remain enabled.
 
+Ordinary repository test runs must report actionable failures without listing successful or
+skipped tests or replaying routine test streams. Detailed test events and captured streams must
+remain available through Gradle's normal diagnostic levels and generated test reports, refining
+the concise-output goal in [§GOAL-concise-actionable-output](../goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
+
 Convention plugins may add tasks and configurations to modules that apply them. Those additions
 are maintainer-facing build behavior, not runtime behavior of the Native Build Tools plugins.
 
