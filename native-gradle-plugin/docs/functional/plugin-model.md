@@ -86,6 +86,22 @@ The previous binary-scoped `createLayer`, string-based `useLayer`, and
 original naming and external-module-only semantics. Only legacy layer declarations retain the
 `lib` binary-name rule. [§root/REQ-backwards-compatibility.1](../../../docs/spec/requirements.md#1-deprecation-over-removal).
 
+### Layer support matrix
+
+| Selector or consumer | Gradle DSL support | Executable evidence |
+| --- | --- | --- |
+| Modules, packages, explicit paths, `all` | `contents.modules`, `contents.packages`, `contents.from`, `contents.all` | `LayeredApplicationFunctionalTest` |
+| Main executable | `binaries.main.usesLayer` | `LayeredApplicationFunctionalTest` |
+| Native test | `binaries.test.usesLayer` | `LayeredApplicationFunctionalTest` |
+| Shared library | `binaries.main.sharedLibrary` with `usesLayer` | `LayeredApplicationFunctionalTest` |
+| Chained layers | `NativeImageLayer.usesLayer` | `LayeredApplicationFunctionalTest` |
+| Cross-project publication | Gradle task output and file dependency wiring | Gradle-specific; Maven uses reactor/repository `nil` artifacts instead |
+
+Layer shared libraries remain external runtime dependencies. On Linux set `LD_LIBRARY_PATH`; on
+macOS set `DYLD_LIBRARY_PATH`; and on Windows add the layer directory to `PATH` before running a
+layered executable. `nativeRun` supplies this for its selected layers, but deployed executables
+need the same platform loader configuration. [§root/FS-native-builds.6](../../../docs/spec/functional/native-image-builds.md#6-layered-images).
+
 ## 3. Default binaries
 
 For Java application projects, the plugin must create a `main` binary whose `mainClass` convention

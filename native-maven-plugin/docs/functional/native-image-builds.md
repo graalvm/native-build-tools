@@ -39,6 +39,22 @@ Layer consumption applies consistently to compile, shared-library, and native-te
 `native:test`; users who want different test behavior must scope the configuration to executions.
 The `layer-create` goal may itself consume configured layers, enabling multi-level layer stacks.
 
+### Layer support matrix
+
+| Selector or consumer | Maven XML support | Executable evidence |
+| --- | --- | --- |
+| Modules, packages, explicit paths, `all` | `<modules>`, `<packages>`, `<paths>`, `<all>` | `LayeredApplicationFunctionalTest` |
+| Main executable | `useLayers` on the compile execution | `LayeredApplicationFunctionalTest` |
+| Native test | `useLayers` on the `native:test` execution | `LayeredApplicationFunctionalTest` |
+| Shared library | `sharedLibrary` and `useLayers` | `LayeredApplicationFunctionalTest` |
+| Chained layers | `useLayers` on `layer-create` plus declared `nil` dependencies | `LayeredApplicationFunctionalTest` |
+| Reactor/repository flow | Attached `nil` artifacts and Maven dependency resolution | Maven-specific; Gradle uses task/file wiring instead |
+
+Layer shared libraries remain external runtime dependencies. On Linux set `LD_LIBRARY_PATH`; on
+macOS set `DYLD_LIBRARY_PATH`; and on Windows add the layer directory to `PATH` before launching
+a layered executable. Creating or attaching a `.nil` artifact does not embed or relocate those
+libraries. [§root/FS-native-builds.6](../../../docs/spec/functional/native-image-builds.md#6-layered-images).
+
 ## 4. Generated resource configuration
 
 Before building, the plugin must add generated resource configuration to the native image

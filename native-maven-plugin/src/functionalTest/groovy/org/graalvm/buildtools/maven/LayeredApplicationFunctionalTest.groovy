@@ -142,4 +142,217 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         file("base-layer/target/native/layers/base/base.nil").isFile()
         outputContains "-H:LayerCreate=base.nil,module=java.base,package=org.slf4j"
     }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds and runs an all selector layer in the reactor"() {
+        given:
+        withSample("layered-maven-application")
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text.replace('''                                <modules>
+                                    <module>java.base</module>
+                                </modules>
+                                <dependencies>
+                                    <dependency>
+                                        <artifact>org.slf4j:slf4j-api</artifact>
+                                    </dependency>
+                                </dependencies>
+''', '''                                <all>true</all>
+''')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', 'package'
+
+        then:
+        buildSucceeded
+        file("base-layer/target/native/layers/base/base.nil").isFile()
+        outputContains "-H:LayerCreate=base.nil"
+        outputContains "-H:LayerUse="
+        def application = file("application/target/application")
+        def layerDirectory = file("base-layer/target/native/layers/base").absolutePath
+        def environment = System.getenv().collect { key, value -> "${key}=${value}" }
+        environment << "LD_LIBRARY_PATH=${layerDirectory}"
+        def execution = [application.absolutePath].execute(environment, application.parentFile)
+        assert execution.waitFor() == 0
+        assert execution.in.text.contains("Hello, layered application!")
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds a layer from an explicit path"() {
+        given:
+        withSample("layered-maven-application")
+        file("base-layer/src/main/java/org/graalvm/demo/BaseLayerType.java").text = '''
+            package org.graalvm.demo;
+            public final class BaseLayerType {
+                private BaseLayerType() { }
+            }
+        '''.stripIndent()
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text.replace('''                                <modules>
+                                    <module>java.base</module>
+                                </modules>
+                                <dependencies>
+                                    <dependency>
+                                        <artifact>org.slf4j:slf4j-api</artifact>
+                                    </dependency>
+                                </dependencies>
+''', '''                                <paths>
+                                    <path>\${project.build.outputDirectory}</path>
+                                </paths>
+''')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', 'package'
+
+        then:
+        buildSucceeded
+        file("base-layer/target/native/layers/base/base.nil").isFile()
+        outputContains "-H:LayerCreate=base.nil,path="
+        outputContains "-H:LayerUse="
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds a shared library using a layer artifact"() {
+        given:
+        withSample("layered-maven-application")
+        def applicationPom = file("application/pom.xml")
+        applicationPom.text = applicationPom.text.replace('''                    <mainClass>org.graalvm.demo.Application</mainClass>
+''', '''                    <sharedLibrary>true</sharedLibrary>
+''')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', 'package'
+
+        then:
+        buildSucceeded
+        outputContains "-H:LayerUse="
+        file("application/target/application${IS_WINDOWS ? '.dll' : IS_MAC ? '.dylib' : '.so'}").isFile()
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "native tests consume layers from their own execution"() {
+        given:
+        withSample("layered-maven-application")
+        file("application/src/test/java/org/graalvm/demo/ApplicationTest.java").text = '''
+            package org.graalvm.demo;
+            import org.junit.jupiter.api.Test;
+            import static org.junit.jupiter.api.Assertions.assertTrue;
+            class ApplicationTest {
+                @Test void runs() { assertTrue(true); }
+            }
+        '''.stripIndent()
+        def applicationPom = file("application/pom.xml")
+        applicationPom.text = applicationPom.text
+            .replace('''    <dependencies>
+''', '''    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.12.0</version>
+            <scope>test</scope>
+        </dependency>
+''')
+            .replace('''                </executions>
+''', '''                    <execution>
+                        <id>test-with-layer</id>
+                        <phase>test</phase>
+                        <goals><goal>test</goal></goals>
+                        <configuration>
+                            <useLayers>
+                                <useLayer>
+                                    <artifact>org.graalvm.buildtools.samples:base-layer</artifact>
+                                </useLayer>
+                            </useLayers>
+                        </configuration>
+                    </execution>
+                </executions>
+''')
+
+        when:
+        mvn '-DquickBuild', 'test'
+
+        then:
+        buildSucceeded
+        outputContains "-H:LayerUse="
+        outputContains "[         1 tests successful      ]"
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds and runs a chained reactor layer stack"() {
+        given:
+        withSample("layered-maven-application")
+        file("framework-layer/pom.xml").text = '''
+            <project xmlns="http://maven.apache.org/POM/4.0.0">
+                <modelVersion>4.0.0</modelVersion>
+                <parent>
+                    <groupId>org.graalvm.buildtools.samples</groupId>
+                    <artifactId>layered-maven-application</artifactId>
+                    <version>1.0-SNAPSHOT</version>
+                </parent>
+                <artifactId>framework-layer</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.graalvm.buildtools.samples</groupId>
+                        <artifactId>base-layer</artifactId>
+                        <version>\${project.version}</version>
+                        <type>nil</type>
+                        <scope>runtime</scope>
+                    </dependency>
+                </dependencies>
+                <build><plugins><plugin>
+                    <groupId>org.graalvm.buildtools</groupId>
+                    <artifactId>native-maven-plugin</artifactId>
+                    <executions><execution><id>create-framework-layer</id><phase>package</phase>
+                        <goals><goal>layer-create</goal></goals>
+                        <configuration>
+                            <useLayers><useLayer><artifact>org.graalvm.buildtools.samples:base-layer</artifact></useLayer></useLayers>
+                            <layer><name>framework</name><modules><module>java.sql</module></modules></layer>
+                        </configuration>
+                    </execution></executions>
+                </plugin></plugins></build>
+            </project>
+        '''.stripIndent()
+        def rootPom = file("pom.xml")
+        rootPom.text = rootPom.text.replace('''        <module>application</module>
+''', '''        <module>framework-layer</module>
+        <module>application</module>
+''')
+        def applicationPom = file("application/pom.xml")
+        applicationPom.text = applicationPom.text
+            .replace('''    <dependencies>
+''', '''    <dependencies>
+        <dependency>
+            <groupId>org.graalvm.buildtools.samples</groupId>
+            <artifactId>framework-layer</artifactId>
+            <version>\${project.version}</version>
+            <type>nil</type>
+            <scope>runtime</scope>
+        </dependency>
+''')
+            .replace('''                    <useLayers>
+''', '''                    <useLayers>
+                        <useLayer>
+                            <artifact>org.graalvm.buildtools.samples:framework-layer</artifact>
+                        </useLayer>
+''')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', 'package'
+
+        then:
+        buildSucceeded
+        file("framework-layer/target/native/layers/framework/framework.nil").isFile()
+        outputContains "-H:LayerCreate=framework.nil,module=java.sql"
+        output.count("-H:LayerUse=") >= 2
+        def application = file("application/target/application")
+        def environment = System.getenv().collect { key, value -> "${key}=${value}" }
+        environment << "LD_LIBRARY_PATH=${file('base-layer/target/native/layers/base').absolutePath}:${file('framework-layer/target/native/layers/framework').absolutePath}"
+        def execution = [application.absolutePath].execute(environment, application.parentFile)
+        assert execution.waitFor() == 0
+        assert execution.in.text.contains("Hello, layered application!")
+    }
 }
