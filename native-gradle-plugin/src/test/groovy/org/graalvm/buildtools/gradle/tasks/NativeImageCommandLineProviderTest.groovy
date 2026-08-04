@@ -296,6 +296,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { 25 },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
 
@@ -418,6 +419,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { 25 },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
     }
