@@ -6,6 +6,6 @@ public final class Application {
     }
 
     public static void main(String[] args) {
-        System.out.println("Hello, layered Maven!");
+        System.out.println("Hello, layered application!");
     }
 }

@@ -43,7 +43,6 @@ package org.graalvm.buildtools.gradle
 
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
-import org.graalvm.buildtools.utils.NativeImageLayerArguments
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -84,14 +83,11 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "Layer 'empty' has no contents"
     }
 
-    // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
+    // Layer execution remains unavailable on Windows and macOS CI platforms. §E2E-functional-tests.3.6.
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({
-        os.windows || os.macOs || NativeImageLayerArguments.isLayerConsumptionUnsupported(
-                GraalVMSupport.getGraalVMHomeVersionString())
-    })
+    @IgnoreIf({ os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -126,7 +122,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         }
 
         when:
-        runAndReloadConfigurationCache 'nativeRun', '-Pmessage="Hello, layered images!"'
+        runAndReloadConfigurationCache 'nativeRun', '-Pmessage="Hello, layered application!"'
 
         then:
         if (hasConfigurationCache) {
@@ -144,6 +140,9 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
             }
         }
         nativeApp.exists()
+
+        and:
+        outputContains "Hello, layered application!"
 
         and:
         if (hasConfigurationCache) {
@@ -169,7 +168,7 @@ public class Application {
 }
 
 """
-        runAndReloadConfigurationCache 'nativeRun', '-Pmessage="Hello, layered images!"'
+        runAndReloadConfigurationCache 'nativeRun', '-Pmessage="Hello, layered application!"'
 
         then:
         if (hasConfigurationCache) {
@@ -230,17 +229,17 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({
-        os.windows || os.macOs || NativeImageLayerArguments.isLayerConsumptionUnsupported(
-                GraalVMSupport.getGraalVMHomeVersionString())
-    })
+    @IgnoreIf({ os.windows || os.macOs })
     def "native test binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
+        buildFile.text = buildFile.text.replace('''                modules("java.base")
+                modules("java.sql")
+                fromConfiguration(configurations.runtimeClasspath)
+''')
         buildFile << '''
             graalvmNative {
                 metadataRepository.enabled = false
-                layers.dependencies.contents.modules('java.sql')
                 binaries.test {
                     usesLayer('dependencies')
                 }
@@ -261,10 +260,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({
-        os.windows || os.macOs || NativeImageLayerArguments.isLayerConsumptionUnsupported(
-                GraalVMSupport.getGraalVMHomeVersionString())
-    })
+    @IgnoreIf({ os.windows || os.macOs })
     def "shared library binaries can consume named layers"() {
         given:
         withSample("layered-java-application")

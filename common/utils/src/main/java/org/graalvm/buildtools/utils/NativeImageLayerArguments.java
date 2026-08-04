@@ -52,12 +52,6 @@ import java.util.regex.Pattern;
  * Shared rendering of Native Image layer arguments. §FS-common-libraries.1.
  */
 public final class NativeImageLayerArguments {
-    private static final Pattern GRAALVM_RUNTIME_VERSION = Pattern.compile(
-        "(?m)^GraalVM Runtime Environment .*\\s(\\d+\\.\\d+\\.\\d+(?:[.+-][^\\s]*)?)\\s+\\(build");
-    private static final Pattern NATIVE_IMAGE_VERSION = Pattern.compile(
-        "(?m)^native-image\\s+(\\d+\\.\\d+\\.\\d+(?:[.+-][^\\s]*)?)(?:\\s|$)");
-    private static final Pattern UNSUPPORTED_LAYER_CONSUMPTION_VERSION =
-        Pattern.compile("25\\.0\\.[34](?:[.+-].*)?");
     private static final Pattern VALID_LAYER_NAME = Pattern.compile("[A-Za-z0-9._-]+");
 
     private NativeImageLayerArguments() {
@@ -80,17 +74,6 @@ public final class NativeImageLayerArguments {
     public static String renderLayerUse(Path layerFile) {
         Objects.requireNonNull(layerFile, "layerFile");
         return NativeImageFlags.LAYER_USE + "=" + layerFile.toAbsolutePath();
-    }
-
-    public static boolean isLayerConsumptionUnsupported(String versionInformation) {
-        String information = Objects.requireNonNull(versionInformation, "versionInformation");
-        var runtimeVersion = GRAALVM_RUNTIME_VERSION.matcher(information);
-        if (runtimeVersion.find()) {
-            return UNSUPPORTED_LAYER_CONSUMPTION_VERSION.matcher(runtimeVersion.group(1)).matches();
-        }
-        var nativeImageVersion = NATIVE_IMAGE_VERSION.matcher(information);
-        return nativeImageVersion.find()
-            && UNSUPPORTED_LAYER_CONSUMPTION_VERSION.matcher(nativeImageVersion.group(1)).matches();
     }
 
     public static void validateLayerName(String layerName) {

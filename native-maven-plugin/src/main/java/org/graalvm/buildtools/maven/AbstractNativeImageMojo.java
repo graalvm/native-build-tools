@@ -674,9 +674,6 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
-        if (useLayers != null && !useLayers.isEmpty()) {
-            checkLayerConsumptionCompatibility(getVersionInformation(logger, nativeImageExecutable));
-        }
         if (isMetadataRepositoryEnabled() && metadataRepository != null) {
             SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(null)), nativeImageExecutable);
         }
@@ -707,17 +704,6 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
-        }
-    }
-
-    // Affected Native Image 25.0 releases can crash after loading a layer, so fail before invocation. §FS-native-builds.3.
-    static void checkLayerConsumptionCompatibility(String versionInformation) throws MojoExecutionException {
-        if (NativeImageLayerArguments.isLayerConsumptionUnsupported(versionInformation)
-                && !Boolean.getBoolean("org.graalvm.buildtools.layers.allowUnsupportedConsumption")) {
-            throw new MojoExecutionException(
-                    "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption. "
-                    + "Upgrade Native Image, remove the useLayers configuration, or set "
-                    + "-Dorg.graalvm.buildtools.layers.allowUnsupportedConsumption=true to proceed at your own risk.");
         }
     }
 

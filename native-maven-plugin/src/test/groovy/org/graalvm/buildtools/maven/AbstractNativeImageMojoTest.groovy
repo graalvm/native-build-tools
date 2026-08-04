@@ -271,35 +271,6 @@ class AbstractNativeImageMojoTest extends Specification {
         1 * logger.warn({ it.contains("has type nil but is not referenced by useLayers") })
     }
 
-    // The Maven adapter rejects Native Image releases with a known layer-consumption crash. §FS-native-builds.3.
-    def "it rejects layer consumption on Native Image #version"() {
-        when:
-        AbstractNativeImageMojo.checkLayerConsumptionCompatibility(
-                "native-image ${version} 2026-07-21\nGraalVM Runtime Environment Oracle GraalVM ${version}+9.1")
-
-        then:
-        def e = thrown(MojoExecutionException)
-        e.message.contains("Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption")
-        e.message.contains("Upgrade Native Image")
-        e.message.contains("remove the useLayers configuration")
-
-        where:
-        version << ["25.0.3", "25.0.4"]
-    }
-
-    void "it permits layer consumption on other Native Image versions"() {
-        expect:
-        AbstractNativeImageMojo.checkLayerConsumptionCompatibility(versionInformation)
-
-        where:
-        versionInformation << [
-                "native-image 25 2025-09-16",
-                "native-image 25.0.2 2026-01-20",
-                "native-image 25.0.5 2026-10-20",
-                "native-image 26-dev 2026-07-30"
-        ]
-    }
-
     private TestNativeImageMojo newMojo(List<String> buildArgs) {
         def mojo = new TestNativeImageMojo()
         mojo.outputDirectory = testDirectory.resolve("target").toFile()

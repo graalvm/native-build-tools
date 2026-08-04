@@ -38,9 +38,6 @@
                                 <modules>
                                     <module>java.base</module>
                                 </modules>
-                                <packages>
-                                    <package>org.slf4j</package>
-                                </packages>
                                 <dependencies>
                                     <dependency>
                                         <artifact>org.slf4j:slf4j-api</artifact>
