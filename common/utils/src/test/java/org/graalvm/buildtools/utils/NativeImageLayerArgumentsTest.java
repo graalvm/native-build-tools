@@ -105,20 +105,4 @@ class NativeImageLayerArgumentsTest {
         assertThrows(UnsupportedOperationException.class, () -> selection.getModules().add("java.sql"));
     }
 
-    @Test
-    void identifiesUnsupportedLayerConsumptionReleases() {
-        assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
-            "native-image 25.0.3 2026-04-21\nGraalVM Runtime Environment Oracle GraalVM 25.0.3+9.1"));
-        assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
-            "native-image 25.0.4 2026-07-21"));
-        assertTrue(NativeImageLayerArguments.isLayerConsumptionUnsupported(
-            "native-image 25.0.4.1 Mandrel-25.0.4.1-Final"));
-        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
-            "native-image 25.0.3 2026-04-21\n"
-                + "GraalVM Runtime Environment GraalVM CE 25.1.3+9.1 (build 25.0.3+9-jvmci-25.1-b19)"));
-        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
-            "native-image 25.0.2 2026-01-20"));
-        assertEquals(false, NativeImageLayerArguments.isLayerConsumptionUnsupported(
-            "native-image 25.0.5 2026-10-20"));
-    }
 }

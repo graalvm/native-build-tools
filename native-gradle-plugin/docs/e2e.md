@@ -70,8 +70,9 @@ standard and conditional mode behavior, agent output, configuration-cache compat
 ### 3.6 Native Image options
 
 `NativeImageOptionsTest` and `LayeredApplicationFunctionalTest` verify build arguments, quick build,
-image names, PGO/layer-related options, fat JAR behavior, runtime arguments, and command-line
-construction. This protects [§FS-native-tasks.4](functional/native-image-tasks.md#4-command-line-overrides), [§FS-native-invocation.3](functional/native-image-invocation.md#3-command-line-construction), and
+image names, PGO/layer-related options, fat JAR behavior, runtime arguments, command-line
+construction, and named-layer consumption by executable, native-test, and shared-library binaries. This
+protects [§FS-native-tasks.4](functional/native-image-tasks.md#4-command-line-overrides), [§FS-native-invocation.3](functional/native-image-invocation.md#3-command-line-construction), and
 [§FS-native-invocation.5](functional/native-image-invocation.md#5-classpath-jar-and-artifact-analysis).
 
 ### 3.7 Gradle integration

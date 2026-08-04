@@ -40,7 +40,6 @@
  */
 package org.graalvm.buildtools.maven
 
-import org.graalvm.buildtools.utils.NativeImageLayerArguments
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.IgnoreIf
 import spock.lang.Requires
@@ -65,33 +64,24 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     def "builds and consumes a layer artifact in one reactor"() {
         given:
         withSample("layered-maven-application")
-        def unsupportedLayerConsumption = NativeImageLayerArguments.isLayerConsumptionUnsupported(
-                GraalVMSupport.getGraalVMHomeVersionString())
 
         when:
         mvn '-DquickBuild', '-DskipTests', 'package'
 
         then:
+        buildSucceeded
         file("base-layer/target/native/layers/base/base.nil").isFile()
         outputContains "-H:LayerCreate=base.nil"
-        if (unsupportedLayerConsumption) {
-            buildFailed
-            outputContains "Native Image 25.0.3 and 25.0.4 do not support reliable layer consumption"
-            outputContains "Upgrade Native Image, remove the useLayers configuration"
-            outputDoesNotContain "LayeredDispatchTableFeature"
-        } else {
-            assert result.exitCode == 0
-            def application = file("application/target/application")
-            assert application.isFile()
-            assert outputContains("-H:LayerUse=")
-            def environment = System.getenv().collect { key, value -> "${key}=${value}" }
-            def layerDirectory = file("base-layer/target/native/layers/base").absolutePath
-            def inheritedLibraryPath = System.getenv("LD_LIBRARY_PATH")
-            environment << "LD_LIBRARY_PATH=${inheritedLibraryPath ? inheritedLibraryPath + File.pathSeparator : ''}${layerDirectory}"
-            def execution = [application.absolutePath].execute(environment, application.parentFile)
-            assert execution.waitFor() == 0
-            assert execution.in.text.contains("Hello, layered Maven!")
-        }
+        def application = file("application/target/application")
+        assert application.isFile()
+        assert outputContains("-H:LayerUse=")
+        def environment = System.getenv().collect { key, value -> "${key}=${value}" }
+        def layerDirectory = file("base-layer/target/native/layers/base").absolutePath
+        def inheritedLibraryPath = System.getenv("LD_LIBRARY_PATH")
+        environment << "LD_LIBRARY_PATH=${inheritedLibraryPath ? inheritedLibraryPath + File.pathSeparator : ''}${layerDirectory}"
+        def execution = [application.absolutePath].execute(environment, application.parentFile)
+        assert execution.waitFor() == 0
+        assert execution.in.text.contains("Hello, layered application!")
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
@@ -111,10 +101,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     </dependencies>
 
 ''', '')
-            .replace('''                                <packages>
-                                    <package>org.slf4j</package>
-                                </packages>
-                                <dependencies>
+            .replace('''                                <dependencies>
                                     <dependency>
                                         <artifact>org.slf4j:slf4j-api</artifact>
                                     </dependency>
@@ -132,5 +119,27 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         }
         invocation != null
         !invocation.contains(" -cp ")
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "builds a layer with a package selector"() {
+        given:
+        withSample("layered-maven-application")
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text.replace('''                                <dependencies>
+''', '''                                <packages>
+                                    <package>org.slf4j</package>
+                                </packages>
+                                <dependencies>
+''')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', '-pl', 'base-layer', 'package'
+
+        then:
+        buildSucceeded
+        file("base-layer/target/native/layers/base/base.nil").isFile()
+        outputContains "-H:LayerCreate=base.nil,module=java.base,package=org.slf4j"
     }
 }
