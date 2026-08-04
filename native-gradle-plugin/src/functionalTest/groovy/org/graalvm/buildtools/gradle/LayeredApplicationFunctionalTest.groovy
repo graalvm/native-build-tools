@@ -83,7 +83,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "Layer 'empty' has no contents"
     }
 
-    // Layer execution remains unavailable on Windows and macOS CI platforms. §E2E-functional-tests.3.6.
+    // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
