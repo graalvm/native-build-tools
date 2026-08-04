@@ -74,6 +74,9 @@ image names, PGO/layer-related options, fat JAR behavior, runtime arguments, com
 construction, and named-layer consumption by executable, native-test, and shared-library binaries. This
 protects [§FS-native-tasks.4](functional/native-image-tasks.md#4-command-line-overrides), [§FS-native-invocation.3](functional/native-image-invocation.md#3-command-line-construction), and
 [§FS-native-invocation.5](functional/native-image-invocation.md#5-classpath-jar-and-artifact-analysis).
+Its layer scenarios cover module, package, explicit-path, and `all` selectors; executable,
+native-test, shared-library, and chained consumers; and provider duplicate validation before a
+producer task starts.
 
 ### 3.7 Gradle integration
 

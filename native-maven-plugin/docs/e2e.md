@@ -88,6 +88,8 @@ layer artifact, a consumer resolves it outside the Java classpath, and the appli
 consumes the layer, executes, and produces the expected output. This protects [§FS-goal-surface.6](functional/goal-surface.md#6-layer-creation),
 [§FS-native-builds.3](functional/native-image-builds.md#3-classpath-and-scopes), and
 [§FS-config-model.7](functional/configuration-model.md#7-layer-configuration).
+The class is the executable evidence for module, package, explicit-path, and `all` selection,
+main, native-test, shared-library, and chained layer consumption.
 
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the

@@ -83,6 +83,30 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "Layer 'empty' has no contents"
     }
 
+    def "rejects duplicate provider layer selections before the producer runs"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            graalvmNative {
+                binaries.main {
+                    useLayer(graalvmNative.layers.getByName('dependencies'))
+                    useLayer(providers.provider { graalvmNative.layers.getByName('dependencies') })
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        fails 'nativeCompile', '--configuration-cache'
+
+        then:
+        errorOutputContains "Native Image binary 'main' selects a layer more than once"
+        errorOutputContains "dependencies"
+        tasks {
+            failed ':validateNativeCompileLayerSelection'
+            doesNotContain ':nativeDependenciesLayer'
+        }
+    }
+
     // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
