@@ -233,13 +233,10 @@ public class Application {
     def "native test binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
-                modules("java.sql")
-                fromConfiguration(configurations.runtimeClasspath)
-''')
         buildFile << '''
             graalvmNative {
                 metadataRepository.enabled = false
+                layers.dependencies.contents.modules('java.sql')
                 binaries.test {
                     usesLayer('dependencies')
                 }
