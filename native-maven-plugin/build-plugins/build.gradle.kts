@@ -48,3 +48,15 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
 }
+
+dependencies {
+    // Build-logic regressions protect the unit/assembly and seeded functional boundaries.
+    // §AR-maven-plugin.6, §E2E-functional-tests.4
+    testImplementation(gradleTestKit())
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

@@ -39,7 +39,8 @@
  * SOFTWARE.
  */
 
-import org.graalvm.build.maven.MavenTask
+import org.graalvm.build.maven.SeedMavenRepository
+import org.graalvm.build.maven.ValidateMavenRepositorySeed
 
 plugins {
     `java-library`
@@ -112,14 +113,6 @@ publishing {
 
 val localRepositoryDir = project.layout.buildDirectory.dir("maven-seeded-repo")
 
-tasks {
-    generatePluginDescriptor {
-        dependsOn(prepareMavenLocalRepo)
-        commonRepository.set(repoDirectory)
-        localRepository.set(localRepositoryDir)
-    }
-}
-
 val seedingDir = project.layout.buildDirectory.dir("maven-seeding")
 
 val prepareSeedingProject = tasks.register<Sync>("prepareSeedingProject") {
@@ -128,30 +121,57 @@ val prepareSeedingProject = tasks.register<Sync>("prepareSeedingProject") {
     outputs.upToDateWhen { false }
 }
 
-val prepareMavenLocalRepo = tasks.register<MavenTask>("prepareMavenLocalRepo") {
+// Online seed production stages and atomically publishes a complete repository. §E2E-functional-tests.4
+val prepareMavenLocalRepo = tasks.register<SeedMavenRepository>("prepareMavenLocalRepo") {
     dependsOn(prepareSeedingProject)
     projectDirectory.set(prepareSeedingProject.map { seedingDir.get() })
     settingsFile.set(layout.projectDirectory.file("config/settings.xml"))
     pomFile.set(seedingDir.map { it.file("pom.xml") })
     mavenEmbedderClasspath.from(configurations.mavenEmbedder)
     outputDirectory.set(localRepositoryDir)
+    updateSnapshots.set(true)
+    seedProperties.put("junit.jupiter.version", libs.versions.junitJupiter)
+    seedProperties.put("native.maven.plugin.version", libs.versions.nativeBuildTools)
+    seedProperties.put("junit.platform.native.version", libs.versions.nativeBuildTools)
+    seedProperties.put("exec.mainClass", "org.graalvm.demo.Application")
+    seedProperties.put("openjson.version", libs.versions.openjson)
+    seedProperties.put("cyclonedx.maven.version", libs.versions.cyclonedxMaven)
+    seedProperties.put("plugin.executor.maven.version", libs.versions.pluginExecutorMaven)
     arguments.set(listOf(
             "-q",
-            "-Dproject.build.directory=${File(temporaryDir, "target")}",
-            "-Dmaven.repo.local=${localRepositoryDir.get().asFile.absolutePath}",
             "-Djunit.jupiter.version=${libs.versions.junitJupiter.get()}",
             "-Dnative.maven.plugin.version=${libs.versions.nativeBuildTools.get()}",
             "-Djunit.platform.native.version=${libs.versions.nativeBuildTools.get()}",
             "-Dexec.mainClass=org.graalvm.demo.Application",
+            "-Dopenjson.version=${libs.versions.openjson.get()}",
+            "-Dcyclonedx.maven.version=${libs.versions.cyclonedxMaven.get()}",
+            "-Dplugin.executor.maven.version=${libs.versions.pluginExecutorMaven.get()}",
             "package",
             "test",
             "install",
-            "exec:java"
+            "exec:java",
+            "help:effective-pom"
     )
     )
+}
 
-    doFirst {
-        delete { delete { localRepositoryDir.get().asFile } }
+// Offline prerequisites validate the existing seed without writes or Maven execution. §E2E-functional-tests.4
+val validateMavenLocalRepo = tasks.register<ValidateMavenRepositorySeed>(
+    "validateMavenLocalRepo",
+    prepareMavenLocalRepo.get()
+)
+val mavenRepositoryPrerequisite = if (gradle.startParameter.isOffline) {
+    validateMavenLocalRepo
+} else {
+    prepareMavenLocalRepo
+}
+
+tasks {
+    generatePluginDescriptor {
+        dependsOn(mavenRepositoryPrerequisite)
+        commonRepository.set(repoDirectory)
+        localRepository.set(localRepositoryDir)
+        offline.set(gradle.startParameter.isOffline)
     }
 }
 
@@ -168,7 +188,7 @@ val launcher = javaToolchains.launcherFor {
 tasks {
     functionalTest {
         javaLauncher.set(launcher)
-        dependsOn(prepareMavenLocalRepo, publishAllPublicationsToCommonRepository)
+        dependsOn(mavenRepositoryPrerequisite, publishAllPublicationsToCommonRepository)
         systemProperty("graalvm.version", libs.versions.graalvm.get())
         systemProperty("junit.jupiter.version", libs.versions.junitJupiter.get())
         systemProperty("native.maven.plugin.version", libs.versions.nativeBuildTools.get())
@@ -176,6 +196,7 @@ tasks {
         systemProperty("common.repo.uri", repoDirectory.get().asFile.toURI().toASCIIString())
         systemProperty("seed.repo.uri", localRepositoryDir.get().asFile.toURI().toASCIIString())
         systemProperty("maven.settings", layout.projectDirectory.file("config/settings.xml").asFile.absolutePath)
+        systemProperty("maven.offline", gradle.startParameter.isOffline)
         systemProperty("java.executable", javaLauncher.get().executablePath.asFile.absolutePath)
         inputs.files(configurations.mavenEmbedder)
         doFirst {

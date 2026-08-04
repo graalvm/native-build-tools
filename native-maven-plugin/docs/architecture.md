@@ -83,6 +83,14 @@ The module owns Maven-specific functional test infrastructure and reproducers. F
 seed a local Maven repository so sample projects can resolve the plugin and support artifacts
 without depending on external publication.
 
+Ordinary unit tests consume the main and test-fixture class and resource directories directly.
+They do not assemble the Maven plugin JAR or generate its descriptor. Assembly, publication, and
+functional tests retain the artifact boundary: the JAR includes the embedded-Maven-generated
+descriptor, and real Maven functional tests resolve the published artifact through repository-
+controlled repositories. This separation keeps unit feedback independent of Maven repository
+bootstrap work while preserving the packaged-plugin integration path
+[§root/GOAL-fast-feedback](../../docs/spec/goals.md#goal-fast-feedback-native-build-workflows-provide-feedback-as-fast-as-practical).
+
 Samples under `samples/` provide cross-plugin Maven scenarios when possible. Dedicated
 `native-maven-plugin/reproducers/` projects are appropriate for Maven-specific regressions whose
 shape would not make sense as a shared sample.

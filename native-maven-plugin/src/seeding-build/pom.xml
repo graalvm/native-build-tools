@@ -53,6 +53,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.jupiter.version>5.8.1</junit.jupiter.version>
         <graalvm.version>22.0.0</graalvm.version>
+        <openjson.version>1.0.13</openjson.version>
+        <cyclonedx.maven.version>2.9.1</cyclonedx.maven.version>
+        <plugin.executor.maven.version>2.4.1</plugin.executor.maven.version>
         <mainClass>org.graalvm.demo.Application</mainClass>
     </properties>
 
@@ -69,6 +72,22 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- Seed Maven plugin runtime dependencies for read-only offline functional tests. §E2E-functional-tests.4 -->
+        <dependency>
+            <groupId>com.github.openjson</groupId>
+            <artifactId>openjson</artifactId>
+            <version>${openjson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <version>${cyclonedx.maven.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.twdata.maven</groupId>
+            <artifactId>mojo-executor</artifactId>
+            <version>${plugin.executor.maven.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

@@ -21,6 +21,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -40,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Runs embedded Maven with explicit offline and snapshot-update policy. §E2E-functional-tests.4
+ */
 @CacheableTask
 public abstract class MavenTask extends DefaultTask {
     @Inject
@@ -67,8 +71,19 @@ public abstract class MavenTask extends DefaultTask {
     @Input
     public abstract ListProperty<String> getArguments();
 
+    @Input
+    public abstract Property<Boolean> getOffline();
+
+    @Input
+    public abstract Property<Boolean> getUpdateSnapshots();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
+
+    public MavenTask() {
+        getOffline().convention(false);
+        getUpdateSnapshots().convention(false);
+    }
 
     protected void extractOutput(File tmpDir, File outputDirectory) {
         getFileSystemOperations().copy(spec -> {
@@ -93,17 +108,25 @@ public abstract class MavenTask extends DefaultTask {
             spec.systemProperty("org.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener", "warn");
             prepareSpec(spec);
             List<String> arguments = new ArrayList<>();
+            arguments.add("--errors");
+            if (getUpdateSnapshots().get()) {
+                arguments.add("-U");
+            }
+            if (getOffline().get()) {
+                arguments.add("--offline");
+            }
             arguments.addAll(Arrays.asList(
-                    "--errors",
-                    "-U",
                     "--batch-mode",
                     "--settings", settingsFile.getAbsolutePath(),
-                    "--file", pomFile.getAbsolutePath()
-            ));
+                    "--file", pomFile.getAbsolutePath()));
             arguments.addAll(getArguments().get());
+            prepareArguments(arguments);
             spec.args(arguments);
             getLogger().lifecycle("Invoking Maven with arguments " + arguments);
         });
         extractOutput(projectdir, outputDirectory);
+    }
+
+    protected void prepareArguments(List<String> arguments) {
     }
 }

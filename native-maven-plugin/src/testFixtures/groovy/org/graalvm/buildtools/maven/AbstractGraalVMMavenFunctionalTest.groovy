@@ -50,8 +50,10 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
+// Real Maven fixtures reuse validated repositories without remote access in offline mode. §E2E-functional-tests.4
 abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
     @TempDir
     Path testDirectory
@@ -159,7 +161,13 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
                 "seed.repo.uri": System.getProperty("seed.repo.uri"),
         ]
         if (System.getProperty("noTestIsolation") == null) {
-            resultingSystemProperties.put("maven.repo.local", testDirectory.resolve("local-repo").toFile().absolutePath)
+            Path localRepository = testDirectory.resolve("local-repo")
+            if (Boolean.getBoolean("maven.offline")) {
+                copyRepository(System.getProperty("seed.repo.uri"), localRepository)
+                copyRepository(System.getProperty("common.repo.uri"), localRepository)
+                materializeLocalSnapshots(localRepository)
+            }
+            resultingSystemProperties.put("maven.repo.local", localRepository.toFile().absolutePath)
         }
         resultingSystemProperties.putAll(systemProperties)
         if (resultingSystemProperties.containsKey("maven.repo.local")) {
@@ -171,11 +179,54 @@ abstract class AbstractGraalVMMavenFunctionalTest extends Specification {
         result = executor.execute(
                 testDirectory.toFile(),
                 resultingSystemProperties,
-                [*injectedSystemProperties,
+                [*(Boolean.getBoolean("maven.offline") ? ["--offline"] : []),
+                 *injectedSystemProperties,
                  *args],
                 new File(System.getProperty("maven.settings"))
         )
         println "Exit code is ${result.exitCode}"
+    }
+
+    private static void copyRepository(String repositoryUri, Path target) {
+        Path source = Paths.get(URI.create(repositoryUri))
+        Files.walk(source).forEach(sourcePath -> {
+            Path targetPath = target.resolve(source.relativize(sourcePath))
+            if (Files.isDirectory(sourcePath)) {
+                Files.createDirectories(targetPath)
+            } else {
+                Files.createDirectories(targetPath.parent)
+                Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING)
+            }
+        })
+    }
+
+    private static void materializeLocalSnapshots(Path repository) {
+        Files.walk(repository)
+                .filter { it.fileName.toString() == "maven-metadata.xml" }
+                .forEach { metadataFile ->
+                    String metadata = Files.readString(metadataFile)
+                    String artifactId = xmlValue(metadata, "artifactId")
+                    String version = xmlValue(metadata, "version")
+                    if (artifactId && version.endsWith("-SNAPSHOT")) {
+                        (metadata =~ /(?s)<snapshotVersion>(.*?)<\/snapshotVersion>/).each { match ->
+                            String snapshot = match[1]
+                            String extension = xmlValue(snapshot, "extension")
+                            String value = xmlValue(snapshot, "value")
+                            String classifier = xmlValue(snapshot, "classifier")
+                            String classified = classifier ? "-${classifier}" : ""
+                            Path source = metadataFile.parent.resolve("${artifactId}-${value}${classified}.${extension}")
+                            Path target = metadataFile.parent.resolve("${artifactId}-${version}${classified}.${extension}")
+                            if (Files.isRegularFile(source)) {
+                                Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
+                            }
+                        }
+                    }
+                }
+    }
+
+    private static String xmlValue(String xml, String element) {
+        def matcher = xml =~ /(?s)<${element}>(.*?)<\/${element}>/
+        matcher.find() ? matcher.group(1).trim() : ""
     }
 
     void mvnDebug(String... args) {
