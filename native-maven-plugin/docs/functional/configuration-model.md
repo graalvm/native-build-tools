@@ -11,6 +11,11 @@ shared-library output, quick build, argument-file usage, classpath, classes dire
 exclusions, environment variables, system properties, JVM args, configuration file directories,
 metadata repository settings, required Native Image version, and agent configuration.
 
+The fallback parameter is deprecated because Native Image removed fallback support in GraalVM
+25.1. It remains available for compatibility: setting it to `false` produces `--no-fallback`
+before 25.1 and when the GraalVM release cannot be identified, while 25.1 and later omit the
+generated flag. Explicit user build arguments remain unchanged.
+
 ## 2. Command-line properties
 
 Configuration values documented as Maven command-line properties must be overridable through

@@ -30,6 +30,11 @@ When Gradle uses its plain console, the Native Image invocation must explicitly 
 build output. Otherwise, the `richOutput` option controls Native Image's color-enabled argument,
 adapting [§root/FS-native-builds.2](../../../docs/spec/functional/native-image-builds.md#2-command-line-construction).
 
+When fallback is disabled, the invocation must include `--no-fallback` before GraalVM 25.1 but
+omit the plugin-generated argument when GraalVM 25.1 or later is positively identified. If the
+GraalVM release cannot be identified, the invocation must retain the argument for compatibility.
+Explicit user build arguments remain unchanged.
+
 For a layer created from declared JARs, the command line must use those JARs as its classpath so
 the layer input remains limited to the declaration. A layer created from packages must instead
 retain the binary classpath, which supplies the classes selected by those package names.

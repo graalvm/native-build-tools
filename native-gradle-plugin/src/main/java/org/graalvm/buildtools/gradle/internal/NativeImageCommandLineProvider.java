@@ -84,6 +84,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
     private final Provider<RegularFile> classpathJar;
     private final Provider<Boolean> useArgFile;
     private final Provider<Integer> majorJDKVersion;
+    private final Provider<Boolean> fallbackRemoved;
     private final Provider<Boolean> plainConsole;
 
     public NativeImageCommandLineProvider(Provider<NativeImageOptions> options,
@@ -93,6 +94,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
                                           Provider<RegularFile> classpathJar,
                                           Provider<Boolean> useArgFile,
                                           Provider<Integer> majorJDKVersion,
+                                          Provider<Boolean> fallbackRemoved,
                                           Provider<Boolean> plainConsole) {
         this.options = options;
         this.executableName = executableName;
@@ -101,6 +103,7 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         this.classpathJar = classpathJar;
         this.useArgFile = useArgFile;
         this.majorJDKVersion = majorJDKVersion;
+        this.fallbackRemoved = fallbackRemoved;
         this.plainConsole = plainConsole;
     }
 
@@ -188,7 +191,10 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
             cliArgs.add(classpathString);
         }
         appendBooleanOption(cliArgs, options.getDebug(), "-g");
-        appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), NativeImageFlags.NO_FALLBACK);
+        if (!fallbackRemoved.getOrElse(false)) {
+            // GraalVM 25.1 removed fallback; unknown releases retain the compatibility flag. §FS-native-invocation.3.
+            appendBooleanOption(cliArgs, options.getFallback().map(NEGATE), NativeImageFlags.NO_FALLBACK);
+        }
         appendBooleanOption(cliArgs, options.getVerbose(), NativeImageFlags.VERBOSE);
         appendBooleanOption(cliArgs, options.getSharedLibrary(), NativeImageFlags.SHARED);
         appendBooleanOption(cliArgs, options.getQuickBuild(), NativeImageFlags.QUICK_BUILD);

@@ -71,6 +71,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { 25 },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
 
@@ -79,6 +80,66 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.contains("-DspacedProperty=value with spaces")
         !args.contains('-DpropertyName="value"')
         !args.contains('-DspacedProperty="value with spaces"')
+    }
+
+    // GraalVM 25.1 removes only the plugin-generated compatibility flag. §FS-native-invocation.3.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/991")
+    def "#label the generated no-fallback argument"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "main" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { fallbackRemoved },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        args.contains(NativeImageFlags.NO_FALLBACK) == expected
+
+        where:
+        label       | fallbackRemoved | expected
+        "retains"   | false           | true
+        "suppresses" | true            | false
+    }
+
+    def "retains an explicit no-fallback argument after fallback removal"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.buildArgs.add(NativeImageFlags.NO_FALLBACK)
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "main" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { true },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        args.count { it == NativeImageFlags.NO_FALLBACK } == 1
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/892")
@@ -103,6 +164,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { 25 },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
 
@@ -141,6 +203,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { 25 },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
 
@@ -177,6 +240,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { 25 },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
 
@@ -207,6 +271,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { nativeImageVersion },
+                project.provider { false },
                 project.provider { true }
         ).asArguments()
 
@@ -241,6 +306,7 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
                 project.objects.fileProperty(),
                 project.provider { false },
                 project.provider { nativeImageVersion },
+                project.provider { false },
                 project.provider { false }
         ).asArguments()
 

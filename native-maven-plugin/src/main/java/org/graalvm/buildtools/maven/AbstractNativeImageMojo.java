@@ -138,7 +138,14 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "debug", defaultValue = "false")
     protected boolean debug;
 
+    /**
+     * Native Image fallback support was removed in GraalVM 25.1, making this parameter a no-op
+     * there. The parameter remains functional with older GraalVM versions. §FS-config-model.1.
+     *
+     * @deprecated Native Image fallback support was removed in GraalVM 25.1.
+     */
     @Parameter(property = "fallback", defaultValue = "false")
+    @Deprecated
     protected boolean fallback;
 
     @Parameter(property = "verbose", defaultValue = "false")
@@ -225,7 +232,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         if (debug) {
             cliArgs.add("-g");
         }
-        if (!fallback) {
+        // GraalVM 25.1 removed fallback; unknown releases retain the compatibility flag. §FS-config-model.1.
+        if (!fallback && !isFallbackRemoved()) {
             cliArgs.add("--no-fallback");
         }
         if (verbose) {
@@ -348,6 +356,12 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         Path executable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(
                 logger, toolchainManager, session, enforceToolchain);
         return NativeImageUtils.getMajorJDKVersion(getVersionInformation(logger, executable));
+    }
+
+    protected boolean isFallbackRemoved() throws MojoExecutionException {
+        Path executable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(
+                logger, toolchainManager, session, enforceToolchain);
+        return NativeImageUtils.isGraalVMVersionAtLeast(getVersionInformation(logger, executable), 25, 1);
     }
 
     static List<String> processBuildArgs(List<String> buildArgs) {

@@ -276,7 +276,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getDisableToolchainDetection().convention(false);
     }
 
-    private List<String> buildActualCommandLineArgs(int majorJDKVersion) {
+    private List<String> buildActualCommandLineArgs(int majorJDKVersion, boolean fallbackRemoved) {
         getOptions().finalizeValue();
         return new NativeImageCommandLineProvider(
             getOptions(),
@@ -288,6 +288,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             getClasspathJar(),
             getUseArgFile(),
             getProviders().provider(() -> majorJDKVersion),
+            getProviders().provider(() -> fallbackRemoved),
             getProviders().provider(() -> plainConsole))
             .asArguments();
     }
@@ -323,7 +324,8 @@ public abstract class BuildNativeImageTask extends DefaultTask {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
         }
         int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
-        List<String> args = buildActualCommandLineArgs(majorJDKVersion);
+        boolean fallbackRemoved = NativeImageUtils.isGraalVMVersionAtLeast(versionString, 25, 1);
+        List<String> args = buildActualCommandLineArgs(majorJDKVersion, fallbackRemoved);
         if (options.getVerbose().get()) {
             logger.lifecycle("Args are: " + args);
         }

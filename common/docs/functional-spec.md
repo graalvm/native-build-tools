@@ -26,9 +26,11 @@ required by [§REQ-no-buildtool-apis](requirements.md#req-no-buildtool-apis-comm
 
 Common utilities keep Gradle and Maven command-line handling consistent. They must preserve
 whitespace, quotes, backslashes, and platform paths when escaping arguments; write Native Image
-argument files and return the corresponding `@...` argument ([§root/GLOSS-argument-file](../../docs/spec/glossary.md#gloss-argument-file-native-image-argument-file)); parse Native
-Image and JDK versions well enough to choose version-specific behavior; and centralize Native
-Image configuration file names and metadata directory names used by plugins and tests.
+argument files and return the corresponding `@...` argument ([§root/GLOSS-argument-file](../../docs/spec/glossary.md#gloss-argument-file-native-image-argument-file)); distinguish the GraalVM release from the JDK version in Native Image version output well enough to
+choose version-specific behavior, using the first dotted release on a runtime-environment line
+regardless of its vendor label and retaining compatibility behavior when that release cannot be
+identified; and centralize Native Image configuration file names and metadata directory names used
+by plugins and tests.
 
 ## 2. Resource configuration
 
