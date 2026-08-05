@@ -46,9 +46,9 @@ import spock.lang.Requires
 
 // Exercises Maven reactor production and consumption of nil layer artifacts. §E2E-functional-tests.3.8.
 class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
-    // GraalVM 25.0.x can seal its image-heap scanner during all-selector LayerUse processing.
+    // GraalVM 25.0.x can seal its image-heap scanner during LayerUse processing.
     // §E2E-functional-tests.3.8.
-    private static boolean hasAllSelectorLayerConsumptionBug() {
+    private static boolean hasLayerConsumptionBug() {
         !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
     }
 
@@ -150,7 +150,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasAllSelectorLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs an all selector layer in the reactor"() {
         given:
         withSample("layered-maven-application")
@@ -184,7 +184,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds a layer from an explicit path"() {
         given:
         withSample("layered-maven-application")
