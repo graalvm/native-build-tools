@@ -221,7 +221,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds a shared library using a layer artifact"() {
         given:
         withSample("layered-maven-application")
@@ -240,11 +240,13 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "native tests consume layers from their own execution"() {
         given:
         withSample("layered-maven-application")
-        file("application/src/test/java/org/graalvm/demo/ApplicationTest.java").text = '''
+        def applicationTest = file("application/src/test/java/org/graalvm/demo/ApplicationTest.java")
+        applicationTest.parentFile.mkdirs()
+        applicationTest.text = '''
             package org.graalvm.demo;
             import org.junit.jupiter.api.Test;
             import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -280,7 +282,9 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
 ''')
 
         when:
-        mvn '-DquickBuild', 'test'
+        // The producer's layer-create goal is bound to package, so complete that phase before
+        // resolving the consumer's native-test execution. §E2E-functional-tests.3.8.
+        mvn '-DquickBuild', 'package'
 
         then:
         buildSucceeded
@@ -289,11 +293,13 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs a chained reactor layer stack"() {
         given:
         withSample("layered-maven-application")
-        file("framework-layer/pom.xml").text = '''
+        def frameworkPom = file("framework-layer/pom.xml")
+        frameworkPom.parentFile.mkdirs()
+        frameworkPom.text = '''
             <project xmlns="http://maven.apache.org/POM/4.0.0">
                 <modelVersion>4.0.0</modelVersion>
                 <parent>

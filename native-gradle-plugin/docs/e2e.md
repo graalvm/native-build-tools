@@ -77,8 +77,8 @@ protects [§FS-native-tasks.4](functional/native-image-tasks.md#4-command-line-o
 Its layer scenarios cover module, package, explicit-path, and `all` selectors; executable,
 native-test, shared-library, and chained consumers; and provider duplicate validation before a
 producer task starts.
-The `all`-selector layer-consumption scenario is skipped on GraalVM 25.0.x because its image-heap
-scanner can fail after `-H:LayerUse` loads a valid layer.
+Layer-consumption scenarios that exercise the `all` selector or chained layers are skipped on
+GraalVM 25.0.x because Native Image can fail after `-H:LayerUse` loads a valid layer.
 
 ### 3.7 Gradle integration
 

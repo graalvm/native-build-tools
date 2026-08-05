@@ -57,9 +57,9 @@ import java.nio.charset.StandardCharsets
 // Exercises the top-level layer model, named task wiring, and configuration-cache isolation.
 // §FS-plugin-model.2 §FS-native-tasks.1 §FS-native-invocation.3.
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
-    // GraalVM 25.0.x can seal its image-heap scanner during all-selector LayerUse processing.
+    // GraalVM 25.0.x can fail during LayerUse processing.
     // §E2E-functional-tests.3.6.
-    private static boolean hasAllSelectorLayerConsumptionBug() {
+    private static boolean hasLayerConsumptionBug() {
         !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
     }
 
@@ -260,7 +260,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasAllSelectorLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs an all selector layer"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -374,7 +374,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs a three-level layer stack"() {
         given:
         withSample("layered-java-application")
