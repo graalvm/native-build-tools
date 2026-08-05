@@ -47,15 +47,19 @@ import org.graalvm.reachability.Query;
 import org.graalvm.reachability.internal.index.artifacts.SingleModuleJsonVersionToConfigDirectoryIndex;
 import org.graalvm.reachability.internal.index.artifacts.VersionToConfigDirectoryIndex;
 import org.graalvm.reachability.internal.index.modules.FileSystemModuleToConfigDirectoryIndex;
+import org.graalvm.reachability.internal.index.modules.ModuleConfigurationDirectory;
 
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Queries an unpacked reachability metadata repository. §FS-common-libraries.5.
@@ -99,90 +103,109 @@ public class FileSystemRepository implements GraalVMReachabilityMetadataReposito
     public Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder) {
         DefaultQuery query = new DefaultQuery();
         queryBuilder.accept(query);
-        return query.getArtifacts()
-                .stream()
-                .flatMap(artifactQuery -> {
-                    String groupId = artifactQuery.getGroupId();
-                    String artifactId = artifactQuery.getArtifactId();
-                    String version = artifactQuery.getVersion();
-                    return moduleIndex.findConfigurationDirectories(groupId, artifactId)
-                            .stream()
-                            .map(dir -> {
-                                VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir,
-                                        SingleModuleJsonVersionToConfigDirectoryIndex::new);
-                                if (artifactQuery.getForcedConfig().isPresent()) {
-                                    String configVersion = artifactQuery.getForcedConfig().get();
-                                    logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
-                                    return index.findConfiguration(groupId, artifactId, configVersion);
-                                }
-                                Optional<DirectoryConfiguration> configuration = index.findConfiguration(groupId, artifactId, version);
-                                if (!configuration.isPresent() && artifactQuery.isUseLatestVersion()) {
-                                    logger.log(groupId, artifactId, version, "Configuration directory not found. Trying latest version.");
-                                    configuration = index.findLatestConfigurationFor(groupId, artifactId, version);
-                                    if (!configuration.isPresent()) {
-                                        logger.log(groupId, artifactId, version, "Latest version not found!");
-                                    }
-                                }
-                                Optional<DirectoryConfiguration> finalConfigurationDirectory = configuration;
-                                logger.log(groupId, artifactId, version, () -> {
-                                    if (finalConfigurationDirectory.isPresent()) {
-                                        Path path = finalConfigurationDirectory.get().getDirectory();
-                                        return "Configuration directory is " + rootDirectory.relativize(path);
-                                    }
-                                    return "missing.";
-                                });
-                                return configuration;
-                            })
-                            .filter(Optional::isPresent)
-                            .map(Optional::get);
-                })
-                .collect(Collectors.toSet());
+        List<DefaultArtifactQuery> artifacts = query.getArtifacts();
+        Set<String> directlyQueriedModules = directlyQueriedModules(artifacts);
+        Map<String, DirectoryConfiguration> configurations = new LinkedHashMap<>();
+        // Select the complete query as one graph so requires never preempts a direct module query. §FS-common-libraries.5.1.
+        for (DefaultArtifactQuery artifactQuery : artifacts) {
+            for (ModuleConfigurationDirectory candidate : moduleIndex.findConfigurationDirectories(
+                    artifactQuery.getGroupId(), artifactQuery.getArtifactId())) {
+                boolean direct = isSameModule(candidate, artifactQuery);
+                if (!direct && directlyQueriedModules.contains(moduleKey(candidate.getGroupId(), candidate.getArtifactId()))) {
+                    continue;
+                }
+                Optional<String> forcedConfig = direct ? artifactQuery.getForcedConfig() : Optional.empty();
+                selectConfiguration(candidate, artifactQuery.getVersion(), artifactQuery.isUseLatestVersion(), forcedConfig)
+                        .ifPresent(configuration -> configurations.putIfAbsent(configurationKey(configuration), configuration));
+            }
+        }
+        return Collections.unmodifiableSet(new LinkedHashSet<>(configurations.values()));
     }
 
     @Override
     public boolean isCoveredByRepository(Consumer<? super Query> queryBuilder) {
         DefaultQuery query = new DefaultQuery();
         queryBuilder.accept(query);
-        return query.getArtifacts()
-                .stream()
-                .anyMatch(artifactQuery -> {
-                    String groupId = artifactQuery.getGroupId();
-                    String artifactId = artifactQuery.getArtifactId();
-                    String version = artifactQuery.getVersion();
-                    return moduleIndex.findConfigurationDirectories(groupId, artifactId)
-                            .stream()
-                            .anyMatch(dir -> {
-                                VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(dir, SingleModuleJsonVersionToConfigDirectoryIndex::new);
-                                Optional<DirectoryConfiguration> configuration;
-                                if (artifactQuery.getForcedConfig().isPresent()) {
-                                    String configVersion = artifactQuery.getForcedConfig().get();
-                                    logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
-                                    configuration = index.findConfiguration(groupId, artifactId, configVersion);
-                                } else {
-                                    configuration = index.findConfiguration(groupId, artifactId, version);
-                                    if (!configuration.isPresent() && artifactQuery.isUseLatestVersion()) {
-                                        logger.log(groupId, artifactId, version,
-                                                "Configuration directory not found. Trying latest version.");
-                                        configuration = index.findLatestConfigurationFor(groupId, artifactId, version);
-                                        if (!configuration.isPresent()) {
-                                            logger.log(groupId, artifactId, version, "Latest version not found!");
-                                        }
-                                    }
-                                }
-                                if (configuration.isPresent()) {
-                                    Path path = configuration.get().getDirectory();
-                                    logger.log(groupId, artifactId, version,
-                                            "Configuration directory is " + rootDirectory.relativize(path));
-                                    return true;
-                                }
-                                if (index.isNotForNativeImage(groupId, artifactId, version)) {
-                                    logger.log(groupId, artifactId, version, "Artifact is marked as not for native-image.");
-                                    return true;
-                                }
-                                logger.log(groupId, artifactId, version, "missing.");
-                                return false;
-                            });
-                });
+        List<DefaultArtifactQuery> artifacts = query.getArtifacts();
+        Set<String> directlyQueriedModules = directlyQueriedModules(artifacts);
+        // Check the complete query as one graph so requires never preempts a direct module query. §FS-common-libraries.5.1.
+        for (DefaultArtifactQuery artifactQuery : artifacts) {
+            for (ModuleConfigurationDirectory candidate : moduleIndex.findConfigurationDirectories(
+                    artifactQuery.getGroupId(), artifactQuery.getArtifactId())) {
+                boolean direct = isSameModule(candidate, artifactQuery);
+                if (!direct && directlyQueriedModules.contains(moduleKey(candidate.getGroupId(), candidate.getArtifactId()))) {
+                    continue;
+                }
+                Optional<String> forcedConfig = direct ? artifactQuery.getForcedConfig() : Optional.empty();
+                if (isCovered(candidate, artifactQuery.getVersion(), artifactQuery.isUseLatestVersion(), forcedConfig)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Optional<DirectoryConfiguration> selectConfiguration(ModuleConfigurationDirectory candidate,
+            String version, boolean useLatestVersion, Optional<String> forcedConfig) {
+        String groupId = candidate.getGroupId();
+        String artifactId = candidate.getArtifactId();
+        VersionToConfigDirectoryIndex index = artifactIndexes.computeIfAbsent(candidate.getDirectory(),
+                SingleModuleJsonVersionToConfigDirectoryIndex::new);
+        Optional<DirectoryConfiguration> configuration;
+        if (forcedConfig.isPresent()) {
+            String configVersion = forcedConfig.get();
+            logger.log(groupId, artifactId, version, "Configuration is forced to version " + configVersion);
+            configuration = index.findConfiguration(groupId, artifactId, configVersion);
+        } else {
+            configuration = index.findConfiguration(groupId, artifactId, version);
+            if (!configuration.isPresent() && useLatestVersion) {
+                logger.log(groupId, artifactId, version, "Configuration directory not found. Trying latest version.");
+                configuration = index.findLatestConfigurationFor(groupId, artifactId, version);
+                if (!configuration.isPresent()) {
+                    logger.log(groupId, artifactId, version, "Latest version not found!");
+                }
+            }
+        }
+        Optional<DirectoryConfiguration> result = configuration;
+        logger.log(groupId, artifactId, version, () -> result
+                .map(value -> "Configuration directory is " + rootDirectory.relativize(value.getDirectory()))
+                .orElse("missing."));
+        return configuration;
+    }
+
+    private boolean isCovered(ModuleConfigurationDirectory candidate, String version, boolean useLatestVersion,
+            Optional<String> forcedConfig) {
+        Optional<DirectoryConfiguration> configuration = selectConfiguration(candidate, version, useLatestVersion, forcedConfig);
+        if (configuration.isPresent()) {
+            return true;
+        }
+        VersionToConfigDirectoryIndex index = artifactIndexes.get(candidate.getDirectory());
+        if (index.isNotForNativeImage(candidate.getGroupId(), candidate.getArtifactId(), version)) {
+            logger.log(candidate.getGroupId(), candidate.getArtifactId(), version, "Artifact is marked as not for native-image.");
+            return true;
+        }
+        return false;
+    }
+
+    private static Set<String> directlyQueriedModules(List<DefaultArtifactQuery> artifacts) {
+        Set<String> modules = new LinkedHashSet<>();
+        for (DefaultArtifactQuery artifact : artifacts) {
+            modules.add(moduleKey(artifact.getGroupId(), artifact.getArtifactId()));
+        }
+        return modules;
+    }
+
+    private static boolean isSameModule(ModuleConfigurationDirectory candidate, DefaultArtifactQuery artifact) {
+        return candidate.getGroupId().equals(artifact.getGroupId()) && candidate.getArtifactId().equals(artifact.getArtifactId());
+    }
+
+    private static String moduleKey(String groupId, String artifactId) {
+        return groupId + ':' + artifactId;
+    }
+
+    private static String configurationKey(DirectoryConfiguration configuration) {
+        return moduleKey(configuration.getGroupId(), configuration.getArtifactId()) + ':' + configuration.getVersion()
+                + ':' + configuration.getDirectory().normalize() + ':' + configuration.isOverride();
     }
 
     public Path getRootDirectory() {

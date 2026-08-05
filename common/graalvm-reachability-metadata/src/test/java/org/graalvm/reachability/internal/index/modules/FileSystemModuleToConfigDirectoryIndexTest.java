@@ -46,13 +46,13 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+// Verifies identity-preserving, single-level requires discovery. §FS-common-libraries.5.1.
 class FileSystemModuleToConfigDirectoryIndexTest {
     private Path repoPath;
 
@@ -61,36 +61,40 @@ class FileSystemModuleToConfigDirectoryIndexTest {
     @Test
     void returnsSingleDirectory() throws URISyntaxException {
         writeIndex("single-dir");
-        Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
-        assertEquals(singleton(repoPath.resolve("io.netty/netty-core")), configurationDirectories);
+        Set<ModuleConfigurationDirectory> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-core");
+        assertEquals(singleton(directory("io.netty", "netty-core")), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
-        assertEquals(new HashSet<>(asList(
-                repoPath.resolve("io.netty/netty-all"),
-                repoPath.resolve("io.netty/netty-core")
+        assertEquals(Set.copyOf(asList(
+                directory("io.netty", "netty-all"),
+                directory("io.netty", "netty-core")
         )), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("org", "bar");
-        assertEquals(singleton(repoPath.resolve("org/bar")), configurationDirectories);
+        assertEquals(singleton(directory("org", "bar")), configurationDirectories);
     }
 
     @Test
     void returnsMultipleDirectories() throws URISyntaxException {
         writeIndex("multi-dirs");
-        Set<Path> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
-        assertEquals(new HashSet<>(asList(
-                repoPath.resolve("io.netty/netty-all"),
-                repoPath.resolve("io.netty/netty-core"),
-                repoPath.resolve("org.jline/jline")
+        Set<ModuleConfigurationDirectory> configurationDirectories = index.findConfigurationDirectories("io.netty", "netty-all");
+        assertEquals(Set.copyOf(asList(
+                directory("io.netty", "netty-all"),
+                directory("io.netty", "netty-core"),
+                directory("org.jline", "jline")
         )), configurationDirectories);
 
         configurationDirectories = index.findConfigurationDirectories("org", "bar");
-        assertEquals(singleton(repoPath.resolve("org/bar")), configurationDirectories);
+        assertEquals(singleton(directory("org", "bar")), configurationDirectories);
     }
 
     private void writeIndex(String json) throws URISyntaxException {
         repoPath = new File(FileSystemModuleToConfigDirectoryIndexTest.class.getResource("/json/modules/" + json).toURI()).toPath();
         index = new FileSystemModuleToConfigDirectoryIndex(repoPath);
+    }
+
+    private ModuleConfigurationDirectory directory(String groupId, String artifactId) {
+        return new ModuleConfigurationDirectory(groupId, artifactId, repoPath.resolve(groupId + "/" + artifactId));
     }
 
 }

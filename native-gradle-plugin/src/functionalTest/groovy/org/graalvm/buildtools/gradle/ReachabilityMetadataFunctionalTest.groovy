@@ -44,6 +44,9 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
 
+import java.nio.file.Files
+import java.util.jar.JarOutputStream
+
 class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
     def "the application runs when using the official metadata repository"() {
@@ -71,6 +74,126 @@ class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 ''')
         and: "has copied reachability-metadata.properties file"
         file("build/native-reachability-metadata/META-INF/native-image/io.netty/netty-codec-http/4.1.80.Final/reachability-metadata.properties").text.trim() == 'override=true'
+    }
+
+    // Required metadata stays additive and graph-aware across repeated collection.
+    // §common/FS-common-libraries.5.1 §FS-resources-and-metadata.3 §E2E-functional-tests.
+    def "requires metadata keeps requester and required module outputs distinct"() {
+        given:
+        settingsFile << """
+rootProject.name = 'requires-metadata'
+include 'present', 'absent', 'excluded'
+"""
+        file('present').mkdirs()
+        file('absent').mkdirs()
+        file('excluded').mkdirs()
+        createMavenModule("com.requester", "app", "1.0")
+        createMavenModule("com.required", "lib", "2.0")
+        createMetadataRepository()
+        buildFile << """
+plugins {
+    id 'org.graalvm.buildtools.native' apply false
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.graalvm.buildtools.native'
+
+    repositories {
+        maven { url = rootProject.file('maven-repo') }
+    }
+
+    dependencies {
+        implementation 'com.requester:app:1.0'
+    }
+
+    graalvmNative.metadataRepository.uri(rootProject.file('metadata-repo'))
+}
+
+project(':present') {
+    dependencies {
+        implementation 'com.required:lib:2.0'
+    }
+}
+
+project(':excluded') {
+    graalvmNative.metadataRepository.excludedModules.add('com.required:lib')
+}
+"""
+
+        when:
+        run ':present:clean', ':present:collectReachabilityMetadata', ':absent:clean', ':absent:collectReachabilityMetadata',
+                ':excluded:clean', ':excluded:collectReachabilityMetadata'
+
+        then:
+        tasks {
+            succeeded ':present:collectReachabilityMetadata', ':absent:collectReachabilityMetadata',
+                    ':excluded:collectReachabilityMetadata'
+        }
+        assertRequiresOutputs()
+
+        when: "the clean collection is repeated"
+        run ':present:clean', ':present:collectReachabilityMetadata', ':absent:clean', ':absent:collectReachabilityMetadata',
+                ':excluded:clean', ':excluded:collectReachabilityMetadata', '--rerun-tasks'
+
+        then:
+        tasks {
+            succeeded ':present:collectReachabilityMetadata', ':absent:collectReachabilityMetadata',
+                    ':excluded:collectReachabilityMetadata'
+        }
+        assertRequiresOutputs()
+    }
+
+    private void assertRequiresOutputs() {
+        assert marker('present', 'com.requester/app/1.0').text == 'requester'
+        assert marker('present', 'com.required/lib/2.0').text == 'required-2'
+        assert marker('absent', 'com.requester/app/1.0').text == 'requester'
+        assert marker('absent', 'com.required/lib/1.0').text == 'required-1'
+        assert marker('excluded', 'com.requester/app/1.0').text == 'requester'
+        assert !marker('excluded', 'com.required/lib/1.0').exists()
+        assert marker('present', 'com.requester/app/1.0').text != marker('present', 'com.required/lib/2.0').text
+    }
+
+    private File marker(String projectName, String coordinates) {
+        file(projectName, "build/native-reachability-metadata/META-INF/native-image/$coordinates/marker.txt")
+    }
+
+    private void createMavenModule(String group, String artifact, String version) {
+        File module = file('maven-repo', group.replace('.', '/'), artifact, version)
+        module.mkdirs()
+        new JarOutputStream(Files.newOutputStream(module.toPath().resolve("${artifact}-${version}.jar"))).close()
+        module.toPath().resolve("${artifact}-${version}.pom").toFile().text = """<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>$group</groupId>
+  <artifactId>$artifact</artifactId>
+  <version>$version</version>
+</project>
+"""
+    }
+
+    private void createMetadataRepository() {
+        file('metadata-repo/schemas').mkdirs()
+        file('metadata-repo/schemas/reachability-metadata-schema-v1.2.0.json').text = '{"version":"1.2.0"}'
+        file('metadata-repo/schemas/metadata-library-index-schema-v2.0.0.json').text = '{}'
+        file('metadata-repo/schemas/library-and-framework-list-schema-v1.0.0.json').text = '{}'
+        metadataModule('com.requester', 'app', '''[
+  {"tested-versions":["1.0"],"metadata-version":"requester","requires":["com.required:lib"]}
+]''', ['requester': 'requester'])
+        metadataModule('com.required', 'lib', '''[
+  {"tested-versions":["1.0"],"metadata-version":"required-1"},
+  {"tested-versions":["2.0"],"metadata-version":"required-2"}
+]''', ['required-1': 'required-1', 'required-2': 'required-2'])
+    }
+
+    private void metadataModule(String group, String artifact, String index, Map<String, String> markers) {
+        File module = file('metadata-repo', group, artifact)
+        module.mkdirs()
+        new File(module, 'index.json').text = index
+        markers.each { directory, marker ->
+            File metadata = new File(module, directory)
+            metadata.mkdirs()
+            new File(metadata, 'marker.txt').text = marker
+        }
     }
 
 }

@@ -103,6 +103,15 @@ metadata directory using index data, module-to-config-version overrides, default
 exclusions. Queries must classify dependencies as supported, excluded, not-for-Native-Image, or
 missing so plugin diagnostics and reports do not duplicate repository rules.
 
+The artifacts submitted in one query form the eligible resolved dependency graph for single-level
+`requires` expansion. Every selected configuration retains the group and artifact identity of the
+module whose repository directory owns it. If a required module is present in the submitted graph,
+only that module's direct query selects its metadata, using its resolved version, exclusion, and
+module-to-config-version override. If it is absent, the requiring module may select it once from the
+required module's directory using the requiring module's resolved version and normal exact-version
+then latest/default fallback behavior. An indirect required selection counts as repository coverage
+for the requiring query, but it does not recursively expand the required module's own `requires`.
+
 ### 5.2 Plugin entry points and outputs
 
 Product-specific repository resolution entry points are specified by [§gradle/FS-resources-and-metadata.3](../../native-gradle-plugin/docs/functional/resources-and-metadata.md#3-reachability-metadata-collection)

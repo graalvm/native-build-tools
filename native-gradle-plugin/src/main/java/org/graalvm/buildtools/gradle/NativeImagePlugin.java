@@ -157,7 +157,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
-import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableFunctionOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializablePredicateOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableSupplierOf;
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
@@ -564,13 +563,14 @@ public class NativeImagePlugin implements Plugin<Project> {
                 Map<String, String> forcedVersions = moduleToConfigVersion.getOrElse(Collections.emptyMap());
                 return metadataServiceProvider.map(serializableTransformerOf(service -> {
                     Set<ResolvedComponentResult> components = findAllComponentsFrom(rootComponent.get());
-                    return components.stream().flatMap(serializableFunctionOf(component -> {
-                        ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
-                        Set<DirectoryConfiguration> configurations = service.findConfigurationsFor(excludedModules, forcedVersions, moduleVersion);
-                        return configurations.stream()
-                            .filter(filter)
-                            .map(NativeImagePlugin::getConfigurationDirectory);
-                    })).collect(Collectors.<File>toList());
+                    // Native compilation consumes the same graph-aware selection as collection.
+                    // §common/FS-common-libraries.5.1 §FS-resources-and-metadata.3.
+                    return service.findConfigurationsForModules(excludedModules, forcedVersions,
+                            components.stream().map(ResolvedComponentResult::getModuleVersion).collect(Collectors.toList()))
+                        .stream()
+                        .filter(filter)
+                        .map(NativeImagePlugin::getConfigurationDirectory)
+                        .collect(Collectors.<File>toList());
                 }));
             }
             return providers.provider(Collections::emptyList);
@@ -596,13 +596,18 @@ public class NativeImagePlugin implements Plugin<Project> {
                 Map<String, String> forcedVersions = moduleToConfigVersion.getOrElse(Collections.emptyMap());
                 return metadataServiceProvider.map(serializableTransformerOf(service -> {
                     Set<ResolvedComponentResult> components = findAllComponentsFrom(rootComponent.get());
-                    return components.stream().flatMap(serializableFunctionOf(component -> {
-                        ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
-                        Set<DirectoryConfiguration> configurations = service.findConfigurationsFor(excludedModules, forcedVersions, moduleVersion);
-                        return configurations.stream()
-                            .filter(filter)
-                            .map(e -> getExclusionConfig(moduleVersion));
-                    })).collect(Collectors.toMap(ExcludeEntry::getGav, ExcludeEntry::getExcludes));
+                    Map<String, ModuleVersionIdentifier> modulesByCoordinates = components.stream()
+                            .map(ResolvedComponentResult::getModuleVersion)
+                            .collect(Collectors.toMap(module -> module.getGroup() + ":" + module.getName(), module -> module, (left, right) -> left));
+                    // Build exclusions from the complete graph-aware selection. §common/FS-common-libraries.5.1 §FS-resources-and-metadata.3.
+                    return service.findConfigurationsForModules(excludedModules, forcedVersions, modulesByCoordinates.values())
+                        .stream()
+                        .filter(filter)
+                        .map(configuration -> modulesByCoordinates.get(configuration.getGroupId() + ":" + configuration.getArtifactId()))
+                        .filter(Objects::nonNull)
+                        // Override exclusions belong to the directly resolved owner, never its requester. §FS-resources-and-metadata.3.
+                        .map(NativeImagePlugin::getExclusionConfig)
+                        .collect(Collectors.toMap(ExcludeEntry::getGav, ExcludeEntry::getExcludes, (left, right) -> left));
                 }));
             }
             return providers.provider(Collections::emptyMap);

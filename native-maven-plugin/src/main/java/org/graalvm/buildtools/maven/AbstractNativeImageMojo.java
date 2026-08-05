@@ -489,6 +489,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected void addDependenciesToClasspath() throws MojoExecutionException {
         configureMetadataRepository();
         Set<Artifact> collected = new HashSet<>();
+        // Resolve repository metadata after collecting the complete eligible dependency graph.
+        // §common/FS-common-libraries.5.1 §FS-resources-and-metadata.2.
+        List<Artifact> metadataDependencies = new ArrayList<>();
         // Must keep classpath order is the same with surefire test
         for (Artifact dependency : project.getArtifacts()) {
             if (getDependencyScopes().contains(dependency.getScope()) && collected.add(dependency) && !isExcluded(dependency)) {
@@ -496,15 +499,16 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 if (dependencyPath != null) {
                     imageClasspath.add(dependencyPath);
                     if (dependency.getFile() != null) {
-                        maybeAddDependencyMetadata(dependency, file -> {
-                            buildArgs.add("--exclude-config");
-                            buildArgs.add(Pattern.quote(dependency.getFile().getAbsolutePath()));
-                            buildArgs.add("^/META-INF/native-image/");
-                        });
+                        metadataDependencies.add(dependency);
                     }
                 }
             }
         }
+        addDependencyMetadata(metadataDependencies, file -> {
+            buildArgs.add("--exclude-config");
+            buildArgs.add(Pattern.quote(file.getAbsolutePath()));
+            buildArgs.add("^/META-INF/native-image/");
+        });
     }
 
     protected void addInferredDependenciesToClasspath() {
