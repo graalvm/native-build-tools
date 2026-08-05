@@ -90,8 +90,9 @@ consumes the layer, executes, and produces the expected output. This protects [Â
 [Â§FS-config-model.7](functional/configuration-model.md#7-layer-configuration).
 The class is the executable evidence for module, package, explicit-path, and `all` selection,
 main, native-test, shared-library, and chained layer consumption.
-The `all`-selector and explicit-path layer-consumption scenarios are skipped on GraalVM 25.0.x
-because its image-heap scanner can fail after `-H:LayerUse` loads a valid layer.
+Layer-consumption scenarios that exercise explicit paths, native tests, shared libraries, or
+chained layers are skipped on GraalVM 25.0.x because Native Image can fail after `-H:LayerUse`
+loads a valid layer.
 
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the
