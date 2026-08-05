@@ -92,14 +92,15 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
     def "rejects duplicate provider layer selections before the producer runs"() {
         given:
         withSample("layered-java-application")
-        buildFile << '''
-            graalvmNative {
-                binaries.main {
-                    useLayer(graalvmNative.layers.getByName('dependencies'))
-                    useLayer(providers.provider { graalvmNative.layers.getByName('dependencies') })
-                }
-            }
-        '''.stripIndent()
+        // Replace the sample's happy-path consumer so this test isolates direct/provider duplicates. §FS-plugin-model.2.
+        buildFile.text = buildFile.text.replace('''        main {
+            usesLayer('dependencies')
+        }
+''', '''        main {
+            useLayer(graalvmNative.layers.getByName('dependencies'))
+            useLayer(providers.provider { graalvmNative.layers.getByName('dependencies') })
+        }
+''')
 
         when:
         fails 'nativeCompile', '--configuration-cache'
@@ -388,7 +389,6 @@ public class Application {
                     }
                 }
                 binaries.main {
-                    usesLayer('dependencies')
                     usesLayer('framework')
                 }
                 layers.dependencies.verbose = true
