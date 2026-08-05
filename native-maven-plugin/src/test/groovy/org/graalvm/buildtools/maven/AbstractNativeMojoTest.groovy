@@ -41,13 +41,18 @@
 
 package org.graalvm.buildtools.maven
 
+import org.apache.maven.artifact.Artifact
 import org.codehaus.plexus.logging.Logger
 import org.graalvm.buildtools.VersionInfo
+import org.graalvm.reachability.DirectoryConfiguration
+import org.graalvm.reachability.GraalVMReachabilityMetadataRepository
+import org.graalvm.reachability.Query
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.function.Consumer
 
 import static org.graalvm.buildtools.utils.SharedConstants.METADATA_REPO_URL_TEMPLATE
 
@@ -70,6 +75,30 @@ class AbstractNativeMojoTest extends Specification {
         mojo.downloadedUrl.toString() == String.format(METADATA_REPO_URL_TEMPLATE, VersionInfo.METADATA_REPO_VERSION)
         mojo.metadataRepository != null
         mojo.metadataRepositoryConfiguration == null
+    }
+
+    // Maven submits one eligible graph for shared requires-aware selection. §common/FS-common-libraries.5.1 §FS-resources-and-metadata.2.
+    void "dependency metadata is submitted as one eligible graph"() {
+        given:
+        def mojo = new MetadataFallbackMojo(testDirectory)
+        def repository = new RecordingRepository()
+        mojo.metadataRepository = repository
+        Artifact requester = artifact('com.requester', 'app', '1.0')
+        Artifact required = artifact('com.required', 'lib', '2.0')
+
+        when:
+        mojo.addDependencyMetadata([requester, required], null)
+
+        then:
+        repository.queries == [['com.requester:app:1.0', 'com.required:lib:2.0']]
+    }
+
+    private Artifact artifact(String group, String name, String version) {
+        Mock(Artifact) {
+            getGroupId() >> group
+            getArtifactId() >> name
+            getVersion() >> version
+        }
     }
 
     private static class MetadataFallbackMojo extends AbstractNativeMojo {
@@ -103,6 +132,49 @@ class AbstractNativeMojoTest extends Specification {
             Files.createFile(destination.resolve("schemas/library-and-framework-list-schema-v1.0.0.json"))
             Files.createFile(destination.resolve("schemas/reachability-metadata-schema-v1.2.0.json"))
             destination
+        }
+    }
+
+    private static class RecordingRepository implements GraalVMReachabilityMetadataRepository {
+        final List<List<String>> queries = []
+
+        @Override
+        Set<DirectoryConfiguration> findConfigurationsFor(Consumer<? super Query> queryBuilder) {
+            def artifacts = []
+            queryBuilder.accept(new Query() {
+                @Override
+                void forArtifacts(String... gavCoordinates) {
+                    artifacts.addAll(gavCoordinates)
+                }
+
+                @Override
+                void forArtifact(Consumer<? super Query.ArtifactQuery> config) {
+                    config.accept(new Query.ArtifactQuery() {
+                        @Override
+                        void gav(String gavCoordinates) {
+                            artifacts.add(gavCoordinates)
+                        }
+
+                        @Override
+                        void useLatestConfigWhenVersionIsUntested() {
+                        }
+
+                        @Override
+                        void doNotUseLatestConfigWhenVersionIsUntested() {
+                        }
+
+                        @Override
+                        void forceConfigVersion(String version) {
+                        }
+                    })
+                }
+
+                @Override
+                void useLatestConfigWhenVersionIsUntested() {
+                }
+            })
+            queries.add(artifacts)
+            Collections.emptySet()
         }
     }
 }

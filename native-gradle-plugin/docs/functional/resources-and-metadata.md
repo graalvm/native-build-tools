@@ -25,7 +25,9 @@ automatically.
 `collectReachabilityMetadata` resolves metadata for the runtime classpath from the configured
 metadata repository URI, version, exclusions, and module-to-config-version overrides. Its output
 directory must be consumable by native compile tasks and must contain only metadata selected for
-the binary's dependency graph. When no URI or version is pinned, the Gradle default should follow
+the binary's dependency graph. Metadata selected through a repository `requires` relationship must
+remain additive and be written under the required module's own coordinate path without replacing
+the requiring module's output. When no URI or version is pinned, the Gradle default should follow
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 Normal Gradle output must identify the selected metadata repository version
 or, when a version is not known for a local path or arbitrary URL, the selected repository source.

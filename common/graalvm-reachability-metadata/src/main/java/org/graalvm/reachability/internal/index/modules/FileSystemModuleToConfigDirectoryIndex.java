@@ -55,6 +55,7 @@ import java.util.Set;
  * Module-to-config index which:
  * - Resolves the primary module directory by conventional layout (groupId/artifactId),
  * - Reads requires from the inner metadata/group/artifact/index.json and adds their conventional directories.
+ * §FS-common-libraries.5.1.
  */
 public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDirectoryIndex {
     private final Path rootPath;
@@ -71,7 +72,7 @@ public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDir
      * - Only a single-level requires expansion is performed
      */
     @Override
-    public Set<Path> findConfigurationDirectories(String groupId, String artifactId) {
+    public Set<ModuleConfigurationDirectory> findConfigurationDirectories(String groupId, String artifactId) {
         Path base = rootPath.resolve(groupId + "/" + artifactId);
         if (!Files.isDirectory(base)) {
             return Collections.emptySet();
@@ -79,10 +80,10 @@ public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDir
 
         Path indexFile = base.resolve("index.json");
         if (Files.isRegularFile(indexFile)) {
-            Set<Path> result = new LinkedHashSet<>();
+            Set<ModuleConfigurationDirectory> result = new LinkedHashSet<>();
             // Always include the base directory so its index.json is parsed,
             // even if it doesn't contain configuration files itself.
-            result.add(base);
+            result.add(new ModuleConfigurationDirectory(groupId, artifactId, base));
             try {
                 String content = Files.readString(indexFile);
                 JSONArray entries = new JSONArray(content);
@@ -100,7 +101,7 @@ public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDir
                             String reqArtifact = req.substring(sep + 1);
                             Path reqDir = rootPath.resolve(reqGroup + "/" + reqArtifact);
                             if (Files.isDirectory(reqDir)) {
-                                result.add(reqDir);
+                                result.add(new ModuleConfigurationDirectory(reqGroup, reqArtifact, reqDir));
                             }
                         }
                     }
@@ -111,6 +112,6 @@ public class FileSystemModuleToConfigDirectoryIndex implements ModuleToConfigDir
             return result;
         }
 
-        return Collections.singleton(base);
+        return Collections.singleton(new ModuleConfigurationDirectory(groupId, artifactId, base));
     }
 }
