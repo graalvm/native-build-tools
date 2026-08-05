@@ -57,6 +57,12 @@ import java.nio.charset.StandardCharsets
 // Exercises the top-level layer model, named task wiring, and configuration-cache isolation.
 // §FS-plugin-model.2 §FS-native-tasks.1 §FS-native-invocation.3.
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
+    // GraalVM 25.0.x can seal its image-heap scanner during all-selector LayerUse processing.
+    // §E2E-functional-tests.3.6.
+    private static boolean hasAllSelectorLayerConsumptionBug() {
+        !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
+    }
+
     def "configures a named layer outside the binary container"() {
         given:
         withSample("layered-java-application")
@@ -107,7 +113,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         }
     }
 
-    // Layers are disabled on JDK 25.0.x Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
+    // Layers are disabled on Darwin and Windows CI platforms. §E2E-functional-tests.3.6.
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
@@ -253,7 +259,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasAllSelectorLayerConsumptionBug() })
     def "builds and runs an all selector layer"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
