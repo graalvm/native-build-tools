@@ -188,7 +188,9 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     def "builds a layer from an explicit path"() {
         given:
         withSample("layered-maven-application")
-        file("base-layer/src/main/java/org/graalvm/demo/BaseLayerType.java").text = '''
+        def baseLayerType = file("base-layer/src/main/java/org/graalvm/demo/BaseLayerType.java")
+        baseLayerType.parentFile.mkdirs()
+        baseLayerType.text = '''
             package org.graalvm.demo;
             public final class BaseLayerType {
                 private BaseLayerType() { }
