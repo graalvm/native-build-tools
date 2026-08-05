@@ -129,7 +129,6 @@ val prepareMavenLocalRepo = tasks.register<SeedMavenRepository>("prepareMavenLoc
     pomFile.set(seedingDir.map { it.file("pom.xml") })
     mavenEmbedderClasspath.from(configurations.mavenEmbedder)
     outputDirectory.set(localRepositoryDir)
-    updateSnapshots.set(true)
     seedProperties.put("junit.jupiter.version", libs.versions.junitJupiter)
     seedProperties.put("native.maven.plugin.version", libs.versions.nativeBuildTools)
     seedProperties.put("junit.platform.native.version", libs.versions.nativeBuildTools)

@@ -96,9 +96,22 @@ sample project would, rather than reaching into compiled classes directly.
 
 Online `prepareMavenLocalRepo` builds a replacement seed in staging and publishes it only after
 Maven succeeds. Its seed-state manifest keys the prepared seeding project, Maven settings,
-embedder classpath, goals, flags, supplied version/system-property values, and seed schema. The
-manifest inventories every stable repository file by relative path and content hash; transient
-locks, temporary downloads, and resolver-status files are excluded.
+embedder classpath, goals, flags, supplied version/system-property values, the explicit Java 17
+launcher, and seed schema. The fresh staging repository follows Maven's normal remote snapshot
+policy rather than requesting unconditional snapshot updates. The manifest inventories every
+stable repository file by relative path and content hash; transient locks, temporary downloads,
+and resolver-status files are excluded.
+
+Repository-internal Maven executions use the Gradle toolchain-provided Java 17 launcher regardless
+of the runtime that launched Gradle or the separately selected functional-test JVM. Ordinary
+execution captures Maven's routine streams, omits Maven error stacks, and reports one actionable
+Gradle failure. A dependency-resolution failure identifies the first unresolved artifact and
+repository, sanitizing repository URLs by removing credentials, query values, and fragments; an
+unclassified failure reports the final meaningful Maven error. Gradle `--info` replays the captured
+Maven output and enables Maven error detail, while Gradle `--debug` additionally enables Maven debug
+output. Descriptor generation uses an isolated task-local Maven repository and clears failed-transfer
+markers before execution so stale negative cache entries cannot require snapshot refreshes. These
+launcher and effective argument inputs participate in seed validity.
 
 Offline descriptor and functional-test prerequisites validate that manifest without invoking
 Maven or modifying the repository. Validation requires the current input key and the complete

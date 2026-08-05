@@ -16,6 +16,7 @@
 package org.graalvm.build.maven;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -28,11 +29,14 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
+import org.gradle.process.ExecResult;
 import org.gradle.process.JavaExecSpec;
 
 import javax.inject.Inject;
@@ -42,7 +46,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Runs embedded Maven with explicit offline and snapshot-update policy. §E2E-functional-tests.4
+ * Runs embedded Maven with concise diagnostics and an explicit supported launcher. §E2E-functional-tests.4
  */
 @CacheableTask
 public abstract class MavenTask extends DefaultTask {
@@ -74,15 +78,14 @@ public abstract class MavenTask extends DefaultTask {
     @Input
     public abstract Property<Boolean> getOffline();
 
-    @Input
-    public abstract Property<Boolean> getUpdateSnapshots();
+    @Nested
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
     public MavenTask() {
         getOffline().convention(false);
-        getUpdateSnapshots().convention(false);
     }
 
     protected void extractOutput(File tmpDir, File outputDirectory) {
@@ -101,16 +104,23 @@ public abstract class MavenTask extends DefaultTask {
         File settingsFile = getSettingsFile().getAsFile().get();
         File outputDirectory = getOutputDirectory().getAsFile().get();
         File projectdir = getProjectDirectory().getAsFile().get();
-        getExecOperations().javaexec(spec -> {
+        MavenOutput output = new MavenOutput();
+        ExecResult result = getExecOperations().javaexec(spec -> {
             spec.setClasspath(getMavenEmbedderClasspath());
             spec.getMainClass().set("org.apache.maven.cli.MavenCli");
+            spec.setExecutable(getJavaLauncher().get().getExecutablePath().getAsFile());
             spec.systemProperty("maven.multiModuleProjectDirectory", projectdir.getAbsolutePath());
             spec.systemProperty("org.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener", "warn");
+            spec.setStandardOutput(output);
+            spec.setErrorOutput(output);
+            spec.setIgnoreExitValue(true);
             prepareSpec(spec);
             List<String> arguments = new ArrayList<>();
-            arguments.add("--errors");
-            if (getUpdateSnapshots().get()) {
-                arguments.add("-U");
+            if (getLogger().isInfoEnabled()) {
+                arguments.add("--errors");
+            }
+            if (getLogger().isDebugEnabled()) {
+                arguments.add("--debug");
             }
             if (getOffline().get()) {
                 arguments.add("--offline");
@@ -122,8 +132,15 @@ public abstract class MavenTask extends DefaultTask {
             arguments.addAll(getArguments().get());
             prepareArguments(arguments);
             spec.args(arguments);
-            getLogger().lifecycle("Invoking Maven with arguments " + arguments);
+            getLogger().info("Invoking Maven with arguments {}", arguments);
         });
+        String diagnostics = output.contents();
+        if (getLogger().isInfoEnabled() && !diagnostics.isBlank()) {
+            getLogger().info("Embedded Maven output:\n{}", diagnostics);
+        }
+        if (result.getExitValue() != 0) {
+            throw new GradleException(MavenOutput.failureMessage(diagnostics));
+        }
         extractOutput(projectdir, outputDirectory);
     }
 

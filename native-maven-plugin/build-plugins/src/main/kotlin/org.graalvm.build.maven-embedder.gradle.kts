@@ -39,8 +39,23 @@
  * SOFTWARE.
  */
 
+import org.graalvm.build.maven.MavenTask
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.kotlin.dsl.withType
+
 // Shared maintainer-facing build configurations are convention-plugin behavior. §root/FS-build-infrastructure.2.1
 val mavenEmbedder = configurations.create("mavenEmbedder")
 val testFixturesImplementation = configurations.getByName("testFixturesImplementation")
 
 testFixturesImplementation.extendsFrom(mavenEmbedder)
+
+// Repository-internal Maven runs on the supported Java floor independently of the Gradle daemon. §E2E-functional-tests.4
+val embeddedMavenLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+tasks.withType<MavenTask>().configureEach {
+    javaLauncher.set(embeddedMavenLauncher)
+}
