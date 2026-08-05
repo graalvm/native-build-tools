@@ -66,6 +66,8 @@ public abstract class NativeImageLayer implements Named {
     private final LayerContents contents;
     private final Project project;
     private final ConfigurableFileCollection layerFiles;
+    private final ConfigurableFileCollection inheritedCompatibilityClasspath;
+    private final ConfigurableFileCollection compatibilityClasspath;
     private final Set<String> configuredLayerNames = new HashSet<>();
 
     @Inject
@@ -74,6 +76,8 @@ public abstract class NativeImageLayer implements Named {
         this.contents = objects.newInstance(LayerContents.class, project);
         this.project = project;
         this.layerFiles = project.files();
+        this.inheritedCompatibilityClasspath = project.files();
+        this.compatibilityClasspath = project.files();
     }
 
     @Override
@@ -115,6 +119,7 @@ public abstract class NativeImageLayer implements Named {
             .getLayers()
             .getByName(name));
         layerFiles.from(layer.flatMap(NativeImageLayer::getOutputFile));
+        inheritedCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
     }
 
     @Internal
@@ -123,6 +128,24 @@ public abstract class NativeImageLayer implements Named {
     @Internal
     public ConfigurableFileCollection getUseLayerFiles() {
         return layerFiles;
+    }
+
+    /**
+     * Classpath entries inherited from layers consumed by this layer.
+     * §FS-native-invocation.3.
+     */
+    @Internal
+    public ConfigurableFileCollection getInheritedCompatibilityClasspath() {
+        return inheritedCompatibilityClasspath;
+    }
+
+    /**
+     * Classpath entries that must accompany this layer in every dependent layer or binary.
+     * §FS-native-invocation.3.
+     */
+    @Internal
+    public ConfigurableFileCollection getCompatibilityClasspath() {
+        return compatibilityClasspath;
     }
 
     @Internal

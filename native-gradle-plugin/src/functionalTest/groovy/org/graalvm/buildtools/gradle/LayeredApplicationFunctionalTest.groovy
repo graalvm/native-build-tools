@@ -186,16 +186,10 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         file("src/main/java/org/graalvm/demo/Application.java").text = """
 package org.graalvm.demo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Application {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Application.class);
-
     public static void main(String[] args) {
-        LOGGER.info("App started with args {}", String.join(", ", args));
+        System.out.println("Updated application: " + String.join(", ", args));
     }
-
 }
 
 """
@@ -235,8 +229,12 @@ public class Application {
     def "builds a layer with a package selector"() {
         given:
         withSample("layered-java-application")
+        buildFile << '''
+            dependencies {
+                implementation("org.slf4j:slf4j-api:2.0.17")
+            }
+        '''.stripIndent()
         buildFile.text = buildFile.text.replace('''                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
 ''', '''                packages("org.slf4j")
 ''')
         buildFile << '''
@@ -267,7 +265,6 @@ public class Application {
         given:
         withSample("layered-java-application")
         buildFile.text = buildFile.text.replace('''                modules("java.base")
-                fromConfiguration(configurations.runtimeClasspath)
 ''', '''                all = true
 ''')
         buildFile << '''
@@ -296,8 +293,14 @@ public class Application {
     def "builds and runs a layer from explicit paths"() {
         given:
         withSample("layered-java-application")
-        buildFile.text = buildFile.text.replace('''                fromConfiguration(configurations.runtimeClasspath)
-''', '''                from(configurations.runtimeClasspath)
+        buildFile << '''
+            dependencies {
+                implementation("org.apache.commons:commons-lang3:3.17.0")
+            }
+        '''.stripIndent()
+        buildFile.text = buildFile.text.replace('''                modules("java.base")
+''', '''                modules("java.base")
+                from(configurations.runtimeClasspath)
 ''')
         buildFile << '''
             graalvmNative.metadataRepository.enabled = false
@@ -327,7 +330,7 @@ public class Application {
         buildFile << '''
             graalvmNative {
                 metadataRepository.enabled = false
-                layers.dependencies.contents.modules('java.sql')
+                layers.dependencies.contents.modules('java.sql', 'java.management')
                 binaries.test {
                     usesLayer('dependencies')
                 }
@@ -379,12 +382,15 @@ public class Application {
         given:
         withSample("layered-java-application")
         buildFile << '''
+            dependencies {
+                implementation("org.apache.commons:commons-lang3:3.17.0")
+            }
             graalvmNative {
                 metadataRepository.enabled = false
                 layers {
                     framework {
                         usesLayer('dependencies')
-                        contents.modules('java.sql')
+                        contents.fromConfiguration(configurations.runtimeClasspath)
                         verbose = true
                     }
                 }
@@ -402,7 +408,7 @@ public class Application {
         tasks {
             succeeded ':nativeDependenciesLayer', ':nativeFrameworkLayer', ':nativeCompile', ':nativeRun'
         }
-        outputContains "-H:LayerCreate=framework.nil,module=java.sql"
+        outputContains "-H:LayerCreate=framework.nil,path="
         output.count("- '-H:LayerUse' (origin(s): command line)") >= 2
         file("build/native/layers/framework/framework.nil").isFile()
         outputContains "three levels"

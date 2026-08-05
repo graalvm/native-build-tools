@@ -11,15 +11,6 @@
     </parent>
     <artifactId>base-layer</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -38,11 +29,6 @@
                                 <modules>
                                     <module>java.base</module>
                                 </modules>
-                                <dependencies>
-                                    <dependency>
-                                        <artifact>org.slf4j:slf4j-api</artifact>
-                                    </dependency>
-                                </dependencies>
                             </layer>
                         </configuration>
                     </execution>

@@ -549,6 +549,8 @@ public class NativeImagePlugin implements Plugin<Project> {
                     ? project.getProviders().provider(Collections::emptyList)
                     : project.getProviders().provider(() ->
                         sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath())));
+            create.getClasspath().from(layer.getInheritedCompatibilityClasspath());
+            layer.getCompatibilityClasspath().from(create.getJars(), create.getClasspath());
 
             TaskProvider<BuildNativeImageTask> task = tasks.register(taskName, BuildNativeImageTask.class, builder -> {
                 builder.setDescription("Builds the " + layer.getName() + " Native Image layer.");
