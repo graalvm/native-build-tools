@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle.tasks;
 import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.agent.StandardAgentMode;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
+import org.graalvm.buildtools.gradle.internal.JavaLauncherProperty;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.gradle.api.DefaultTask;
@@ -53,6 +54,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -68,6 +70,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 
 /**
@@ -81,6 +84,10 @@ public abstract class MetadataCopyTask extends DefaultTask {
     private final ProviderFactory providerFactory;
     private final ObjectFactory objectFactory;
     private final ExecOperations execOperations;
+    private final Provider<String> graalvmHomeEnv;
+    private final Provider<String> javaHomeEnv;
+    private final Provider<String> gradleJvmHome;
+    private final JavaLauncherProperty javaLauncher;
 
     @Inject
     public MetadataCopyTask(ProjectLayout layout,
@@ -92,6 +99,10 @@ public abstract class MetadataCopyTask extends DefaultTask {
         this.providerFactory = providerFactory;
         this.objectFactory = objectFactory;
         this.execOperations = execOperations;
+        this.graalvmHomeEnv = providerFactory.environmentVariable("GRAALVM_HOME");
+        this.javaHomeEnv = providerFactory.environmentVariable("JAVA_HOME");
+        this.gradleJvmHome = providerFactory.systemProperty("java.home");
+        this.javaLauncher = new JavaLauncherProperty(objectFactory.property(JavaLauncher.class));
     }
 
     @Internal
@@ -111,7 +122,28 @@ public abstract class MetadataCopyTask extends DefaultTask {
      */
     @Nested
     @Optional
-    public abstract Property<JavaLauncher> getJavaLauncher();
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
+    // The environment sources that can supply native-image through the fallback candidates
+    // (§FS-native-invocation.1.3) are task inputs in a 3-state sentinel form: "set:<value>",
+    // "set:" for an empty value, and "unset". Distinguishing the states makes a change to
+    // any source re-run the task instead of leaving it UP-TO-DATE with the previous executable.
+    @Input
+    protected Provider<String> getGraalvmHomeEnvInput() {
+        return graalvmHomeEnv.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    @Input
+    protected Provider<String> getJavaHomeEnvInput() {
+        return javaHomeEnv.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    @Input
+    protected Provider<String> getGradleJvmHomeInput() {
+        return gradleJvmHome.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
 
     @Option(option = "task", description = "Executed task previously instrumented with the agent whose metadata should be copied.")
     public void overrideInputTaskNames(List<String> inputTaskNames) {
@@ -163,16 +195,28 @@ public abstract class MetadataCopyTask extends DefaultTask {
         Provider<Boolean> isMergeEnabled = providerFactory.provider(() -> true);
         Provider<AgentMode> agentModeProvider = providerFactory.provider(StandardAgentMode::new);
 
+        JavaLauncher resolvedLauncher = javaLauncher.getOrNull();
+        boolean isExplicit = javaLauncher.isExplicit();
+
+        Property<JavaLauncher> resolvedLauncherProperty = objectFactory.property(JavaLauncher.class);
+        if (resolvedLauncher != null) {
+            resolvedLauncherProperty.set(resolvedLauncher);
+        }
+
         new MergeAgentFilesAction(
                 isMergeEnabled,
                 agentModeProvider,
                 getMergeWithExisting(),
                 objectFactory,
-                getJavaLauncher(),
+                resolvedLauncherProperty,
                 graalvmHomeProvider(providerFactory),
                 () -> inputDirectories,
                 () -> outputDirectories,
                 getToolchainDetection().map(enabled -> !enabled),
-                execOperations).execute(this);
+                providerFactory.provider(() -> isExplicit),
+                execOperations,
+                graalvmHomeEnv,
+                javaHomeEnv,
+                gradleJvmHome).execute(this);
     }
 }

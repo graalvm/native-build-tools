@@ -118,6 +118,76 @@ class NativeImagePluginTest extends Specification {
         ]
     }
 
+    // §FS-native-invocation.1.2 — the plugin installs the javaLauncher convention on the public
+    // binary property; provenance distinguishes convention-sourced from user-explicit launchers.
+    def "binary javaLauncher resolves from the toolchain convention and is not explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        expect:
+        // The restored convention supplies a launcher...
+        main.javaLauncher.isPresent()
+        // ...but the value came from the convention, not from an explicit assignment.
+        !main.javaLauncherExplicit.get()
+    }
+
+    // §FS-native-invocation.1.2 — a user-assigned launcher is explicit even when it equals the
+    // convention value: provenance tracks the assignment, not the resolved launcher.
+    def "explicit javaLauncher set by user is reported explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        when:
+        // Same launcher the convention would supply, but assigned directly by the user.
+        main.javaLauncher.set(extension.defaultJavaLauncher.get())
+
+        then:
+        main.javaLauncherExplicit.get()
+    }
+
+    // §FS-native-invocation.1.1 — an explicit assignment made after querying the convention value
+    // is still explicit: provenance tracks the current assignment, not resolution history.
+    def "querying the convention launcher then assigning it back is reported explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        when:
+        // Query the effective (convention-supplied) launcher, then assign it back explicitly.
+        def launcher = main.javaLauncher.get()
+        main.javaLauncher.set(launcher)
+
+        then:
+        main.javaLauncherExplicit.get()
+    }
+
+    // §FS-native-invocation.1.2 — unsetting an explicit assignment restores the convention
+    // provenance: the value is present again but no longer explicit.
+    def "unsetting an explicit launcher assignment is no longer reported explicit"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def main = extension.binaries.getByName("main")
+        extension.toolchainDetection.set(true)
+
+        when:
+        def launcher = main.javaLauncher.get()
+        main.javaLauncher.set(launcher)
+        main.javaLauncher.unset()
+
+        then:
+        main.javaLauncher.isPresent()
+        !main.javaLauncherExplicit.get()
+    }
+
     private String taskDescription(String name) {
         Task task = project.tasks.getByName(name)
         assert task.description != null
