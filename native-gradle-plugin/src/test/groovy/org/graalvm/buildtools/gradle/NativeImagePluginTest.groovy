@@ -113,6 +113,7 @@ class NativeImagePluginTest extends Specification {
         task.options.get().layerCreate.get().modules.get() == ["java.base"]
         task.outputDirectory.get().asFile == project.layout.buildDirectory.dir("native/layers/dependencies").get().asFile
         extension.binaries.main.layerFiles.files == [layer.outputFile.get().asFile] as Set
+        extension.binaries.main.classpath.files.containsAll(layer.compatibilityClasspath.files)
         extension.binaries.main.layer == layer
     }
 
@@ -170,6 +171,24 @@ class NativeImagePluginTest extends Specification {
         def frameworkTask = project.tasks.named("nativeFrameworkLayer").get()
         frameworkTask.options.get().layerNames.get() == ["base"]
         frameworkTask.options.get().layerFiles.files == [base.outputFile.get().asFile] as Set
+    }
+
+    def "layer consumers inherit the producer compatibility classpath"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def producerClasspath = project.file("producer.jar")
+
+        when:
+        def base = extension.layers.create("base")
+        base.contents.from(producerClasspath)
+        def framework = extension.layers.create("framework")
+        framework.usesLayer("base")
+        extension.binaries.main.usesLayer("framework")
+
+        then:
+        framework.inheritedCompatibilityClasspath.files == [producerClasspath] as Set
+        extension.binaries.main.classpath.files.contains(producerClasspath)
     }
 
     def "duplicate layer chaining fails during configuration"() {

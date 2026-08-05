@@ -80,6 +80,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -522,6 +523,26 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     private List<String> resolveLayerUseArguments() throws MojoExecutionException {
+        return resolveLayerUseArtifacts().stream()
+            .map(Artifact::getFile)
+            .map(File::toPath)
+            .map(NativeImageLayerArguments::renderLayerUse)
+            .toList();
+    }
+
+    /**
+     * Directories that contain layer libraries consumed by this image. §FS-native-builds.3.
+     */
+    protected List<Path> getUsedLayerLibraryDirectories() throws MojoExecutionException {
+        return resolveLayerUseArtifacts().stream()
+            .map(Artifact::getFile)
+            .map(File::toPath)
+            .map(Path::getParent)
+            .distinct()
+            .toList();
+    }
+
+    private List<Artifact> resolveLayerUseArtifacts() throws MojoExecutionException {
         List<Artifact> nilArtifacts = project.getArtifacts().stream()
             .filter(artifact -> "nil".equals(artifact.getType()))
             .toList();
@@ -530,8 +551,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             return List.of();
         }
         Set<String> selected = new HashSet<>();
-        Set<Artifact> selectedArtifacts = new HashSet<>();
-        List<String> arguments = new ArrayList<>();
+        Set<Artifact> selectedArtifacts = new LinkedHashSet<>();
         for (UseLayerConfiguration useLayer : useLayers) {
             String selector = useLayer.getArtifact();
             if (selector == null || selector.isBlank()) {
@@ -556,16 +576,14 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 throw new MojoExecutionException(
                     "Layer dependency '" + selector + "' selects an artifact that is already selected");
             }
-            File layerFile = matches.get(0).getFile();
-            if (layerFile == null) {
+            if (matches.get(0).getFile() == null) {
                 throw new MojoExecutionException("Layer dependency '" + selector + "' has no resolved file");
             }
-            arguments.add(NativeImageLayerArguments.renderLayerUse(layerFile.toPath()));
         }
         warnAboutUnreferencedLayers(nilArtifacts.stream()
             .filter(artifact -> !selectedArtifacts.contains(artifact))
             .toList());
-        return arguments;
+        return List.copyOf(selectedArtifacts);
     }
 
     private void warnAboutUnreferencedLayers(List<Artifact> artifacts) {

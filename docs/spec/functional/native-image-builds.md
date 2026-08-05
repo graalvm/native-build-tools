@@ -71,7 +71,9 @@ common utilities; Gradle owns provider/task wiring and Maven owns goal/artifact/
 The two surfaces may use build-tool-native syntax but must preserve equivalent selector and
 multi-layer behavior. The `all` selector includes the complete runtime dependency graph, including
 artifacts produced by other projects in the same multi-project or reactor build. Empty layer
-selections fail before Native Image is invoked. Layered executable deployment must make each
+selections fail before Native Image is invoked. Layer consumers retain the classpath or modulepath
+inputs used to create their producer layers; Gradle propagates those build-local inputs through
+its task graph, while Maven consumers declare equivalent dependencies. Layered executable deployment must make each
 layer's shared-library directory discoverable by the platform loader: `LD_LIBRARY_PATH` on Linux,
 `DYLD_LIBRARY_PATH` on macOS, or `PATH` on Windows. Building or attaching a layer does not embed
 or relocate those shared libraries automatically.

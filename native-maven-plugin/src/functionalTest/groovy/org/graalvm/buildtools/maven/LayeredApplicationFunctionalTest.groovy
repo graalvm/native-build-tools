@@ -95,25 +95,6 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     def "builds a modules-only layer without leaking the project classpath"() {
         given:
         withSample("layered-maven-application")
-        def basePom = file("base-layer/pom.xml")
-        basePom.text = basePom.text
-            .replace('''    <dependencies>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version>
-            <optional>true</optional>
-        </dependency>
-    </dependencies>
-
-''', '')
-            .replace('''                                <dependencies>
-                                    <dependency>
-                                        <artifact>org.slf4j:slf4j-api</artifact>
-                                    </dependency>
-                                </dependencies>
-''', '')
-
         when:
         mvn '-DquickBuild', '-DskipTests', '-pl', 'base-layer', 'package'
 
@@ -133,11 +114,23 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         given:
         withSample("layered-maven-application")
         def basePom = file("base-layer/pom.xml")
-        basePom.text = basePom.text.replace('''                                <dependencies>
+        basePom.text = basePom.text
+            .replace('''    <artifactId>base-layer</artifactId>
+''', '''    <artifactId>base-layer</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.17</version>
+        </dependency>
+    </dependencies>
+''')
+            .replace('''                                <modules>
+                                    <module>java.base</module>
+                                </modules>
 ''', '''                                <packages>
                                     <package>org.slf4j</package>
                                 </packages>
-                                <dependencies>
 ''')
 
         when:
@@ -146,7 +139,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         then:
         buildSucceeded
         file("base-layer/target/native/layers/base/base.nil").isFile()
-        outputContains "-H:LayerCreate=base.nil,module=java.base,package=org.slf4j"
+        outputContains "-H:LayerCreate=base.nil,package=org.slf4j"
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
@@ -158,11 +151,6 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         basePom.text = basePom.text.replace('''                                <modules>
                                     <module>java.base</module>
                                 </modules>
-                                <dependencies>
-                                    <dependency>
-                                        <artifact>org.slf4j:slf4j-api</artifact>
-                                    </dependency>
-                                </dependencies>
 ''', '''                                <all>true</all>
 ''')
 
@@ -184,7 +172,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds a layer from an explicit path"() {
         given:
         withSample("layered-maven-application")
@@ -200,24 +188,18 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         basePom.text = basePom.text.replace('''                                <modules>
                                     <module>java.base</module>
                                 </modules>
-                                <dependencies>
-                                    <dependency>
-                                        <artifact>org.slf4j:slf4j-api</artifact>
-                                    </dependency>
-                                </dependencies>
 ''', '''                                <paths>
                                     <path>\${project.build.outputDirectory}</path>
                                 </paths>
 ''')
 
         when:
-        mvn '-DquickBuild', '-DskipTests', 'package'
+        mvn '-DquickBuild', '-DskipTests', '-pl', 'base-layer', 'package'
 
         then:
         buildSucceeded
         file("base-layer/target/native/layers/base/base.nil").isFile()
         outputContains "-H:LayerCreate=base.nil,path="
-        outputContains "-H:LayerUse="
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
@@ -244,6 +226,11 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     def "native tests consume layers from their own execution"() {
         given:
         withSample("layered-maven-application")
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text.replace('''                                    <module>java.base</module>
+''', '''                                    <module>java.base</module>
+                                    <module>java.management</module>
+''')
         def applicationTest = file("application/src/test/java/org/graalvm/demo/ApplicationTest.java")
         applicationTest.parentFile.mkdirs()
         applicationTest.text = '''
@@ -316,6 +303,12 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
                         <type>nil</type>
                         <scope>runtime</scope>
                     </dependency>
+                    <dependency>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-lang3</artifactId>
+                        <version>3.17.0</version>
+                        <scope>runtime</scope>
+                    </dependency>
                 </dependencies>
                 <build><plugins><plugin>
                     <groupId>org.graalvm.buildtools</groupId>
@@ -324,7 +317,10 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
                         <goals><goal>layer-create</goal></goals>
                         <configuration>
                             <useLayers><useLayer><artifact>org.graalvm.buildtools.samples:base-layer</artifact></useLayer></useLayers>
-                            <layer><name>framework</name><modules><module>java.sql</module></modules></layer>
+                            <layer>
+                                <name>framework</name>
+                                <dependencies><dependency><artifact>org.apache.commons:commons-lang3</artifact></dependency></dependencies>
+                            </layer>
                         </configuration>
                     </execution></executions>
                 </plugin></plugins></build>
@@ -346,6 +342,12 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
             <type>nil</type>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.17.0</version>
+            <scope>runtime</scope>
+        </dependency>
 ''')
             .replace('''                    <useLayers>
 ''', '''                    <useLayers>
@@ -360,7 +362,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         then:
         buildSucceeded
         file("framework-layer/target/native/layers/framework/framework.nil").isFile()
-        outputContains "-H:LayerCreate=framework.nil,module=java.sql"
+        outputContains "-H:LayerCreate=framework.nil,path="
         output.count("-H:LayerUse=") >= 2
         def application = file("application/target/application")
         def environment = System.getenv().collect { key, value -> "${key}=${value}" }

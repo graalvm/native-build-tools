@@ -12,12 +12,6 @@
     <artifactId>application</artifactId>
 
     <dependencies>
-        <!-- Every artifact present in a reusable layer remains on the consumer classpath for Native Image compatibility. §maven/FS-native-builds.3. -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.17</version>
-        </dependency>
         <dependency>
             <groupId>org.graalvm.buildtools.samples</groupId>
             <artifactId>base-layer</artifactId>

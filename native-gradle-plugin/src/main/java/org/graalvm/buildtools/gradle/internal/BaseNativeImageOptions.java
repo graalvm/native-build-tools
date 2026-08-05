@@ -456,6 +456,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         // Typed layer consumption records the producing layer output on the binary. §FS-plugin-model.2.
         addLayerName(layer.getName());
         getLayerFiles().from(layer.getOutputFile());
+        getClasspath().from(layer.getCompatibilityClasspath());
     }
 
     @Override
@@ -463,6 +464,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         // Provider-backed layer consumption preserves the typed, lazy extension surface. §FS-plugin-model.2.
         getLayerNames().add(layer.map(NativeImageLayer::getName));
         getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
+        getClasspath().from(layer.map(NativeImageLayer::getCompatibilityClasspath));
     }
 
     @Override
@@ -472,6 +474,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         Provider<NativeImageLayer> layer = providers.provider(() -> namedLayers.getByName(name));
         addLayerName(name);
         getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
+        getClasspath().from(layer.map(NativeImageLayer::getCompatibilityClasspath));
     }
 
     @Override
@@ -485,6 +488,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         assignedLayer = layer;
         getLayerNames().set(List.of(layer.getName()));
         getLayerFiles().setFrom(layer.getOutputFile());
+        getClasspath().from(layer.getCompatibilityClasspath());
     }
 
     private void addLayerName(String layerName) {

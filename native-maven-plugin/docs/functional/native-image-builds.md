@@ -38,6 +38,9 @@ Layer consumption applies consistently to compile, shared-library, and native-te
 `useLayers` is configured for that execution. Plugin-wide `useLayers` therefore also applies to
 `native:test`; users who want different test behavior must scope the configuration to executions.
 The `layer-create` goal may itself consume configured layers, enabling multi-level layer stacks.
+Every consuming Maven execution must retain the classpath entries used by producer layers. Reactor
+consumers therefore declare the same dependencies; local explicit paths are build-local inputs and
+cannot be represented by a published `nil` artifact alone.
 
 ### Layer support matrix
 

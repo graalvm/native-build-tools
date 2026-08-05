@@ -356,6 +356,7 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
 
             processBuilder.command().addAll(command);
             processBuilder.environment().putAll(environment);
+            addUsedLayerLibraryDirectories(processBuilder.environment());
 
             String commandString = String.join(" ", processBuilder.command());
             getLog().info("Executing: " + commandString);
@@ -366,6 +367,31 @@ public class NativeTestMojo extends AbstractNativeImageMojo {
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("native-image test run failed");
         }
+    }
+
+    private void addUsedLayerLibraryDirectories(Map<String, String> processEnvironment) throws MojoExecutionException {
+        List<Path> directories = getUsedLayerLibraryDirectories();
+        if (directories.isEmpty()) {
+            return;
+        }
+        String variable = nativeLibraryPathVariable();
+        String directoriesValue = directories.stream()
+            .map(Path::toString)
+            .collect(Collectors.joining(File.pathSeparator));
+        String inheritedValue = processEnvironment.get(variable);
+        processEnvironment.put(variable, inheritedValue == null || inheritedValue.isBlank()
+            ? directoriesValue
+            : directoriesValue + File.pathSeparator + inheritedValue);
+    }
+
+    private static String nativeLibraryPathVariable() {
+        if (System.getProperty("os.name", "").startsWith("Windows")) {
+            return "PATH";
+        }
+        if (System.getProperty("os.name", "").startsWith("Mac")) {
+            return "DYLD_LIBRARY_PATH";
+        }
+        return "LD_LIBRARY_PATH";
     }
 
     private boolean hasTestIds() {
