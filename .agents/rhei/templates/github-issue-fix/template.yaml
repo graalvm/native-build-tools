@@ -1,0 +1,83 @@
+name: github-issue-fix
+version: 0.3.1
+description: Fix one Native Build Tools GitHub issue through approval, implementation, validation, focused review, and configurable PR publication.
+
+inputs:
+  - name: issue
+    description: Native Build Tools GitHub issue number or URL to fix.
+    type: string
+    required: true
+    positional: 1
+
+  - name: repo
+    description: GitHub repository containing the issue, in owner/name form.
+    type: string
+    default: graalvm/native-build-tools
+    validate: "[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
+
+  - name: repo_checkout
+    description: Local git checkout root used as the source for the issue worktree.
+    type: path
+    default: "."
+
+  - name: work_subdir
+    description: Subdirectory inside the issue worktree where implementation commands should run.
+    type: string
+    default: "."
+
+  - name: worktree_root
+    description: Directory where the workflow creates or reuses issue worktrees.
+    type: string
+    default: ../native-build-tools-rhei-worktrees
+
+  - name: base_branch
+    description: Base branch for the issue branch and pull request.
+    type: string
+    default: master
+
+  - name: branch_prefix
+    description: Prefix used for generated issue branches.
+    type: string
+    default: rhei
+
+  - name: publication_mode
+    description: External publication behavior. Use no-pr for local artifacts only, draft for a draft PR, or ready for a ready-for-review PR.
+    type: string
+    default: ready
+    validate: "^(no-pr|draft|ready)$"
+
+  - name: rhei_actor
+    description: GitHub login used for proposal comments. Use auto to discover the active gh account.
+    type: string
+    default: auto
+    validate: "(?:auto|[A-Za-z0-9_.\\[\\]-]+)"
+
+  - name: proposal_attempts
+    description: Total proposal attempts allowed, including the initial proposal.
+    type: number
+    default: 3
+    validate: "[1-9][0-9]*"
+
+  - name: review_cycles
+    description: Maximum focused review cycles; every cycle before the last may be followed by one repair attempt.
+    type: number
+    default: 3
+    validate: "[2-9][0-9]*"
+
+  - name: pr_push_remote
+    description: Writable git remote used to push the issue branch.
+    type: string
+    default: origin
+
+  - name: pr_head_owner
+    description: GitHub owner or login used for the pull request head.
+    type: string
+    default: graalvm
+
+  - name: pr_labels
+    description: Existing GitHub labels to apply to the pull request.
+    type: array
+    items:
+      type: string
+    default:
+      - rhei

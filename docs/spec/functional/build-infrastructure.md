@@ -170,6 +170,19 @@ Build logic may generate CI data, such as functional-test matrices, when that da
 the repository's source layout or version catalog. Generated CI data must stay reproducible from
 the checked-out repository state so workflow behavior can be reviewed alongside code changes.
 
+### 4.2 Generated issue-fix grounding
+
+The repository-local GitHub issue-fix workflow must normalize and validate grund references from
+the workspace root after implementation and after every review repair. For a configured grund
+workspace it must run `grund fmt . --write --marker --cross-refs`, then require both `grund check`
+and `grund fmt . --marker --cross-refs --check` to pass before focused validation and review.
+Running the formatter against only an individual workspace member or changed file is insufficient
+because cross-namespace Markdown targets depend on the root workspace configuration.
+
+Formatting changes are part of the generated issue fix and must be reviewed with the rest of the
+diff. A branch must not be published when either grounding command still reports unresolved
+references or pending rewrites.
+
 ## 5. Release and publication
 
 Release infrastructure publishes Native Build Tools artifacts and documentation while keeping
