@@ -219,6 +219,9 @@ For example, to build a native image named `myapp` that uses `org.example.ClassN
 [[layered-images]]
 === Layered Native Images
 
+For scenario-based examples covering native tests, reuse across executions and modules, and
+deployment, see <<layered-images.adoc#,Layered Native Images: Reuse, Testing, and Deployment>>.
+
 The `layer-create` goal produces a `.nil` Native Image layer and attaches it to the Maven project.
 A consuming module declares that artifact with `<type>nil</type>` and selects it through
 `<useLayers>`. The `nil` dependency is resolved separately and never enters the Java classpath.

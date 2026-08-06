@@ -188,6 +188,9 @@ buildArgs.addAll(
 [[layered-images]]
 === Layered Native Images
 
+For scenario-based examples covering native tests, additional test suites, reuse across binaries,
+and deployment, see <<layered-images.adoc#,Layered Native Images: Reuse, Testing, and Deployment>>.
+
 Named layers live in the `graalvmNative.layers` container. A layer can select modules, packages,
 files, a resolved Gradle configuration, dependency coordinates, or the complete runtime dependency
 graph. The plugin registers a task named `native<LayerName>Layer`, writes the layer under

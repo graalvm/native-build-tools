@@ -244,8 +244,9 @@ reactor project, resolves it outside the Java classpath, and passes it to the co
 When deploying or running the executable directly, ship the layer's shared libraries and add their
 directory to the platform library search path (`LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on
 macOS, or `PATH` on Windows).
-See <<maven-plugin.adoc#layered-images,Layered Native Images>> for complete producer and consumer
-configuration.
+See <<layered-images.adoc#,Layered Native Images: Reuse, Testing, and Deployment>> for examples
+that share layers across Maven executions and package the resulting application. The complete XML
+reference remains in <<maven-plugin.adoc#layered-images,the Maven plugin documentation>>.
 
 [TIP]
 ====
