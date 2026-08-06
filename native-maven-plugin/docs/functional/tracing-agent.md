@@ -57,7 +57,7 @@ configured destination must remain unchanged and the staging output must be remo
 the replacement and merge modes in
 [§root/FS-tracing-agent.4](../../../docs/spec/functional/tracing-agent.md#4-merge-and-copy) and the
 existing Maven parameter meanings required by
-[§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-source-and-configuration-compatibility).
+[§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).
 
 ## 5. Agent example
 
