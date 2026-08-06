@@ -26,3 +26,16 @@ The shared model does not contain Gradle, Maven, Aether, task, project, configur
 types. The plugins do not duplicate dependency resolution: they use Gradle artifact views and
 Maven's project/repository model respectively.
 [§NGOAL-no-buildtool-duplicates](../non-goals.md#ngoal-no-buildtool-duplicates-the-plugins-do-not-reimplement-capabilities-that-gradle-or-maven-already-provide).
+
+## 4. GraalVM release support
+
+Native Build Tools supports and tests Native Image layer consumption on GraalVM 25.1 and later.
+Layer consumption on GraalVM 25.0.x remains permitted for backwards compatibility, but it is
+unsupported and proceeds at the user's own risk because Native Image may fail internally while
+loading an otherwise valid layer. Consumers on 25.0.x receive a warning rather than a build-tool
+failure. Layer creation alone is not subject to this consumption warning. Native Image layers
+remain an experimental upstream feature. This policy specializes
+[§FS-native-builds.6](../functional/native-image-builds.md#6-layered-images),
+[§REQ-support-matrix.1](../requirements.md#1-declared-support), and
+[§REQ-backwards-compatibility.1](../requirements.md#1-deprecation-over-removal) without claiming
+that the upstream feature is generally stable.

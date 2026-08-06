@@ -75,9 +75,10 @@ The same duplicate and name validation applies when a named layer consumes anoth
 Every selection form (`layer =`, `useLayer(NativeImageLayer)`,
 `useLayer(Provider<NativeImageLayer>)`, and `usesLayer(String)`) contributes its logical layer
 name to the same selection set. A consuming binary may select each logical name only once. The
-plugin resolves provider-backed names at a cache-safe validation boundary after configuration and
-fails that validation before any selected producer task executes; it retains lazy name resolution
-and configuration-cache compatibility.
+plugin resolves provider-backed names lazily and fails duplicate-name validation before any
+selected producer task executes. This layer model must not introduce avoidable project or task
+container serialization; general configuration-cache compatibility remains governed by the
+plugin's existing configuration-cache baseline.
 
 `fromConfiguration(...)` and `all` include resolved external and project dependencies. Dependency
 selectors also accept Gradle providers, including version-catalog accessors.
@@ -96,12 +97,17 @@ original naming and external-module-only semantics. Only legacy layer declaratio
 | Native test | `binaries.test.usesLayer` | `LayeredApplicationFunctionalTest` |
 | Shared library | `binaries.main.sharedLibrary` with `usesLayer` | `LayeredApplicationFunctionalTest` |
 | Chained layers | `NativeImageLayer.usesLayer` | `LayeredApplicationFunctionalTest` |
-| Cross-project publication | Gradle task output and file dependency wiring | Gradle-specific; Maven uses reactor/repository `nil` artifacts instead |
+| Application distribution | Main layered binary is added to `installDist`, `distZip`, and `distTar` with staged runtime files and a native launcher | Installed and archived distributions run without producer build directories |
+| Cross-project publication | Not first-class; manual `getLayerFiles()` or file wiring only | No consumable publication variant is promised |
 
 Layer shared libraries remain external runtime dependencies. On Linux set `LD_LIBRARY_PATH`; on
 macOS set `DYLD_LIBRARY_PATH`; and on Windows add the layer directory to `PATH` before running a
-layered executable. `nativeRun` supplies this for its selected layers, but deployed executables
-need the same platform loader configuration. [§root/FS-native-builds.6](../../../docs/spec/functional/native-image-builds.md#6-layered-images).
+layered executable. `nativeRun` supplies this for its selected layers. When the `application`
+plugin is present, the main distribution includes the native executable under `lib/native`, each
+selected layer's runtime files under `lib/native-layers/<layer>`, and a `<imageName>-native`
+launcher under `bin` that configures the loader before execution. Other packaging plugins can
+consume the cacheable `nativeLayerRuntimeFiles` task output.
+[§root/FS-native-builds.6](../../../docs/spec/functional/native-image-builds.md#6-layered-images).
 
 ## 3. Default binaries
 

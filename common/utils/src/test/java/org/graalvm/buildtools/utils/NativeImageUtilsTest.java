@@ -178,10 +178,17 @@ class NativeImageUtilsTest {
                 "GraalVM Runtime Environment Oracle GraalVM 25.1.3+9.1 (build 25.0.3+9-LTS-jvmci-25.1-b19)";
         String graalVMCE251 = "native-image 25.0.3 2026-04-21\n" +
                 "GraalVM Runtime Environment GraalVM CE 25.1.3+9.1 (build 25.0.3+9-jvmci-25.1-b19)";
+        String suppliedOracleGraalVMDev = "native-image 25.0.4 2026-07-21\n" +
+                "Java(TM) SE Runtime Environment Oracle GraalVM 25.3.4.1-dev+7.1 " +
+                "(build 25.0.4+7-LTS-jvmci-25.2-b20)";
 
         Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast(graalVM250, 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersion(graalVM250, 25, 0));
         Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(graalVM251, 25, 1));
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersion(graalVM251, 25, 0));
         Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(graalVMCE251, 25, 1));
+        Assertions.assertTrue(NativeImageUtils.isGraalVMVersionAtLeast(suppliedOracleGraalVMDev, 25, 1));
+        Assertions.assertFalse(NativeImageUtils.isGraalVMVersion(suppliedOracleGraalVMDev, 25, 0));
     }
 
     @Test
@@ -211,6 +218,19 @@ class NativeImageUtilsTest {
     void treatsUnknownGraalVMReleaseAsOlder() {
         Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast("native-image 25.0.3", 25, 1));
         Assertions.assertFalse(NativeImageUtils.isGraalVMVersionAtLeast("invalid", 25, 1));
+    }
+
+    @Test
+    void warnsOnlyForGraalVM250LayerConsumption() {
+        String graalVM250 = "native-image 25.0.4\n" +
+                "GraalVM Runtime Environment Oracle GraalVM 25.0.4+7.1";
+        String graalVM251 = graalVM250.replace("GraalVM 25.0.4", "GraalVM 25.1.0");
+        String laterDev = graalVM250.replace("GraalVM 25.0.4", "GraalVM 26.0.0-dev");
+
+        Assertions.assertTrue(NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(graalVM250, true));
+        Assertions.assertFalse(NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(graalVM250, false));
+        Assertions.assertFalse(NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(graalVM251, true));
+        Assertions.assertFalse(NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(laterDev, true));
     }
 
     @Test

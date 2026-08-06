@@ -32,8 +32,11 @@ creation resolves Maven artifacts to paths and delegates selector serialization 
 [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
 An explicitly configured empty classpath remains empty for module-only layer creation and must not
 fall back to the application or dependency classpath. Layered executables require their produced
-shared libraries to be available through the platform library search path when executed or
-deployed.
+runtime libraries to be available through the platform library search path when executed or
+deployed. Repository layer producers attach both the `.nil` build input and a platform-classified
+runtime archive. Consumers resolve and extract the matching runtime archive under their own
+`target` directory before Native Image invocation; a missing companion archive fails with its
+expected coordinate rather than producing a known-unrunnable image.
 Layer consumption applies consistently to compile, shared-library, and native-test goals when
 `useLayers` is configured for that execution. Plugin-wide `useLayers` therefore also applies to
 `native:test`; users who want different test behavior must scope the configuration to executions.
@@ -51,7 +54,7 @@ cannot be represented by a published `nil` artifact alone.
 | Native test | `useLayers` on the `native:test` execution | `LayeredApplicationFunctionalTest` |
 | Shared library | `sharedLibrary` and `useLayers` | `LayeredApplicationFunctionalTest` |
 | Chained layers | `useLayers` on `layer-create` plus declared `nil` dependencies | `LayeredApplicationFunctionalTest` |
-| Reactor/repository flow | Attached `nil` artifacts and Maven dependency resolution | Maven-specific; Gradle uses task/file wiring instead |
+| Reactor/repository flow | Attached `nil` plus platform runtime archive, automatic resolution and consumer-owned staging | Standalone repository consumer runs the executable and `native:test` without producer output access |
 
 Layer shared libraries remain external runtime dependencies. On Linux set `LD_LIBRARY_PATH`; on
 macOS set `DYLD_LIBRARY_PATH`; and on Windows add the layer directory to `PATH` before launching

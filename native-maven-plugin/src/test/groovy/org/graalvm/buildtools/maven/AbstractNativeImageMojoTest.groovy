@@ -8,8 +8,10 @@ import org.apache.maven.artifact.DefaultArtifact
 import org.apache.maven.artifact.handler.DefaultArtifactHandler
 import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.logging.Logger
+import org.eclipse.aether.resolution.ArtifactRequest
 import org.graalvm.buildtools.maven.config.UseLayerConfiguration
 import org.graalvm.buildtools.model.resources.NativeImageFlags
+import org.graalvm.buildtools.utils.NativeImageLayerRuntime
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -206,6 +208,13 @@ class AbstractNativeImageMojoTest extends Specification {
         mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
         mojo.project = new MavenProject()
         mojo.project.artifacts = [artifact] as Set
+        mojo.project.build.directory = testDirectory.resolve("target").toString()
+        def runtimeOutput = testDirectory.resolve("runtime-output")
+        runtimeOutput.toFile().mkdirs()
+        def runtimeFile = runtimeOutput.resolve("runtime-library.bin")
+        runtimeFile.toFile().text = "runtime"
+        mojo.layerRuntimeArchive = testDirectory.resolve("runtime.zip")
+        NativeImageLayerRuntime.createArchive(runtimeOutput, [runtimeFile], mojo.layerRuntimeArchive)
         def useLayer = new UseLayerConfiguration()
         useLayer.artifact = "com.acme:base-layer"
         mojo.useLayers = [useLayer]
@@ -217,6 +226,8 @@ class AbstractNativeImageMojoTest extends Specification {
         args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
         args.contains("${NativeImageFlags.LAYER_USE}=${layerFile.absolutePath}".toString())
         !args.contains(layerFile.absolutePath)
+        testDirectory.resolve("target/native/layer-runtime/com.acme/base-layer/1.0")
+            .toFile().listFiles().any { it.isDirectory() && it.toPath().resolve("runtime-library.bin").toFile().isFile() }
     }
 
     void "it reports malformed layer coordinate '#coordinate' as a Maven execution error"() {
@@ -295,6 +306,7 @@ class AbstractNativeImageMojoTest extends Specification {
     private static class TestNativeImageMojo extends AbstractNativeImageMojo {
         boolean fallbackRemoved
         int nativeImageMajorVersion = 25
+        Path layerRuntimeArchive
 
         @Override
         protected void executeInternal() {
@@ -317,6 +329,13 @@ class AbstractNativeImageMojoTest extends Specification {
         @Override
         protected boolean isFallbackRemoved() {
             fallbackRemoved
+        }
+
+        @Override
+        protected Path resolveLayerRuntimeArchive(org.apache.maven.artifact.Artifact layerArtifact,
+                                                  org.eclipse.aether.artifact.Artifact runtimeArtifact,
+                                                  ArtifactRequest request) {
+            layerRuntimeArchive ?: super.resolveLayerRuntimeArchive(layerArtifact, runtimeArtifact, request)
         }
     }
 }

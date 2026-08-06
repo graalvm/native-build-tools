@@ -17,7 +17,7 @@ class GraalVMSupport {
         String command = getSystemBasedCommand(location);
         def proc = command.execute()
         proc.consumeProcessOutput(sout, serr)
-        proc.waitForOrKill(1000)
+        proc.waitForOrKill(10_000)
         assert serr.toString().isEmpty()
 
         return sout.toString()

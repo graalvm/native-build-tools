@@ -325,6 +325,11 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         if (options.getRequiredVersion().isPresent()) {
             NativeImageUtils.checkVersion(options.getRequiredVersion().get(), versionString);
         }
+        if (NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(
+                versionString, !options.getLayerFiles().isEmpty())) {
+            logger.warn("Layer consumption is supported on GraalVM 25.1 and later. Continuing on "
+                + "GraalVM 25.0.x is unsupported and at your own risk.");
+        }
         int majorJDKVersion = NativeImageUtils.getMajorJDKVersion(versionString);
         boolean fallbackRemoved = NativeImageUtils.isGraalVMVersionAtLeast(versionString, 25, 1);
         List<String> args = buildActualCommandLineArgs(majorJDKVersion, fallbackRemoved);

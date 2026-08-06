@@ -52,8 +52,10 @@ import org.graalvm.buildtools.maven.config.LayerDependencyConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.ArtifactSelection;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
+import org.graalvm.buildtools.utils.NativeImageLayerRuntime;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -141,6 +143,24 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
         }
         if (!dryRun) {
             projectHelper.attachArtifact(project, "nil", null, layerFile);
+            attachRuntimeArchive();
+        }
+    }
+
+    private void attachRuntimeArchive() throws MojoExecutionException {
+        Path layerOutput = outputDirectory.toPath();
+        try {
+            List<Path> runtimeFiles = NativeImageLayerRuntime.discoverRuntimeFiles(layerOutput);
+            if (!NativeImageLayerRuntime.containsPrimaryRuntimeLibrary(runtimeFiles, imageName)) {
+                throw new MojoExecutionException("Native Image reported a successful layer build but did not produce "
+                    + "the expected primary runtime library for '" + imageName + "' in " + layerOutput);
+            }
+            String classifier = NativeImageLayerRuntime.classifier(buildArgs);
+            Path archive = layerOutput.resolve(layer.getName() + "-" + classifier + ".zip");
+            NativeImageLayerRuntime.createArchive(layerOutput, runtimeFiles, archive);
+            projectHelper.attachArtifact(project, NativeImageLayerRuntime.ARCHIVE_TYPE, classifier, archive.toFile());
+        } catch (IOException ex) {
+            throw new MojoExecutionException("Unable to package runtime files for layer '" + layer.getName() + "'", ex);
         }
     }
 
