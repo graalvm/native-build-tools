@@ -374,6 +374,7 @@ public class Application {
         file("build/native/nativeCompile/layered-java-application${IS_WINDOWS ? '.dll' : IS_MAC ? '.dylib' : '.so'}").exists()
     }
 
+    @Ignore("GraalVM Native Image currently supports one shared base layer and a final application executable, not chained shared layers.")
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )

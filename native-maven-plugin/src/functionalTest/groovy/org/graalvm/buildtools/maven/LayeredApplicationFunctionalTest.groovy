@@ -41,6 +41,7 @@
 package org.graalvm.buildtools.maven
 
 import org.graalvm.buildtools.utils.NativeImageUtils
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Requires
 
@@ -279,6 +280,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[         1 tests successful      ]"
     }
 
+    @Ignore("GraalVM Native Image currently supports one shared base layer and a final application executable, not chained shared layers.")
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
     @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs a chained reactor layer stack"() {
