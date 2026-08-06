@@ -239,8 +239,16 @@ same reachability-metadata repository wiring and schema validation as binary tas
 
 Layer producers do not inherit binary `buildArgs`: a layer may be shared by binaries with different
 settings. Repeat layer-sensitive options such as optimization, GC, and initialization flags in the
-layer's `buildArgs`. Gradle currently produces and consumes named layers within one project; publish
-or copy `.nil` outputs explicitly when coordinating layers across projects.
+layer's `buildArgs`. Gradle currently produces and consumes named layers within one project.
+Cross-project reuse is not a first-class publication flow; manual file wiring must carry both the
+`.nil` and runtime files.
+
+`nativeRun` configures the platform loader for build-tree execution. For a layered main binary in
+an `application` project, `installDist`, `distZip`, and `distTar` include the native executable,
+runtime files under `lib/native-layers/<layer>`, and a `<imageName>-native` launcher. Other
+packaging plugins can consume the cacheable `nativeLayerRuntimeFiles` task output. Configure
+distinct `imageName` values for multiple custom binaries. Layer consumption is supported on
+GraalVM 25.1+; see the linked guide for the 25.0.x warning policy and native-test module guidance.
 
 [source,kotlin]
 ----

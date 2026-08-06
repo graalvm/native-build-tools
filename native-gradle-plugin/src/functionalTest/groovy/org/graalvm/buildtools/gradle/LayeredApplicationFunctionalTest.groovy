@@ -53,16 +53,13 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import java.util.zip.ZipFile
 
 // Exercises the top-level layer model, named task wiring, and configuration-cache isolation.
 // §FS-plugin-model.2 §FS-native-tasks.1 §FS-native-invocation.3.
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
-    // GraalVM 25.0.x can fail during LayerUse processing.
-    // §E2E-functional-tests.3.6.
-    private static boolean hasLayerConsumptionBug() {
-        !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
-    }
-
     def "configures a named layer outside the binary container"() {
         given:
         withSample("layered-java-application")
@@ -225,7 +222,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and consumes a layer from an individual dependency selector"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -292,7 +289,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and runs an all selector layer"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -408,11 +405,90 @@ public class Application {
         file("build/native/nativeCompile/layered-java-application${IS_WINDOWS ? '.dll' : IS_MAC ? '.dylib' : '.so'}").exists()
     }
 
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({ os.windows || os.macOs })
+    def "custom shared library consumes a layer without a main class"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            graalvmNative {
+                metadataRepository.enabled = false
+                binaries {
+                    customLibrary {
+                        imageName = 'custom-layered-library'
+                        sharedLibrary = true
+                        usesLayer('dependencies')
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'nativeCustomLibraryCompile'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeCustomLibraryCompile'
+        }
+        outputContains "- '-H:LayerUse' (origin(s): command line)"
+        file("build/native/nativeCustomLibraryCompile/custom-layered-library.so").isFile()
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
+    @IgnoreIf({ os.windows || os.macOs })
+    def "application distributions carry and launch layered native images"() {
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            graalvmNative.metadataRepository.enabled = false
+        '''.stripIndent()
+
+        when:
+        run 'installDist', 'distZip', 'distTar'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeCompile', ':nativeLayerRuntimeFiles',
+                ':nativeDistributionLauncher', ':installDist', ':distZip', ':distTar'
+        }
+        def installDirectory = file("build/install/layered-java-application")
+        def runtimeDirectory = new File(installDirectory, "lib/native-layers/dependencies")
+        runtimeDirectory.listFiles().any { it.name.endsWith('.so') }
+        new File(installDirectory, "lib/native/layered-java-application").isFile()
+        new File(installDirectory, "bin/layered-java-application-native").isFile()
+
+        def zipFile = file("build/distributions/layered-java-application.zip")
+        def zipEntries
+        new ZipFile(zipFile).withCloseable { zip ->
+            zipEntries = zip.entries().collect { it.name }
+        }
+        zipEntries.any { it.contains('/lib/native-layers/dependencies/') && it.endsWith('.so') }
+        zipEntries.contains('layered-java-application/bin/layered-java-application-native')
+        def tarListing = ['tar', '-tf', file("build/distributions/layered-java-application.tar").absolutePath].execute()
+        assert tarListing.waitFor() == 0
+        assert tarListing.in.text.contains('layered-java-application/lib/native-layers/dependencies/')
+
+        when: "the installed distribution is relocated and producer outputs are unavailable"
+        def relocated = file("relocated-distribution")
+        copyDirectory(installDirectory.toPath(), relocated.toPath())
+        assert file("build/native/layers").deleteDir()
+        def execution = [new File(relocated, "bin/layered-java-application-native").absolutePath,
+                         'relocated distribution'].execute(null, relocated)
+
+        then:
+        execution.waitFor() == 0
+        execution.in.text.contains('relocated distribution')
+    }
+
     @Ignore("GraalVM Native Image currently supports one shared base layer and a final application executable, not chained shared layers.")
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and runs a three-level layer stack"() {
         given:
         withSample("layered-java-application")
@@ -488,5 +564,19 @@ public class Application {
 
         cleanup:
         process.destroy()
+    }
+
+    private static void copyDirectory(java.nio.file.Path source, java.nio.file.Path destination) {
+        Files.walk(source).withCloseable { paths ->
+            paths.forEach { path ->
+                def target = destination.resolve(source.relativize(path))
+                if (Files.isDirectory(path)) {
+                    Files.createDirectories(target)
+                } else {
+                    Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.COPY_ATTRIBUTES)
+                }
+            }
+        }
     }
 }

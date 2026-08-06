@@ -41,18 +41,15 @@
 package org.graalvm.buildtools.maven
 
 import org.graalvm.buildtools.utils.NativeImageUtils
+import org.graalvm.buildtools.utils.NativeImageLayerRuntime
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Requires
 
+import java.util.zip.ZipFile
+
 // Exercises Maven reactor production and consumption of nil layer artifacts. §E2E-functional-tests.3.8.
 class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTest {
-    // GraalVM 25.0.x can seal its image-heap scanner during LayerUse processing.
-    // §E2E-functional-tests.3.8.
-    private static boolean hasLayerConsumptionBug() {
-        !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
-    }
-
     def "loads the nil artifact handler and reactor model"() {
         given:
         withSample("layered-maven-application")
@@ -92,7 +89,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and consumes a layer from an individual dependency selector"() {
         given:
         withSample("layered-maven-application")
@@ -198,7 +195,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and runs an all selector layer in the reactor"() {
         given:
         withSample("layered-maven-application")
@@ -258,7 +255,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds a shared library using a layer artifact"() {
         given:
         withSample("layered-maven-application")
@@ -277,7 +274,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "native tests consume layers from their own execution"() {
         given:
         withSample("layered-maven-application")
@@ -334,9 +331,106 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         outputContains "[         1 tests successful      ]"
     }
 
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs })
+    def "repository consumer stages and runs a POM-produced layer without producer outputs"() {
+        given:
+        withSample("layered-maven-application")
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text
+            .replace('''    <artifactId>base-layer</artifactId>
+''', '''    <artifactId>base-layer</artifactId>
+    <packaging>pom</packaging>
+''')
+            .replace('''                                    <module>java.base</module>
+''', '''                                    <module>java.base</module>
+                                    <module>java.sql</module>
+                                    <module>java.management</module>
+''')
+        def applicationTest = file("application/src/test/java/org/graalvm/demo/ApplicationTest.java")
+        applicationTest.parentFile.mkdirs()
+        applicationTest.text = '''
+            package org.graalvm.demo;
+            import java.sql.Driver;
+            import org.junit.jupiter.api.Test;
+            import static org.junit.jupiter.api.Assertions.assertNotNull;
+            class ApplicationTest {
+                @Test void runs() { assertNotNull(Driver.class); }
+            }
+        '''.stripIndent()
+        def applicationPom = file("application/pom.xml")
+        applicationPom.text = applicationPom.text
+            .replace('''    <dependencies>
+''', '''    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.12.0</version>
+            <scope>test</scope>
+        </dependency>
+''')
+            .replace('''                </executions>
+''', '''                    <execution>
+                        <id>test-with-repository-layer</id>
+                        <phase>test</phase>
+                        <goals><goal>test</goal></goals>
+                    </execution>
+                </executions>
+''')
+
+        when: "the POM-only producer is installed into the isolated repository"
+        mvn '-DquickBuild', '-DskipTests', '-pl', 'base-layer', '-am', 'install'
+
+        then:
+        buildSucceeded
+        def producerOutput = file("base-layer/target/native/layers/base")
+        def expectedRuntimeFiles = producerOutput.listFiles()
+            .findAll { it.isFile() && NativeImageLayerRuntime.isRuntimeLibrary(it.name) }
+            .collect { it.name }
+            .sort()
+        !expectedRuntimeFiles.empty
+        def repositoryDirectory = file("local-repo/org/graalvm/buildtools/samples/base-layer/1.0-SNAPSHOT")
+        def nilArtifact = new File(repositoryDirectory, "base-layer-1.0-SNAPSHOT.nil")
+        def runtimeArchive = repositoryDirectory.listFiles().find {
+            it.name.startsWith("base-layer-1.0-SNAPSHOT-layer-runtime-") && it.name.endsWith(".zip")
+        }
+        nilArtifact.isFile()
+        runtimeArchive?.isFile()
+        def archivedRuntimeFiles
+        new ZipFile(runtimeArchive).withCloseable { zip ->
+            archivedRuntimeFiles = zip.entries().collect { it.name }.sort()
+        }
+        archivedRuntimeFiles == expectedRuntimeFiles
+
+        when: "the producer build output is removed and the consumer builds outside the reactor"
+        assert file("base-layer/target").deleteDir()
+        mvn '-DquickBuild', '-f', 'application/pom.xml', 'package'
+
+        then:
+        buildSucceeded
+        outputContains "[         1 tests successful      ]"
+        def stagedRoot = file("application/target/native/layer-runtime")
+        def stagedRuntimeFiles = stagedRoot.directorySize() > 0
+        stagedRuntimeFiles
+        def stagedDirectories = []
+        stagedRoot.eachDirRecurse { directory ->
+            if (directory.listFiles()?.any { NativeImageLayerRuntime.isRuntimeLibrary(it.name) }) {
+                stagedDirectories << directory.absolutePath
+            }
+        }
+        !stagedDirectories.empty
+        def application = file("application/target/application")
+        application.isFile()
+        def environment = System.getenv().collect { key, value -> "${key}=${value}" }
+        environment << "LD_LIBRARY_PATH=${stagedDirectories.join(File.pathSeparator)}"
+        def execution = [application.absolutePath].execute(environment, application.parentFile)
+        assert execution.waitFor() == 0
+        assert execution.in.text.contains("Hello, layered application!")
+    }
+
     @Ignore("GraalVM Native Image currently supports one shared base layer and a final application executable, not chained shared layers.")
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and runs a chained reactor layer stack"() {
         given:
         withSample("layered-maven-application")

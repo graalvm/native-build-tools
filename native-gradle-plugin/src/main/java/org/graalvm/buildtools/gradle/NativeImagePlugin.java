@@ -64,10 +64,12 @@ import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.ValidateNativeImageLayerSelectionTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateAgentAccessFilter;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
+import org.graalvm.buildtools.gradle.tasks.GenerateNativeImageLauncherTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.ListLibrariesMissingMetadata;
 import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
+import org.graalvm.buildtools.gradle.tasks.StageNativeImageLayerRuntimeFilesTask;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
@@ -102,6 +104,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
@@ -316,6 +319,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         configureAutomaticTaskCreation(project, graalExtension, tasks, javaConvention.getSourceSets());
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
+        configureApplicationDistribution(project, mainOptions, imageBuilder,
+            tasks.named("nativeLayerRuntimeFiles", StageNativeImageLayerRuntimeFilesTask.class), tasks);
         tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
             t.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             t.setDescription("Deprecated alias for nativeCompile.");
@@ -433,6 +438,21 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.getMetadataRepositoryRootPath().set(repoRootPath);
                 });
             configureLayerSelectionValidation(project, tasks, compileTaskName, options, imageBuilder);
+            String stageTaskName = NATIVE_MAIN_EXTENSION.equals(binaryName)
+                ? "nativeLayerRuntimeFiles"
+                : deriveTaskName(binaryName, "native", "LayerRuntimeFiles");
+            TaskProvider<StageNativeImageLayerRuntimeFilesTask> stagedRuntimeFiles = tasks.register(
+                stageTaskName, StageNativeImageLayerRuntimeFilesTask.class, task -> {
+                    task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                    task.setDescription("Stages runtime libraries for the " + options.getName() + " native binary.");
+                    task.getLayerFiles().from(options.getLayerFiles());
+                    task.getLayerDirectories().from(options.getLayerFiles().getElements()
+                        .map(serializableTransformerOf(elements -> elements.stream()
+                            .map(location -> location.getAsFile().getParentFile())
+                            .toList())));
+                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory()
+                        .dir("native/layer-runtime-files/" + binaryName));
+                });
             String runTaskName = deriveTaskName(binaryName, "native", "Run");
             var providers = project.getProviders();
             if (NATIVE_MAIN_EXTENSION.equals(binaryName)) {
@@ -457,8 +477,10 @@ public class NativeImagePlugin implements Plugin<Project> {
                             .zip(libsPath, serializableBiFunctionOf((path, libs) -> path + File.pathSeparator + libs))
                             .orElse(libsPath));
                     } else {
-                        var ldLibraryPath = providers.environmentVariable("LD_LIBRARY_PATH");
-                        task.getEnvironment().put("LD_LIBRARY_PATH", ldLibraryPath
+                        String variable = System.getProperty("os.name", "").startsWith("Mac")
+                            ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH";
+                        var ldLibraryPath = providers.environmentVariable(variable);
+                        task.getEnvironment().put(variable, ldLibraryPath
                             .zip(libsPath, serializableBiFunctionOf((path, libs) -> path + File.pathSeparator + libs))
                             .orElse(libsPath));
                     }
@@ -507,6 +529,42 @@ public class NativeImagePlugin implements Plugin<Project> {
 
             configureJvmReachabilityConfigurationDirectories(project, graalExtension, options, sourceSet);
             configureJvmReachabilityExcludeConfigArgs(project, graalExtension, options, sourceSet);
+        });
+    }
+
+    private static void configureApplicationDistribution(Project project,
+                                                         NativeImageOptions options,
+                                                         TaskProvider<BuildNativeImageTask> imageBuilder,
+                                                         TaskProvider<StageNativeImageLayerRuntimeFilesTask> stagedRuntimeFiles,
+                                                         TaskContainer tasks) {
+        project.afterEvaluate(ignored -> {
+            if (options.getLayerFiles().isEmpty()) {
+                return;
+            }
+            project.getPlugins().withId("application", applicationPlugin -> {
+                TaskProvider<GenerateNativeImageLauncherTask> launcher = tasks.register(
+                    "nativeDistributionLauncher", GenerateNativeImageLauncherTask.class, task -> {
+                        task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                        task.setDescription("Generates the launcher for the layered native application distribution.");
+                        task.getExecutableName().set(imageBuilder.flatMap(BuildNativeImageTask::getExecutableName));
+                        task.getLauncherName().set(options.getImageName().map(name -> name + "-native"));
+                        task.getOutputDirectory().set(project.getLayout().getBuildDirectory()
+                            .dir("native/distribution-launcher"));
+                    });
+                DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
+                distributions.named("main", distribution -> {
+                    distribution.getContents().from(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile), spec -> {
+                        spec.into("lib/native");
+                    });
+                    distribution.getContents().from(stagedRuntimeFiles.flatMap(
+                        StageNativeImageLayerRuntimeFilesTask::getDestinationDirectory),
+                        spec -> spec.into("lib/native-layers"));
+                    distribution.getContents().from(launcher.flatMap(GenerateNativeImageLauncherTask::getOutputDirectory),
+                        spec -> {
+                            spec.into("bin");
+                        });
+                });
+            });
         });
     }
 

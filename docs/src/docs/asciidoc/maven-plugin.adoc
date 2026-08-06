@@ -222,9 +222,10 @@ For example, to build a native image named `myapp` that uses `org.example.ClassN
 For scenario-based examples covering native tests, reuse across executions and modules, and
 deployment, see <<layered-images.adoc#,Layered Native Images: Reuse, Testing, and Deployment>>.
 
-The `layer-create` goal produces a `.nil` Native Image layer and attaches it to the Maven project.
-A consuming module declares that artifact with `<type>nil</type>` and selects it through
-`<useLayers>`. The `nil` dependency is resolved separately and never enters the Java classpath.
+The `layer-create` goal produces a `.nil` Native Image layer plus a platform-classified runtime
+ZIP and attaches both to the Maven project. A consuming module declares the `.nil` artifact with
+`<type>nil</type>` and selects it through `<useLayers>`. The `nil` dependency is resolved separately
+and never enters the Java classpath; the matching runtime ZIP is resolved and staged automatically.
 
 [TIP]
 ====
@@ -288,14 +289,21 @@ declared `nil` dependency is not selected. Layer names may contain letters, digi
 underscores, and hyphens. The legacy
 `<includeDependencies>` option accepts only `all`; other values fail fast.
 
+Consumption is coordinate-only; local `.nil` paths are not a supported `<useLayers>` form. A
+producer may use `<packaging>pom</packaging>` and still bind `layer-create`. The
+`skipNativeBuildForPom` option skips `compile-no-fork` for POM projects but does not skip an
+explicit layer-producing execution.
+
 `<useLayers>` applies to every goal that receives that configuration, including `native:test` and
 shared-library builds. Put it in an execution-specific `<configuration>` when tests should use a
 different layer stack from the main image. A `layer-create` execution may also configure
 `<useLayers>` to build one named layer on top of another.
 
-The application executable dynamically loads the shared libraries contained in its producer
-layers. Ship those libraries with the application and add their directories to `LD_LIBRARY_PATH`
-on Linux, `DYLD_LIBRARY_PATH` on macOS, or `PATH` on Windows before launching the executable.
+The application executable dynamically loads the runtime libraries contained in its producer
+layers. Repository consumers extract those libraries under `target/native/layer-runtime`; package
+those directories with the application and add them to `LD_LIBRARY_PATH` on Linux,
+`DYLD_LIBRARY_PATH` on macOS, or `PATH` on Windows before launching the executable. See the linked
+guide for the GraalVM 25.1+ support policy, native-test module requirements, and storage guidance.
 
 [NOTE]
 ====

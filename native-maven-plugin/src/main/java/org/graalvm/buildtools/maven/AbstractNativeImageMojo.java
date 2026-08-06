@@ -52,12 +52,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
 import org.graalvm.buildtools.maven.config.UseLayerConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
+import org.graalvm.buildtools.utils.NativeImageLayerRuntime;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -105,6 +109,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     private static final Pattern LAYER_CREATE_ARG = Pattern.compile(
             Pattern.quote(NativeImageFlags.LAYER_CREATE) + "(@[^=]*)?=.+");
     private static String nativeImageVersionInformation = null;
+    private List<Artifact> resolvedLayerUseArtifacts;
+    private List<Path> resolvedLayerRuntimeDirectories;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -523,7 +529,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     private List<String> resolveLayerUseArguments() throws MojoExecutionException {
-        return resolveLayerUseArtifacts().stream()
+        List<Artifact> artifacts = resolveLayerUseArtifacts();
+        resolveLayerRuntimeDirectories(artifacts);
+        return artifacts.stream()
             .map(Artifact::getFile)
             .map(File::toPath)
             .map(NativeImageLayerArguments::renderLayerUse)
@@ -534,21 +542,20 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
      * Directories that contain layer libraries consumed by this image. §FS-native-builds.3.
      */
     protected List<Path> getUsedLayerLibraryDirectories() throws MojoExecutionException {
-        return resolveLayerUseArtifacts().stream()
-            .map(Artifact::getFile)
-            .map(File::toPath)
-            .map(Path::getParent)
-            .distinct()
-            .toList();
+        return resolveLayerRuntimeDirectories(resolveLayerUseArtifacts());
     }
 
     private List<Artifact> resolveLayerUseArtifacts() throws MojoExecutionException {
+        if (resolvedLayerUseArtifacts != null) {
+            return resolvedLayerUseArtifacts;
+        }
         List<Artifact> nilArtifacts = project.getArtifacts().stream()
             .filter(artifact -> "nil".equals(artifact.getType()))
             .toList();
         if (useLayers == null || useLayers.isEmpty()) {
             warnAboutUnreferencedLayers(nilArtifacts);
-            return List.of();
+            resolvedLayerUseArtifacts = List.of();
+            return resolvedLayerUseArtifacts;
         }
         Set<String> selected = new HashSet<>();
         Set<Artifact> selectedArtifacts = new LinkedHashSet<>();
@@ -583,7 +590,56 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         warnAboutUnreferencedLayers(nilArtifacts.stream()
             .filter(artifact -> !selectedArtifacts.contains(artifact))
             .toList());
-        return List.copyOf(selectedArtifacts);
+        resolvedLayerUseArtifacts = List.copyOf(selectedArtifacts);
+        return resolvedLayerUseArtifacts;
+    }
+
+    private List<Path> resolveLayerRuntimeDirectories(List<Artifact> layerArtifacts) throws MojoExecutionException {
+        if (resolvedLayerRuntimeDirectories != null) {
+            return resolvedLayerRuntimeDirectories;
+        }
+        if (layerArtifacts.isEmpty()) {
+            resolvedLayerRuntimeDirectories = List.of();
+            return resolvedLayerRuntimeDirectories;
+        }
+        String classifier = NativeImageLayerRuntime.classifier(buildArgs);
+        List<Path> directories = new ArrayList<>();
+        for (Artifact layerArtifact : layerArtifacts) {
+            org.eclipse.aether.artifact.Artifact runtimeArtifact = new DefaultArtifact(
+                layerArtifact.getGroupId(),
+                layerArtifact.getArtifactId(),
+                classifier,
+                NativeImageLayerRuntime.ARCHIVE_TYPE,
+                layerArtifact.getVersion());
+            ArtifactRequest request = new ArtifactRequest(runtimeArtifact, project.getRemoteProjectRepositories(), null);
+            Path archive = resolveLayerRuntimeArchive(layerArtifact, runtimeArtifact, request);
+            Path destination = Path.of(project.getBuild().getDirectory(), "native", "layer-runtime",
+                layerArtifact.getGroupId(), layerArtifact.getArtifactId(), layerArtifact.getVersion(), classifier);
+            try {
+                NativeImageLayerRuntime.extractArchive(archive, destination, logger::warn);
+            } catch (IOException ex) {
+                throw new MojoExecutionException("Unable to stage layer runtime archive " + runtimeArtifact
+                    + " in " + destination, ex);
+            }
+            directories.add(destination);
+        }
+        resolvedLayerRuntimeDirectories = List.copyOf(directories);
+        return resolvedLayerRuntimeDirectories;
+    }
+
+    protected Path resolveLayerRuntimeArchive(Artifact layerArtifact,
+                                              org.eclipse.aether.artifact.Artifact runtimeArtifact,
+                                              ArtifactRequest request) throws MojoExecutionException {
+        try {
+            return repositorySystem.resolveArtifact(mavenSession.getRepositorySession(), request)
+                .getArtifact().getFile().toPath();
+        } catch (ArtifactResolutionException ex) {
+            throw new MojoExecutionException("Layer '" + layerArtifact.getGroupId() + ":"
+                + layerArtifact.getArtifactId() + ":" + layerArtifact.getVersion()
+                + "' is missing its deployable runtime companion " + runtimeArtifact
+                + ". A .nil artifact alone is not deployable; republish the layer with a Native Build Tools "
+                + "version that attaches runtime bundles.", ex);
+        }
     }
 
     private void warnAboutUnreferencedLayers(List<Artifact> artifacts) {
@@ -692,6 +748,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
+        warnAboutUnsupportedLayerConsumption(nativeImageExecutable);
         if (isMetadataRepositoryEnabled() && metadataRepository != null) {
             SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(null)), nativeImageExecutable);
         }
@@ -722,6 +779,17 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    private void warnAboutUnsupportedLayerConsumption(Path nativeImageExecutable) throws MojoExecutionException {
+        if (useLayers == null || useLayers.isEmpty()) {
+            return;
+        }
+        String versionInformation = getVersionInformation(logger, nativeImageExecutable);
+        if (NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(versionInformation, true)) {
+            logger.warn("Layer consumption is supported on GraalVM 25.1 and later. Continuing on "
+                + "GraalVM 25.0.x is unsupported and at your own risk.");
         }
     }
 
