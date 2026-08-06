@@ -1,5 +1,5 @@
 name: github-issue-fix
-version: 0.3.0
+version: 0.3.1
 description: Fix one Native Build Tools GitHub issue through approval, implementation, validation, focused review, and configurable PR publication.
 
 inputs:

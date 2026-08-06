@@ -18,22 +18,25 @@
 #     no-pr ----------------------------------> human-review [gating]
 #                                               | approve
 #                                               v
-#   implement-fix -> implementation-dispatch -> validate-fix
+#   implement-fix -> implementation-dispatch -> grund-normalize [program]
 #       | reproposal                              |
 #       +---------------------> propose-fix       v
+#                                             validate-fix
+#                                                  |
+#                                                  v
 #                              requirements-review -> spec-review
 #                              -> implementation-review -> validation-review
 #                              -> aggregate-review -> review-dispatch [program]
 #                                   | ready                    | blockers
 #                                   v                          v
-#                              publish-pr              address-review -> validate-fix
+#                              publish-pr              address-review -> grund-normalize
 #                                   |                          | exhausted
 #                                   v                          v
 #                              completed [final]       record-blocked-publication
 #
 # Review loop:
-#   implement-fix -> implementation-dispatch -> validate-fix -> four focused reviews -> aggregate-review cycle 1
-#   blockers -> address-review -> validate-fix -> focused reviews -> another aggregate-review cycle
+#   implement-fix -> implementation-dispatch -> grund-normalize -> validate-fix -> four focused reviews -> aggregate-review cycle 1
+#   blockers -> address-review -> grund-normalize -> validate-fix -> focused reviews -> another aggregate-review cycle
 #   aggregate-review -> review-dispatch checks `Ready to publish: yes/no`
 #   review-dispatch -> publish-pr only when ready and required review passes are complete.
 #                      In draft/no-pr mode, disclosed broad validation gaps do
@@ -539,7 +542,11 @@ states:
       against its base and perform an explicit citation-coverage pass over all
       changed internal files. Run the repository's citation validation and
       formatting checks when available, and record that audit in the
-      implementation note.
+      implementation note. For an NBT grund workspace, run the formatter from
+      the workspace root over `.` rather than against only changed files or one
+      workspace member, because cross-namespace Markdown targets require root
+      workspace context. This is required by
+      [§FS-build-infrastructure.4.2](../../../../docs/spec/functional/build-infrastructure.md#42-generated-issue-fix-grounding).
       Do not invent a reference when the repository has
       no applicable convention or spec point; record that absence in the
       implementation note instead.
@@ -604,6 +611,39 @@ states:
       - name: implementation-note
         path: runtime/github-issue-fix/{task_id}/implementation.md
 
+  grund-normalize:
+    description: Normalize and verify grund references from the issue worktree root before validation.
+    visits: {{review_cycles}}
+    program:
+      command:
+        - bash
+        - -lc
+        - |
+          set -eu
+          worktree_file="runtime/github-issue-fix/issue-intake/worktree.yaml"
+          worktree_path="$(sed -n 's/^worktree_path:[[:space:]]*//p' "$worktree_file")"
+          worktree_path="${worktree_path#\"}"
+          worktree_path="${worktree_path%\"}"
+          if [ -z "$worktree_path" ] || [ ! -d "$worktree_path" ]; then
+            echo "invalid or missing issue worktree: $worktree_path" >&2
+            exit 1
+          fi
+          cd "$worktree_path"
+          if [ ! -f .agents/grund.toml ]; then
+            exit 0
+          fi
+          if ! command -v grund >/dev/null 2>&1; then
+            echo "grund is configured but unavailable" >&2
+            exit 1
+          fi
+          grund fmt . --write --marker --cross-refs
+          grund check
+          grund fmt . --marker --cross-refs --check
+    program_timeout: 2m
+    inputs:
+      - name: worktree-ref
+        path: runtime/github-issue-fix/issue-intake/worktree.yaml
+
   validate-fix:
     description: Run grund and repository validation for the issue fix.
     target: "codex[yolo]:openai:gpt-5.6-sol"
@@ -640,10 +680,14 @@ states:
       module checks, targeted lint/style checks, targeted documentation/spec
       checks, and `git diff --check` over repository-wide suites.
 
-      If `grund` is configured, run the narrowest applicable grounding check
-      first. Run full `grund check` when it is cheap and compatible with the
-      checkout/tooling; otherwise record the tooling/version blocker and run
-      targeted citation/format checks where possible.
+      If `grund` is configured, verify the deterministic normalization result
+      from the workspace root by running both `grund check` and
+      `grund fmt . --marker --cross-refs --check`. These cheap repository gates
+      are mandatory and must not be replaced by file-scoped or member-scoped
+      checks, because cross-namespace Markdown targets require the root
+      workspace configuration. If either command cannot run or fails, record a
+      validation blocker; do not downgrade it to a disclosed gap. This enforces
+      [§FS-build-infrastructure.4.2](../../../../docs/spec/functional/build-infrastructure.md#42-generated-issue-fix-grounding).
 
       Always run the explicit configured commands when present:
       `[]`.
@@ -892,6 +936,10 @@ states:
       - whether skipped commands are justified with credible narrower checks
       - whether likely CI-only failures were considered
       - whether the PR body can honestly report validation evidence
+      - when grund is configured, whether root-wide `grund check` and
+        `grund fmt . --marker --cross-refs --check` both passed after the latest
+        implementation or review repair; missing, scoped-down, or failed runs
+        are validation blockers
       - whether the public-doc `§...` citation check was run when public docs
         changed, and whether any newly added internal citations remain
 
@@ -1328,9 +1376,9 @@ transitions:
     description: Implementation result was recorded for deterministic routing.
 
   - from: implementation-dispatch
-    to: validate-fix
+    to: grund-normalize
     exit_code: 0
-    description: Implementation is ready for validation.
+    description: Implementation is ready for deterministic grund normalization.
 
   - from: implementation-dispatch
     to: github-handoff
@@ -1341,6 +1389,10 @@ transitions:
     to: propose-fix
     exit_code: 3
     description: New evidence requires an explicitly revised proposal before implementation continues.
+
+  - from: grund-normalize
+    to: validate-fix
+    description: Grund references are normalized and the root workspace checks pass.
 
   - from: validate-fix
     to: requirements-review
@@ -1396,8 +1448,8 @@ transitions:
     description: The aggregate review found an external or human-only blocker.
 
   - from: address-review
-    to: validate-fix
-    description: Review findings were addressed; validate again.
+    to: grund-normalize
+    description: Review findings were addressed; normalize grund references before validating again.
 
   - from: publish-pr
     to: completed

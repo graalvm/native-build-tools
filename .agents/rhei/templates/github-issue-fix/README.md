@@ -42,10 +42,10 @@ states use the lighter operations target. The exact target values live in
 |---|---|
 | Intake | `issue-intake -> completed` after artifacts and one follow-up task are written. |
 | New proposal | `approval-check -> propose-fix -> publish-proposal -> proposal-pending`. |
-| Approved proposal | `approval-check -> approval-apply -> implement-fix`. |
+| Approved proposal | `approval-check -> approval-apply -> implement-fix -> grund-normalize`. |
 | Rejected proposal | `approval-check -> rejection-prepare -> propose-fix`, or `github-handoff` after exhaustion. |
-| Implementation | `implement-fix -> validate-fix -> focused reviews -> aggregate-review`. |
-| Review repair | `review-dispatch -> address-review -> validate-fix`. |
+| Implementation | `implement-fix -> grund-normalize -> validate-fix -> focused reviews -> aggregate-review`. |
+| Review repair | `review-dispatch -> address-review -> grund-normalize -> validate-fix`. |
 | Publication | `review-dispatch -> publish-pr -> completed`. |
 | Blocked work | `github-handoff -> completed` or `record-blocked-publication -> completed`. |
 
@@ -62,8 +62,10 @@ The complete state diagram and transition commentary are at the top of
    recovered from GitHub across fresh runs.
 3. An exact `/rhei approve <proposal-id>` comment from a repository member
    with write, maintain, or admin permission authorizes implementation.
-4. Implementation follows NBT's spec-first and grounding rules, then runs
-   focused validation discovered from the applicable repository instructions.
+4. Implementation follows NBT's spec-first and grounding rules. A deterministic
+   gate then formats references from the workspace root and requires the same
+   `grund check` and `grund fmt . --marker --cross-refs --check` gates as CI
+   before focused validation starts.
 5. Separate requirements, spec, implementation, and validation reviews feed an
    aggregate publication-readiness decision. Final-cycle citation hygiene is
    reported for maintainers without turning an otherwise ready change into a
