@@ -1,0 +1,361 @@
+= Layered Native Images: Reuse, Testing, and Deployment
+The GraalVM team
+
+Native Image layers let several native binaries reuse a separately built part of an image. A
+typical project puts stable modules and dependencies in a base layer, then consumes that layer
+from the application image, native tests, or other native binaries.
+
+This guide focuses on how layers fit into a real build: selecting layer contents, sharing one
+layer between build targets, using layers from native tests, and shipping the resulting
+application. For the complete configuration reference, see
+<<gradle-plugin.adoc#layered-images,the Gradle plugin documentation>> and
+<<maven-plugin.adoc#layered-images,the Maven plugin documentation>>.
+
+[IMPORTANT]
+====
+Layered images are an experimental Native Image feature. Native Build Tools can express
+multi-level layer stacks, but current Native Image releases support one shared base layer and a
+final application image. Keep layer chaining disabled until the Native Image version used by the
+build supports it.
+====
+
+[[layered-image-artifacts]]
+== Understand the Generated Artifacts
+
+Creating a layer produces two kinds of output:
+
+* A `.nil` file that another Native Image build consumes through `-H:LayerUse`. This is a
+  build-time artifact.
+* A platform shared library that the final executable loads at runtime, such as `libbase.so` on
+  Linux. This is a deployment artifact.
+
+The final executable does not contain the layer's shared library. A deployment must therefore
+include the executable and the shared library from every layer it uses. Publishing or attaching
+the `.nil` file does not automatically publish, copy, or embed the runtime libraries.
+
+[[layer-content-selection]]
+== Select Layer Contents
+
+Both plugins support module, package, path, dependency, and complete-classpath selection. Modules
+and packages may be combined in the same layer. Keep frequently changing application classes out
+of a broadly reused layer so that application changes do not force the layer to be rebuilt.
+
+For example, a Gradle layer can select JDK modules and packages from resolved dependencies:
+
+[source,groovy]
+----
+graalvmNative {
+    layers {
+        sharedRuntime {
+            contents {
+                modules('java.base', 'java.logging')
+                packages('org.slf4j')
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+}
+----
+
+The equivalent Maven layer definition is:
+
+[source,xml]
+----
+<layer>
+  <name>shared-runtime</name>
+  <modules>
+    <module>java.base</module>
+    <module>java.logging</module>
+  </modules>
+  <packages>
+    <package>org.slf4j</package>
+  </packages>
+  <dependencies>
+    <dependency>
+      <artifact>org.slf4j:slf4j-api</artifact>
+    </dependency>
+  </dependencies>
+</layer>
+----
+
+[[gradle-layer-reuse]]
+== Reuse a Layer with Gradle
+
+Gradle layers are named objects outside the binary container. Calling `usesLayer` adds the
+producer task as a dependency of the consuming binary, so requesting `nativeCompile` or
+`nativeTest` also builds the layer when necessary.
+
+[[gradle-main-and-tests]]
+=== Share One Layer Between the Application and Native Tests
+
+The `main` and `test` binaries can consume the same named layer:
+
+[source,groovy]
+----
+graalvmNative {
+    layers {
+        sharedRuntime {
+            contents {
+                modules('java.base', 'java.logging')
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+    binaries {
+        main {
+            usesLayer('sharedRuntime')
+        }
+        test {
+            usesLayer('sharedRuntime')
+        }
+    }
+}
+----
+
+Run the application and native tests normally:
+
+[source,bash]
+----
+./gradlew nativeRun
+./gradlew nativeTest
+----
+
+Both task graphs reuse `nativeSharedRuntimeLayer`. The Gradle run tasks add the directories of
+their selected layers to the runtime library search path.
+
+[[gradle-additional-tests]]
+=== Share a Layer with Additional Test Suites
+
+Register an additional native test binary and configure it like any other layer consumer. The
+following fragment assumes an `integTest` source set and `Test` task already exist:
+
+[source,groovy]
+----
+graalvmNative {
+    registerTestBinary('integTest') {
+        usingSourceSet(sourceSets.integTest)
+        forTestTask(tasks.named('integTest'))
+    }
+
+    binaries {
+        test {
+            usesLayer('sharedRuntime')
+        }
+        integTest {
+            usesLayer('sharedRuntime')
+        }
+    }
+}
+----
+
+`nativeTest` and `nativeIntegTest` now build separate native test images while sharing the same
+layer producer. Different suites can instead select different layers when their runtime
+requirements differ.
+
+[[gradle-multiple-binaries]]
+=== Share a Layer Between Executables and Libraries
+
+Repeated `usesLayer` calls can select multiple layers, and the same layer can be selected by
+multiple binaries. For example, an executable and a shared-library binary can both select
+`sharedRuntime`. Each consumer keeps its own Native Image options; layer-sensitive options must
+remain compatible between the producer and every consumer.
+
+[[maven-layer-reuse]]
+== Reuse a Layer with Maven
+
+Maven represents a layer as an attached artifact of type `nil`. A consumer declares the producer
+as a normal dependency with `<type>nil</type>`, which gives Maven enough information to order
+reactor modules and resolve layers from a repository without adding them to the Java classpath.
+
+[[maven-producer-module]]
+=== Create a Layer in a Producer Module
+
+Bind `layer-create` in the producer module:
+
+[source,xml]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <extensions>true</extensions>
+  <executions>
+    <execution>
+      <id>create-shared-runtime</id>
+      <phase>package</phase>
+      <goals>
+        <goal>layer-create</goal>
+      </goals>
+      <configuration>
+        <layer>
+          <name>shared-runtime</name>
+          <modules>
+            <module>java.base</module>
+            <module>java.logging</module>
+          </modules>
+        </layer>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+----
+
+The goal creates
+_target/native/layers/shared-runtime/shared-runtime.nil_ and attaches it to the project as a
+`nil` artifact.
+
+[[maven-main-and-tests]]
+=== Share One Layer Between Build Executions
+
+Declare the producer in the consumer module:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.example</groupId>
+  <artifactId>shared-runtime-layer</artifactId>
+  <version>${project.version}</version>
+  <type>nil</type>
+  <scope>runtime</scope>
+</dependency>
+----
+
+Put `<useLayers>` in the plugin-level configuration when every configured goal should use the
+same layer. In this example the application image and native tests share it:
+
+[source,xml]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <extensions>true</extensions>
+  <configuration>
+    <useLayers>
+      <useLayer>
+        <artifact>org.example:shared-runtime-layer</artifact>
+      </useLayer>
+    </useLayers>
+  </configuration>
+  <executions>
+    <execution>
+      <id>build-application</id>
+      <phase>package</phase>
+      <goals>
+        <goal>compile-no-fork</goal>
+      </goals>
+    </execution>
+    <execution>
+      <id>run-native-tests</id>
+      <phase>test</phase>
+      <goals>
+        <goal>test</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+----
+
+Use execution-specific `<configuration>` blocks instead when application and test images need
+different layers. Multiple consumer modules can declare and select the same `nil` dependency.
+
+[NOTE]
+====
+When a native test is executed, the plugin adds the directories containing its selected layer
+artifacts to the platform library search path. For a layer resolved from a repository, the
+runtime shared library must also be staged next to the `.nil` file or added to the search path
+separately.
+====
+
+[[layer-chaining]]
+== Prepare Multi-Level Layer Stacks
+
+Native Build Tools can describe a layer that consumes another layer. In Gradle, call
+`usesLayer` from the consuming layer:
+
+[source,groovy]
+----
+graalvmNative {
+    layers {
+        base {
+            contents.modules('java.base')
+        }
+        framework {
+            usesLayer('base')
+            contents.packages('org.example.framework')
+        }
+    }
+    binaries.main {
+        usesLayer('framework')
+    }
+}
+----
+
+In Maven, declare the base layer as a `nil` dependency of the next producer module and add
+`<useLayers>` to that module's `layer-create` execution. Each produced layer remains an
+independently ordered build artifact.
+
+Do not enable this topology until the Native Image version used by the build supports chained
+shared layers. When deploying a multi-level stack, every layer's runtime shared library must be
+included in the library search path.
+
+[[shipping-layered-images]]
+== Ship a Layered Application
+
+A portable application bundle should keep the executable and its layer libraries together. For
+example, a Linux distribution can use this layout:
+
+[source,text]
+----
+application/
+|-- bin/
+|   `-- application
+`-- lib/
+    |-- libbase.so
+    `-- libframework.so
+----
+
+The `.nil` files are needed to build downstream images, but they are not required merely to run
+an already-built final executable. Keep them in a build artifact repository when other builds
+need to consume the layers.
+
+[[shipping-linux]]
+=== Linux
+
+[source,bash]
+----
+APP_HOME=/opt/application
+LD_LIBRARY_PATH="$APP_HOME/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    "$APP_HOME/bin/application"
+----
+
+For a container image, copy both directories and set `LD_LIBRARY_PATH` in the runtime image:
+
+[source,dockerfile]
+----
+COPY application/ /opt/application/
+ENV LD_LIBRARY_PATH=/opt/application/lib
+ENTRYPOINT ["/opt/application/bin/application"]
+----
+
+[[shipping-macos]]
+=== macOS
+
+[source,bash]
+----
+APP_HOME=/opt/application
+DYLD_LIBRARY_PATH="$APP_HOME/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}" \
+    "$APP_HOME/bin/application"
+----
+
+[[shipping-windows]]
+=== Windows
+
+[source,powershell]
+----
+$env:PATH = "$PWD\lib;$env:PATH"
+& "$PWD\bin\application.exe"
+----
+
+Native Build Tools builds the final executable and each layer's shared library, but does not
+package them together for deployment. The project's packaging process must include the executable
+and all layer shared libraries, and configure the platform loader to find those libraries at
+runtime.

@@ -191,8 +191,9 @@ generated _build/native/layers/dependencies/dependencies.nil_ while building the
 Repeat layer-sensitive binary build arguments on the layer itself; layers do not inherit
 `binaries.all { buildArgs(...) }` because one layer can be consumed by differently configured
 binaries.
-See <<gradle-plugin.adoc#layered-images,Layered Native Images>> for selector and compatibility
-details.
+See <<layered-images.adoc#,Layered Native Images: Reuse, Testing, and Deployment>> for examples
+that share layers with native tests and package the resulting application. The complete DSL
+reference remains in <<gradle-plugin.adoc#layered-images,the Gradle plugin documentation>>.
 
 [[gather-execution-profiles]]
 === Gather Execution Profiles and Build Optimized Images
