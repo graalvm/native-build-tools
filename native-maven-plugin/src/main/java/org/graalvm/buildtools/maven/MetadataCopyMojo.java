@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2026 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -54,13 +54,17 @@ import org.graalvm.buildtools.maven.config.agent.MetadataCopyConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Copies and optionally merges tracing agent metadata into {@code META-INF/native-image} for packaging.
@@ -72,6 +76,9 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
     private static final String DEFAULT_OUTPUT_DIRECTORY = "/META-INF/native-image";
     private static final List<String> FILES_REQUIRED_FOR_MERGE_LEGACY = Arrays.asList("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json");
     private static final List<String> FILES_REQUIRED_FOR_MERGE = Arrays.asList("reachability-metadata.json");
+    private static final List<String> OWNED_METADATA_ENTRIES = Arrays.asList("reflect-config.json", "jni-config.json", "proxy-config.json", "resource-config.json",
+                    "serialization-config.json", "predefined-classes-config.json", "foreign-config.json", "reachability-metadata.json",
+                    "agent-extracted-predefined-classes");
 
     @Parameter(alias = "agent")
     private AgentConfiguration agentConfiguration;
@@ -155,19 +162,60 @@ public class MetadataCopyMojo extends AbstractMergeAgentFilesMojo {
         String sourceDirsInfo = sourceDirectories.stream().map(File::new).map(File::getName).collect(Collectors.joining(", "));
         logger.info("Copying files from: " + sourceDirsInfo);
 
-        List<String> nativeImageConfigureOptions = new StandardAgentMode().getNativeImageConfigureOptions(sourceDirectories, Collections.singletonList(destinationDir));
-        nativeImageConfigureOptions.add(0, getMergerExecutable().getAbsolutePath());
-        ProcessBuilder processBuilder = new ProcessBuilder(nativeImageConfigureOptions);
-
+        Path destinationPath = Paths.get(destinationDir).toAbsolutePath();
+        Path stagingDirectory = null;
         try {
+            // Generate separately so repeated reactor invocations replace or merge only after successful post-processing. §FS-tracing-agent.4.1
+            stagingDirectory = Files.createTempDirectory(destinationPath, ".native-metadata-copy-");
+            List<String> nativeImageConfigureOptions = new StandardAgentMode().getNativeImageConfigureOptions(sourceDirectories,
+                            Collections.singletonList(stagingDirectory.toString()));
+            nativeImageConfigureOptions.add(0, getMergerExecutable().getAbsolutePath());
+            ProcessBuilder processBuilder = new ProcessBuilder(nativeImageConfigureOptions);
             Process start = processBuilder.start();
             int retCode = start.waitFor();
             if (retCode != 0) {
+                // Do not touch the configured destination; the finally block removes staged output. §FS-tracing-agent.4.1
                 getLog().error("Metadata copy process failed with code: " + retCode);
                 throw new MojoExecutionException("Metadata copy process failed.");
             }
+            replaceMetadata(stagingDirectory, destinationPath);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
+        } finally {
+            deleteDirectoryQuietly(stagingDirectory);
+        }
+    }
+
+    private void replaceMetadata(Path source, Path destination) throws IOException {
+        for (String metadataEntry : OWNED_METADATA_ENTRIES) {
+            deleteDirectory(destination.resolve(metadataEntry));
+        }
+        try (Stream<Path> paths = Files.list(source)) {
+            for (Path path : paths.collect(Collectors.toList())) {
+                Files.move(path, destination.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+    }
+
+    private void deleteDirectoryQuietly(Path directory) {
+        if (directory == null || !Files.exists(directory)) {
+            return;
+        }
+        try {
+            deleteDirectory(directory);
+        } catch (IOException e) {
+            logger.warn("Cannot delete temporary metadata copy directory " + directory, e);
+        }
+    }
+
+    private void deleteDirectory(Path directory) throws IOException {
+        if (!Files.exists(directory)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(directory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).collect(Collectors.toList())) {
+                Files.delete(path);
+            }
         }
     }
 

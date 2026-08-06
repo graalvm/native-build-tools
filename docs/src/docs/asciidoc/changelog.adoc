@@ -3,6 +3,7 @@
 
 == Release 1.1.6
 
+- Fix Maven `native:metadata-copy` replacement when sequential reactor modules share an output directory, including failure-safe staging and removal of stale metadata types.
 - Maven native test goals now read the matching Surefire or Failsafe execution, including its configured `testClassesDirectory`, and keep their test-ID output separate.
 - Clarify the separate Gradle launcher, JDK 17 compilation toolchain, and GraalVM prerequisites; add a docs-independent core build mode while keeping the default full build responsible for included-build assembly, verification, and documentation rendering.
 
