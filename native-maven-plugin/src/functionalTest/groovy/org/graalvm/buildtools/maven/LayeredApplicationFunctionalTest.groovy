@@ -92,6 +92,60 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     }
 
     @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    def "builds and consumes a layer from an individual dependency selector"() {
+        given:
+        withSample("layered-maven-application")
+        def basePom = file("base-layer/pom.xml")
+        basePom.text = basePom.text
+            .replace('''    <artifactId>base-layer</artifactId>
+''', '''    <artifactId>base-layer</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.17.0</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+''')
+            .replace('''                                <modules>
+                                    <module>java.base</module>
+                                </modules>
+''', '''                                <dependencies>
+                                    <dependency>
+                                        <artifact>org.apache.commons:commons-lang3</artifact>
+                                    </dependency>
+                                </dependencies>
+''')
+        def applicationPom = file("application/pom.xml")
+        applicationPom.text = applicationPom.text.replace('''                    <mainClass>org.graalvm.demo.Application</mainClass>
+''', '''                    <mainClass>org.graalvm.demo.Application</mainClass>
+                    <metadataRepository>
+                        <enabled>false</enabled>
+                    </metadataRepository>
+''')
+
+        when:
+        mvn '-DquickBuild', '-DskipTests', 'package'
+
+        then:
+        buildSucceeded
+        file("base-layer/target/native/layers/base/base.nil").isFile()
+        outputContains "-H:LayerCreate=base.nil,path="
+        def application = file("application/target/application")
+        assert application.isFile()
+        assert outputContains("-H:LayerUse=")
+        def environment = System.getenv().collect { key, value -> "${key}=${value}" }
+        def layerDirectory = file("base-layer/target/native/layers/base").absolutePath
+        def inheritedLibraryPath = System.getenv("LD_LIBRARY_PATH")
+        environment << "LD_LIBRARY_PATH=${inheritedLibraryPath ? inheritedLibraryPath + File.pathSeparator : ''}${layerDirectory}"
+        def execution = [application.absolutePath].execute(environment, application.parentFile)
+        assert execution.waitFor() == 0
+        assert execution.in.text.contains("Hello, layered application!")
+    }
+
+    @Requires({ NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 })
     @IgnoreIf({ os.windows || os.macOs })
     def "builds a modules-only layer without leaking the project classpath"() {
         given:

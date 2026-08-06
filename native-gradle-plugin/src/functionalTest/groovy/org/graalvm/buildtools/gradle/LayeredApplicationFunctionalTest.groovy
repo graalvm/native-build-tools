@@ -225,6 +225,40 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    def "builds and consumes a layer from an individual dependency selector"() {
+        def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
+
+        given:
+        withSample("layered-java-application")
+        buildFile << '''
+            repositories {
+                mavenCentral()
+            }
+            graalvmNative {
+                metadataRepository.enabled = false
+                layers.dependencies.contents.dependencies("org.apache.commons:commons-lang3:3.17.0")
+                layers.dependencies.verbose = true
+            }
+        '''.stripIndent()
+
+        when:
+        run 'nativeRun', '-Pmessage="individual dependency selector"'
+
+        then:
+        tasks {
+            succeeded ':nativeDependenciesLayer', ':nativeCompile', ':nativeRun'
+        }
+        outputContains "-H:LayerCreate=dependencies.nil,module=java.base,path="
+        outputContains "- '-H:LayerUse' (origin(s): command line)"
+        file("build/native/layers/dependencies/dependencies.nil").isFile()
+        nativeApp.isFile()
+        outputContains "individual dependency selector"
+    }
+
+    @Requires(
+            { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
+    )
     @IgnoreIf({ os.windows || os.macOs })
     def "builds a layer with a package selector"() {
         given:
