@@ -93,6 +93,7 @@ import static org.graalvm.buildtools.gradle.NativeImagePlugin.compileTaskNameFor
 public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private static final GraalVMLogger LOGGER = GraalVMLogger.of(Logging.getLogger(BaseNativeImageOptions.class));
     private final DomainObjectSet<LayerOptions> layers;
+    private final ConfigurableFileCollection layerCompatibilityClasspath;
     private NativeImageLayer assignedLayer;
 
     private final String name;
@@ -289,6 +290,8 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         pgoProfileDir.convention(layout.getProjectDirectory().dir("src/pgo-profiles/" + name));
         getPgoProfilesDirectory().convention(pgoProfileDir.map(d -> d.getAsFile().exists() ? d : null));
         this.layers = objectFactory.domainObjectSet(LayerOptions.class);
+        this.layerCompatibilityClasspath = objectFactory.fileCollection();
+        getClasspath().from(layerCompatibilityClasspath);
         this.tasks = tasks;
         this.objects = objectFactory;
         this.providers = providers;
@@ -456,7 +459,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         // Typed layer consumption records the producing layer output on the binary. §FS-plugin-model.2.
         addLayerName(layer.getName());
         getLayerFiles().from(layer.getOutputFile());
-        getClasspath().from(layer.getCompatibilityClasspath());
+        layerCompatibilityClasspath.from(layer.getCompatibilityClasspath());
     }
 
     @Override
@@ -464,7 +467,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         // Provider-backed layer consumption preserves the typed, lazy extension surface. §FS-plugin-model.2.
         getLayerNames().add(layer.map(NativeImageLayer::getName));
         getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
-        getClasspath().from(layer.map(NativeImageLayer::getCompatibilityClasspath));
+        layerCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
     }
 
     @Override
@@ -474,7 +477,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         Provider<NativeImageLayer> layer = providers.provider(() -> namedLayers.getByName(name));
         addLayerName(name);
         getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
-        getClasspath().from(layer.map(NativeImageLayer::getCompatibilityClasspath));
+        layerCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
     }
 
     @Override
@@ -488,7 +491,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         assignedLayer = layer;
         getLayerNames().set(List.of(layer.getName()));
         getLayerFiles().setFrom(layer.getOutputFile());
-        getClasspath().from(layer.getCompatibilityClasspath());
+        layerCompatibilityClasspath.setFrom(layer.getCompatibilityClasspath());
     }
 
     private void addLayerName(String layerName) {

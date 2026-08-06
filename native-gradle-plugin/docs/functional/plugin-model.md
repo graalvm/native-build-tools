@@ -68,8 +68,9 @@ graalvmNative {
 Inside a binary closure, the deprecated binary-scoped `layers` property shadows the extension
 container. Groovy builds may use `usesLayer('<name>')` or the qualified
 `graalvmNative.layers.<name>` path.
-The singular `layer` property replaces its previous assignment, while repeated `useLayer(...)`
-calls add distinct layers. Duplicate layer selections fail before Native Image is invoked.
+The singular `layer` property replaces its previous assignment, including that layer's compatibility
+classpath contribution, while repeated `useLayer(...)` calls add distinct layers. Duplicate layer
+selections fail before Native Image is invoked.
 The same duplicate and name validation applies when a named layer consumes another named layer.
 Every selection form (`layer =`, `useLayer(NativeImageLayer)`,
 `useLayer(Provider<NativeImageLayer>)`, and `usesLayer(String)`) contributes its logical layer
