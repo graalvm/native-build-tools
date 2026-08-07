@@ -413,7 +413,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "custom shared library consumes a layer without a main class"() {
         given:
         withSample("layered-java-application")
@@ -444,7 +444,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "application distributions carry and launch layered native images"() {
         given:
         withSample("layered-java-application")
