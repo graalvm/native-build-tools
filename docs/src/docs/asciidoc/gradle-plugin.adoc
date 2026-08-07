@@ -222,9 +222,6 @@ other projects in a multi-project build. `all = true` may be combined with modul
 selectors. Use repeated `usesLayer('<name>')` or typed `useLayer(...)` calls to consume multiple
 layers. Name-based selection is lazy and works even when `binaries` appears before `layers`.
 Assigning the singular `layer` property replaces its previous value.
-Named layers also support `usesLayer('<name>')`, so a layer task can consume another layer and
-produce the next level of a multi-layer stack. The consumed layer is resolved lazily and its task
-is added as a producer dependency automatically.
 
 [IMPORTANT]
 ====

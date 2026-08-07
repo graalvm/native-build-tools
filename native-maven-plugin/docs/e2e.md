@@ -89,10 +89,10 @@ consumes the layer, executes, and produces the expected output. This protects [�
 [§FS-native-builds.3](functional/native-image-builds.md#3-classpath-and-scopes), and
 [§FS-config-model.7](functional/configuration-model.md#7-layer-configuration).
 The class is the executable evidence for module, package, explicit-path, and `all` selection,
-main, native-test, shared-library, and chained layer consumption.
+plus main, native-test, and shared-library layer consumption.
 Layer-consumption scenarios that exercise `all` selection, explicit paths, native tests, shared
-libraries, or chained layers are skipped on GraalVM 25.0.x because Native Image can fail after
-`-H:LayerUse` loads a valid layer.
+libraries are skipped on GraalVM 25.0.x because Native Image can fail after `-H:LayerUse` loads a
+valid layer.
 
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the
