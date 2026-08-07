@@ -296,8 +296,7 @@ explicit layer-producing execution.
 
 `<useLayers>` applies to every goal that receives that configuration, including `native:test` and
 shared-library builds. Put it in an execution-specific `<configuration>` when tests should use a
-different layer stack from the main image. A `layer-create` execution may also configure
-`<useLayers>` to build one named layer on top of another.
+different layer selection from the main image.
 
 The application executable dynamically loads the runtime libraries contained in its producer
 layers. Repository consumers extract those libraries under `target/native/layer-runtime`; package

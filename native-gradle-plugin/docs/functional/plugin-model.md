@@ -36,10 +36,8 @@ directories, or resource settings separately on each task.
 
 Named Native Image layers are first-class entries in a `layers` container beside `binaries`.
 Each layer owns its contents and deterministic `.nil` output. Binaries consume one or more layer
-objects through typed, lazy references. Layers may consume earlier layers through the same API,
-allowing a build to express a multi-level Native Image layer stack. `usesLayer('<name>')` is the
-order-independent Groovy DSL form and resolves the named layer lazily, so consumers may be
-declared before their producers:
+objects through typed, lazy references. `usesLayer('<name>')` is the order-independent Groovy DSL
+form and resolves the named layer lazily, so consumers may be declared before their producers:
 
 ```groovy
 graalvmNative {
@@ -48,12 +46,6 @@ graalvmNative {
             contents {
                 modules.add('java.base')
                 fromConfiguration(configurations.runtimeClasspath)
-            }
-        }
-        applicationFramework {
-            usesLayer('base')
-            contents {
-                packages('com.example.framework')
             }
         }
     }
@@ -71,7 +63,6 @@ container. Groovy builds may use `usesLayer('<name>')` or the qualified
 The singular `layer` property replaces its previous assignment, including that layer's compatibility
 classpath contribution, while repeated `useLayer(...)` calls add distinct layers. Duplicate layer
 selections fail before Native Image is invoked.
-The same duplicate and name validation applies when a named layer consumes another named layer.
 Every selection form (`layer =`, `useLayer(NativeImageLayer)`,
 `useLayer(Provider<NativeImageLayer>)`, and `usesLayer(String)`) contributes its logical layer
 name to the same selection set. A consuming binary may select each logical name only once. The
@@ -96,7 +87,6 @@ original naming and external-module-only semantics. Only legacy layer declaratio
 | Main executable | `binaries.main.usesLayer` | `LayeredApplicationFunctionalTest` |
 | Native test | `binaries.test.usesLayer` | `LayeredApplicationFunctionalTest` |
 | Shared library | `binaries.main.sharedLibrary` with `usesLayer` | `LayeredApplicationFunctionalTest` |
-| Chained layers | `NativeImageLayer.usesLayer` | `LayeredApplicationFunctionalTest` |
 | Application distribution | Main layered binary is added to `installDist`, `distZip`, and `distTar` with staged runtime files and a native launcher | Installed and archived distributions run without producer build directories |
 | Cross-project publication | Not first-class; manual `getLayerFiles()` or file wiring only | No consumable publication variant is promised |
 

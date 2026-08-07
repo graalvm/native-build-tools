@@ -489,6 +489,7 @@ public class Application {
         execution.in.text.contains('relocated distribution')
     }
 
+    // Retain this probe for a future Native Image release that supports chained shared layers.
     @Ignore("GraalVM Native Image currently supports one shared base layer and a final application executable, not chained shared layers.")
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }

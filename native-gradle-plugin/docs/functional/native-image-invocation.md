@@ -44,8 +44,8 @@ model and use the common renderer from
 [§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
 Consuming binaries pass each produced `.nil` file with `-H:LayerUse`, depend on its producer task,
 and declare the file as an input. They also inherit the producer layer's declared classpath inputs,
-including inputs inherited through a layer stack, so Native Image sees the same entries in every
-dependent build. Complete configurations and selected dependency coordinates are
+so Native Image sees the same entries in every dependent build. Complete configurations and selected
+dependency coordinates are
 resolved lazily through Gradle artifact APIs before translation. Resolved configurations include
 project artifacts as well as external modules. Empty layer selections, duplicate consumption, and
 invalid layer names fail with actionable errors before Native Image is invoked. A named layer may

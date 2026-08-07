@@ -40,7 +40,6 @@ expected coordinate rather than producing a known-unrunnable image.
 Layer consumption applies consistently to compile, shared-library, and native-test goals when
 `useLayers` is configured for that execution. Plugin-wide `useLayers` therefore also applies to
 `native:test`; users who want different test behavior must scope the configuration to executions.
-The `layer-create` goal may itself consume configured layers, enabling multi-level layer stacks.
 Every consuming Maven execution must retain the classpath entries used by producer layers. Reactor
 consumers therefore declare the same dependencies; local explicit paths are build-local inputs and
 cannot be represented by a published `nil` artifact alone.
@@ -53,7 +52,6 @@ cannot be represented by a published `nil` artifact alone.
 | Main executable | `useLayers` on the compile execution | `LayeredApplicationFunctionalTest` |
 | Native test | `useLayers` on the `native:test` execution | `LayeredApplicationFunctionalTest` |
 | Shared library | `sharedLibrary` and `useLayers` | `LayeredApplicationFunctionalTest` |
-| Chained layers | `useLayers` on `layer-create` plus declared `nil` dependencies | `LayeredApplicationFunctionalTest` |
 | Reactor/repository flow | Attached `nil` plus platform runtime archive, automatic resolution and consumer-owned staging | Standalone repository consumer runs the executable and `native:test` without producer output access |
 
 Layer shared libraries remain external runtime dependencies. On Linux set `LD_LIBRARY_PATH`; on

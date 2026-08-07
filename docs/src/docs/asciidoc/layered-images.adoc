@@ -13,10 +13,7 @@ application. For the complete configuration reference, see
 
 [IMPORTANT]
 ====
-Layered images are an experimental Native Image feature. Native Build Tools can express
-multi-level layer stacks, but current Native Image releases support one shared base layer and a
-final application image. Keep layer chaining disabled until the Native Image version used by the
-build supports it.
+Layered images are an experimental Native Image feature.
 
 Native Build Tools supports layer consumption on GraalVM 25.1 and later. Consumption on GraalVM
 25.0.x is permitted for compatibility, but is unsupported and proceeds at your own risk because
@@ -53,7 +50,7 @@ Both plugins support module, package, path, dependency, and complete-classpath s
 and packages may be combined in the same layer. Keep frequently changing application classes out
 of a broadly reused layer so that application changes do not force the layer to be rebuilt.
 
-For example, a Gradle layer can select JDK modules and packages from resolved dependencies:
+For example, a Gradle layer can select JDK modules and packages:
 
 [source,groovy]
 ----
@@ -63,7 +60,6 @@ graalvmNative {
             contents {
                 modules('java.base', 'java.logging')
                 packages('org.slf4j')
-                fromConfiguration(configurations.runtimeClasspath)
             }
         }
     }
@@ -83,13 +79,12 @@ The equivalent Maven layer definition is:
   <packages>
     <package>org.slf4j</package>
   </packages>
-  <dependencies>
-    <dependency>
-      <artifact>org.slf4j:slf4j-api</artifact>
-    </dependency>
-  </dependencies>
 </layer>
 ----
+
+Package selectors add packages to the layer; they do not filter files selected through
+`fromConfiguration(...)` (Gradle) or `<dependencies>` (Maven). Use a separate configuration or
+dependency selector when the intent is to include the resolved artifact files themselves.
 
 [[gradle-layer-reuse]]
 == Reuse a Layer with Gradle
@@ -140,35 +135,6 @@ When the `application` plugin is present, `installDist`, `distZip`, and `distTar
 main native executable, selected runtime files under `lib/native-layers/<layer>`, and a
 `bin/<imageName>-native` launcher that configures the platform loader. Projects using another
 packaging model can consume the cacheable `nativeLayerRuntimeFiles` task output.
-
-[[gradle-additional-tests]]
-=== Share a Layer with Additional Test Suites
-
-Register an additional native test binary and configure it like any other layer consumer. The
-following fragment assumes an `integTest` source set and `Test` task already exist:
-
-[source,groovy]
-----
-graalvmNative {
-    registerTestBinary('integTest') {
-        usingSourceSet(sourceSets.integTest)
-        forTestTask(tasks.named('integTest'))
-    }
-
-    binaries {
-        test {
-            usesLayer('sharedRuntime')
-        }
-        integTest {
-            usesLayer('sharedRuntime')
-        }
-    }
-}
-----
-
-`nativeTest` and `nativeIntegTest` now build separate native test images while sharing the same
-layer producer. Different suites can instead select different layers when their runtime
-requirements differ.
 
 [[gradle-multiple-binaries]]
 === Share a Layer Between Executables and Libraries
@@ -314,38 +280,6 @@ The equivalent Maven `<modules>` list uses one `<module>` element for each entry
 omits a module, adding it only to the final consumer is too late: Native Image can report a newly
 seen boot package or another layer-compatibility failure. Add the missing module to the producer
 layer and rebuild it.
-
-[[layer-chaining]]
-== Prepare Multi-Level Layer Stacks
-
-Native Build Tools can describe a layer that consumes another layer. In Gradle, call
-`usesLayer` from the consuming layer:
-
-[source,groovy]
-----
-graalvmNative {
-    layers {
-        base {
-            contents.modules('java.base')
-        }
-        framework {
-            usesLayer('base')
-            contents.packages('org.example.framework')
-        }
-    }
-    binaries.main {
-        usesLayer('framework')
-    }
-}
-----
-
-In Maven, declare the base layer as a `nil` dependency of the next producer module and add
-`<useLayers>` to that module's `layer-create` execution. Each produced layer remains an
-independently ordered build artifact.
-
-Do not enable this topology until the Native Image version used by the build supports chained
-shared layers. When deploying a multi-level stack, every layer's runtime shared library must be
-included in the library search path.
 
 [[shipping-layered-images]]
 == Ship a Layered Application

@@ -75,11 +75,11 @@ construction, and named-layer consumption by executable, native-test, and shared
 protects [§FS-native-tasks.4](functional/native-image-tasks.md#4-command-line-overrides), [§FS-native-invocation.3](functional/native-image-invocation.md#3-command-line-construction), and
 [§FS-native-invocation.5](functional/native-image-invocation.md#5-classpath-jar-and-artifact-analysis).
 Its layer scenarios cover module, package, explicit-path, and `all` selectors; executable,
-native-test, shared-library, and chained consumers; and provider duplicate validation before a
-producer task starts.
+native-test (including additional test suites), and shared-library consumers; and provider duplicate
+validation before a producer task starts.
 Layer-consumption scenarios that exercise the `all` selector, custom shared-library consumers,
-application distributions, or chained layers are skipped on GraalVM 25.0.x because Native Image
-can fail after `-H:LayerUse` loads a valid layer.
+application distributions, or native tests are skipped on GraalVM 25.0.x because Native Image can
+fail after `-H:LayerUse` loads a valid layer.
 
 ### 3.7 Gradle integration
 
