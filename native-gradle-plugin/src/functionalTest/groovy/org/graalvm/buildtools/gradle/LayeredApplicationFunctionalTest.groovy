@@ -60,6 +60,11 @@ import java.util.zip.ZipFile
 // Exercises the top-level layer model, named task wiring, and configuration-cache isolation.
 // §FS-plugin-model.2 §FS-native-tasks.1 §FS-native-invocation.3.
 class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
+    // GraalVM 25.0.x can fail after LayerUse loads a valid layer. §E2E-functional-tests.3.6.
+    private static boolean hasLayerConsumptionBug() {
+        !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
+    }
+
     def "configures a named layer outside the binary container"() {
         given:
         withSample("layered-java-application")
@@ -115,7 +120,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -222,7 +227,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and consumes a layer from an individual dependency selector"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -289,7 +294,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs an all selector layer"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -320,7 +325,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "builds and runs a layer from explicit paths"() {
         given:
         withSample("layered-java-application")
@@ -354,7 +359,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "native test binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
@@ -383,7 +388,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "shared library binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
@@ -408,7 +413,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "custom shared library consumes a layer without a main class"() {
         given:
         withSample("layered-java-application")
@@ -439,7 +444,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs })
+    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
     def "application distributions carry and launch layered native images"() {
         given:
         withSample("layered-java-application")
