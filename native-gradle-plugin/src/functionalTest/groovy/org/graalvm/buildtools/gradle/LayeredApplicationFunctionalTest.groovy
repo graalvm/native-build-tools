@@ -120,7 +120,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "can build a native image using layers"() {
         def nativeApp = getExecutableFile("build/native/nativeCompile/layered-java-application")
 
@@ -325,7 +325,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "builds and runs a layer from explicit paths"() {
         given:
         withSample("layered-java-application")
@@ -359,7 +359,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "native test binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
@@ -388,7 +388,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "shared library binaries can consume named layers"() {
         given:
         withSample("layered-java-application")
@@ -413,7 +413,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "custom shared library consumes a layer without a main class"() {
         given:
         withSample("layered-java-application")
@@ -444,7 +444,7 @@ public class Application {
     @Requires(
             { NativeImageUtils.getMajorJDKVersion(GraalVMSupport.getGraalVMHomeVersionString()) >= 25 }
     )
-    @IgnoreIf({ os.windows || os.macOs || hasLayerConsumptionBug() })
+    @IgnoreIf({ os.windows || os.macOs })
     def "application distributions carry and launch layered native images"() {
         given:
         withSample("layered-java-application")
