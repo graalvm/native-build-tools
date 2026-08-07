@@ -3,6 +3,8 @@ package org.graalvm.buildtools.gradle
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
+import org.graalvm.buildtools.gradle.tasks.ValidateNativeImageLayerSelectionTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
@@ -13,6 +15,7 @@ import java.util.regex.Pattern
 
 import static org.graalvm.buildtools.VersionInfo.METADATA_REPO_VERSION
 
+// Verifies the durable Gradle extension and task model. §FS-plugin-model.2 §FS-native-tasks.1.
 class NativeImagePluginTest extends Specification {
 
     private static final String DEFAULT_GITHUB_RELEASES_METADATA_URI = "https://github.com/oracle/graalvm-reachability-metadata/releases/download/${METADATA_REPO_VERSION}/graalvm-reachability-metadata-${METADATA_REPO_VERSION}.zip"
@@ -91,6 +94,180 @@ class NativeImagePluginTest extends Specification {
         taskDescription("nativeTest") == "Runs the test native binary."
         taskDescription("nativeTestBuild") == "Deprecated alias for nativeTestCompile."
         taskDescription("generateTestResourcesConfigFile") == "Scans resources and generates a resource-config.json file for the test binary."
+    }
+
+    def "named layers own dedicated tasks and can be assigned to binaries"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+        extension.binaries.main.layer = layer
+        def task = project.tasks.getByName("nativeDependenciesLayer") as BuildNativeImageTask
+
+        then:
+        task.description == "Builds the dependencies Native Image layer."
+        task.options.get().layerCreate.get().layerName.get() == "dependencies"
+        task.options.get().layerCreate.get().modules.get() == ["java.base"]
+        task.outputDirectory.get().asFile == project.layout.buildDirectory.dir("native/layers/dependencies").get().asFile
+        extension.binaries.main.layerFiles.files == [layer.outputFile.get().asFile] as Set
+        extension.binaries.main.classpath.files.containsAll(layer.compatibilityClasspath.files)
+        extension.binaries.main.layer == layer
+    }
+
+    def "singular layer assignment replaces its previous value"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def first = extension.layers.create("first")
+        first.contents.modules("java.base")
+        def second = extension.layers.create("second")
+        second.contents.modules("java.logging")
+
+        when:
+        extension.binaries.main.layer = first
+        extension.binaries.main.layer = second
+
+        then:
+        extension.binaries.main.layer == second
+        extension.binaries.main.layerNames.get() == ["second"]
+        extension.binaries.main.layerFiles.files == [second.outputFile.get().asFile] as Set
+    }
+
+    def "name based layer selection is independent of declaration order"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        extension.binaries.main.usesLayer("dependencies")
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+
+        then:
+        extension.binaries.main.layerNames.get() == ["dependencies"]
+        extension.binaries.main.layerFiles.files == [layer.outputFile.get().asFile] as Set
+    }
+
+    def "named layers can consume other named layers independent of declaration order"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        def framework = extension.layers.create("framework")
+        framework.usesLayer("base")
+        framework.contents.packages("com.example.framework")
+        def base = extension.layers.create("base")
+        base.contents.modules("java.base")
+
+        then:
+        framework.useLayerNames.get() == ["base"]
+        framework.useLayerFiles.files == [base.outputFile.get().asFile] as Set
+
+        and:
+        def frameworkTask = project.tasks.named("nativeFrameworkLayer").get()
+        frameworkTask.options.get().layerNames.get() == ["base"]
+        frameworkTask.options.get().layerFiles.files == [base.outputFile.get().asFile] as Set
+    }
+
+    def "layer consumers inherit the producer compatibility classpath"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def producerClasspath = project.file("producer.jar")
+
+        when:
+        def base = extension.layers.create("base")
+        base.contents.from(producerClasspath)
+        def framework = extension.layers.create("framework")
+        framework.usesLayer("base")
+        extension.binaries.main.usesLayer("framework")
+
+        then:
+        framework.inheritedCompatibilityClasspath.files == [producerClasspath] as Set
+        extension.binaries.main.classpath.files.contains(producerClasspath)
+    }
+
+    def "duplicate layer chaining fails during configuration"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def framework = extension.layers.create("framework")
+
+        when:
+        framework.usesLayer("base")
+        framework.usesLayer("base")
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("selected more than once")
+    }
+
+    def "invalid layer names fail when declared"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+
+        when:
+        extension.layers.create("my,base layer")
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("letters, digits, dots, underscores, or hyphens")
+    }
+
+    def "provider layer selections preserve names for duplicate validation"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+
+        when:
+        extension.binaries.main.useLayer(layer)
+        extension.binaries.main.useLayer(project.provider { layer })
+
+        then:
+        extension.binaries.main.layerNames.get() == ["dependencies", "dependencies"]
+    }
+
+    def "provider layer selections use a pre-producer validation task"() {
+        given:
+        project.plugins.apply("java")
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def layer = extension.layers.create("dependencies")
+        layer.contents.modules("java.base")
+
+        when:
+        extension.binaries.main.useLayer(layer)
+        extension.binaries.main.useLayer(project.provider { layer })
+        def validation = project.tasks.getByName("validateNativeCompileLayerSelection") as ValidateNativeImageLayerSelectionTask
+
+        then:
+        validation.binaryName.get() == "main"
+        validation.layerNames.get() == ["dependencies", "dependencies"]
+        project.tasks.getByName("nativeCompile").taskDependencies.getDependencies(null).contains(validation)
+    }
+
+    def "layer configurations include project dependency artifacts"() {
+        given:
+        def root = ProjectBuilder.builder().withName("root").build()
+        def producer = ProjectBuilder.builder().withName("producer").withParent(root).build()
+        def consumer = ProjectBuilder.builder().withName("consumer").withParent(root).build()
+        producer.plugins.apply("java-library")
+        consumer.plugins.apply("java")
+        consumer.plugins.apply(NativeImagePlugin)
+        consumer.dependencies.add("implementation", consumer.dependencies.project(path: ":producer"))
+        def layer = consumer.extensions.getByType(GraalVMExtension).layers.create("dependencies")
+
+        when:
+        layer.contents.fromConfiguration(consumer.configurations.runtimeClasspath)
+
+        then:
+        layer.contents.files.buildDependencies.getDependencies(null).contains(producer.tasks.named("jar").get())
     }
 
     // Protects custom binary classpath wiring and exclusion args. §FS-plugin-model.4

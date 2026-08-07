@@ -23,6 +23,42 @@ Application native image builds must include compile, runtime, and combined comp
 dependencies unless users provide an explicit classpath. Exclusions remove selected artifacts from
 native-image compilation without changing the Maven project dependency graph.
 
+Dependencies of type `nil` must not enter the Java classpath. Configured `useLayers` resolve those
+dependencies separately, declare each layer once, and append `-H:LayerUse=<resolved path>` to the
+Native Image invocation. A declared `nil` dependency that is not selected by `useLayers` must
+produce a warning. Missing selections must tell users to declare the corresponding `nil`
+dependency, and malformed coordinates must fail with a normal Maven execution error. Layer
+creation resolves Maven artifacts to paths and delegates selector serialization to
+[§common/FS-common-libraries.1](../../../common/docs/functional-spec.md#1-shared-native-image-utilities).
+An explicitly configured empty classpath remains empty for module-only layer creation and must not
+fall back to the application or dependency classpath. Layered executables require their produced
+runtime libraries to be available through the platform library search path when executed or
+deployed. Repository layer producers attach both the `.nil` build input and a platform-classified
+runtime archive. Consumers resolve and extract the matching runtime archive under their own
+`target` directory before Native Image invocation; a missing companion archive fails with its
+expected coordinate rather than producing a known-unrunnable image.
+Layer consumption applies consistently to compile, shared-library, and native-test goals when
+`useLayers` is configured for that execution. Plugin-wide `useLayers` therefore also applies to
+`native:test`; users who want different test behavior must scope the configuration to executions.
+Every consuming Maven execution must retain the classpath entries used by producer layers. Reactor
+consumers therefore declare the same dependencies; local explicit paths are build-local inputs and
+cannot be represented by a published `nil` artifact alone.
+
+### Layer support matrix
+
+| Selector or consumer | Maven XML support | Executable evidence |
+| --- | --- | --- |
+| Modules, packages, explicit paths, `all` | `<modules>`, `<packages>`, `<paths>`, `<all>` | `LayeredApplicationFunctionalTest` |
+| Main executable | `useLayers` on the compile execution | `LayeredApplicationFunctionalTest` |
+| Native test | `useLayers` on the `native:test` execution | `LayeredApplicationFunctionalTest` |
+| Shared library | `sharedLibrary` and `useLayers` | `LayeredApplicationFunctionalTest` |
+| Reactor/repository flow | Attached `nil` plus platform runtime archive, automatic resolution and consumer-owned staging | Standalone repository consumer runs the executable and `native:test` without producer output access |
+
+Layer shared libraries remain external runtime dependencies. On Linux set `LD_LIBRARY_PATH`; on
+macOS set `DYLD_LIBRARY_PATH`; and on Windows add the layer directory to `PATH` before launching
+a layered executable. Creating or attaching a `.nil` artifact does not embed or relocate those
+libraries. [§root/FS-native-builds.6](../../../docs/spec/functional/native-image-builds.md#6-layered-images).
+
 ## 4. Generated resource configuration
 
 Before building, the plugin must add generated resource configuration to the native image

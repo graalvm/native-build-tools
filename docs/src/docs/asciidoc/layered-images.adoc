@@ -1,0 +1,358 @@
+= Layered Native Images: Reuse, Testing, and Deployment
+The GraalVM team
+
+Native Image layers let several native binaries reuse a separately built part of an image. A
+typical project puts stable modules and dependencies in a base layer, then consumes that layer
+from the application image, native tests, or other native binaries.
+
+This guide focuses on how layers fit into a real build: selecting layer contents, sharing one
+layer between build targets, using layers from native tests, and shipping the resulting
+application. For the complete configuration reference, see
+<<gradle-plugin.adoc#layered-images,the Gradle plugin documentation>> and
+<<maven-plugin.adoc#layered-images,the Maven plugin documentation>>.
+
+[IMPORTANT]
+====
+Layered images are an experimental Native Image feature.
+
+Native Build Tools supports layer consumption on GraalVM 25.1 and later. Consumption on GraalVM
+25.0.x is permitted for compatibility, but is unsupported and proceeds at your own risk because
+Native Image may fail internally while loading a valid layer. The plugins warn for 25.0.x
+consumption; creating a layer without consuming another layer does not warn. The runtime release
+reported by `native-image --version`, rather than its first component-version line, determines
+this policy.
+====
+
+[[layered-image-artifacts]]
+== Understand the Generated Artifacts
+
+Creating a layer produces two kinds of output:
+
+* A `.nil` file that another Native Image build consumes through `-H:LayerUse`. This is a
+  build-time artifact.
+* Platform runtime libraries that the final executable loads, such as `libbase.so` and supporting
+  native libraries on Linux. These are deployment artifacts.
+
+The final executable does not contain the layer's runtime libraries. A deployment must therefore
+include the executable and every discovered runtime library from each layer it uses. Headers and
+diagnostic files emitted beside a layer are not runtime inputs.
+
+Maven attaches a deterministic ZIP containing the runtime files alongside the `.nil`. Its
+classifier identifies the target operating system and architecture, for example
+`layer-runtime-linux-amd64`; non-default Linux C libraries such as musl add that compatibility
+dimension. Gradle models the producer directories as task inputs and stages runtime files without
+flattening different layers into one directory.
+
+[[layer-content-selection]]
+== Select Layer Contents
+
+Both plugins support module, package, path, dependency, and complete-classpath selection. Modules
+and packages may be combined in the same layer. Keep frequently changing application classes out
+of a broadly reused layer so that application changes do not force the layer to be rebuilt.
+
+For example, a Gradle layer can select JDK modules and packages:
+
+[source,groovy]
+----
+graalvmNative {
+    layers {
+        sharedRuntime {
+            contents {
+                modules('java.base', 'java.logging')
+                packages('org.slf4j')
+            }
+        }
+    }
+}
+----
+
+The equivalent Maven layer definition is:
+
+[source,xml]
+----
+<layer>
+  <name>shared-runtime</name>
+  <modules>
+    <module>java.base</module>
+    <module>java.logging</module>
+  </modules>
+  <packages>
+    <package>org.slf4j</package>
+  </packages>
+</layer>
+----
+
+Package selectors add packages to the layer; they do not filter files selected through
+`fromConfiguration(...)` (Gradle) or `<dependencies>` (Maven). Use a separate configuration or
+dependency selector when the intent is to include the resolved artifact files themselves.
+
+[[gradle-layer-reuse]]
+== Reuse a Layer with Gradle
+
+Gradle layers are named objects outside the binary container. Calling `usesLayer` adds the
+producer task as a dependency of the consuming binary, so requesting `nativeCompile` or
+`nativeTest` also builds the layer when necessary.
+
+[[gradle-main-and-tests]]
+=== Share One Layer Between the Application and Native Tests
+
+The `main` and `test` binaries can consume the same named layer:
+
+[source,groovy]
+----
+graalvmNative {
+    layers {
+        sharedRuntime {
+            contents {
+                modules('java.base', 'java.logging')
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+    binaries {
+        main {
+            usesLayer('sharedRuntime')
+        }
+        test {
+            usesLayer('sharedRuntime')
+        }
+    }
+}
+----
+
+Run the application and native tests normally:
+
+[source,bash]
+----
+./gradlew nativeRun
+./gradlew nativeTest
+----
+
+Both task graphs reuse `nativeSharedRuntimeLayer`. The Gradle run tasks add the directories of
+their selected layers to the runtime library search path.
+
+When the `application` plugin is present, `installDist`, `distZip`, and `distTar` also include the
+main native executable, selected runtime files under `lib/native-layers/<layer>`, and a
+`bin/<imageName>-native` launcher that configures the platform loader. Projects using another
+packaging model can consume the cacheable `nativeLayerRuntimeFiles` task output.
+
+[[gradle-multiple-binaries]]
+=== Share a Layer Between Executables and Libraries
+
+Repeated `usesLayer` calls can select multiple layers, and the same layer can be selected by
+multiple binaries. For example, an executable and a shared-library binary can both select
+`sharedRuntime`. Each consumer keeps its own Native Image options; layer-sensitive options must
+remain compatible between the producer and every consumer.
+
+Shared-library binaries do not generally require a `mainClass`. For multiple custom binaries,
+configure a distinct `imageName` for each one so packaging and human-facing artifact names remain
+unambiguous.
+
+Same-project named-layer reuse is Gradle's first-class sharing model. Cross-project reuse does not
+currently publish a consumable layer variant; it requires manual `getLayerFiles()` or equivalent
+file wiring, including the runtime files needed for deployment.
+
+[[maven-layer-reuse]]
+== Reuse a Layer with Maven
+
+Maven represents a layer as an attached artifact of type `nil`. A consumer declares the producer
+as a normal dependency with `<type>nil</type>`, which gives Maven enough information to order
+reactor modules and resolve layers from a repository without adding them to the Java classpath.
+
+[[maven-producer-module]]
+=== Create a Layer in a Producer Module
+
+Bind `layer-create` in the producer module:
+
+[source,xml]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <extensions>true</extensions>
+  <executions>
+    <execution>
+      <id>create-shared-runtime</id>
+      <phase>package</phase>
+      <goals>
+        <goal>layer-create</goal>
+      </goals>
+      <configuration>
+        <layer>
+          <name>shared-runtime</name>
+          <modules>
+            <module>java.base</module>
+            <module>java.logging</module>
+          </modules>
+        </layer>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+----
+
+The goal creates _target/native/layers/shared-runtime/shared-runtime.nil_ and attaches it to the
+project as a `nil` artifact. It also attaches the platform-classified runtime ZIP. A layer producer
+may use `<packaging>pom</packaging>`: `layer-create` still runs when bound to the lifecycle.
+`skipNativeBuildForPom` applies to `compile-no-fork`, not to `layer-create`.
+
+[[maven-main-and-tests]]
+=== Share One Layer Between Build Executions
+
+Declare the producer in the consumer module:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.example</groupId>
+  <artifactId>shared-runtime-layer</artifactId>
+  <version>${project.version}</version>
+  <type>nil</type>
+  <scope>runtime</scope>
+</dependency>
+----
+
+Put `<useLayers>` in the plugin-level configuration when every configured goal should use the
+same layer. In this example the application image and native tests share it:
+
+[source,xml]
+----
+<plugin>
+  <groupId>org.graalvm.buildtools</groupId>
+  <artifactId>native-maven-plugin</artifactId>
+  <extensions>true</extensions>
+  <configuration>
+    <useLayers>
+      <useLayer>
+        <artifact>org.example:shared-runtime-layer</artifact>
+      </useLayer>
+    </useLayers>
+  </configuration>
+  <executions>
+    <execution>
+      <id>build-application</id>
+      <phase>package</phase>
+      <goals>
+        <goal>compile-no-fork</goal>
+      </goals>
+    </execution>
+    <execution>
+      <id>run-native-tests</id>
+      <phase>test</phase>
+      <goals>
+        <goal>test</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+----
+
+Use execution-specific `<configuration>` blocks instead when application and test images need
+different layers. Multiple consumer modules can declare and select the same `nil` dependency.
+
+[NOTE]
+====
+When a native test is executed, the plugin adds the directories containing its selected layer
+runtime files to the platform library search path. For repository dependencies, the plugin
+automatically resolves the matching runtime ZIP and extracts it into a consumer-owned directory
+under `target/native/layer-runtime`. It never relies on a producer `target` directory or extracts
+into the local Maven repository. If an older publication contains only a `.nil`, the build fails
+before Native Image runs and reports the missing companion coordinate.
+====
+
+Maven `useLayers` is coordinate-based: declare a dependency with `<type>nil</type>` and select it
+by `groupId:artifactId[:version]`. Local layer-file paths are not a supported Maven consumption
+form. Reactor and external-repository consumers use the same declaration.
+
+[[native-test-layer-modules]]
+== Include Modules Required by Every Consumer
+
+A layer shared by applications and native tests must contain every JDK module required by every
+consumer. Native JUnit fixtures commonly need at least `java.management`, and tests using JDBC
+need `java.sql`; add `java.xml` when XML APIs are used. For example:
+
+[source,groovy]
+----
+contents.modules('java.base', 'java.management', 'java.sql')
+----
+
+The equivalent Maven `<modules>` list uses one `<module>` element for each entry. If the producer
+omits a module, adding it only to the final consumer is too late: Native Image can report a newly
+seen boot package or another layer-compatibility failure. Add the missing module to the producer
+layer and rebuild it.
+
+[[shipping-layered-images]]
+== Ship a Layered Application
+
+A portable application bundle should keep the executable and its layer libraries together. For
+example, a Linux distribution can use this layout:
+
+[source,text]
+----
+application/
+|-- bin/
+|   `-- application-native
+`-- lib/
+    |-- native/
+    |   `-- application
+    `-- native-layers/
+        |-- base/
+        |   `-- libbase.so
+        `-- framework/
+            `-- libframework.so
+----
+
+The `.nil` files are needed to build downstream images, but they are not required merely to run
+an already-built final executable. Keep them in a build artifact repository when other builds
+need to consume the layers.
+
+[[shipping-linux]]
+=== Linux
+
+[source,bash]
+----
+APP_HOME=/opt/application
+LD_LIBRARY_PATH="$APP_HOME/lib/native-layers/base${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    "$APP_HOME/lib/native/application"
+----
+
+For a container image, copy both directories and set `LD_LIBRARY_PATH` in the runtime image:
+
+[source,dockerfile]
+----
+COPY application/ /opt/application/
+ENV LD_LIBRARY_PATH=/opt/application/lib/native-layers/base
+ENTRYPOINT ["/opt/application/lib/native/application"]
+----
+
+[[shipping-macos]]
+=== macOS
+
+[source,bash]
+----
+APP_HOME=/opt/application
+DYLD_LIBRARY_PATH="$APP_HOME/lib/native-layers/base${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}" \
+    "$APP_HOME/lib/native/application"
+----
+
+[[shipping-windows]]
+=== Windows
+
+[source,powershell]
+----
+$env:PATH = "$PWD\lib\native-layers\base;$env:PATH"
+& "$PWD\lib\native\application.exe"
+----
+
+Gradle application distributions generate this packaging and a loader-aware launcher. Maven stages
+repository runtime bundles for build and native-test execution, but a Maven deployment plugin must
+still copy the executable and staged runtime directories into the final application or container.
+
+[[layer-storage]]
+== Plan Repository Storage
+
+`.nil` files can be hundreds of megabytes even for representative JDK-module or dependency layers.
+Normal Maven transport compression may reduce transfer size, but Native Image must ultimately
+receive the original `.nil`. Plan repository retention, quotas, and remote-cache capacity, and
+publish broadly shared layers deliberately. Content-addressing or cross-artifact deduplication is
+outside the current layer contract.

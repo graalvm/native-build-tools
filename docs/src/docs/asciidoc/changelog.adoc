@@ -1,6 +1,16 @@
 [[changelog]]
 == Changelog
 
+== Next release
+
+- Added first-class named Native Image layers to the Gradle plugin and Maven `layer-create` /
+  `useLayers` support with resolvable `nil` artifacts and platform runtime bundles. Layer
+  consumption is supported on GraalVM 25.1+; 25.0.x consumption warns and remains unsupported.
+- Added loader-aware Gradle application distributions for layered main binaries. Gradle
+  cross-project layer publication and Maven local-file layer consumption remain manual or
+  unsupported rather than first-class flows.
+- Added early validation for empty, duplicate, missing, and malformed layer configurations.
+
 == Release 1.1.6
 
 - Maven native test goals now read the matching Surefire or Failsafe execution, including its configured `testClassesDirectory`, and keep their test-ID output separate.

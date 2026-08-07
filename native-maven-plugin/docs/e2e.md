@@ -81,6 +81,19 @@ with `reproducers/issue-144`, and `issues/ModuleWithoutSourcesFunctionalTest` wi
 issue reproducers, and local repository seeding. This protects [§FS-native-builds.6](functional/native-image-builds.md#6-base-sbom),
 [§FS-config-model.3](functional/configuration-model.md#3-parent-pom-merging), and [§AR-maven-plugin.6](architecture.md#6-functional-test-infrastructure).
 
+### 3.8 Layer artifacts
+
+`LayeredApplicationFunctionalTest` verifies that a reactor producer creates and attaches a `nil`
+layer artifact, a consumer resolves it outside the Java classpath, and the application image
+consumes the layer, executes, and produces the expected output. This protects [§FS-goal-surface.6](functional/goal-surface.md#6-layer-creation),
+[§FS-native-builds.3](functional/native-image-builds.md#3-classpath-and-scopes), and
+[§FS-config-model.7](functional/configuration-model.md#7-layer-configuration).
+The class is the executable evidence for module, package, explicit-path, and `all` selection,
+plus main, native-test, and shared-library layer consumption.
+Layer-consumption scenarios that exercise `all` selection, explicit paths, native tests, shared
+libraries are skipped on GraalVM 25.0.x because Native Image can fail after `-H:LayerUse` loads a
+valid layer.
+
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the
 closest scenario family.

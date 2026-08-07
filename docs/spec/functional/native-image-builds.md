@@ -62,3 +62,30 @@ Both plugins must support shared-library output where the build tool's packaging
 Shared-library mode disables entry-point requirements and may change the output file extension.
 The plugin-specific configuration surface and defaults are specified by
 [§gradle/FS-plugin-model](../../../native-gradle-plugin/docs/functional/plugin-model.md#fs-plugin-model-gradle-plugin-activation-and-dsl-model) and [§maven/FS-config-model](../../../native-maven-plugin/docs/functional/configuration-model.md#fs-config-model-maven-xml-and-command-line-properties-configure-native-image-builds).
+
+## 6. Layered images
+
+Both plugins must support named layer creation from resolved build-tool dependencies and layer
+consumption through declared task or artifact relationships. Selection rendering belongs to
+common utilities; Gradle owns provider/task wiring and Maven owns goal/artifact/repository wiring.
+The two surfaces may use build-tool-native syntax but must preserve equivalent selector and
+multi-layer behavior. The `all` selector includes the complete runtime dependency graph, including
+artifacts produced by other projects in the same multi-project or reactor build. Empty layer
+selections fail before Native Image is invoked. Layer consumers retain the classpath or modulepath
+inputs used to create their producer layers; Gradle propagates those build-local inputs through
+its task graph, while Maven consumers declare equivalent dependencies. Layered executable
+deployment must make each layer's runtime native files discoverable by the platform loader:
+`LD_LIBRARY_PATH` on Linux, `DYLD_LIBRARY_PATH` on macOS, or `PATH` on Windows.
+
+The `.nil` file is a build-time input consumed through `-H:LayerUse`; it is not the layer's runtime
+payload. Native Image also produces platform-specific runtime libraries beside the `.nil`, and the
+final image loads those files when it runs. Build-tool run and native-test tasks must configure the
+loader for execution from the build tree. Repository and distribution flows must carry or stage
+the runtime files in a consumer-owned location and must not depend on a producer build directory.
+Publishing or attaching only a `.nil` is therefore not a complete deployable repository flow.
+
+Layer consumption is supported on GraalVM 25.1 and later. GraalVM 25.0.x consumption remains
+permitted but unsupported and must warn that it proceeds at the user's own risk; layer creation
+alone does not warn. Native Image layers remain experimental upstream
+([§DEC-layer-model.4](../decisions/layer-model.md#4-graalvm-release-support)).
+[§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).

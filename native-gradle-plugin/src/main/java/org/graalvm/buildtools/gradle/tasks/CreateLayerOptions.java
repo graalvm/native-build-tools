@@ -42,6 +42,7 @@ package org.graalvm.buildtools.gradle.tasks;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -50,6 +51,13 @@ import org.gradle.api.tasks.Optional;
  * Layer creation options.
  */
 public interface CreateLayerOptions extends LayerOptions {
+    /**
+     * Selects every class available on the layer task classpath. §FS-native-invocation.3.
+     * @return whether all contents are selected
+     */
+    @Input
+    Property<Boolean> getAll();
+
     /**
      * The list of packages to include in the layer.
      * @return the package list (can be empty)
@@ -66,6 +74,15 @@ public interface CreateLayerOptions extends LayerOptions {
     @Classpath
     @Optional
     ConfigurableFileCollection getJars();
+
+    /**
+     * Classpath used to supply selected packages or all artifacts without adding path selectors.
+     * §FS-native-invocation.3.
+     * @return the invocation classpath
+     */
+    @Classpath
+    @Optional
+    ConfigurableFileCollection getClasspath();
 
     /**
      * Module names to include in the package. For a base layer,

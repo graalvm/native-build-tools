@@ -56,8 +56,6 @@ def junitVersion = providers.gradleProperty('junit.jupiter.version')
         .get()
 
 dependencies {
-    implementation("org.slf4j:slf4j-api:2.0.17")
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
     testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
     testImplementation('org.junit.jupiter:junit-jupiter')
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
@@ -72,15 +70,17 @@ tasks.named("nativeRun") {
 }
 
 graalvmNative {
-    binaries {
-        libdependencies {
-            createLayer {
-                modules = ["java.base"]
-                jars.from(externalDependenciesOf(configurations.runtimeClasspath))
+    // Named layers are built independently from application binaries. §gradle/FS-plugin-model.2.
+    layers {
+        dependencies {
+            contents {
+                modules("java.base")
             }
         }
+    }
+    binaries {
         main {
-            useLayer("libdependencies")
+            usesLayer('dependencies')
         }
     }
 }

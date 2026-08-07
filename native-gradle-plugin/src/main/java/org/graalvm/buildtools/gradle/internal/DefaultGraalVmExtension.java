@@ -47,6 +47,7 @@ import org.codehaus.groovy.runtime.InvokerHelper;
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -63,15 +64,18 @@ import java.util.function.Predicate;
 
 public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     private final transient NamedDomainObjectContainer<NativeImageOptions> nativeImages;
+    private final transient NamedDomainObjectContainer<NativeImageLayer> layers;
     private final transient NativeImagePlugin plugin;
     private final transient Project project;
     private final Property<JavaLauncher> defaultJavaLauncher;
 
     @Inject
     public DefaultGraalVmExtension(NamedDomainObjectContainer<NativeImageOptions> nativeImages,
+                                   NamedDomainObjectContainer<NativeImageLayer> layers,
                                    NativeImagePlugin plugin,
                                    Project project) {
         this.nativeImages = nativeImages;
+        this.layers = layers;
         this.plugin = plugin;
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
@@ -110,6 +114,11 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     @Override
     public NamedDomainObjectContainer<NativeImageOptions> getBinaries() {
         return nativeImages;
+    }
+
+    @Override
+    public NamedDomainObjectContainer<NativeImageLayer> getLayers() {
+        return layers;
     }
 
     @Override
@@ -160,6 +169,11 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
     @Override
     public void binaries(Action<? super NamedDomainObjectContainer<NativeImageOptions>> spec) {
         spec.execute(nativeImages);
+    }
+
+    @Override
+    public void layers(Action<? super NamedDomainObjectContainer<NativeImageLayer>> spec) {
+        spec.execute(layers);
     }
 
     @Override

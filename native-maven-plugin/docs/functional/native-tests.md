@@ -31,6 +31,9 @@ by [§root/FS-native-tests.5](../../../docs/spec/functional/native-tests.md#5-co
 
 After building the native test image, `native:test` must run it unless `skipTestExecution` is set.
 Runtime arguments configured for the test goal must be passed to the native test executable.
+When the test image consumes a layer, the goal must add the selected layer artifact directories to
+the platform native-library search path before launching the executable, so the layer's shared
+library can be loaded. [§FS-native-builds.3](native-image-builds.md#3-classpath-and-scopes).
 
 ## 5. Native test example
 

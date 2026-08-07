@@ -24,6 +24,7 @@ If you're new to the Native Build Tools, whether as an end user or a library aut
 
 - <<end-to-end-gradle-guide.adoc#,Building Native Images with Gradle: An End-to-End Guide>>
 - <<end-to-end-maven-guide.adoc#,Building Native Images with Maven: An End-to-End Guide>>
+- <<layered-images.adoc#,Layered Native Images: Reuse, Testing, and Deployment>>
 
 For detailed documentation, see the corresponding page for each build tool:
 

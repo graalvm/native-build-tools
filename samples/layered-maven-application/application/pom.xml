@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The consumer resolves the producer's attached nil artifact separately from Java classpath. §maven/FS-native-builds.3. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.graalvm.buildtools.samples</groupId>
+        <artifactId>layered-maven-application</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>application</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.graalvm.buildtools.samples</groupId>
+            <artifactId>base-layer</artifactId>
+            <version>${project.version}</version>
+            <type>nil</type>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-application</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>compile-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>org.graalvm.demo.Application</mainClass>
+                    <useLayers>
+                        <useLayer>
+                            <artifact>org.graalvm.buildtools.samples:base-layer</artifact>
+                        </useLayer>
+                    </useLayers>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

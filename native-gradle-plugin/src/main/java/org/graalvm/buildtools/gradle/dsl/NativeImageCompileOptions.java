@@ -57,6 +57,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -250,16 +251,115 @@ public interface NativeImageCompileOptions {
     @Nested
     DomainObjectSet<LayerOptions> getLayers();
 
+    /**
+     * Internal normalized layer-create model used by dedicated layer tasks and the legacy adapter.
+     * §FS-plugin-model.2.
+     *
+     * @return the optional layer-create selection
+     */
+    @Nested
+    @Optional
+    Property<CreateLayerOptions> getLayerCreate();
+
+    /**
+     * Produced layer files consumed by this binary. §FS-native-invocation.3.
+     *
+     * @return the layer files
+     */
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    ConfigurableFileCollection getLayerFiles();
+
+    /**
+     * Logical names of layers consumed by this binary, used for duplicate validation.
+     * §FS-native-invocation.3.
+     *
+     * @return the selected layer names
+     */
+    @Input
+    ListProperty<String> getLayerNames();
+
     void layers(Action<? super DomainObjectSet<LayerOptions>> spec);
 
+    /**
+     * Consumes a layer produced by a legacy binary-scoped layer declaration. §FS-plugin-model.2.
+     *
+     * @param name the legacy layer-producing binary name
+     * @deprecated define a named layer in {@code graalvmNative.layers} and pass its typed
+     *             {@link NativeImageLayer} object to {@link #useLayer(NativeImageLayer)}
+     */
+    @Deprecated
     void useLayer(String name);
 
+    void useLayer(NativeImageLayer layer);
+
+    void useLayer(Provider<? extends NativeImageLayer> layer);
+
+    /**
+     * Lazily consumes a first-class named layer, independent of declaration order. §FS-plugin-model.2.
+     *
+     * @param name named layer to consume
+     */
+    void usesLayer(String name);
+
+    @Internal
+    NativeImageLayer getLayer();
+
+    void setLayer(NativeImageLayer layer);
+
+    /**
+     * Configures this legacy {@code lib}-prefixed binary as a Native Image layer producer.
+     * §FS-plugin-model.2.
+     *
+     * @param spec the legacy layer contents
+     * @deprecated define a named layer in {@code graalvmNative.layers} instead
+     */
+    @Deprecated
     void createLayer(Action<? super CreateLayerOptions> spec);
 
+    default Provider<List<File>> resolvedArtifactsOf(Provider<Configuration> configurationProvider) {
+        return configurationProvider.flatMap(this::resolvedArtifactsOf);
+    }
+
+    default Provider<List<File>> resolvedArtifactsOf(Configuration configuration) {
+        return configuration.getIncoming()
+            .artifactView(view -> {
+                view.setLenient(false);
+            })
+            .getArtifacts()
+            .getResolvedArtifacts()
+            .map(artifacts -> {
+                var files = new ArrayList<File>();
+                // not using .stream() intentionally because of https://github.com/gradle/gradle/issues/33152
+                for (var artifact : artifacts) {
+                    files.add(artifact.getFile());
+                }
+                return files;
+            });
+    }
+
+    /**
+     * Resolves only external module artifacts, preserving the pre-1.1.8 adapter semantics.
+     * §FS-plugin-model.2.
+     *
+     * @param configurationProvider configuration provider
+     * @return resolved external artifact files
+     * @deprecated use {@link #resolvedArtifactsOf(Provider)} when project artifacts should be included
+     */
+    @Deprecated
     default Provider<List<File>> externalDependenciesOf(Provider<Configuration> configurationProvider) {
         return configurationProvider.flatMap(this::externalDependenciesOf);
     }
 
+    /**
+     * Resolves only external module artifacts, preserving the pre-1.1.8 adapter semantics.
+     * §FS-plugin-model.2.
+     *
+     * @param configuration configuration to resolve
+     * @return resolved external artifact files
+     * @deprecated use {@link #resolvedArtifactsOf(Configuration)} when project artifacts should be included
+     */
+    @Deprecated
     default Provider<List<File>> externalDependenciesOf(Configuration configuration) {
         return configuration.getIncoming()
             .artifactView(view -> {
@@ -270,7 +370,6 @@ public interface NativeImageCompileOptions {
             .getResolvedArtifacts()
             .map(artifacts -> {
                 var files = new ArrayList<File>();
-                // not using .stream() intentionally because of https://github.com/gradle/gradle/issues/33152
                 for (var artifact : artifacts) {
                     files.add(artifact.getFile());
                 }

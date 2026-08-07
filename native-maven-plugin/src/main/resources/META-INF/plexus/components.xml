@@ -40,7 +40,19 @@
   -->
 
 <component-set>
-    <components>
+  <components>
+    <!-- Maven resolves Native Image layers as normal artifacts without adding them to Java classpaths. §FS-goal-surface.6. -->
+    <component>
+      <role>org.apache.maven.artifact.handler.ArtifactHandler</role>
+      <role-hint>nil</role-hint>
+      <implementation>org.apache.maven.artifact.handler.DefaultArtifactHandler</implementation>
+      <configuration>
+        <type>nil</type>
+        <extension>nil</extension>
+        <language>none</language>
+        <addedToClasspath>false</addedToClasspath>
+      </configuration>
+    </component>
         <component>
             <role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
             <role-hint>native-build-tools</role-hint>

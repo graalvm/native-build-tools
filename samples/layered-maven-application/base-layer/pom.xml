@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The producer attaches a nil artifact from resolved runtime dependencies. §maven/FS-config-model.7. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.graalvm.buildtools.samples</groupId>
+        <artifactId>layered-maven-application</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>base-layer</artifactId>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-base-layer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>layer-create</goal>
+                        </goals>
+                        <configuration>
+                            <layer>
+                                <name>base</name>
+                                <modules>
+                                    <module>java.base</module>
+                                </modules>
+                            </layer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

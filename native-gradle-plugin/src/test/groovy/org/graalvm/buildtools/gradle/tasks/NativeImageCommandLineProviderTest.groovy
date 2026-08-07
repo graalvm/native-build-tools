@@ -250,6 +250,96 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.contains("-cp")
         args.contains(appJar.absolutePath)
     }
+
+    // Keeps the logical bundle name separate from the native shared-library image name. §FS-native-tasks.1.
+    def "layer-create build preserves its native library output name"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.create("libdependencies")
+        options.createLayer {
+            it.layerName.set("dependencies")
+            it.modules.add("java.base")
+        }
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = commandLineArguments(project, options, "libdependencies")
+        def outputOption = args.indexOf("-o")
+
+        then:
+        args.any { it.startsWith("${NativeImageFlags.LAYER_CREATE}=dependencies.nil") }
+        outputOption >= 0
+        args[outputOption + 1] == testDirectory.resolve("libdependencies").toString()
+    }
+
+    def "renders typed layer files through the shared layer argument utility"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def layerFile = testDirectory.resolve("base.nil").toFile()
+        layerFile.text = "layer"
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.layerFiles.from(layerFile)
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { "main" },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { false },
+                project.provider { false }
+        ).asArguments()
+
+        then:
+        args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
+        args.contains("${NativeImageFlags.LAYER_USE}=${layerFile.absolutePath}".toString())
+    }
+
+    // Retains the deprecated binary-scoped layer producer and string consumer as a working adapter. §FS-native-invocation.3.
+    def "legacy layer adapters wire producer and consumer and render layer arguments"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def extension = project.extensions.getByType(GraalVMExtension)
+        def producer = extension.binaries.create("liblegacy")
+        producer.createLayer {
+            it.modules.add("java.base")
+        }
+        producer.excludeConfigArgs.set([])
+        producer.configurationFileDirectories.setFrom([])
+        def consumer = extension.binaries.getByName("main")
+        consumer.useLayer("liblegacy")
+        consumer.excludeConfigArgs.set([])
+        consumer.configurationFileDirectories.setFrom([])
+        def producerTask = project.tasks.getByName("nativeLiblegacyCompile") as BuildNativeImageTask
+        def consumerTask = project.tasks.getByName("nativeCompile") as BuildNativeImageTask
+        def layerFile = producerTask.createdLayerFile.get().asFile
+
+        when:
+        def producerArgs = commandLineArguments(project, producer, "liblegacy")
+        def consumerArgs = commandLineArguments(project, consumer, "main")
+
+        then:
+        consumer.layerFiles.files == [layerFile] as Set
+        consumerTask.taskDependencies.getDependencies(consumerTask).contains(producerTask)
+        producerArgs.any {
+            it.startsWith("${NativeImageFlags.LAYER_CREATE}=liblegacy.nil") && it.contains("module=java.base")
+        }
+        producerArgs[producerArgs.indexOf("-o") + 1].endsWith(File.separator + "liblegacy")
+        consumerArgs.contains("${NativeImageFlags.LAYER_USE}=${layerFile.absolutePath}".toString())
+    }
+
     // Plain Gradle consoles disable Native Image colors with version-appropriate arguments. §FS-native-invocation.3
     @Issue("https://github.com/graalvm/native-build-tools/issues/366")
     def "disables colorful Native Image output for Gradle's plain console with JDK #nativeImageVersion"() {
@@ -318,5 +408,19 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         nativeImageVersion | enabledColorArgument
         17                 | NativeImageFlags.BUILD_OUTPUT_COLORFUL
         21                 | "--color=always"
+    }
+
+    private List<String> commandLineArguments(project, options, String imageName) {
+        new NativeImageCommandLineProvider(
+                project.provider { options },
+                project.provider { imageName },
+                project.provider { testDirectory.toString() },
+                project.provider { testDirectory.toString() },
+                project.objects.fileProperty(),
+                project.provider { false },
+                project.provider { 25 },
+                project.provider { false },
+                project.provider { false }
+        ).asArguments()
     }
 }

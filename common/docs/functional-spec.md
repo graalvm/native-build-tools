@@ -32,6 +32,18 @@ regardless of its vendor label and retaining compatibility behavior when that re
 identified; and centralize Native Image configuration file names and metadata directory names used
 by plugins and tests.
 
+Layer creation uses an immutable, build-tool-neutral artifact selection containing an `all`
+selection, ordered module names, ordered package names, and ordered resolved paths. The shared
+renderer owns the complete `-H:LayerCreate` grammar: `all` renders as an unqualified layer-create
+argument whose contents come from the plugin-supplied classpath, while narrower selections render
+`module=`, `package=`, and `path=` selectors. It rejects blank names and selector values, rejects
+names outside `[A-Za-z0-9._-]+`, and preserves selector order. `all` may be combined with module or
+package selectors; the plugin-supplied classpath still represents the complete dependency graph.
+Native Image version detection recognizes vendor suffixes when applying layer-consumption gates.
+Gradle and Maven must
+resolve their dependency models to paths before calling it.
+[§REQ-no-buildtool-apis](requirements.md#req-no-buildtool-apis-common-runtime-libraries-do-not-depend-on-gradle-or-maven-apis).
+
 ## 2. Resource configuration
 
 Resource detection helps users include non-classpath resources without hand-written
@@ -141,7 +153,7 @@ produce a later, less actionable native-image failure.
 ## 8. Verification surface
 
 Common utility and reachability metadata modules must have unit tests for argument conversion,
-resource scanning, agent mode command lines, repository index parsing, metadata lookup, missing
-metadata support, schema validation, and Native Image version behavior. Product plugin functional
-tests cover these shared behaviors through Gradle and Maven sample projects as part of
+layer selection and rendering, resource scanning, agent mode command lines, repository index
+parsing, metadata lookup, missing metadata support, schema validation, and Native Image version
+behavior. Product plugin functional tests cover these shared behaviors through Gradle and Maven sample projects as part of
 [§root/FS-plugin-common.2](../../docs/spec/functional/plugin-common.md#2-verification-surface) and [§E2E-common-tests](e2e.md#e2e-common-tests-common-library-tests-exercise-shared-native-image-support-behavior).

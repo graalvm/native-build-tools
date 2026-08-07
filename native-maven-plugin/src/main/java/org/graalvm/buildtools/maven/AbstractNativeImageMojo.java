@@ -52,10 +52,16 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.ToolchainManager;
 import org.codehaus.plexus.logging.Logger;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
+import org.graalvm.buildtools.maven.config.UseLayerConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
+import org.graalvm.buildtools.utils.NativeImageLayerRuntime;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -78,6 +84,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -102,6 +109,8 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     private static final Pattern LAYER_CREATE_ARG = Pattern.compile(
             Pattern.quote(NativeImageFlags.LAYER_CREATE) + "(@[^=]*)?=.+");
     private static String nativeImageVersionInformation = null;
+    private List<Artifact> resolvedLayerUseArtifacts;
+    private List<Path> resolvedLayerRuntimeDirectories;
 
     @Parameter(defaultValue = "${plugin}", readonly = true) // Maven 3 only
     protected PluginDescriptor plugin;
@@ -196,6 +205,9 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     @Parameter(property = "exclusions")
     protected List<Exclusion> exclusions;
 
+    @Parameter(property = "useLayers")
+    protected List<UseLayerConfiguration> useLayers;
+
     @Component
     protected ToolchainManager toolchainManager;
 
@@ -286,6 +298,12 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                     .map(Path::toString)
                     .collect(Collectors.joining(","))
             );
+        }
+
+        List<String> layerUseArgs = resolveLayerUseArguments();
+        if (!layerUseArgs.isEmpty()) {
+            cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
+            cliArgs.addAll(layerUseArgs);
         }
 
         if (buildArgs != null && !buildArgs.isEmpty()) {
@@ -491,7 +509,10 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         Set<Artifact> collected = new HashSet<>();
         // Must keep classpath order is the same with surefire test
         for (Artifact dependency : project.getArtifacts()) {
-            if (getDependencyScopes().contains(dependency.getScope()) && collected.add(dependency) && !isExcluded(dependency)) {
+            if (!"nil".equals(dependency.getType())
+                    && getDependencyScopes().contains(dependency.getScope())
+                    && collected.add(dependency)
+                    && !isExcluded(dependency)) {
                 Path dependencyPath = processSupportedArtifacts(dependency);
                 if (dependencyPath != null) {
                     imageClasspath.add(dependencyPath);
@@ -505,6 +526,143 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
                 }
             }
         }
+    }
+
+    private List<String> resolveLayerUseArguments() throws MojoExecutionException {
+        List<Artifact> artifacts = resolveLayerUseArtifacts();
+        resolveLayerRuntimeDirectories(artifacts);
+        return artifacts.stream()
+            .map(Artifact::getFile)
+            .map(File::toPath)
+            .map(NativeImageLayerArguments::renderLayerUse)
+            .toList();
+    }
+
+    /**
+     * Directories that contain layer libraries consumed by this image. §FS-native-builds.3.
+     */
+    protected List<Path> getUsedLayerLibraryDirectories() throws MojoExecutionException {
+        return resolveLayerRuntimeDirectories(resolveLayerUseArtifacts());
+    }
+
+    private List<Artifact> resolveLayerUseArtifacts() throws MojoExecutionException {
+        if (resolvedLayerUseArtifacts != null) {
+            return resolvedLayerUseArtifacts;
+        }
+        List<Artifact> nilArtifacts = project.getArtifacts().stream()
+            .filter(artifact -> "nil".equals(artifact.getType()))
+            .toList();
+        if (useLayers == null || useLayers.isEmpty()) {
+            warnAboutUnreferencedLayers(nilArtifacts);
+            resolvedLayerUseArtifacts = List.of();
+            return resolvedLayerUseArtifacts;
+        }
+        Set<String> selected = new HashSet<>();
+        Set<Artifact> selectedArtifacts = new LinkedHashSet<>();
+        for (UseLayerConfiguration useLayer : useLayers) {
+            String selector = useLayer.getArtifact();
+            if (selector == null || selector.isBlank()) {
+                throw new MojoExecutionException("useLayers entries require non-blank artifact coordinates");
+            }
+            if (!selected.add(selector)) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' is selected more than once");
+            }
+            String[] coordinate = parseLayerCoordinate(selector);
+            List<Artifact> matches = nilArtifacts.stream()
+                .filter(artifact -> matchesLayerCoordinate(artifact, coordinate))
+                .toList();
+            if (matches.isEmpty()) {
+                throw new MojoExecutionException(
+                    "Layer dependency '" + selector + "' was not found. Declare the corresponding "
+                        + "<dependency> with <type>nil</type> in the project.");
+            }
+            if (matches.size() > 1) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' is ambiguous: " + matches);
+            }
+            if (!selectedArtifacts.add(matches.get(0))) {
+                throw new MojoExecutionException(
+                    "Layer dependency '" + selector + "' selects an artifact that is already selected");
+            }
+            if (matches.get(0).getFile() == null) {
+                throw new MojoExecutionException("Layer dependency '" + selector + "' has no resolved file");
+            }
+        }
+        warnAboutUnreferencedLayers(nilArtifacts.stream()
+            .filter(artifact -> !selectedArtifacts.contains(artifact))
+            .toList());
+        resolvedLayerUseArtifacts = List.copyOf(selectedArtifacts);
+        return resolvedLayerUseArtifacts;
+    }
+
+    private List<Path> resolveLayerRuntimeDirectories(List<Artifact> layerArtifacts) throws MojoExecutionException {
+        if (resolvedLayerRuntimeDirectories != null) {
+            return resolvedLayerRuntimeDirectories;
+        }
+        if (layerArtifacts.isEmpty()) {
+            resolvedLayerRuntimeDirectories = List.of();
+            return resolvedLayerRuntimeDirectories;
+        }
+        String classifier = NativeImageLayerRuntime.classifier(buildArgs);
+        List<Path> directories = new ArrayList<>();
+        for (Artifact layerArtifact : layerArtifacts) {
+            org.eclipse.aether.artifact.Artifact runtimeArtifact = new DefaultArtifact(
+                layerArtifact.getGroupId(),
+                layerArtifact.getArtifactId(),
+                classifier,
+                NativeImageLayerRuntime.ARCHIVE_TYPE,
+                layerArtifact.getVersion());
+            ArtifactRequest request = new ArtifactRequest(runtimeArtifact, project.getRemoteProjectRepositories(), null);
+            Path archive = resolveLayerRuntimeArchive(layerArtifact, runtimeArtifact, request);
+            Path destination = Path.of(project.getBuild().getDirectory(), "native", "layer-runtime",
+                layerArtifact.getGroupId(), layerArtifact.getArtifactId(), layerArtifact.getVersion(), classifier);
+            try {
+                NativeImageLayerRuntime.extractArchive(archive, destination, logger::warn);
+            } catch (IOException ex) {
+                throw new MojoExecutionException("Unable to stage layer runtime archive " + runtimeArtifact
+                    + " in " + destination, ex);
+            }
+            directories.add(destination);
+        }
+        resolvedLayerRuntimeDirectories = List.copyOf(directories);
+        return resolvedLayerRuntimeDirectories;
+    }
+
+    protected Path resolveLayerRuntimeArchive(Artifact layerArtifact,
+                                              org.eclipse.aether.artifact.Artifact runtimeArtifact,
+                                              ArtifactRequest request) throws MojoExecutionException {
+        try {
+            return repositorySystem.resolveArtifact(mavenSession.getRepositorySession(), request)
+                .getArtifact().getFile().toPath();
+        } catch (ArtifactResolutionException ex) {
+            throw new MojoExecutionException("Layer '" + layerArtifact.getGroupId() + ":"
+                + layerArtifact.getArtifactId() + ":" + layerArtifact.getVersion()
+                + "' is missing its deployable runtime companion " + runtimeArtifact
+                + ". A .nil artifact alone is not deployable; republish the layer with a Native Build Tools "
+                + "version that attaches runtime bundles.", ex);
+        }
+    }
+
+    private void warnAboutUnreferencedLayers(List<Artifact> artifacts) {
+        for (Artifact artifact : artifacts) {
+            logger.warn("Layer dependency '" + artifact.getGroupId() + ":" + artifact.getArtifactId()
+                + "' has type nil but is not referenced by useLayers; it will not be consumed.");
+        }
+    }
+
+    static String[] parseLayerCoordinate(String selector) throws MojoExecutionException {
+        String[] parts = selector.split(":", -1);
+        if (parts.length < 2 || parts.length > 3
+                || Arrays.stream(parts).anyMatch(String::isBlank)) {
+            throw new MojoExecutionException(
+                "Layer dependency must use groupId:artifactId[:version]: " + selector);
+        }
+        return parts;
+    }
+
+    private static boolean matchesLayerCoordinate(Artifact artifact, String[] parts) {
+        return artifact.getGroupId().equals(parts[0])
+            && artifact.getArtifactId().equals(parts[1])
+            && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
     }
 
     protected void addInferredDependenciesToClasspath() {
@@ -590,6 +748,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     protected void buildImage() throws MojoExecutionException {
         checkRequiredVersionIfNeeded();
         Path nativeImageExecutable = NativeImageConfigurationUtils.getNativeImageSupportingToolchain(logger, toolchainManager, session, enforceToolchain);
+        warnAboutUnsupportedLayerConsumption(nativeImageExecutable);
         if (isMetadataRepositoryEnabled() && metadataRepository != null) {
             SchemaValidationUtils.validateReachabilityMetadataSchema(((FileSystemRepository) metadataRepository).getRootDirectory(), NativeImageUtils.getMajorJDKVersion(getVersionInformation(null)), nativeImageExecutable);
         }
@@ -620,6 +779,17 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             }
         } catch (IOException | InterruptedException e) {
             throw new MojoExecutionException("Building image with " + nativeImageExecutable + " failed", e);
+        }
+    }
+
+    private void warnAboutUnsupportedLayerConsumption(Path nativeImageExecutable) throws MojoExecutionException {
+        if (useLayers == null || useLayers.isEmpty()) {
+            return;
+        }
+        String versionInformation = getVersionInformation(logger, nativeImageExecutable);
+        if (NativeImageUtils.shouldWarnAboutUnsupportedLayerConsumption(versionInformation, true)) {
+            logger.warn("Layer consumption is supported on GraalVM 25.1 and later. Continuing on "
+                + "GraalVM 25.0.x is unsupported and at your own risk.");
         }
     }
 

@@ -215,4 +215,18 @@ public class NativeImageUtils {
         int minor = Integer.parseInt(matcher.group(2));
         return major > requiredMajor || major == requiredMajor && minor >= requiredMinor;
     }
+
+    public static boolean isGraalVMVersion(String versionString, int expectedMajor, int expectedMinor) {
+        Matcher matcher = runtimeVersionPattern.matcher(versionString.trim());
+        return matcher.find()
+            && Integer.parseInt(matcher.group(1)) == expectedMajor
+            && Integer.parseInt(matcher.group(2)) == expectedMinor;
+    }
+
+    /**
+     * Applies the layered-image support policy to a Native Image invocation. §root/FS-native-builds.6.
+     */
+    public static boolean shouldWarnAboutUnsupportedLayerConsumption(String versionString, boolean consumesLayer) {
+        return consumesLayer && isGraalVMVersion(versionString, 25, 0);
+    }
 }

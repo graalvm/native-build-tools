@@ -42,6 +42,7 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
@@ -49,8 +50,10 @@ import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.LayerOptions;
 import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
 import org.graalvm.buildtools.utils.SharedConstants;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
@@ -90,10 +93,14 @@ import static org.graalvm.buildtools.gradle.NativeImagePlugin.compileTaskNameFor
 public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private static final GraalVMLogger LOGGER = GraalVMLogger.of(Logging.getLogger(BaseNativeImageOptions.class));
     private final DomainObjectSet<LayerOptions> layers;
+    private final ConfigurableFileCollection layerCompatibilityClasspath;
+    private NativeImageLayer assignedLayer;
 
     private final String name;
     private final transient TaskContainer tasks;
     private final ObjectFactory objects;
+    private final ProviderFactory providers;
+    private final NamedDomainObjectContainer<NativeImageLayer> namedLayers;
 
     @Override
     @Internal
@@ -260,6 +267,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
                                   ProviderFactory providers,
                                   JavaToolchainService toolchains,
                                   TaskContainer tasks,
+                                  NamedDomainObjectContainer<NativeImageLayer> namedLayers,
                                   String defaultImageName) {
         this.name = name;
         getDebug().convention(false);
@@ -277,12 +285,17 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         getImageName().convention(defaultImageName);
         getUseFatJar().convention(false);
         getPgoInstrument().convention(false);
+        getLayerNames().convention(List.of());
         DirectoryProperty pgoProfileDir = objectFactory.directoryProperty();
         pgoProfileDir.convention(layout.getProjectDirectory().dir("src/pgo-profiles/" + name));
         getPgoProfilesDirectory().convention(pgoProfileDir.map(d -> d.getAsFile().exists() ? d : null));
         this.layers = objectFactory.domainObjectSet(LayerOptions.class);
+        this.layerCompatibilityClasspath = objectFactory.fileCollection();
+        getClasspath().from(layerCompatibilityClasspath);
         this.tasks = tasks;
         this.objects = objectFactory;
+        this.providers = providers;
+        this.namedLayers = namedLayers;
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
@@ -430,22 +443,78 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
 
     @Override
     public void useLayer(String name) {
+        // Keep the deprecated string adapter operational while directing callers to typed layer objects. §FS-plugin-model.2.
+        LOGGER.warn("useLayer(String) is deprecated; configure graalvmNative.layers and pass the typed layer object instead.");
+        addLayerName(name);
         var taskName = compileTaskNameForBinary(name);
         var layer = objects.newInstance(UseLayerOptions.class);
         layer.getLayerName().convention(name);
         layer.getLayerFile().convention(tasks.named(taskName, BuildNativeImageTask.class).flatMap(BuildNativeImageTask::getCreatedLayerFile));
+        getLayerFiles().from(layer.getLayerFile());
         layers(options -> options.add(layer));
     }
 
     @Override
+    public void useLayer(NativeImageLayer layer) {
+        // Typed layer consumption records the producing layer output on the binary. §FS-plugin-model.2.
+        addLayerName(layer.getName());
+        getLayerFiles().from(layer.getOutputFile());
+        layerCompatibilityClasspath.from(layer.getCompatibilityClasspath());
+    }
+
+    @Override
+    public void useLayer(Provider<? extends NativeImageLayer> layer) {
+        // Provider-backed layer consumption preserves the typed, lazy extension surface. §FS-plugin-model.2.
+        getLayerNames().add(layer.map(NativeImageLayer::getName));
+        getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
+        layerCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
+    }
+
+    @Override
+    public void usesLayer(String name) {
+        // Resolve the container only when Gradle queries the binary, allowing layers to be declared later. §FS-plugin-model.2.
+        NativeImageLayerArguments.validateLayerName(name);
+        Provider<NativeImageLayer> layer = providers.provider(() -> namedLayers.getByName(name));
+        addLayerName(name);
+        getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
+        layerCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
+    }
+
+    @Override
+    public NativeImageLayer getLayer() {
+        return assignedLayer;
+    }
+
+    @Override
+    public void setLayer(NativeImageLayer layer) {
+        // Singular property assignment replaces any prior layer selection. §FS-plugin-model.2.
+        assignedLayer = layer;
+        getLayerNames().set(List.of(layer.getName()));
+        getLayerFiles().setFrom(layer.getOutputFile());
+        layerCompatibilityClasspath.setFrom(layer.getCompatibilityClasspath());
+    }
+
+    private void addLayerName(String layerName) {
+        if (getLayerNames().getOrElse(List.of()).contains(layerName)) {
+            throw new IllegalArgumentException("Layer '" + layerName + "' is already assigned to binary '" + getName() + "'");
+        }
+        assignedLayer = null;
+        getLayerNames().add(layerName);
+    }
+
+    @Override
     public void createLayer(Action<? super CreateLayerOptions> spec) {
+        LOGGER.warn("createLayer is deprecated; configure a named layer in graalvmNative.layers instead.");
         var layer = objects.newInstance(CreateLayerOptions.class);
         var binaryName = getName();
         if (!binaryName.startsWith("lib")) {
             throw new IllegalArgumentException("Binary name for a layer must start with 'lib'");
         }
         layer.getLayerName().convention(binaryName);
+        getImageName().set(binaryName);
+        layer.getAll().convention(false);
         spec.execute(layer);
+        getLayerCreate().set(layer);
         layers(options -> options.add(layer));
     }
 }

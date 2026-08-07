@@ -47,6 +47,7 @@ import org.graalvm.buildtools.agent.AgentMode;
 import org.graalvm.buildtools.gradle.dsl.GraalVMExtension;
 import org.graalvm.buildtools.gradle.dsl.GraalVMReachabilityMetadataRepositoryExtension;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.agent.AgentOptions;
 import org.graalvm.buildtools.gradle.internal.AgentCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
@@ -60,18 +61,21 @@ import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.ValidateNativeImageLayerSelectionTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateAgentAccessFilter;
 import org.graalvm.buildtools.gradle.tasks.GenerateDynamicAccessMetadata;
+import org.graalvm.buildtools.gradle.tasks.GenerateNativeImageLauncherTask;
 import org.graalvm.buildtools.gradle.tasks.GenerateResourcesConfigFile;
 import org.graalvm.buildtools.gradle.tasks.ListLibrariesMissingMetadata;
 import org.graalvm.buildtools.gradle.tasks.MetadataCopyTask;
 import org.graalvm.buildtools.gradle.tasks.NativeRunTask;
-import org.graalvm.buildtools.gradle.tasks.UseLayerOptions;
+import org.graalvm.buildtools.gradle.tasks.StageNativeImageLayerRuntimeFilesTask;
 import org.graalvm.buildtools.gradle.tasks.actions.CleanupAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.actions.MergeAgentFilesAction;
 import org.graalvm.buildtools.gradle.tasks.scanner.JarAnalyzerTransform;
 import org.graalvm.buildtools.utils.JUnitPlatformNativeDependenciesHelper;
 import org.graalvm.buildtools.utils.JUnitUtils;
+import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.graalvm.reachability.MissingMetadataCommandSupport;
@@ -100,6 +104,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaApplication;
@@ -314,6 +319,8 @@ public class NativeImagePlugin implements Plugin<Project> {
         configureAutomaticTaskCreation(project, graalExtension, tasks, javaConvention.getSourceSets());
 
         TaskProvider<BuildNativeImageTask> imageBuilder = tasks.named(NATIVE_COMPILE_TASK_NAME, BuildNativeImageTask.class);
+        configureApplicationDistribution(project, mainOptions, imageBuilder,
+            tasks.named("nativeLayerRuntimeFiles", StageNativeImageLayerRuntimeFilesTask.class), tasks);
         tasks.register(DEPRECATED_NATIVE_BUILD_TASK, t -> {
             t.setGroup(LifecycleBasePlugin.BUILD_GROUP);
             t.setDescription("Deprecated alias for nativeCompile.");
@@ -399,6 +406,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                                                 GraalVMExtension graalExtension,
                                                 TaskContainer tasks,
                                                 SourceSetContainer sourceSets) {
+        configureLayerTasks(project, graalExtension, tasks, sourceSets);
         graalExtension.getBinaries().configureEach(options -> {
             configureCustomApplicationBinary(project, options);
             String binaryName = options.getName();
@@ -429,6 +437,22 @@ public class NativeImagePlugin implements Plugin<Project> {
                     builder.getMetadataRepositoryEnabled().set(repoEnabled);
                     builder.getMetadataRepositoryRootPath().set(repoRootPath);
                 });
+            configureLayerSelectionValidation(project, tasks, compileTaskName, options, imageBuilder);
+            String stageTaskName = NATIVE_MAIN_EXTENSION.equals(binaryName)
+                ? "nativeLayerRuntimeFiles"
+                : deriveTaskName(binaryName, "native", "LayerRuntimeFiles");
+            TaskProvider<StageNativeImageLayerRuntimeFilesTask> stagedRuntimeFiles = tasks.register(
+                stageTaskName, StageNativeImageLayerRuntimeFilesTask.class, task -> {
+                    task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                    task.setDescription("Stages runtime libraries for the " + options.getName() + " native binary.");
+                    task.getLayerFiles().from(options.getLayerFiles());
+                    task.getLayerDirectories().from(options.getLayerFiles().getElements()
+                        .map(serializableTransformerOf(elements -> elements.stream()
+                            .map(location -> location.getAsFile().getParentFile())
+                            .toList())));
+                    task.getDestinationDirectory().set(project.getLayout().getBuildDirectory()
+                        .dir("native/layer-runtime-files/" + binaryName));
+                });
             String runTaskName = deriveTaskName(binaryName, "native", "Run");
             var providers = project.getProviders();
             if (NATIVE_MAIN_EXTENSION.equals(binaryName)) {
@@ -441,24 +465,24 @@ public class NativeImagePlugin implements Plugin<Project> {
                 task.setDescription("Runs the " + options.getName() + " native binary.");
                 task.getImage().convention(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile));
                 task.getRuntimeArgs().convention(options.getRuntimeArgs());
-                var useLayers = options.getLayers()
-                    .stream()
-                    .filter(layer -> layer instanceof UseLayerOptions)
-                    .toList();
-                if (!useLayers.isEmpty()) {
-                    var libsDirs = project.getObjects().fileCollection();
-                    libsDirs.from(useLayers
-                        .stream()
-                        .map(l -> l.getLayerName().flatMap(layerName -> tasks.named(compileTaskNameForBinary(layerName), BuildNativeImageTask.class))
-                            .map(t -> t.getOutputDirectory().getAsFile())
-                        )
-                        .toList());
+                if (!options.getLayerFiles().isEmpty()) {
+                    Provider<String> libsPath = options.getLayerFiles().getElements()
+                        .map(serializableTransformerOf(elements -> elements.stream()
+                            .map(location -> location.getAsFile().getParent())
+                            .distinct()
+                            .collect(Collectors.joining(File.pathSeparator))));
                     if (IS_WINDOWS) {
                         var pathVariable = providers.environmentVariable("PATH");
-                        task.getEnvironment().put("PATH", pathVariable.map(path -> path + ";" + libsDirs.getAsPath()).orElse(providers.provider(libsDirs::getAsPath)));
+                        task.getEnvironment().put("PATH", pathVariable
+                            .zip(libsPath, serializableBiFunctionOf((path, libs) -> path + File.pathSeparator + libs))
+                            .orElse(libsPath));
                     } else {
-                        var ldLibraryPath = providers.environmentVariable("LD_LIBRARY_PATH");
-                        task.getEnvironment().put("LD_LIBRARY_PATH", ldLibraryPath.map(path -> path + ":" + libsDirs.getAsPath()).orElse(providers.provider(libsDirs::getAsPath)));
+                        String variable = System.getProperty("os.name", "").startsWith("Mac")
+                            ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH";
+                        var ldLibraryPath = providers.environmentVariable(variable);
+                        task.getEnvironment().put(variable, ldLibraryPath
+                            .zip(libsPath, serializableBiFunctionOf((path, libs) -> path + File.pathSeparator + libs))
+                            .orElse(libsPath));
                     }
                 }
                 task.getInternalRuntimeArgs().convention(
@@ -508,6 +532,131 @@ public class NativeImagePlugin implements Plugin<Project> {
         });
     }
 
+    private static void configureApplicationDistribution(Project project,
+                                                         NativeImageOptions options,
+                                                         TaskProvider<BuildNativeImageTask> imageBuilder,
+                                                         TaskProvider<StageNativeImageLayerRuntimeFilesTask> stagedRuntimeFiles,
+                                                         TaskContainer tasks) {
+        project.afterEvaluate(ignored -> {
+            if (options.getLayerFiles().isEmpty()) {
+                return;
+            }
+            project.getPlugins().withId("application", applicationPlugin -> {
+                TaskProvider<GenerateNativeImageLauncherTask> launcher = tasks.register(
+                    "nativeDistributionLauncher", GenerateNativeImageLauncherTask.class, task -> {
+                        task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                        task.setDescription("Generates the launcher for the layered native application distribution.");
+                        task.getExecutableName().set(imageBuilder.flatMap(BuildNativeImageTask::getExecutableName));
+                        task.getLauncherName().set(options.getImageName().map(name -> name + "-native"));
+                        task.getOutputDirectory().set(project.getLayout().getBuildDirectory()
+                            .dir("native/distribution-launcher"));
+                    });
+                DistributionContainer distributions = project.getExtensions().getByType(DistributionContainer.class);
+                distributions.named("main", distribution -> {
+                    distribution.getContents().from(imageBuilder.flatMap(BuildNativeImageTask::getOutputFile), spec -> {
+                        spec.into("lib/native");
+                    });
+                    distribution.getContents().from(stagedRuntimeFiles.flatMap(
+                        StageNativeImageLayerRuntimeFilesTask::getDestinationDirectory),
+                        spec -> spec.into("lib/native-layers"));
+                    distribution.getContents().from(launcher.flatMap(GenerateNativeImageLauncherTask::getOutputDirectory),
+                        spec -> {
+                            spec.into("bin");
+                        });
+                });
+            });
+        });
+    }
+
+    private void configureLayerTasks(Project project,
+                                     GraalVMExtension graalExtension,
+                                     TaskContainer tasks,
+                                     SourceSetContainer sourceSets) {
+        graalExtension.getLayers().configureEach(layer -> {
+            String taskName = deriveTaskName(layer.getName(), "native", "Layer");
+            NativeImageOptions layerOptions = project.getObjects().newInstance(
+                BaseNativeImageOptions.class,
+                "__layer_" + layer.getName(),
+                project.getObjects(),
+                project.getProviders(),
+                project.getExtensions().findByType(JavaToolchainService.class),
+                graalExtension.getLayers(),
+                "lib" + layer.getName()
+            );
+            CreateLayerOptions create = project.getObjects().newInstance(CreateLayerOptions.class);
+            create.getLayerName().set(layer.getName());
+            create.getAll().convention(layer.getContents().getAll());
+            create.getModules().convention(layer.getContents().getModules());
+            create.getPackages().convention(layer.getContents().getPackages());
+            create.getJars().from(layer.getContents().getFiles());
+            layerOptions.getLayerCreate().set(create);
+            layerOptions.getLayerNames().addAll(layer.getUseLayerNames());
+            layerOptions.getLayerFiles().from(layer.getUseLayerFiles());
+            layerOptions.getBuildArgs().convention(layer.getBuildArgs());
+            layerOptions.getVerbose().convention(layer.getVerbose());
+            layer.getVerbose().convention(false);
+
+            Configuration runtimeClasspath = project.getConfigurations()
+                .getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            create.getClasspath().from(layer.getContents().getAll()
+                .flatMap(all -> Boolean.TRUE.equals(all)
+                    ? layerOptions.resolvedArtifactsOf(runtimeClasspath)
+                    : project.getProviders().provider(Collections::emptyList)));
+            create.getClasspath().from(layer.getContents().getPackages()
+                .flatMap(packages -> packages.isEmpty()
+                    ? project.getProviders().provider(Collections::emptyList)
+                    : project.getProviders().provider(() ->
+                        sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath())));
+            create.getClasspath().from(layer.getInheritedCompatibilityClasspath());
+            layer.getCompatibilityClasspath().from(create.getJars(), create.getClasspath());
+
+            TaskProvider<BuildNativeImageTask> task = tasks.register(taskName, BuildNativeImageTask.class, builder -> {
+                builder.setDescription("Builds the " + layer.getName() + " Native Image layer.");
+                builder.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                builder.getOptions().set(layerOptions);
+                builder.getUseArgFile().convention(graalExtension.getUseArgFile());
+                builder.getOutputDirectory().set(project.getLayout().getBuildDirectory()
+                    .dir("native/layers/" + layer.getName()));
+                GraalVMReachabilityMetadataRepositoryExtension repoExt = reachabilityExtensionOn(graalExtension);
+                Provider<Boolean> repoEnabled = repoExt.getEnabled().flatMap(serializableTransformerOf(enabled ->
+                    enabled
+                        ? repoExt.getUri().map(serializableTransformerOf(obj -> true))
+                            .orElse(project.getProviders().provider(() -> false))
+                        : project.getProviders().provider(() -> false)));
+                Provider<GraalVMReachabilityMetadataService> svc = graalVMReachabilityMetadataService(project, repoExt);
+                builder.getMetadataRepositoryEnabled().set(repoEnabled);
+                builder.getMetadataRepositoryRootPath().set(svc.map(serializableTransformerOf(service ->
+                    service.getRepositoryDirectory().map(path -> path.toAbsolutePath().toString()).orElse(null))));
+            });
+            configureLayerSelectionValidation(project, tasks, taskName, layerOptions, task);
+            SourceSet mainSourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+            configureJvmReachabilityConfigurationDirectories(project, graalExtension, layerOptions, mainSourceSet);
+            configureJvmReachabilityExcludeConfigArgs(project, graalExtension, layerOptions, mainSourceSet);
+            layer.getOutputFile().convention(task.flatMap(BuildNativeImageTask::getCreatedLayerFile));
+        });
+    }
+
+    /**
+     * Orders duplicate validation before all Native Image producers in a requested task graph.
+     * §FS-plugin-model.2.
+     */
+    private static void configureLayerSelectionValidation(Project project,
+                                                          TaskContainer tasks,
+                                                          String consumerTaskName,
+                                                          NativeImageOptions options,
+                                                          TaskProvider<BuildNativeImageTask> consumer) {
+        String validationTaskName = "validate" + capitalize(consumerTaskName) + "LayerSelection";
+        TaskProvider<ValidateNativeImageLayerSelectionTask> validation = tasks.register(
+            validationTaskName, ValidateNativeImageLayerSelectionTask.class, task -> {
+                task.setGroup(LifecycleBasePlugin.BUILD_GROUP);
+                task.setDescription("Validates Native Image layer selection for " + options.getName() + ".");
+                task.getBinaryName().set(options.getName());
+                task.getLayerNames().set(options.getLayerNames());
+            });
+        consumer.configure(task -> task.dependsOn(validation));
+        tasks.withType(BuildNativeImageTask.class).configureEach(producer -> producer.mustRunAfter(validation));
+    }
+
     private void configureCustomApplicationBinary(Project project, NativeImageOptions options) {
         ConfigurationContainer configurations = project.getConfigurations();
         String binaryName = options.getName();
@@ -522,7 +671,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private static boolean createsLayer(NativeImageOptions options) {
-        return options.getLayers().stream().anyMatch(CreateLayerOptions.class::isInstance);
+        return options.getLayerCreate().isPresent();
     }
 
     private static boolean emitsBuildReport(String buildArg) {
@@ -761,6 +910,11 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private GraalVMExtension registerGraalVMExtension(Project project) {
+        NamedDomainObjectContainer<NativeImageLayer> layers = project.getObjects()
+            .domainObjectContainer(NativeImageLayer.class, name -> {
+                NativeImageLayerArguments.validateLayerName(name);
+                return project.getObjects().newInstance(NativeImageLayer.class, name, project.getObjects(), project);
+            });
         NamedDomainObjectContainer<NativeImageOptions> nativeImages = project.getObjects()
             .domainObjectContainer(NativeImageOptions.class, name ->
                 project.getObjects().newInstance(BaseNativeImageOptions.class,
@@ -768,10 +922,11 @@ public class NativeImagePlugin implements Plugin<Project> {
                     project.getObjects(),
                     project.getProviders(),
                     project.getExtensions().findByType(JavaToolchainService.class),
+                    layers,
                     project.getName())
             );
         GraalVMExtension graalvmNative = project.getExtensions().create(GraalVMExtension.class, "graalvmNative",
-            DefaultGraalVmExtension.class, nativeImages, this, project);
+            DefaultGraalVmExtension.class, nativeImages, layers, this, project);
         graalvmNative.getGeneratedResourcesDirectory().set(project.getLayout()
             .getBuildDirectory()
             .dir("native/generated/"));
