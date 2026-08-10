@@ -481,6 +481,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#advanced-use-cases">Advanced Use Cases: How to</a>
 <ul class="sectlevel2">
 <li><a href="#configure-image-build">Configure Native Image Build</a></li>
+<li><a href="#build-layered-image">Build a Layered Native Image</a></li>
 <li><a href="#_build_but_not_execute_native_tests">Build, but not execute native tests</a></li>
 <li><a href="#_skip_modules_without_native_tests_in_multi_module_builds">Skip modules without native tests in multi-module builds</a></li>
 <li><a href="#gather-execution-profiles">Gather Execution Profiles and Build Optimized Images</a></li>
@@ -786,6 +787,33 @@ Using <code>&lt;buildArg&gt;</code>, you can pass any Native Image build option 
   &lt;/jvmArgs&gt;
 &lt;/configuration&gt;</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="build-layered-image"><a class="anchor" href="#build-layered-image"></a>Build a Layered Native Image</h3>
+<div class="paragraph">
+<p>Use a multi-module build with one producer module bound to <code>native:layer-create</code> and one consumer
+module. The consumer declares the producer with <code>&lt;type&gt;nil&lt;/type&gt;</code> and selects it in
+<code>&lt;useLayers&gt;</code>. Keep <code>&lt;extensions&gt;true&lt;/extensions&gt;</code> on the Native Build Tools plugin so Maven
+registers the <code>nil</code> artifact type consistently.</p>
+</div>
+<div class="paragraph">
+<p>Run the full reactor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mvnw -Pnative -DskipTests package</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Maven creates the layer in the producer&#8217;s <em>target/native/layers/</em> directory, attaches it to the
+reactor project, resolves it outside the Java classpath, and passes it to the consumer image.
+When deploying or running the executable directly, ship the layer&#8217;s shared libraries and add their
+directory to the platform library search path (<code>LD_LIBRARY_PATH</code> on Linux, <code>DYLD_LIBRARY_PATH</code> on
+macOS, or <code>PATH</code> on Windows).
+See <a href="layered-images.html">Layered Native Images: Reuse, Testing, and Deployment</a> for examples
+that share layers across Maven executions and package the resulting application. The complete XML
+reference remains in <a href="maven-plugin.html#layered-images">the Maven plugin documentation</a>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>

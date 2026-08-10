@@ -483,6 +483,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#available-tasks">Available Tasks</a></li>
 <li><a href="#configure-native-image">Native Image Configuration</a></li>
 <li><a href="#native-image-options">Native Image options</a></li>
+<li><a href="#layered-images">Layered Native Images</a></li>
 </ul>
 </li>
 <li><a href="#native-image-tracing-agent">Native Image Tracing Agent</a>
@@ -960,6 +961,100 @@ such as <code>--emit build-report</code> or <code>--enable-monitoring=jfr</code>
     "--emit build-report",
     "--enable-monitoring=jfr"
 )</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layered-images"><a class="anchor" href="#layered-images"></a>Layered Native Images</h3>
+<div class="paragraph">
+<p>For scenario-based examples covering native tests, additional test suites, reuse across binaries,
+and deployment, see <a href="layered-images.html">Layered Native Images: Reuse, Testing, and Deployment</a>.</p>
+</div>
+<div class="paragraph">
+<p>Named layers live in the <code>graalvmNative.layers</code> container. A layer can select modules, packages,
+files, a resolved Gradle configuration, dependency coordinates, or the complete runtime dependency
+graph. The plugin registers a task named <code>native&lt;LayerName&gt;Layer</code>, writes the layer under
+<em>build/native/layers/&lt;layerName&gt;/</em>, and wires consuming binaries to that task automatically.</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">graalvmNative {
+    layers {
+        dependencies {
+            contents {
+                modules('java.base')
+                fromConfiguration(configurations.runtimeClasspath)
+                // Version catalog accessors are also accepted:
+                // dependencies(libs.slf4j.api)
+            }
+        }
+    }
+    binaries {
+        main {
+            usesLayer('dependencies')
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>fromConfiguration(&#8230;&#8203;)</code> and <code>all = true</code> include both external modules and artifacts produced by
+other projects in a multi-project build. <code>all = true</code> may be combined with module or package
+selectors. Use repeated <code>usesLayer('&lt;name&gt;')</code> or typed <code>useLayer(&#8230;&#8203;)</code> calls to consume multiple
+layers. Name-based selection is lazy and works even when <code>binaries</code> appears before <code>layers</code>.
+Assigning the singular <code>layer</code> property replaces its previous value.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Inside a Groovy binary closure, the deprecated binary-level <code>layers</code> property shadows the
+extension&#8217;s named-layer container. Prefer <code>usesLayer('&lt;layerName&gt;')</code>; when passing the typed object,
+use the qualified form <code>graalvmNative.layers.&lt;layerName&gt;</code>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Layer names may contain letters, digits, dots, underscores, and hyphens. Empty layers, invalid
+names, and duplicate layer selections fail before Native Image is invoked. Layer tasks use the
+same reachability-metadata repository wiring and schema validation as binary tasks.</p>
+</div>
+<div class="paragraph">
+<p>Layer producers do not inherit binary <code>buildArgs</code>: a layer may be shared by binaries with different
+settings. Repeat layer-sensitive options such as optimization, GC, and initialization flags in the
+layer&#8217;s <code>buildArgs</code>. Gradle currently produces and consumes named layers within one project.
+Cross-project reuse is not a first-class publication flow; manual file wiring must carry both the
+<code>.nil</code> and runtime files.</p>
+</div>
+<div class="paragraph">
+<p><code>nativeRun</code> configures the platform loader for build-tree execution. For a layered main binary in
+an <code>application</code> project, <code>installDist</code>, <code>distZip</code>, and <code>distTar</code> include the native executable,
+runtime files under <code>lib/native-layers/&lt;layer&gt;</code>, and a <code>&lt;imageName&gt;-native</code> launcher. Other
+packaging plugins can consume the cacheable <code>nativeLayerRuntimeFiles</code> task output. Configure
+distinct <code>imageName</code> values for multiple custom binaries. Layer consumption is supported on
+GraalVM 25.1+; see the linked guide for the 25.0.x warning policy and native-test module guidance.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">graalvmNative {
+    layers {
+        create("dependencies") {
+            contents {
+                modules("java.base")
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+    binaries.named("main") {
+        usesLayer("dependencies")
+    }
+}</code></pre>
 </div>
 </div>
 <div class="sect3">

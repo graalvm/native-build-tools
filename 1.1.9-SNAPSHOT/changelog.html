@@ -466,6 +466,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#changelog">Changelog</a></li>
+<li><a href="#_next_release">Next release</a></li>
 <li><a href="#_release_1_1_6">Release 1.1.6</a></li>
 <li><a href="#_release_1_0_1">Release 1.0.1</a></li>
 <li><a href="#_release_1_0_0">Release 1.0.0</a></li>
@@ -534,6 +535,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="changelog"><a class="anchor" href="#changelog"></a>Changelog</h2>
 <div class="sectionbody">
 
+</div>
+</div>
+<div class="sect1">
+<h2 id="_next_release"><a class="anchor" href="#_next_release"></a>Next release</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Added first-class named Native Image layers to the Gradle plugin and Maven <code>layer-create</code> /
+<code>useLayers</code> support with resolvable <code>nil</code> artifacts and platform runtime bundles. Layer
+consumption is supported on GraalVM 25.1+; 25.0.x consumption warns and remains unsupported.</p>
+</li>
+<li>
+<p>Added loader-aware Gradle application distributions for layered main binaries. Gradle
+cross-project layer publication and Maven local-file layer consumption remain manual or
+unsupported rather than first-class flows.</p>
+</li>
+<li>
+<p>Added early validation for empty, duplicate, missing, and malformed layer configurations.</p>
+</li>
+</ul>
+</div>
 </div>
 </div>
 <div class="sect1">
