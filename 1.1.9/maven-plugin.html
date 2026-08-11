@@ -466,7 +466,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1>Maven plugin for GraalVM Native Image</h1>
 <div class="details">
 <span id="author" class="author">The GraalVM team</span><br>
-<span id="revnumber">version 1.1.8</span>
+<span id="revnumber">version 1.1.9</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
@@ -475,6 +475,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#configuration-options">Plugin Configuration</a>
 <ul class="sectlevel2">
 <li><a href="#native-image-options">Native Image Options</a></li>
+<li><a href="#layered-images">Layered Native Images</a></li>
 </ul>
 </li>
 <li><a href="#resources">Resources</a></li>
@@ -898,6 +899,111 @@ Defaults to <code>java-agent</code>.</p>
   &lt;verbose&gt;true&lt;/verbose&gt;
 &lt;/configuration&gt;</code></pre>
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="layered-images"><a class="anchor" href="#layered-images"></a>Layered Native Images</h3>
+<div class="paragraph">
+<p>For scenario-based examples covering native tests, reuse across executions and modules, and
+deployment, see <a href="layered-images.html">Layered Native Images: Reuse, Testing, and Deployment</a>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>layer-create</code> goal produces a <code>.nil</code> Native Image layer plus a platform-classified runtime
+ZIP and attaches both to the Maven project. A consuming module declares the <code>.nil</code> artifact with
+<code>&lt;type&gt;nil&lt;/type&gt;</code> and selects it through <code>&lt;useLayers&gt;</code>. The <code>nil</code> dependency is resolved separately
+and never enters the Java classpath; the matching runtime ZIP is resolved and staged automatically.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Configure the Native Build Tools plugin with <code>&lt;extensions&gt;true&lt;/extensions&gt;</code> in the parent so Maven
+registers the <code>nil</code> artifact handler early and consistently across reactor and repository builds.
+Some Maven versions can preserve an explicitly declared <code>&lt;type&gt;nil&lt;/type&gt;</code> without extension loading,
+but the extension remains the supported, predictable setup.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A producer execution can select modules, packages, explicit paths, dependency coordinates, or all
+runtime dependencies:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;execution&gt;
+  &lt;id&gt;create-base-layer&lt;/id&gt;
+  &lt;phase&gt;package&lt;/phase&gt;
+  &lt;goals&gt;
+    &lt;goal&gt;layer-create&lt;/goal&gt;
+  &lt;/goals&gt;
+  &lt;configuration&gt;
+    &lt;layer&gt;
+      &lt;name&gt;base&lt;/name&gt;
+      &lt;modules&gt;
+        &lt;module&gt;java.base&lt;/module&gt;
+      &lt;/modules&gt;
+      &lt;dependencies&gt;
+        &lt;dependency&gt;
+          &lt;artifact&gt;org.slf4j:slf4j-api&lt;/artifact&gt;
+        &lt;/dependency&gt;
+      &lt;/dependencies&gt;
+    &lt;/layer&gt;
+  &lt;/configuration&gt;
+&lt;/execution&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The consumer declares and selects the attached artifact:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+  &lt;groupId&gt;org.example&lt;/groupId&gt;
+  &lt;artifactId&gt;base-layer&lt;/artifactId&gt;
+  &lt;version&gt;${project.version}&lt;/version&gt;
+  &lt;type&gt;nil&lt;/type&gt;
+  &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;
+
+&lt;configuration&gt;
+  &lt;useLayers&gt;
+    &lt;useLayer&gt;
+      &lt;artifact&gt;org.example:base-layer&lt;/artifact&gt;
+    &lt;/useLayer&gt;
+  &lt;/useLayers&gt;
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Coordinates use <code>groupId:artifactId</code> or <code>groupId:artifactId:version</code>. The plugin reports malformed,
+missing, ambiguous, and duplicate selections before invoking Native Image, and warns when a
+declared <code>nil</code> dependency is not selected. Layer names may contain letters, digits, dots,
+underscores, and hyphens. The legacy
+<code>&lt;includeDependencies&gt;</code> option accepts only <code>all</code>; other values fail fast.</p>
+</div>
+<div class="paragraph">
+<p>Consumption is coordinate-only; local <code>.nil</code> paths are not a supported <code>&lt;useLayers&gt;</code> form. A
+producer may use <code>&lt;packaging&gt;pom&lt;/packaging&gt;</code> and still bind <code>layer-create</code>. The
+<code>skipNativeBuildForPom</code> option skips <code>compile-no-fork</code> for POM projects but does not skip an
+explicit layer-producing execution.</p>
+</div>
+<div class="paragraph">
+<p><code>&lt;useLayers&gt;</code> applies to every goal that receives that configuration, including <code>native:test</code> and
+shared-library builds. Put it in an execution-specific <code>&lt;configuration&gt;</code> when tests should use a
+different layer selection from the main image.</p>
+</div>
+<div class="paragraph">
+<p>The application executable dynamically loads the runtime libraries contained in its producer
+layers. Repository consumers extract those libraries under <code>target/native/layer-runtime</code>; package
+those directories with the application and add them to <code>LD_LIBRARY_PATH</code> on Linux,
+<code>DYLD_LIBRARY_PATH</code> on macOS, or <code>PATH</code> on Windows before launching the executable. See the linked
+guide for the GraalVM 25.1+ support policy, native-test module requirements, and storage guidance.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1906,7 +2012,7 @@ This repository provides the <a href="https://www.graalvm.org/latest/reference-m
 </div>
 </div>
 <div class="paragraph">
-<p>For example: <code>graalvm-reachability-metadata-1.1.8-repository.zip</code>.</p>
+<p>For example: <code>graalvm-reachability-metadata-1.1.9-repository.zip</code>.</p>
 </div>
 </td>
 </tr>
