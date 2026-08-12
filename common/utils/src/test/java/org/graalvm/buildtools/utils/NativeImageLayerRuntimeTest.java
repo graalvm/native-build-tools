@@ -46,6 +46,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,16 +67,20 @@ class NativeImageLayerRuntimeTest {
     }
 
     @Test
-    void discoversOnlyRuntimeLibrariesAndArchivesThemDeterministically() throws Exception {
+    void discoversSharedLibraryAndArchivesThemDeterministically() throws Exception {
+        String libExtension = platformLibraryExtension();
+        String primaryFile = "libbase" + libExtension;
+        String nestedFile = "nested/libjava" + libExtension;
+
         Path output = temporaryDirectory.resolve("output");
         Files.createDirectories(output.resolve("nested"));
-        Files.writeString(output.resolve("libbase.so"), "base");
-        Files.writeString(output.resolve("nested/libjava.so.1"), "java");
+        Files.writeString(output.resolve(primaryFile), "base");
+        Files.writeString(output.resolve(nestedFile), "java");
         Files.writeString(output.resolve("base.nil"), "nil");
         Files.writeString(output.resolve("graal_isolate.h"), "header");
 
         List<Path> runtimeFiles = NativeImageLayerRuntime.discoverRuntimeFiles(output);
-        assertEquals(List.of(output.resolve("libbase.so"), output.resolve("nested/libjava.so.1")), runtimeFiles);
+        assertEquals(List.of(output.resolve(primaryFile), output.resolve(nestedFile)), runtimeFiles);
         assertTrue(NativeImageLayerRuntime.containsPrimaryRuntimeLibrary(runtimeFiles, "libbase"));
 
         Path first = temporaryDirectory.resolve("first.zip");
@@ -84,13 +89,24 @@ class NativeImageLayerRuntimeTest {
         NativeImageLayerRuntime.createArchive(output, runtimeFiles, second);
         assertArrayEquals(Files.readAllBytes(first), Files.readAllBytes(second));
         try (ZipFile zip = new ZipFile(first.toFile())) {
-            assertEquals(List.of("libbase.so", "nested/libjava.so.1"),
+            assertEquals(List.of(primaryFile, nestedFile),
                 zip.stream().map(entry -> entry.getName()).toList());
         }
 
         Path extracted = temporaryDirectory.resolve("extracted");
         NativeImageLayerRuntime.extractArchive(first, extracted, message -> { });
-        assertEquals("base", Files.readString(extracted.resolve("libbase.so")));
-        assertEquals("java", Files.readString(extracted.resolve("nested/libjava.so.1")));
+        assertEquals("base", Files.readString(extracted.resolve(primaryFile)));
+        assertEquals("java", Files.readString(extracted.resolve(nestedFile)));
+    }
+
+    private static String platformLibraryExtension() {
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+        if (os.contains("win")) {
+            return ".dll";
+        }
+        if (os.contains("mac") || os.contains("darwin")) {
+            return ".dylib";
+        }
+        return ".so";
     }
 }
