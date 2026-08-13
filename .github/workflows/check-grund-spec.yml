@@ -49,7 +49,7 @@ jobs:
         if: steps.cache-grund.outputs.cache-hit != 'true'
         run: |
           rustup toolchain install stable --profile minimal
-          rustup run stable cargo install --git https://github.com/vjovanov/grund --tag "v${GRUND_VERSION}"
+          rustup run stable cargo install --git https://github.com/vjovanov/grund --tag "v${GRUND_VERSION}" grund
       - name: "✅ grund check"
         # Validates that every §<ID> citation in docs, workflows, and source doc-comments resolves,
         # and that section headings and inline-note limits hold. See AGENTS.md and grund.toml.
