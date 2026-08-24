@@ -70,7 +70,8 @@ import java.util.Set;
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class LayerCreateMojo extends AbstractNativeImageMojo {
-    @Parameter(required = true)
+    // Optional in the shared descriptor; explicit layer-create execution validates it below. §FS-config-model.7.
+    @Parameter(required = false)
     private LayerConfiguration layer;
 
     @Component

@@ -56,6 +56,21 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
     }
 
+    def "layer is optional in the shared Maven plugin descriptor"() {
+        given:
+        withSample("layered-maven-application")
+
+        when:
+        mvn 'help:describe',
+            "-Dplugin=org.graalvm.buildtools:native-maven-plugin:${System.getProperty('native.maven.plugin.version')}",
+            '-Dgoal=layer-create', '-Ddetail'
+
+        then:
+        buildSucceeded
+        def help = result.stdOut.replaceAll(/\u001B\[[;\d]*m/, '').replace('\r\n', '\n')
+        help =~ /(?s)\n\s+layer\s*\n\s+\(no description available\)\s*\n\s*\n\s+mainClass\s*\n/
+    }
+
     def "loads the nil artifact handler and reactor model"() {
         given:
         withSample("layered-maven-application")

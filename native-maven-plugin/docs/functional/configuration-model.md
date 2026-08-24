@@ -59,13 +59,16 @@ specialized skip controls and behavior.
 
 A `layer-create` execution accepts one layer definition with a required name and neutral contents:
 `all`, module names, package names, explicit files, and selected `groupId:artifactId[:version]`
-dependencies with configurable transitivity. `includeDependencies`, when present, accepts only
-`all`; other values fail configuration instead of being ignored. Layer names accept only letters,
-digits, dots, underscores, and hyphens. Version-qualified selections must match the resolved
-root dependency exactly before including its transitive dependency trail. Normal compile goals
-accept `useLayers` entries that select project dependencies of type `nil` by coordinates. Missing,
-ambiguous, and duplicate selections fail before Native Image is invoked. Loading the plugin with
-`<extensions>true</extensions>` registers `nil` as a Maven artifact type early and is recommended
-for consistent reactor and repository resolution, although Maven builds that already preserve the
-explicit `nil` type may resolve without it.
+dependencies with configurable transitivity. The shared Maven plugin descriptor marks the layer
+parameter optional so unrelated goals and IDE plugin validation do not require `<layer>`; an
+explicit `layer-create` execution without a configured, non-blank layer name still fails.
+`includeDependencies`, when present, accepts only `all`; other values fail configuration instead
+of being ignored. Layer names accept only letters, digits, dots, underscores, and hyphens.
+Version-qualified selections must match the resolved root dependency exactly before including its
+transitive dependency trail. Normal compile goals accept `useLayers` entries that select project
+dependencies of type `nil` by coordinates. Missing, ambiguous, and duplicate selections fail
+before Native Image is invoked. Loading the plugin with `<extensions>true</extensions>` registers
+`nil` as a Maven artifact type early and is recommended for consistent reactor and repository
+resolution, although Maven builds that already preserve the explicit `nil` type may resolve
+without it.
 [§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).
