@@ -134,8 +134,9 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
     def "rejects duplicate provider layer selections before the producer runs"() {
         given:
         withSample("layered-java-application")
+        buildFile.text = buildFile.text.replace('\r\n', '\n').replace('\n', '\r\n')
         // Replace the sample's happy-path consumer so this test isolates direct/provider duplicates. §FS-plugin-model.2.
-        buildFile.text = buildFile.text.replace('''        main {
+        replaceBuildFile('''        main {
             usesLayer('dependencies')
         }
 ''', '''        main {
@@ -310,7 +311,7 @@ public class Application {
                 implementation("org.slf4j:slf4j-api:2.0.17")
             }
         '''.stripIndent()
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
+        replaceBuildFile('''                modules("java.base")
 ''', '''                packages("org.slf4j")
 ''')
         buildFile << '''
@@ -340,7 +341,7 @@ public class Application {
 
         given:
         withSample("layered-java-application")
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
+        replaceBuildFile('''                modules("java.base")
 ''', '''                all = true
 ''')
         buildFile << '''
@@ -374,7 +375,7 @@ public class Application {
                 implementation("org.apache.commons:commons-lang3:3.17.0")
             }
         '''.stripIndent()
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
+        replaceBuildFile('''                modules("java.base")
 ''', '''                modules("java.base")
                 from(configurations.runtimeClasspath)
 ''')
@@ -624,5 +625,11 @@ public class Application {
                 }
             }
         }
+    }
+
+    private void replaceBuildFile(String expected, String replacement) {
+        String normalized = buildFile.text.replace('\r\n', '\n')
+        assert normalized.contains(expected): "Expected layered application fixture text was not found:\n${expected}"
+        buildFile.text = normalized.replace(expected, replacement)
     }
 }
