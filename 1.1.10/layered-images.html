@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.18">
 <meta name="author" content="The GraalVM team">
-<title>Native Build Tools</title>
+<title>Layered Native Images: Reuse, Testing, and Deployment</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -461,95 +461,473 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
   </div>
 </section>
 </head>
-<body class="article">
+<body class="article toc2 toc-left">
 <div id="header">
-<h1>Native Build Tools</h1>
+<h1>Layered Native Images: Reuse, Testing, and Deployment</h1>
 <div class="details">
 <span id="author" class="author">The GraalVM team</span><br>
-<span id="revnumber">version 1.1.9</span>
+<span id="revnumber">version 1.1.10</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#layered-image-artifacts">Understand the Generated Artifacts</a></li>
+<li><a href="#layer-content-selection">Select Layer Contents</a></li>
+<li><a href="#gradle-layer-reuse">Reuse a Layer with Gradle</a>
+<ul class="sectlevel2">
+<li><a href="#gradle-main-and-tests">Share One Layer Between the Application and Native Tests</a></li>
+<li><a href="#gradle-multiple-binaries">Share a Layer Between Executables and Libraries</a></li>
+</ul>
+</li>
+<li><a href="#maven-layer-reuse">Reuse a Layer with Maven</a>
+<ul class="sectlevel2">
+<li><a href="#maven-producer-module">Create a Layer in a Producer Module</a></li>
+<li><a href="#maven-main-and-tests">Share One Layer Between Build Executions</a></li>
+</ul>
+</li>
+<li><a href="#native-test-layer-modules">Include Modules Required by Every Consumer</a></li>
+<li><a href="#shipping-layered-images">Ship a Layered Application</a>
+<ul class="sectlevel2">
+<li><a href="#shipping-linux">Linux</a></li>
+<li><a href="#shipping-macos">macOS</a></li>
+<li><a href="#shipping-windows">Windows</a></li>
+</ul>
+</li>
+<li><a href="#layer-storage">Plan Repository Storage</a></li>
+</ul>
 </div>
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
-<p>The Native Build Tools project provides plugins for various build tools, enabling support for building and testing native applications written in Java (or any other language compiled to JVM bytecode) using <a href="https://www.graalvm.org/reference-manual/native-image/">GraalVM  Native Image</a>.
-Currently, you can build your native applications using our Gradle or Maven plugins.</p>
+<p>Native Image layers let several native binaries reuse a separately built part of an image. A
+typical project puts stable modules and dependencies in a base layer, then consumes that layer
+from the application image, native tests, or other native binaries.</p>
 </div>
 <div class="paragraph">
-<p>Each plugin takes metadata for available libraries from the <a href="https://github.com/oracle/graalvm-reachability-metadata">GraalVM reachability metadata repository</a>
-to provide better experience during the development of your native project.</p>
+<p>This guide focuses on how layers fit into a real build: selecting layer contents, sharing one
+layer between build targets, using layers from native tests, and shipping the resulting
+application. For the complete configuration reference, see
+<a href="gradle-plugin.html#layered-images">the Gradle plugin documentation</a> and
+<a href="maven-plugin.html#layered-images">the Maven plugin documentation</a>.</p>
 </div>
-<div class="admonitionblock tip">
+<div class="admonitionblock important">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Check library support first.
-Run <code>./gradlew listLibrariesMissingMetadata</code> or <code>./mvnw native:list-libraries-missing-metadata</code>
-before troubleshooting metadata manually so you can see which direct dependencies are unsupported
-by the reachability metadata repository.</p>
+<p>Layered images are an experimental Native Image feature.</p>
+</div>
+<div class="paragraph">
+<p>Native Build Tools supports layer consumption on GraalVM 25.1 and later. Consumption on GraalVM
+25.0.x is permitted for compatibility, but is unsupported and proceeds at your own risk because
+Native Image may fail internally while loading a valid layer. The plugins warn for 25.0.x
+consumption; creating a layer without consuming another layer does not warn. The runtime release
+reported by <code>native-image --version</code>, rather than its first component-version line, determines
+this policy.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="layered-image-artifacts"><a class="anchor" href="#layered-image-artifacts"></a>Understand the Generated Artifacts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Creating a layer produces two kinds of output:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <code>.nil</code> file that another Native Image build consumes through <code>-H:LayerUse</code>. This is a
+build-time artifact.</p>
+</li>
+<li>
+<p>Platform runtime libraries that the final executable loads, such as <code>libbase.so</code> and supporting
+native libraries on Linux. These are deployment artifacts.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The final executable does not contain the layer&#8217;s runtime libraries. A deployment must therefore
+include the executable and every discovered runtime library from each layer it uses. Headers and
+diagnostic files emitted beside a layer are not runtime inputs.</p>
+</div>
+<div class="paragraph">
+<p>Maven attaches a deterministic ZIP containing the runtime files alongside the <code>.nil</code>. Its
+classifier identifies the target operating system and architecture, for example
+<code>layer-runtime-linux-amd64</code>; non-default Linux C libraries such as musl add that compatibility
+dimension. Gradle models the producer directories as task inputs and stages runtime files without
+flattening different layers into one directory.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="layer-content-selection"><a class="anchor" href="#layer-content-selection"></a>Select Layer Contents</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Both plugins support module, package, path, dependency, and complete-classpath selection. Modules
+and packages may be combined in the same layer. Keep frequently changing application classes out
+of a broadly reused layer so that application changes do not force the layer to be rebuilt.</p>
+</div>
+<div class="paragraph">
+<p>For example, a Gradle layer can select JDK modules and packages:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">graalvmNative {
+    layers {
+        sharedRuntime {
+            contents {
+                modules('java.base', 'java.logging')
+                packages('org.slf4j')
+            }
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The equivalent Maven layer definition is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;layer&gt;
+  &lt;name&gt;shared-runtime&lt;/name&gt;
+  &lt;modules&gt;
+    &lt;module&gt;java.base&lt;/module&gt;
+    &lt;module&gt;java.logging&lt;/module&gt;
+  &lt;/modules&gt;
+  &lt;packages&gt;
+    &lt;package&gt;org.slf4j&lt;/package&gt;
+  &lt;/packages&gt;
+&lt;/layer&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Package selectors add packages to the layer; they do not filter files selected through
+<code>fromConfiguration(&#8230;&#8203;)</code> (Gradle) or <code>&lt;dependencies&gt;</code> (Maven). Use a separate configuration or
+dependency selector when the intent is to include the resolved artifact files themselves.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="gradle-layer-reuse"><a class="anchor" href="#gradle-layer-reuse"></a>Reuse a Layer with Gradle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Gradle layers are named objects outside the binary container. Calling <code>usesLayer</code> adds the
+producer task as a dependency of the consuming binary, so requesting <code>nativeCompile</code> or
+<code>nativeTest</code> also builds the layer when necessary.</p>
+</div>
+<div class="sect2">
+<h3 id="gradle-main-and-tests"><a class="anchor" href="#gradle-main-and-tests"></a>Share One Layer Between the Application and Native Tests</h3>
+<div class="paragraph">
+<p>The <code>main</code> and <code>test</code> binaries can consume the same named layer:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">graalvmNative {
+    layers {
+        sharedRuntime {
+            contents {
+                modules('java.base', 'java.logging')
+                fromConfiguration(configurations.runtimeClasspath)
+            }
+        }
+    }
+    binaries {
+        main {
+            usesLayer('sharedRuntime')
+        }
+        test {
+            usesLayer('sharedRuntime')
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run the application and native tests normally:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./gradlew nativeRun
+./gradlew nativeTest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Both task graphs reuse <code>nativeSharedRuntimeLayer</code>. The Gradle run tasks add the directories of
+their selected layers to the runtime library search path.</p>
+</div>
+<div class="paragraph">
+<p>When the <code>application</code> plugin is present, <code>installDist</code>, <code>distZip</code>, and <code>distTar</code> also include the
+main native executable, selected runtime files under <code>lib/native-layers/&lt;layer&gt;</code>, and a
+<code>bin/&lt;imageName&gt;-native</code> launcher that configures the platform loader. Projects using another
+packaging model can consume the cacheable <code>nativeLayerRuntimeFiles</code> task output.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="gradle-multiple-binaries"><a class="anchor" href="#gradle-multiple-binaries"></a>Share a Layer Between Executables and Libraries</h3>
+<div class="paragraph">
+<p>Repeated <code>usesLayer</code> calls can select multiple layers, and the same layer can be selected by
+multiple binaries. For example, an executable and a shared-library binary can both select
+<code>sharedRuntime</code>. Each consumer keeps its own Native Image options; layer-sensitive options must
+remain compatible between the producer and every consumer.</p>
+</div>
+<div class="paragraph">
+<p>Shared-library binaries do not generally require a <code>mainClass</code>. For multiple custom binaries,
+configure a distinct <code>imageName</code> for each one so packaging and human-facing artifact names remain
+unambiguous.</p>
+</div>
+<div class="paragraph">
+<p>Same-project named-layer reuse is Gradle&#8217;s first-class sharing model. Cross-project reuse does not
+currently publish a consumable layer variant; it requires manual <code>getLayerFiles()</code> or equivalent
+file wiring, including the runtime files needed for deployment.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="maven-layer-reuse"><a class="anchor" href="#maven-layer-reuse"></a>Reuse a Layer with Maven</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Maven represents a layer as an attached artifact of type <code>nil</code>. A consumer declares the producer
+as a normal dependency with <code>&lt;type&gt;nil&lt;/type&gt;</code>, which gives Maven enough information to order
+reactor modules and resolve layers from a repository without adding them to the Java classpath.</p>
+</div>
+<div class="sect2">
+<h3 id="maven-producer-module"><a class="anchor" href="#maven-producer-module"></a>Create a Layer in a Producer Module</h3>
+<div class="paragraph">
+<p>Bind <code>layer-create</code> in the producer module:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;extensions&gt;true&lt;/extensions&gt;
+  &lt;executions&gt;
+    &lt;execution&gt;
+      &lt;id&gt;create-shared-runtime&lt;/id&gt;
+      &lt;phase&gt;package&lt;/phase&gt;
+      &lt;goals&gt;
+        &lt;goal&gt;layer-create&lt;/goal&gt;
+      &lt;/goals&gt;
+      &lt;configuration&gt;
+        &lt;layer&gt;
+          &lt;name&gt;shared-runtime&lt;/name&gt;
+          &lt;modules&gt;
+            &lt;module&gt;java.base&lt;/module&gt;
+            &lt;module&gt;java.logging&lt;/module&gt;
+          &lt;/modules&gt;
+        &lt;/layer&gt;
+      &lt;/configuration&gt;
+    &lt;/execution&gt;
+  &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The goal creates <em>target/native/layers/shared-runtime/shared-runtime.nil</em> and attaches it to the
+project as a <code>nil</code> artifact. It also attaches the platform-classified runtime ZIP. A layer producer
+may use <code>&lt;packaging&gt;pom&lt;/packaging&gt;</code>: <code>layer-create</code> still runs when bound to the lifecycle.
+<code>skipNativeBuildForPom</code> applies to <code>compile-no-fork</code>, not to <code>layer-create</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="maven-main-and-tests"><a class="anchor" href="#maven-main-and-tests"></a>Share One Layer Between Build Executions</h3>
+<div class="paragraph">
+<p>Declare the producer in the consumer module:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+  &lt;groupId&gt;org.example&lt;/groupId&gt;
+  &lt;artifactId&gt;shared-runtime-layer&lt;/artifactId&gt;
+  &lt;version&gt;${project.version}&lt;/version&gt;
+  &lt;type&gt;nil&lt;/type&gt;
+  &lt;scope&gt;runtime&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Put <code>&lt;useLayers&gt;</code> in the plugin-level configuration when every configured goal should use the
+same layer. In this example the application image and native tests share it:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;plugin&gt;
+  &lt;groupId&gt;org.graalvm.buildtools&lt;/groupId&gt;
+  &lt;artifactId&gt;native-maven-plugin&lt;/artifactId&gt;
+  &lt;extensions&gt;true&lt;/extensions&gt;
+  &lt;configuration&gt;
+    &lt;useLayers&gt;
+      &lt;useLayer&gt;
+        &lt;artifact&gt;org.example:shared-runtime-layer&lt;/artifact&gt;
+      &lt;/useLayer&gt;
+    &lt;/useLayers&gt;
+  &lt;/configuration&gt;
+  &lt;executions&gt;
+    &lt;execution&gt;
+      &lt;id&gt;build-application&lt;/id&gt;
+      &lt;phase&gt;package&lt;/phase&gt;
+      &lt;goals&gt;
+        &lt;goal&gt;compile-no-fork&lt;/goal&gt;
+      &lt;/goals&gt;
+    &lt;/execution&gt;
+    &lt;execution&gt;
+      &lt;id&gt;run-native-tests&lt;/id&gt;
+      &lt;phase&gt;test&lt;/phase&gt;
+      &lt;goals&gt;
+        &lt;goal&gt;test&lt;/goal&gt;
+      &lt;/goals&gt;
+    &lt;/execution&gt;
+  &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use execution-specific <code>&lt;configuration&gt;</code> blocks instead when application and test images need
+different layers. Multiple consumer modules can declare and select the same <code>nil</code> dependency.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>When a native test is executed, the plugin adds the directories containing its selected layer
+runtime files to the platform library search path. For repository dependencies, the plugin
+automatically resolves the matching runtime ZIP and extracts it into a consumer-owned directory
+under <code>target/native/layer-runtime</code>. It never relies on a producer <code>target</code> directory or extracts
+into the local Maven repository. If an older publication contains only a <code>.nil</code>, the build fails
+before Native Image runs and reports the missing companion coordinate.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>If you are using alternative build systems, see <a href="alternative-build-systems.html">Useful Hints for Alternative Build Systems</a>.</p>
+<p>Maven <code>useLayers</code> is coordinate-based: declare a dependency with <code>&lt;type&gt;nil&lt;/type&gt;</code> and select it
+by <code>groupId:artifactId[:version]</code>. Local layer-file paths are not a supported Maven consumption
+form. Reactor and external-repository consumers use the same declaration.</p>
 </div>
-<h3 id="_documentation" class="discrete">Documentation</h3>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="native-test-layer-modules"><a class="anchor" href="#native-test-layer-modules"></a>Include Modules Required by Every Consumer</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>If you&#8217;re new to the Native Build Tools, whether as an end user or a library author, check out our:</p>
+<p>A layer shared by applications and native tests must contain every JDK module required by every
+consumer. Native JUnit fixtures commonly need at least <code>java.management</code>, and tests using JDBC
+need <code>java.sql</code>; add <code>java.xml</code> when XML APIs are used. For example:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="end-to-end-gradle-guide.html">Building Native Images with Gradle: An End-to-End Guide</a></p>
-</li>
-<li>
-<p><a href="end-to-end-maven-guide.html">Building Native Images with Maven: An End-to-End Guide</a></p>
-</li>
-<li>
-<p><a href="layered-images.html">Layered Native Images: Reuse, Testing, and Deployment</a></p>
-</li>
-</ul>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">contents.modules('java.base', 'java.management', 'java.sql')</code></pre>
 </div>
-<div class="paragraph">
-<p>For detailed documentation, see the corresponding page for each build tool:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="gradle-plugin.html">Gradle plugin documentation</a></p>
-</li>
-<li>
-<p><a href="maven-plugin.html">Maven plugin documentation</a></p>
-</li>
-</ul>
 </div>
 <div class="paragraph">
-<p>For updates to the Native Build Tools between releases, see the full changelog <a href="changelog.html">here</a>.</p>
+<p>The equivalent Maven <code>&lt;modules&gt;</code> list uses one <code>&lt;module&gt;</code> element for each entry. If the producer
+omits a module, adding it only to the final consumer is too late: Native Image can report a newly
+seen boot package or another layer-compatibility failure. Add the missing module to the producer
+layer and rebuild it.</p>
 </div>
-<h3 id="_contributing" class="discrete">Contributing</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="shipping-layered-images"><a class="anchor" href="#shipping-layered-images"></a>Ship a Layered Application</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>If you are interested in contributing or reporting an issue related to the plugins, please refer to the <a href="https://github.com/graalvm/native-build-tools">Native Build Tools repository</a>.
-Please note that all contributors must sign the <a href="https://oca.opensource.oracle.com/">Oracle Contributor Agreement</a> (OCA).</p>
+<p>A portable application bundle should keep the executable and its layer libraries together. For
+example, a Linux distribution can use this layout:</p>
 </div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">application/
+|-- bin/
+|   `-- application-native
+`-- lib/
+    |-- native/
+    |   `-- application
+    `-- native-layers/
+        |-- base/
+        |   `-- libbase.so
+        `-- framework/
+            `-- libframework.so</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>This repository should be used for reporting issues related specifically to the Maven or Gradle plugins for GraalVM Native Image.
-For issues related to frameworks such as <a href="https://spring.io/">Spring Framework</a> or <a href="https://micronaut.io/">Micronaut framework</a>, please report them to their respective repositories.</p>
+<p>The <code>.nil</code> files are needed to build downstream images, but they are not required merely to run
+an already-built final executable. Keep them in a build artifact repository when other builds
+need to consume the layers.</p>
 </div>
-</td>
-</tr>
-</table>
+<div class="sect2">
+<h3 id="shipping-linux"><a class="anchor" href="#shipping-linux"></a>Linux</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">APP_HOME=/opt/application
+LD_LIBRARY_PATH="$APP_HOME/lib/native-layers/base${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" \
+    "$APP_HOME/lib/native/application"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For a container image, copy both directories and set <code>LD_LIBRARY_PATH</code> in the runtime image:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-dockerfile hljs" data-lang="dockerfile">COPY application/ /opt/application/
+ENV LD_LIBRARY_PATH=/opt/application/lib/native-layers/base
+ENTRYPOINT ["/opt/application/lib/native/application"]</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="shipping-macos"><a class="anchor" href="#shipping-macos"></a>macOS</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">APP_HOME=/opt/application
+DYLD_LIBRARY_PATH="$APP_HOME/lib/native-layers/base${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}" \
+    "$APP_HOME/lib/native/application"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="shipping-windows"><a class="anchor" href="#shipping-windows"></a>Windows</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-powershell hljs" data-lang="powershell">$env:PATH = "$PWD\lib\native-layers\base;$env:PATH"
+&amp; "$PWD\lib\native\application.exe"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Gradle application distributions generate this packaging and a loader-aware launcher. Maven stages
+repository runtime bundles for build and native-test execution, but a Maven deployment plugin must
+still copy the executable and staged runtime directories into the final application or container.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="layer-storage"><a class="anchor" href="#layer-storage"></a>Plan Repository Storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>.nil</code> files can be hundreds of megabytes even for representative JDK-module or dependency layers.
+Normal Maven transport compression may reduce transfer size, but Native Image must ultimately
+receive the original <code>.nil</code>. Plan repository retention, quotas, and remote-cache capacity, and
+publish broadly shared layers deliberately. Content-addressing or cross-artifact deduplication is
+outside the current layer contract.</p>
+</div>
+</div>
 </div>
 </div>
 <script src="highlight/highlight.min.js"></script>
