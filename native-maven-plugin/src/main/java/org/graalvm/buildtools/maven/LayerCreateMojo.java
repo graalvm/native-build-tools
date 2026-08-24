@@ -92,7 +92,12 @@ public class LayerCreateMojo extends AbstractNativeImageMojo {
 
     @Override
     protected void executeInternal() throws MojoExecutionException {
-        if (layer == null || layer.getName() == null || layer.getName().isBlank()) {
+        // Skip if no layers are defined
+        if(layer == null){
+            return;
+        }
+        
+        if (layer.getName() == null || layer.getName().isBlank()) {
             throw new MojoExecutionException("The layer-create goal requires a non-blank layer name");
         }
         try {
