@@ -70,7 +70,7 @@ import java.util.Set;
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class LayerCreateMojo extends AbstractNativeImageMojo {
-    @Parameter(required = true)
+    @Parameter(required = false)
     private LayerConfiguration layer;
 
     @Component
