@@ -48,10 +48,10 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.graalvm.buildtools.gradle.internal.NativeImageLayerRegistry;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 
 import javax.inject.Inject;
@@ -64,17 +64,17 @@ import java.util.Set;
 public abstract class NativeImageLayer implements Named {
     private final String name;
     private final LayerContents contents;
-    private final Project project;
+    private final transient NativeImageLayerRegistry layerRegistry;
     private final ConfigurableFileCollection layerFiles;
     private final ConfigurableFileCollection inheritedCompatibilityClasspath;
     private final ConfigurableFileCollection compatibilityClasspath;
     private final Set<String> configuredLayerNames = new HashSet<>();
 
     @Inject
-    public NativeImageLayer(String name, ObjectFactory objects, Project project) {
+    public NativeImageLayer(String name, ObjectFactory objects, Project project, NativeImageLayerRegistry layerRegistry) {
         this.name = name;
         this.contents = objects.newInstance(LayerContents.class, project);
-        this.project = project;
+        this.layerRegistry = layerRegistry;
         this.layerFiles = project.files();
         this.inheritedCompatibilityClasspath = project.files();
         this.compatibilityClasspath = project.files();
@@ -114,12 +114,9 @@ public abstract class NativeImageLayer implements Named {
             throw new IllegalArgumentException("Layer '" + name + "' is selected more than once");
         }
         getUseLayerNames().add(name);
-        Provider<NativeImageLayer> layer = project.provider(() -> project.getExtensions()
-            .getByType(GraalVMExtension.class)
-            .getLayers()
-            .getByName(name));
-        layerFiles.from(layer.flatMap(NativeImageLayer::getOutputFile));
-        inheritedCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
+        NativeImageLayerRegistry.LayerReference reference = layerRegistry.reference(name);
+        layerFiles.from(reference.getOutputFile());
+        inheritedCompatibilityClasspath.from(reference.getCompatibilityClasspath());
     }
 
     @Internal

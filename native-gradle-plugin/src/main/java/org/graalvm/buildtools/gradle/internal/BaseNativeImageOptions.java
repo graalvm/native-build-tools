@@ -53,7 +53,6 @@ import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
@@ -94,13 +93,13 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private static final GraalVMLogger LOGGER = GraalVMLogger.of(Logging.getLogger(BaseNativeImageOptions.class));
     private final DomainObjectSet<LayerOptions> layers;
     private final ConfigurableFileCollection layerCompatibilityClasspath;
-    private NativeImageLayer assignedLayer;
+    private transient NativeImageLayer assignedLayer;
 
     private final String name;
     private final transient TaskContainer tasks;
     private final ObjectFactory objects;
     private final ProviderFactory providers;
-    private final NamedDomainObjectContainer<NativeImageLayer> namedLayers;
+    private final transient NativeImageLayerRegistry layerRegistry;
 
     @Override
     @Internal
@@ -267,7 +266,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
                                   ProviderFactory providers,
                                   JavaToolchainService toolchains,
                                   TaskContainer tasks,
-                                  NamedDomainObjectContainer<NativeImageLayer> namedLayers,
+                                  NativeImageLayerRegistry layerRegistry,
                                   String defaultImageName) {
         this.name = name;
         getDebug().convention(false);
@@ -295,7 +294,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         this.tasks = tasks;
         this.objects = objectFactory;
         this.providers = providers;
-        this.namedLayers = namedLayers;
+        this.layerRegistry = layerRegistry;
     }
 
     private static Provider<Boolean> property(ProviderFactory providers, String name) {
@@ -458,8 +457,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     public void useLayer(NativeImageLayer layer) {
         // Typed layer consumption records the producing layer output on the binary. §FS-plugin-model.2.
         addLayerName(layer.getName());
-        getLayerFiles().from(layer.getOutputFile());
-        layerCompatibilityClasspath.from(layer.getCompatibilityClasspath());
+        addLayerReference(layerRegistry.reference(layer.getName()));
     }
 
     @Override
@@ -472,12 +470,10 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
 
     @Override
     public void usesLayer(String name) {
-        // Resolve the container only when Gradle queries the binary, allowing layers to be declared later. §FS-plugin-model.2.
+        // Resolve normalized properties without retaining the layer container in task state. §FS-plugin-model.2.
         NativeImageLayerArguments.validateLayerName(name);
-        Provider<NativeImageLayer> layer = providers.provider(() -> namedLayers.getByName(name));
         addLayerName(name);
-        getLayerFiles().from(layer.flatMap(NativeImageLayer::getOutputFile));
-        layerCompatibilityClasspath.from(layer.map(NativeImageLayer::getCompatibilityClasspath));
+        addLayerReference(layerRegistry.reference(name));
     }
 
     @Override
@@ -490,8 +486,14 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         // Singular property assignment replaces any prior layer selection. §FS-plugin-model.2.
         assignedLayer = layer;
         getLayerNames().set(List.of(layer.getName()));
-        getLayerFiles().setFrom(layer.getOutputFile());
-        layerCompatibilityClasspath.setFrom(layer.getCompatibilityClasspath());
+        NativeImageLayerRegistry.LayerReference reference = layerRegistry.reference(layer.getName());
+        getLayerFiles().setFrom(reference.getOutputFile());
+        layerCompatibilityClasspath.setFrom(reference.getCompatibilityClasspath());
+    }
+
+    private void addLayerReference(NativeImageLayerRegistry.LayerReference reference) {
+        getLayerFiles().from(reference.getOutputFile());
+        layerCompatibilityClasspath.from(reference.getCompatibilityClasspath());
     }
 
     private void addLayerName(String layerName) {

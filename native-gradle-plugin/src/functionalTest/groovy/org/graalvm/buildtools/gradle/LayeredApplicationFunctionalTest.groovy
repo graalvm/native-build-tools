@@ -77,6 +77,46 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         outputContains "Builds the dependencies Native Image layer."
     }
 
+    def "native tasks without layers reuse the configuration cache"() {
+        given:
+        withSample("java-application")
+        buildFile << '''
+            // Keep the compile task in the graph without invoking Native Image. §FS-plugin-model.2.
+            tasks.named("nativeCompile") {
+                enabled = false
+            }
+        '''.stripIndent()
+
+        when:
+        runAndReloadConfigurationCache 'nativeCompile', 'generateResourcesConfigFile'
+        if (hasConfigurationCache) {
+            // TestKit creates its exploded plugin classpath during the first pair of builds.
+            // Run once more after that input stabilizes to verify an actual cache reuse.
+            runAndReloadConfigurationCache 'nativeCompile', 'generateResourcesConfigFile'
+        }
+
+        then:
+        if (hasConfigurationCache) {
+            configurationCacheStoreTasks {
+                upToDate ':generateResourcesConfigFile'
+                skipped ':nativeCompile'
+                doesNotContain ':nativeDependenciesLayer'
+            }
+            tasks {
+                upToDate ':generateResourcesConfigFile'
+                skipped ':nativeCompile'
+                doesNotContain ':nativeDependenciesLayer'
+            }
+            outputContains 'Reusing configuration cache.'
+        } else {
+            tasks {
+                succeeded ':generateResourcesConfigFile'
+                skipped ':nativeCompile'
+                doesNotContain ':nativeDependenciesLayer'
+            }
+        }
+    }
+
     def "rejects an empty named layer before invoking Native Image"() {
         given:
         withSample("layered-java-application")

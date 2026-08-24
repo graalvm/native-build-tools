@@ -57,6 +57,7 @@ import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService;
 import org.graalvm.buildtools.gradle.internal.GradleUtils;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
+import org.graalvm.buildtools.gradle.internal.NativeImageLayerRegistry;
 import org.graalvm.buildtools.gradle.internal.agent.AgentConfigurationFactory;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CollectReachabilityMetadata;
@@ -200,6 +201,7 @@ public class NativeImagePlugin implements Plugin<Project> {
     private static final String NATIVE_IMAGE_OPTIONS_ENV = "NATIVE_IMAGE_OPTIONS";
 
     private GraalVMLogger logger;
+    private transient NativeImageLayerRegistry layerRegistry;
 
     // Exposed detection provider for test binaries (to be used by follow-up tasks)
     private Provider<Boolean> compatModeEnabled;
@@ -580,7 +582,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 project.getObjects(),
                 project.getProviders(),
                 project.getExtensions().findByType(JavaToolchainService.class),
-                graalExtension.getLayers(),
+                layerRegistry,
                 "lib" + layer.getName()
             );
             CreateLayerOptions create = project.getObjects().newInstance(CreateLayerOptions.class);
@@ -910,10 +912,14 @@ public class NativeImagePlugin implements Plugin<Project> {
     }
 
     private GraalVMExtension registerGraalVMExtension(Project project) {
+        layerRegistry = new NativeImageLayerRegistry(project.getObjects());
         NamedDomainObjectContainer<NativeImageLayer> layers = project.getObjects()
             .domainObjectContainer(NativeImageLayer.class, name -> {
                 NativeImageLayerArguments.validateLayerName(name);
-                return project.getObjects().newInstance(NativeImageLayer.class, name, project.getObjects(), project);
+                NativeImageLayer layer = project.getObjects().newInstance(
+                    NativeImageLayer.class, name, project.getObjects(), project, layerRegistry);
+                layerRegistry.register(layer);
+                return layer;
             });
         NamedDomainObjectContainer<NativeImageOptions> nativeImages = project.getObjects()
             .domainObjectContainer(NativeImageOptions.class, name ->
@@ -922,7 +928,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     project.getObjects(),
                     project.getProviders(),
                     project.getExtensions().findByType(JavaToolchainService.class),
-                    layers,
+                    layerRegistry,
                     project.getName())
             );
         GraalVMExtension graalvmNative = project.getExtensions().create(GraalVMExtension.class, "graalvmNative",
