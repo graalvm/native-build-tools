@@ -1,8 +1,9 @@
 # Native Build Tools — agent instructions
 
-## Grounding with grund (v3)
+<!-- BEGIN GRUND MANAGED BLOCK -->
+## Grounding with grund (v7)
 
-This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, decision, and end-to-end test has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, AR, FS, E2E, DEC, GLOSS}`), cited with the marker `§` — e.g. `FS-user-login.3.1` is the shape of a section ID, and a real citation prefixes that shape with `§`. Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are ignored — `[reference] strict = true` is set in `.agents/grund.toml`, so only `§`-prefixed citations are checked.
+This project uses [`grund`](https://github.com/vjovanov/grund): every spec, goal, decision, and end-to-end test has a stable ID `<KIND>-<slug>[.<section>]` (`KIND ∈ {GRUND, GOAL, NGOAL, REQ, AR, FS, E2E, DEC, GLOSS}`), cited with the marker `§` — e.g. `<§>FS-user-login.3.1` (the `FS-user-login` here is a shape illustration, not a real ID in this repo, hence the `<§>` escape). Type `$$` in a grund-aware editor and it becomes `§`. Bare ID-shaped tokens are ignored — `[reference] strict = true` is set in `grund.toml`, so only `§`-prefixed citations are checked.
 
 ### Grounding from a citation
 
@@ -31,7 +32,7 @@ A `§<ID>` is a pointer to a fact, not a file path. Resolve it with `grund` and 
 
 A namespace is a project boundary, not a docs folder. The current project is the local namespace: cite its IDs as `§<ID>`.
 
-Create or use a separate namespace when work introduces an independently checked app, package, service, or subproject. Give that project its own `.agents/grund.toml`, add it to the workspace root's `[workspace] members`, run `grund init` there, and set a stable `project_name`.
+Create or use a separate namespace when work introduces an independently checked app, package, service, or subproject. Give that project its own `grund.toml`, add it to the workspace root's `[workspace] members`, run `grund init` there, and set a stable `project_name`.
 
 Do not create a namespace for a regular module or component that still belongs to this project. Cite across namespaces as `§alias/<ID>` and run `grund check` from the workspace root.
 
@@ -52,6 +53,7 @@ Declarations are heading lines `# FS-user-login: …` in markdown. In a code doc
 
 - **Spec first.** For behavior or design changes, write or update the most-specific spec point before code.
 - **Cite as you write.** Place `§<ID>` at the point a claim or behavior is made — on the doc-comment for a whole behavior, inline beside the clause it enforces.
+- **Marker = live citation.** A `§`-prefixed token resolves and is checked wherever it appears — including inside Markdown backticks. To mention an ID without citing it, write `<§><ID>`, omit the marker, or use a fenced code block.
 - **Inline citation style.** Inline notes: ≤ 1 line preferred, hard cap 12 lines; ≤ 160 columns.
 - **Always cite the most-specific point.**
 
@@ -66,3 +68,8 @@ Declarations are heading lines `# FS-user-login: …` in markdown. In a code doc
 - **DEC** should cite */FS or */AR or */REQ or */GOAL or */NGOAL or */DEC.
 - **code** (any file outside a kind home) should cite */FS or */AR or */E2E.
 Unlisted kinds and pairs are fine.
+
+### Clickable citations
+
+On repository web surfaces, link `§<ID>` to the PR branch in PR bodies, the reviewed commit in reviews, an exact commit for permalinks, and the default branch otherwise; fall back to plain when unsure.
+<!-- END GRUND MANAGED BLOCK -->
