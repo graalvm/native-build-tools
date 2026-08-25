@@ -1,7 +1,7 @@
 [versions]
 # Project versions
 nativeBuildTools = "1.1.11-SNAPSHOT"
-metadataRepository = "1.0.11"
+metadataRepository = "1.0.12"
 
 # External dependencies
 spock = "2.4-groovy-4.0"
