@@ -1,0 +1,8 @@
+[
+  {
+    "grund": "§FS-common-libraries.5.1",
+    "tested-versions": ["9.0"],
+    "metadata-version": "empty",
+    "requires": ["com.required:lib"]
+  }
+]

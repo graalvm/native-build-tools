@@ -45,7 +45,6 @@ import org.graalvm.buildtools.gradle.internal.GraalVMReachabilityMetadataService
 import org.graalvm.reachability.DirectoryConfiguration;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -62,9 +61,10 @@ import org.gradle.api.tasks.TaskAction;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Collects reachability metadata for Gradle runtime dependencies. §FS-resources-and-metadata.3.
@@ -136,22 +136,21 @@ public abstract class CollectReachabilityMetadata extends DefaultTask {
             GraalVMReachabilityMetadataService service = getMetadataService().get();
             Set<String> excludedModules = getExcludedModules().getOrElse(Collections.emptySet());
             Map<String, String> forcedVersions = getModuleToConfigVersion().getOrElse(Collections.emptyMap());
-            visit(getRootComponent().get(), service, excludedModules, forcedVersions, new HashSet<>());
+            Set<ResolvedComponentResult> components = new LinkedHashSet<>();
+            visit(getRootComponent().get(), components);
+            Set<DirectoryConfiguration> configurations = service.findConfigurationsForModules(excludedModules, forcedVersions,
+                    components.stream().map(ResolvedComponentResult::getModuleVersion).collect(Collectors.toList()));
+            // Copy one graph-aware selection so required metadata remains under its own coordinates.
+            // §common/FS-common-libraries.5.1 §FS-resources-and-metadata.3.
+            DirectoryConfiguration.copy(configurations, getInto().get().getAsFile().toPath());
         }
     }
 
-    private void visit(ResolvedComponentResult component,
-                       GraalVMReachabilityMetadataService service,
-                       Set<String> excludedModules,
-                       Map<String, String> forcedVersions,
-                       Set<ResolvedComponentResult> visited) throws IOException {
+    private void visit(ResolvedComponentResult component, Set<ResolvedComponentResult> visited) {
         if (visited.add(component)) {
-            ModuleVersionIdentifier moduleVersion = component.getModuleVersion();
-            Set<DirectoryConfiguration> configurations = service.findConfigurationsFor(excludedModules, forcedVersions, moduleVersion);
-            DirectoryConfiguration.copy(configurations, getInto().get().getAsFile().toPath());
             for (DependencyResult dependency : component.getDependencies()) {
                 if (dependency instanceof ResolvedDependencyResult) {
-                    visit(((ResolvedDependencyResult) dependency).getSelected(), service, excludedModules, forcedVersions, visited);
+                    visit(((ResolvedDependencyResult) dependency).getSelected(), visited);
                 }
             }
         }

@@ -48,6 +48,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -183,6 +185,41 @@ class FileSystemRepositoryTest {
         result.isEmpty();
     }
 
+    @Test
+    void graphPresentRequirementUsesItsDirectVersionAndPolicy() {
+        withRepo("repo-requires");
+
+        lookup(q -> {
+            q.useLatestConfigWhenVersionIsUntested();
+            q.forArtifacts("com.requester:app:1.0");
+            q.forArtifact(artifact -> {
+                artifact.gav("com.required:lib:2.0");
+                artifact.forceConfigVersion("forced");
+            });
+        });
+
+        result.hasConfigurations(Map.of(
+                "com.requester:app:1.0", "com.requester/app/requester",
+                "com.required:lib:forced", "com.required/lib/forced"
+        ));
+    }
+
+    @Test
+    void graphAbsentRequirementUsesRequesterVersionAndRetainsItsIdentity() {
+        withRepo("repo-requires");
+
+        lookup(q -> {
+            q.useLatestConfigWhenVersionIsUntested();
+            q.forArtifacts("com.requester:app:1.0", "com.requester:app:1.0");
+        });
+
+        result.hasConfigurations(Map.of(
+                "com.requester:app:1.0", "com.requester/app/requester",
+                "com.required:lib:1.0", "com.required/lib/required-1"
+        ));
+        assertTrue(repository.isCoveredByRepository(q -> q.forArtifacts("com.aggregate:empty:1.0")));
+    }
+
     private void lookup(Consumer<? super Query> builder) {
         result = new Result(repository.findConfigurationsFor(builder), repoPath);
     }
@@ -228,6 +265,15 @@ class FileSystemRepositoryTest {
             for (DirectoryConfiguration config : configs) {
                 assertFalse(config.isOverride());
             }
+        }
+
+        public void hasConfigurations(Map<String, String> expected) {
+            Map<String, String> actual = new HashMap<>();
+            for (DirectoryConfiguration config : configs) {
+                actual.put(config.getGroupId() + ":" + config.getArtifactId() + ":" + config.getVersion(),
+                        repoPath.relativize(config.getDirectory()).toString().replace('\\', '/'));
+            }
+            assertEquals(expected, actual);
         }
     }
 }

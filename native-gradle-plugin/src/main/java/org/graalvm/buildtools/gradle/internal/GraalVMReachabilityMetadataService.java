@@ -69,6 +69,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -235,19 +237,34 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
     }
 
     public Set<DirectoryConfiguration> findConfigurationsFor(Set<String> excludedModules, Map<String, String> forcedVersions, ModuleVersionIdentifier moduleVersion) {
-        Objects.requireNonNull(moduleVersion);
-        String groupAndArtifact = moduleVersion.getGroup() + ":" + moduleVersion.getName();
-        return findConfigurationsFor(query -> {
-            if (!excludedModules.contains(groupAndArtifact)) {
-                query.forArtifact(artifact -> {
-                    artifact.gav(groupAndArtifact + ":" + moduleVersion.getVersion());
-                    if (forcedVersions.containsKey(groupAndArtifact)) {
-                        artifact.forceConfigVersion(forcedVersions.get(groupAndArtifact));
-                    }
-                });
+        return findConfigurationsForModules(excludedModules, forcedVersions, List.of(moduleVersion));
+    }
+
+    /** Selects metadata from the complete eligible resolved graph. §common/FS-common-libraries.5.1 §FS-resources-and-metadata.3. */
+    public Set<DirectoryConfiguration> findConfigurationsForModules(Set<String> excludedModules,
+            Map<String, String> forcedVersions, Collection<? extends ModuleVersionIdentifier> moduleVersions) {
+        Set<DirectoryConfiguration> configurations = findConfigurationsFor(query -> {
+            for (ModuleVersionIdentifier moduleVersion : moduleVersions) {
+                Objects.requireNonNull(moduleVersion);
+                String groupAndArtifact = moduleVersion.getGroup() + ":" + moduleVersion.getName();
+                if (!excludedModules.contains(groupAndArtifact)) {
+                    query.forArtifact(artifact -> {
+                        artifact.gav(groupAndArtifact + ":" + moduleVersion.getVersion());
+                        if (forcedVersions.containsKey(groupAndArtifact)) {
+                            artifact.forceConfigVersion(forcedVersions.get(groupAndArtifact));
+                        }
+                    });
+                }
             }
             query.useLatestConfigWhenVersionIsUntested();
         });
+        Set<DirectoryConfiguration> eligibleConfigurations = new LinkedHashSet<>();
+        for (DirectoryConfiguration configuration : configurations) {
+            if (!excludedModules.contains(configuration.getGroupId() + ":" + configuration.getArtifactId())) {
+                eligibleConfigurations.add(configuration);
+            }
+        }
+        return eligibleConfigurations;
     }
 
     public Optional<Path> getRepositoryDirectory() {

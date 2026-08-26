@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,15 +40,50 @@
  */
 package org.graalvm.reachability.internal.index.modules;
 
-import java.util.Set;
+import java.nio.file.Path;
+import java.util.Objects;
 
-/** Resolves identity-preserving metadata-directory candidates. §FS-common-libraries.5.1. */
-public interface ModuleToConfigDirectoryIndex {
-    /**
-     * Returns the directories containing the candidate configurations for the given module.
-     * @param groupId the group of the module
-     * @param artifactId the artifact of the module
-     * @return the configuration directory
-     */
-    Set<ModuleConfigurationDirectory> findConfigurationDirectories(String groupId, String artifactId);
+/**
+ * A candidate metadata directory together with the module identity that owns it.
+ * §FS-common-libraries.5.1.
+ */
+public final class ModuleConfigurationDirectory {
+    private final String groupId;
+    private final String artifactId;
+    private final Path directory;
+
+    public ModuleConfigurationDirectory(String groupId, String artifactId, Path directory) {
+        this.groupId = groupId;
+        this.artifactId = artifactId;
+        this.directory = directory;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public Path getDirectory() {
+        return directory;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof ModuleConfigurationDirectory)) {
+            return false;
+        }
+        ModuleConfigurationDirectory that = (ModuleConfigurationDirectory) other;
+        return groupId.equals(that.groupId) && artifactId.equals(that.artifactId) && directory.equals(that.directory);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(groupId, artifactId, directory);
+    }
 }

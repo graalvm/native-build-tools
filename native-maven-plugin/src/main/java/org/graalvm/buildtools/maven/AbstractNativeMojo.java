@@ -75,7 +75,12 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -327,28 +332,59 @@ public abstract class AbstractNativeMojo extends AbstractSkippableMojo {
     }
 
     public boolean isArtifactExcludedFromMetadataRepository(Artifact dependency) {
-        if (metadataRepositoryConfiguration == null) {
+        return isModuleExcludedFromMetadataRepository(dependency.getGroupId(), dependency.getArtifactId());
+    }
+
+    private boolean isModuleExcludedFromMetadataRepository(String groupId, String artifactId) {
+        if (metadataRepositoryConfiguration == null || metadataRepositoryConfiguration.getDependencies() == null) {
             return false;
-        } else {
-            return metadataRepositoryConfiguration.isArtifactExcluded(dependency);
         }
+        return metadataRepositoryConfiguration.getDependencies().stream()
+                .filter(MetadataRepositoryConfiguration.DependencyConfiguration::isExcluded)
+                .anyMatch(dependency -> dependency.getGroupId().equals(groupId) && dependency.getArtifactId().equals(artifactId));
     }
 
     protected void maybeAddDependencyMetadata(Artifact dependency, Consumer<File> excludeAction) {
-        if (isMetadataRepositoryEnabled() && metadataRepository != null && !isArtifactExcludedFromMetadataRepository(dependency)) {
+        addDependencyMetadata(Collections.singleton(dependency), excludeAction);
+    }
+
+    /** Resolves all eligible Maven dependencies as one graph-aware repository query.
+     * §common/FS-common-libraries.5.1 §FS-resources-and-metadata.2. */
+    protected void addDependencyMetadata(Collection<Artifact> dependencies, Consumer<File> excludeAction) {
+        if (isMetadataRepositoryEnabled() && metadataRepository != null) {
+            List<Artifact> eligibleDependencies = dependencies.stream()
+                    .filter(dependency -> !isArtifactExcludedFromMetadataRepository(dependency))
+                    .collect(java.util.stream.Collectors.toList());
             Set<DirectoryConfiguration> configurations = metadataRepository.findConfigurationsFor(q -> {
                 q.useLatestConfigWhenVersionIsUntested();
-                q.forArtifact(artifact -> {
-                    artifact.gav(String.join(":",
-                            dependency.getGroupId(),
-                            dependency.getArtifactId(),
-                            dependency.getVersion()));
-                    getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
-                });
+                for (Artifact dependency : eligibleDependencies) {
+                    q.forArtifact(artifact -> {
+                        artifact.gav(String.join(":",
+                                dependency.getGroupId(),
+                                dependency.getArtifactId(),
+                                dependency.getVersion()));
+                        getMetadataVersion(dependency).ifPresent(artifact::forceConfigVersion);
+                    });
+                }
             });
-            metadataRepositoryConfigurations.addAll(configurations);
-            if (excludeAction != null && configurations.stream().anyMatch(DirectoryConfiguration::isOverride)) {
-                excludeAction.accept(dependency.getFile());
+            Set<DirectoryConfiguration> eligibleConfigurations = configurations.stream()
+                    .filter(configuration -> !isModuleExcludedFromMetadataRepository(
+                            configuration.getGroupId(), configuration.getArtifactId()))
+                    .collect(java.util.stream.Collectors.toSet());
+            metadataRepositoryConfigurations.addAll(eligibleConfigurations);
+            if (excludeAction != null) {
+                Map<String, Artifact> dependenciesByCoordinates = new LinkedHashMap<>();
+                for (Artifact dependency : eligibleDependencies) {
+                    dependenciesByCoordinates.put(dependency.getGroupId() + ":" + dependency.getArtifactId(), dependency);
+                }
+                eligibleConfigurations.stream()
+                        .filter(DirectoryConfiguration::isOverride)
+                        .map(configuration -> dependenciesByCoordinates.get(
+                                configuration.getGroupId() + ":" + configuration.getArtifactId()))
+                        .filter(java.util.Objects::nonNull)
+                        .map(Artifact::getFile)
+                        .filter(java.util.Objects::nonNull)
+                        .forEach(excludeAction);
             }
         }
     }

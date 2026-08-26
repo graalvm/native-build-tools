@@ -80,8 +80,9 @@ public class AddReachabilityMetadataMojo extends AbstractNativeMojo {
     @Override
     protected void executeInternal() throws MojoExecutionException, MojoFailureException {
         configureMetadataRepository();
-        project.getArtifacts().stream().filter(this::isInScope)
-                .forEach(dependency -> maybeAddDependencyMetadata(dependency, null));
+        // Submit the complete eligible Maven runtime graph in one query.
+        // §common/FS-common-libraries.5.1 §FS-resources-and-metadata.2.
+        addDependencyMetadata(project.getArtifacts().stream().filter(this::isInScope).collect(java.util.stream.Collectors.toList()), null);
         if (isMetadataRepositoryEnabled() && !metadataRepositoryConfigurations.isEmpty()) {
             Path destination = outputDirectory.toPath();
             try {
