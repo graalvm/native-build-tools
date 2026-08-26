@@ -46,6 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -77,6 +78,47 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         outputContains "Builds the dependencies Native Image layer."
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1027")
+    def "native tasks without layers reuse the configuration cache"() {
+        given:
+        withSample("java-application")
+        buildFile << '''
+            // Keep the compile task in the graph without invoking Native Image. §FS-plugin-model.2.
+            tasks.named("nativeCompile") {
+                enabled = false
+            }
+        '''.stripIndent()
+
+        when:
+        runAndReloadConfigurationCache 'nativeCompile', 'generateResourcesConfigFile'
+        if (hasConfigurationCache) {
+            // TestKit creates its exploded plugin classpath during the first pair of builds.
+            // Run once more after that input stabilizes to verify an actual cache reuse.
+            runAndReloadConfigurationCache 'nativeCompile', 'generateResourcesConfigFile'
+        }
+
+        then:
+        if (hasConfigurationCache) {
+            configurationCacheStoreTasks {
+                upToDate ':generateResourcesConfigFile'
+                skipped ':nativeCompile'
+                doesNotContain ':nativeDependenciesLayer'
+            }
+            tasks {
+                upToDate ':generateResourcesConfigFile'
+                skipped ':nativeCompile'
+                doesNotContain ':nativeDependenciesLayer'
+            }
+            outputContains 'Reusing configuration cache.'
+        } else {
+            tasks {
+                succeeded ':generateResourcesConfigFile'
+                skipped ':nativeCompile'
+                doesNotContain ':nativeDependenciesLayer'
+            }
+        }
+    }
+
     def "rejects an empty named layer before invoking Native Image"() {
         given:
         withSample("layered-java-application")
@@ -91,11 +133,13 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "Layer 'empty' has no contents"
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1033")
     def "rejects duplicate provider layer selections before the producer runs"() {
         given:
         withSample("layered-java-application")
+        buildFile.text = buildFile.text.replace('\r\n', '\n').replace('\n', '\r\n')
         // Replace the sample's happy-path consumer so this test isolates direct/provider duplicates. §FS-plugin-model.2.
-        buildFile.text = buildFile.text.replace('''        main {
+        replaceBuildFile('''        main {
             usesLayer('dependencies')
         }
 ''', '''        main {
@@ -270,7 +314,7 @@ public class Application {
                 implementation("org.slf4j:slf4j-api:2.0.17")
             }
         '''.stripIndent()
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
+        replaceBuildFile('''                modules("java.base")
 ''', '''                packages("org.slf4j")
 ''')
         buildFile << '''
@@ -300,7 +344,7 @@ public class Application {
 
         given:
         withSample("layered-java-application")
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
+        replaceBuildFile('''                modules("java.base")
 ''', '''                all = true
 ''')
         buildFile << '''
@@ -334,7 +378,7 @@ public class Application {
                 implementation("org.apache.commons:commons-lang3:3.17.0")
             }
         '''.stripIndent()
-        buildFile.text = buildFile.text.replace('''                modules("java.base")
+        replaceBuildFile('''                modules("java.base")
 ''', '''                modules("java.base")
                 from(configurations.runtimeClasspath)
 ''')
@@ -584,5 +628,11 @@ public class Application {
                 }
             }
         }
+    }
+
+    private void replaceBuildFile(String expected, String replacement) {
+        String normalized = buildFile.text.replace('\r\n', '\n')
+        assert normalized.contains(expected): "Expected layered application fixture text was not found:\n${expected}"
+        buildFile.text = normalized.replace(expected, replacement)
     }
 }

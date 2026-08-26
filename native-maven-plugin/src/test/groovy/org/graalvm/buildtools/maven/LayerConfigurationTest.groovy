@@ -21,10 +21,24 @@ import org.apache.maven.artifact.handler.DefaultArtifactHandler
 import org.graalvm.buildtools.maven.config.LayerConfiguration
 import org.graalvm.buildtools.maven.config.LayerDependencyConfiguration
 import org.apache.maven.plugin.MojoExecutionException
+import spock.lang.Issue
 import spock.lang.Specification
 
 // Verifies Maven XML mapping for layer selection. §FS-config-model.7.
 class LayerConfigurationTest extends Specification {
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1031")
+    def "layer-create still requires a configured layer"() {
+        given:
+        def mojo = new TestLayerCreateMojo()
+
+        when:
+        mojo.runExecute()
+
+        then:
+        def e = thrown(MojoExecutionException)
+        e.message == "The layer-create goal requires a non-blank layer name"
+    }
+
     def "includeDependencies all maps to the neutral all selector"() {
         given:
         def configuration = new LayerConfiguration()

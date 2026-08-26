@@ -95,6 +95,8 @@ or Native Image invocation, add or update a functional test in the closest scena
 Configuration-cache functional tests validate that Gradle-specific task and provider wiring works
 with Gradle's configuration-cache model. They protect [§REQ-gradle-model](requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility)
 and the architecture boundaries in [§AR-gradle-plugin.2](architecture.md#2-extension-and-option-model) and [§AR-gradle-plugin.3](architecture.md#3-task-graph-architecture).
+They cover both named-layer consumers and ordinary native tasks with no declared layers so the
+layer DSL cannot leak project model objects into otherwise unrelated task state. [§FS-plugin-model.2](functional/plugin-model.md#2-extension-surface).
 
 Run the configuration-cache suite with the task exposed by the Gradle functional-testing
 convention, or let CI run the generated matrix from [§root/AR-repository-ci.1.3](../../docs/spec/architecture/ci.md#13-gradle-plugin-pr-workflow).

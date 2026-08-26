@@ -69,7 +69,9 @@ name to the same selection set. A consuming binary may select each logical name 
 plugin resolves provider-backed names lazily and fails duplicate-name validation before any
 selected producer task executes. This layer model must not introduce avoidable project or task
 container serialization; general configuration-cache compatibility remains governed by the
-plugin's existing configuration-cache baseline.
+plugin's existing configuration-cache baseline. Binaries that select no named layers retain no
+reference to the layer container, its callbacks, or the project model; selected layers reach tasks
+only through normalized names, output-file providers, and file collections.
 
 `fromConfiguration(...)` and `all` include resolved external and project dependencies. Dependency
 selectors also accept Gradle providers, including version-catalog accessors.

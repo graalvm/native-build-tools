@@ -44,6 +44,7 @@ import org.graalvm.buildtools.utils.NativeImageUtils
 import org.graalvm.buildtools.utils.NativeImageLayerRuntime
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 
 import java.util.zip.ZipFile
@@ -54,6 +55,22 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
     // §E2E-functional-tests.3.8.
     private static boolean hasLayerConsumptionBug() {
         !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
+    }
+
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1031")
+    def "layer is optional in the shared Maven plugin descriptor"() {
+        given:
+        withSample("layered-maven-application")
+
+        when:
+        mvn 'help:describe',
+            "-Dplugin=org.graalvm.buildtools:native-maven-plugin:${System.getProperty('native.maven.plugin.version')}",
+            '-Dgoal=layer-create', '-Ddetail'
+
+        then:
+        buildSucceeded
+        def help = result.stdOut.replaceAll(/\u001B\[[;\d]*m/, '').replace('\r\n', '\n')
+        help =~ /(?s)\n\s+layer\s*\n\s+\(no description available\)\s*\n\s*\n\s+mainClass\s*\n/
     }
 
     def "loads the nil artifact handler and reactor model"() {
