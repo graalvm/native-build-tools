@@ -73,6 +73,14 @@ This protects [§FS-resources-and-metadata.2](functional/resources-and-metadata.
 disabled stages, merge behavior, and `native:metadata-copy`. This protects [§FS-tracing-agent](functional/tracing-agent.md#fs-tracing-agent-maven-goals-attach-and-post-process-native-image-tracing-agent-metadata) and
 [§common/FS-common-libraries.3](../../common/docs/functional-spec.md#3-native-image-tracing-agent).
 
+#### 3.6.1 Shared reactor destination
+
+`issues/MetadataCopyReactorFunctionalTest` with `reproducers/issue-650` verifies deterministic
+replacement and merge behavior when sequential reactor modules share one metadata destination. It
+also verifies that replacement removes metadata types absent from the later module and that a failed
+`native-image-configure` invocation leaves the destination unchanged without staging output. This
+protects [§FS-tracing-agent.4.1](functional/tracing-agent.md#41-shared-destination-replacement).
+
 ### 3.7 Maven integration
 
 `SBOMFunctionalTest`, `JavaApplicationWithTestsFunctionalTest`, `issues/JavaAppWithTestsAndParentPomFunctionalTest`

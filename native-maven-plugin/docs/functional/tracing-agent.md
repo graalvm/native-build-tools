@@ -46,6 +46,19 @@ configurations and must remove the filter and its directory when the Maven sessi
 `native:metadata-copy` must copy or merge selected agent stages into the configured output
 directory and honor disabled main/test stages.
 
+### 4.1 Shared destination replacement
+
+When sequential metadata-copy invocations share an output directory, `merge=false` must ignore
+existing destination metadata and replace every Native Image metadata entry owned by the goal with
+the current module's selected stages, while `merge=true` must include the existing destination as
+an input and replace it with the combined result. The goal must generate into staging and update the
+configured destination only after `native-image-configure` succeeds. If post-processing fails, the
+configured destination must remain unchanged and the staging output must be removed. This preserves
+the replacement and merge modes in
+[§root/FS-tracing-agent.4](../../../docs/spec/functional/tracing-agent.md#4-merge-and-copy) and the
+existing Maven parameter meanings required by
+[§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).
+
 ## 5. Agent example
 
 Agent collection is enabled through `<agent>` configuration or `-Dagent=true`; post-processing is
