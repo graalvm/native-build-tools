@@ -91,7 +91,9 @@ public abstract class SeedMavenRepository extends MavenTask {
         Map<String, String> values = new LinkedHashMap<>(getSeedProperties().get());
         values.put("arguments", String.join("\n", getArguments().get()));
         values.put("offline", getOffline().get().toString());
-        values.put("updateSnapshots", getUpdateSnapshots().get().toString());
+        values.put("javaLauncher.languageVersion", getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+        values.put("javaLauncher.runtimeVersion", getJavaLauncher().get().getMetadata().getJavaRuntimeVersion());
+        values.put("javaLauncher.vendor", getJavaLauncher().get().getMetadata().getVendor());
         Map<String, Path> files = new LinkedHashMap<>();
         files.put("projectDirectory", getProjectDirectory().getAsFile().get().toPath());
         files.put("settingsFile", getSettingsFile().getAsFile().get().toPath());

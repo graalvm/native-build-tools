@@ -53,7 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Protects the unit-test class-directory and assembly descriptor boundaries. §AR-maven-plugin.6
+ * Protects descriptor assembly boundaries and its embedded Maven launcher. §AR-maven-plugin.6, §E2E-functional-tests.4
  */
 class MavenPluginConventionTest {
     @TempDir
@@ -88,6 +88,15 @@ class MavenPluginConventionTest {
         assertFalse(test.getOutput().contains(":plugin:generatePluginDescriptor SKIPPED"));
     }
 
+    @Test
+    void descriptorGenerationUsesTheEmbeddedMavenJava17Launcher() throws IOException {
+        writeFixture(projectDirectory);
+
+        BuildResult result = runner("printEmbeddedMavenLauncher").build();
+
+        assertTrue(result.getOutput().contains("EMBEDDED_MAVEN_JAVA=17"));
+    }
+
     private GradleRunner runner(String... arguments) {
         return GradleRunner.create()
                 .withProjectDir(projectDirectory.toFile())
@@ -115,6 +124,14 @@ class MavenPluginConventionTest {
                         create<MavenPublication>("mavenPlugin") {
                             from(components["java"])
                         }
+                    }
+                }
+
+                tasks.register("printEmbeddedMavenLauncher") {
+                    doLast {
+                        val descriptor = tasks.named("generatePluginDescriptor").get()
+                                as org.graalvm.build.maven.GeneratePluginDescriptor
+                        println("EMBEDDED_MAVEN_JAVA=" + descriptor.javaLauncher.get().metadata.languageVersion)
                     }
                 }
                 """);
