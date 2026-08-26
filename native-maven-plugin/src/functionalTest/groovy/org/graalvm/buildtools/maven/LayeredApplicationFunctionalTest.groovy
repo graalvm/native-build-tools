@@ -44,6 +44,7 @@ import org.graalvm.buildtools.utils.NativeImageUtils
 import org.graalvm.buildtools.utils.NativeImageLayerRuntime
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 
 import java.util.zip.ZipFile
@@ -56,6 +57,7 @@ class LayeredApplicationFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         !NativeImageUtils.isGraalVMVersionAtLeast(GraalVMSupport.getGraalVMHomeVersionString(), 25, 1)
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1031")
     def "layer is optional in the shared Maven plugin descriptor"() {
         given:
         withSample("layered-maven-application")

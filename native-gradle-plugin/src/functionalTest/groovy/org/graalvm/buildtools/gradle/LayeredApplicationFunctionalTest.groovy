@@ -46,6 +46,7 @@ import org.graalvm.buildtools.gradle.fixtures.GraalVMSupport
 import org.graalvm.buildtools.utils.NativeImageUtils
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Requires
 import spock.util.concurrent.PollingConditions
 
@@ -77,6 +78,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         outputContains "Builds the dependencies Native Image layer."
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1027")
     def "native tasks without layers reuse the configuration cache"() {
         given:
         withSample("java-application")
@@ -131,6 +133,7 @@ class LayeredApplicationFunctionalTest extends AbstractFunctionalTest {
         errorOutputContains "Layer 'empty' has no contents"
     }
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1033")
     def "rejects duplicate provider layer selections before the producer runs"() {
         given:
         withSample("layered-java-application")
