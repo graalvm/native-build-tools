@@ -183,6 +183,18 @@ Formatting changes are part of the generated issue fix and must be reviewed with
 diff. A branch must not be published when either grounding command still reports unresolved
 references or pending rewrites.
 
+### 4.3 Generated issue-fix execution targets
+
+The repository-local GitHub issue-fix workflow must expose its large-model and small-model agent
+assignments as complete Rhei execution-target inputs. The defaults may select repository-preferred
+agents, providers, models, and reasoning modes, but agent states must consume the rendered inputs
+rather than repeat those selectors. Maintainers must therefore be able to replace either complete
+target without editing the state machine.
+
+An agent profile's autonomous approval and sandbox posture is independent from its reasoning-effort
+modes. When the workflow configures an agent to run without approval prompts or sandbox restrictions,
+selecting `high` or `xhigh` must change reasoning effort without weakening that autonomous posture.
+
 ## 5. Release and publication
 
 Release infrastructure publishes Native Build Tools artifacts and documentation while keeping

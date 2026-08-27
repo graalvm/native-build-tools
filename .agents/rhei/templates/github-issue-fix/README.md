@@ -16,6 +16,8 @@ operational setting remains overridable.
 | Name | Type | Default | Description |
 |---|---|---|---|
 | `issue` | string | required | Native Build Tools issue number or URL. |
+| `large_model` | execution target | `codex[high]:openai:gpt-5.6-sol` | Complex analysis, implementation, validation, and aggregation target. |
+| `small_model` | execution target | `codex[high]:openai:gpt-5.6-luna` | Focused review and procedural target. |
 | `repo` | string | `graalvm/native-build-tools` | GitHub repository containing the issue. |
 | `repo_checkout` | path | `.` | Checkout used to create the issue worktree. |
 | `work_subdir` | string | `.` | Working directory inside the issue worktree. |
@@ -30,11 +32,17 @@ operational setting remains overridable.
 | `pr_head_owner` | string | `graalvm` | GitHub owner used for the PR head. |
 | `pr_labels` | array<string> | `rhei` | Existing labels to apply to the PR. |
 
-The implementation and aggregate-review states use the strongest configured
-Codex target, focused reviews use the review target, and procedural publication
-states use the lighter operations target. The exact target values live in
-[`states.yaml`](states.yaml); Codex execution settings live in
-[`settings.json`](settings.json).
+The large-model states perform issue analysis, proposal generation,
+implementation, validation, review aggregation, and review repairs. The
+small-model states perform focused reviews, proposal and PR publication,
+handoffs, and blocked-publication recording. Both inputs are complete Rhei
+execution targets, so their agent, reasoning mode, provider, and model are
+replaceable without editing [`states.yaml`](states.yaml).
+
+The bundled Codex and Claude Code profiles always use their autonomous
+approval-bypass modes. Their `high` and `xhigh` modes select only reasoning
+effort. Codex is the default; using Claude Code requires a compatible local
+`claude` executable.
 
 ## State paths
 
@@ -110,6 +118,22 @@ rhei instantiate github-issue-fix 1234 \
   --set publication_mode=draft \
   --set review_cycles=4 \
   --set pr_head_owner=my-fork \
+  --execute
+```
+
+Increase the small model's reasoning effort while keeping Codex and Luna:
+
+```sh
+rhei instantiate github-issue-fix 1234 \
+  --set small_model='codex[xhigh]:openai:gpt-5.6-luna' \
+  --execute
+```
+
+Replace the small model with a compatible Claude model:
+
+```sh
+rhei instantiate github-issue-fix 1234 \
+  --set small_model='claude-code[high]:anthropic:<model>' \
   --execute
 ```
 

@@ -92,6 +92,9 @@
 # In no-pr mode proposal generation stays local and flows through human-review;
 # no comments, labels, pushes, or PR writes occur. github-handoff is local-only
 # in all modes.
+#
+# Agent states consume the configured large-model or small-model execution
+# target instead of repeating agent/model policy. §FS-build-infrastructure.4.3
 
 name: github-issue-fix
 version: 0.1.0
@@ -100,7 +103,7 @@ states:
   issue-intake:
     description: Prepare the issue worktree, fetch the issue, discover repo rules, analyze issue adequacy and spec fit, and write one routed follow-up task.
     initial: true
-    target: "codex[yolo]:openai:gpt-5.6-sol"
+    target: "{{large_model}}"
     instructions: |
       Intake GitHub issue `{{issue}}` in `{{repo}}` for Task {task_id}: {task_title}.
 
@@ -272,7 +275,7 @@ states:
 
   propose-fix:
     description: Generate a bounded, content-addressed implementation proposal without editing the target worktree.
-    target: "codex[yolo]:openai:gpt-5.6-sol"
+    target: "{{large_model}}"
     visits: {{proposal_attempts}}
     inputs:
       - name: issue-snapshot
@@ -330,7 +333,7 @@ states:
 
   publish-proposal:
     description: Idempotently publish the generated proposal and apply the pre-existing approval label.
-    target: "codex[yolo]:openai:gpt-5.6-luna"
+    target: "{{small_model}}"
     inputs:
       - name: proposal
         path: runtime/github-issue-fix/{task_id}/proposal.md
@@ -445,7 +448,7 @@ states:
 
   github-handoff:
     description: Record a local handoff when implementation should not proceed.
-    target: "codex[yolo]:openai:gpt-5.6-luna"
+    target: "{{small_model}}"
     inputs:
       - name: issue-snapshot
         path: runtime/github-issue-fix/issue-intake/issue.md
@@ -469,7 +472,7 @@ states:
       Run `$RHEI_ROOT/bin/github-proposal resolve-model` for state
       `github-handoff`, invocation directory
       `$RHEI_ROOT/runtime/accounting/invocations`,
-      fallback target `codex[yolo]:openai:gpt-5.6-luna`, and output
+      fallback target `{{small_model}}`, and output
       `$RHEI_ROOT/{output.handoff-provenance.path}`. This uses completed invocation
       evidence when available, otherwise the rendered configured target, and
       finally `not reported`; never self-report or guess a model.
@@ -495,7 +498,7 @@ states:
 
   implement-fix:
     description: Implement the issue fix in the isolated worktree.
-    target: "codex[yolo]:openai:gpt-5.6-sol"
+    target: "{{large_model}}"
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -646,7 +649,7 @@ states:
 
   validate-fix:
     description: Run grund and repository validation for the issue fix.
-    target: "codex[yolo]:openai:gpt-5.6-sol"
+    target: "{{large_model}}"
     visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
@@ -760,7 +763,7 @@ states:
 
   requirements-review:
     description: Review whether the implementation satisfies the GitHub issue requirements.
-    target: "codex[yolo]:openai:gpt-5.6-terra"
+    target: "{{small_model}}"
     visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
@@ -802,7 +805,7 @@ states:
 
   spec-review:
     description: Review goals, non-goals, grund citations, and spec compatibility.
-    target: "codex[yolo]:openai:gpt-5.6-terra"
+    target: "{{small_model}}"
     visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
@@ -866,7 +869,7 @@ states:
 
   implementation-review:
     description: Review code quality, scope, maintainability, and edge cases.
-    target: "codex[yolo]:openai:gpt-5.6-terra"
+    target: "{{small_model}}"
     visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
@@ -915,7 +918,7 @@ states:
 
   validation-review:
     description: Review validation coverage, command choice, failures, and CI risk.
-    target: "codex[yolo]:openai:gpt-5.6-terra"
+    target: "{{small_model}}"
     visits: {{review_cycles}}
     inputs:
       - name: worktree-ref
@@ -969,7 +972,7 @@ states:
 
   aggregate-review:
     description: Combine focused reviews into one PR-readiness decision for this cycle.
-    target: "codex[yolo]:openai:gpt-5.6-sol"
+    target: "{{large_model}}"
     visits: {{review_cycles}}
     inputs:
       - name: review-brief
@@ -1081,7 +1084,7 @@ states:
 
   address-review:
     description: Address blocking findings from the latest focused review cycle.
-    target: "codex[yolo]:openai:gpt-5.6-sol"
+    target: "{{large_model}}"
     visits: {{review_cycles - 1}}
     inputs:
       - name: worktree-ref
@@ -1111,7 +1114,7 @@ states:
 
   publish-pr:
     description: Push the reviewed branch and open or update the issue PR.
-    target: "codex[yolo]:openai:gpt-5.6-luna"
+    target: "{{small_model}}"
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml
@@ -1255,7 +1258,7 @@ states:
 
   record-blocked-publication:
     description: Record that review blockers prevented safe PR publication.
-    target: "codex[yolo]:openai:gpt-5.6-luna"
+    target: "{{small_model}}"
     inputs:
       - name: worktree-ref
         path: runtime/github-issue-fix/issue-intake/worktree.yaml

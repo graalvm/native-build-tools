@@ -1,5 +1,5 @@
 name: github-issue-fix
-version: 0.3.1
+version: 0.4.0
 description: Fix one Native Build Tools GitHub issue through approval, implementation, validation, focused review, and configurable PR publication.
 
 inputs:
@@ -8,6 +8,20 @@ inputs:
     type: string
     required: true
     positional: 1
+
+  # Agent states consume these complete selectors instead of hard-coding an
+  # agent, provider, model, or reasoning mode. §FS-build-infrastructure.4.3
+  - name: large_model
+    description: Full execution target for complex analysis, implementation, validation, and aggregation.
+    type: string
+    format: execution-target
+    default: codex[high]:openai:gpt-5.6-sol
+
+  - name: small_model
+    description: Full execution target for focused reviews and procedural work.
+    type: string
+    format: execution-target
+    default: codex[high]:openai:gpt-5.6-luna
 
   - name: repo
     description: GitHub repository containing the issue, in owner/name form.

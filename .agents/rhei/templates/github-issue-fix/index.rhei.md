@@ -23,6 +23,8 @@ a local handoff.
 |---|---|
 | Repository | `{{repo}}` |
 | Issue | `{{issue}}` |
+| Large model | `{{large_model}}` |
+| Small model | `{{small_model}}` |
 | Source checkout | `{{repo_checkout}}` |
 | Work subdirectory | `{{work_subdir}}` |
 | Worktree root | `{{worktree_root}}` |
