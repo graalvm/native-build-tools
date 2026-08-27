@@ -50,6 +50,8 @@ public abstract class NativeImageFlags {
     public static final String LAYER_USE = "-H:LayerUse";
     public static final String NO_FALLBACK = "--no-fallback";
     public static final String PGO_INSTRUMENT = "--pgo-instrument";
+    // Dependency Preserve selection is rendered once in common for both adapters. §FS-common-libraries.1.
+    public static final String PRESERVE = "-H:Preserve";
     public static final String QUICK_BUILD = "-Ob";
     public static final String SHARED = "--shared";
     public static final String UNLOCK_EXPERIMENTAL_VMOPTIONS = "-H:+UnlockExperimentalVMOptions";

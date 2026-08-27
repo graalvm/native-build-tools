@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.gradle.dsl;
 
-package org.graalvm.buildtools.maven;
+import org.gradle.api.tasks.Input;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
+import java.io.Serializable;
 
 /**
- * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
- * §FS-goal-surface.1.
+ * Gradle dependency selector used by binary Preserve configuration. §FS-plugin-model.2.
  */
-@Deprecated
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
-        requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    // The deprecated application build alias retains the same Preserve surface. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
+public final class PreserveDependency implements Serializable {
+    private final String notation;
+    private final boolean transitive;
 
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
+    public PreserveDependency(String notation, boolean transitive) {
+        if (notation == null || notation.isBlank()) {
+            throw new IllegalArgumentException("Preserve dependency notation must not be blank");
+        }
+        this.notation = notation;
+        this.transitive = transitive;
     }
 
-    @Override
-    protected void executeInternal() throws MojoExecutionException {
-        logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.executeInternal();
+    @Input
+    public String getNotation() {
+        return notation;
     }
 
+    @Input
+    public boolean isTransitive() {
+        return transitive;
+    }
 }

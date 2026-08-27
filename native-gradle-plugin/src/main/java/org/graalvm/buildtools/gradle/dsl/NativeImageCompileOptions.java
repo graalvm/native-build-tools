@@ -252,6 +252,17 @@ public interface NativeImageCompileOptions {
     DomainObjectSet<LayerOptions> getLayers();
 
     /**
+     * Optional dependency-only Preserve selection for this binary. §FS-plugin-model.2.
+     *
+     * @return configured Preserve dependency selection
+     */
+    @Nested
+    @Optional
+    Property<PreserveConfiguration> getPreserve();
+
+    void preserve(Action<? super PreserveConfiguration> spec);
+
+    /**
      * Internal normalized layer-create model used by dedicated layer tasks and the legacy adapter.
      * §FS-plugin-model.2.
      *

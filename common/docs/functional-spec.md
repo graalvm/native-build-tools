@@ -32,16 +32,18 @@ regardless of its vendor label and retaining compatibility behavior when that re
 identified; and centralize Native Image configuration file names and metadata directory names used
 by plugins and tests.
 
-Layer creation uses an immutable, build-tool-neutral artifact selection containing an `all`
-selection, ordered module names, ordered package names, and ordered resolved paths. The shared
-renderer owns the complete `-H:LayerCreate` grammar: `all` renders as an unqualified layer-create
-argument whose contents come from the plugin-supplied classpath, while narrower selections render
-`module=`, `package=`, and `path=` selectors. It rejects blank names and selector values, rejects
-names outside `[A-Za-z0-9._-]+`, and preserves selector order. `all` may be combined with module or
-package selectors; the plugin-supplied classpath still represents the complete dependency graph.
-Native Image version detection recognizes vendor suffixes when applying layer-consumption gates.
-Gradle and Maven must
-resolve their dependency models to paths before calling it.
+Native Image classpath selection uses an immutable, build-tool-neutral artifact value containing
+an `all` selection, ordered module names, ordered package names, and ordered resolved paths. The
+shared layer renderer owns the complete `-H:LayerCreate` grammar: `all` renders as an unqualified
+layer-create argument whose contents come from the plugin-supplied classpath, while narrower
+selections render `module=`, `package=`, and `path=` selectors. The shared Preserve renderer owns
+the equivalent `-H:Preserve` selector grammar and rejects an empty selection. Both renderers
+preserve deterministic module, package, then path order and platform path spelling. The selection
+rejects blank selector values; layer rendering additionally rejects blank names and names outside
+`[A-Za-z0-9._-]+`. `all` may be combined with narrower selectors. Native Image version detection
+recognizes vendor suffixes when applying layer-consumption gates. Gradle and Maven must resolve
+their dependency models to paths before calling either renderer. This shared Preserve behavior
+implements [§root/FS-native-builds.7](../../docs/spec/functional/native-image-builds.md#7-dependency-preservation).
 [§REQ-no-buildtool-apis](requirements.md#req-no-buildtool-apis-common-runtime-libraries-do-not-depend-on-gradle-or-maven-apis).
 
 ## 2. Resource configuration

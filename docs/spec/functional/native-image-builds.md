@@ -89,3 +89,25 @@ permitted but unsupported and must warn that it proceeds at the user's own risk;
 alone does not warn. Native Image layers remain experimental upstream
 ([§DEC-layer-model.4](../decisions/layer-model.md#4-graalvm-release-support)).
 [§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven).
+
+## 7. Dependency preservation
+
+Both plugins must let their approved native-image scopes preserve selected Gradle or Maven
+dependencies by resolving build-tool dependency coordinates, optionally with their transitive
+closure, to concrete classpath paths and rendering one `-H:Preserve=path=...` argument through
+common utilities. The selection is opt-in, preserves transitive dependencies by default, and must
+fail before Native Image starts when coordinates are blank, unresolved, ambiguous, empty, or have
+no usable output. The generated Preserve argument precedes user build arguments so explicit
+pass-through arguments retain their normal precedence.
+
+The first-class build-tool surface is limited to dependency selection because coordinate-to-path
+resolution adds behavior unavailable through static arguments. Users must continue to pass
+`all`, `module=`, `package=`, and explicit `path=` Preserve selectors through normal build arguments,
+protecting [§NGOAL-no-flag-mirroring](../non-goals.md#ngoal-no-flag-mirroring-the-plugins-do-not-add-build-tool-flags-that-only-forward-to-native-image-flags).
+Gradle exposes the selection on every binary option object; Maven exposes it only on application
+compile goals (`compile`, `compile-no-fork`, and the deprecated `build` alias), not native-test or
+layer-create goals. Preserve is available with GraalVM 25 and later and does not require the
+experimental-option unlock sequence. Specific dependency selectors are preferred because
+preservation can increase analysis work and image size.
+[§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven),
+[§REQ-backwards-compatibility.2](../requirements.md#2-configuration-compatibility).

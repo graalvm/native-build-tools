@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-package org.graalvm.buildtools.maven;
-
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
+package org.graalvm.buildtools.maven.config;
 
 /**
- * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
- * §FS-goal-surface.1.
+ * Maven coordinate selector for application-image Preserve configuration. §FS-config-model.8.
  */
-@Deprecated
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
-        requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    // The deprecated application build alias retains the same Preserve surface. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
+public class PreserveDependencyConfiguration {
+    private String artifact;
+    private boolean transitive = true;
 
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
+    public String getArtifact() {
+        return artifact;
     }
 
-    @Override
-    protected void executeInternal() throws MojoExecutionException {
-        logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.executeInternal();
+    public void setArtifact(String artifact) {
+        this.artifact = artifact;
     }
 
+    public boolean isTransitive() {
+        return transitive;
+    }
+
+    public void setTransitive(boolean transitive) {
+        this.transitive = transitive;
+    }
 }

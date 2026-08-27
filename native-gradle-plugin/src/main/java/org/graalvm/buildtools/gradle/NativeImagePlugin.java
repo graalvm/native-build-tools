@@ -581,6 +581,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                 project.getObjects(),
                 project.getProviders(),
                 project.getExtensions().findByType(JavaToolchainService.class),
+                project,
                 layerRegistry,
                 "lib" + layer.getName()
             );
@@ -933,6 +934,7 @@ public class NativeImagePlugin implements Plugin<Project> {
                     project.getObjects(),
                     project.getProviders(),
                     project.getExtensions().findByType(JavaToolchainService.class),
+                    project,
                     layerRegistry,
                     project.getName())
             );

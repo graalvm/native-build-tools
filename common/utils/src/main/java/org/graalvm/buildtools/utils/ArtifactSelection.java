@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Immutable build-tool-neutral selection of artifacts for a Native Image layer.
+ * Immutable build-tool-neutral selection of Native Image classpath artifacts.
  * §FS-common-libraries.1.
  */
 public final class ArtifactSelection {
@@ -60,7 +60,7 @@ public final class ArtifactSelection {
         this.packages = validatedStrings("package", packages);
         this.paths = List.copyOf(Objects.requireNonNull(paths, "paths"));
         if (this.paths.stream().anyMatch(Objects::isNull)) {
-            throw new IllegalArgumentException("Layer paths must not contain null values");
+            throw new IllegalArgumentException("Artifact paths must not contain null values");
         }
     }
 
@@ -71,7 +71,7 @@ public final class ArtifactSelection {
     private static List<String> validatedStrings(String kind, List<String> values) {
         List<String> copy = List.copyOf(Objects.requireNonNull(values, kind + "s"));
         if (copy.stream().anyMatch(value -> value == null || value.isBlank())) {
-            throw new IllegalArgumentException("Layer " + kind + " selectors must not be blank");
+            throw new IllegalArgumentException("Artifact " + kind + " selectors must not be blank");
         }
         return copy;
     }

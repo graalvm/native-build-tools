@@ -56,12 +56,16 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.graalvm.buildtools.maven.config.ExcludeConfigConfiguration;
+import org.graalvm.buildtools.maven.config.PreserveConfiguration;
+import org.graalvm.buildtools.maven.config.PreserveDependencyConfiguration;
 import org.graalvm.buildtools.maven.config.UseLayerConfiguration;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
+import org.graalvm.buildtools.utils.ArtifactSelection;
 import org.graalvm.buildtools.utils.NativeImageConfigurationUtils;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.graalvm.buildtools.utils.NativeImageLayerRuntime;
+import org.graalvm.buildtools.utils.NativeImagePreserveArguments;
 import org.graalvm.buildtools.utils.SchemaValidationUtils;
 import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.reachability.internal.FileSystemRepository;
@@ -301,9 +305,16 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
         }
 
         List<String> layerUseArgs = resolveLayerUseArguments();
+        String preserveArgument = resolvePreserveArgument();
         if (!layerUseArgs.isEmpty()) {
             cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
+        }
+        if (!layerUseArgs.isEmpty()) {
             cliArgs.addAll(layerUseArgs);
+        }
+        if (preserveArgument != null) {
+            // Maven dependency coordinates become one path-only Preserve argument before user build args. §FS-config-model.8.
+            cliArgs.add(preserveArgument);
         }
 
         if (buildArgs != null && !buildArgs.isEmpty()) {
@@ -542,6 +553,61 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
             .toList();
     }
 
+    protected PreserveConfiguration preserveConfiguration() {
+        return null;
+    }
+
+    private String resolvePreserveArgument() throws MojoExecutionException {
+        PreserveConfiguration preserve = preserveConfiguration();
+        if (preserve == null) {
+            return null;
+        }
+        List<PreserveDependencyConfiguration> dependencies = preserve.getDependencies();
+        if (dependencies == null || dependencies.isEmpty()) {
+            throw new MojoExecutionException(
+                "Preserve has no dependencies; configure at least one dependency coordinate");
+        }
+
+        Set<Path> paths = new LinkedHashSet<>();
+        for (PreserveDependencyConfiguration dependency : dependencies) {
+            String selector = dependency == null ? null : dependency.getArtifact();
+            if (selector == null || selector.isBlank()) {
+                throw new MojoExecutionException("Preserve dependency coordinates must not be blank");
+            }
+            String[] coordinate = MavenDependencySelector.parse(selector, "Preserve dependency");
+            List<Artifact> eligible = project.getArtifacts().stream()
+                .filter(artifact -> getDependencyScopes().contains(artifact.getScope()))
+                .filter(artifact -> !"nil".equals(artifact.getType()))
+                .toList();
+            List<Artifact> roots = eligible.stream()
+                .filter(artifact -> MavenDependencySelector.matchesExactly(artifact, coordinate))
+                .toList();
+            if (roots.isEmpty()) {
+                throw new MojoExecutionException(
+                    "Preserve dependency '" + selector + "' was not found in the resolved project dependencies");
+            }
+            if (roots.size() > 1) {
+                throw new MojoExecutionException("Preserve dependency '" + selector + "' is ambiguous: " + roots);
+            }
+            for (Artifact artifact : eligible) {
+                if (!MavenDependencySelector.matches(artifact, coordinate, dependency.isTransitive())) {
+                    continue;
+                }
+                Path path = processSupportedArtifacts(artifact);
+                if (path == null || !Files.exists(path)) {
+                    throw new MojoExecutionException(
+                        "Preserve dependency '" + selector + "' selected " + artifact + " without a resolved file");
+                }
+                paths.add(path.toAbsolutePath());
+            }
+        }
+        if (paths.isEmpty()) {
+            throw new MojoExecutionException("Preserve dependency selection resolved no usable paths");
+        }
+        ArtifactSelection selection = new ArtifactSelection(false, List.of(), List.of(), new ArrayList<>(paths));
+        return NativeImagePreserveArguments.renderPreserve(selection);
+    }
+
     /**
      * Directories that contain layer libraries consumed by this image. §FS-native-builds.3.
      */
@@ -654,13 +720,7 @@ public abstract class AbstractNativeImageMojo extends AbstractNativeMojo {
     }
 
     static String[] parseLayerCoordinate(String selector) throws MojoExecutionException {
-        String[] parts = selector.split(":", -1);
-        if (parts.length < 2 || parts.length > 3
-                || Arrays.stream(parts).anyMatch(String::isBlank)) {
-            throw new MojoExecutionException(
-                "Layer dependency must use groupId:artifactId[:version]: " + selector);
-        }
-        return parts;
+        return MavenDependencySelector.parse(selector, "Layer dependency");
     }
 
     private static boolean matchesLayerCoordinate(Artifact artifact, String[] parts) {

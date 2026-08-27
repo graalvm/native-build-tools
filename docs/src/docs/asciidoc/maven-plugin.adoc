@@ -197,6 +197,33 @@ dependencies, add:
     path/to/dir
 </classesDirectory>
 ----
+`<preserve>`::
+   On GraalVM 25 and later, preserves code from selected dependencies even when static analysis
+   cannot see a call path to it. Dependency preservation applies to the application build goals
+   `compile`, `compile-no-fork`, and the deprecated `build` goal:
+[source,xml, role="multi-language-sample"]
+----
+<preserve>
+    <dependencies>
+        <dependency>
+            <artifact>org.example:extension-api:1.0.0</artifact>
+        </dependency>
+        <dependency>
+            <artifact>org.example:extension-runtime:1.0.0</artifact>
+            <transitive>false</transitive>
+        </dependency>
+    </dependencies>
+</preserve>
+----
++
+Transitive dependencies are preserved by default. Set `<transitive>false</transitive>` to preserve
+only the selected artifact. The plugin resolves project dependencies in application compile scopes
+and emits one path-based `-H:Preserve` option. The option requires GraalVM 25 or later and does not
+require experimental-option unlocking. Preserving more code can increase build time and image size.
++
+This configuration does not apply to `test`, `integration-test`, or `layer-create`. Native Image's
+raw `all`, `module`, `package`, and explicit `path` selector forms remain available through
+`<buildArgs>`.
 `<agent>`::
    Configuration of the <<agent-support, native agent>>. See <<agent-support-enabling>>
    and <<agent-support-configuring-options>> for details.

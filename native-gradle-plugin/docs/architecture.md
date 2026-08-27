@@ -34,7 +34,7 @@ fork behavior from the underlying `NativeImageOptions` object.
 
 Named layers are separate domain objects with dedicated producer tasks; binaries consume their
 provider-backed outputs. The compatibility boundary and cross-tool artifact model follow
-[§root/DEC-layer-model](../../docs/spec/decisions/layer-model.md#dec-layer-model-native-image-layers-use-shared-selection-and-build-tool-native-wiring).
+[§root/DEC-layer-model](../../docs/spec/decisions/layer-model.md#dec-layer-model-native-image-artifact-selection-is-shared-while-build-tool-wiring-stays-native).
 
 ## 3. Task graph architecture
 

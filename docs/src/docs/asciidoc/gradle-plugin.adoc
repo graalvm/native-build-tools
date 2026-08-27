@@ -185,6 +185,49 @@ buildArgs.addAll(
 )
 ----
 
+[[preserve-dependencies]]
+=== Preserving dependency code
+
+GraalVM 25 and later can preserve code from selected dependencies even when static analysis cannot
+see a call path to it. Configure dependency coordinates on each binary that needs the code:
+
+[source,groovy,role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.main {
+        preserve {
+            dependencies('org.example:extension-api:1.0.0')
+            dependencies('org.example:extension-runtime:1.0.0') {
+                transitive = false
+            }
+        }
+    }
+}
+----
+
+[source,kotlin,role="multi-language-sample"]
+----
+graalvmNative {
+    binaries.named("main") {
+        preserve {
+            dependencies("org.example:extension-api:1.0.0")
+            dependencies("org.example:extension-runtime:1.0.0") {
+                transitive = false
+            }
+        }
+    }
+}
+----
+
+Dependency preservation includes transitive dependencies by default. Set `transitive = false` to
+preserve only the selected artifact. The DSL accepts ordinary dependency notation and version-
+catalog providers. It is available on main, test, custom executable, and shared-library binaries.
+The plugin resolves the selected artifacts lazily and emits one path-based `-H:Preserve` option.
+
+The Preserve option requires GraalVM 25 or later and does not require experimental-option
+unlocking. Preserving more code can increase build time and image size. Native Image's raw `all`,
+`module`, `package`, and explicit `path` selector forms remain available through `buildArgs`.
+
 [[layered-images]]
 === Layered Native Images
 

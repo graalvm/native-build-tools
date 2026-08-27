@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.utils;
 
-package org.graalvm.buildtools.maven;
+import org.graalvm.buildtools.model.resources.NativeImageFlags;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
- * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
- * §FS-goal-surface.1.
+ * Shared rendering of Native Image Preserve arguments. §FS-common-libraries.1.
  */
-@Deprecated
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
-        requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    // The deprecated application build alias retains the same Preserve surface. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
-
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
+public final class NativeImagePreserveArguments {
+    private NativeImagePreserveArguments() {
     }
 
-    @Override
-    protected void executeInternal() throws MojoExecutionException {
-        logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.executeInternal();
+    public static String renderPreserve(ArtifactSelection selection) {
+        Objects.requireNonNull(selection, "selection");
+        if (selection.isEmpty()) {
+            throw new IllegalArgumentException("Preserve selection must not be empty");
+        }
+        if (selection.isAll() && selection.getModules().isEmpty()
+                && selection.getPackages().isEmpty() && selection.getPaths().isEmpty()) {
+            return NativeImageFlags.PRESERVE + "=all";
+        }
+        List<String> selectors = new ArrayList<>();
+        if (selection.isAll()) {
+            selectors.add("all");
+        }
+        selection.getModules().forEach(module -> selectors.add("module=" + module));
+        selection.getPackages().forEach(packageName -> selectors.add("package=" + packageName));
+        selection.getPaths().forEach(path -> selectors.add("path=" + path));
+        return NativeImageFlags.PRESERVE + "=" + String.join(",", selectors);
     }
-
 }

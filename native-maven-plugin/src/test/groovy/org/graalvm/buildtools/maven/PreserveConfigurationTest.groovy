@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.maven
 
-package org.graalvm.buildtools.maven;
+import org.graalvm.buildtools.maven.config.PreserveConfiguration
+import org.graalvm.buildtools.maven.config.PreserveDependencyConfiguration
+import spock.lang.Specification
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
+// Verifies Maven XML bean semantics and application-goal ownership for Preserve. §FS-config-model.8.
+class PreserveConfigurationTest extends Specification {
+    def "dependency selection is transitive by default and configurable"() {
+        given:
+        def dependency = new PreserveDependencyConfiguration(artifact: "com.acme:extension")
 
-/**
- * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
- * §FS-goal-surface.1.
- */
-@Deprecated
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
-        requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    // The deprecated application build alias retains the same Preserve surface. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
+        expect:
+        dependency.transitive
 
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
+        when:
+        dependency.transitive = false
+
+        then:
+        !dependency.transitive
     }
 
-    @Override
-    protected void executeInternal() throws MojoExecutionException {
-        logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.executeInternal();
+    def "configuration exposes dependencies only"() {
+        expect:
+        PreserveConfiguration.declaredFields.findAll { !it.synthetic }*.name == ["dependencies"]
     }
 
+    def "parameter belongs only to application compile goals"() {
+        expect:
+        NativeCompileNoForkGoalMojo.getDeclaredField("preserve")
+        NativeCompileNoForkGoalMojo.superclass == NativeCompileNoForkMojo
+        NativeCompileMojo.getDeclaredField("preserve")
+        DeprecatedNativeBuildMojo.getDeclaredField("preserve")
+        NativeCompileMojo.superclass == NativeCompileNoForkMojo
+        DeprecatedNativeBuildMojo.superclass == NativeCompileNoForkMojo
+        AbstractNativeImageMojo.declaredMethods*.name.contains("preserveConfiguration")
+        !AbstractNativeImageMojo.declaredMethods*.name.contains("getPreserveConfiguration")
+        !WriteArgsFileMojo.declaredFields*.name.contains("preserve")
+        !NativeTestMojo.declaredFields*.name.contains("preserve")
+        !NativeIntegrationTestMojo.declaredFields*.name.contains("preserve")
+        !LayerCreateMojo.declaredFields*.name.contains("preserve")
+    }
 }

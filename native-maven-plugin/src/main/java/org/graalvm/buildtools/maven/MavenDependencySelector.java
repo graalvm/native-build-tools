@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,38 +38,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.graalvm.buildtools.maven;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
+
+import java.util.Arrays;
 
 /**
- * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
- * §FS-goal-surface.1.
+ * Shared Maven coordinate parsing and dependency-trail matching for layers and Preserve.
+ * §FS-config-model.7. §FS-config-model.8.
  */
-@Deprecated
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
-        requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    // The deprecated application build alias retains the same Preserve surface. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
-
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
+final class MavenDependencySelector {
+    private MavenDependencySelector() {
     }
 
-    @Override
-    protected void executeInternal() throws MojoExecutionException {
-        logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.executeInternal();
+    static String[] parse(String selector, String feature) throws MojoExecutionException {
+        String[] parts = selector == null ? new String[0] : selector.split(":", -1);
+        if (parts.length < 2 || parts.length > 3 || Arrays.stream(parts).anyMatch(String::isBlank)) {
+            throw new MojoExecutionException(
+                feature + " must use groupId:artifactId[:version]: " + selector);
+        }
+        return parts;
     }
 
+    static boolean matchesExactly(Artifact artifact, String[] parts) {
+        return artifact.getGroupId().equals(parts[0])
+            && artifact.getArtifactId().equals(parts[1])
+            && (parts.length == 2 || artifact.getVersion().equals(parts[2]));
+    }
+
+    static boolean matches(Artifact artifact, String[] parts, boolean transitive) {
+        boolean exact = matchesExactly(artifact, parts);
+        if (exact || !transitive || artifact.getDependencyTrail() == null) {
+            return exact;
+        }
+        // Version-qualified roots must match the same resolved trail before their closure is selected. §FS-config-model.8.
+        return artifact.getDependencyTrail().stream().anyMatch(entry -> matchesTrailCoordinate(entry, parts));
+    }
+
+    private static boolean matchesTrailCoordinate(String entry, String[] parts) {
+        String[] trailParts = entry.split(":", -1);
+        return trailParts.length >= 4
+            && trailParts[0].equals(parts[0])
+            && trailParts[1].equals(parts[1])
+            && (parts.length == 2 || trailParts[trailParts.length - 1].equals(parts[2]));
+    }
 }

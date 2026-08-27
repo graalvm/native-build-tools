@@ -29,6 +29,8 @@ Common utility tests cover argument escaping, argument-file conversion, version 
 constants, classpath/JAR resource scanning, resource configuration serialization, and schema
 validation. This protects [§FS-common-libraries.1](functional-spec.md#1-shared-native-image-utilities), [§FS-common-libraries.2](functional-spec.md#2-resource-configuration), and
 [§FS-common-libraries.7](functional-spec.md#7-schema-validation).
+They also verify deterministic `-H:Preserve` rendering for resolved paths, including paths with
+spaces and platform-specific separators. [§FS-common-libraries.1](functional-spec.md#1-shared-native-image-utilities).
 
 ### 2.2 Tracing-agent modes and metadata post-processing
 
