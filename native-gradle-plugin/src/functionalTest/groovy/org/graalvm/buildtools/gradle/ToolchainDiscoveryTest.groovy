@@ -68,6 +68,16 @@ exit /b 0
                     ? WINDOWS_NATIVE_IMAGE_SCRIPT
                     : WORKING_NATIVE_IMAGE_SCRIPT
 
+    @Override
+    protected void withSample(String name, boolean quickBuildMode = true) {
+        super.withSample(name, quickBuildMode)
+        // These tests exercise executable discovery, not Native Image argument-file parsing. Windows
+        // enables argument files by default, while the fake executable intentionally parses direct args.
+        buildFile << '''
+            graalvmNative.useArgFile = false
+        '''.stripIndent()
+    }
+
     /**
      * A fake {@code gu} that always fails (mimicking a registry/dependency error). Cross-platform.
      */
