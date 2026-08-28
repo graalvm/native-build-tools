@@ -42,7 +42,7 @@ exit 0
 set OUTPUT_FILE=
 :parse
 if "%~1"=="--version" (
-  echo native-image 25.0.2 25.0.2 (Java Version 25.0.2+10) (GraalVM Community Edition)
+  echo native-image 25.0.2 25.0.2 ^(Java Version 25.0.2+10^) ^(GraalVM Community Edition^)
   exit /b 0
 )
 if "%~1"=="-o" (
@@ -195,10 +195,26 @@ exit /b 0
             }
         }
         File fakeBin = new File(dest, "bin")
-        assert new File(fakeBin, "java").exists(): "fake JDK must contain java: $dest"
+        String javaExecutable = IS_WINDOWS ? "java.exe" : "java"
+        assert new File(fakeBin, javaExecutable).exists(): "fake JDK must contain java: $dest"
         assert !new File(fakeBin, SharedConstants.NATIVE_IMAGE_EXE).exists():
                 "fake JDK must not contain native-image: $dest"
         dest
+    }
+
+    private static File createJdkWithWorkingNativeImage(File sourceJdk, File dest) throws IOException {
+        createJdkWithoutNativeImage(sourceJdk, dest)
+        setupWorkingNativeImage(new File(dest, "bin"))
+        dest
+    }
+
+    private static String gradlePropertyPath(File path) {
+        path.absolutePath.replace('\\', '/')
+    }
+
+    private static File testGraalVmHome() {
+        String graalvmHome = System.getenv("GRAALVM_HOME")
+        new File(graalvmHome ?: System.getProperty("java.home"))
     }
 
     /**
@@ -221,14 +237,13 @@ exit /b 0
 
         given:
         withSample("java-application")
-        // Pin the explicit launcher's toolchain to the build JDK GraalVM (JAVA_HOME)
-        // via an explicit directory repository so resolution is deterministic and never
-        // auto-provisions a vendor-specific JDK.
-        // Pin toolchain resolution to the local GraalVM (JAVA_HOME) and disable
-        // auto-provisioning so the build is deterministic and offline-friendly.
+        File fakeToolchain = testDirectory.resolve("fake-toolchain").toFile()
+        createJdkWithWorkingNativeImage(testGraalVmHome(), fakeToolchain)
+        final int FAKE_TOOLCHAIN_MAJOR = majorVersion(fakeToolchain)
         file("gradle.properties") << """
+            org.gradle.java.installations.auto-detect=false
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${gradlePropertyPath(fakeToolchain)}
         """.stripIndent()
 
         // Create a fake GRAALVM_HOME with a working native-image
@@ -241,14 +256,14 @@ exit /b 0
         buildFile << """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+                    languageVersion = JavaLanguageVersion.of($FAKE_TOOLCHAIN_MAJOR)
                 }
             }
             graalvmNative.metadataRepository.enabled = false
             graalvmNative.binaries.all {
                 buildArgs.add("-Ob")
                 javaLauncher.set(javaToolchains.launcherFor {
-                    languageVersion.set(JavaLanguageVersion.of(JavaVersion.current().majorVersion))
+                    languageVersion.set(JavaLanguageVersion.of($FAKE_TOOLCHAIN_MAJOR))
                 })
             }
         """.stripIndent()
@@ -267,6 +282,7 @@ exit /b 0
         and:
         // Verify that the explicit javaLauncher was used (not GRAALVM_HOME)
         outputContains("Native Image executable path:")
+        outputContains("fake-toolchain")
         // The path should NOT contain the fake GRAALVM_HOME path
         outputDoesNotContain("fake-graalvm")
     }
@@ -277,14 +293,13 @@ exit /b 0
 
         given:
         withSample("java-application")
-        // Pin the toolchain to the build JDK GraalVM (JAVA_HOME) via an explicit
-        // directory repository so detection is deterministic and never falls back to
-        // the fake GRAALVM_HOME that runWithEnv injects.
-        // Pin toolchain resolution to the local GraalVM (JAVA_HOME) and disable
-        // auto-provisioning so the build is deterministic and offline-friendly.
+        File fakeToolchain = testDirectory.resolve("fake-toolchain").toFile()
+        createJdkWithWorkingNativeImage(testGraalVmHome(), fakeToolchain)
+        final int FAKE_TOOLCHAIN_MAJOR = majorVersion(fakeToolchain)
         file("gradle.properties") << """
+            org.gradle.java.installations.auto-detect=false
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${gradlePropertyPath(fakeToolchain)}
         """.stripIndent()
 
         // Create a fake GRAALVM_HOME that would provide a different native-image
@@ -298,7 +313,7 @@ exit /b 0
             graalvmNative.toolchainDetection = true
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+                    languageVersion = JavaLanguageVersion.of($FAKE_TOOLCHAIN_MAJOR)
                 }
             }
             graalvmNative.metadataRepository.enabled = false
@@ -322,6 +337,7 @@ exit /b 0
         // Verify that the toolchain was used (not the fake GRAALVM_HOME)
         outputContains("Native Image executable path:")
         outputContains("GraalVM Toolchain detection is enabled")
+        outputContains("fake-toolchain")
         // The path should NOT contain the fake GRAALVM_HOME path
         outputDoesNotContain("fake-graalvm")
     }
@@ -532,9 +548,13 @@ exit /b 0
 
         given:
         withSample("java-application")
+        File fakeToolchain = testDirectory.resolve("fake-toolchain").toFile()
+        createJdkWithWorkingNativeImage(testGraalVmHome(), fakeToolchain)
+        final int FAKE_TOOLCHAIN_MAJOR = majorVersion(fakeToolchain)
         file("gradle.properties") << """
+            org.gradle.java.installations.auto-detect=false
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${gradlePropertyPath(fakeToolchain)}
         """.stripIndent()
 
         // Create a fake GRAALVM_HOME with a working native-image
@@ -547,7 +567,7 @@ exit /b 0
         buildFile << """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+                    languageVersion = JavaLanguageVersion.of($FAKE_TOOLCHAIN_MAJOR)
                 }
             }
             graalvmNative.metadataRepository.enabled = false
@@ -572,6 +592,7 @@ exit /b 0
         and:
         // Toolchain detection was used — no explicit launcher set, convention resolved via toolchain
         outputContains("GraalVM Toolchain detection is enabled")
+        outputContains("fake-toolchain")
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/542")
@@ -581,9 +602,13 @@ exit /b 0
 
         given:
         withSample("java-application")
+        File fakeToolchain = testDirectory.resolve("fake-toolchain").toFile()
+        createJdkWithWorkingNativeImage(testGraalVmHome(), fakeToolchain)
+        final int FAKE_TOOLCHAIN_MAJOR = majorVersion(fakeToolchain)
         file("gradle.properties") << """
+            org.gradle.java.installations.auto-detect=false
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${System.getProperty("java.home")}
+            org.gradle.java.installations.paths=${gradlePropertyPath(fakeToolchain)}
         """.stripIndent()
 
         File fakeGraalvm = testDirectory.resolve("fake-graalvm").toFile()
@@ -595,7 +620,7 @@ exit /b 0
         buildFile << """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(JavaVersion.current().majorVersion)
+                    languageVersion = JavaLanguageVersion.of($FAKE_TOOLCHAIN_MAJOR)
                 }
             }
             graalvmNative.metadataRepository.enabled = false
@@ -623,6 +648,10 @@ exit /b 0
         }
         // Toolchain detection is active and convention fallback was used (task-time message, fires on both runs)
         outputContains('GraalVM Toolchain detection is enabled')
+        outputContains('fake-toolchain')
+        tasks {
+            succeeded ':nativeCompile'
+        }
     }
 
     @Issue("https://github.com/graalvm/native-build-tools/issues/542")
@@ -838,7 +867,7 @@ exit /b 0
             // satisfy the toolchain request, so the fake JDK is the sole matching installation.
             org.gradle.java.installations.auto-detect=false
             org.gradle.java.installations.auto-download=false
-            org.gradle.java.installations.paths=${fakeJdk.absolutePath}
+            org.gradle.java.installations.paths=${gradlePropertyPath(fakeJdk)}
         """.stripIndent()
 
         buildFile << """
