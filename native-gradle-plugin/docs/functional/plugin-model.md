@@ -76,6 +76,16 @@ only through normalized names, output-file providers, and file collections.
 `fromConfiguration(...)` and `all` include resolved external and project dependencies. Dependency
 selectors also accept Gradle providers, including version-catalog accessors.
 
+Every binary option object exposes a nested `preserve` block containing dependency selectors only.
+String coordinates and version-catalog providers resolve lazily through detached Gradle
+configurations; transitive resolution is enabled by default and may be disabled per selector. The
+resolved files are task inputs and become path-only shared artifact selections. A configured but
+empty block, blank notation, or failed resolution fails with a Preserve-specific diagnostic before
+Native Image starts. Main, test, custom, and shared-library binaries use the same binary-scoped
+model, while binaries without `preserve` remain unchanged. Raw `all`, module, package, and explicit
+path Preserve forms remain build arguments under
+[§root/FS-native-builds.7](../../../docs/spec/functional/native-image-builds.md#7-dependency-preservation).
+
 The previous binary-scoped `createLayer`, string-based `useLayer`, and
 `externalDependenciesOf(...)` surfaces remain as deprecated compatibility adapters with their
 original naming and external-module-only semantics. Only legacy layer declarations retain the
@@ -122,7 +132,8 @@ application {
 The plugin must also create a `test` binary connected to the default `test` task and `test` source
 set so `nativeTest` can build and run native JUnit tests without a separate binary declaration.
 Test and shared-library binaries use the same layer-consumption model as executable binaries;
-layer selection is explicit on each binary and is not inherited from `binaries.main`.
+layer and Preserve selection are explicit on each binary and are not inherited from
+`binaries.main`.
 
 ## 4. Custom binaries
 

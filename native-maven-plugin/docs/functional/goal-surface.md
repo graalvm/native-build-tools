@@ -24,6 +24,10 @@ mvn -Pnative -DquickBuild -DskipTests package
 The deprecated `native:build` goal may remain as a compatibility alias, but it must warn users and
 point to `native:compile-no-fork`, protecting [§REQ-goal-surface](../requirements.md#req-goal-surface-maven-goal-and-parameter-names-remain-stable-across-compatible-releases).
 
+All three application build entry points and `native:write-args-file` share dependency Preserve
+configuration and invocation behavior from [§FS-config-model.8](configuration-model.md#8-preserve-dependency-selection).
+Native test, integration-test, and layer-create goals do not expose that parameter.
+
 ## 2. Test goal
 
 `native:test` compiles the Maven test classpath into a native test image and executes that image

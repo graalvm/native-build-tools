@@ -44,6 +44,13 @@ Every consuming Maven execution must retain the classpath entries used by produc
 consumers therefore declare the same dependencies; local explicit paths are build-local inputs and
 cannot be represented by a published `nil` artifact alone.
 
+Application compile goals may preserve selected project dependencies. Each configured coordinate
+resolves against the compile/runtime dependency graph, includes its transitive trail by default,
+and contributes one de-duplicated path-only selection. The shared Preserve renderer emits one
+`-H:Preserve` argument before user build arguments without adding an experimental-option unlock
+sequence. Native-test and layer-create goals do not inherit this application compile parameter.
+[§root/FS-native-builds.7](../../../docs/spec/functional/native-image-builds.md#7-dependency-preservation).
+
 ### Layer support matrix
 
 | Selector or consumer | Maven XML support | Executable evidence |

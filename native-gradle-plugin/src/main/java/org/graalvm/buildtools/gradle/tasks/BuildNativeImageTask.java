@@ -307,6 +307,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
     public void exec() {
         NativeImageOptions options = getOptions().get();
         validateLayerConfiguration(options);
+        validatePreserveConfiguration(options);
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
@@ -381,6 +382,23 @@ public abstract class BuildNativeImageTask extends DefaultTask {
                     "Layer '" + create.getLayerName().get() + "' has no contents; configure all, modules, "
                         + "packages, from, fromConfiguration, or dependencies.");
             }
+        }
+    }
+
+    static void validatePreserveConfiguration(NativeImageOptions options) {
+        if (!options.getPreserve().isPresent()) {
+            return;
+        }
+        boolean empty;
+        try {
+            empty = options.getPreserve().get().getFiles().isEmpty();
+        } catch (RuntimeException ex) {
+            // Dependency failures must identify Preserve before Native Image lookup or execution. §FS-native-invocation.3.
+            throw new GradleException("Could not resolve Preserve dependencies: " + ex.getMessage(), ex);
+        }
+        if (empty) {
+            throw new GradleException(
+                "Preserve has no resolved dependencies; configure at least one dependency coordinate.");
         }
     }
 

@@ -305,6 +305,75 @@ class NativeImageCommandLineProviderTest extends AbstractPluginTest {
         args.contains("${NativeImageFlags.LAYER_USE}=${layerFile.absolutePath}".toString())
     }
 
+    // Dependency Preserve paths are shared-rendered before user build arguments. §FS-native-invocation.3.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/978")
+    def "renders one path-only Preserve argument for a configured binary"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def repositoryDirectory = testDirectory.resolve("repository with spaces").toFile()
+        repositoryDirectory.mkdirs()
+        def directJar = new File(repositoryDirectory, "direct-dependency.jar")
+        def transitiveJar = new File(repositoryDirectory, "transitive-dependency.jar")
+        directJar.text = "direct"
+        transitiveJar.text = "transitive"
+        project.repositories.flatDir { repository ->
+            repository.dirs(repositoryDirectory)
+        }
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.preserve {
+            it.dependencies("test:direct:dependency")
+            it.dependencies("test:transitive:dependency")
+        }
+        options.buildArgs.add("--user-option")
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = commandLineArguments(project, options, "main")
+        def preserve = args.find { it.startsWith(NativeImageFlags.PRESERVE + "=") }
+
+        then:
+        !args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
+        preserve.contains("path=${directJar}")
+        preserve.contains("path=${transitiveJar}")
+        args.indexOf(preserve) < args.indexOf("--user-option")
+    }
+
+    def "omits Preserve arguments when the binary does not configure Preserve"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.excludeConfigArgs.set([])
+        options.configurationFileDirectories.setFrom([])
+
+        when:
+        def args = commandLineArguments(project, options, "main")
+
+        then:
+        !args.any { it.startsWith(NativeImageFlags.PRESERVE + "=") }
+        !args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
+    }
+
+    def "rejects a configured empty Preserve selection before execution"() {
+        given:
+        def project = newProject()
+        project.plugins.apply(ApplicationPlugin)
+        project.plugins.apply(NativeImagePlugin)
+        def options = project.extensions.getByType(GraalVMExtension).binaries.getByName("main")
+        options.preserve { }
+
+        when:
+        BuildNativeImageTask.validatePreserveConfiguration(options)
+
+        then:
+        def error = thrown(org.gradle.api.GradleException)
+        error.message.contains("Preserve has no resolved dependencies")
+    }
+
     // Retains the deprecated binary-scoped layer producer and string consumer as a working adapter. §FS-native-invocation.3.
     def "legacy layer adapters wire producer and consumer and render layer arguments"() {
         given:

@@ -102,6 +102,14 @@ Layer-consumption scenarios that exercise `all` selection, explicit paths, nativ
 libraries are skipped on GraalVM 25.0.x because Native Image can fail after `-H:LayerUse` loads a
 valid layer.
 
+### 3.9 Dependency preservation
+
+`PreserveDependencyFunctionalTest` verifies that an application compile goal selects one specific
+transitive library non-transitively, emits one path-based Preserve option, and retains a class
+which an equivalent control image cannot load. This protects [§FS-native-builds.3](functional/native-image-builds.md#3-classpath-and-scopes),
+[§FS-config-model.8](functional/configuration-model.md#8-preserve-dependency-selection), and
+[§FS-goal-surface.1](functional/goal-surface.md#1-build-goals).
+
 When adding behavior that a user can observe through a Maven goal, plugin parameter, generated
 file, lifecycle binding, or Native Image invocation, add or update a functional test in the
 closest scenario family.

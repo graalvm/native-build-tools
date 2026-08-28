@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,27 +38,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package org.graalvm.buildtools.maven
 
-package org.graalvm.buildtools.maven;
+import org.graalvm.buildtools.maven.config.PreserveConfiguration
+import org.graalvm.buildtools.maven.config.PreserveDependencyConfiguration
+import spock.lang.Specification
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.ResolutionScope;
+// Verifies Maven XML bean semantics and compile-no-fork hierarchy ownership for Preserve. §FS-config-model.8.
+class PreserveConfigurationTest extends Specification {
+    def "dependency selection is transitive by default and configurable"() {
+        given:
+        def dependency = new PreserveDependencyConfiguration(artifact: "com.acme:extension")
 
-/**
- * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
- * §FS-goal-surface.1.
- */
-@Deprecated
-@Mojo(name = "build", defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.RUNTIME,
-        requiresDependencyCollection = ResolutionScope.RUNTIME)
-public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    @Override
-    protected void executeInternal() throws MojoExecutionException {
-        logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
-        super.executeInternal();
+        expect:
+        dependency.transitive
+
+        when:
+        dependency.transitive = false
+
+        then:
+        !dependency.transitive
     }
 
+    def "configuration exposes dependencies only"() {
+        expect:
+        PreserveConfiguration.declaredFields.findAll { !it.synthetic }*.name == ["dependencies"]
+    }
+
+    def "parameter belongs to the compile-no-fork hierarchy"() {
+        expect:
+        NativeCompileNoForkMojo.getDeclaredField("preserve")
+        NativeCompileMojo.superclass == NativeCompileNoForkMojo
+        DeprecatedNativeBuildMojo.superclass == NativeCompileNoForkMojo
+        WriteArgsFileMojo.superclass == NativeCompileNoForkMojo
+        AbstractNativeImageMojo.declaredMethods*.name.contains("preserveConfiguration")
+        !AbstractNativeImageMojo.declaredMethods*.name.contains("getPreserveConfiguration")
+        !NativeTestMojo.declaredFields*.name.contains("preserve")
+        !NativeIntegrationTestMojo.declaredFields*.name.contains("preserve")
+        !LayerCreateMojo.declaredFields*.name.contains("preserve")
+    }
 }

@@ -42,10 +42,12 @@
 package org.graalvm.buildtools.gradle.internal;
 
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.dsl.PreserveConfiguration;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.model.resources.NativeImageFlags;
 import org.graalvm.buildtools.utils.ArtifactSelection;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
+import org.graalvm.buildtools.utils.NativeImagePreserveArguments;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -132,11 +134,14 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
         NativeImageOptions options = getOptions().get();
         List<String> cliArgs = new ArrayList<>(20);
         boolean hasLayers = options.getLayerCreate().isPresent() || !options.getLayerFiles().isEmpty();
+        boolean hasPreserve = options.getPreserve().isPresent();
         String layerCreateName = null;
         ConfigurableFileCollection jarsClasspath = null;
         ConfigurableFileCollection layerClasspath = null;
         if (hasLayers) {
             cliArgs.add(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS);
+        }
+        if (hasLayers) {
             if (options.getLayerCreate().isPresent()) {
                 CreateLayerOptions create = options.getLayerCreate().get();
                 layerCreateName = create.getLayerName().get();
@@ -216,6 +221,13 @@ public class NativeImageCommandLineProvider implements CommandLineArgumentProvid
             for (File profile : profiles) {
                 cliArgs.add("--pgo=" + profile);
             }
+        }
+        if (hasPreserve) {
+            PreserveConfiguration preserve = options.getPreserve().get();
+            ArtifactSelection selection = new ArtifactSelection(false, List.of(), List.of(),
+                preserve.getFiles().getFiles().stream().map(File::toPath).toList());
+            // Dependency coordinates become one path-only Preserve argument before user build args. §FS-native-invocation.3.
+            cliArgs.add(NativeImagePreserveArguments.renderPreserve(selection));
         }
         cliArgs.addAll(options.getBuildArgs().get());
 

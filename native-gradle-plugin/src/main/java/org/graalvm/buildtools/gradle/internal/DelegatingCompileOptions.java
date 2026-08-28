@@ -43,6 +43,7 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
+import org.graalvm.buildtools.gradle.dsl.PreserveConfiguration;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
 import org.graalvm.buildtools.gradle.tasks.LayerOptions;
@@ -181,6 +182,17 @@ public class DelegatingCompileOptions implements NativeImageCompileOptions {
     @Override
     public DomainObjectSet<LayerOptions> getLayers() {
         return options.getLayers();
+    }
+
+    @Override
+    public Property<PreserveConfiguration> getPreserve() {
+        // Forward Preserve inputs to every concrete binary task. §FS-native-invocation.3.
+        return options.getPreserve();
+    }
+
+    @Override
+    public void preserve(Action<? super PreserveConfiguration> spec) {
+        options.preserve(spec);
     }
 
     @Override

@@ -9,7 +9,7 @@ outputs.
 `nativeCompile` builds the `main` binary. It consumes the binary classpath, main class or
 shared-library setting, build arguments, configuration directories, generated resources,
 reachability metadata, optional classpath JAR, argument-file setting, layer and PGO options,
-environment variables, system properties, and JVM arguments.
+dependency Preserve selection, environment variables, system properties, and JVM arguments.
 
 `nativeTestCompile` builds the native test binary described by [§root/FS-native-tests](../../../docs/spec/functional/native-tests.md#fs-native-tests-both-plugins-compile-and-execute-junit-tests-as-a-native-image).
 It uses compiled test classes, test resources, the test runtime classpath, JUnit native support,

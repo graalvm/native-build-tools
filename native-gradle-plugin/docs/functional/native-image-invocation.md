@@ -35,6 +35,12 @@ omit the plugin-generated argument when GraalVM 25.1 or later is positively iden
 GraalVM release cannot be identified, the invocation must retain the argument for compatibility.
 Explicit user build arguments remain unchanged.
 
+When a binary configures Preserve dependencies, the command line must append one shared-rendered
+path-only Preserve argument before user build arguments without adding an experimental-option
+unlock sequence. Resolved dependency files remain lazy task inputs. The invocation must contain no
+generated Preserve argument when the block is absent. Empty selections fail before process
+execution. [§root/FS-native-builds.7](../../../docs/spec/functional/native-image-builds.md#7-dependency-preservation).
+
 For a layer created from declared JARs, the command line must use those JARs as its classpath so
 the layer input remains limited to the declaration. A layer created from packages must instead
 retain the binary classpath, which supplies the classes selected by those package names.

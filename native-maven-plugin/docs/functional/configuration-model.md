@@ -72,3 +72,19 @@ before Native Image is invoked. Loading the plugin with `<extensions>true</exten
 resolution, although Maven builds that already preserve the explicit `nil` type may resolve
 without it.
 [§root/REQ-backwards-compatibility.2](../../../docs/spec/requirements.md#2-configuration-compatibility).
+
+## 8. Preserve dependency selection
+
+Application compile configuration accepts `<preserve><dependencies>...</dependencies></preserve>`.
+Each entry selects `groupId:artifactId[:version]` and includes its resolved transitive dependency
+trail by default; `<transitive>false</transitive>` limits it to the matched root. Selection uses the
+resolved Maven project graph, preserves stable first-seen path order, and accepts reactor class
+outputs when a packaged artifact file is not yet available. Blank, malformed, missing, ambiguous,
+empty, and fileless selections fail as normal Maven execution errors before Native Image starts.
+
+The parameter belongs to the `compile-no-fork` mojo hierarchy, so it applies to `compile`,
+`compile-no-fork`, the deprecated `build` alias, and `write-args-file`. It is not exposed by
+`native:test`, `native:integration-test`, or `layer-create`. The first-class XML surface contains
+dependencies only; raw `all`, module, package, and explicit-path Preserve selectors remain `<buildArgs>` under
+[§root/FS-native-builds.7](../../../docs/spec/functional/native-image-builds.md#7-dependency-preservation).
+[§REQ-maven-model](../requirements.md#req-maven-model-the-maven-plugin-preserves-maven-model-compatibility).

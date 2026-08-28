@@ -10,6 +10,8 @@ import org.apache.maven.project.MavenProject
 import org.codehaus.plexus.logging.Logger
 import org.eclipse.aether.resolution.ArtifactRequest
 import org.graalvm.buildtools.maven.config.UseLayerConfiguration
+import org.graalvm.buildtools.maven.config.PreserveConfiguration
+import org.graalvm.buildtools.maven.config.PreserveDependencyConfiguration
 import org.graalvm.buildtools.model.resources.NativeImageFlags
 import org.graalvm.buildtools.utils.NativeImageLayerRuntime
 import spock.lang.Issue
@@ -166,6 +168,170 @@ class AbstractNativeImageMojoTest extends Specification {
         args.count { it == NativeImageFlags.NO_FALLBACK } == 1
     }
 
+    // Maven resolves one dependency closure to a shared path-only Preserve argument. §FS-config-model.8.
+    @Issue("https://github.com/graalvm/native-build-tools/issues/978")
+    def "renders Preserve dependencies before user build arguments"() {
+        given:
+        def directDirectory = testDirectory.resolve("direct dependency").toFile()
+        def transitiveDirectory = testDirectory.resolve("transitive").toFile()
+        directDirectory.mkdirs()
+        transitiveDirectory.mkdirs()
+        def direct = artifact("com.acme", "extension", "1.0", directDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0"])
+        def transitive = artifact("com.acme", "support", "2.0", transitiveDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0", "com.acme:support:jar:2.0"])
+        def mojo = newMojo(["--user-option"])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project.artifacts = [direct, transitive] as Set
+        mojo.preserve = preserve("com.acme:extension")
+
+        when:
+        def args = mojo.getBuildArgs()
+        def preserveArgument = args.find { it.startsWith(NativeImageFlags.PRESERVE + "=") }
+
+        then:
+        !args.contains(NativeImageFlags.UNLOCK_EXPERIMENTAL_VMOPTIONS)
+        preserveArgument.contains("path=${directDirectory.absolutePath}")
+        preserveArgument.contains("path=${transitiveDirectory.absolutePath}")
+        args.indexOf(preserveArgument) < args.indexOf("--user-option")
+    }
+
+    def "supports non-transitive Preserve selection"() {
+        given:
+        def directDirectory = testDirectory.resolve("direct").toFile()
+        def transitiveDirectory = testDirectory.resolve("transitive").toFile()
+        directDirectory.mkdirs()
+        transitiveDirectory.mkdirs()
+        def direct = artifact("com.acme", "extension", "1.0", directDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0"])
+        def transitive = artifact("com.acme", "support", "2.0", transitiveDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0", "com.acme:support:jar:2.0"])
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project.artifacts = [direct, transitive] as Set
+        mojo.preserve = preserve("com.acme:extension", false)
+
+        when:
+        def argument = mojo.getBuildArgs().find { it.startsWith(NativeImageFlags.PRESERVE + "=") }
+
+        then:
+        argument.contains("path=${directDirectory.absolutePath}")
+        !argument.contains("path=${transitiveDirectory.absolutePath}")
+    }
+
+    def "keeps version-qualified Preserve closure order and de-duplicates overlapping selectors"() {
+        given:
+        def directDirectory = testDirectory.resolve("extension-1").toFile()
+        def transitiveDirectory = testDirectory.resolve("support").toFile()
+        def otherVersionDirectory = testDirectory.resolve("extension-2").toFile()
+        [directDirectory, transitiveDirectory, otherVersionDirectory]*.mkdirs()
+        def direct = artifact("com.acme", "extension", "1.0", directDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0"])
+        def transitive = artifact("com.acme", "support", "2.0", transitiveDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0", "com.acme:support:jar:2.0"])
+        def otherVersion = artifact("com.acme", "extension", "2.0", otherVersionDirectory,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:2.0"])
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project.artifacts = [direct, transitive, otherVersion] as Set
+        mojo.preserve = new PreserveConfiguration(dependencies: [
+                new PreserveDependencyConfiguration(artifact: "com.acme:extension:1.0"),
+                new PreserveDependencyConfiguration(artifact: "com.acme:support:2.0", transitive: false)
+        ])
+
+        when:
+        def argument = mojo.getBuildArgs().find { it.startsWith(NativeImageFlags.PRESERVE + "=") }
+
+        then:
+        argument.indexOf("path=${directDirectory.absolutePath}") <
+                argument.indexOf("path=${transitiveDirectory.absolutePath}")
+        argument.count("path=${directDirectory.absolutePath}") == 1
+        argument.count("path=${transitiveDirectory.absolutePath}") == 1
+        !argument.contains("path=${otherVersionDirectory.absolutePath}")
+    }
+
+    def "reports invalid Preserve selection as a Maven execution error"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.preserve = configuration
+
+        when:
+        mojo.getBuildArgs()
+
+        then:
+        def error = thrown(MojoExecutionException)
+        error.message.contains(expected)
+
+        where:
+        configuration                       | expected
+        new PreserveConfiguration()         | "Preserve has no dependencies"
+        preserve(" ")                      | "must not be blank"
+        preserve("malformed")              | "groupId:artifactId[:version]"
+        preserve("com.acme:missing")        | "was not found"
+    }
+
+    def "reports a fileless Preserve root"() {
+        given:
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project.artifacts = [artifact("com.acme", "extension", "1.0", null, null)] as Set
+        mojo.preserve = preserve("com.acme:extension")
+
+        when:
+        mojo.getBuildArgs()
+
+        then:
+        def error = thrown(MojoExecutionException)
+        error.message.contains("without a resolved file")
+    }
+
+    def "reports an ambiguous Preserve root"() {
+        given:
+        def one = testDirectory.resolve("one").toFile()
+        def two = testDirectory.resolve("two").toFile()
+        one.mkdirs()
+        two.mkdirs()
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project.artifacts = [
+                artifact("com.acme", "extension", "1.0", one, null),
+                artifact("com.acme", "extension", "2.0", two, null)
+        ] as Set
+        mojo.preserve = preserve("com.acme:extension")
+
+        when:
+        mojo.getBuildArgs()
+
+        then:
+        def error = thrown(MojoExecutionException)
+        error.message.contains("is ambiguous")
+    }
+
+    def "uses reactor classes for a Preserve dependency without a packaged artifact"() {
+        given:
+        def classesDirectory = testDirectory.resolve("reactor-classes")
+        classesDirectory.toFile().mkdirs()
+        def selected = artifact("com.acme", "extension", "1.0", null,
+                ["org.example:application:jar:1.0", "com.acme:extension:jar:1.0"])
+        def reactorProject = new MavenProject()
+        reactorProject.groupId = "com.acme"
+        reactorProject.artifactId = "extension"
+        reactorProject.version = "1.0"
+        reactorProject.build.outputDirectory = classesDirectory.toString()
+        def mojo = newMojo([])
+        mojo.imageClasspath.add(testDirectory.resolve("application.jar"))
+        mojo.project.artifacts = [selected] as Set
+        mojo.session.allProjects = [reactorProject]
+        mojo.preserve = preserve("com.acme:extension")
+
+        when:
+        def argument = mojo.getBuildArgs().find { it.startsWith(NativeImageFlags.PRESERVE + "=") }
+
+        then:
+        argument.contains("path=${classesDirectory.toAbsolutePath()}")
+    }
+
     void "it allows empty classpath for layer-create builds"() {
         given:
         def mojo = newMojo([layerCreateArg])
@@ -300,13 +466,29 @@ class AbstractNativeImageMojoTest extends Specification {
                 .setSystemProperties(systemProperties)
                 .setInteractiveMode(true)
         mojo.session = new MavenSession(null, null, request, new DefaultMavenExecutionResult())
+        mojo.session.allProjects = []
         mojo
+    }
+
+    private static PreserveConfiguration preserve(String selector, boolean transitive = true) {
+        new PreserveConfiguration(dependencies: [
+                new PreserveDependencyConfiguration(artifact: selector, transitive: transitive)
+        ])
+    }
+
+    private static DefaultArtifact artifact(String group, String name, String version, File file, List<String> trail) {
+        def artifact = new DefaultArtifact(group, name, version, "runtime", "jar", null,
+                new DefaultArtifactHandler("jar"))
+        artifact.file = file
+        artifact.dependencyTrail = trail
+        artifact
     }
 
     private static class TestNativeImageMojo extends AbstractNativeImageMojo {
         boolean fallbackRemoved
         int nativeImageMajorVersion = 25
         Path layerRuntimeArchive
+        PreserveConfiguration preserve
 
         @Override
         protected void executeInternal() {
@@ -314,7 +496,12 @@ class AbstractNativeImageMojoTest extends Specification {
 
         @Override
         protected List<String> getDependencyScopes() {
-            Collections.emptyList()
+            Collections.singletonList(org.apache.maven.artifact.Artifact.SCOPE_RUNTIME)
+        }
+
+        @Override
+        protected PreserveConfiguration preserveConfiguration() {
+            preserve
         }
 
         @Override

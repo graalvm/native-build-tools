@@ -21,6 +21,7 @@ and actionable under [§GOAL-concise-actionable-output](../goals.md#goal-concise
 | Inspect missing metadata | [§gradle/FS-resources-and-metadata](../../../native-gradle-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-gradle-tasks-generate-resources-and-consume-reachability-metadata) | [§maven/FS-resources-and-metadata](../../../native-maven-plugin/docs/functional/resources-and-metadata.md#fs-resources-and-metadata-maven-goals-generate-resources-and-consume-reachability-metadata) | [§FS-resources-and-metadata.3](resources-and-metadata.md#3-missing-metadata-reports) |
 | Collect agent output | [§gradle/FS-tracing-agent](../../../native-gradle-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-gradle-tasks-attach-and-post-process-native-image-tracing-agent-metadata) | [§maven/FS-tracing-agent](../../../native-maven-plugin/docs/functional/tracing-agent.md#fs-tracing-agent-maven-goals-attach-and-post-process-native-image-tracing-agent-metadata) | [§FS-tracing-agent](tracing-agent.md#fs-tracing-agent-both-plugins-attach-the-native-image-tracing-agent-and-post-process-its-output) |
 | Create and consume layers | [§gradle/FS-plugin-model.2](../../../native-gradle-plugin/docs/functional/plugin-model.md#2-extension-surface) | [§maven/FS-goal-surface.6](../../../native-maven-plugin/docs/functional/goal-surface.md#6-layer-creation) | [§FS-native-builds.6](native-image-builds.md#6-layered-images) |
+| Preserve selected dependencies | [§gradle/FS-plugin-model.2](../../../native-gradle-plugin/docs/functional/plugin-model.md#2-extension-surface) | [§maven/FS-config-model.8](../../../native-maven-plugin/docs/functional/configuration-model.md#8-preserve-dependency-selection) | [§FS-native-builds.7](native-image-builds.md#7-dependency-preservation) |
 
 ```mermaid
 sequenceDiagram
@@ -58,6 +59,7 @@ capability impossible or intentionally different:
 - Native Image version-dependent behavior ([§FS-native-builds.4](native-image-builds.md#4-version-and-schema-gates))
 - predictable option precedence ([§FS-option-precedence](option-precedence.md#fs-option-precedence-command-line-input-and-durable-configuration-produce-one-option-state))
 - named layer creation and consumption through build-tool-native dependency wiring ([§FS-native-builds.6](native-image-builds.md#6-layered-images))
+- dependency-coordinate preservation through build-tool-native resolution ([§FS-native-builds.7](native-image-builds.md#7-dependency-preservation))
 
 When a capability is intentionally different between Gradle and Maven, the product-specific specs
 must explain the difference at the point where each plugin adapts this common contract.

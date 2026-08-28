@@ -53,6 +53,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.graalvm.buildtools.maven.config.PreserveConfiguration;
 import org.graalvm.buildtools.maven.sbom.SBOMGenerator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
@@ -73,6 +74,10 @@ import java.util.function.BiFunction;
         requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
 
+    // The compile-no-fork hierarchy shares dependency Preserve selection. §FS-config-model.8.
+    @Parameter
+    private PreserveConfiguration preserve;
+
     @Parameter(property = "skipNativeBuild", defaultValue = "false")
     private boolean skip;
 
@@ -88,6 +93,11 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     public static final String SKIP_BASE_SBOM_PARAM_NAME = "skipBaseSBOM";
 
     private PluginParameterExpressionEvaluator evaluator;
+
+    @Override
+    protected PreserveConfiguration preserveConfiguration() {
+        return preserve;
+    }
 
     @Override
     protected List<String> getDependencyScopes() {

@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle.internal;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageLayer;
 import org.graalvm.buildtools.gradle.dsl.NativeResourcesOptions;
+import org.graalvm.buildtools.gradle.dsl.PreserveConfiguration;
 import org.graalvm.buildtools.gradle.dsl.agent.DeprecatedAgentOptions;
 import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask;
 import org.graalvm.buildtools.gradle.tasks.CreateLayerOptions;
@@ -53,6 +54,7 @@ import org.graalvm.buildtools.utils.SharedConstants;
 import org.graalvm.buildtools.utils.NativeImageLayerArguments;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
@@ -99,6 +101,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     private final transient TaskContainer tasks;
     private final ObjectFactory objects;
     private final ProviderFactory providers;
+    private final transient Project project;
     private final transient NativeImageLayerRegistry layerRegistry;
 
     @Override
@@ -266,6 +269,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
                                   ProviderFactory providers,
                                   JavaToolchainService toolchains,
                                   TaskContainer tasks,
+                                  Project project,
                                   NativeImageLayerRegistry layerRegistry,
                                   String defaultImageName) {
         this.name = name;
@@ -294,6 +298,7 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
         this.tasks = tasks;
         this.objects = objectFactory;
         this.providers = providers;
+        this.project = project;
         this.layerRegistry = layerRegistry;
     }
 
@@ -438,6 +443,17 @@ public abstract class BaseNativeImageOptions implements NativeImageOptions {
     @Override
     public void layers(Action<? super DomainObjectSet<LayerOptions>> spec) {
         spec.execute(layers);
+    }
+
+    @Override
+    public void preserve(Action<? super PreserveConfiguration> spec) {
+        // Preserve is created only when configured so binaries that omit it keep no resolution inputs. §FS-plugin-model.2.
+        PreserveConfiguration preserve = getPreserve().getOrNull();
+        if (preserve == null) {
+            preserve = objects.newInstance(PreserveConfiguration.class, project);
+        }
+        spec.execute(preserve);
+        getPreserve().set(preserve);
     }
 
     @Override
