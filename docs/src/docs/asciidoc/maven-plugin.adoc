@@ -199,8 +199,8 @@ dependencies, add:
 ----
 `<preserve>`::
    On GraalVM 25 and later, preserves code from selected dependencies even when static analysis
-   cannot see a call path to it. Dependency preservation applies to the application build goals
-   `compile`, `compile-no-fork`, and the deprecated `build` goal:
+   cannot see a call path to it. Dependency preservation applies to `compile`, `compile-no-fork`,
+   the deprecated `build` goal, and `write-args-file`:
 [source,xml, role="multi-language-sample"]
 ----
 <preserve>

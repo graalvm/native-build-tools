@@ -77,8 +77,8 @@ protects [§FS-native-tasks.4](functional/native-image-tasks.md#4-command-line-o
 Its layer scenarios cover module, package, explicit-path, and `all` selectors; executable,
 native-test (including additional test suites), and shared-library consumers; and provider duplicate
 validation before a producer task starts.
-`PreserveDependencyFunctionalTest` verifies that dependency-coordinate configuration preserves a
-class which an equivalent control image cannot load, including a class from a transitive artifact.
+`PreserveDependencyFunctionalTest` verifies that dependency-coordinate configuration selects one
+specific transitive library non-transitively and preserves a class which an equivalent control image cannot load.
 It also covers lazy resolution and configuration-cache reuse. [§FS-plugin-model.2](functional/plugin-model.md#2-extension-surface),
 [§FS-native-invocation.3](functional/native-image-invocation.md#3-command-line-construction).
 Layer-consumption scenarios that exercise the `all` selector, custom shared-library consumers,

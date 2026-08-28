@@ -44,7 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Maven dependency-only Preserve configuration for application compile goals. §FS-config-model.8.
+ * Maven dependency-only Preserve configuration for the compile-no-fork hierarchy. §FS-config-model.8.
  */
 public class PreserveConfiguration {
     private List<PreserveDependencyConfiguration> dependencies = new ArrayList<>();

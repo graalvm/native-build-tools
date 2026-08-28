@@ -82,9 +82,9 @@ resolved Maven project graph, preserves stable first-seen path order, and accept
 outputs when a packaged artifact file is not yet available. Blank, malformed, missing, ambiguous,
 empty, and fileless selections fail as normal Maven execution errors before Native Image starts.
 
-The parameter belongs to the application compile mojo hierarchy, so it applies to `compile`,
-`compile-no-fork`, and the deprecated `build` alias. It is not exposed by `native:test`,
-`native:integration-test`, or `layer-create`. The first-class XML surface contains dependencies
-only; raw `all`, module, package, and explicit-path Preserve selectors remain `<buildArgs>` under
+The parameter belongs to the `compile-no-fork` mojo hierarchy, so it applies to `compile`,
+`compile-no-fork`, the deprecated `build` alias, and `write-args-file`. It is not exposed by
+`native:test`, `native:integration-test`, or `layer-create`. The first-class XML surface contains
+dependencies only; raw `all`, module, package, and explicit-path Preserve selectors remain `<buildArgs>` under
 [§root/FS-native-builds.7](../../../docs/spec/functional/native-image-builds.md#7-dependency-preservation).
 [§REQ-maven-model](../requirements.md#req-maven-model-the-maven-plugin-preserves-maven-model-compatibility).

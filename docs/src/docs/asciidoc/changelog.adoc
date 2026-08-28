@@ -4,7 +4,7 @@
 == Next release
 
 - Added dependency-coordinate configuration for GraalVM 25's `-H:Preserve` option to
-  Gradle binary builds and Maven application compile goals.
+  Gradle binary builds and the Maven `compile-no-fork` hierarchy.
 - Added first-class named Native Image layers to the Gradle plugin and Maven `layer-create` /
   `useLayers` support with resolvable `nil` artifacts and platform runtime bundles. Layer
   consumption is supported on GraalVM 25.1+; 25.0.x consumption warns and remains unsupported.

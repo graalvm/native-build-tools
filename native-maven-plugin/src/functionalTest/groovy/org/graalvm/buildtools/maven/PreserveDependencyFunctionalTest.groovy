@@ -54,8 +54,7 @@ class PreserveDependencyFunctionalTest extends AbstractGraalVMMavenFunctionalTes
         given:
         withSample('java-application')
         def pom = file('pom.xml')
-        pom.text = pom.text.replace('''    <dependencies>
-        <dependency>''', '''    <dependencies>
+        pom.text = pom.text.replaceFirst(/<dependencies>\s*<dependency>/, '''<dependencies>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
@@ -85,7 +84,8 @@ class PreserveDependencyFunctionalTest extends AbstractGraalVMMavenFunctionalTes
                             <preserve>
                                 <dependencies>
                                     <dependency>
-                                        <artifact>org.apache.httpcomponents.client5:httpclient5:5.4.1</artifact>
+                                        <artifact>org.apache.httpcomponents.core5:httpcore5:5.3.1</artifact>
+                                        <transitive>false</transitive>
                                     </dependency>
                                 </dependencies>
                             </preserve>''')

@@ -44,9 +44,7 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
 
 
 /**
@@ -61,12 +59,4 @@ import org.graalvm.buildtools.maven.config.PreserveConfiguration;
 @Execute(phase = LifecyclePhase.PACKAGE)
 @SuppressWarnings("unused")
 public class NativeCompileMojo extends NativeCompileNoForkMojo {
-    // Application compile goals alone expose dependency Preserve selection. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
-
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
-    }
 }

@@ -84,7 +84,9 @@ class PreserveDependencyFunctionalTest extends AbstractFunctionalTest {
                     }
                     main {
                         preserve {
-                            dependencies('org.apache.httpcomponents.client5:httpclient5:5.4.1')
+                            dependencies('org.apache.httpcomponents.core5:httpcore5:5.3.1') {
+                                transitive = false
+                            }
                         }
                     }
                 }

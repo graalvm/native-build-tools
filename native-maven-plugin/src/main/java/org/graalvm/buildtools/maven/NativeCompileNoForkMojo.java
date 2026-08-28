@@ -47,9 +47,13 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.graalvm.buildtools.maven.config.PreserveConfiguration;
 import org.graalvm.buildtools.maven.sbom.SBOMGenerator;
 import org.graalvm.buildtools.utils.NativeImageUtils;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
@@ -59,14 +63,20 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 /**
- * Shared implementation for lifecycle-bound application compilation and argument-file generation.
- * The compile-no-fork goal entry point is separate so only application compile goals inherit Preserve configuration.
- * §FS-config-model.8. §FS-goal-surface.1, §FS-goal-surface.4.
+ * Builds a native executable in the current Maven lifecycle without forking a separate Maven build.
+ * §FS-goal-surface.1, §FS-goal-surface.4.
  * It also owns main-class discovery, skipping, generated resources, dynamic access metadata, and base SBOM behavior.
  * §FS-native-builds.1, §FS-native-builds.2,
  * §FS-native-builds.4, §FS-native-builds.5, §FS-native-builds.6.
  */
+@Mojo(name = "compile-no-fork", defaultPhase = LifecyclePhase.PACKAGE,
+        requiresDependencyResolution = ResolutionScope.RUNTIME,
+        requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
+
+    // The compile-no-fork hierarchy shares dependency Preserve selection. §FS-config-model.8.
+    @Parameter
+    private PreserveConfiguration preserve;
 
     @Parameter(property = "skipNativeBuild", defaultValue = "false")
     private boolean skip;
@@ -83,6 +93,11 @@ public class NativeCompileNoForkMojo extends AbstractNativeImageMojo {
     public static final String SKIP_BASE_SBOM_PARAM_NAME = "skipBaseSBOM";
 
     private PluginParameterExpressionEvaluator evaluator;
+
+    @Override
+    protected PreserveConfiguration preserveConfiguration() {
+        return preserve;
+    }
 
     @Override
     protected List<String> getDependencyScopes() {

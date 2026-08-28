@@ -104,9 +104,9 @@ The first-class build-tool surface is limited to dependency selection because co
 resolution adds behavior unavailable through static arguments. Users must continue to pass
 `all`, `module=`, `package=`, and explicit `path=` Preserve selectors through normal build arguments,
 protecting [§NGOAL-no-flag-mirroring](../non-goals.md#ngoal-no-flag-mirroring-the-plugins-do-not-add-build-tool-flags-that-only-forward-to-native-image-flags).
-Gradle exposes the selection on every binary option object; Maven exposes it only on application
-compile goals (`compile`, `compile-no-fork`, and the deprecated `build` alias), not native-test or
-layer-create goals. Preserve is available with GraalVM 25 and later and does not require the
+Gradle exposes the selection on every binary option object; Maven exposes it on the
+`compile-no-fork` hierarchy (`compile`, `compile-no-fork`, the deprecated `build` alias, and
+`write-args-file`), not native-test or layer-create goals. Preserve is available with GraalVM 25 and later and does not require the
 experimental-option unlock sequence. Specific dependency selectors are preferred because
 preservation can increase analysis work and image size.
 [§GOAL-plugin-parity](../goals.md#goal-plugin-parity-shared-native-image-behavior-remains-consistent-across-gradle-and-maven),

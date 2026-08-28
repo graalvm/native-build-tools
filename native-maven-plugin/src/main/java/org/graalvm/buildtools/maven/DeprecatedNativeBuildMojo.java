@@ -44,9 +44,7 @@ package org.graalvm.buildtools.maven;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.graalvm.buildtools.maven.config.PreserveConfiguration;
 
 /**
  * Deprecated alias for the {@code native:compile-no-fork} goal for lifecycle-bound native image builds.
@@ -57,15 +55,6 @@ import org.graalvm.buildtools.maven.config.PreserveConfiguration;
         requiresDependencyResolution = ResolutionScope.RUNTIME,
         requiresDependencyCollection = ResolutionScope.RUNTIME)
 public class DeprecatedNativeBuildMojo extends NativeCompileNoForkMojo {
-    // The deprecated application build alias retains the same Preserve surface. §FS-config-model.8.
-    @Parameter
-    private PreserveConfiguration preserve;
-
-    @Override
-    protected PreserveConfiguration preserveConfiguration() {
-        return preserve;
-    }
-
     @Override
     protected void executeInternal() throws MojoExecutionException {
         logger.warn("'native:build' goal is deprecated. Use 'native:compile-no-fork' instead.");
