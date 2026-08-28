@@ -51,11 +51,13 @@ if "%~1"=="-o" (
 )
 shift
 if not "%~1"=="" goto parse
-if not "%OUTPUT_FILE%"=="" (
-  for %%F in ("%OUTPUT_FILE%") do set OUT_DIR=%%~dpF
-  if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
-  echo echo Fake native-image executable > "%OUTPUT_FILE%"
-)
+if "%OUTPUT_FILE%"=="" exit /b 0
+if /I "%OUTPUT_FILE:~-4%"==".exe" goto write_output
+set OUTPUT_FILE=%OUTPUT_FILE%.exe
+:write_output
+for %%F in ("%OUTPUT_FILE%") do set OUT_DIR=%%~dpF
+if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
+echo echo Fake native-image executable > "%OUTPUT_FILE%"
 exit /b 0
 '''
 
