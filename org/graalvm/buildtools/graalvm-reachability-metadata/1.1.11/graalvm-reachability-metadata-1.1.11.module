@@ -1,0 +1,116 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.graalvm.buildtools",
+    "module": "graalvm-reachability-metadata",
+    "version": "1.1.11",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.6.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.1.11.jar",
+          "url": "graalvm-reachability-metadata-1.1.11.jar",
+          "size": 68018,
+          "sha512": "c1bc5231679d95004a4361dbc03d3b05f61ba9e042de811611aa583be26bbbd51863925579cf3c23b34b90273563c47b7ac16e83bbb6af92511d3a6b8328eb2c",
+          "sha256": "e01cf2c0894c9eddaf6d7c5cfa7122024f90c3e1154030c60dfd6073b6a81e95",
+          "sha1": "cd5491dc092e12fd9be2dbdab937d7e378c7b908",
+          "md5": "2c7bae4cae88db799f030342ecad408a"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.github.openjson",
+          "module": "openjson",
+          "version": {
+            "requires": "1.0.13"
+          }
+        },
+        {
+          "group": "org.graalvm.buildtools",
+          "module": "utils",
+          "version": {
+            "requires": "1.1.11"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.1.11.jar",
+          "url": "graalvm-reachability-metadata-1.1.11.jar",
+          "size": 68018,
+          "sha512": "c1bc5231679d95004a4361dbc03d3b05f61ba9e042de811611aa583be26bbbd51863925579cf3c23b34b90273563c47b7ac16e83bbb6af92511d3a6b8328eb2c",
+          "sha256": "e01cf2c0894c9eddaf6d7c5cfa7122024f90c3e1154030c60dfd6073b6a81e95",
+          "sha1": "cd5491dc092e12fd9be2dbdab937d7e378c7b908",
+          "md5": "2c7bae4cae88db799f030342ecad408a"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.1.11-javadoc.jar",
+          "url": "graalvm-reachability-metadata-1.1.11-javadoc.jar",
+          "size": 165127,
+          "sha512": "5cc10984542df2e0b6a83a7026b75cba35fbba867cf730f58035f4b306e2d19aff685a872b762472ae264c82a4bf5a72082f6828272ca9c47df2848f46c6d05e",
+          "sha256": "67cdc0c72204560e09bd4e038d6ec0735899bd8625017bfcb29548fa68bcfb9c",
+          "sha1": "6d22bd596be0279b878066636d213d782d9777ca",
+          "md5": "417acaef34515b193bb2bf7d902cd260"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "graalvm-reachability-metadata-1.1.11-sources.jar",
+          "url": "graalvm-reachability-metadata-1.1.11-sources.jar",
+          "size": 39752,
+          "sha512": "0af112fcfa48a46a267ca8e1aacea6159536dad6032778b3a986e239e06c09d1df2225a6d01d28a864bbbf65ec749797f6cc6cf4d0b3bc8572afd73705ec2fca",
+          "sha256": "72b22d0dac3948853280f69b71115078c1df43f1928f5ea88c38c2baa411d431",
+          "sha1": "64890bbba0fff8bd570a85603aa0b01704282b75",
+          "md5": "c600a157b7610fc9b6e108f9d16582f2"
+        }
+      ]
+    }
+  ]
+}
