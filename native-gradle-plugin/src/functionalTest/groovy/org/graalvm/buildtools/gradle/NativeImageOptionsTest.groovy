@@ -31,6 +31,8 @@ class NativeImageOptionsTest extends Specification {
             
             graalvmNative.toolchainDetection = true
             
+            // Script-body assertion: the plugin-installed convention must be queryable
+            // at configuration time (see §FS-native-invocation.1.2).
             assert graalvmNative.binaries.main.javaLauncher
                 .get()
                 .metadata

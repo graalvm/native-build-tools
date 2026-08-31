@@ -1,7 +1,13 @@
 [[changelog]]
 == Changelog
 
-== Next release
+== Release 1.1.12
+
+- Gradle Native Image executable discovery now distinguishes explicitly configured launchers from
+  convention-selected toolchains. Toolchains without `native-image` fall back to `GRAALVM_HOME`,
+  `JAVA_HOME`, or the Gradle JVM, while explicit launchers fail with an actionable diagnostic.
+
+== Release 1.1.9
 
 - Added first-class named Native Image layers to the Gradle plugin and Maven `layer-create` /
   `useLayers` support with resolvable `nil` artifacts and platform runtime bundles. Layer

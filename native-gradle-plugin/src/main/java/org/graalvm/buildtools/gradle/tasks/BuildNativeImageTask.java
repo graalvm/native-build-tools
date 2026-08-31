@@ -44,6 +44,7 @@ package org.graalvm.buildtools.gradle.tasks;
 import org.graalvm.buildtools.gradle.NativeImagePlugin;
 import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions;
 import org.graalvm.buildtools.gradle.dsl.NativeImageOptions;
+import org.graalvm.buildtools.gradle.internal.BaseNativeImageOptions;
 import org.graalvm.buildtools.gradle.internal.GraalVMLogger;
 import org.graalvm.buildtools.gradle.internal.NativeImageCommandLineProvider;
 import org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator;
@@ -60,10 +61,10 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -75,6 +76,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -83,9 +85,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableBiFunctionOf;
+import static org.graalvm.buildtools.gradle.internal.ConfigurationCacheSupport.serializableTransformerOf;
 import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocator.graalvmHomeProvider;
 import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
 
@@ -99,6 +103,9 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
  */
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
+    private final Provider<String> graalvmHomeEnv;
+    private final Provider<String> javaHomeEnv;
+    private final Provider<String> gradleJvmHome;
     private final NativeImageExecutableLocator.Diagnostics diagnostics;
     private final boolean plainConsole;
 
@@ -215,6 +222,41 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         return graalvmHomeProvider;
     }
 
+    // The environment sources that can supply native-image through the fallback candidates
+    // (§FS-native-invocation.1.3) are task inputs in a 3-state sentinel form: "set:<value>",
+    // "set:" for an empty value, and "unset". Distinguishing the states makes a change to
+    // any source re-run the task instead of leaving it UP-TO-DATE with the previous executable.
+    @Input
+    protected Provider<String> getGraalvmHomeEnvInput() {
+        return graalvmHomeEnv.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    @Input
+    protected Provider<String> getJavaHomeEnvInput() {
+        return javaHomeEnv.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    @Input
+    protected Provider<String> getGradleJvmHomeInput() {
+        return gradleJvmHome.map(serializableTransformerOf(value -> "set:" + value)).orElse("unset");
+    }
+
+    /**
+     * The explicit/convention provenance of the javaLauncher, tracked as a task input.
+     *
+     * <p>A convention-selected launcher that lacks {@code native-image} falls back to the
+     * environment-variable chain, while an explicitly configured launcher must fail instead
+     * (§FS-native-invocation.1.1). The launcher <em>value</em> alone cannot distinguish these
+     * two cases, so the provenance must be fingerprinted too, or switching from convention to
+     * explicit would leave the task UP-TO-DATE with an executable resolved from the previous
+     * environment (§FS-native-invocation.1.2).</p>
+     */
+    @Input
+    protected Provider<Boolean> getJavaLauncherExplicit() {
+        getOptions().finalizeValue();
+        return ((BaseNativeImageOptions) getOptions().get()).getJavaLauncherExplicit();
+    }
+
     @Internal
     public Provider<RegularFile> getCreatedLayerFile() {
         return getOptions().zip(getOutputDirectory(), (options, dir) ->
@@ -273,6 +315,9 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         ProviderFactory providers = getProject().getProviders();
         this.diagnostics = new NativeImageExecutableLocator.Diagnostics();
         this.graalvmHomeProvider = graalvmHomeProvider(providers, diagnostics);
+        this.graalvmHomeEnv = providers.environmentVariable("GRAALVM_HOME");
+        this.javaHomeEnv = providers.environmentVariable("JAVA_HOME");
+        this.gradleJvmHome = providers.systemProperty("java.home");
         this.plainConsole = ConsoleOutput.Plain.equals(getProject().getGradle().getStartParameter().getConsoleOutput());
         getDisableToolchainDetection().convention(false);
     }
@@ -309,14 +354,21 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         validateLayerConfiguration(options);
         GraalVMLogger logger = GraalVMLogger.of(getLogger());
 
+        var javaLauncherProperty = options.getJavaLauncher();
+        JavaLauncher launcher = javaLauncherProperty.getOrNull();
+        // Provenance: convention-sourced values are never explicit, even though the property
+        // is present in both cases. §FS-native-invocation.1.2
+        boolean isExplicit = ((BaseNativeImageOptions) options).getJavaLauncherExplicit().get();
+
         File executablePath = NativeImageExecutableLocator.findNativeImageExecutable(
-            options.getJavaLauncher(),
+            launcher, isExplicit,
             getDisableToolchainDetection(),
             getGraalVMHome(),
             getExecOperations(),
             logger,
-            diagnostics);
-        String versionString = getVersionString(getExecOperations(), executablePath);
+            diagnostics,
+            NativeImageExecutableLocator.defaultFallbackCandidates(graalvmHomeEnv, javaHomeEnv, gradleJvmHome));
+        String versionString = getVersionString(getExecOperations(), options, executablePath);
         Boolean metadataEnabled = getMetadataRepositoryEnabled().getOrNull();
         String metadataRoot = getMetadataRepositoryRootPath().getOrNull();
         if (Boolean.TRUE.equals(metadataEnabled) && metadataRoot != null) {
@@ -344,10 +396,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         getFileSystemOperations().delete(d -> d.delete(outputDir));
         if (outputDir.isDirectory() || outputDir.mkdirs()) {
             getExecOperations().exec(spec -> {
-                MapProperty<String, Object> environmentVariables = options.getEnvironmentVariables();
-                if (environmentVariables.isPresent() && !environmentVariables.get().isEmpty()) {
-                    spec.environment(environmentVariables.get());
-                }
+                addEnvironmentVariables(spec, options);
                 spec.setWorkingDir(getWorkingDirectory());
                 if (getTestListDirectory().isPresent()) {
                     NativeImagePlugin.TrackingDirectorySystemPropertyProvider directoryProvider = getObjects().newInstance(NativeImagePlugin.TrackingDirectorySystemPropertyProvider.class);
@@ -384,14 +433,22 @@ public abstract class BuildNativeImageTask extends DefaultTask {
         }
     }
 
-    public static String getVersionString(ExecOperations execOperations, File executablePath) {
+    public static String getVersionString(ExecOperations execOperations, NativeImageOptions options, File executablePath) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ExecResult execResult = execOperations.exec(spec -> {
+            addEnvironmentVariables(spec, options);
             spec.setStandardOutput(outputStream);
             spec.args("--version");
             spec.setExecutable(executablePath.getAbsolutePath());
         });
         execResult.assertNormalExitValue();
         return new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    private static void addEnvironmentVariables(ExecSpec spec, NativeImageOptions options) {
+        // Always inherit current process environment first to ensure PATH and other critical variables are available
+        spec.environment(System.getenv());
+        // Merge custom environment variables
+        spec.environment(options.getEnvironmentVariables().getOrElse(Map.of()));
     }
 }
