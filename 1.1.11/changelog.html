@@ -466,7 +466,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#changelog">Changelog</a></li>
-<li><a href="#_next_release">Next release</a></li>
+<li><a href="#_release_1_1_12">Release 1.1.12</a></li>
+<li><a href="#_release_1_1_9">Release 1.1.9</a></li>
 <li><a href="#_release_1_1_6">Release 1.1.6</a></li>
 <li><a href="#_release_1_0_1">Release 1.0.1</a></li>
 <li><a href="#_release_1_0_0">Release 1.0.0</a></li>
@@ -538,7 +539,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_next_release"><a class="anchor" href="#_next_release"></a>Next release</h2>
+<h2 id="_release_1_1_12"><a class="anchor" href="#_release_1_1_12"></a>Release 1.1.12</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Gradle Native Image executable discovery now distinguishes explicitly configured launchers from
+convention-selected toolchains. Toolchains without <code>native-image</code> fall back to <code>GRAALVM_HOME</code>,
+<code>JAVA_HOME</code>, or the Gradle JVM, while explicit launchers fail with an actionable diagnostic.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_release_1_1_9"><a class="anchor" href="#_release_1_1_9"></a>Release 1.1.9</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>

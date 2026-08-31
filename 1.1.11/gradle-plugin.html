@@ -475,7 +475,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#configuration-toolchains">Using Gradle Toolchains</a>
 <ul class="sectlevel2">
 <li><a href="#configuration-toolchains-enabling">Enabling Toolchain Detection</a></li>
-<li><a href="#_selecting_the_graalvm_toolchain">Selecting the GraalVM Toolchain</a></li>
+<li><a href="#configuration-toolchains-discovery">Native Image Executable Discovery</a></li>
+<li><a href="#configuration-toolchains-explicit">Configuring an Explicit Native Image Launcher</a></li>
 </ul>
 </li>
 <li><a href="#configuration">Plugin Configuration</a>
@@ -621,28 +622,17 @@ you can set up the <code>GRAALVM_HOME</code> environment variable pointing to yo
 </div>
 <div class="sect2">
 <h3 id="configuration-toolchains-enabling"><a class="anchor" href="#configuration-toolchains-enabling"></a>Enabling Toolchain Detection</h3>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-Toolchain support has many pitfalls. Unless you have a single JDK installed on your machine, which is the GraalVM version that you want to use, we do not recommend enabling them yet. We are working with the Gradle team on improvements in the future.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>Instead of relying on the JDK which is used to run Gradle, you can use the <a href="https://docs.gradle.org/current/userguide/toolchains.html">Gradle toolchain support</a> to select a specific GraalVM installation.</p>
 </div>
 <div class="paragraph">
-<p>However, because of limitations in Gradle, the plugin may not be able to properly detect the toolchain.
-In particular, this will only work properly if you <em>only</em> have GraalVM JDKs installed on the machine.
-<strong>Otherwise, Gradle will not be able to reliably detect GraalVM JDKs</strong>, nor detect GraalVM distributions from different vendors.</p>
+<p>Gradle toolchain matching cannot always distinguish a GraalVM installation from a standard JDK.
+The plugin therefore verifies that the convention-selected toolchain contains the <code>native-image</code>
+executable before using it. If it does not, the plugin continues with the environment-based lookup
+described below.</p>
 </div>
 <div class="paragraph">
-<p>Should you still want to enable toolchain support, you do it via the <code>graalvmNative</code> extension:</p>
+<p>Enable toolchain detection through the <code>graalvmNative</code> extension:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
@@ -660,13 +650,50 @@ In particular, this will only work properly if you <em>only</em> have GraalVM JD
 </div>
 </div>
 <div class="sect2">
-<h3 id="_selecting_the_graalvm_toolchain"><a class="anchor" href="#_selecting_the_graalvm_toolchain"></a>Selecting the GraalVM Toolchain</h3>
+<h3 id="configuration-toolchains-discovery"><a class="anchor" href="#configuration-toolchains-discovery"></a>Native Image Executable Discovery</h3>
 <div class="paragraph">
-<p>By default, the plugin will select a Java 11 GraalVM toolchain using the vendor string <code>GraalVM</code>, which works properly for GraalVM up to version 22.3 included.
-More recent versions of GraalVM do not have a specific version and are aligned with the language version they support.</p>
+<p>The plugin selects the <code>native-image</code> executable in the following order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>An explicitly configured <code>javaLauncher</code></p>
+</li>
+<li>
+<p>A launcher selected by Gradle toolchain detection, when enabled</p>
+</li>
+<li>
+<p><code>GRAALVM_HOME</code></p>
+</li>
+<li>
+<p><code>JAVA_HOME</code></p>
+</li>
+<li>
+<p>The JVM running Gradle</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>If you want to use a different toolchain, for example, a distribution compatible with Java 20 from Oracle, you can configure the toolchain like this:</p>
+<p>An explicitly configured <code>javaLauncher</code> is authoritative. Its installation must contain
+<code>bin/native-image</code>. If it does not, the build fails with a diagnostic naming the selected
+installation. The plugin does not fall back to another installation or attempt to install Native
+Image into an explicitly selected launcher.</p>
+</div>
+<div class="paragraph">
+<p>A launcher selected automatically through toolchain detection is used only when its installation
+contains <code>bin/native-image</code>. Otherwise, the plugin continues with <code>GRAALVM_HOME</code>, <code>JAVA_HOME</code>, and
+finally the JVM running Gradle.</p>
+</div>
+<div class="paragraph">
+<p>For an installation selected through the environment-based fallback, the plugin may attempt
+<code>gu install native-image</code> when <code>native-image</code> is missing and the <code>gu</code> command is available. It does
+not install Native Image into an explicitly configured or convention-selected launcher.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuration-toolchains-explicit"><a class="anchor" href="#configuration-toolchains-explicit"></a>Configuring an Explicit Native Image Launcher</h3>
+<div class="paragraph">
+<p>You can explicitly select the Java installation used for a particular native binary:</p>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
@@ -697,8 +724,9 @@ More recent versions of GraalVM do not have a specific version and are aligned w
 </div>
 </div>
 <div class="paragraph">
-<p>Again, be aware that the toolchain detection <em>cannot</em> distinguish between GraalVM JDKs and standard JDKs without Native Image support.
-If you have both installed on the machine, Gradle may randomly pick one or the other.</p>
+<p>Because this assigns the binary&#8217;s <code>javaLauncher</code> explicitly, the selected installation must provide
+<code>native-image</code>. Use toolchain detection instead if you want a regular Java toolchain to fall back to
+a GraalVM installation configured through the environment.</p>
 </div>
 </div>
 </div>
