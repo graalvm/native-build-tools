@@ -12,6 +12,31 @@ class NativeImageOptionsTest extends Specification {
     @TempDir
     Path testDirectory
 
+    @Issue("https://github.com/graalvm/native-build-tools/issues/1039")
+    def "toolchain detection is enabled by default"() {
+        when:
+        def runner = GradleRunner.create()
+                .forwardStdOutput(new PrintWriter(System.out))
+                .forwardStdError(new PrintWriter(System.err))
+                .withPluginClasspath()
+                .withProjectDir(testDirectory.toFile())
+
+        def buildFile = testDirectory.resolve("build.gradle")
+        buildFile.text = """
+            plugins {
+                id 'java'
+                id 'org.graalvm.buildtools.native'
+            }
+            
+            assert graalvmNative.toolchainDetection.get()
+        """
+
+        runner.build()
+
+        then:
+        noExceptionThrown()
+    }
+
     @Issue("https://github.com/graalvm/native-build-tools/issues/109")
     def "toolchain defaults to the current Java version"() {
         when:

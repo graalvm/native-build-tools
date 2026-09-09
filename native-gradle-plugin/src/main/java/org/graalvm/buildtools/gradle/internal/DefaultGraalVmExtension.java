@@ -79,7 +79,7 @@ public abstract class DefaultGraalVmExtension implements GraalVMExtension {
         this.plugin = plugin;
         this.project = project;
         this.defaultJavaLauncher = project.getObjects().property(JavaLauncher.class);
-        getToolchainDetection().convention(false);
+        getToolchainDetection().convention(true);
         // Restore the public javaLauncher convention on every binary: the property resolves
         // from the default (toolchain-selected) launcher, with provenance tracked so the
         // plugin can tell convention-sourced values apart from explicit assignments.
