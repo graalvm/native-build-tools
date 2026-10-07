@@ -5,7 +5,9 @@ process execution.
 
 ## 1. Executable discovery
 
-Compile and metadata tasks must find the `native-image` executable by probing, in order:
+Compile and metadata tasks must find the `native-image` executable by probing, in order.
+Toolchain detection is enabled by default, so users must set
+`graalvmNative.toolchainDetection` to `false` to disable it.
 
 ### 1.1. Explicit java launcher
 
