@@ -122,7 +122,7 @@ public interface GraalVMExtension {
 
     /**
      * Property driving the detection of toolchains which support building native images.
-     * The default is false.
+     * The default is true.
      *
      * @return is toolchain detection on
      */
