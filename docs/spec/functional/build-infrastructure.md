@@ -170,6 +170,31 @@ Build logic may generate CI data, such as functional-test matrices, when that da
 the repository's source layout or version catalog. Generated CI data must stay reproducible from
 the checked-out repository state so workflow behavior can be reviewed alongside code changes.
 
+### 4.2 Generated issue-fix grounding
+
+The repository-local GitHub issue-fix workflow must normalize and validate grund references from
+the workspace root after implementation and after every review repair. For a configured grund
+workspace it must run `grund fmt . --write --marker --cross-refs`, then require both `grund check`
+and `grund fmt . --marker --cross-refs --check` to pass before focused validation and review.
+Running the formatter against only an individual workspace member or changed file is insufficient
+because cross-namespace Markdown targets depend on the root workspace configuration.
+
+Formatting changes are part of the generated issue fix and must be reviewed with the rest of the
+diff. A branch must not be published when either grounding command still reports unresolved
+references or pending rewrites.
+
+### 4.3 Generated issue-fix execution targets
+
+The repository-local GitHub issue-fix workflow must expose its large-model and small-model agent
+assignments as complete Rhei execution-target inputs. The defaults may select repository-preferred
+agents, providers, models, and reasoning modes, but agent states must consume the rendered inputs
+rather than repeat those selectors. Maintainers must therefore be able to replace either complete
+target without editing the state machine.
+
+An agent profile's autonomous approval and sandbox posture is independent from its reasoning-effort
+modes. When the workflow configures an agent to run without approval prompts or sandbox restrictions,
+selecting `high` or `xhigh` must change reasoning effort without weakening that autonomous posture.
+
 ## 5. Release and publication
 
 Release infrastructure publishes Native Build Tools artifacts and documentation while keeping
