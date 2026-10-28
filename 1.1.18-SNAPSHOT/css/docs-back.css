@@ -1,0 +1,15 @@
+#header, #content {
+  max-width: 1200px;
+  padding-left: 40px;
+  padding-right: 40px;
+  background-color: #ffffff;
+  color: black;
+}
+
+h1 {
+  color: black !important;
+}
+
+p {
+  color: black !important;
+}
