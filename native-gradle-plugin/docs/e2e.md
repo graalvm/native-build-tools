@@ -83,6 +83,15 @@ fail after `-H:LayerUse` loads a valid layer.
 
 ### 3.7 Gradle integration
 
+Task and transform annotation coverage comes from the module's full `validatePlugins` task, included
+in `inspections`. It checks every declared work type and its nested input model with strict
+validation enabled, protecting [§FS-native-tasks.1](functional/native-image-tasks.md#1-compile-tasks).
+Run it without invoking Native Image:
+
+```bash
+./gradlew -Porg.graalvm.build.core=true :native-gradle-plugin:validatePlugins
+```
+
 Functional tests that exercise configuration cache, source sets, task dependencies, providers,
 artifact transforms, and generated projects verify the Gradle model boundary. This protects
 [§REQ-gradle-model](requirements.md#req-gradle-model-the-gradle-plugin-preserves-gradle-model-compatibility), [§AR-gradle-plugin.2](architecture.md#2-extension-and-option-model), and [§AR-gradle-plugin.3](architecture.md#3-task-graph-architecture).

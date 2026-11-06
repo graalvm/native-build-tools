@@ -20,6 +20,14 @@ declare Gradle inputs and outputs for the selected options and generated files, 
 binary's classpath and reachability-metadata exclusions, so Gradle can skip, cache, or rerun them
 consistently.
 
+All task and artifact-transform declarations must pass strict Gradle plugin validation. Each work
+type must explicitly declare whether it is cacheable. Native compilation, execution, metadata
+operations, launcher generation, layer validation, and JAR analysis remain non-cacheable by default.
+Configuration directories, classpath JARs, test-list directories, and native executables retain
+absolute path sensitivity. JAR analysis tracks the input filename and contents because the output
+filename is derived from the JAR filename. The module's `inspections` task must include the full
+`validatePlugins` task so CI detects invalid declarations.
+
 Every named layer receives a derived `native<Layer>Layer` task with an output under
 `build/native/layers/<layer>/<layer>.nil`. Its inputs are the explicit selection and, only when
 packages require it, the configured application classpath. Consuming compile and run tasks are
