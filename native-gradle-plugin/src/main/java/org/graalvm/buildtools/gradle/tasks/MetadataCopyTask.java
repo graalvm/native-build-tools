@@ -62,6 +62,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -76,6 +77,7 @@ import static org.graalvm.buildtools.gradle.internal.NativeImageExecutableLocato
 /**
  * Copies or merges tracing-agent metadata collected by Gradle tasks. §FS-tracing-agent.5.
  */
+@DisableCachingByDefault(because = "Copies or merges agent metadata into user-configured directories")
 public abstract class MetadataCopyTask extends DefaultTask {
 
     private final GraalVMLogger logger;

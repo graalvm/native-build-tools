@@ -59,6 +59,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -70,6 +71,7 @@ import java.util.List;
 /**
  * Reports direct Gradle dependencies without reachability metadata. §FS-resources-and-metadata.4.
  */
+@DisableCachingByDefault(because = "Queries repository metadata and may create GitHub issues")
 public abstract class ListLibrariesMissingMetadata extends DefaultTask {
     public ListLibrariesMissingMetadata() {
         getOutputs().upToDateWhen(task -> false);
