@@ -47,13 +47,18 @@ import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.IOException;
 
+@DisableCachingByDefault(because = "JAR analysis is inexpensive")
 public abstract class JarAnalyzerTransform implements TransformAction<TransformParameters.None> {
 
     @InputArtifact
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     public abstract Provider<FileSystemLocation> getInputArtifact();
 
     @Override

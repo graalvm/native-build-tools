@@ -49,8 +49,11 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -62,10 +65,12 @@ import java.util.Map;
  * This implements §FS-native-tasks.2.
  */
 @SuppressWarnings("unused")
+@DisableCachingByDefault(because = "Executes a native application with external side effects")
 public abstract class NativeRunTask extends DefaultTask {
     public static final String TASK_NAME = "nativeRun";
 
     @InputFile
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public abstract RegularFileProperty getImage();
 
     @Input
