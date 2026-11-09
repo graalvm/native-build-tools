@@ -85,7 +85,7 @@ fail after `-H:LayerUse` loads a valid layer.
 
 Task and transform annotation coverage comes from the module's full `validatePlugins` task, included
 in `inspections`. It checks every declared work type and its nested input model with strict
-validation enabled, protecting [§FS-native-tasks.1](functional/native-image-tasks.md#1-compile-tasks).
+validation enabled.
 Run it without invoking Native Image:
 
 ```bash
