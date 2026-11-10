@@ -1,0 +1,50 @@
+{
+  "defaults": {
+    "agent_timeout": "2h"
+  },
+  "agents": {
+    "codex": {
+      "command": [
+        "codex",
+        "exec",
+        "--dangerously-bypass-approvals-and-sandbox",
+        "--skip-git-repo-check"
+      ],
+      "model_flag": "--model",
+      "stdin_prompt": true,
+      "mcp_flag": "--mcp",
+      "modes": {
+        "high": [
+          "-c",
+          "model_reasoning_effort=\"high\""
+        ],
+        "xhigh": [
+          "-c",
+          "model_reasoning_effort=\"xhigh\""
+        ]
+      }
+    },
+    "claude-code": {
+      "command": [
+        "claude",
+        "--permission-mode",
+        "bypassPermissions"
+      ],
+      "prompt_flag": "-p",
+      "model_flag": "--model",
+      "stdin_prompt": false,
+      "mcp_config_flag": "--mcp-config",
+      "skill_flag": "--skill",
+      "modes": {
+        "high": [
+          "--effort",
+          "high"
+        ],
+        "xhigh": [
+          "--effort",
+          "xhigh"
+        ]
+      }
+    }
+  }
+}
