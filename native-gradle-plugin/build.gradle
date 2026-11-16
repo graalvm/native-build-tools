@@ -86,3 +86,11 @@ gradlePlugin {
 tasks.withType(Checkstyle).configureEach {
     setConfigFile(layout.projectDirectory.dir("../config/checkstyle.xml").asFile)
 }
+
+tasks.named('validatePlugins') {
+    enableStricterValidation.set(true)
+}
+
+tasks.named('inspections') {
+    dependsOn(tasks.named('validatePlugins'))
+}

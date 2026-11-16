@@ -57,6 +57,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,6 +79,7 @@ import java.util.Set;
  * The format of the generated JSON file conforms the following
  * <a href="https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/assets/dynamic-access-metadata-schema-v1.0.0.json">schema</a>.
  */
+@DisableCachingByDefault(because = "Uses local artifact paths and the reachability metadata service")
 public abstract class GenerateDynamicAccessMetadata extends DefaultTask {
     private static final String LIBRARY_AND_FRAMEWORK_LIST = "library-and-framework-list.json";
 

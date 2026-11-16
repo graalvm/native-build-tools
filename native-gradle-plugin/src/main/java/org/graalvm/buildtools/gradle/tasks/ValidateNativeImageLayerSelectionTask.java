@@ -46,6 +46,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.util.HashSet;
 import java.util.List;
@@ -54,6 +55,7 @@ import java.util.Set;
 /**
  * Validates logical layer selections before their producers can execute. §FS-plugin-model.2.
  */
+@DisableCachingByDefault(because = "Validates layer selections without producing outputs")
 public abstract class ValidateNativeImageLayerSelectionTask extends DefaultTask {
     @Input
     public abstract Property<String> getBinaryName();

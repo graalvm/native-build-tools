@@ -64,6 +64,8 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -77,6 +79,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
+import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
@@ -101,6 +104,7 @@ import static org.graalvm.buildtools.utils.SharedConstants.EXECUTABLE_EXTENSION;
  * and §FS-native-invocation.4.
  * Command-line options replace DSL values. §FS-native-tasks.5.
  */
+@DisableCachingByDefault(because = "Native compilation depends on the local native toolchain and environment")
 public abstract class BuildNativeImageTask extends DefaultTask {
     private final Provider<String> graalvmHomeProvider;
     private final Provider<String> graalvmHomeEnv;
@@ -214,6 +218,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @InputDirectory
     @Optional
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public abstract DirectoryProperty getTestListDirectory();
 
     @Optional
@@ -291,6 +296,7 @@ public abstract class BuildNativeImageTask extends DefaultTask {
 
     @InputFile
     @Optional
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     public abstract RegularFileProperty getClasspathJar();
 
     @Input

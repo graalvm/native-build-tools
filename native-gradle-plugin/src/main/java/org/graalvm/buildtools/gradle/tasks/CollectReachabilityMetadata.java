@@ -57,6 +57,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.IOException;
 import java.net.URI;
@@ -70,6 +71,7 @@ import java.util.stream.Collectors;
  * Collects reachability metadata for Gradle runtime dependencies. §FS-resources-and-metadata.3.
  * The output is consumed by native compile tasks through the generated configuration directory.
  */
+@DisableCachingByDefault(because = "Copies metadata from the shared reachability metadata service")
 public abstract class CollectReachabilityMetadata extends DefaultTask {
 
     public void setClasspath(Configuration classpath) {

@@ -46,6 +46,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.work.DisableCachingByDefault;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -54,6 +55,7 @@ import java.nio.file.Path;
 /**
  * Generates a distribution launcher that configures the native layer loader path. §FS-plugin-model.2.
  */
+@DisableCachingByDefault(because = "Generating a platform-specific launcher is inexpensive")
 public abstract class GenerateNativeImageLauncherTask extends DefaultTask {
     @Input
     public abstract Property<String> getExecutableName();

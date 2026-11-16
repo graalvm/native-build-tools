@@ -194,10 +194,12 @@ public interface NativeImageCompileOptions {
     /**
      * Returns the list of configuration file directories (e.g. resource-config.json, ...) which need
      * to be passed to native-image.
+     * Their contents and absolute paths are task inputs. §FS-native-tasks.1.
      *
      * @return a collection of directories
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.ABSOLUTE)
     ConfigurableFileCollection getConfigurationFileDirectories();
 
     @Input
