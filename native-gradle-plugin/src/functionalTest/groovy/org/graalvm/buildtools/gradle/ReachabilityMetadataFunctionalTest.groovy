@@ -45,7 +45,10 @@ import org.graalvm.buildtools.gradle.fixtures.AbstractFunctionalTest
 import org.gradle.api.logging.LogLevel
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class ReachabilityMetadataFunctionalTest extends AbstractFunctionalTest {
 
@@ -144,6 +147,54 @@ project(':excluded') {
         assertRequiresOutputs()
     }
 
+    // Parallel projects share one archived repository and never read a partial extraction.
+    // §FS-resources-and-metadata.3 §E2E-functional-tests.
+    def "parallel projects share an archived metadata repository"() {
+        given:
+        List<String> projects = (1..16).collect { "p$it".toString() }
+        settingsFile << """
+rootProject.name = 'parallel-metadata'
+include ${projects.collect { "'$it'" }.join(', ')}
+"""
+        projects.each { file(it).mkdirs() }
+        createMavenModule("com.requester", "app", "1.0")
+        createMavenModule("com.required", "lib", "1.0")
+        createMetadataRepository()
+        zipMetadataRepository()
+        buildFile << """
+plugins {
+    id 'org.graalvm.buildtools.native' apply false
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'org.graalvm.buildtools.native'
+
+    repositories {
+        maven { url = rootProject.file('maven-repo') }
+    }
+
+    dependencies {
+        implementation 'com.requester:app:1.0'
+    }
+
+    graalvmNative.metadataRepository.uri(rootProject.file('metadata-repo.zip'))
+}
+"""
+
+        when:
+        run 'collectReachabilityMetadata', '--parallel'
+
+        then:
+        tasks {
+            succeeded(*projects.collect { ":$it:collectReachabilityMetadata".toString() })
+        }
+        projects.each {
+            assert marker(it, 'com.requester/app/1.0').text == 'requester'
+            assert marker(it, 'com.required/lib/1.0').text == 'required-1'
+        }
+    }
+
     private void assertRequiresOutputs() {
         assert marker('present', 'com.requester/app/1.0').text == 'requester'
         assert marker('present', 'com.required/lib/2.0').text == 'required-2'
@@ -183,6 +234,25 @@ project(':excluded') {
   {"tested-versions":["1.0"],"metadata-version":"required-1"},
   {"tested-versions":["2.0"],"metadata-version":"required-2"}
 ]''', ['required-1': 'required-1', 'required-2': 'required-2'])
+    }
+
+    // Writes many entries before the repository files so that extraction takes a while.
+    private void zipMetadataRepository() {
+        Path repository = file('metadata-repo').toPath()
+        new ZipOutputStream(Files.newOutputStream(file('metadata-repo.zip').toPath())).withCloseable { zip ->
+            (1..2000).each {
+                zip.putNextEntry(new ZipEntry("padding/entry-${it}.txt"))
+                zip.write("padding ${it}".bytes)
+                zip.closeEntry()
+            }
+            Files.walk(repository).withCloseable { paths ->
+                paths.filter { Files.isRegularFile(it) }.sorted().each { path ->
+                    zip.putNextEntry(new ZipEntry(repository.relativize(path).toString().replace(File.separatorChar, '/' as char)))
+                    zip.write(Files.readAllBytes(path))
+                    zip.closeEntry()
+                }
+            }
+        }
     }
 
     private void metadataModule(String group, String artifact, String index, Map<String, String> markers) {
