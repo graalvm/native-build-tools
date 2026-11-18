@@ -31,6 +31,9 @@ the requiring module's output. When no URI or version is pinned, the Gradle defa
 the repository-wide freshness goal in [§root/GOAL-fresh-metadata](../../../docs/spec/goals.md#goal-fresh-metadata-users-can-fetch-the-latest-graalvm-reachability-metadata).
 Normal Gradle output must identify the selected metadata repository version
 or, when a version is not known for a local path or arbitrary URL, the selected repository source.
+Projects of one build, and builds sharing a Gradle user home, may set up the same downloaded or
+archived repository concurrently; each must use either a complete cached copy or create one,
+never a partially downloaded archive or a partially extracted directory.
 This keeps important integration state visible without flooding build logs, as required by
 [§root/GOAL-concise-actionable-output](../../../docs/spec/goals.md#goal-concise-actionable-output-build-output-is-concise-actionable-and-token-efficient).
 

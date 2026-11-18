@@ -65,8 +65,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -75,11 +77,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class GraalVMReachabilityMetadataService implements BuildService<GraalVMReachabilityMetadataService.Params>, GraalVMReachabilityMetadataRepository {
     private static final Logger LOGGER = Logging.getLogger(GraalVMReachabilityMetadataService.class);
+    private static final Map<String, Object> SETUP_LOCKS = new ConcurrentHashMap<>();
 
     private final GraalVMReachabilityMetadataRepository repository;
 
@@ -107,7 +111,10 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
 
     public GraalVMReachabilityMetadataService() throws URISyntaxException {
         URI uri = getParameters().getUri().get();
-        this.repository = newRepository(uri);
+        // Projects of one build set up a shared repository once; other processes rely on atomic moves. §FS-resources-and-metadata.3.
+        synchronized (SETUP_LOCKS.computeIfAbsent(FileUtils.hashFor(uri), key -> new Object())) {
+            this.repository = newRepository(uri);
+        }
         if (getParameters().getEnabled().get()) {
             // Normal Gradle output exposes the enabled repository selection. §FS-resources-and-metadata.3.
             GraalVMLogger.of(LOGGER).lifecycle("Using GraalVM reachability metadata repository " + getParameters().getRepositoryDescription().get());
@@ -145,10 +152,16 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
                     .withMaxRetries(getParameters().getBackoffMaxRetries().get())
                     .withInitialWaitPeriod(Duration.ofMillis(getParameters().getInitialBackoffMillis().get()))
                     .execute(() -> {
-                        try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
-                            try (FileOutputStream fileOutputStream = new FileOutputStream(zipped)) {
-                                fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                        Path download = Files.createTempFile(cacheDirParent.toPath(), "archive", format + ".part");
+                        try {
+                            try (ReadableByteChannel readableByteChannel = Channels.newChannel(uri.toURL().openStream())) {
+                                try (FileOutputStream fileOutputStream = new FileOutputStream(download.toFile())) {
+                                    fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+                                }
                             }
+                            moveIntoPlace(download, zipped.toPath());
+                        } finally {
+                            Files.deleteIfExists(download);
                         }
                     });
             }
@@ -162,19 +175,50 @@ public abstract class GraalVMReachabilityMetadataService implements BuildService
         if (!explodedEntry.exists()) {
             if (explodedEntry.getParentFile().isDirectory() || explodedEntry.getParentFile().mkdirs()) {
                 LOGGER.info("Extracting {} to {}", localFile, explodedEntry);
-                getFileOperations().copy(spec -> {
-                    if (localFile.getName().endsWith(".zip")) {
-                        spec.from(getArchiveOperations().zipTree(localFile));
-                    } else if (localFile.getName().endsWith(".tar.gz")) {
-                        spec.from(getArchiveOperations().tarTree(localFile));
-                    } else if (localFile.getName().endsWith(".tar.bz2")) {
-                        spec.from(getArchiveOperations().tarTree(localFile));
-                    }
-                    spec.into(explodedEntry);
-                });
+                Path staging;
+                try {
+                    staging = Files.createTempDirectory(explodedEntry.getParentFile().toPath(), "exploded");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    getFileOperations().copy(spec -> {
+                        if (localFile.getName().endsWith(".zip")) {
+                            spec.from(getArchiveOperations().zipTree(localFile));
+                        } else if (localFile.getName().endsWith(".tar.gz")) {
+                            spec.from(getArchiveOperations().tarTree(localFile));
+                        } else if (localFile.getName().endsWith(".tar.bz2")) {
+                            spec.from(getArchiveOperations().tarTree(localFile));
+                        }
+                        spec.into(staging);
+                    });
+                    moveIntoPlace(staging, explodedEntry.toPath());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    getFileOperations().delete(spec -> spec.delete(staging));
+                }
             }
         }
         return newRepositoryFromDirectory(explodedEntry.toPath(), logLevel);
+    }
+
+    /**
+     * Moves a completed download or extraction into the cache. If another process got there first,
+     * its copy is kept. §FS-resources-and-metadata.3.
+     */
+    private static void moveIntoPlace(Path source, Path target) throws IOException {
+        try {
+            try {
+                Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ex) {
+                Files.move(source, target);
+            }
+        } catch (IOException ex) {
+            if (!Files.exists(target)) {
+                throw ex;
+            }
+        }
     }
 
     private FileSystemRepository newRepositoryFromDirectory(Path path, LogLevel logLevel) {
