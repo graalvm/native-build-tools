@@ -3,6 +3,10 @@
 
 == Release 1.1.12
 
+- Enabled Gradle toolchain detection by default. The plugin now automatically uses a Java
+  toolchain when it supplies `native-image`, transparently falling back to `GRAALVM_HOME`,
+  `JAVA_HOME`, or the Gradle JVM otherwise. Set `graalvmNative.toolchainDetection` to `false`
+  to restore the previous behavior.
 - Gradle Native Image executable discovery now distinguishes explicitly configured launchers from
   convention-selected toolchains. Toolchains without `native-image` fall back to `GRAALVM_HOME`,
   `JAVA_HOME`, or the Gradle JVM, while explicit launchers fail with an actionable diagnostic.
